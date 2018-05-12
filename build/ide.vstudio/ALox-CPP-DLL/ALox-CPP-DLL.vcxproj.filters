@@ -1,0 +1,750 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="msvc_files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="alib">
+      <UniqueIdentifier>{89e68b08-2208-4f16-9744-5ffc227793d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\config">
+      <UniqueIdentifier>{4069b20a-de2a-4d03-bc43-08a9007fe5bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\system">
+      <UniqueIdentifier>{66c3d0dc-94a9-4a95-9e86-f022b0a1182d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\threads">
+      <UniqueIdentifier>{4331bcde-f990-4969-9675-760e84493bea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\strings">
+      <UniqueIdentifier>{d7438995-edce-421d-b33b-ba9fd49e76f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\time">
+      <UniqueIdentifier>{e166e740-81d8-435a-8cba-abb9021e767b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\compatibility">
+      <UniqueIdentifier>{c0d27242-d598-4f3d-aa47-f620b3f8efde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\boxing">
+      <UniqueIdentifier>{553730eb-fac5-40b7-ad66-1b83a5ba6d0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang">
+      <UniqueIdentifier>{d72b1954-a969-44a7-a607-384c357a080e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\strings\util">
+      <UniqueIdentifier>{c94c7483-dd94-4fe9-8b87-af42f6b9f987}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\strings\format">
+      <UniqueIdentifier>{424402f1-c7e0-44a0-bdad-c7e2c4528d7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\strings\boxing">
+      <UniqueIdentifier>{567f3a8b-d74b-4624-8f42-129e81eff2c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\debug">
+      <UniqueIdentifier>{7b890037-8348-4e06-af64-575ab0335738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\util">
+      <UniqueIdentifier>{a07a4873-4514-4b05-af72-b3a896ea6e7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\cli">
+      <UniqueIdentifier>{fa725b8c-022c-4ebc-a88d-e9287c1ac69e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\expressions">
+      <UniqueIdentifier>{693234e1-55e0-4e24-bcfc-0271449fbcdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\expressions\detail">
+      <UniqueIdentifier>{3d460504-dfec-4e1a-b4db-95f2b19fa1fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\expressions\plugins">
+      <UniqueIdentifier>{c6dbb5e7-5977-4593-bf29-b211b98fd81e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\alox">
+      <UniqueIdentifier>{f80572d9-94a0-409c-8d8c-f67455a6a6ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\alox\core">
+      <UniqueIdentifier>{00907134-7864-4c41-94d5-79bca0a76479}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\alox\core\textlogger">
+      <UniqueIdentifier>{7f2d51ab-b77a-4f2b-b6d6-fe3eaacedea8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\alox\loggers">
+      <UniqueIdentifier>{eb8e5f3a-b431-40bd-9907-9e2ed0b00b04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\alox\internals">
+      <UniqueIdentifier>{c86a9bfb-cfb7-4dc4-8709-130d927fd18b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h">
+      <Filter>msvc_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\plugins.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\configuration.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\inifile.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\system\directory.hpp">
+      <Filter>alib\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\threads\threadlock.hpp">
+      <Filter>alib\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alib.hpp">
+      <Filter>alib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_string.hpp">
+      <Filter>alib\compatibility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_iostream.hpp">
+      <Filter>alib\compatibility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\system\process.hpp">
+      <Filter>alib\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\variable.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\inmemoryplugin.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\ftypes.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\box.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\boxer.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\interface.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\interface_builtin.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\compatibility\qt.hpp">
+      <Filter>alib\compatibility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\system\environment.hpp">
+      <Filter>alib\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\threads\threadlocknr.hpp">
+      <Filter>alib\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\threads\smartlock.hpp">
+      <Filter>alib\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\boxes.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\tstring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\applicables.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\astring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\cstring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\numberformat.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\preallocatedstring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\string.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\stringliteral.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\substring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\tokenizer.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\autosizes.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\spaces.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\stringtuples.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\formatterstdimpl.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\formatter.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\formatterjavastyle.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\formatterpythonstyle.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\boxing\stringboxing.hpp">
+      <Filter>alib\strings\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\containers\stringtree.hpp">
+      <Filter>alib\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\boxing\debug.hpp">
+      <Filter>alib\strings\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\debug\assert.hpp">
+      <Filter>alib\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\propertyformatter.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\propertyformattermap.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\types.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enum.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enumarithmetical.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enumbitwise.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enumiterators.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enummetadata.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enums.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\exception.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\library.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\ownable.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\prepro.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\report.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resourcedtupleloader.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resources.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\rtti.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\singleton.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\resourcestring.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\enummetadataspec.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\boxing\boxinglib.hpp">
+      <Filter>alib\boxing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\config\configlib.hpp">
+      <Filter>alib\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\stringlib.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\langlib.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\system\systemlib.hpp">
+      <Filter>alib\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\threads\threadlib.hpp">
+      <Filter>alib\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\util\memoryblocks.hpp">
+      <Filter>alib\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\format\simpletext.hpp">
+      <Filter>alib\strings\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\strings.hpp">
+      <Filter>alib\strings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\strings.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\arithmetics.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\autocast.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\calculus.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\dateandtime.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\elvisoperator.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\math.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\scopestring.hpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\virtualmachine.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\ast.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\parser.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\parser_impl.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\program.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\spirit.hpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\scope.hpp">
+      <Filter>alib\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\compiler.hpp">
+      <Filter>alib\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\compilerplugin.hpp">
+      <Filter>alib\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\expression.hpp">
+      <Filter>alib\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\expressions\expressionslib.hpp">
+      <Filter>alib\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\cli\cliutil.hpp">
+      <Filter>alib\cli</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\cli\arguments.hpp">
+      <Filter>alib\cli</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\cli\cliapp.hpp">
+      <Filter>alib\cli</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\cli\clilib.hpp">
+      <Filter>alib\cli</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\wildcardmatcher.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\regexmatcher.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\stringmap.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\subsearch.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\timepointbase.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\calendar.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\datetime.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\stopwatch.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\ticks.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\ticksconverter.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\time\timelib.hpp">
+      <Filter>alib\time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\strings\util\stringio.hpp">
+      <Filter>alib\strings\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\alox_console_loggers.hpp">
+      <Filter>msvc_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\alox.hpp">
+      <Filter>alib\alox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\aloxtypesandenums.hpp">
+      <Filter>alib\alox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\lox.hpp">
+      <Filter>alib\alox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\logtools.hpp">
+      <Filter>alib\alox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\domain.hpp">
+      <Filter>alib\alox\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\scopedump.hpp">
+      <Filter>alib\alox\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\scopeinfo.hpp">
+      <Filter>alib\alox\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\scopestore.hpp">
+      <Filter>alib\alox\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\logger.hpp">
+      <Filter>alib\alox\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\textlogger\plaintextlogger.hpp">
+      <Filter>alib\alox\core\textlogger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\ansilogger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\consolelogger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\memorylogger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\vstudiologger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\textfilelogger.hpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\core\textlogger\textlogger.hpp">
+      <Filter>alib\alox\core\textlogger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\log.hpp">
+      <Filter>alib\alox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\internals\alox_macros.hpp">
+      <Filter>alib\alox\internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox\internals\alox_symbols.hpp">
+      <Filter>alib\alox\internals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alox.hpp">
+      <Filter>alib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ALox-CPP-DLL.cpp">
+      <Filter>msvc_files</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>msvc_files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx_alox.cpp">
+      <Filter>msvc_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\configuration.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\inifile.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\plugins.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\system\directory.cpp">
+      <Filter>alib\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\threads\threadlock.cpp">
+      <Filter>alib\threads</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\compatibility\std_iostream.cpp">
+      <Filter>alib\compatibility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\system\process.cpp">
+      <Filter>alib\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\variable.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\inmemoryplugin.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\boxing\ftypes.cpp">
+      <Filter>alib\boxing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alib.cpp">
+      <Filter>alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\system\environment.cpp">
+      <Filter>alib\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\threads\smartlock.cpp">
+      <Filter>alib\threads</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\applicables.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\astring.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\cstring.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\numberformat.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\substring.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\tstring.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\autosizes.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\spaces.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\tokenizer.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\formatter.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\formatterjavastyle.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\formatterpythonstyle.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\formatterstdimpl.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\boxing\stringboxing.cpp">
+      <Filter>alib\strings\boxing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\boxing\debug.cpp">
+      <Filter>alib\strings\boxing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\debug\assert.cpp">
+      <Filter>alib\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\enummetadata.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\exception.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\library.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\report.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\resources.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\rtti.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\singleton.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\resourcestring.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\boxing\boxinglib.cpp">
+      <Filter>alib\boxing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\config\configlib.cpp">
+      <Filter>alib\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\stringlib.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\langlib.cpp">
+      <Filter>alib\lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\system\systemlib.cpp">
+      <Filter>alib\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\threads\threadlib.cpp">
+      <Filter>alib\threads</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\util\memoryblocks.cpp">
+      <Filter>alib\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\simpletext.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\string.cpp">
+      <Filter>alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\arithmetics.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\autocast.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\calculus.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\dateandtime.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\elvisoperator.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\math.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\strings.cpp">
+      <Filter>alib\expressions\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\ast.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\parser.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\parser_impl.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\program.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\spirit.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\virtualmachine.cpp">
+      <Filter>alib\expressions\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\compiler.cpp">
+      <Filter>alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\expression.cpp">
+      <Filter>alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\expressions\expressionslib.cpp">
+      <Filter>alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\cli\arguments.cpp">
+      <Filter>alib\cli</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\cli\cliapp.cpp">
+      <Filter>alib\cli</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\cli\clilib.cpp">
+      <Filter>alib\cli</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\cli\cliutil.cpp">
+      <Filter>alib\cli</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\wildcardmatcher.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\regexmatcher.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\util\subsearch.cpp">
+      <Filter>alib\strings\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\strings\format\propertyformatter.cpp">
+      <Filter>alib\strings\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\time\calendar.cpp">
+      <Filter>alib\time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\time\timelib.cpp">
+      <Filter>alib\time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\alox.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\aloxtypesandenums.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\lox.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\log.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\logtools.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\lox_getstate.cpp">
+      <Filter>alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\domain.cpp">
+      <Filter>alib\alox\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\scopedump.cpp">
+      <Filter>alib\alox\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\scopeinfo.cpp">
+      <Filter>alib\alox\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\scopestore.cpp">
+      <Filter>alib\alox\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\textlogger\plaintextlogger.cpp">
+      <Filter>alib\alox\core\textlogger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\ansilogger.cpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\consolelogger.cpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\vstudiologger.cpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.cpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\textfilelogger.cpp">
+      <Filter>alib\alox\loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alox\core\textlogger\textlogger.cpp">
+      <Filter>alib\alox\core\textlogger</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\alib\system\directory.mm">
+      <Filter>alib\system</Filter>
+    </None>
+  </ItemGroup>
+</Project>

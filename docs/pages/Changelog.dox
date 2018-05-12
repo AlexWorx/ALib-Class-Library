@@ -1,0 +1,118 @@
+// #################################################################################################
+//  Documentation - ALox Logging Library
+//
+//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_changelog         Change Log
+
+This change log is sorted reversely in respect to chronology.
+
+\~Comment ####################################################################################### \~
+\~Comment #############################       V. 1804 R0     #################################### \~
+\~Comment ####################################################################################### \~
+
+# Version 1805, Revision 0, released May 12th, 2018 #
+
+#### IMPORTANT INFORMATION: New C++ Fork Of ALib: ####
+
+\par
+  The C++ part of multi-language project [ALox Logging Library](http://alexworx.github.io/ALox-Logging-Library/)
+  has been forked into this project. The goal and consequences of this effort are:
+  - Have a repository and website exclusively dedicated to <b>%ALib for C++</b>.
+  - Reverse the library nesting in the C++ Version: \alib here is now the main project, while
+    \alox becomes one \alibmod.
+  - Decouple the development and roadmaps of future \alib modules from <c>Java</c> and <c>C#</c>
+    language versions of \alib/\alox.
+
+#### General: ####
+With the decoupling of the C++ version, the whole project structure has changed.
+This reaches from directory names to the CMake and IDE-specific project files provided.
+
+These changes are not listed in detail here.
+Instead, for information about building this new version, users of previous versions should
+read manual section \ref alib_man_setup and start "from scratch".
+
+Support for preconfigured QTCreator project files was dropped.
+
+
+#### Macros: ####
+- Renamed macro \b %ALIB_SRCPOS_REL_EMPTY to \ref ALIB_CALLER_PRUNED and
+- Renamed macro \b %ALIB_SRCPOS_REL_NULLED to \ref ALIB_CALLER_NULLED.
+- Renamed macro \b %ALIB_OWN to \ref ALIB_OWN.
+- Renamed macro \b %LOCK_HERE to \ref ALIB_LOCK.
+- Renamed macro \b %LOCK_HERE_WITH to \ref ALIB_LOCK_WITH.
+- Added macro  \ref ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS.
+
+#### Module Core: ####
+- Removed virtual base class \b %Ownable. Instead, class \alib{lang,Owner} now is templated.
+  This allowed several classes to be non-virtual, for example \alib{threads,ThreadLock} or
+  \alox{Lox}.
+- Added method \alib{threads,ThreadLock::Owner}.
+- Renamed method \b %DbgCountAcquirements to \alib{threads,ThreadLock::CountAcquirements}, removed
+  its former parameter. The former behaviour can be accomplished using by comparing result of
+  new method \alib{threads,ThreadLock::Owner} with \alib{threads,Threads::CurrentThread}.
+- Fixed infinite recursion with method \alib{lang,Enum::IsType}.
+- Added class \alib{system,Console}.
+- Overhauled class \alib{util,MemoryBlocks}. More changes to be expected in future
+  versions.
+- Introduced \alib{util,StringTreeBlockAllocator} and made class \alib{util,StringTree}
+  be able to use it. This allows very memory efficient allocations with \b %StringTree in
+  appropriate use cases.
+
+
+#### Module Strings: ####
+
+- The underlying character type of all string classes became a template type.
+  This lead to a complete overhaul of almost every type in namespace #aworx::lib::strings.
+  The changes of code are so dramatic that they can not be listed here completely.
+  Nevertheless, user code should not be effected very much, because the now templated types have
+  alias names that correspond to the former, non-templated types!
+- Added virtual method \alib{strings::format,FormatterBase::Clone}.
+- Removed static methods \b %Formatter::AcquireDefault and \b %Formatter::ReleaseDefault.
+  Instead, a shared pointer holding a \b %Formatter object is available with
+  \alib{strings,Strings::GetDefaultFormatter}.<br>
+  The feature of resetting the default formatter with former method \b %Formatter::ReleaseDefault
+  was moved to now overloaded method \alib{strings::format,FormatterBase::Acquire,Formatter::Acquire}
+  and therefore is now available more generally to all formatters.
+- Added compatibility with C++ 17 standard type \c std_string_view.
+
+#### Module ALox: ####
+
+As explained above, \alibmod_alox has been made a module of \alib. (Before this release, the
+relationship was quite reverse: \alib then was the "underlying utility library" of \alox).<br>
+With this, the namespace of \alox types has been renamed (moved) as well: from former \b "aworx::lox" to
+\ref aworx::lib::lox.
+
+Furthermore, used new allocation mechanics of class \b %StringTree to efficiently allocate
+internal data in respect to the "language scopes" of \alox.
+
+#### Module Expressions: ####
+
+This release introduces new module \alibmod_expressions.
+
+#### Module CLI: ####
+
+This release introduces new module \alibmod_cli. However the programmer's manual of that module was
+not written, yet. Due to the lack of documentation, we can not really recommend to use this module.
+As we are using it with other projects already, the code itself is considered stable and tested.
+
+
+
+
+\~Comment ####################################################################################### \~
+\~Comment #############################        Older         #################################### \~
+\~Comment ####################################################################################### \~
+
+# Older Versions #
+
+
+All previous versions have been maintained as a part of <b>multi-language project</b>
+[ALox Logging Library](http://alexworx.github.io/ALox-Logging-Library/).
+
+Please consult this project's [Change-Log](http://alexworx.github.io/ALox-Logging-Library/changelog.html)
+for information on changes since the initial release in May 2013.
+
+*/

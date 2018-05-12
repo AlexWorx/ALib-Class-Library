@@ -1,0 +1,79 @@
+// #################################################################################################
+//  Documentation - ALox Logging Library
+//
+//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_man_module_core   Module "Core"
+
+## Not A "Real" Module ##
+Modularization of a class library is not always 100% possible (or the effort is sometimes not worth the cost).
+Therefore, some of the basic, core classes can not be well assigned to a single
+\alibmod_nolink. They are included in the distribution as soon as other modules that need these
+classes are selected. The other way round, it is furthermore not documented too well, which of the
+low level \alib modules, and which of each other, these "core classes" depend upon.
+
+Now, to be able to select all of these classes (to become included in an \alib distribution,
+respectively to become known to the build system), module \alibmod_nolink_core was defined.
+In other words: This \alib module does not provide specific extra functionality, but virtually
+gives a home to otherwise unassigned \alib classes.
+
+## Namespace List ##
+When \alibmod_nolink_core is selected, all types of the following namespaces are included in the
+build:
+
+- \ref aworx::lib::debug
+- \ref aworx::lib::lang
+- \ref aworx::lib::util
+- \ref aworx::lib::threads
+- \ref aworx::lib::time
+- \ref aworx::lib::system
+
+In addition, \alibmod_nolink_core selects modules \alibmod_singleton, \alibmod_boxing and \alibmod_strings,
+which some of the classes depend upon.
+
+\note
+  The only module, apart from the three named above, that does not depend on this module is
+  \alibmod_config, which selects only certain types from the namespaces listed above.
+  All "higher" modules (\alibmod_alox, \alibmod_expressions, \alibmod_cli, etc.)
+  will select this module to be included.
+
+## Selected Types ##
+
+The complete reference documentation of all the types are found with the list of namespaces
+given above. Nevertheless, some of the types should be highlighted here:
+
+- Class \alib{lang,Exception}, which implements a combination of two different paradigms of
+  exception handlíng.
+
+- Various tools to <b>extend the features of C++ 11 enumerations</b> (which are quite limited otherwise).
+  This includes some template meta programming and other tricks, implemented with types
+  \alib{lang,Enum},
+  \alib{lang,EnumMetaData},
+  \alib{lang,T_EnumIsArithmetical},
+  \alib{lang,T_EnumIsBitwise},
+  \alib{lang,T_EnumIsIteratable} and related types and functions.
+
+- Class \alib{lang,Resources}, which externalizes strings (while being able to adopt to a
+  different, 3rd party system).
+
+- Class \alib{lang,Library}, which allows to share resources between libraries and organizes their
+  bootstrap process.
+
+- Classes \alib{threads,ThreadLockNR}, \alib{threads,ThreadLock} and \alib{threads,SmartLock}
+  and corresponding tool class \alib{lang,Owner} which are simple wrappers for functionality
+  around \c std::mutex.
+
+- Class \alib{time,Ticks} and sibling types of namespace \b %time, which wrap and simplify
+  functionality of namespace \c std::chrono.
+
+- Class \alib{util,MemoryBlocks}, which allows to perform efficient memory allocations "en bloc".
+
+- Class \alib{util,StringTree}, which is a generic container class, dedicated to store data
+  along "string paths", similar to file systems addressing schemes.
+
+*/
+
+

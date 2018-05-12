@@ -1,0 +1,323 @@
+﻿// #################################################################################################
+//  aworx::lib::lox - ALox Logging Library
+//
+//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+// needed for Doxygen include
+/// @file
+
+#ifndef HPP_ALOX_TYPES_AND_ENUMS
+#define HPP_ALOX_TYPES_AND_ENUMS 1
+
+
+
+namespace aworx { namespace lib { namespace lox {
+
+/** ************************************************************************************************
+ * This enum is used in \alox to control the 'verbosity' or 'verboseness' of the log output.
+ * The values herein - apart from special value 'Off' - are sorted in the following order
+ * - Verbose (highest level)
+ * - Info
+ * - Warning
+ * - Error (lowest level).
+ *
+ * A value of this set is provided to \alox in two different ways:
+ * First, all methods of class \ref aworx::lib::lox::Lox "Lox" that execute a log operation
+ * assign a value of this enum to the <em>Log Statement</em>. Secondly, methods
+ * \ref aworx::lib::lox::Lox::SetVerbosity "Lox::SetVerbosity", are defining the 'accepted' \e minimal
+ * \e Verbosity for a pair of <em>\<Logger/%Log Domain\></em>.
+ *
+ * \alox, when executing a statement, checks both values against each other. A <em>Log Statement</em>
+ * is executed, when the <em>\<Logger/%Log Domain\></em> setting is set to the same or a 'higher level'.
+ * For example if a <em>\<Logger/%Log Domain\></em> setting is \b %Warning, then <em>Log Statements</em>
+ * with associated \e %Verbosity \b %Warning and \b %Error are executed and those with \b %Info and
+ * \b %Verbose are suppressed.
+ *
+ * If special value \b %Off is used with \ref aworx::lib::lox::Lox::SetVerbosity "Lox::SetVerbosity",
+ * all logging is switched Off for this pair of <em>\<Logger/%Log Domain\></em>.
+ *
+ * Some of the <em>Log Statements</em> accept the parameter directly (e.g.
+ * \ref aworx::lib::lox::Lox::Entry "Lox::Entry",
+ * \ref aworx::lib::lox::Lox::Once  "Lox::Once" and
+ * \ref aworx::lib::lox::Lox::If "Lox::If"), others inherently use the right value as their method
+ * name suggests (e.g.
+ * \ref aworx::lib::lox::Lox::Error      "Lox::Error",
+ * \ref aworx::lib::lox::Lox::Warning    "Lox::Warning",
+ * \ref aworx::lib::lox::Lox::Info       "Lox::Info",
+ * \ref aworx::lib::lox::Lox::Verbose    "Lox::Verbose" and
+ * \ref aworx::lib::lox::Lox::Assert     "Lox::Assert"). The latter group of methods do not support
+ * parameter \b %Off.
+ *
+ * If special value \b %Off is used with those <em>Log Statements</em>, that allow to specify the \e %Verbosity
+ * as a parameter, the <em>Log Statement</em> is never executed This is useful if the parameter is
+ * determined at runtime, depending on the state of an application.
+ **************************************************************************************************/
+enum class Verbosity
+{
+    /**
+     * The 'highest' level of \e %Verbosity.
+     * Statements with this value associated are logged only if a <em>%Log Domain</em> is set to \b %Verbose as well.
+     */
+    Verbose,
+
+    /**
+     * The standard \e Verbosity for normal log output statements.
+     * Logged if a <em>%Log Domain</em> is set to \b %Info or \b %Verbose.
+     */
+    Info,
+
+    /**
+     * A \e Verbosity for warning messages, hence things that might lead to errors or are not
+     * welcome for other reasons, but maybe are not errors.<br>
+     * Logged if a <em>%Log Domain</em> is set to \b %Warning, \b %Info or \b %Verbose.
+     */
+    Warning,
+
+    /**
+     * A \e Verbosity for error messages.
+     * It is suppressed only if a <em>%Log Domains'</em> setting is \b %Off.
+     */
+    Error,
+
+    /**
+     * Statements with this value associated are never logged (useful if \e %Verbosity is
+     * evaluated at runtime). <em>%Log Domains</em> with this setting do not execute any
+     * <em>Log Statement</em>.
+     */
+    Off
+};
+
+
+/** ************************************************************************************************
+ * These are definitions which are used as a parameter to certain \alox methods to denote
+ * the \e Scope of a setting. \e Scopes are dependent of the programming language
+ * and hence differ slightly from each other in the different versions of \alox.
+ *
+ * This enumeration is an \alib{lang,T_EnumIsArithmetical,ALib arithmetical enum}. However,
+ * the addition of values is only allowed with the last element, \b Path. By adding integer
+ * values, the Nth parent directory of a source files' location are addressed. As an example,
+ * invocations like this are used to select the source directory two levels above the source
+ * code file for a prefix scope:
+ *
+ *      lox->SetPrefix( "#> ", Scope::Path + 2 );
+ *
+ * \note
+ *   \alox for C++ implements scope mechanisms using scope information generated by the
+ *   preprocessor.
+ *   By default, debug logging supports such 'caller information', while release logging
+ *   does not.<br>
+ *   Therefore, in release-logging, the use of \e Scopes 'Path', 'Filename' and
+ *   'Method' will just default to an empty scope and therefore the all reflect the same,
+ *   shared scope, which is not very helpful. Therefore, for standard release logging,
+ *   the use of the scope mechanisms should be be avoided, unless scope information is
+ *   explicitly enabled.<br>
+ *   For more information on how to change the defaults, see \ref ALOX_DBG_LOG_CI and
+ *   \ref ALOX_REL_LOG_CI in section \ref GrpALibCodeSelectorSymbols.
+ *   For more information on \e Scopes consult the [ALox user manual](../manual.html).
+ **************************************************************************************************/
+enum class Scope
+{
+    /// Denotes the global (singleton) scope
+    Global,
+
+    /**
+     * Denotes the actual thread as the scope. When used with <em>Scope Domains</em>,
+     * 'inner' scopes can be defined optionally by multiple definitions.
+     */
+    ThreadOuter,
+
+    /// Denotes the actual source file as the scope
+    Filename,
+
+    /// Denotes the actual method as the scope
+    Method,
+
+    /** Denotes the actual thread as the scope. When used with <em>Scope Domains</em>,
+     *   'inner' scopes can be defined optionally by multiple definitions.              */
+    ThreadInner,
+
+    /**
+     * Denotes the actual source path as the scope. By adding positive integer values
+     * to this element (the enum type is an \alib{lang,T_EnumIsArithmetical,ALib arithmetical enum}),
+     * 'outer' \e Scopes of this scope level itself can be defined using parent directories
+     * of the path.
+     */
+    Path
+};
+
+
+/** ************************************************************************************************
+ * This class defines "escape sequences" that influence the formatting of log output.
+ * Specific implementations of class
+ * \ref aworx::lib::lox::core::Logger "Logger"
+ * have to convert or interpret this classes definitions of escape sequences
+ * when processing log data. If no formatting of the output is supported by a specific Logger
+ * implementation, such logger should filter and discard escape sequences defined here.
+ *
+ * The sequences are similar to ANSI Escape sequences and logger classes that
+ * log to 'VT100' compatible terminals will simply convert them.
+ *
+ * The name of the class was intentionally chosen to be short, because the escape codes
+ * defined with this class will be concatenated to log strings like that:
+ *
+ * \snippet "ut_dox_manual.cpp"     DOX_ALOX_ESC
+ *
+ * \note
+ *   With the introduction of own, \alox specific escape codes, software that uses ALox becomes
+ *   independent from any underlying, platform-specific sequences. For example, \alox is not relying
+ *   on ANSI color codes, which are not supported by colorful Windows consoles. Instead, on each
+ *   platform, dedicated Loggers will perform the translation of \alox codes to platform-specific
+ *   ones.
+**************************************************************************************************/
+class ESC
+{
+    public:
+    #if defined(_MSC_VER)
+    // MSC  (as of 12/2015):
+    // C4579: in-class initialization for type 'const aworx::SLiteral<10>'
+    // is not yet implemented; static member will remain uninitialized at runtime but
+    // use in constant-expressions is supported
+
+    ALIB_API static     SLiteral<3>  RED                    ; ///< Select red color for foreground.
+    ALIB_API static     SLiteral<3>  GREEN                  ; ///< Select green color for foreground.
+    ALIB_API static     SLiteral<3>  YELLOW                 ; ///< Select yellow color for foreground.
+    ALIB_API static     SLiteral<3>  BLUE                   ; ///< Select blue color for foreground.
+    ALIB_API static     SLiteral<3>  MAGENTA                ; ///< Select magenta color for foreground.
+    ALIB_API static     SLiteral<3>  CYAN                   ; ///< Select cyan color for foreground.
+    ALIB_API static     SLiteral<3>  BLACK                  ; ///< Select black color for foreground.
+    ALIB_API static     SLiteral<3>  WHITE                  ; ///< Select white color for foreground.
+    ALIB_API static     SLiteral<3>  GRAY                   ; ///< Select gray color for foreground.
+    ALIB_API static     SLiteral<3>  FG_RESET               ; ///< Select std color for foreground.
+
+    ALIB_API static     SLiteral<3>  BG_RED                 ; ///< Select red color for background.
+    ALIB_API static     SLiteral<3>  BG_GREEN               ; ///< Select green color for background.
+    ALIB_API static     SLiteral<3>  BG_YELLOW              ; ///< Select yellow color for background.
+    ALIB_API static     SLiteral<3>  BG_BLUE                ; ///< Select blue color for background.
+    ALIB_API static     SLiteral<3>  BG_MAGENTA             ; ///< Select blue color for background.
+    ALIB_API static     SLiteral<3>  BG_CYAN                ; ///< Select blue color for background.
+    ALIB_API static     SLiteral<3>  BG_BLACK               ; ///< Select red color for background.
+    ALIB_API static     SLiteral<3>  BG_WHITE               ; ///< Select blue color for background.
+    ALIB_API static     SLiteral<3>  BG_GRAY                ; ///< Select gray color for background.
+    ALIB_API static     SLiteral<3>  BG_RESET               ; ///< Select std color for background.
+
+    ALIB_API static     SLiteral<3>  BOLD                   ; ///< Select bold font style.
+    ALIB_API static     SLiteral<3>  ITALICS                ; ///< Select italics font style.
+    ALIB_API static     SLiteral<3>  STYLE_RESET            ; ///< Select standard font style.
+    ALIB_API static     SLiteral<3>  RESET                  ; ///< Reset color and style.
+
+    ALIB_API static     SLiteral<3>  URL_START              ; ///< Mark the start of an URL.
+    ALIB_API static     SLiteral<3>  URL_END                ; ///< Mark the end of an URL.
+    ALIB_API static     SLiteral<3>  TAB                    ; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
+
+    ALIB_API static     SLiteral<3>  EOMETA                 ; ///< End of meta information in log string
+
+    #else
+    static constexpr    SLiteral<3>  RED        { ASTR("\033c0") }; ///< Select red color for foreground.
+    static constexpr    SLiteral<3>  GREEN      { ASTR("\033c1") }; ///< Select green color for foreground.
+    static constexpr    SLiteral<3>  YELLOW     { ASTR("\033c2") }; ///< Select yellow color for foreground.
+    static constexpr    SLiteral<3>  BLUE       { ASTR("\033c3") }; ///< Select blue color for foreground.
+    static constexpr    SLiteral<3>  MAGENTA    { ASTR("\033c4") }; ///< Select magenta color for foreground.
+    static constexpr    SLiteral<3>  CYAN       { ASTR("\033c5") }; ///< Select cyan color for foreground.
+    static constexpr    SLiteral<3>  BLACK      { ASTR("\033c6") }; ///< Select black color for foreground.
+    static constexpr    SLiteral<3>  WHITE      { ASTR("\033c7") }; ///< Select white color for foreground.
+    static constexpr    SLiteral<3>  GRAY       { ASTR("\033c8") }; ///< Select gray color for foreground.
+    static constexpr    SLiteral<3>  FG_RESET   { ASTR("\033c9") }; ///< Select std color for foreground.
+
+    static constexpr    SLiteral<3>  BG_RED     { ASTR("\033C0") }; ///< Select red color for background.
+    static constexpr    SLiteral<3>  BG_GREEN   { ASTR("\033C1") }; ///< Select green color for background.
+    static constexpr    SLiteral<3>  BG_YELLOW  { ASTR("\033C2") }; ///< Select yellow color for background.
+    static constexpr    SLiteral<3>  BG_BLUE    { ASTR("\033C3") }; ///< Select blue color for background.
+    static constexpr    SLiteral<3>  BG_MAGENTA { ASTR("\033C4") }; ///< Select blue color for background.
+    static constexpr    SLiteral<3>  BG_CYAN    { ASTR("\033C5") }; ///< Select blue color for background.
+    static constexpr    SLiteral<3>  BG_BLACK   { ASTR("\033C6") }; ///< Select red color for background.
+    static constexpr    SLiteral<3>  BG_WHITE   { ASTR("\033C7") }; ///< Select blue color for background.
+    static constexpr    SLiteral<3>  BG_GRAY    { ASTR("\033C8") }; ///< Select gray color for background.
+    static constexpr    SLiteral<3>  BG_RESET   { ASTR("\033C9") }; ///< Select std color for background.
+
+    static constexpr    SLiteral<3>  BOLD       { ASTR("\033sB") }; ///< Select bold font style.
+    static constexpr    SLiteral<3>  ITALICS    { ASTR("\033sI") }; ///< Select italics font style.
+    static constexpr    SLiteral<3>  STYLE_RESET{ ASTR("\033sr") }; ///< Select standard font style.
+    static constexpr    SLiteral<3>  RESET      { ASTR("\033sa") }; ///< Reset color and style.
+
+    static constexpr    SLiteral<3>  URL_START  { ASTR("\033lS") }; ///< Mark the start of an URL.
+    static constexpr    SLiteral<3>  URL_END    { ASTR("\033lE") }; ///< Mark the end of an URL.
+    static constexpr    SLiteral<3>  TAB        { ASTR("\033t0") }; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
+
+    static constexpr    SLiteral<3>  EOMETA     { ASTR("\033A0") }; ///< End of meta information in log string
+
+    #endif
+
+    /** ********************************************************************************************
+     * Replaces ESC codes in a string reversely to "ESC::XXX".
+     * @param target   The string to replace in.
+     * @param startIdx The index to start searching for ESC codes.
+     **********************************************************************************************/
+    ALIB_API
+    static void ReplaceToReadable( AString& target, integer startIdx );
+};
+
+}} // namespace aworx[::lib::lox]
+
+/// Type alias in namespace #aworx.
+using     ESC=           aworx::lib::lox::ESC;
+
+/// Type alias in namespace #aworx.
+using     Verbosity=     aworx::lib::lox::Verbosity;
+
+/// Type alias in namespace #aworx.
+using     Scope=         aworx::lib::lox::Scope;
+
+}  // namespace aworx
+
+ALIB_LANG_ENUM_PARSABLE( aworx::lib::lox::Verbosity )
+ALIB_LANG_RESOURCED(     aworx::lib::lox::Verbosity, aworx::lib::ALOX, ASTR("Verbosity") )
+ALIB_LANG_ENUM_PARSABLE( aworx::lib::lox::Scope     )
+ALIB_LANG_RESOURCED(     aworx::lib::lox::Scope    , aworx::lib::ALOX, ASTR("Scope") )
+
+ALIB_LANG_ENUM_IS_ARITHMETICAL( aworx::lib::lox::Scope     )
+
+//! @cond NO_DOX
+namespace aworx { namespace lib { namespace strings
+{
+    // Implementation of T_Apply for enum type Scope
+    template<> struct       T_Apply<Scope,character> : public std::true_type
+    {
+        static inline integer Apply( AStringBase<character>& target, const Scope src )
+        {
+            Scope scope= src;
+            int pathLevel= EnumValue( scope - Scope::Path );
+            if(pathLevel > 0 )
+                scope= Scope::Path;
+
+            auto& enumMetaData= *EnumMetaData<Scope>::GetSingleton();
+            enumMetaData.CheckLoad();
+            target << ASTR("Scope::") << std::get<1>(*enumMetaData.Get( scope ) );
+
+            if( pathLevel > 0 )
+                target << '+' << pathLevel;
+
+            return 1;
+        }
+    };
+
+    // Implementation of T_Apply for pairs of Verbosity and Priorities
+    template<> struct       T_Apply<std::pair<Verbosity, Priorities>,character> : public std::true_type
+    {
+        static inline integer Apply( AStringBase<character>& target, std::pair<Verbosity, Priorities>& src )
+        {
+            target._( Format::Field( src.first, 7, Alignment::Left) );
+            target._( '(' )._( src.second );
+            target.InsertAt( ASTR(")"), target.LastIndexOfAny<Inclusion::Exclude>( DefaultWhitespaces )  + 1 );
+
+            return 1;
+        }
+    };
+
+
+}}}
+
+//! @endcond
+
+#endif // HPP_ALOX_TYPES_AND_ENUMS
