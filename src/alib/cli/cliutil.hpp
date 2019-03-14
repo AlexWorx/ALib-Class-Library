@@ -1,37 +1,21 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CLI_CLIUTIL)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CLI_CLIUTIL
-//! @cond NO_DOX
 #define HPP_ALIB_CLI_CLIUTIL 1
-//! @endcond
 
 #if !defined (HPP_ALIB_CLI_CLIAPP)
 #   include "alib/cli/cliapp.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGS_FORMAT_SIMPLETEXT)
-#   include "alib/strings/format/simpletext.hpp"
+#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
+#   include "alib/stringformat/text.hpp"
 #endif
 
-namespace aworx {
-namespace lox { class Lox; }
-
-namespace lib { namespace cli {
+namespace aworx { namespace lib { namespace cli {
 
 /** ************************************************************************************************
  * This is a friend class of \alib{cli,CLIApp} that exposes a collection of utility methods
@@ -120,11 +104,12 @@ class CLIUtil
 
     /** ********************************************************************************************
      * Returns an AString providing a formatted help text on the defined command.
+     * @param cliApp       The CLI application.
      * @param commandDecl  The declaration of the command to get help on.
      * @return The help text.
      **********************************************************************************************/
     static ALIB_API
-    AString         GetCommandUsageFormat( CommandDecl& commandDecl );
+    AString         GetCommandUsageFormat( CLIApp& cliApp, CommandDecl& commandDecl );
 
 
     /** ********************************************************************************************
@@ -140,34 +125,40 @@ class CLIUtil
      * @return The exit code to return to the caller. \c -1, if not found.
      **********************************************************************************************/
     static ALIB_API
-    int             GetExitCode( CLIApp& cliApp, Exception& exception )
+    integer       GetExitCode( CLIApp& cliApp, Exception& exception )
     {
-        auto element= exception.Code().Get<lib::cli::Exceptions>();
+        auto element= exception.Type().Get<lib::cli::Exceptions>();
         for( auto& exitCode : cliApp.ExitCodeDecls )
             if( exitCode.second.AssociatedCLIException() == element )
-                return exitCode.second.EnumBox.Value();
+                return exitCode.second.ID.Value();
         ALIB_ERROR( "No exit code associated with {}.", element );
         return -1;
     }
 
     /** ********************************************************************************************
      * Creates a help text from the resource strings.
-     * If no argument is set in \p{helpOpt}, the next argument is peeked and checked to be a command,
-     * option, parameter or special help topic found in resource string "HlpAddnlTopics".
      *
-     * If found, the argument is consumed and stored in \p{dryOpt}.
-     * If not, the general help is performed.
+     * This method accepts either a command object or an option object that the CLI application
+     * uses to process help requests. Only one of the objects has to be provided, the other
+     * has to be \c nullptr.
+     *
+     * If no argument is set in \p{helpCmd} (respectively \p{helpOpt}), the next argument is peeked
+     * and checked to be a command, option, parameter or special help topic found in resource
+     * string "HlpAddnlTopics".
+     *
+     * If found, the argument is consumed and stored in \p{helpCmd} (respectively \p{helpOpt}).
+     * If not, the general help text is generated.
      *
      * @param cliApp    The application object.
+     * @param helpCmd   The command to write the help text for.
      * @param helpOpt   The option to write the help text for.
      * @param text      The target text.
-     * @param lox       A \alox object to log information about processing the help command.
      * @return \c true on success. \c false if an argument was given that is not recognized or
      *         if a topic list was found in the next argument where only some of the topics
      *         could be identified.
      **********************************************************************************************/
     static ALIB_API
-    bool GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, lox::Lox& lox );
+    bool GetHelp( CLIApp& cliApp, Command* helpCmd, Option* helpOpt, Text& text );
 
     /** ********************************************************************************************
      * Read dry-run options. This utility method accepts options as given with enumeration
@@ -196,7 +187,7 @@ class CLIUtil
      *         debugging threads :-)
      **************************************************************************************************/
     static ALIB_API
-    AString&     DumpDeclarations( CLIApp& cliApp, SimpleText& text );
+    AString&     DumpDeclarations( CLIApp& cliApp, Text& text );
 
     /** ********************************************************************************************
      * Write in human readable form, which commands and options have been read from the
@@ -216,7 +207,7 @@ class CLIUtil
      *          (Beware of concurrent debugging threads :-)
      **************************************************************************************************/
     static ALIB_API
-    AString&     DumpParseResults( CLIApp& cliApp, SimpleText& text );
+    AString&     DumpParseResults( CLIApp& cliApp, Text& text );
 };
 
 }} // namespace lib::system
@@ -225,7 +216,7 @@ class CLIUtil
 using     CLIUtil=           aworx::lib::cli::CLIUtil;
 
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 
 

@@ -1,15 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_SCOPESTRING
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_SCOPESTRING
 
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
-#   include "../scope.hpp"
+#   include "alib/expressions/scope.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
@@ -19,7 +18,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * to allocate string data returned as (intermediate) expression result.
  *
  * Optional constructors allow to copy a source string or alternatively (any) boxed value.
- * (Boxes provided need to have implemented boxing interface \alib{strings::boxing,IApply}.).
+ * (Boxes provided need to have implemented box-function \alib{boxing,FAppend}.).
  * The additional size needed besides optional copy data has to be known at the creation of the
  * string. A \b %ScopeString must not exceed its capacity after creation. Doing so, results in a
  * memory leak, as the string will not be properly destructed.
@@ -30,7 +29,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *  of \e 'true' \b %AString objects, e.g. stored in a vector of pointers which are deleted
  *  upon clearing of the scope.
  **************************************************************************************************/
-class ScopeString : public strings::AStringBase<character>
+class ScopeString : public strings::TAString<character>
 {
     public:
 
@@ -40,7 +39,7 @@ class ScopeString : public strings::AStringBase<character>
      * @param capacity  The capacity of the of the string.
      */
     ScopeString( Scope& scope, integer capacity )
-    : strings::AStringBase<character>( scope.Memory.AllocArray<character>( static_cast<size_t>(capacity + 1) ) ,
+    : strings::TAString<character>( scope.Memory.AllocArray<character>( static_cast<size_t>(capacity + 1) ) ,
                                                                                                capacity + 1 )
     {}
 
@@ -51,32 +50,32 @@ class ScopeString : public strings::AStringBase<character>
      * @param src       The source string to copy.
      * @param additionalCapacity The extra capacity to allocate
      */
-    ScopeString( Scope& scope, const strings::StringBase<character>& src, integer additionalCapacity )
-    : strings::AStringBase<character>( scope.Memory.AllocArray<character>( src.Length() + additionalCapacity + 1),
-                                                                           src.Length() + additionalCapacity + 1 )
+    ScopeString( Scope& scope, const strings::TString<character>& src, integer additionalCapacity )
+    : strings::TAString<character>( scope.Memory.AllocArray<character>( src.Length() + additionalCapacity + 1),
+                                                                        src.Length() + additionalCapacity + 1 )
     {
-        strings::StringBase<character>::length= src.CopyTo( strings::StringBase<character>::vbuffer );
+        strings::TString<character>::length= src.CopyTo( strings::TString<character>::vbuffer );
     }
 
     /**
      * Returns a string with contents of the given \p{box} written at the start (using boxing
-     * interface \alib{strings::boxing,IApply}) and the given additional capacity.
+     * interface \alib{boxing,FAppend}) and the given additional capacity.
      * @param scope              The scope to allocated data with.
      * @param additionalCapacity Additional capacity to allocate in \p{scope}.
      * @param value              A boxed object to write to the start of the string.
      */
     ScopeString( Scope& scope, integer additionalCapacity, const Box& value)
-    : strings::AStringBase<character>()
+    : strings::TAString<character>()
     {
-        strings::PreallocatedStringBase<character,128> tmp;
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( tmp, ReplaceExternalBuffer )
+        LocalString<256> tmp;
+        tmp.DbgDisableBufferReplacementWarning();
         tmp << value;
 
-        strings::AStringBase<character>::SetBuffer( scope.Memory.AllocArray<character>( tmp.Length() + additionalCapacity + 1 ),
-                                                                                        tmp.Length() + additionalCapacity + 1  ,
-                                                    tmp.Length(), lang::Responsibility::KeepWithSender );
+        SetBuffer( scope.Memory.AllocArray<character>( tmp.Length() + additionalCapacity + 1 ),
+                                                       tmp.Length() + additionalCapacity + 1  ,
+                                                       tmp.Length(), Responsibility::KeepWithSender );
 
-        tmp.CopyTo( strings::StringBase<character>::vbuffer );
+        tmp.CopyTo( strings::TString<character>::vbuffer );
     }
 };
 
@@ -90,12 +89,22 @@ using      ScopeString=    aworx::lib::expressions::plugins::ScopeString;
 
 
 // allow boxing for Scope string
-namespace aworx { namespace lib { namespace boxing  {
-ALIB_BOXING_SPECIALIZE_CB( aworx::lib::expressions::plugins::ScopeString, character, true,     false )
-inline void   T_Boxing<aworx::lib::expressions::plugins::ScopeString>::Boxing( Box& box, const aworx::lib::expressions::plugins::ScopeString& value )
+#if !ALIB_DOCUMENTATION_PARSER
+
+namespace aworx { namespace lib { namespace characters {
+template<>
+struct  T_CharArray<expressions::plugins::ScopeString, character>
 {
-    T_Boxing<strings::StringBase<character>>::Boxing( box, const_cast<strings::StringBase<character>&>(static_cast<const strings::StringBase<character>&>( value ) ) );
-}
+    static        constexpr AccessType       Access       = AccessType::Implicit;
+    static inline constexpr const character* Buffer(const expressions::plugins::ScopeString& src)  { return src.Buffer(); }
+    static inline constexpr integer          Length(const expressions::plugins::ScopeString& src)  { return src.Length(); }
+
+    static        constexpr ConstructionType Construction = ConstructionType::NONE;
+};
 }}}
 
+
+#endif // !ALIB_DOCUMENTATION_PARSER
+
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_SCOPESTRING
+

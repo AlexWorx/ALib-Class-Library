@@ -1,41 +1,36 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
+#ifndef HPP_ALIB_TIME_TIMEPOINTBASE
+#define HPP_ALIB_TIME_TIMEPOINTBASE 1
 
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_TIME_TIMEPOINT)
-    #error "Header already included"
+#if !defined(HPP_ALIB_LIB_COMMONENUMS)
+#   include "alib/lib/commonenums.hpp"
 #endif
 
-// then, set include guard
-#ifndef HPP_ALIB_TIME_TIMEPOINT
-//! @cond NO_DOX
-#define HPP_ALIB_TIME_TIMEPOINT 1
-//! @endcond
+#if !defined(HPP_ALIB_LIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
+#endif
 
-#if !defined (HPP_ALIB_TIME_LIB)
-#   include "alib/time/timelib.hpp"
+
+#if !defined (_GLIBCXX_CHRONO) && !defined (_CHRONO_)
+    #include <chrono>
 #endif
 
 #if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
     #include <cmath>
 #endif
 
-
 namespace aworx { namespace lib { namespace time {
 
 /** ************************************************************************************************
- * As explained in detail in the documentation of namespace \ref #aworx::lib::time, \alib
- * supports a steady time model with class \alib{time,Ticks} and one representing the
- * system clock with class \alib{time,DateTime}. Both types share this template class
- * as their generic base.
+ * As explained in detail in the documentation of module \alibmod_time, a steady time model is
+ * supported with class \alib{time,Ticks} and a non-steady one representing the system clock with
+ * class \alib{time,DateTime}.
+ * Both types share this template class as their generic base.
  *
  * The common features that this class provides to its descendants are:
  * - Type definition #TTimePoint used to store a point in time.
@@ -43,21 +38,27 @@ namespace aworx { namespace lib { namespace time {
  *   standard type \c std::chrono::time_point.
  * - Inner class \alib{time::TimePointBase,Duration} that represents the difference type of this
  *   class.
- * - Static method #Now which create an instance representing the current point in time.
- * - Various overloaded arithmetic and comparison operators.
+ * - Static method #Now which creates an instance representing the current point in time.
  * - Methods #Age and #Since.
+ * - Various overloaded arithmetic and comparison operators.
  *
  * \note
  *   The resolution and accuracy of the values is platform dependent. Especially nanoseconds are
- *   deemed to be not accurate and above 100 ns (this was written and fact in 2013, reviewed 2018).
+ *   deemed to be inaccurate if below several hundreds (this was written and fact in 2013,
+ *   reviewed 2019).
  *
  * \attention
- *   The dates storable in objects of this class is limited to a certain time range. In the
- *   current GNU/Linux and Windows implementations the range is roughly <c>+-292.27</c> years before
- *   and after the point in time that the system that the software is running on was initialized
- *   (booted). This value results from dividing <c>2⁶63 bit</c> by the number of nanoseconds of
- *   one year of 365.25 days and the fact that internal, system dependent ticks counters are reset
- *   to \c 0 with the boot of a system.
+ *   The dates storable in objects of this class are limited to a certain time range. In the
+ *   current GNU/Linux and Windows implementations the range is roughly <c>+-292.27</c> years
+ *   before and after the point in time that the system that the software is running on was
+ *   initialized (bootstrapped). This value results from the following facts for these
+ *   implementations:
+ *   - the storage resolution is one nanosecond.
+ *   - the storage size is 64 bits (63 plus the sign bit).
+ *   - system dependent ticks counters are reset to \c 0 with the boot of a system.
+ *
+ *   Now, dividing <c>2^63</c> by the number of nanoseconds of one year which
+ *   consists of roughly 365.25 days, this results in 292.27 years.
  *
  * @tparam TClock    The type of clock to use. This will be
  *                   - \c std::chrono::system_clock with descendant class \alib{time,DateTime} and
@@ -70,10 +71,10 @@ template<typename TClock, typename TDerived>
 class TimePointBase
 {
     public:
-        /// The internal c++ type for time points.
+        /** The internal c++ type for time points. */
         using   TTimePoint=    typename TClock::time_point;
 
-        /// Integral type used for exporting and importing values in raw units.
+        /** Integral type used for exporting and importing values in raw units. */
         using   TRaw=          typename TTimePoint::rep;
 
 
@@ -83,16 +84,23 @@ class TimePointBase
      *
      * Often, objects of this class are generated by the subtraction of \b %TimePointBase values or
      * by using methods \alib{time,TimePointBase::Age} and \alib{time,TimePointBase::Since}.
-     * Furthermore, class \alib{time,CalendarDuration} can be used to convert durations to and
-     * from human readable units (days, hours, minutes, etc.).
+     * Furthermore, class \alib{system,CalendarDuration} (found in module \alibmod_system)
+     * can be used to convert durations to and from human readable units (days, hours, minutes,
+     * etc.).
+     *
+     * ## Friends ##
+     * class \alib{time,TimePointBase}
      **********************************************************************************************/
     class Duration
     {
-        /// In C++ inner classes need to be friend to access protected elements of the outer class.
+        #if !ALIB_DOCUMENTATION_PARSER
+        // In C++ inner classes need to be friend to access protected elements of the outer class.
         friend class TimePointBase;
+        #endif
+
 
         public:
-            /// The value type for time spans.
+            /** The value type for time spans. */
             using   TDuration =    typename std::chrono::steady_clock::duration;
 
 
@@ -100,7 +108,7 @@ class TimePointBase
         // protected fields
         // #########################################################################################
         protected:
-            /// The internal time value.
+            /** The internal time value. */
             TDuration         span;
 
             /** ************************************************************************************
@@ -343,8 +351,8 @@ class TimePointBase
             inline
             integer        InAbsoluteDays()       const
             {
-               return std::chrono::duration_cast<std::chrono::hours>( span ).count()
-                      / 24;
+               return static_cast<integer>( std::chrono::duration_cast<std::chrono::hours>( span ).count()
+                                            / 24 );
             }
 
             /** ************************************************************************************
@@ -354,8 +362,8 @@ class TimePointBase
             inline
             double        InHours()      const
             {
-               return std::chrono::duration_cast<std::chrono::microseconds>( span ).count()
-                      / (1000000. * 3600. );
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count()
+                                           / (1000000. * 3600. ) );
             }
 
             /** ************************************************************************************
@@ -365,7 +373,7 @@ class TimePointBase
             inline
             integer       InAbsoluteHours()      const
             {
-                return std::chrono::duration_cast<std::chrono::hours>( span ).count();
+                return static_cast<integer>( std::chrono::duration_cast<std::chrono::hours>( span ).count() );
             }
 
             /** ************************************************************************************
@@ -652,7 +660,7 @@ class TimePointBase
     // #############################################################################################
 
     protected:
-        /// The internal timer value. This value can be accessed using method #NativeValue.
+        /** The internal timer value. This value can be accessed using method #NativeValue. */
         TTimePoint                stamp;
 
     // #############################################################################################
@@ -933,7 +941,7 @@ class TimePointBase
         }
 
         /** ****************************************************************************************
-         * Determines if this objects' age is higher than a given time span.
+         * Determines if this object's age is higher than a given time span.
          *
          * @param timeSpan  A time span to compare.
          * @return  \c true if the given time span is smaller equal than the age of this object,
@@ -953,4 +961,5 @@ class TimePointBase
 
 
 
-#endif // HPP_ALIB_TIME_TIMEPOINT
+#endif // HPP_ALIB_TIME_TIMEPOINTBASE
+

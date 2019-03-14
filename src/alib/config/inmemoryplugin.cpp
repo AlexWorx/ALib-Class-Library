@@ -1,25 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
-#if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-    #include "alib/system/directory.hpp"
-#endif
-#if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-    #include "alib/system/process.hpp"
-#endif
-#if !defined (HPP_ALIB_COMPATIBILITY_STD_IOSTREAM)
-    #include "alib/compatibility/std_iostream.hpp"
+#if !defined (HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
+    #include "alib/config/inmemoryplugin.hpp"
 #endif
 
-#include <algorithm>
 
 namespace aworx { namespace lib { namespace config {
 
@@ -46,15 +36,14 @@ InMemoryPlugin::Section* InMemoryPlugin::SearchSection( const String& sectionNam
     if ( sectionName.IsEmpty() )
         return Sections[0];
 
-    auto sIt= find_if( Sections.begin(), Sections.end(),
-                       [& sectionName](InMemoryPlugin::Section* section)
-                       {
-                          return section->Name.Equals<Case::Ignore>( sectionName );
-                       }
-                      );
-
-    return  sIt != Sections.end()   ? *sIt
-                                    : nullptr;
+    auto sIt= Sections.begin();
+    while( sIt != Sections.end() )
+    {
+        if( (*sIt)->Name.Equals<Case::Ignore>( sectionName ) )
+            return *sIt;
+        sIt++;
+    }
+    return nullptr;
 }
 
 InMemoryPlugin::Section* InMemoryPlugin::SearchOrCreateSection( const String& sectionName, const String& comments )
@@ -76,7 +65,7 @@ InMemoryPlugin::Section* InMemoryPlugin::SearchOrCreateSection( const String& se
 
 bool  InMemoryPlugin::Load( Variable& variable, bool searchOnly ) const
 {
-    ALIB_ASSERT_WARNING( variable.Name.IsNotEmpty(), ASTR("Empty name given") );
+    ALIB_ASSERT_WARNING( variable.Name.IsNotEmpty(), "Empty name given" )
 
     Section*    section;
     Entry*      entry=  nullptr;
@@ -126,18 +115,17 @@ InMemoryPlugin::Entry* InMemoryPlugin::Section::GetEntry( const String& entryNam
 {
     if ( entryName.IsEmpty() )
     {
-        ALIB_WARNING( ASTR("Empty variable name given") );
+        ALIB_WARNING( "Empty variable name given" )
         return nullptr;
     }
 
-    auto entryIt= find_if( Entries.begin(), Entries.end(),
-                             [& entryName](InMemoryPlugin::Entry* variable)
-                             {
-                                return  variable->Name.Equals<Case::Ignore>( entryName );
-                             }
-                         );
-    if( entryIt != Entries.end() )
-        return *entryIt;
+    auto entryIt= Entries.begin();
+    while( entryIt != Entries.end() )
+    {
+        if( (*entryIt)->Name.Equals<Case::Ignore>( entryName ) )
+            return *entryIt;
+        entryIt++;
+    }
 
     if ( !create )
         return nullptr;
@@ -156,7 +144,7 @@ void InMemoryPlugin::Entry::ToVariable( const InMemoryPlugin& , Variable& variab
     if ( FmtHints != FormatHints::None )        variable.FmtHints=            FmtHints;
     if ( FormatAttrAlignment.IsNotEmpty() )     variable.FormatAttrAlignment= FormatAttrAlignment;
 
-    variable.Comments._()._( Comments );
+    variable.Comments.Reset( Comments );
     for( AString& val : Values )
         variable.Add( val );
 }
@@ -177,7 +165,7 @@ void InMemoryPlugin::Entry::FromVariable( const InMemoryPlugin& , Variable& vari
     int valSize= static_cast<int>( Values.size()   );
     while (valSize < varSize )
     {
-        Values.insert( Values.end(), AString() );
+        Values.emplace_back( nullptr );
         valSize++;
     }
     if (valSize > varSize )
@@ -185,7 +173,7 @@ void InMemoryPlugin::Entry::FromVariable( const InMemoryPlugin& , Variable& vari
 
     // copy
     for ( int i= 0; i< varSize; i++ )
-        Values[static_cast<size_t>(i)]._()._( variable.GetString( i ) );
+        Values[static_cast<size_t>(i)].Reset( variable.GetString( i ) );
 }
 
 
@@ -217,7 +205,7 @@ class InMemoryPlugin::InMemoryPluginIteratorImpl : public ConfigurationPlugin::I
     {
         // clear variable name at least. Values remain, until something was found. The caller has
         // to check the result anyhow!
-        variable.Name.Clear();
+        variable.Name.Reset();
 
         if( section == nullptr || actualEntry == section->Entries.end() )
             return false;

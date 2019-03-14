@@ -1,19 +1,17 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS)
+#   include "alib/expressions/plugins/elvisoperator.hpp"
+#endif
 
-#include "alib/alib.hpp"
-#include "alib/strings/substring.hpp"
-
-#include "elvisoperator.hpp"
-#include "../scope.hpp"
 
 //! @cond NO_DOX
-
 
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
 
@@ -25,7 +23,7 @@ namespace {
 
 Box elvis( Scope&, ArgIterator  arg, ArgIterator )
 {
-    return (*arg).Invoke<IIsTrue, bool>() ? *arg : *(arg + 1);
+    return (*arg).Call<FIsTrue>() ? *arg : *(arg + 1);
 }
 
 } // anonymous namespace
@@ -35,16 +33,16 @@ bool ElvisOperator::TryCompilation( CIBinaryOp&   ciBinaryOp    )
     Box& lhs= * ciBinaryOp.ArgsBegin;
     Box& rhs= *(ciBinaryOp.ArgsBegin + 1);
 
-    // not Elvis operator  ASTR("A ?: B") ?
-    if( ciBinaryOp.Operator != ASTR("?:") || !lhs.IsSameType(rhs) )
+    // not Elvis operator  A_CHAR("A ?: B") ?
+    if( ciBinaryOp.Operator != A_CHAR("?:") || !lhs.IsSameType(rhs) )
         return false;
 
-    ALIB_DBG( ciBinaryOp.DbgCallBackName = "elvis";      )
+    ALIB_DBG( ciBinaryOp.DbgCallbackName = "elvis";      )
 
     // constant A?
     if( ciBinaryOp.LhsIsConst )
     {
-        if( lhs.Invoke<IIsTrue,bool>() )
+        if( lhs.Call<FIsTrue>() )
             ciBinaryOp.TypeOrValue= lhs;
         else
         {

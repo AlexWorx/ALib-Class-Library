@@ -1,51 +1,69 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
-    #include "alib/strings/numberformat.hpp"
+
+#if !defined (HPP_ALIB_STRINGS_STRING)
+#   include "alib/strings/string.hpp"
 #endif
 
+#if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
+#   include "alib/strings/detail/numberconversion.hpp"
+#endif
 
-namespace aworx { namespace lib { namespace strings {
+#if ALIB_DEBUG && defined( _WIN32 ) && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
+#   include "alib/strings/localstring.hpp"
+#endif
 
-//! @cond NO_DOX
+namespace aworx { namespace lib {
+
+/** ************************************************************************************************
+ * This is the reference documentation of sub-namespace \b strings of the \aliblink which
+ * holds types of library module \alibmod_nolink_strings.
+ *
+ * Extensive documentation for this module is provided with
+ * \ref alib_mod_strings "ALib Module Strings - Programmer's Manual".
+ **************************************************************************************************/
+namespace strings {
+
+#if !ALIB_DOCUMENTATION_PARSER
 
 
 // #################################################################################################
-// _dbgCheck()
+// dbgCheck()
 // #################################################################################################
-#if ALIB_DEBUG_STRINGS
+#if ALIB_STRINGS_DEBUG
 
 #if !ALIB_DEBUG
-    #pragma message "Compiler symbol ALIB_DEBUG_STRINGS_ON set, while ALIB_DEBUG is off. Is this really wanted?"
+    #pragma message "Compiler symbol ALIB_STRINGS_DEBUG_ON set, while ALIB_DEBUG is off. Is this really wanted?"
 #endif
 
-extern bool _astringCheckReported;
-bool _astringCheckReported= false;
+namespace {
+    bool astringCheckReported= false;
+}
 
 template<typename TChar>
-void StringBase<TChar>::_dbgCheck() const
+void TString<TChar>::dbgCheck() const
 {
     // write to the console once that we are debugging AString
-    if ( !_astringCheckReported && lib::ALIB.IsInitialized() )
+    if ( !astringCheckReported )
     {
-        _astringCheckReported= true;
-        ALIB_WARNING( ASTR("ALIB_DEBUG_STRINGS is ON! To switch off, "
-                           "unset compilation symbol ALIB_DEBUG_STRINGS_ON." ) );
+        astringCheckReported= true;
+        ALIB_MESSAGE( "ALIB_STRINGS_DEBUG is ON! To switch off, "
+                      "unset compilation symbol ALIB_STRINGS_DEBUG_ON."  );
     }
 
-    ALIB_ASSERT_ERROR(      length  == 0
-                        ||  buffer != nullptr   ,ASTR("Not allocated but length >0") );
+    ALIB_ASSERT_ERROR( length == 0 ||  buffer != nullptr,
+                       "Nulled string has a length of ", length );
 
-    for (integer aworx_astring_dbg_i= length -1 ; aworx_astring_dbg_i >= 0 ; aworx_astring_dbg_i--)
-        if ( buffer[aworx_astring_dbg_i] == '\0' )
+    for (integer i= length -1 ; i >= 0 ; i--)
+        if ( buffer[i] == '\0' )
         {
-            ALIB_ERROR( ASTR("Found termination character '\\0' in buffer. Index="), aworx_astring_dbg_i );
+            ALIB_ERROR( "Found termination character '\\0' in buffer. Index=", i )
             break;
         }
 }
@@ -54,20 +72,11 @@ void StringBase<TChar>::_dbgCheck() const
 
 
 // #################################################################################################
-// indexOfString()
+// indexOf...()
 // #################################################################################################
-namespace {
-template<typename TChar, lang::Case>
-                  bool compChar( TChar lhs, TChar rhs );
-template<> inline bool compChar<nchar, lang::Case::Sensitive>( nchar lhs, nchar rhs )   {  return lhs == rhs;  }
-template<> inline bool compChar<wchar, lang::Case::Sensitive>( wchar lhs, wchar rhs )   {  return lhs == rhs;  }
-template<> inline bool compChar<nchar, lang::Case::Ignore   >( nchar lhs, nchar rhs )   {  return CString<nchar>::Toupper(lhs) == CString<nchar>::Toupper(rhs);  }
-template<> inline bool compChar<wchar, lang::Case::Ignore   >( wchar lhs, wchar rhs )   {  return CString<wchar>::Toupper(lhs) == CString<wchar>::Toupper(rhs);  }
-}
-
 template<typename TChar>
-template<lang::Case TSensitivity>
-integer  StringBase<TChar>::indexOfString( const StringBase<TChar>&  needle, integer startIdx )  const
+template<Case TSensitivity>
+integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer startIdx )  const
 {
     integer nLen=   needle.Length();
     if( nLen == 0 )
@@ -81,7 +90,7 @@ integer  StringBase<TChar>::indexOfString( const StringBase<TChar>&  needle, int
     {
         const TChar* b=  buf;
         const TChar* n= nBuf;
-        while ( compChar<TChar,TSensitivity>(*b++, *n++ ) )
+        while ( characters::CharArray<TChar>::template Equal<TSensitivity>(*b++, *n++ ) )
             if( n == nBufEnd )
                 return buf  - buffer;
         buf++;
@@ -89,11 +98,27 @@ integer  StringBase<TChar>::indexOfString( const StringBase<TChar>&  needle, int
     return -1;
 }
 
+template<typename TChar>
+integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer  idx ) const
+{
+    int openCnt= 1;
+    while( idx < length )
+    {
+        if( buffer[idx] == opener )   openCnt++;
+        if( buffer[idx] == closer )
+            if( --openCnt == 0 )
+                break;
+        idx++;
+    }
+
+    return openCnt == 0 ? idx : -openCnt;
+}
+
 // #################################################################################################
 // ParseXXX()
 // #################################################################################################
 template<typename TChar>
-uint64_t    StringBase<TChar>::ParseDecDigits( integer  startIdx, integer* newIdx )
+uint64_t    TString<TChar>::ParseDecDigits( integer  startIdx, integer* newIdx )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -107,12 +132,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return NumberFormatBase<TChar>::ParseDecDigits( *this, *indexPointer );
+    return detail::ParseDecDigits<TChar>( *this, *indexPointer );
 }
 
 
 template<typename TChar>
-int64_t    StringBase<TChar>::ParseInt( integer  startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx )
+int64_t    TString<TChar>::ParseInt( integer  startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -126,13 +151,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseInt( *this, *indexPointer );
+    return detail::ParseInt( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                           : *numberFormat );
 }
 
 template<typename TChar>
-uint64_t    StringBase<TChar>::ParseDec( integer  startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx )
+uint64_t    TString<TChar>::ParseDec( integer  startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -146,13 +170,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseDec( *this, *indexPointer );
+    return detail::ParseDec( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                           : *numberFormat );
 }
 
 template<typename TChar>
-uint64_t    StringBase<TChar>::ParseBin( integer startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx  )
+uint64_t    TString<TChar>::ParseBin( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -166,13 +189,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseBin( *this, *indexPointer );
+    return detail::ParseBin( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                           : *numberFormat );
 }
 
 template<typename TChar>
-uint64_t    StringBase<TChar>::ParseHex( integer startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx  )
+uint64_t    TString<TChar>::ParseHex( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -186,13 +208,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseHex( *this, *indexPointer );
+    return detail::ParseHex( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                           : *numberFormat );
 }
 
 template<typename TChar>
-uint64_t    StringBase<TChar>::ParseOct( integer startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx  )
+uint64_t    TString<TChar>::ParseOct( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx  )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -206,13 +227,12 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseOct( *this, *indexPointer );
+    return detail::ParseOct( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                           : *numberFormat );
 }
 
 template<typename TChar>
-double    StringBase<TChar>::ParseFloat( integer startIdx, NumberFormatBase<TChar>* numberFormat, integer* newIdx )
+double    TString<TChar>::ParseFloat( integer startIdx, TNumberFormat<TChar>* numberFormat, integer* newIdx )
 const
 {
     // we need an index pointer reference. So if none was given in parameter newIdx
@@ -226,9 +246,8 @@ const
         *indexPointer= startIdx;
     }
 
-    return (numberFormat == nullptr ? &NumberFormatBase<TChar>::Computational
-                                    : numberFormat )
-           ->ParseFloat( *this, *indexPointer );
+    return detail::ParseFloat( *this, *indexPointer, numberFormat == nullptr ? TNumberFormat<TChar>::Computational
+                                                                             : *numberFormat );
 }
 
 
@@ -236,7 +255,7 @@ const
 // NString
 // #################################################################################################
 template<>
-integer  NString::WStringLength()  const
+integer  TString<nchar>::WStringLength()  const
 {
     if ( length == 0 )
         return 0;
@@ -249,13 +268,13 @@ integer  NString::WStringLength()  const
         size_t conversionSize=  mbsnrtowcs( nullptr, &cs, static_cast<size_t>(length), 0, nullptr );
         if ( conversionSize ==  static_cast<size_t>(-1) )
         {
-            ALIB_WARNING( ASTR("MBCS to WCS conversion failed. Illegal MBC sequence") );
+            ALIB_WARNING( "MBCS to WCS conversion failed. Illegal MBC sequence" )
             return -1;
         }
 
         ALIB_ASSERT_ERROR( conversionSize <= static_cast<size_t>( length ),
-                           ASTR("MBCS to WCS conversion failed. Conversion length="),
-                           static_cast<integer>(conversionSize) );
+                           "MBCS to WCS conversion failed. Conversion length=",
+                           static_cast<integer>(conversionSize) )
 
         return static_cast<integer>(conversionSize);
 
@@ -271,7 +290,7 @@ integer  NString::WStringLength()  const
                 // not enough space?
                 int error= GetLastError();
 
-                String128 msg( "AString: Conversion to wide character string failed (Error: " );
+                NString128 msg( "AString: Conversion to wide character string failed (Error: " );
                      if ( error == ERROR_INSUFFICIENT_BUFFER      ) msg._( "ERROR_INSUFFICIENT_BUFFER."   );
                 else if ( error == ERROR_INVALID_FLAGS            ) msg._( "ERROR_INVALID_FLAGS."         );
                 else if ( error == ERROR_INVALID_PARAMETER        ) msg._( "ERROR_INVALID_PARAMETER"      );
@@ -279,7 +298,7 @@ integer  NString::WStringLength()  const
                 else                                                msg._( error );
                 msg._(')');
 
-                ALIB_WARNING( msg );
+                ALIB_WARNING( msg )
                 return -1;
             }
 
@@ -300,47 +319,114 @@ integer  NString::WStringLength()  const
     #endif
 }
 
-template integer  StringBase<nchar >::indexOfString<Case::Sensitive>(const StringBase<nchar>&, integer)  const;
-template integer  StringBase<nchar >::indexOfString<Case::Ignore   >(const StringBase<nchar>&, integer)  const;
-template uint64_t StringBase<nchar >::ParseDecDigits( integer, integer*                           ) const;
-template  int64_t StringBase<nchar >::ParseInt      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-template uint64_t StringBase<nchar >::ParseDec      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-template uint64_t StringBase<nchar >::ParseBin      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-template uint64_t StringBase<nchar >::ParseHex      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-template uint64_t StringBase<nchar >::ParseOct      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-template double   StringBase<nchar >::ParseFloat    ( integer, NumberFormatBase<nchar>*, integer* ) const;
+template integer  TString<nchar>::indexOfString<Case::Sensitive>(const TString<nchar>&, integer)  const;
+template integer  TString<nchar>::indexOfString<Case::Ignore   >(const TString<nchar>&, integer)  const;
+template integer  TString<nchar>::IndexOfSegmentEnd( nchar opener, nchar closer, integer  idx )      const;
+template uint64_t TString<nchar>::ParseDecDigits( integer, integer*                           ) const;
+template  int64_t TString<nchar>::ParseInt      ( integer, TNumberFormat<nchar>*, integer* ) const;
+template uint64_t TString<nchar>::ParseDec      ( integer, TNumberFormat<nchar>*, integer* ) const;
+template uint64_t TString<nchar>::ParseBin      ( integer, TNumberFormat<nchar>*, integer* ) const;
+template uint64_t TString<nchar>::ParseHex      ( integer, TNumberFormat<nchar>*, integer* ) const;
+template uint64_t TString<nchar>::ParseOct      ( integer, TNumberFormat<nchar>*, integer* ) const;
+template double   TString<nchar>::ParseFloat    ( integer, TNumberFormat<nchar>*, integer* ) const;
 
 
 // #################################################################################################
 // WString
 // #################################################################################################
+template integer  TString<wchar>::indexOfString<Case::Sensitive>(const TString<wchar>&, integer)  const;
+template integer  TString<wchar>::indexOfString<Case::Ignore   >(const TString<wchar>&, integer)  const;
+template integer  TString<wchar>::IndexOfSegmentEnd( wchar opener, wchar closer, integer  idx )     const;
+template uint64_t TString<wchar>::ParseDecDigits( integer, integer*                           ) const;
+template  int64_t TString<wchar>::ParseInt      ( integer, TNumberFormat<wchar>*, integer* ) const;
+template uint64_t TString<wchar>::ParseDec      ( integer, TNumberFormat<wchar>*, integer* ) const;
+template uint64_t TString<wchar>::ParseBin      ( integer, TNumberFormat<wchar>*, integer* ) const;
+template uint64_t TString<wchar>::ParseHex      ( integer, TNumberFormat<wchar>*, integer* ) const;
+template uint64_t TString<wchar>::ParseOct      ( integer, TNumberFormat<wchar>*, integer* ) const;
+template double   TString<wchar>::ParseFloat    ( integer, TNumberFormat<wchar>*, integer* ) const;
 
-template uint64_t StringBase<wchar>::ParseDecDigits( integer, integer*                           ) const;
-template  int64_t StringBase<wchar>::ParseInt      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template uint64_t StringBase<wchar>::ParseDec      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template uint64_t StringBase<wchar>::ParseBin      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template uint64_t StringBase<wchar>::ParseHex      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template uint64_t StringBase<wchar>::ParseOct      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template double   StringBase<wchar>::ParseFloat    ( integer, NumberFormatBase<wchar>*, integer* ) const;
-template integer  StringBase<wchar>::indexOfString<Case::Sensitive>(const StringBase<wchar>&, integer)  const;
-template integer  StringBase<wchar>::indexOfString<Case::Ignore   >(const StringBase<wchar>&, integer)  const;
+// #################################################################################################
+// XString
+// #################################################################################################
+template<>
+integer  TString<xchar>::WStringLength()  const
+{
+    if ( length == 0 )
+        return 0;
+
+    const xchar* src=       buffer;
+    const xchar* srcEnd=    buffer + length;
+    integer result= 0;
+#if ALIB_SIZEOF_WCHAR_T == 4
+
+    // convert UTF16 to UTF32
+    while (src < srcEnd)
+    {
+        const char32_t uc = static_cast<char32_t>( *src++ );
+        if ((uc - 0xd800) >= 2048) // not surrogate
+        {
+            result++;
+        }
+        else
+        {
+            ALIB_ASSERT_ERROR(    src < srcEnd                                                   // has one more?
+                               && ((uc                               & 0xfffffc00) == 0xd800)    // is low?
+                               && ((static_cast<char32_t>( *src++ )  & 0xfffffc00) == 0xdc00),   // is high?
+                               "Error decoding UTF16" )
+
+            result++;
+            src++;
+        }
+    }
+
+#else
+
+    // convert UTF32 to UTF16
+    while (src < srcEnd)
+    {
+        uinteger uc= *src++;
+        ALIB_ASSERT_ERROR(       uc <  0xd800
+                            || ( uc >= 0xe000 && uc <= 0x10ffff ),
+                            "Illegal unicode 32 bit codepoint"       )
+
+        if( uc < 0x10000 )
+        {
+            result++;
+        }
+        else
+        {
+            uc-= 0x10000;
+            result+= 2;
+        }
+    }
+
+#endif
+
+    return result;
+}
+
+template integer  TString<xchar>::indexOfString<Case::Sensitive>(const TString<xchar>&, integer)  const;
+template integer  TString<xchar>::indexOfString<Case::Ignore   >(const TString<xchar>&, integer)  const;
+template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer, integer  idx )      const;
+template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                           ) const;
+template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*, integer* ) const;
+template uint64_t TString<xchar>::ParseDec      ( integer, TNumberFormat<xchar>*, integer* ) const;
+template uint64_t TString<xchar>::ParseBin      ( integer, TNumberFormat<xchar>*, integer* ) const;
+template uint64_t TString<xchar>::ParseHex      ( integer, TNumberFormat<xchar>*, integer* ) const;
+template uint64_t TString<xchar>::ParseOct      ( integer, TNumberFormat<xchar>*, integer* ) const;
+template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*, integer* ) const;
 
 
 // #################################################################################################
 // debug methods
 // #################################################################################################
-#if ALIB_DEBUG
-template<>   ALIB_WARN_ONCE_PER_TYPE_DEFINE( StringBase<nchar>, SetLengthLonger , true);
-template<>   ALIB_WARN_ONCE_PER_TYPE_DEFINE( StringBase<wchar>, SetLengthLonger , true);
-#endif
-
-#if ALIB_DEBUG_STRINGS
-template   void StringBase<nchar>::_dbgCheck() const;
-template   void StringBase<wchar>::_dbgCheck() const;
+#if ALIB_STRINGS_DEBUG
+template   void TString<nchar>::dbgCheck() const;
+template   void TString<wchar>::dbgCheck() const;
+template   void TString<xchar>::dbgCheck() const;
 #endif
 
 
-//! @endcond
-
+#endif // ALIB_DOCUMENTATION_PARSER
 
 }}}// namespace [aworx::lib::strings]

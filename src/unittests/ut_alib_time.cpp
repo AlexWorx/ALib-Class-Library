@@ -1,22 +1,27 @@
 // #################################################################################################
 //  aworx - Unit Tests
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+
 #include "alib/alox.hpp"
 
-#include "alib/compatibility/std_string.hpp"
+#include "alib/compatibility/std_characters.hpp"
+#include "alib/time/time.hpp"
 
-#if !defined (HPP_ALIB_TIME_CALENDAR)
-    #include "alib/time/calendar.hpp"
+#if !defined (HPP_ALIB_SYSTEM_CALENDAR)
+    #include "alib/system/calendar.hpp"
 #endif
 #if !defined (HPP_ALIB_TIME_STOPWATCH)
     #include "alib/time/stopwatch.hpp"
 #endif
 
 #define TESTCLASSNAME       CPP_ALib_Time
-#include "aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 #include <numeric>
 
@@ -124,7 +129,7 @@ UT_METHOD(Basics)
 
     // check time library creation time
     {
-        auto creationTimeDiff= lib::TIME.CreationTime().Age();
+        auto creationTimeDiff= lib::time::CreationTime().Age();
         UT_PRINT( "Time library creation was: {} ns ago"        , creationTimeDiff.InNanoseconds()  );
         UT_PRINT( "Time library creation was: {} \u00B5s ago"   , creationTimeDiff.InAbsoluteMicroseconds() );
         UT_PRINT( "Time library creation was: {} ms ago"        , creationTimeDiff.InAbsoluteMilliseconds() );
@@ -136,7 +141,7 @@ UT_METHOD(Basics)
     // check if we could sleep for 100ms
     {
         Ticks start;
-            ALib::SleepMillis( 30 );
+            Thread::SleepMillis( 30 );
         auto sleepTime= start.Age();
         UT_PRINT( "Time diff after 30ms sleep: {}\u00B5s ago", sleepTime.InAbsoluteMicroseconds() );
         UT_TRUE ( sleepTime.InAbsoluteMilliseconds() > 25 );
@@ -391,7 +396,7 @@ UT_METHOD(DateTimeConversion)
 
     // Ticks converter
     {
-        TicksConverter converter;
+        TickConverter converter;
         DateTime    dateTimeNow;
         Ticks       ticksNow;
 
@@ -435,7 +440,7 @@ UT_METHOD(Ages)
         tt.Reset();
         for (int i= 0 ; i< 100 ; i++)
         {
-            ALib::SleepNanos( 1 );
+            Thread::SleepNanos( 1 );
             tt.Sample();
         }
 
@@ -446,7 +451,7 @@ UT_METHOD(Ages)
         tt.Reset();
         for (int i= 0 ; i< 100 ; i++)
         {
-            ALib::SleepMicros( 1 );
+            Thread::SleepMicros( 1 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 1 microsecond of sleep leads to average sleep time of {} ns",
@@ -456,7 +461,7 @@ UT_METHOD(Ages)
         tt.Reset();
         for (int i= 0 ; i< 100 ; i++)
         {
-            ALib::SleepMicros( 20 );
+            Thread::SleepMicros( 20 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 20 microseconds of sleep leads to average sleep time of {} microseconds",
@@ -466,7 +471,7 @@ UT_METHOD(Ages)
         tt.Reset();
         for (int i= 0 ; i< 10 ; i++)
         {
-            ALib::SleepMillis( 1 );
+            Thread::SleepMillis( 1 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 1 ms of sleep leads to average sleep time of {} microseconds",
@@ -476,11 +481,11 @@ UT_METHOD(Ages)
 
     // sleep two times 20 ms and probe it to an average
     {
-        tt.Reset();  ALib::SleepMillis( 20 );   tt.Sample();
-        tt.Start();  ALib::SleepMillis( 20 );   tt.Sample();
-        tt.Start();  ALib::SleepMillis( 20 );   tt.Sample();
-        tt.Start();  ALib::SleepMillis( 20 );   tt.Sample();
-        tt.Start();  ALib::SleepMillis( 20 );   tt.Sample();
+        tt.Reset();  Thread::SleepMillis( 20 );   tt.Sample();
+        tt.Start();  Thread::SleepMillis( 20 );   tt.Sample();
+        tt.Start();  Thread::SleepMillis( 20 );   tt.Sample();
+        tt.Start();  Thread::SleepMillis( 20 );   tt.Sample();
+        tt.Start();  Thread::SleepMillis( 20 );   tt.Sample();
 
         auto cum=    tt.GetCumulated().InAbsoluteMilliseconds();
         auto cnt=    tt.GetSampleCnt();
@@ -547,11 +552,11 @@ UT_METHOD(SpeedTestIndexOf)
         // this is always true, just for the sake that the compiler does not optimize the whole code!
         if ( nonOptimizableUsedResultValue > -1 )
         {
-            output.Clear();
-            output  ._( "Search loops " )            ._( Format::Field( String32( qtyLoops                        ), 6 ) )
-                    ._( ":  time needed: " )         ._( Format::Field( String32( stringSample.InNanoseconds()    ), 8 ) )
-                    ._( " / "  )                     ._( Format::Field( String32( aStringSample.InNanoseconds()   ), 8 ) )
-                    ._( "   Ratio String/AString: " )._( static_cast<double>(stringSample.InNanoseconds()) / static_cast<double>(aStringSample.InNanoseconds()) );
+            output.Reset()
+                  ._( "Search loops " )            ._( Format::Field( String32( qtyLoops                        ), 6 ) )
+                  ._( ":  time needed: " )         ._( Format::Field( String32( stringSample.InNanoseconds()    ), 8 ) )
+                  ._( " / "  )                     ._( Format::Field( String32( aStringSample.InNanoseconds()   ), 8 ) )
+                  ._( "   Ratio String/AString: " )._( static_cast<double>(stringSample.InNanoseconds()) / static_cast<double>(aStringSample.InNanoseconds()) );
 
             UT_PRINT( output );
         }
@@ -580,47 +585,47 @@ UT_METHOD(DateFormat)
     ct.Second   =    7;
     ct.DayOfWeek=    2;
 
-    dateFormatCheck( ut, ct,     ASTR("y")        ,        ASTR("2015") );
-    dateFormatCheck( ut, ct,    ASTR("yy")        ,          ASTR("15") );
-    dateFormatCheck( ut, ct,   ASTR("yyy")        ,        ASTR("2015") );
-    dateFormatCheck( ut, ct,  ASTR("yyyy")        ,        ASTR("2015") );
-    dateFormatCheck( ut, ct, ASTR("yyyyy")        ,       ASTR("02015") );
+    dateFormatCheck( ut, ct,     A_CHAR("y")        ,        A_CHAR("2015") );
+    dateFormatCheck( ut, ct,    A_CHAR("yy")        ,          A_CHAR("15") );
+    dateFormatCheck( ut, ct,   A_CHAR("yyy")        ,        A_CHAR("2015") );
+    dateFormatCheck( ut, ct,  A_CHAR("yyyy")        ,        A_CHAR("2015") );
+    dateFormatCheck( ut, ct, A_CHAR("yyyyy")        ,       A_CHAR("02015") );
 
-    dateFormatCheck( ut, ct,    ASTR("M")         ,           ASTR("4") );
-    dateFormatCheck( ut, ct,   ASTR("MM")         ,          ASTR("04") );
-    dateFormatCheck( ut, ct,  ASTR("MMM")         ,         ASTR("Apr") );
-    dateFormatCheck( ut, ct, ASTR("MMMM")         ,        ASTR("April") );
+    dateFormatCheck( ut, ct,    A_CHAR("M")         ,           A_CHAR("4") );
+    dateFormatCheck( ut, ct,   A_CHAR("MM")         ,          A_CHAR("04") );
+    dateFormatCheck( ut, ct,  A_CHAR("MMM")         ,         A_CHAR("Apr") );
+    dateFormatCheck( ut, ct, A_CHAR("MMMM")         ,        A_CHAR("April") );
 
-    dateFormatCheck( ut, ct, ASTR("d")            ,           ASTR("3") );
-    dateFormatCheck( ut, ct, ASTR("dd")           ,          ASTR("03") );
-    dateFormatCheck( ut, ct, ASTR("ddd")          ,         ASTR("Tue") );
-    dateFormatCheck( ut, ct, ASTR("dddd")         ,     ASTR("Tuesday") );
+    dateFormatCheck( ut, ct, A_CHAR("d")            ,           A_CHAR("3") );
+    dateFormatCheck( ut, ct, A_CHAR("dd")           ,          A_CHAR("03") );
+    dateFormatCheck( ut, ct, A_CHAR("ddd")          ,         A_CHAR("Tue") );
+    dateFormatCheck( ut, ct, A_CHAR("dddd")         ,     A_CHAR("Tuesday") );
 
-    dateFormatCheck( ut, ct, ASTR("H")            ,           ASTR("5") );
-    dateFormatCheck( ut, ct, ASTR("HH")           ,          ASTR("05") );
-    dateFormatCheck( ut, ct, ASTR("HHH")          ,         ASTR("005") );
-    dateFormatCheck( ut, ct, ASTR("HHHH")         ,        ASTR("0005") );
+    dateFormatCheck( ut, ct, A_CHAR("H")            ,           A_CHAR("5") );
+    dateFormatCheck( ut, ct, A_CHAR("HH")           ,          A_CHAR("05") );
+    dateFormatCheck( ut, ct, A_CHAR("HHH")          ,         A_CHAR("005") );
+    dateFormatCheck( ut, ct, A_CHAR("HHHH")         ,        A_CHAR("0005") );
 
-    dateFormatCheck( ut, ct, ASTR("m")            ,           ASTR("6") );
-    dateFormatCheck( ut, ct, ASTR("mm")           ,          ASTR("06") );
-    dateFormatCheck( ut, ct, ASTR("mmm")          ,         ASTR("006") );
-    dateFormatCheck( ut, ct, ASTR("mmmm")         ,        ASTR("0006") );
+    dateFormatCheck( ut, ct, A_CHAR("m")            ,           A_CHAR("6") );
+    dateFormatCheck( ut, ct, A_CHAR("mm")           ,          A_CHAR("06") );
+    dateFormatCheck( ut, ct, A_CHAR("mmm")          ,         A_CHAR("006") );
+    dateFormatCheck( ut, ct, A_CHAR("mmmm")         ,        A_CHAR("0006") );
 
-    dateFormatCheck( ut, ct, ASTR("s")            ,           ASTR("7") );
-    dateFormatCheck( ut, ct, ASTR("ss")           ,          ASTR("07") );
-    dateFormatCheck( ut, ct, ASTR("sss")          ,         ASTR("007") );
-    dateFormatCheck( ut, ct, ASTR("ssss")         ,        ASTR("0007") );
+    dateFormatCheck( ut, ct, A_CHAR("s")            ,           A_CHAR("7") );
+    dateFormatCheck( ut, ct, A_CHAR("ss")           ,          A_CHAR("07") );
+    dateFormatCheck( ut, ct, A_CHAR("sss")          ,         A_CHAR("007") );
+    dateFormatCheck( ut, ct, A_CHAR("ssss")         ,        A_CHAR("0007") );
 
-    //error: dateFormatCheck( ut, ct, ASTR("'")            ,           ASTR("") );
-    //error: dateFormatCheck( ut, ct, ASTR("'msH")         ,        ASTR("msH") );
-    dateFormatCheck( ut, ct, ASTR("''")           ,          ASTR("'") );
-    dateFormatCheck( ut, ct, ASTR("''''")         ,         ASTR("''") );
-    dateFormatCheck( ut, ct, ASTR("''m''")        ,        ASTR("'6'") );
-    dateFormatCheck( ut, ct, ASTR("'''m'''")        ,      ASTR("'m'") );
-    dateFormatCheck( ut, ct, ASTR("s'msH's")      ,     ASTR("7msH7") );
-    dateFormatCheck( ut, ct, ASTR("'someone''''s quote'"),  ASTR("someone's quote") );
+    //error: dateFormatCheck( ut, ct, A_CHAR("'")            ,           A_CHAR("") );
+    //error: dateFormatCheck( ut, ct, A_CHAR("'msH")         ,        A_CHAR("msH") );
+    dateFormatCheck( ut, ct, A_CHAR("''")           ,          A_CHAR("'") );
+    dateFormatCheck( ut, ct, A_CHAR("''''")         ,         A_CHAR("''") );
+    dateFormatCheck( ut, ct, A_CHAR("''m''")        ,        A_CHAR("'6'") );
+    dateFormatCheck( ut, ct, A_CHAR("'''m'''")        ,      A_CHAR("'m'") );
+    dateFormatCheck( ut, ct, A_CHAR("s'msH's")      ,     A_CHAR("7msH7") );
+    dateFormatCheck( ut, ct, A_CHAR("'someone''''s quote'"),  A_CHAR("someone's quote") );
 
-    dateFormatCheck( ut, ct, ASTR("yyyy-MM-dd HH:mm:ss"),  ASTR("2015-04-03 05:06:07") );
+    dateFormatCheck( ut, ct, A_CHAR("yyyy-MM-dd HH:mm:ss"),  A_CHAR("2015-04-03 05:06:07") );
 }
 
 UT_METHOD(DurationConversion)
@@ -648,36 +653,36 @@ void durationToStringCheck( AWorxUnitTesting& ut, Ticks::Duration& ts, const Str
     UT_EQ( expected, String(res) );
 }
 
-UT_METHOD(DurationApply)
+UT_METHOD(DurationAppend)
 {
     UT_INIT();
     NumberFormat::Global.SetComputational();
 
-    Ticks::Duration ts;                             durationToStringCheck( ut, ts, ASTR("zero time")           );
-    ts=  Ticks::Duration::FromDays        (-15 );   durationToStringCheck( ut, ts, ASTR("- 15.00 days")        );
-    ts=  Ticks::Duration::FromDays        ( 15 );   durationToStringCheck( ut, ts, ASTR("15.00 days")          );
-    ts+= Ticks::Duration::FromHours       ( 12 );   durationToStringCheck( ut, ts, ASTR("15.50 days")          );
+    Ticks::Duration ts;                             durationToStringCheck( ut, ts, A_CHAR("zero time")           );
+    ts=  Ticks::Duration::FromDays        (-15 );   durationToStringCheck( ut, ts, A_CHAR("- 15.00 days")        );
+    ts=  Ticks::Duration::FromDays        ( 15 );   durationToStringCheck( ut, ts, A_CHAR("15.00 days")          );
+    ts+= Ticks::Duration::FromHours       ( 12 );   durationToStringCheck( ut, ts, A_CHAR("15.50 days")          );
 
-    ts=  Ticks::Duration::FromDays        (  5 );   durationToStringCheck( ut, ts, ASTR("5 days 0.00 hours")   );
-    ts+= Ticks::Duration::FromHours       ( 12 );   durationToStringCheck( ut, ts, ASTR("5 days 12.00 hours")  );
-
-
-    ts=  Ticks::Duration::FromHours       (  5 );   durationToStringCheck( ut, ts, ASTR("5 hours 0 minutes")   );
-    ts+= Ticks::Duration::FromMinutes     ( 12 );   durationToStringCheck( ut, ts, ASTR("5 hours 12 minutes")  );
-    ts-= Ticks::Duration::FromMinutes     ( 11 );   durationToStringCheck( ut, ts, ASTR("5 hours 1 minute")    );
+    ts=  Ticks::Duration::FromDays        (  5 );   durationToStringCheck( ut, ts, A_CHAR("5 days 0.00 hours")   );
+    ts+= Ticks::Duration::FromHours       ( 12 );   durationToStringCheck( ut, ts, A_CHAR("5 days 12.00 hours")  );
 
 
-    ts=  Ticks::Duration::FromMinutes     (  5 );   durationToStringCheck( ut, ts, ASTR("5 minutes 0 seconds") );
-    ts+= Ticks::Duration::FromSeconds     ( 12 );   durationToStringCheck( ut, ts, ASTR("5 minutes 12 seconds"));
-    ts-= Ticks::Duration::FromSeconds     ( 11 );   durationToStringCheck( ut, ts, ASTR("5 minutes 1 second")  );
+    ts=  Ticks::Duration::FromHours       (  5 );   durationToStringCheck( ut, ts, A_CHAR("5 hours 0 minutes")   );
+    ts+= Ticks::Duration::FromMinutes     ( 12 );   durationToStringCheck( ut, ts, A_CHAR("5 hours 12 minutes")  );
+    ts-= Ticks::Duration::FromMinutes     ( 11 );   durationToStringCheck( ut, ts, A_CHAR("5 hours 1 minute")    );
 
-    ts=  Ticks::Duration::FromSeconds     (   5 );  durationToStringCheck( ut, ts, ASTR("5.00 seconds")        );
-    ts+= Ticks::Duration::FromMilliseconds( 500 );  durationToStringCheck( ut, ts, ASTR("5.50 seconds")        );
-    ts-= Ticks::Duration::FromMilliseconds( 250 );  durationToStringCheck( ut, ts, ASTR("5.25 seconds")        );
 
-    ts=  Ticks::Duration::FromMilliseconds(   5 );  durationToStringCheck( ut, ts, ASTR("005 ms")              );
-    ts=  Ticks::Duration::FromMicroseconds( 500 );  durationToStringCheck( ut, ts, ASTR("500 \u00B5s")         );
-    ts=  Ticks::Duration::FromNanoseconds ( 250 );  durationToStringCheck( ut, ts, ASTR("250 ns")              );
+    ts=  Ticks::Duration::FromMinutes     (  5 );   durationToStringCheck( ut, ts, A_CHAR("5 minutes 0 seconds") );
+    ts+= Ticks::Duration::FromSeconds     ( 12 );   durationToStringCheck( ut, ts, A_CHAR("5 minutes 12 seconds"));
+    ts-= Ticks::Duration::FromSeconds     ( 11 );   durationToStringCheck( ut, ts, A_CHAR("5 minutes 1 second")  );
+
+    ts=  Ticks::Duration::FromSeconds     (   5 );  durationToStringCheck( ut, ts, A_CHAR("5.00 seconds")        );
+    ts+= Ticks::Duration::FromMilliseconds( 500 );  durationToStringCheck( ut, ts, A_CHAR("5.50 seconds")        );
+    ts-= Ticks::Duration::FromMilliseconds( 250 );  durationToStringCheck( ut, ts, A_CHAR("5.25 seconds")        );
+
+    ts=  Ticks::Duration::FromMilliseconds(   5 );  durationToStringCheck( ut, ts, A_CHAR("005 ms")              );
+    ts=  Ticks::Duration::FromMicroseconds( 500 );  durationToStringCheck( ut, ts, A_CHAR("500 \u00B5s")         );
+    ts=  Ticks::Duration::FromNanoseconds ( 250 );  durationToStringCheck( ut, ts, A_CHAR("250 ns")              );
 }
 
 
@@ -685,3 +690,5 @@ UT_METHOD(DurationApply)
 UT_CLASS_END
 
 }; //namespace
+
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)

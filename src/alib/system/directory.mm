@@ -6,7 +6,6 @@
 // #################################################################################################
 #if   defined(__APPLE__)
 
-#include "alib/alib.hpp"
 
 #include "alib/system/directory.hpp"
 
@@ -32,9 +31,6 @@ void ALIB_APPLE_OC_NSHomeDirectory( AString& target)
         target <<  [tempDir UTF8String];
 }
 
-
-
-
-}}}}// namespace [aworx::lib::system::macos]
+}}}} // namespace [aworx::lib::system::macos]
 
 #endif

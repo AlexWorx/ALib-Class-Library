@@ -1,29 +1,19 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_VSTUDIO_LOGGER
 #define HPP_ALOX_VSTUDIO_LOGGER 1
+
+#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+    #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
+#endif
 
 #if defined(_WIN32) && ALIB_DEBUG
 
 
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
-    #include "alib/alox/core/textlogger/plaintextlogger.hpp"
-#endif
 
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
@@ -41,7 +31,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  *  If a Visual Studio debug session is detected, this logger is added. If in addition, a windows
  *  console application is detected, then a second logger of type WindowsConsoleLogger is added.
  **************************************************************************************************/
-class VStudioLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
+class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 {
     // #############################################################################################
     // Internal members
@@ -51,7 +41,7 @@ class VStudioLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          * A character buffer used for the creation of zero-terminated output strings
          * required by the VStudio logger interface.
          *
-         * If \ref ALIB_NARROW_STRINGS is set, this string also acts as a converter to wide
+         * If \ref ALIB_CHARACTERS_ARE_NARROW is set, this string also acts as a converter to wide
          * characters.
          */
         AString             outputString;
@@ -84,7 +74,7 @@ class VStudioLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool notifyLogOp(lib::lang::Phase phase);
+        virtual bool notifyLogOp(lib::Phase phase);
 
         /** ****************************************************************************************
          * Write the given region of the given AString to the destination buffer.
@@ -102,7 +92,7 @@ class VStudioLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
         ALIB_API
-        virtual void notifyMultiLineOp ( lib::lang::Phase )    {  }
+        virtual void notifyMultiLineOp ( lib::Phase )    {  }
 
 
 }; // class VStudioLogger
@@ -113,7 +103,7 @@ class VStudioLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
 /// Type alias in namespace #aworx.
 using     VStudioLogger=           aworx::lib::lox::loggers::VStudioLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 
 #endif // ALIB_IDE_VSTUDIO && ALIB_DEBUG

@@ -1,27 +1,22 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_SYSTEM_DIRECTORY)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_SYSTEM_DIRECTORY
-//! @cond NO_DOX
 #define HPP_ALIB_SYSTEM_DIRECTORY 1
-//! @endcond
 
-namespace aworx { namespace lib { namespace system
-{
+#if !defined(HPP_ALIB_SYSTEM_SYSTEM)
+#   include "alib/system/system.hpp"
+#endif
+
+#if !defined(HPP_ALIB_STRINGS_STRINGNZT)
+#   include "alib/strings/stringnzt.hpp"
+#endif
+
+
+namespace aworx { namespace lib { namespace system {
 
 // #############################################################################################
 // MacOS System call wrappers (implemented in Objective-C)
@@ -40,7 +35,6 @@ namespace macos
  **************************************************************************************************/
 class Directory
 {
-
     // #############################################################################################
     // Types
     // #############################################################################################
@@ -50,13 +44,13 @@ class Directory
          ******************************************************************************************/
         enum class SpecialFolder
         {
-            /// The root directory .
+            /** The root directory . */
             Root,
 
-            /// The current directory of the process.
+            /** The current directory of the process. */
             Current,
 
-            /// The user's home directory
+            /** The user's home directory */
             Home,
 
             /**
@@ -68,7 +62,7 @@ class Directory
              */
             HomeConfig,
 
-            /// The directory of the executable of the process.
+            /** The directory of the executable of the process. */
             Module,
 
             /**
@@ -78,10 +72,10 @@ class Directory
              * - On Windows OS, environment variables TMP and TEMP are evaluated.<br>
              *
              * If the directory does not exist, then (on all OS), a new directory named \c ".tmp"
-             * is created in the users' home directory and returned (if not existent already).
+             * is created in the user's home directory and returned (if not existent already).
              * If this fails, the home directory itself is returned.
              *
-             * \note With the potential creation of the directory \c ".tmp" in the users' home
+             * \note With the potential creation of the directory \c ".tmp" in the user's home
              *       directory, a small \c readme.txt file is created containing  the name of
              *       the running application and the reason of the creation.
              *
@@ -99,10 +93,10 @@ class Directory
              *   with \b %SpecialFolder::Temp).<br>
              *
              * If the directory does not exist, then (on all OS), a new directory named \c ".var.tmp"
-             * is created in the users' home directory and returned (if not existent already).
+             * is created in the user's home directory and returned (if not existent already).
              * If this fails, the home directory itself is returned.
              *
-             * \note With the potential creation of the directory \c ".var.tmp" in the users' home
+             * \note With the potential creation of the directory \c ".var.tmp" in the user's home
              *       directory, a small \c readme.txt file is created, containing the name of
              *       the running application and the reason of the creation.
              *
@@ -116,7 +110,6 @@ class Directory
     // Fields
     // #############################################################################################
     public:
-
         /**
          * Singleton containing the path for the use of enum value
          * \ref SpecialFolder "SpecialFolder::Temp".
@@ -135,8 +128,8 @@ class Directory
          */
         static      AString         evaluatedVarTempDir;
 
-        /// The path of the directory represented by this instance
-        String256                   Path;
+        /** The path of the directory represented by this instance */
+        AString                     Path;
 
     // #############################################################################################
     // Constructors
@@ -148,10 +141,8 @@ class Directory
          ******************************************************************************************/
         inline                  Directory( SpecialFolder special )
         {
-            ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( Path,  ReplaceExternalBuffer );
             Change( special );
         }
-
 
         /** ****************************************************************************************
          * Constructs an object representing the given path.
@@ -160,8 +151,8 @@ class Directory
          ******************************************************************************************/
         inline                  Directory( const String& path )
         {
-            ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( Path,  ReplaceExternalBuffer );
-            Path._( path );
+            Path._( '/' );
+            Change( path );
         }
 
 
@@ -177,8 +168,14 @@ class Directory
          * @param    path  The relative or absolute path to change to.
          * @returns \c true if the change was successful, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API   bool         Change( const String& path );
+        ALIB_API   bool         Change( const CString& path );
 
+        /** ****************************************************************************************
+         * Overloaded version of #Change(const CString&) accepting a non-zero-terminated string.
+         * @param    path  The relative or absolute path to change to.
+         * @returns \c true if the change was successful, \c false otherwise.
+         ******************************************************************************************/
+        ALIB_API   bool         Change( const StringNZT& path );
 
         /** ****************************************************************************************
          * Changes the directory to one of the known special directories.
@@ -200,17 +197,27 @@ class Directory
 
         /** ****************************************************************************************
          *  Tests if the given (absolute or relative) path represents a directory in the file system.
-         *  @param path     The path to test.
+         *  @param path     Zero-terminated string defining the path to test.
          *  @return \c true if a directory was found.
          ******************************************************************************************/
-        ALIB_API static  bool           Exists( const TString& path );
+        ALIB_API static  bool           Exists( const CString&   path );
+
+        /** ****************************************************************************************
+         * Overloaded version of #Change(const CString&) accepting a non-zero-terminated string.
+         * @param    path  The relative or absolute path to change to.
+         * @returns \c true if the change was successful, \c false otherwise.
+         ******************************************************************************************/
+        inline   static  bool           Exists( const StringNZT& path )
+        {
+            return Exists( String256(path) );
+        }
 
         /** ****************************************************************************************
          *  Creates the directory of the given (absolute or relative) path.
-         *  @param path     The path to test.
+         *  @param path     Zero-terminated string defining the path to test.
          *  @return A value of enum type \alib{system,SystemErrors}.
          ******************************************************************************************/
-        ALIB_API static SystemErrors    Create( const TString& path );
+        ALIB_API static SystemErrors    Create( const CString& path );
 }; //class Directory
 
 }} // namespace lib::system
@@ -222,8 +229,8 @@ using     Directory=       aworx::lib::system::Directory;
  * The standard path separator character. Defaults to '\\' on Windows OS, '/' else.
  * Note: Available only with including "alib/system/directory.hpp"
  */
-constexpr char    DirectorySeparator
-#if defined(DOX_PARSER)
+constexpr nchar    DirectorySeparator
+#if ALIB_DOCUMENTATION_PARSER
     ;
 #else
     =
@@ -233,9 +240,9 @@ constexpr char    DirectorySeparator
                                                                         '/';
                                                                     #endif
 #endif
-}  // namespace aworx
+}  // namespace [aworx]
 
 
-ALIB_LANG_ENUM_PARSABLE( aworx::Directory::SpecialFolder )
-ALIB_LANG_RESOURCED(     aworx::Directory::SpecialFolder, aworx::lib::SYSTEM, ASTR("SpecialFolder") )
+ALIB_ENUM_PARSABLE( aworx::Directory::SpecialFolder )
+ALIB_RESOURCED_IN_MODULE(aworx::Directory::SpecialFolder, aworx::lib::SYSTEM, "SpecialFolder" )
 #endif // HPP_ALIB_SYSTEM_DIRECTORY

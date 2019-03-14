@@ -1,40 +1,21 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
-#include "alib/alox.hpp"
-
-#if !defined (HPP_ALIB_CLI_LIB)
-#   include "alib/cli/clilib.hpp"
-#endif
-
-#if !defined (HPP_ALIB_CLI_CLIAPP)
-#   include "alib/cli/cliapp.hpp"
-#endif
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_CLI_CLIUTIL)
 #   include "alib/cli/cliutil.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGS_FORMAT_SIMPLETEXT)
-#   include "alib/strings/format/simpletext.hpp"
+#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#   include "alib/strings/util/tokenizer.hpp"
 #endif
 
-#if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-#   include "alib/system/process.hpp"
-#endif
-
-#include <algorithm>
-
-
-
-using namespace std;
 
 namespace aworx { namespace lib { namespace cli {
-
 
 
 OptionDecl*  CLIUtil::GetOptionDecl( CLIApp& cliApp, const String& identString )
@@ -68,10 +49,10 @@ ParameterDecl*  CLIUtil::GetParameterDecl(CLIApp &cliApp, const String &identStr
 
 
 
-AString CLIUtil::GetCommandUsageFormat( CommandDecl& cmd )
+AString CLIUtil::GetCommandUsageFormat( CLIApp& cliApp, CommandDecl& cmd )
 {
     AString result(2048);
-    result << cmd.Identifier();
+    result << cliApp.ResModule->GetResource( "HlpCLIAppName" ) << ' ' << cmd.Identifier();
 
     for( auto param : cmd.Parameters )
     {
@@ -90,21 +71,32 @@ AString CLIUtil::GetCommandUsageFormat( CommandDecl& cmd )
     return result;
 }
 
-bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& lox )
+bool CLIUtil::GetHelp( CLIApp& cliApp, Command* helpCmd, Option* helpOpt, Text& text )
 {
-    #define LOX_LOX   lox
+    Module& mod= *cliApp.ResModule;
+    text.AddMarked( mod.GetResource( "AppInfo" ) );
 
-    Library& res= cliApp.ResLibrary;
-    text.AddMarked( res.Get( ASTR("AppInfo") ) );
-
-    String argList= NullString;
+    String argList= NullString();
     bool   argWasPeeked= false;
-    if(  helpOpt.Args.size() )
-        argList= helpOpt.Args[0];
-    else if( cliApp.ArgStrings.size() > helpOpt.Position )
+    if( helpCmd )
     {
-        argWasPeeked= true;
-        argList= cliApp.ArgStrings[helpOpt.Position + 1];
+        if(  helpCmd->ParametersOptional.size() )
+            argList= helpCmd->ParametersOptional[0].Args[0];
+        else if( cliApp.ArgStrings.size() > helpCmd->Position )
+        {
+            argWasPeeked= true;
+            argList= cliApp.ArgStrings[helpCmd->Position + 1];
+        }
+    }
+    else
+    {
+        if(  helpOpt->Args.size() )
+            argList= helpOpt->Args[0];
+        else if( cliApp.ArgStrings.size() > helpOpt->Position )
+        {
+            argWasPeeked= true;
+            argList= cliApp.ArgStrings[helpOpt->Position + 1];
+        }
     }
 
     if( argList.IsNotEmpty() )
@@ -125,20 +117,19 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
                 if( cmdDecl )
                 {
                     cntArgsRecognized++;
-                    Lox_Info( "Option 'help' on command {!Q}", cmdDecl->Identifier() );
 
                     if( cliApp.DryRun == DryRunModes::Off )
                     {
-                        text.Add( res.Get( ASTR("HlpHdlTopic") ), "command", cmdDecl->Identifier() )
+                        text.Add( mod.GetResource( "HlpHdlTopic" ), "command", cmdDecl->Identifier() )
                             .PushIndent( 2 )
-                            .Add( res.Get( ASTR("HlpHdlUsage") ), "  ", GetCommandUsageFormat( *cmdDecl ) )
+                            .Add( mod.GetResource( "HlpHdlUsage" ), " ", GetCommandUsageFormat( cliApp, *cmdDecl ) )
 
-                            .Add( NewLine, res.Get( ASTR("HlpHdlDscr") ) )
+                            .Add( NewLine(), mod.GetResource( "HlpHdlDscr" ) )
                             .PushIndent( 2 )
-                              .AddMarked( cmdDecl->HelpTextLong(), NewLine )
+                              .AddMarked( cmdDecl->HelpTextLong(), NewLine() )
                             .PopIndent()
 
-                            .Add( NewLine, res.Get( ASTR("HlpHdlPDscr") ) )
+                            .Add( NewLine(), mod.GetResource( "HlpHdlPDscr" ) )
                             .PushIndent( 2 );
                             for( auto param : cmdDecl->Parameters )
                             {
@@ -146,7 +137,7 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
                                     .PushIndent( 2 )
                                       .AddMarked( param->GetHelpTextShort() )
                                     .PopIndent()
-                                   .Add( NewLine );
+                                   .Add( NewLine() );
                             }
                         text.PopIndent()
                             .PopIndent();
@@ -161,15 +152,14 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
                 if( optDecl )
                 {
                     cntArgsRecognized++;
-                    Lox_Info( "Option 'help' on option {!Q}", optDecl->Identifier() );
                     if( cliApp.DryRun == DryRunModes::Off )
                     {
-                        text.Add( res.Get( ASTR("HlpHdlTopic") ), "option", optDecl->Identifier() )
+                        text.Add( mod.GetResource( "HlpHdlTopic" ), "option", optDecl->Identifier() )
                             .PushIndent( 2 )
-                            .Add( res.Get( ASTR("HlpHdlUsage") ), "  ", optDecl->HelpUsageLine() )
-                            .Add( NewLine, res.Get( ASTR("HlpHdlDscr") ) )
+                            .Add( mod.GetResource( "HlpHdlUsage" ), "  ", optDecl->HelpUsageLine() )
+                            .Add( NewLine(), mod.GetResource( "HlpHdlDscr" ) )
                             .PushIndent( 2 )
-                                .AddMarked( optDecl->HelpText(), NewLine )
+                                .AddMarked( optDecl->HelpText(), NewLine() )
                             .PopIndent()
 
                             .PopIndent();
@@ -184,10 +174,9 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
                 if( paramDecl )
                 {
                     cntArgsRecognized++;
-                    Lox_Info( "Option 'help' on parameter {!Q}", paramDecl->Name() );
                     if( cliApp.DryRun == DryRunModes::Off )
                     {
-                        text.Add( res.Get( ASTR("HlpHdlTopic") ), "parameter", paramDecl->Name() )
+                        text.Add( mod.GetResource( "HlpHdlTopic" ), "parameter", paramDecl->Name() )
                             .PushIndent( 2 )
                             .AddMarked( paramDecl->GetHelpTextLong() )
                             .PopIndent();
@@ -198,7 +187,7 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
             // special help topic?
             if( cntArgsRecognizedSoFar == cntArgsRecognized )
             {
-                String additionalHelpTopics= res.GetTry(ASTR("HlpAddnlTopics"));
+                String additionalHelpTopics= mod.TryResource("HlpAddnlTopics");
                 if( additionalHelpTopics.IsNotEmpty() )
                 {
                     Tokenizer topics(additionalHelpTopics, ',');
@@ -207,10 +196,8 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
                         if(topics.Actual.StartsWith<true,Case::Ignore>( arg ) )
                         {
                             cntArgsRecognized++;
-                            Lox_Info( "Option 'help' on special help topic {!Q}", topics.Actual );
-
                             if( cliApp.DryRun == DryRunModes::Off )
-                                text.AddMarked( res.Get( String64(ASTR("HlpAddnl"))._( topics.Actual ) ) );
+                                text.AddMarked( mod.GetResource( NString64("HlpAddnl")._( topics.Actual ) ) );
 
                             break;
                         }
@@ -220,12 +207,20 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
         }
 
 
-        // Add arg to option object if at least one token matched
+        // Add arg to command object if at least one token matched
         if( cntArgsRecognized > 0 && argWasPeeked )
         {
-            cliApp.RemoveArg( helpOpt.Position + 1 );
-            helpOpt.QtyArgsConsumed++;
-            helpOpt.Args.emplace_back( argList );
+            if( helpCmd )
+            {
+                cliApp.RemoveArg( helpCmd->Position + 1 );
+                helpCmd->QtyArgsConsumed++;
+            }
+            else
+            {
+                cliApp.RemoveArg( helpOpt->Position + 1 );
+                helpOpt->QtyArgsConsumed++;
+                helpOpt->Args.emplace_back( argList );
+            }
         }
 
         // not peeked means "--help=arg" was given. In this case, the argument has to be recognized.
@@ -240,9 +235,9 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
     }
 
     // general help
-    text.AddMarked( cliApp.ResLibrary.Get( ASTR("HlpGeneral") ) );
+    text.AddMarked( cliApp.ResModule->GetResource( "HlpGeneral" ) );
 
-    text.Add( res.Get( ASTR("HlpHdlExtCds") ) )
+    text.Add( mod.GetResource(                "HlpHdlExtCds") )
         .PushIndent( 2 );
     for( auto& it : cliApp.ExitCodeDecls )
     {
@@ -251,36 +246,35 @@ bool CLIUtil::GetHelp( CLIApp& cliApp, Option& helpOpt, SimpleText& text, Lox& l
     }
     text.PopIndent();
 
-    text.Add( cliApp.ResLibrary.Get( ASTR("HlpHdlUsage") ) )
+    text.Add( cliApp.ResModule->GetResource( "HlpHdlUsage" ) )
         .PushIndent( 2 )
-        .Add( cliApp.ResLibrary.Get( ASTR("HlpUsage") ) )
+        .Add( cliApp.ResModule->GetResource( "HlpUsage"    ) )
         .PopIndent()
-        .Add( NewLine, res.Get( ASTR("HlpHdlOpts") )   )
+        .Add( NewLine(), mod.GetResource(       "HlpHdlOpts"  ) )
         .PushIndent( 2 );
     for( auto& it : cliApp.OptionDecls )
         text.Add( it.HelpUsageLine() );
 
     text.PopIndent();
 
-    text.Add( NewLine, res.Get( ASTR("HlpHdlCmds") )  )
+    text.Add( NewLine(), mod.GetResource(       "HlpHdlCmds"  ) )
         .PushIndent( 2 );
     for( auto& it : cliApp.CommandDecls )
     {
-        text.Add( "* ", GetCommandUsageFormat( it ), NewLine )
+        text.Add( "* ", GetCommandUsageFormat( cliApp, it ), NewLine() )
             .PushIndent( 2 )
-              .Add( it.HelpTextShort(), NewLine )
+              .Add( it.HelpTextShort(), NewLine() )
             .PopIndent();
     }
     text.PopIndent();
 
 
     return true;
-    #undef LOX_LOX
 }
 
 bool CLIUtil::GetDryOpt( CLIApp& cliApp, Option& dryOpt)
 {
-    Substring arg= NullString;
+    Substring arg= NullString();
     bool      argWasPeeked= false;
     if( dryOpt.Args.size() )
         arg= dryOpt.Args[0];
@@ -315,13 +309,13 @@ bool CLIUtil::GetDryOpt( CLIApp& cliApp, Option& dryOpt)
 }
 
 
-AString&  CLIUtil::DumpDeclarations( CLIApp& cliApp, SimpleText& dump )
+AString&  CLIUtil::DumpDeclarations( CLIApp& cliApp, Text& dump )
 {
     dump.Add( "COMMANDS:")
         .PushIndent( 2 );
     for( auto& it : cliApp.CommandDecls )
     {
-        dump.Add( "- ({}) {}", it.EnumBox, it.Identifier())
+        dump.Add( "- ({}) {}", it.ID, it.Identifier())
             .PushIndent( 2 );
         String256 paramIDs;
         for( auto& param : it.Parameters )
@@ -333,41 +327,41 @@ AString&  CLIUtil::DumpDeclarations( CLIApp& cliApp, SimpleText& dump )
         dump.Add(  "Associated parameters: ", paramIDs )
             .Add(  it.HelpTextShort())
             .PopIndent()
-            .Add( NewLine );
+            .Add( NewLine() );
     }
     dump.PopIndent()
 
 
-        .Add( NewLine )
+        .Add( NewLine() )
         .Add( "OPTIONS:")
         .PushIndent( 2 );
     for( auto& it : cliApp.OptionDecls )
     {
         dump.Add( it.HelpUsageLine() )
             .Add( it.HelpText()      )
-            .Add( NewLine );
+            .Add( NewLine() );
     }
     dump.PopIndent();
 
 
 
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "PARAMETERS:")
         .PushIndent( 2 );
     for( auto& it : cliApp.ParameterDecls )
     {
         dump.Add( "- ({}) {}  Optional: {}  Multi-Separator: {}" ,
-                           it.EnumBox,
+                           it.ID,
                            it.Name(),
                            it.IsOptional(),
                            (it.Separator() ? Box(it.Separator()) : Box("-/-") ))
             .Add(  it.GetHelpTextShort())
-            .Add( NewLine );
+            .Add( NewLine() );
     }
     dump.PopIndent()
 
 
-        .Add( NewLine )
+        .Add( NewLine() )
         .Add( "EXIT CODES:")
         .PushIndent( 2 );
     for( auto& it : cliApp.ExitCodeDecls )
@@ -375,14 +369,14 @@ AString&  CLIUtil::DumpDeclarations( CLIApp& cliApp, SimpleText& dump )
 
     dump.PopIndent();
 
-    return dump.Text;
+    return dump.Buffer;
 }
 
 
 //! @cond NO_DOX
 namespace
 {
-    void dumpParsedOptions( CLIApp& app, std::map<Enum, std::vector<Option>>& optionMap, SimpleText& dump  )
+    void dumpParsedOptions( CLIApp& app, std::map<Enum, std::vector<Option>>& optionMap, Text& dump  )
     {
         dump.PushIndent( 2 );
             int cnt= 0;
@@ -411,7 +405,7 @@ namespace
 
                 }
                 dump.PopIndent()
-                    .Add( NewLine );
+                    .Add( NewLine() );
             }
             if (cnt == 0 )
                 dump.Add( "None" );
@@ -420,17 +414,17 @@ namespace
 } // anon namespace
 //! @endcond
 
-AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, SimpleText& dump )
+AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, Text& dump )
 {
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "OPTIONS:");
     dumpParsedOptions( cliApp, cliApp.OptionsFound, dump );
 
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "OPTIONS OVERWRITTEN:");
     dumpParsedOptions( cliApp, cliApp.OptionsOverwritten, dump );
 
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "OPTION ARGUMENTS IGNORED (Usable with other libs):")
         .PushIndent( 2 );
         int cnt= 0;
@@ -440,7 +434,7 @@ AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, SimpleText& dump )
             dump.Add( "None" );
     dump.PopIndent();
 
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "COMMANDS PARSED:")
         .PushIndent( 2 );
             cnt= 0;
@@ -468,7 +462,7 @@ AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, SimpleText& dump )
 
                 }
                 dump.PopIndent()
-                    .Add( NewLine );
+                    .Add( NewLine() );
             }
             if (cnt == 0 )
                 dump.Add( "None" );
@@ -476,7 +470,7 @@ AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, SimpleText& dump )
 
 
 
-    dump.Add( NewLine )
+    dump.Add( NewLine() )
         .Add( "UNRECOGNIZED CLI ARGUMENTS:")
         .PushIndent( 2 );
     for( auto& it : cliApp.ArgsLeft )
@@ -486,7 +480,7 @@ AString&  CLIUtil::DumpParseResults( CLIApp& cliApp, SimpleText& dump )
         dump.Add( "None" );
     dump.PopIndent();
 
-    return dump.Text;
+    return dump.Buffer;
 }
 
 }}}// namespace aworx::lib::system

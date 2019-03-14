@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Tools: DoxygenGraphTemplateInstanceRemover
 #
-#  Copyright 2015-2018 A-Worx GmbH, Germany
+#  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -23,7 +23,7 @@
 # -------------------------------------------------------------------------------------------------
 
     project( "DoxygenGraphTemplateInstanceRemover" )
-    cmake_minimum_required(VERSION 2.8)
+    cmake_minimum_required( VERSION 3.3.0 )
 
     # this defaults to a release version!
     if ( "${CMAKE_BUILD_TYPE}" STREQUAL ""    )
@@ -80,8 +80,8 @@ endif()
 # For more Info see 'ALox.cmake' which downloads the script and the cotire website at
 # https://github.com/sakra/cotire/
 # -------------------------------------------------------------------------------------------------
-    if( ${ALIB_CMAKE_COTIRE} )
-        set_target_properties( dot   PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j" )
-        set_target_properties( dot   PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alib/alib.hpp" )
-        cotire( dot )
-    endif()
+if( ${ALIB_CMAKE_COTIRE} )
+    set_target_properties( dot   PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j" )
+    set_target_properties( dot   PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alib/alib_precompile.hpp" )
+    cotire( dot )
+endif()

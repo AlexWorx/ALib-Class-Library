@@ -1,24 +1,26 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_SYSTEM_CONSOLE)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_SYSTEM_CONSOLE
-//! @cond NO_DOX
 #define HPP_ALIB_SYSTEM_CONSOLE 1
-//! @endcond
+
+#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
+#   include "alib/lib/predef_modules.hpp"
+#endif
+
+ALIB_ASSERT_MODULE(SYSTEM)
+
+#if !defined(HPP_ALIB_LIB_PREDEF_COMPILER)
+#   include "alib/lib/predef_compiler.hpp"
+#endif
+
+#if !defined(HPP_ALIB_LIB_PREDEF_PLATFORM)
+#   include "alib/lib/predef_platform.hpp"
+#endif
+
 
 namespace aworx { namespace lib { namespace system {
 /** ************************************************************************************************
@@ -27,7 +29,7 @@ namespace aworx { namespace lib { namespace system {
 class Console
 {
     protected:
-        /// Console text width.
+        /** Console text width. */
         ALIB_API static
         int                 lastReceivedWidth;
 
@@ -50,6 +52,6 @@ class Console
 /// Type alias in namespace #aworx.
 using     Console=       aworx::lib::system::Console;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_SYSTEM_CONSOLE

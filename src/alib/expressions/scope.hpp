@@ -1,19 +1,23 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
 #define HPP_ALIB_EXPRESSIONS_SCOPE
 
-#ifndef HPP_ALIB_STRINGS_FORMAT_FORMATTER_STD
-#   include "alib/strings/format/formatterstdimpl.hpp"
+#ifndef HPP_ALIB_STRINGFORMAT_FORMATTER_STD
+#   include "alib/stringformat/formatterstdimpl.hpp"
 #endif
 
-#if !defined(HPP_ALIB_STRINGS_UTIL_STRINGMAP)
-    #include "alib/strings/util/stringmap.hpp"
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
+    #include "alib/compatibility/std_strings_functional.hpp"
+#endif
+
+#if !defined(HPP_ALIB_MEMORY_MEMORYBLOCKS)
+    #include "alib/memory/memoryblocks.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace expressions {
@@ -78,7 +82,7 @@ struct Scope
     /**
      * This is a pointer to the compile-time scope. This is available only at evaluation time
      * and primarily is used to access field #NamedResources. This allows to create resources
-     * at compile time, which can be used for evaluation.<br>
+     * at compile-time, which can be used for evaluation.<br>
      *
      * A sample use case is implemented with built-in compiler plug-in
      * \alib{expressions::plugins,Strings}. When wildcard or regex matching is performed on
@@ -93,7 +97,7 @@ struct Scope
      */
     std::vector<aworx::Box>             Stack;
 
-    /// List of nested expressions called during evaluation. Used to detect cyclic expressions.
+    /** List of nested expressions called during evaluation. Used to detect cyclic expressions. */
     std::vector<Expression*>            nestedExpressionStack;
 
     /**
@@ -113,9 +117,7 @@ struct Scope
      * A list of user-defined, named resources. Named resources may be allocated at compile-time
      * and used at evaluation-time.
      */
-    UnorderedStringMap<ScopeResource*>  NamedResources;
-
-
+    UnorderedStringMap<ScopeResource*, nchar> NamedResources;
 
     /**
      * Used to convert numbers to strings and vice versa. In addition expression function
@@ -124,8 +126,8 @@ struct Scope
      *
      * Hence, to support customized format strings, a different formatter is to be passed here.
      * Default format string conventions provided with \alib are
-     * \alib{strings::format,FormatterPythonStyleBase,python style} and
-     * \alib{strings::format,FormatterJavaStyleBase,java/printf-like style}.
+     * \alib{stringformat,FormatterPythonStyle,python style} and
+     * \alib{stringformat,FormatterJavaStyle,java/printf-like style}.
      *
      * The default implementation of method \alib{expressions,Compiler::getCompileTimeScope}
      * provides field \alib{expressions,Compiler::CfgFormatter} with the constructor of the
@@ -177,6 +179,8 @@ struct Scope
      *
      * Instances of this class used as compilation scope, are not cleared during the life-cycle
      * of an expression.
+     *
+     * Derived versions of this class need to free allocations performed by callback functions.
      **********************************************************************************************/
     ALIB_API
     virtual void    Clear();
@@ -184,6 +188,10 @@ struct Scope
 };
 
 }} // namespace aworx[::lib::expressions]
+
+/// Type alias in namespace #aworx. Renamed to not collide with #aworx::lib::lox::Scope.
+using     ExpressionScope=    aworx::lib::expressions::Scope;
+
 
 }// namespace [aworx]
 

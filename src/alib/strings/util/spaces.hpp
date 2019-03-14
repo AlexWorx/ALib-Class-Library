@@ -1,25 +1,16 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_STRINGS_UTIL_SPACES)
-    #error "Header already included"
-#endif
-
-
-// then, set include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_SPACES
-//! @cond NO_DOX
 #define HPP_ALIB_STRINGS_UTIL_SPACES 1
-//! @endcond
+
+#if !defined (HPP_ALIB_STRINGS_STRING)
+#   include "alib/strings/string.hpp"
+#endif
+
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -66,7 +57,7 @@ class Spaces
         inline
         static String&  Get(integer minLength= 128)
         {
-            #if ALIB_NARROW_STRINGS
+            #if ALIB_CHARACTERS_ARE_NARROW
                 return Spaces::GetN( minLength );
             #else
                 return Spaces::GetW( minLength );
@@ -81,13 +72,26 @@ class Spaces
         ALIB_API
         static void    Write( std::basic_ostream<char >& os, integer qty );
 
-        /** ****************************************************************************************
-         * Write the given number of spaces to the wide-character ostream.
-         * @param os    The output stream to write to.
-         * @param qty   The quantity of spaces to write.
-         ******************************************************************************************/
-        ALIB_API
-        static void    Write( std::basic_ostream<wchar_t>& os, integer qty );
+        #if ALIB_CHARACTERS_NATIVE_WCHAR  || ALIB_DOCUMENTATION_PARSER
+            /** ************************************************************************************
+             * Write the given number of spaces to the ostream of type \c wchar_t.
+             * \note This method is available only in the if code selection symbol
+             *       \ref ALIB_CHARACTERS_NATIVE_WCHAR evaluates to \c true (\b 1). This is due to
+             *       the fact that otherwise, the internal wide string buffer of spaces
+             *       is either of type \c char16_t or \c char32_t, the one of both that is
+             *       incompatible with output streams of character type \c wchar_t.<br>
+             *       Consequently, this method must not be used (and replaced by a custom
+             *       implementation) in the case that a software should compile successfully
+             *       with one of the symbol
+             *       \ref ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON or
+             *       \ref ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON set.
+             *
+             * @param os    The output stream to write to.
+             * @param qty   The quantity of spaces to write.
+             **************************************************************************************/
+            ALIB_API
+            static void    Write( std::basic_ostream<wchar_t>& os, integer qty );
+        #endif
 };
 
 }}} // namespace aworx[::lib::strings::util]

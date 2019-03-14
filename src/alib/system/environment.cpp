@@ -1,15 +1,18 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
 #   include "alib/system/environment.hpp"
 #endif
 
+#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#   include "alib/strings/localstring.hpp"
+#endif
 
 
 #if defined (__GLIBCXX__)  || defined(__APPLE__)
@@ -22,13 +25,13 @@
 
 namespace aworx { namespace lib { namespace system {
 
-bool GetEnvironmentVariable( const TString&  name,
+bool GetEnvironmentVariable( const CString&  name,
                              AString&        target,
                              CurrentData     targetData,
                              Case            sensitivity )
 {
     if ( targetData == CurrentData::Clear )
-        target.Clear();
+        target.Reset();
 
     if ( name.IsEmpty() )
         return false;
@@ -37,26 +40,29 @@ bool GetEnvironmentVariable( const TString&  name,
     #if defined (_WIN32)
         (void) sensitivity;
         ALIB_ASSERT_WARNING( sensitivity == Case::Ignore,
-           ASTR("Windows OS does not support case sensitive environment variables") );
+           "Windows OS does not support case sensitive environment variables" )
 
-        #if ALIB_NARROW_STRINGS
+        #if ALIB_CHARACTERS_ARE_NARROW
             nchar *env;
-            errno_t err = _dupenv_s( &env, nullptr, name.ToCString() );
+            errno_t err = _dupenv_s( &env, nullptr, name );
+            if ( err  || env == nullptr )
+                return false;
+            target._( NString( env ) );
         #else
-            wchar *env;
-            errno_t err = _wdupenv_s( &env, nullptr, name.ToCString() );
+            wchar_t *env;
+            errno_t err = _wdupenv_s( &env, nullptr, name );
+            if ( err  || env == nullptr )
+                return false;
+            target._( strings::TString<wchar_t>( env ) );
         #endif
-        if ( err  || env == nullptr )
-            return false;
-        target._( env );
         free( env );
         return true;
 
     #elif defined(__APPLE__)
         ALIB_ASSERT_WARNING( sensitivity == Case::Sensitive,
-           ASTR("Mac OS does not support case insensitive environment variables") );
+           "Mac OS does not support case insensitive environment variables" )
         (void) sensitivity;
-        char* env= getenv( name.ToCString() );
+        nchar* env= getenv( name );
         if( env != nullptr )
         {
             target._( env );
@@ -66,25 +72,25 @@ bool GetEnvironmentVariable( const TString&  name,
 
     #elif defined (__unix__)
 
-        ALIB_STD_TO_NARROW_TSTRING( name, nName );
+        ALIB_STRINGS_TO_NARROW( name, nName, 512 );
 
         // case sensitive is easy (but not supported under Windows)
         if ( sensitivity == Case::Sensitive )
         {
-            char* env= getenv( nName.ToCString() );
+            nchar* env= getenv( nName );
             if( env != nullptr )
             {
-                target._( env );
+                target._( NString( env ) );
                 return true;
             }
             return false;
         }
 
         // read directly from the global 'environ' variable, to enable case insensitive access
-        char** envv=   environ;
+        nchar** envv=   environ;
         while ( *envv )
         {
-            const char* actVar=   *envv;
+            const nchar* actVar=   *envv;
             if (     NString( actVar, nName.Length() ).Equals<Case::Ignore>( nName )
                  &&  *(*envv + nName.Length()) == '='
                )

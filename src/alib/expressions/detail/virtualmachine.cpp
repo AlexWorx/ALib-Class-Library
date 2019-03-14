@@ -1,20 +1,30 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
-#include "alib/alib.hpp"
-#include "alib/strings/format/simpletext.hpp"
-#include "alib/strings/boxing/debug.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE)
+#   include "alib/expressions/detail/virtualmachine.hpp"
+#endif
 
-//#include "../compiler.hpp"
-#include "alib/expressions/compilerplugin.hpp"
-#include "spirit.hpp"
-#include "program.hpp"
-#include "ast.hpp"
+#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
+#   include "alib/stringformat/text.hpp"
+#endif
 
+#if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
+#   include "alib/expressions/compilerplugin.hpp"
+#endif
+
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
+
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#   include "alib/expressions/detail/ast.hpp"
+#endif
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
 
@@ -42,7 +52,7 @@ VirtualMachine::Command::Command( Program* program, const String& functionOrOp,
 Box  VirtualMachine::Run( Program& program, Scope& scope )
 {
     ALIB_ASSERT_ERROR( program.compileStorage == nullptr,
-         "Internal error in program: AssembleFinalize not called?"  );
+         "Internal error in program: AssembleFinalize not called?"  )
 
     // If the stack is empty, this indicates, that this is an 'external' call and not a subroutine.
     // In this case, we clean the scope and such
@@ -119,20 +129,18 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         ALIB_ASSERT_ERROR( cmd.ResultType.IsSameType(stack.back()),
                                "Result type mismatch during command execution:\\n"
                                "       In expression: {!Q} {{{}}}\\n"
-                               "          Identifier: {}\\n"
                                "              Plugin: {}\\n"
-                               "            Callback: {}\\n"
-                               "       Expected type: <{}>\\n"
-                               "         Result type: <{}>\\n"
+                               "          Identifier: {} ({})\\n"
+                               "       Expected type: <{}> (aka {})\\n"
+                               "         Result type: <{}> (aka {})\\n"
                                "        Result value: {}\\n",
                                program.expression.Name(),
                                program.expression.GetNormalizedString(),
-                               cmd.DecompileSymbol,
                                cmd.DbgInfo.Plugin->Name,
-                               cmd.DbgInfo.Callback,
-                               program.compiler.TypeName( cmd.ResultType ),
-                               program.compiler.TypeName( stack.back() ),
-                               stack.back()                                 );
+                               cmd.DecompileSymbol, cmd.DbgInfo.Callback,
+                               program.compiler.TypeName( cmd.ResultType ), cmd.ResultType.TypeID(),
+                               program.compiler.TypeName( stack.back()   ), stack.back()  .TypeID(),
+                               stack.back()                                 )
                     }
 
                     // otherwise, we assign the value the position of the first arg in the stack and
@@ -176,23 +184,23 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                                 }
 
                                 String512 msg;
-                                auto fmt= lib::STRINGS.GetDefaultFormatter();
+                                auto fmt= GetDefaultFormatter();
                                 fmt->Format( msg, "Result type mismatch during command execution:\\n"
                                                  "       In expression: {!Q} {{{}}}\\n"
-                                                 "                Info: {}\\n"
                                                  "              Plugin: {}\\n"
+                                                 "                Info: {}\\n"
                                                  "            Callback: {}\\n"
-                                                 "       Expected type: <{}>\\n"
-                                                 "         Result type: <{}>\\n"
+                                                 "       Expected type: <{}> (aka {})\\n"
+                                                 "         Result type: <{}> (aka {})\\n"
                                                  "        Result value: {}\\n"
                                                  "    Parameter values: ",
                                                  program.expression.Name(),
                                                  program.expression.GetNormalizedString(),
-                                                 description,
                                                  cmd.DbgInfo.Plugin->Name,
+                                                 description,
                                                  cmd.DbgInfo.Callback,
-                                                 program.compiler.TypeName( cmd.ResultType ),
-                                                 program.compiler.TypeName( stack.back() ),
+                                                 program.compiler.TypeName( cmd.ResultType ), cmd.ResultType.TypeID(),
+                                                 program.compiler.TypeName( stack.back()   ), stack.back()  .TypeID(),
                                                  stack.back()                                 );
                                 fmt->Format( msg, "('{}' <{}>",
                                                  arg1Saved,
@@ -240,7 +248,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
 
             case Command::OpCodes::JumpIfFalse:
             {
-                if( !stack.back().Invoke<IIsTrue,bool>() )
+                if( !stack.back().Call<FIsTrue>() )
                     programCounter+= cmd.Operation.Distance -1; //-1 due to loop increase
                 stack.pop_back();
             }
@@ -269,7 +277,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         {
                             // not found? -> remove name parameter from stack and use result of
                             // second parameter.
-                            if( e.Code().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                            if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
                             {
                                 stack.erase( stack.end() - 2 );
                                 break;
@@ -284,7 +292,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         }
 
                         // 3rd parameter "throw" was given
-                        if( e.Code().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                        if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
                             e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundET,
                                    nestedExpressionName         );
                         else
@@ -299,8 +307,8 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                     {
                         Exception e( ALIB_CALLER_NULLED, Exceptions::NestedExpressionResultTypeError,
                                      nestedExpressionName,
-                                     program.compiler.TypeName( stack.back() ),
-                                     program.compiler.TypeName( *(stack.end()-2) ) );
+                                     program.compiler.TypeName( *(stack.end()-2) ),
+                                     program.compiler.TypeName( stack.back() )          );
                         e.Add        ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
                                        program.expression.GetOriginalString(), POS_IN_EXPR_STR );
                         throw e;
@@ -325,18 +333,18 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
     // erroneous plug-in.
     ALIB_ASSERT_ERROR( stack.size() == initialStackSize + 1,
                        "Internal error: Stack increased by {} (instead of 1) after run of expression program.",
-                        stack.size() - initialStackSize  )
+                        stack.size() - initialStackSize      )
 
     // Usually a function did not return what it is defined to return.
     ALIB_ASSERT_ERROR( program.ResultType().IsSameType(stack.back()),
                        "Wrong result type of program execution:\\n"
-                       "   Expected Type: <{}>\\n"
-                       "     Result Type: <{}>\\n"
+                       "   Expected Type: <{}> (aka {})\\n"
+                       "     Result Type: <{}> (aka {})\\n"
                        "    Result value: {}\\n"
                        "   In expression: {!Q}"
                        ,
-                       program.compiler.TypeName( program.ResultType() ),
-                       program.compiler.TypeName( stack.back() ),
+                       program.compiler.TypeName( program.ResultType() ), program.ResultType().TypeID(),
+                       program.compiler.TypeName( stack.back()         ), stack.back()        .TypeID(),
                        stack.back(),
                        program.expression.Name()
                      )
@@ -505,50 +513,55 @@ void writeArgPositions(AString& target, std::vector<VirtualMachine::PC>& resultS
 }
 //! @endcond
 
+
 AString VirtualMachine::DbgList( Program& program )
 {
     using DCT= Command::DecompileInfoType;
 
-    String fmtLine=   lib::EXPRESSIONS.Get( ASTR("ProgListLine"));
-    String fmtHeader= lib::EXPRESSIONS.Get( ASTR("ProgListHeader"));
+    String fmtLine=   EXPRESSIONS.GetResource( "ProgListLine"  );
+    String fmtHeader= EXPRESSIONS.GetResource( "ProgListHeader");
 
-    SimpleText st;
-    st.LineWidth=0;
-    st.Formatter= program.ctScope->Formatter;
-    st.Formatter->Acquire( ALIB_CALLER_PRUNED ); // get formatter once to keep autosizes!
+    Text text;
+    text.LineWidth=0;
+    text.Formatter= program.ctScope->Formatter;
+    text.Formatter->Acquire( ALIB_CALLER_PRUNED ); // get formatter once to keep autosizes!
 
-    bool isTabWidthDetectionRun= true;
-    do
+    // repeat the whole output until its size is stable and all auto-tabs are set
+    integer  lastLineWidth  = 0;
+    while(lastLineWidth == 0 || lastLineWidth != text.DetectedMaxLineWidth)
     {
-        if( !isTabWidthDetectionRun )
-        {
-            st.LineWidth= st.DetectedMaxLineWidth    + 5;
-            st.Text.Clear();
-
-            st.AddMarked( fmtHeader,
-                          program.expression.Name(),
-                          program.expression.GetNormalizedString()    );
-        }
-
+        lastLineWidth= text.DetectedMaxLineWidth;
+        text.Buffer.Reset();
 
         // write headline
+        text.LineWidth= text.DetectedMaxLineWidth;
+            text.AddMarked( fmtHeader,
+                          program.expression.Name(),
+                          program.expression.GetNormalizedString()    );
+
+
+        text.LineWidth= 0;
         NString hdlKey= "ProgListHdl";
         Boxes hdlArgs( fmtLine );
+        NString64 hdlKeyNumbered(hdlKey);
         for( int i= 0 ; i < 7 ; ++i )
-            hdlArgs.Add( lib::EXPRESSIONS.Get(String64(hdlKey) << i ) );
+        {
+            hdlArgs.Add( EXPRESSIONS.GetResource(hdlKeyNumbered << i ) );
+            hdlKeyNumbered.ShortenTo( hdlKey.Length() );
+        }
 
         hdlArgs.Add( 1 );
         hdlArgs.Add( program.expression.GetNormalizedString() );
-
-        if( !isTabWidthDetectionRun )
-            hdlArgs.Add("@HL-");
-        st.AddMarked( hdlArgs );
+        text.AddMarked( hdlArgs );
+        text.LineWidth= text.DetectedMaxLineWidth;
+            text.AddMarked("@HL-");
+        text.LineWidth= 0;
 
 
         #define FMT(qtyArgs)                                                                       \
         { if( cmd.DbgInfo.Plugin ) description << ", CP=\"" << cmd.DbgInfo.Plugin->Name<< '\"';    \
             String256 argpos; writeArgPositions(argpos,resultStack,qtyArgs);                       \
-          st.Add( fmtLine,                                                                         \
+          text.Add( fmtLine,                                                                         \
                   pc,                                                                              \
                   program.compiler.TypeName( cmd.ResultType ),                                     \
                   cmd.Which(),                                                                     \
@@ -702,25 +715,34 @@ AString VirtualMachine::DbgList( Program& program )
         #undef PopResult
         #undef ResultPos
 
-        ALIB_ASSERT_ERROR( !isTabWidthDetectionRun || (stackSize == 1),
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || stackSize == 1,
             "VM Program List error: Stack size after listing not 1 but {}", stackSize )
 
-        ALIB_ASSERT_ERROR( !isTabWidthDetectionRun || (resultStack.size() == 1),
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || resultStack.size() == 1,
             "VM Program List error: Resultstack after listing not 1 but {}", resultStack.size())
 
-        ALIB_ASSERT_ERROR( !isTabWidthDetectionRun || (conditionalStack.size() == 0),
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || conditionalStack.size() == 0,
             "VM Program List error: Conditional stack after listing not 0 but {}", conditionalStack.size())
-    }
-    while( (isTabWidthDetectionRun=  !isTabWidthDetectionRun) == false ); // if true again, exit!
+    }; // main loop
 
-    st.Formatter->Release();
+    text.Formatter->Release();
 
-    return std::move(st.Text);
+    return std::move(text.Buffer);
 }
 #endif
 
 
 #undef POS_IN_EXPR_STR
+#undef PushResult
+#undef PopResult
+#undef ResultPos
+#undef FMT
+#undef PushNode
+#undef PopNode
+#undef Lhs
+#undef Rhs
+#undef Arg
 
 }}}} // namespace [aworx::lib::expressions::detail]
+
 

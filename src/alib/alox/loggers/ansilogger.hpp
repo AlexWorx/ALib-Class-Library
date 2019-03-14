@@ -1,30 +1,19 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_ANSI_LOGGER
 #define HPP_ALOX_ANSI_LOGGER 1
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (HPP_ALIB_STRINGS_UTIL_STRING_IO)
-    #include "alib/strings/util/stringio.hpp"
+#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
+    #include "alib/alox/detail/textlogger/textlogger.hpp"
 #endif
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
-    #include "alib/alox/core/textlogger/textlogger.hpp"
+
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+    #include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
 
@@ -46,14 +35,14 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * are the same (they then still differ). However, the right setting for this is dependent on
  * the color scheme of the final output device (window). To manipulate the right setting, see field
  * #UseLightColors and also configuration variable
- * [ALOX_CONSOLE_LIGHT_COLORS](../group__GrpALoxConfigVars.html).
+ * [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html).
  *
  * In the constructor, a default format string and some other definitions in member
  * \ref MetaInfo get set to include color settings.
  * Of-course, these publicly accessible format attributes can be customized after creation.
  *
  * \note Instead of using ANSI sequences in the format strings directly, which would lower the
- * runtime cost a little, ESC sequences are used because this way the light/dark color
+ * run-time cost a little, ESC sequences are used because this way the light/dark color
  * selection, which depends on the field #UseLightColors is performed correctly.
  *
  * There is not 100% match between the ANSI sequences and the definitions in
@@ -73,7 +62,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * (In contrast to the log messages themselves, this meta information is specific to a logger
  * instance and this way it does not need to be replaced in other loggers).
  **************************************************************************************************/
-class AnsiLogger : public aworx::lib::lox::core::textlogger::TextLogger
+class AnsiLogger : public aworx::lib::lox::detail::textlogger::TextLogger
 {
     // #############################################################################################
     // ANSI Escape Code definitions
@@ -81,100 +70,100 @@ class AnsiLogger : public aworx::lib::lox::core::textlogger::TextLogger
     public:
     #if defined(_MSC_VER)
     // MSC  (as of 12/2015):
-    // C4579: in-class initialization for type 'const aworx::SLiteral<10>'
-    // is not yet implemented; static member will remain uninitialized at runtime but
+    // C4579: in-class initialization for type 'const aworx::character[11]'
+    // is not yet implemented; static member will remain uninitialized at run-time but
     // use in constant-expressions is supported
-    ALIB_API static     SLiteral<5>  ANSI_RED              ; ///< Select red as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_GREEN            ; ///< Select green as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_YELLOW           ; ///< Select yellow as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_BLUE             ; ///< Select blue as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_MAGENTA          ; ///< Select magenta as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_CYAN             ; ///< Select cyan as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_BLACK            ; ///< Select black as foreground color
-    ALIB_API static     SLiteral<10> ANSI_WHITE            ; ///< Select white as foreground color
-    ALIB_API static     SLiteral<11> ANSI_GRAY             ; ///< Select gray as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_STD_COL          ; ///< Select standard foreground color
+    ALIB_API static     character  ANSI_RED              [6] ; ///< Select red as foreground color
+    ALIB_API static     character  ANSI_GREEN            [6] ; ///< Select green as foreground color
+    ALIB_API static     character  ANSI_YELLOW           [6] ; ///< Select yellow as foreground color
+    ALIB_API static     character  ANSI_BLUE             [6] ; ///< Select blue as foreground color
+    ALIB_API static     character  ANSI_MAGENTA          [6] ; ///< Select magenta as foreground color
+    ALIB_API static     character  ANSI_CYAN             [6] ; ///< Select cyan as foreground color
+    ALIB_API static     character  ANSI_BLACK            [6] ; ///< Select black as foreground color
+    ALIB_API static     character  ANSI_WHITE            [11]; ///< Select white as foreground color
+    ALIB_API static     character  ANSI_GRAY             [12]; ///< Select gray as foreground color
+    ALIB_API static     character  ANSI_STD_COL          [6] ; ///< Select standard foreground color
 
-    ALIB_API static     SLiteral<5>  ANSI_BG_RED           ; ///< Select red as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_GREEN         ; ///< Select green as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_YELLOW        ; ///< Select yellow as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_BLUE          ; ///< Select blue as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_MAGENTA       ; ///< Select magenta as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_CYAN          ; ///< Select cyan as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_BLACK         ; ///< Select black as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_WHITE         ; ///< Select white as background color
-    ALIB_API static     SLiteral<11> ANSI_BG_GRAY          ; ///< Select gray as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_STD_COL       ; ///< Select standard background color
+    ALIB_API static     character  ANSI_BG_RED           [6] ; ///< Select red as background color
+    ALIB_API static     character  ANSI_BG_GREEN         [6] ; ///< Select green as background color
+    ALIB_API static     character  ANSI_BG_YELLOW        [6] ; ///< Select yellow as background color
+    ALIB_API static     character  ANSI_BG_BLUE          [6] ; ///< Select blue as background color
+    ALIB_API static     character  ANSI_BG_MAGENTA       [6] ; ///< Select magenta as background color
+    ALIB_API static     character  ANSI_BG_CYAN          [6] ; ///< Select cyan as background color
+    ALIB_API static     character  ANSI_BG_BLACK         [6] ; ///< Select black as background color
+    ALIB_API static     character  ANSI_BG_WHITE         [11]; ///< Select white as background color
+    ALIB_API static     character  ANSI_BG_GRAY          [12]; ///< Select gray as background color
+    ALIB_API static     character  ANSI_BG_STD_COL       [6] ; ///< Select standard background color
 
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_RED        ; ///< Select light red as foreground color
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_GREEN      ; ///< Select light green as foreground color
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_YELLOW     ; ///< Select light yellow as foreground color
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_BLUE       ; ///< Select light blue as foreground color
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_MAGENTA    ; ///< Select light magenta as foreground color
-    ALIB_API static     SLiteral<10> ANSI_LIGHT_CYAN       ; ///< Select light cyan as foreground color
-    ALIB_API static     SLiteral<11> ANSI_LIGHT_GRAY       ; ///< Select light gray as foreground color
-    ALIB_API static     SLiteral<5>  ANSI_LIGHT_STD_COL    ; ///< Select standard foreground color
+    ALIB_API static     character  ANSI_LIGHT_RED        [11]; ///< Select light red as foreground color
+    ALIB_API static     character  ANSI_LIGHT_GREEN      [11]; ///< Select light green as foreground color
+    ALIB_API static     character  ANSI_LIGHT_YELLOW     [11]; ///< Select light yellow as foreground color
+    ALIB_API static     character  ANSI_LIGHT_BLUE       [11]; ///< Select light blue as foreground color
+    ALIB_API static     character  ANSI_LIGHT_MAGENTA    [11]; ///< Select light magenta as foreground color
+    ALIB_API static     character  ANSI_LIGHT_CYAN       [11]; ///< Select light cyan as foreground color
+    ALIB_API static     character  ANSI_LIGHT_GRAY       [12]; ///< Select light gray as foreground color
+    ALIB_API static     character  ANSI_LIGHT_STD_COL    [6] ; ///< Select standard foreground color
 
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_RED     ; ///< Select light red as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_GREEN   ; ///< Select light green as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_YELLOW  ; ///< Select light yellow as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_BLUE    ; ///< Select light blue as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_MAGENTA ; ///< Select light magenta as background color
-    ALIB_API static     SLiteral<10> ANSI_BG_LIGHT_CYAN    ; ///< Select light cyan as background color
-    ALIB_API static     SLiteral<11> ANSI_BG_LIGHT_GRAY    ; ///< Select light gray as background color
-    ALIB_API static     SLiteral<5>  ANSI_BG_LIGHT_STD_COL ; ///< Select standard background color
+    ALIB_API static     character  ANSI_BG_LIGHT_RED     [11]; ///< Select light red as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_GREEN   [11]; ///< Select light green as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_YELLOW  [11]; ///< Select light yellow as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_BLUE    [11]; ///< Select light blue as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_MAGENTA [11]; ///< Select light magenta as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_CYAN    [11]; ///< Select light cyan as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_GRAY    [12]; ///< Select light gray as background color
+    ALIB_API static     character  ANSI_BG_LIGHT_STD_COL [6] ; ///< Select standard background color
 
-    ALIB_API static     SLiteral<4>  ANSI_BOLD             ; ///< Select bold font style
-    ALIB_API static     SLiteral<4>  ANSI_ITALICS          ; ///< Select italics font style
-    ALIB_API static     SLiteral<4>  ANSI_STD_STYLE        ; ///< Select standard font style
-    ALIB_API static     SLiteral<4>  ANSI_RESET            ; ///< Reset colors and font style
+    ALIB_API static     character  ANSI_BOLD             [5] ; ///< Select bold font style
+    ALIB_API static     character  ANSI_ITALICS          [5] ; ///< Select italics font style
+    ALIB_API static     character  ANSI_STD_STYLE        [5] ; ///< Select standard font style
+    ALIB_API static     character  ANSI_RESET            [5] ; ///< Reset colors and font style
 
     #else
 
-    static constexpr    SLiteral<5>  ANSI_RED              { ASTR("\033[31m")       };
-    static constexpr    SLiteral<5>  ANSI_GREEN            { ASTR("\033[32m")       };
-    static constexpr    SLiteral<5>  ANSI_YELLOW           { ASTR("\033[33m")       };
-    static constexpr    SLiteral<5>  ANSI_BLUE             { ASTR("\033[34m")       };
-    static constexpr    SLiteral<5>  ANSI_MAGENTA          { ASTR("\033[35m")       };
-    static constexpr    SLiteral<5>  ANSI_CYAN             { ASTR("\033[36m")       };
-    static constexpr    SLiteral<5>  ANSI_BLACK            { ASTR("\033[30m")       };
-    static constexpr    SLiteral<10> ANSI_WHITE            { ASTR("\033[38;5;15m")  };
-    static constexpr    SLiteral<11> ANSI_GRAY             { ASTR("\033[38;5;240m") };
-    static constexpr    SLiteral<5>  ANSI_STD_COL          { ASTR("\033[39m")       };
+    static constexpr    character  ANSI_RED              [6]   { A_CHAR("\033[31m")       };
+    static constexpr    character  ANSI_GREEN            [6]   { A_CHAR("\033[32m")       };
+    static constexpr    character  ANSI_YELLOW           [6]   { A_CHAR("\033[33m")       };
+    static constexpr    character  ANSI_BLUE             [6]   { A_CHAR("\033[34m")       };
+    static constexpr    character  ANSI_MAGENTA          [6]   { A_CHAR("\033[35m")       };
+    static constexpr    character  ANSI_CYAN             [6]   { A_CHAR("\033[36m")       };
+    static constexpr    character  ANSI_BLACK            [6]   { A_CHAR("\033[30m")       };
+    static constexpr    character  ANSI_WHITE            [11]  { A_CHAR("\033[38;5;15m")  };
+    static constexpr    character  ANSI_GRAY             [12]  { A_CHAR("\033[38;5;240m") };
+    static constexpr    character  ANSI_STD_COL          [6]   { A_CHAR("\033[39m")       };
 
-    static constexpr    SLiteral<5>  ANSI_BG_RED           { ASTR("\033[41m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_GREEN         { ASTR("\033[42m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_YELLOW        { ASTR("\033[43m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_BLUE          { ASTR("\033[44m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_MAGENTA       { ASTR("\033[45m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_CYAN          { ASTR("\033[46m")       };
-    static constexpr    SLiteral<5>  ANSI_BG_BLACK         { ASTR("\033[40m")       };
-    static constexpr    SLiteral<10> ANSI_BG_WHITE         { ASTR("\033[48;5;15m")  };
-    static constexpr    SLiteral<11> ANSI_BG_GRAY          { ASTR("\033[48;5;240m") };
-    static constexpr    SLiteral<5>  ANSI_BG_STD_COL       { ASTR("\033[49m")       };
+    static constexpr    character  ANSI_BG_RED           [6]   { A_CHAR("\033[41m")       };
+    static constexpr    character  ANSI_BG_GREEN         [6]   { A_CHAR("\033[42m")       };
+    static constexpr    character  ANSI_BG_YELLOW        [6]   { A_CHAR("\033[43m")       };
+    static constexpr    character  ANSI_BG_BLUE          [6]   { A_CHAR("\033[44m")       };
+    static constexpr    character  ANSI_BG_MAGENTA       [6]   { A_CHAR("\033[45m")       };
+    static constexpr    character  ANSI_BG_CYAN          [6]   { A_CHAR("\033[46m")       };
+    static constexpr    character  ANSI_BG_BLACK         [6]   { A_CHAR("\033[40m")       };
+    static constexpr    character  ANSI_BG_WHITE         [11]  { A_CHAR("\033[48;5;15m")  };
+    static constexpr    character  ANSI_BG_GRAY          [12]  { A_CHAR("\033[48;5;240m") };
+    static constexpr    character  ANSI_BG_STD_COL       [6]   { A_CHAR("\033[49m")       };
 
-    static constexpr    SLiteral<10> ANSI_LIGHT_RED        { ASTR("\033[38;5;09m")  };
-    static constexpr    SLiteral<10> ANSI_LIGHT_GREEN      { ASTR("\033[38;5;10m")  };
-    static constexpr    SLiteral<10> ANSI_LIGHT_YELLOW     { ASTR("\033[38;5;11m")  };
-    static constexpr    SLiteral<10> ANSI_LIGHT_BLUE       { ASTR("\033[38;5;12m")  };
-    static constexpr    SLiteral<10> ANSI_LIGHT_MAGENTA    { ASTR("\033[38;5;13m")  };
-    static constexpr    SLiteral<10> ANSI_LIGHT_CYAN       { ASTR("\033[38;5;14m")  };
-    static constexpr    SLiteral<11> ANSI_LIGHT_GRAY       { ASTR("\033[38;5;250m") };
-    static constexpr    SLiteral<5>  ANSI_LIGHT_STD_COL    { ASTR("\033[39m")       };
+    static constexpr    character  ANSI_LIGHT_RED        [11]  { A_CHAR("\033[38;5;09m")  };
+    static constexpr    character  ANSI_LIGHT_GREEN      [11]  { A_CHAR("\033[38;5;10m")  };
+    static constexpr    character  ANSI_LIGHT_YELLOW     [11]  { A_CHAR("\033[38;5;11m")  };
+    static constexpr    character  ANSI_LIGHT_BLUE       [11]  { A_CHAR("\033[38;5;12m")  };
+    static constexpr    character  ANSI_LIGHT_MAGENTA    [11]  { A_CHAR("\033[38;5;13m")  };
+    static constexpr    character  ANSI_LIGHT_CYAN       [11]  { A_CHAR("\033[38;5;14m")  };
+    static constexpr    character  ANSI_LIGHT_GRAY       [12]  { A_CHAR("\033[38;5;250m") };
+    static constexpr    character  ANSI_LIGHT_STD_COL    [6]   { A_CHAR("\033[39m")       };
 
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_RED     { ASTR("\033[48;5;09m")  };
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_GREEN   { ASTR("\033[48;5;10m")  };
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_YELLOW  { ASTR("\033[48;5;11m")  };
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_BLUE    { ASTR("\033[48;5;12m")  };
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_MAGENTA { ASTR("\033[48;5;13m")  };
-    static constexpr    SLiteral<10> ANSI_BG_LIGHT_CYAN    { ASTR("\033[48;5;14m")  };
-    static constexpr    SLiteral<11> ANSI_BG_LIGHT_GRAY    { ASTR("\033[48;5;250m") };
-    static constexpr    SLiteral<5>  ANSI_BG_LIGHT_STD_COL { ASTR("\033[49m")       };
+    static constexpr    character  ANSI_BG_LIGHT_RED     [11]  { A_CHAR("\033[48;5;09m")  };
+    static constexpr    character  ANSI_BG_LIGHT_GREEN   [11]  { A_CHAR("\033[48;5;10m")  };
+    static constexpr    character  ANSI_BG_LIGHT_YELLOW  [11]  { A_CHAR("\033[48;5;11m")  };
+    static constexpr    character  ANSI_BG_LIGHT_BLUE    [11]  { A_CHAR("\033[48;5;12m")  };
+    static constexpr    character  ANSI_BG_LIGHT_MAGENTA [11]  { A_CHAR("\033[48;5;13m")  };
+    static constexpr    character  ANSI_BG_LIGHT_CYAN    [11]  { A_CHAR("\033[48;5;14m")  };
+    static constexpr    character  ANSI_BG_LIGHT_GRAY    [12]  { A_CHAR("\033[48;5;250m") };
+    static constexpr    character  ANSI_BG_LIGHT_STD_COL [6]   { A_CHAR("\033[49m")       };
 
-    static constexpr    SLiteral<4>  ANSI_BOLD             { ASTR("\033[1m")        };
-    static constexpr    SLiteral<4>  ANSI_ITALICS          { ASTR("\033[3m")        };
-    static constexpr    SLiteral<4>  ANSI_STD_STYLE        { ASTR("\033[0m")        };
-    static constexpr    SLiteral<4>  ANSI_RESET            { ASTR("\033[0m")        };
+    static constexpr    character  ANSI_BOLD             [5]   { A_CHAR("\033[1m")        };
+    static constexpr    character  ANSI_ITALICS          [5]   { A_CHAR("\033[3m")        };
+    static constexpr    character  ANSI_STD_STYLE        [5]   { A_CHAR("\033[0m")        };
+    static constexpr    character  ANSI_RESET            [5]   { A_CHAR("\033[0m")        };
     #endif
 
 
@@ -183,8 +172,8 @@ class AnsiLogger : public aworx::lib::lox::core::textlogger::TextLogger
     // protected fields
     // #############################################################################################
     protected:
-        /// Encapsulates \c std::cout, \c std::wcout or the output stream provided in the
-        /// corresponding constructor.
+        /** Encapsulates \c std::cout, \c std::wcout or the output stream provided in the
+            corresponding constructor.                                                    */
         StringWriter      writer;
 
     // #############################################################################################
@@ -208,7 +197,7 @@ class AnsiLogger : public aworx::lib::lox::core::textlogger::TextLogger
          * - If \ref LightColorUsage "LightColorUsage::ForegroundDark", background colors will be
          *   light colors and foreground colors dark ones.
          *
-         * The configuration variable [ALOX_CONSOLE_LIGHT_COLORS](../group__GrpALoxConfigVars.html)
+         * The configuration variable [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
          * allows to externally modify this flag. It is read once within the constructor .
          */
         LightColorUsage         UseLightColors;
@@ -268,16 +257,16 @@ class AnsiLogger : public aworx::lib::lox::core::textlogger::TextLogger
          *                    single line messages this is -1.
          ******************************************************************************************/
         ALIB_API
-        virtual void logText(  core::Domain&       domain,
+        virtual void logText(  detail::Domain&       domain,
                                Verbosity           verbosity,
                                AString&            msg,
-                               core::ScopeInfo&    scope,
+                               detail::ScopeInfo&    scope,
                                int                 lineNumber);
 
         /** ****************************************************************************************
          * Empty implementation.
          ******************************************************************************************/
-        virtual void notifyMultiLineOp ( lib::lang::Phase ) {}
+        virtual void notifyMultiLineOp ( Phase ) {}
 
 
         /** ****************************************************************************************
@@ -330,7 +319,7 @@ using     AnsiLogger=           aworx::lib::lox::loggers::AnsiLogger;
 /// Type alias in namespace #aworx.
 using     AnsiConsoleLogger=    aworx::lib::lox::loggers::AnsiConsoleLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALOX_ANSI_LOGGER
 

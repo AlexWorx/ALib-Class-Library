@@ -1,28 +1,17 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CONFIG_VARIABLE)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CONFIG_VARIABLE
-//! @cond NO_DOX
 #define HPP_ALIB_CONFIG_VARIABLE 1
-//! @endcond
 
-#if !defined (HPP_ALIB_CONFIG_LIB)
-    #include "alib/config/configlib.hpp"
+#if !defined(HPP_ALIB_CONFIG_CONFIG)
+#   include "alib/config/config.hpp"
 #endif
+
+ALIB_ASSERT_MODULE(CONFIGURATION)
 
 namespace aworx { namespace lib { namespace config {
 
@@ -94,13 +83,13 @@ class Variable
     // #############################################################################################
     public:
 
-        /// The \b %Configuration that was recently used to request or store the value.
+        /** The \b %Configuration that was recently used to request or store the value. */
         Configuration*  Config;
 
-        /// The configuration variable category.
+        /** The configuration variable category. */
         String64        Category;
 
-        /// The configuration variable name.
+        /** The configuration variable name. */
         String64        Name;
 
         /**
@@ -120,7 +109,7 @@ class Variable
          *  \ref aworx::lib::config::IniFile "IniFile" and potentially by custom plug-ins. */
         String16        FormatAttrAlignment;
 
-        /// The configuration variable comments with placeholders replaced
+        /** The configuration variable comments with placeholders replaced. */
         AString         Comments;
 
 
@@ -173,7 +162,7 @@ class Variable
     // Protected fields
     // #############################################################################################
     protected:
-        /// The values
+        /** The values. */
         std::vector<AString> values;
 
         /** The number of values currently stored. This may be less than items found in #values
@@ -198,7 +187,7 @@ class Variable
          *
          * @param declaration    The declaration data of the variable.
          * @param replacements   List of arguments. Must be of types that are accepted by constructor
-         *                       of class \alib{strings,StringBase,String}.
+         *                       of class \alib{strings,TString,String}.
          * @tparam StringTypes   The variadic argument types.
          ******************************************************************************************/
         template<typename... StringTypes>
@@ -235,6 +224,7 @@ class Variable
             Declare( category, name, delim, comments );
         }
 
+#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * Constructs a variable from a \ref ALIB_CONFIG_VARIABLES "resourced variable declaration".
          *
@@ -247,15 +237,20 @@ class Variable
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
          *                       constructor only for associated custom C++ enum types.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename TEnableIf= typename std::enable_if<
-                        std::is_same< VariableDecl::TTuple, typename lang::T_EnumMetaDataDecl<TEnum>::TTuple >::value
-                                                             >::type>
+        template<typename TEnum, typename TEnableIf=void>
+        inline
+        Variable( TEnum declaration );
+#else
+        template<typename TEnum, typename TEnableIf=
+        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
+        inline
         Variable( TEnum declaration )
         {
             Declare( declaration );
         }
+#endif
 
+#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * Constructs a variable from a \ref ALIB_CONFIG_VARIABLES "resourced variable declaration".
          *
@@ -266,20 +261,21 @@ class Variable
          * @param declaration    Element of an enum class that is representing configuration
          *                       variables.
          * @param replacements   List of arguments. Must be of types that are accepted by constructor
-         *                       of class \alib{strings,StringBase,String}.
+         *                       of class \alib{strings,TString,String}.
          * @tparam TEnum         The type of parameter \p{declaration}
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
          *                       constructor only for associated custom C++ enum types.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename... StringTypes,
-                 typename TEnableIf= typename std::enable_if<
-                        std::is_same< VariableDecl::TTuple, typename lang::T_EnumMetaDataDecl<TEnum>::TTuple >::value
-                                                             >::type>
+        template<typename TEnum, typename... StringTypes, typename TEnableIf= void>
+        Variable( TEnum declaration,  const StringTypes&... replacements );
+#else
+        template<typename TEnum, typename... StringTypes, typename TEnableIf=
+        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
         Variable( TEnum declaration,  const StringTypes&... replacements )
         {
             Declare( declaration, replacements... );
         }
+#endif
 
         /** ****************************************************************************************
          * Re-initializes a variable from a declaration. Strings named \c "%1", \c "%2" ... \c "%N"
@@ -302,7 +298,7 @@ class Variable
          *
          * @param declaration    The declaration data of the variable.
          * @param replacements   Replacement values. Must be of types that are
-         *                       \alib{strings,T_Apply,applicable} to \b %AString objects.
+         *                       \alib{strings,T_Append,appendable} to \b %AString objects.
          * @tparam TArgs         The variadic argument types.
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
@@ -314,6 +310,7 @@ class Variable
             return Declare( declaration, argsAsVector );
         }
 
+#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * \ref clear "Clears" the variable resets its declaration.
          * Internally uses an instance of class \alib{config,VariableDecl} constructed with
@@ -327,17 +324,20 @@ class Variable
          *
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename TEnableIf= typename std::enable_if<
-                        std::is_same< VariableDecl::TTuple, typename lang::T_EnumMetaDataDecl<TEnum>::TTuple >::value
-                                                             >::type>
+        template<typename TEnum, typename TEnableIf= void>
+        Variable&   Declare( TEnum declaration );
+#else
+        template<typename TEnum,typename TEnableIf=
+        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
         Variable&   Declare( TEnum declaration )
         {
             VariableDecl decl( declaration );
             return Declare( decl );
         }
+#endif
 
 
+#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * \ref clear "Clears" the variable resets its declaration.
          * Internally uses an instance of class \alib{config,VariableDecl} constructed with
@@ -350,24 +350,25 @@ class Variable
          * @param declaration    Element of an enum class that is representing configuration
          *                       variables.
          * @param replacements   Replacement values. Must be of types that are
-         *                       \alib{strings,T_Apply,applicable} to \b %AString objects.
+         *                       \alib{strings,T_Append,appendable} to \b %AString objects.
          * @tparam TEnum         The type of parameter \p{declaration}
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
          *                       method only for associated custom C++ enum types.
          *
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename... TArgs,
-                 typename TEnableIf= typename std::enable_if<
-                        std::is_same< VariableDecl::TTuple, typename lang::T_EnumMetaDataDecl<TEnum>::TTuple >::value
-                                                             >::type>
+        template<typename TEnum, typename... TArgs, typename TEnableIf= void>
+        Variable&   Declare( TEnum declaration, const TArgs&... replacements );
+#else
+        template<typename TEnum, typename... TArgs, typename TEnableIf=
+        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
         Variable&   Declare( TEnum declaration, const TArgs&... replacements )
         {
             VariableDecl decl( declaration );
             Boxes argsAsVector= {replacements...};
             return Declare( decl, argsAsVector );
         }
+#endif
 
         /** ****************************************************************************************
          * Constructs a variable using the declaration of another variable. The values are not
@@ -447,9 +448,8 @@ class Variable
 
         /** ****************************************************************************************
          * Adds the given value to the end of the list of values.
-         * Template type \p{TApplicable} needs to be a type which is applicable to objects of
-         * type \b %AString.
-         * See struct \alib{strings,T_Apply} for more information.
+         * Template type \p{TAppendable} needs to be a type which is
+         * \ref alib_strings_assembly_ttostring "appendable" to objects of type \b %AString.
          *
          * If a different format is desired (minimum digits, etc.), then
          * #Add is to be used and conversion done proprietary on the returned string objects.
@@ -457,9 +457,9 @@ class Variable
          * @param  value  The value to set.
          * @return A reference to the string representing the integer value.
          ******************************************************************************************/
-        template<typename TApplicable>
+        template<typename TAppendable>
         inline
-        AString&  Add( const TApplicable& value )
+        AString&  Add( const TAppendable& value )
         {
             return Add()._( value );
         }
@@ -475,8 +475,8 @@ class Variable
 
         /** ****************************************************************************************
          * Returns the value with the given index. Valid values for parameter \p{idx} are
-         * between \c 0 and #Size.
-         * If no value is set for the given index, \c nullptr is returned.
+         * between \b 0 and #Size <b> - 1</b>.<br>
+         * In debug-compilations an error is raised if the given \p{idx} is out of range.
          *
          * \note
          *  It is explicitly allowed to change the contents of the \b %AString object returned,
@@ -486,10 +486,10 @@ class Variable
          * @return The value at \p{idx}.
          ******************************************************************************************/
         inline
-        AString*    GetString( int idx= 0 )
+        AString&    GetString( int idx= 0 )
         {
-            return idx < qtyValues  ? &values[static_cast<size_t>(idx)]
-                                    : nullptr;
+            ALIB_ASSERT_ERROR( idx >= 0  &&  idx < qtyValues, "Index out of range: ", idx );
+            return values[static_cast<size_t>(idx)];
         }
 
         /** ****************************************************************************************
@@ -505,7 +505,7 @@ class Variable
          * Returns the value at \p{idx} interpreted as a double value.
          * If the index is invalid, \c 0.0 is returned.
          * Parsing is done using field \c NumberFormat of field #Config, respectively, if this is
-         * not set, the static singleton \alib{strings,NumberFormatBase::Global,NumberFormat::Global}.
+         * not set, the static singleton \alib{strings,TNumberFormat::Global,NumberFormat::Global}.
          *
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
          * @return The value at \p{idx} interpreted as a double value.
@@ -516,7 +516,7 @@ class Variable
         /** ****************************************************************************************
          * Returns \c true if the first value represents a boolean 'true'.
          * Evaluation is done using field #Config, respectively if this is not set, the static
-         * singleton \alib{strings,NumberFormatBase::Global,NumberFormat::Global}.
+         * singleton \alib{strings,TNumberFormat::Global,NumberFormat::Global}.
          *
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
          * @return The value at \p{idx} interpreted as a boolean value.
@@ -525,26 +525,25 @@ class Variable
         bool    IsTrue(int idx= 0);
 
         /** ****************************************************************************************
-         * Searches in the values of this variable for the pattern
-         * <c>attrName = result</c> and
+         * Searches in the values of this variable for the pattern <c>attrName = result</c> and
          * sets parameter \p{result} to the string following this pattern.
          *
          * @param      attrName     The name of the attribute searched.
-         * @param[out] result       A substring with the result.
+         * @param[out] result       A sub-string with the result.
          * @param      attrDelim    The delimiter to search for. Defaults to '='.
          * @return \c true if the attribute was found, \c false otherwise.
          ******************************************************************************************/
         ALIB_API
-        bool    GetAttribute( const String& attrName, Substring& result, char attrDelim= '=' );
+        bool    GetAttribute( const String& attrName, Substring& result, character attrDelim= A_CHAR('=') );
 
 
     // #############################################################################################
     // protected methods
     // #############################################################################################
     protected:
-        /// Clears all values.
+        /** Clears all values. */
         ALIB_API
-        void   clear();
+        void    clear();
 
 };  // class Variable
 
@@ -555,6 +554,6 @@ class Variable
 // /// Type alias in namespace #aworx.
 using     Variable=           aworx::lib::config::Variable;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_CONFIG_VARIABLE

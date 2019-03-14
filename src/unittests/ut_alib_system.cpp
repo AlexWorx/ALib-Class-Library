@@ -1,18 +1,23 @@
 // #################################################################################################
 //  aworx - Unit Tests
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+
+
 #include "alib/alox.hpp"
 
 
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
-    #include "alib/system/environment.hpp"
+#   include "alib/system/environment.hpp"
 #endif
 
 #if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-    #include "alib/system/process.hpp"
+    #include "alib/system/processinfo.hpp"
 #endif
 
 #if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
@@ -21,7 +26,7 @@
 
 
 #define TESTCLASSNAME       CPP_ALib_System
-#include "aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace std;
 using namespace aworx;
@@ -103,10 +108,10 @@ UT_METHOD(GetVariable)
     aworx::AString aString;
     bool result;
     #if defined(_WIN32)
-        result=  lib::system::GetEnvironmentVariable( ASTR("HOMEDRIVE"), aString );
-        result|= lib::system::GetEnvironmentVariable( ASTR("HOMEPATH") , aString, CurrentData::Keep );
+        result=  lib::system::GetEnvironmentVariable( A_CHAR("HOMEDRIVE"), aString );
+        result|= lib::system::GetEnvironmentVariable( A_CHAR("HOMEPATH") , aString, CurrentData::Keep );
     #else
-        result=  lib::system::GetEnvironmentVariable( ASTR("HOME")    , aString );
+        result=  lib::system::GetEnvironmentVariable( A_CHAR("HOME")    , aString );
     #endif
 
     UT_PRINT("The aString directory is:" );
@@ -114,7 +119,7 @@ UT_METHOD(GetVariable)
     UT_TRUE( Directory::Exists( aString ) );
     UT_TRUE( result );
 
-    result=  lib::system::GetEnvironmentVariable( ASTR("Nonexistingenvvar")  , aString );
+    result=  lib::system::GetEnvironmentVariable( A_CHAR("Nonexistingenvvar")  , aString );
     UT_FALSE( result );
     UT_TRUE( aString.IsEmpty() );
 }
@@ -140,17 +145,17 @@ UT_METHOD(Processes)
         while ( nextPID != 0 )
         {
             ProcessInfo pi( nextPID );
-            output.Clear().InsertChars(' ', 2* indent); output  << "PID:          " << pi.PID;            UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "PPID:         " << pi.PPID;           UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "Name:         " << pi.Name;           UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "ExecFileName: " << pi.ExecFileName;   UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "ExecFilePath: " << pi.ExecFilePath;   UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "CmdLine:      " << pi.CmdLine;        UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "PID:          " << pi.PID;            UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "PPID:         " << pi.PPID;           UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "Name:         " << pi.Name;           UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "ExecFileName: " << pi.ExecFileName;   UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "ExecFilePath: " << pi.ExecFilePath;   UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "CmdLine:      " << pi.CmdLine;        UT_PRINT( output )
             #if !defined(__APPLE__)
-            output.Clear().InsertChars(' ', 2* indent); output  << "StatState:    " << pi.StatState;      UT_PRINT( output )
-            output.Clear().InsertChars(' ', 2* indent); output  << "StatPGRP:     " << pi.StatPGRP;       UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "StatState:    " << pi.StatState;      UT_PRINT( output )
+            output.Reset().InsertChars(' ', 2* indent); output  << "StatPGRP:     " << pi.StatPGRP;       UT_PRINT( output )
             #endif
-            //output.Clear()._(' ', 2* indent); output  << "Stat:      " << pi.Stat;      UT_PRINT( output )
+            //output.Reset(' ', 2* indent); output  << "Stat:      " << pi.Stat;      UT_PRINT( output )
 
             indent++;
             nextPID= pi.PPID;
@@ -160,9 +165,9 @@ UT_METHOD(Processes)
     #elif defined(_WIN32)
 
 
-        output.Clear(); output  << "PID:               " << currentProcess.PID;                      UT_PRINT( output )
-        output.Clear(); output  << "CmdLine:           " << currentProcess.CmdLine;                  UT_PRINT( output )
-        output.Clear(); output  << "ConsoleTitle:      " << currentProcess.ConsoleTitle;             UT_PRINT( output )
+        output.Reset( "PID:               " ) << currentProcess.PID;                      UT_PRINT( output )
+        output.Reset( "CmdLine:           " ) << currentProcess.CmdLine;                  UT_PRINT( output )
+        output.Reset( "ConsoleTitle:      " ) << currentProcess.ConsoleTitle;             UT_PRINT( output )
 
     #else
         #pragma message ("Unknown Platform in file: " __FILE__ )
@@ -175,4 +180,4 @@ UT_CLASS_END
 }; //namespace
 
 
-
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)

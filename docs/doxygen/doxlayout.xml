@@ -3,11 +3,13 @@
     <!-- Navigation index tabs for HTML output -->
     <navindex>
         <tab type="mainpage"                visible="yes" title="Overview"                     intro="" />
-        <tab type="user"                    visible="yes" title="Manual"                       url="@ref alib_man_intro">
-            <tab type="user"                visible="yes" title="Introduction"                 url="@ref alib_man_intro"/>
-            <tab type="user"                visible="yes" title="List Of Modules"              url="@ref alib_man_modules"/>
-            <tab type="user"                visible="yes" title="Project/IDE Setup"            url="@ref alib_man_setup"/>
+        <tab type="user"                    visible="yes" title="Manual"                       url="@ref alib_manual">
+            <tab type="user"                visible="yes" title="Contents"                     url="@ref alib_manual"/>
+            <tab type="user"                visible="yes" title="List Of Modules"              url="@ref alib_manual_modules_overview"/>
+            <tab type="user"                visible="yes" title="Building The Library"         url="@ref alib_manual_build"/>
+            <tab type="user"                visible="yes" title="How To Use"                   url="@ref alib_manual_appendix_howto"/>
             <tab type="user"                visible="yes" title="Changelog/Version History"    url="@ref alib_changelog"/>
+            <tab type="user"                visible="yes" title="Tools"                        url="@ref alib_tools"/>
         </tab>
         <tab type="classes"                 visible="yes" title="Reference Documentation"          >
             <tab type="classlist"           visible="yes" title="Namespace And Class List" intro=""/>
@@ -103,7 +105,7 @@
     <!-- Layout definition for a namespace page -->
     <namespace>
         <briefdescription       visible="no"/>
-        <detaileddescription    visible="yes"   title="Programmer's Manual"/>
+        <detaileddescription    visible="yes"   title=" "/>
         <memberdecl>
             <nestednamespaces   visible="yes" title="Nested namespaces"/>
             <constantgroups     visible="yes" title=""/>

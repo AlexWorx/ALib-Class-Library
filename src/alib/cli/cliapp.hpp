@@ -1,35 +1,22 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CLI_CLIAPP)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CLI_CLIAPP
-//! @cond NO_DOX
 #define HPP_ALIB_CLI_CLIAPP 1
-//! @endcond
 
-#if !defined (HPP_ALIB_STRINGS_RESOURCESTRING)
-    #include "alib/strings/resourcestring.hpp"
+#if !defined (HPP_ALIB_RESOURCES_RESOURCESTRING)
+    #include "alib/resources/resourcestring.hpp"
 #endif
 
 #if !defined (HPP_ALIB_CLI_ARGUMENTS)
     #include "alib/cli/arguments.hpp"
 #endif
 
-#if !defined (HPP_ALIB_CONFIG_INI_FILE)
-    #include "alib/config/inifile.hpp"
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
+    #include "alib/compatibility/std_boxing_functional.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace cli {
@@ -47,14 +34,18 @@ class CLIUtil;
  *   "Utility" methods which could have been implemented as an interface of this
  *   class have instead been located in \alib{cli,CLIUtil}.
  *
+ * ## Friends ##
+ * class \alib{cli,CLIUtil}
  *
 \~Comment ####################################################################################### \~
  * @throws aworx::lib::cli::Exceptions
  **************************************************************************************************/
 class CLIApp
 {
-    //// This friend provides utility methods for using this class.
-    friend class CLIUtil;
+    #if !ALIB_DOCUMENTATION_PARSER
+        // This friend provides utility methods for using this class.
+        friend class CLIUtil;
+    #endif
 
     // #############################################################################################
     // Fields
@@ -69,50 +60,51 @@ class CLIApp
 
         /**
          * The original command line arguments (provided in constructor). Might be nullptr, if
-         * wchar_t variant of constructor was used.
+         * \c wchar_t variant of constructor was used.
         */
-        char**                              ArgNOriginal;
+        const char**                       ArgNOriginal;
 
         /**
          * The original command line arguments (provided in constructor) Might be nullptr, if
-         * char variant of constructor was used.
+         * \c char variant of constructor was used.
          */
-        wchar_t**                           ArgWOriginal;
+        const wchar_t**                     ArgWOriginal;
 
         /**
-         * A vector of args. If constructor variant accepting wchar_t strings is used,
-         * those unicode strings get converted to 1-byte strings using the current locale.<br>
-         * Values that are 'consumed' by options that get defined, are \b not removed.
-         * Instead, they are removed from index vector #ArgsLeft.
+         * A vector of args. If the type of CLI argument strings provided with the constructor does
+         * not match the \ref ALIB_CHARACTERS_ARE_NARROW "default ALib string width", the strings get
+         * converted.<br>
+         * Values that are 'consumed' by options that get defined, are \b not removed from this
+         * list. Instead, they are removed from index vector #ArgsLeft.
          */
         std::vector<String>                 ArgStrings;
 
         /**
-         * A vector of args. If constructor variant accepting wchar_t strings is used,
+         * A vector of args. If constructor variant accepting \b wchar strings is used,
          * those unicode strings get converted to 1-byte strings using the current locale.<br>
          * Values that are 'consumed' by options that get defined, are removed.
          */
         std::vector<size_t>                 ArgsLeft;
 
         // ############################ Declarations (from custom enums) ###########################
-        /// Commands defined.
+        /** Commands defined. */
         std::vector<CommandDecl>            CommandDecls;
 
-        /// Possible Options.
+        /** Possible Options. */
         std::vector<OptionDecl>             OptionDecls;
 
-        /// Possible Parameters.
+        /** Possible Parameters. */
         std::vector<ParameterDecl>          ParameterDecls;
 
-        /// Possible Errors.
+        /** Possible Errors. */
         std::map<Enum, ExitCodeDecl>        ExitCodeDecls;
 
     // ################################ Parsed CLI objects  ########################################
 
-        /// A map of lists of options that were found in the parameter list.
+        /** A map of lists of options that were found in the parameter list. */
         std::map<Enum, std::vector<Option>> OptionsFound;
 
-        /// A map of options that were found in the parameter list.
+        /** A map of options that were found in the parameter list. */
         std::map<Enum, std::vector<Option>> OptionsOverwritten;
 
         /**
@@ -123,10 +115,10 @@ class CLIApp
          */
         std::vector<String>                 OptionArgsIgnored;
 
-        /// A lists of commands actually parsed. Filled with method #ReadNextCommands.
+        /** A lists of commands actually parsed. Filled with method #ReadNextCommands. */
         std::vector<Command>                CommandsParsed;
 
-        /// The next command in #CommandsParsed to be processed. Used with method #NextCommand.
+        /** The next command in #CommandsParsed to be processed. Used with method #NextCommand. */
         size_t                              NextCommandNo                                       = 0;
 
         /**
@@ -138,10 +130,10 @@ class CLIApp
         integer                             MaxNameLength[3]                           = { 0,0, 0 };
 
         /**
-         * The library of the main application. Several resources are loaded from this in addition
+         * The module of the main application. Several resources are loaded from this in addition
          * to what is loaded as enum meta information of the cli declaration objects.
          */
-        Library&                            ResLibrary;
+        Module*                             ResModule                                    = nullptr;
 
         /**
          * Specifies if a "dry run" should be performed.
@@ -152,45 +144,38 @@ class CLIApp
     protected:
         /**
          * List of string buffers used in the case that a different character version was passed
-         * with the constructor than the
-         * \ref alib_strings_templated "default string type" defined with the \alib
-         * compilation flags.
+         * with the constructor than the \alib{characters,character,default character type}.
          */
         std::vector<AString>                convertedArgStrings;
 
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
-    public:
-
-        /** ****************************************************************************************
-         * Constructor. Accepts \c w_char or alternatively \c char arguments. Only one of the
-         * arrays must be given, depending what character type is received in processes'
-         * <c>main()</c> function. The other is to be set to \c nullptr.
-         *
-         * @param resLibrary The library to load resource strings.
-         * @param argc       The number of command line parameters as provided in function main().
-         * @param argvW      The command line parameters as provided in function <c>main()</c>.
-         * @param argvN      The command line parameters as provided in function <c>main()</c>.
-         ******************************************************************************************/
-        ALIB_API     CLIApp( Library& resLibrary, int argc, wchar_t *argvW[],
-                                                           char    *argvN[] = nullptr );
-
-
-        /** ****************************************************************************************
-         * Destructor
-         ******************************************************************************************/
-        ALIB_API   ~CLIApp();
-
+     // #############################################################################################
+     // destructor
+     // #############################################################################################
+     public:
+        /**
+         * Virtual empty destructor.
+         */
+        virtual ~CLIApp()
+        {}
 
     // #############################################################################################
     // Definition interface
     // #############################################################################################
     public:
         /** ****************************************************************************************
+         * Initializes this class. This function has to be invoked after construction and
+         * after the \alib module system is initialized.
+         *
+         * @param resModule The module used to load resource strings.
+         ******************************************************************************************/
+        ALIB_API
+        virtual
+        void      Init( Module* resModule );
+
+        /** ****************************************************************************************
          * Defines parameters given with enumeration \p{TEnum}.
-         * \alib{lang,T_EnumMetaDataDecl,Enum meta data} needs to be specialized for the given type using
-         * macro \ref ALIB_CLI_PARAMETERS.
+         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the
+         * given type using macro \ref ALIB_CLI_PARAMETERS.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
@@ -198,9 +183,9 @@ class CLIApp
                  typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
         void  DefineParameters()
         {
-            auto emd= EnumMetaData<TEnum>::GetSingleton();
-            emd->CheckLoad();
-            for( auto& entry : emd->Table )
+            auto& emd= EnumMetaData<TEnum>::GetSingleton();
+            emd.CheckLoad();
+            for( auto& entry : emd.Table )
             {
                 ParameterDecls.emplace_back( TEnum(std::get<0>(entry)) );
 
@@ -213,8 +198,8 @@ class CLIApp
 
         /** ****************************************************************************************
          * Defines commands given with enumeration \p{TEnum}.
-         * \alib{lang,T_EnumMetaDataDecl,Enum meta data} needs to be specialized for the given type using
-         * macro \ref ALIB_CLI_COMMANDS.
+         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the
+         * given type using macro \ref ALIB_CLI_COMMANDS.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
@@ -222,9 +207,9 @@ class CLIApp
                  typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
         void  DefineCommands()
         {
-            auto emd= EnumMetaData<TEnum>::GetSingleton();
-            emd->CheckLoad();
-            for( auto& entry : emd->Table )
+            auto& emd= EnumMetaData<TEnum>::GetSingleton();
+            emd.CheckLoad();
+            for( auto& entry : emd.Table )
             {
                 CommandDecls.emplace_back( TEnum(std::get<0>(entry)),  *this  );
 
@@ -237,7 +222,7 @@ class CLIApp
 
         /** ****************************************************************************************
          * Defines options given with enumeration \p{TEnum}.
-         * \alib{lang,T_EnumMetaDataDecl,Enum meta data} needs to be specialized for the given
+         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the given
          * type using macro \ref ALIB_CLI_OPTIONS.
          *
          * @tparam TEnum  The enum type.
@@ -246,9 +231,9 @@ class CLIApp
                  typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
         void  DefineOptions()
         {
-            auto emd= EnumMetaData<TEnum>::GetSingleton();
-            emd->CheckLoad();
-            for( auto& entry : emd->Table )
+            auto& emd= EnumMetaData<TEnum>::GetSingleton();
+            emd.CheckLoad();
+            for( auto& entry : emd.Table )
             {
                 OptionDecls.emplace_back( TEnum(std::get<0>(entry))  );
 
@@ -263,8 +248,8 @@ class CLIApp
 
         /** ****************************************************************************************
          * Defines errors given with enumeration \p{TEnum}.
-         * \alib{lang,T_EnumMetaDataDecl,Enum meta data} needs to be specialized for the given type using
-         * macro \ref ALIB_CLI_EXIT_CODES.
+         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the given
+         * type using macro \ref ALIB_CLI_EXIT_CODES.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
@@ -272,9 +257,9 @@ class CLIApp
                  typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
         void  DefineExitCodes()
         {
-            auto emd= EnumMetaData<TEnum>::GetSingleton();
-            emd->CheckLoad();
-            for( auto& entry : emd->Table )
+            auto& emd= EnumMetaData<TEnum>::GetSingleton();
+            emd.CheckLoad();
+            for( auto& entry : emd.Table )
             {
                 TEnum elem= TEnum( std::get<0>( entry ) );
                 ExitCodeDecls.emplace( elem, elem );
@@ -318,10 +303,10 @@ class CLIApp
          *  configuration variables. After this method has been invoked, vector #OptionArgsIgnored
          *  may/should be passed to the plug-in \b %CLIArgs of (all)
          *  \alib{config,Configuration} object(s) used with the application. For this, an
-         *  invocation, similar to this may be used with all \alib{lang,Library,libraries} that use
-         *  an own configuration object:
+         *  invocation, similar to this may be used with all \alibmods that use an own configuration
+         *  object:
          *
-         *          XYZLibrary.Config->GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
+         *          XYZModule.Config->GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
          *
          * In the case that other libraries have more complex option syntax, e.g. options
          * consisting of multiple arguments or such that do not even start with a hyphen character,
@@ -336,6 +321,7 @@ class CLIApp
          * As a consequence of this approach, a subsequent call to this method has no effect.
          ******************************************************************************************/
         ALIB_API
+        virtual
         void            ReadOptions();
 
         /** ****************************************************************************************
@@ -372,10 +358,11 @@ class CLIApp
          * method \alib{cli,CLIUtil::DumpParseResults} is a predefined way to then write information
          * about all options and commands parsed.<br>
          * A lower level "dry run", that receives information about the concrete actions that the
-         * processing of commands would perform, is of-course a different, completely application
-         * specific task.
+         * processing of commands would perform, is of-course a different, application specific
+         * task.
          ******************************************************************************************/
         ALIB_API
+        virtual
         void            ReadNextCommands();
 
         /** ****************************************************************************************
@@ -385,6 +372,7 @@ class CLIApp
          *         are found.
          ******************************************************************************************/
         ALIB_API
+        virtual
         Command*        NextCommand();
 
         /** ****************************************************************************************
@@ -393,9 +381,10 @@ class CLIApp
          * \see Method #PopArg, #RemoveArg and #ReadNextCommands.
          *
          * @return The first argument of (respectively remaining in) the list.
-         *         If no argument is available, a nulled string is returned.
+         *         If no argument is available, a \e nulled string is returned.
          ******************************************************************************************/
         inline
+        virtual
         String          PeekArg()
         {
             return ArgsLeft.size() > 0 ? ArgStrings[ArgsLeft[0]]
@@ -409,9 +398,10 @@ class CLIApp
          * \see Method #PeekArg, #RemoveArg and #ReadNextCommands.
          *
          * @return The first argument of vector #ArgsLeft.
-         *         If no argument is available, a nulled string is returned.
+         *         If no argument is available, a \e nulled string is returned.
          ******************************************************************************************/
         ALIB_API
+        virtual
         String          PopArg();
 
         /** ****************************************************************************************
@@ -423,6 +413,7 @@ class CLIApp
          * @param argNo The argument number to remove.
          ******************************************************************************************/
         ALIB_API
+        virtual
         void            RemoveArg( size_t argNo );
 };
 
@@ -432,7 +423,7 @@ class CLIApp
 using     CLIApp=           aworx::lib::cli::CLIApp;
 
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 
 

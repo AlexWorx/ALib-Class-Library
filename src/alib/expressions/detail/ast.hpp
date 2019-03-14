@@ -1,13 +1,17 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_AST
 #define HPP_ALIB_EXPRESSIONS_DETAIL_AST
+
+#if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
+#   include "alib/expressions/expression.hpp"
+#endif
+
+ALIB_ASSERT_MODULE(EXPRESSIONS)
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -19,7 +23,7 @@ class Program;
  */
 struct AST
 {
-    /// The type of node.
+    /** The type of node. */
     enum class Types
     {
         Literal     ,
@@ -30,13 +34,13 @@ struct AST
         TernaryOp   ,
     };
 
-    /// Type of derived this AST node
+    /** Type of derived this AST node */
     Types   NodeType;
 
-    /// Position in original expression string.
+    /** Position in original expression string. */
     integer Position;
 
-    /// Deleted default constructor.
+    /** Deleted default constructor. */
     AST() = delete;
 
     /**
@@ -49,7 +53,7 @@ struct AST
     , Position(position)
     {}
 
-    /// Virtual destructor.
+    /** Virtual destructor. */
     virtual ~AST()
     {}
 
@@ -58,7 +62,7 @@ struct AST
      * @param program         The program to be compiled.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                         = 0;
+    virtual void Assemble( Program& program, AString & normalized )                             = 0;
 
     /**
      * Recursively walks through the tree and performs optimizations, dependent on given flags.
@@ -118,8 +122,8 @@ struct ASTLiteral       : public AST
     ASTLiteral( AString&& value, integer position )
     : AST(Types::Literal, position)
     , Format(NFHint::NONE)
+    , stringValue(value)
     {
-        stringValue= value;
         Value= stringValue;
     }
 

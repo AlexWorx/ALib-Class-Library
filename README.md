@@ -1,70 +1,132 @@
-## ALib For C++ Homepage ##
+## ALib Homepage ##
 Please find all about the **ALib For C++**, including
 
-* **Programmer's manual**
-* **Reference documentation**
+* **Programmer's Manuals**
+* **Reference Documentation**
+* **Tutorials**
 * **Project setup guide**
 * **Version History / Change log**
 
 at the [ALib Homepage](http://alexworx.github.io/ALib-Class-Library).
 
+## Abstract ##
 
-## Overview ##
+**ALib** is a general purpose, use-case agnostic, platform independent, low-level C++ class library.
 
-**ALib** is a C++ class library developed since 2014. The original goal was to provide a 
-multi-language general purpose class library for languages C++, C# and Java. 
-Since 2018, **ALib For C++** was extracted into this separate repository and is developed mostly 
-independently from the the other language versions. 
+Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
+As of today, **ALib** consists of **16 modules**, each addressing
+different topics.
+A subset of the available modules can be selectively included in a custom library build.
 
-**ALib** is organized in so called "modules", which means that a custom project might use 
-(and compile) only a subset of the overall **ALib** menu.
+## Main Characteristics And Design Goals ##
 
-The modules currently included are:      
+- **ALib** is <b>free software</b>.
+- The minimum C++ language standard is <b>C++ 11</b>, selective support for more modern C++
+  versions included.
+- **Modularization**: Possible selective use of only parts of the library.
+- Extensive **documentation**.
+- <b>Least intrusive</b>: Designed to keep user code as independent from **ALib** types and idioms as possible.
+- Developed and steadily tested under <b>GNU/Linux</b>, <b>Windows OS</b> and <b>Mac OS</b>
+  with compilers GNU,  Clang and Microsoft Visual C++.
 
-- [ALib Singleton](https://alexworx.github.io/ALib-Class-Library/classaworx_1_1lib_1_1lang_1_1Singleton.html) <br>
-  This smallest module (almost only one class) of \alib implements a singleton that overcomes the 
-  Windows OS DLL boundaries, while under GNU/Linux chooses a faster straight-forward implementation.
+## Library Dependencies ##
 
-- [ALib Boxing](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1boxing.html) <br>
-  Implements <b>"auto-boxing"</b>, known from higher level programming languages.
-  Transparently wraps C++ values of arbitrary type together with run-time type information into
-  very lightweight objects. In other words, this library provides "typesafe void pointers which
-  support virtual function calls".** <br>
+**ALib** compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
+Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
+**ALib**mod_nolink_strings are using its regex search.<br>
+In contrast, **ALib** provides optional compatibility headers for 3rd-party libraries
+(e.g. [QT Class Library](https://www.qt.io)), which for example provide adoptions of **ALib** type-traits
+for QT-types.
 
+## Documentation ##
 
-- [ALib Strings](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1strings.html) <br>
-  Very complete, non-intrusive, modern, powerful but yet lightweight C++ string classes.
+The following documentation is provided.
 
-- [ALib Core](https://alexworx.github.io/ALib-Class-Library/alib_man_module_core.html) <br>
-  This is a rather "virtual" or "aggregation" module to select various basic **ALib** support classes
-  that other modules depend upon.** <br>
-  The classes found here are not or only loosely connected.
-  While it had been decide to not exposed the types in dedicated modules, still some nice "gems" are
-  found here!
+1. **Reference Documentation** covering 100% of types, members, functions, namespaces, macros
+   and other C++ entities.
 
-- [ALib Configuration](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1config.html) <br>
-  Transparently encapsulates access to configuration or other input data coming from various
-  sources, like command line parameters, environment variables, INI-files, 3rd-party configuration
-  databases, etc.
+2. **Programmer's Manuals** are available for (almost) each module of the library.<br>
+   Together more than <b>450 pages</b> of well structured in-depth discussion of library
+   features as well as <b>step by step tutorials</b> are available.
 
-- [ALib ALox](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1alox.html) <br>
-  A very unique and powerful approach to implement a software's debug and release logging facilities.
+3. A detailed version history is given.
 
-- [ALib Expressions](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1expressions.html) <br>
-  Compilation and evaluation of regular expressions at run-time.
-  The default expression syntax is along the lines of C++ expressions, including type safeness and 
-  operator overloading. 
-  Expressions are "compiled" at runtime into a "program" which is executed on a built-in small
-  virtual machine (no worries, the VM is extremely lightweight and fast).
-  The definition of custom functions and custom data types is extremely simple as the provided
-  tutorial proves.     
+4. A separated **General Manual** is available describing the library structure,
+   project setup, bootstrapping, etc.
 
-- [ALib CLI](https://alexworx.github.io/ALib-Class-Library/namespaceaworx_1_1lib_1_1cli.html) <br>
-  Library to parse and process command line parameters. In case of pure CLI software, provides
-  tools for formatted and internationalized help and result output.
-  (Beta state, not yet documented well!).
+5. A reference to C++ macros and compilation symbols is given.
 
+6. Tutorial and reference documentation's <b> code samples</b> are implemented as unit tests and
+   are integrated as source and output text snippets into the documentation.
+   
+7. For module **ALox**, a separated website exists. This includes plenty of **ALox**-specific
+   documentation, a lengthy
+   [tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html), definitions of
+   [configuration/environment variables](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
+   and more.
 
 
-For all details, please continue to the [ALib Homepage](http://alexworx.github.io/ALib-Class-Library).
+## IDE / Build System Setup ##
+The C++ Version got tested on the following platform combinations:
+- GNU/Linux (Arch Linux)
+    - [GNU Compiler Collection 8.2.1](https://gcc.gnu.org/)
+    - [clang compiler 7.0.1](http://llvm.org/)
+    - [CMake 3.13.4](https://cmake.org/)
+    - [CLion 2019.1 EAP](https://www.jetbrains.com/cpp)
+    - [Valgrind V. 3.14.0](http://valgrind.org/)
+
+- Windows 10
+    - Visual Studio 2017, Version 15.9.4
+
+- macOS Sierra: <em>The current release is not tested and most probably does not compile!</em>.<br>
+  <b>Please volunteer for help!</b>
+
+The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
+C++ environment.
+
+
+## C# and Java Versions Of ALib ##
+
+Parts of **ALib** have sibling incarnations in programming languages C# and JAVA. Historically,
+**ALib** aimed to be a cross platform/cross language library. This goal was (mostly) dropped
+in favour to be able to independently develop <b>ALib for C++</b>.
+
+<b>ALib for C#</b> and <b>ALib for Java</b> are included in and distributed with the
+cross platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Library/).
+
+
+## License ##
+
+**ALib** is free software, can be [downloaded at Github](https://github.com/AlexWorx/ALib-Class-Library)
+and sources are published under [Boost Software License](LICENSE.txt)
+
+##  Contributions ##
+We would be happy, if the community started to support this library and are willing to receive
+contributions and, if accepted, to update the code accordingly.<br>
+Note that for legal reasons, we hereby explicitly refuse and reject code (or ideas for code)
+that are not explicitly provided under the Boost Software License.
+Please do not even contact us with your ideas/code in that case.
+
+
+## Thanks ##
+
+Our thanks go to all supporters that did and do help realizing this project. Furthermore
+to just all of these millions of supporters of *free software*, including:
+- The [GNU/Linux](https://gnu.org) project and community,
+- The [LLVM/Clang](http://llvm.org/) project,
+- The [CMake](https://cmake.org/) project,
+- The [QT Creator](http://doc.qt.io/qtcreator) team,
+- Microsoft for providing [Visual Studio Community Edition](https://www.visualstudio.com/vs/community/) project,
+- To company [JetBrains](https://www.jetbrains.com) for providing a free
+  [Open Source License](https://www.jetbrains.com/buy/opensource/)
+  of their absolutely superb and unrivalled set of IDEs for various programming languages.
+- To <b>Dimitri van Heesch</b> for providing marvelous documentation software [Doxygen](http://doxygen.nl).
+
+Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
+until he - when things became too crazy - passed away in 1882.
+
+
+## More Information... ##
+Please visit the [ALib Homepage](http://alexworx.github.io/ALib-Class-Library)!
+
 

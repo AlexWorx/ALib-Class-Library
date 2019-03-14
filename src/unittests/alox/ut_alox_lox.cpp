@@ -2,11 +2,16 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+
+
 #include "alib/alox.hpp"
-#include "alib/compatibility/std_string.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/alox/loggers/memorylogger.hpp"
 
 // conditional expression is constant (which is a great thing for the compiler by the way ;-)
@@ -18,7 +23,7 @@
 #define TESTCLASSNAME       CPP_ALox_Lox
 
 
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace std;
 using namespace ut_aworx;
@@ -38,8 +43,8 @@ extern void ScopeInfoCacheTest5();
 extern void ScopeInfoCacheTest6();
 extern void ScopeInfoCacheTest7();
 
-void check_MemLogStartsWith( const aworx::TString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog );
-void check_MemLogStartsWith( const aworx::TString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog= true )
+void check_MemLogStartsWith( const aworx::CString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog );
+void check_MemLogStartsWith( const aworx::CString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog= true )
 {
     if (doLog)
     {
@@ -67,11 +72,11 @@ UT_PRINT( String256("MemLog result: <<<") << memlog.MemoryLog << ">>> expected: 
         }
     }
 
-    memlog.MemoryLog.Clear();
+    memlog.MemoryLog.Reset();
 }
 
-void check_MemLogContains( const aworx::TString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog );
-void check_MemLogContains( const aworx::TString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog= true )
+void check_MemLogContains( const aworx::CString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog );
+void check_MemLogContains( const aworx::CString& exp, AWorxUnitTesting& ut, MemoryLogger& memlog, bool doLog= true )
 {
     if (doLog)
     {
@@ -88,7 +93,7 @@ void check_MemLogContains( const aworx::TString& exp, AWorxUnitTesting& ut, Memo
         UT_TRUE( memlog.MemoryLog.IndexOf<true ALIB_COMMA Case::Ignore>( expCorrected, 0 ) >=0 );
     }
 
-    memlog.MemoryLog.Clear();
+    memlog.MemoryLog.Reset();
 }
 
 class TThread : public Thread
@@ -98,7 +103,7 @@ class TThread : public Thread
             {
                 this->cntLoops=     pcntLoops;
                 this->sleepMicros=  psleepMicros;
-                this->name=         pname;
+                this->name.Reset(   pname );
             }
     int cntLoops;
     int sleepMicros;
@@ -110,7 +115,7 @@ class TThread : public Thread
         for ( int i= 0 ; i < cntLoops ; i++ )
         {
             Log_Info( String64( "This is a " ) << name << ". Cnt= " << i );
-            ALib::SleepMillis( 3 );
+            Thread::SleepMillis( 3 );
         }
     }
 };
@@ -122,7 +127,7 @@ class TThread : public Thread
 // with GTEST macros it all gets wild. Fix the method name
 #if ALIB_DEBUG
 #   undef  ALIB_CALLER
-#   define ALIB_CALLER     __FILE__, __LINE__, UT_GET_TEST_NAME
+#   define ALIB_CALLER     __FILE__, __LINE__,  UT_GET_TEST_NAME
 #endif
 
 UT_CLASS()
@@ -320,8 +325,8 @@ UT_METHOD(Log_SimpleScopeDomain)
         Log_SetDomain( "REPLACED",  Scope::Method );
         Log_SetDomain( "DFLT",      Scope::Method );
 
-        String testOK=  ASTR("This line has to appear");
-        String testERR= ASTR("This line must not appear");
+        String testOK=  A_CHAR("This line has to appear");
+        String testERR= A_CHAR("This line must not appear");
 
         // Test Verbosity setting
         Log_SetVerbosity( Log::DebugLogger,    Verbosity::Warning, "" );
@@ -336,7 +341,7 @@ UT_METHOD(Log_SimpleScopeDomain)
         Log_Prune( MemoryLogger* testML= new MemoryLogger(); )
         Log_SetVerbosity( testML, Verbosity::Off );
         Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, ALox::InternalDomains );
-        Log_LogState ( "/TEST",      Verbosity::Info, ASTR("Dumping Log Configuration:") );
+        Log_LogState ( "/TEST",      Verbosity::Info, A_CHAR("Dumping Log Configuration:") );
 
         Log_SetVerbosity ( testML,           Verbosity::Info       , "/DFLT"      );
         Log_SetVerbosity ( testML,           Verbosity::Warning    , "/DFLT/WARN" );
@@ -345,7 +350,7 @@ UT_METHOD(Log_SimpleScopeDomain)
         Log_SetVerbosity ( Log::DebugLogger, Verbosity::Warning    , "/DFLT/WARN" );
         Log_SetVerbosity ( Log::DebugLogger, Verbosity::Error      ,       "ERR"  );
 
-        Log_LogState ( "/TEST",      Verbosity::Info, ASTR("Dumping Log Configuration:") );
+        Log_LogState ( "/TEST",      Verbosity::Info, A_CHAR("Dumping Log Configuration:") );
 
         // log with leading "/" on domain
         cntLL= testML->CntLogs;    Log_Verbose( "/DFLT",        testERR );    UT_EQ( 0, testML->CntLogs - cntLL );
@@ -405,6 +410,10 @@ UT_METHOD(Log_SimpleScopeDomain)
 
         Log_RemoveLogger( testML )
         Log_Prune( delete testML; )
+
+        // clean the config (for subsequent tests)
+        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
+        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
     }
 #endif
 
@@ -422,15 +431,15 @@ UT_METHOD(Log_Threads)
     // become scrambled!
     //Log_LOX.Lock.setUnsafe( true );
     {
-        TThread thread2( ASTR("Thread2") , 50, 0 );
+        TThread thread2( A_CHAR("Thread2") , 50, 0 );
         thread2.Start();
-        TThread thread3( ASTR("Thread3") , 50, 0 );
+        TThread thread3( A_CHAR("Thread3") , 50, 0 );
         thread3.Start();
 
         for ( int i= 0 ; i < 50 ; i++ )
         {
             Log_Info( String64("This is the main thread ") << i );
-            ALib::SleepMicros( 1 );
+            Thread::SleepMicros( 1 );
         }
     }
 }
@@ -444,8 +453,8 @@ UT_METHOD(Log_TestAssertAndIf)
 {
     UT_INIT();
 
-    Log_Prune( String testOK=  ASTR("OK");    )
-    Log_Prune( String testERR= ASTR("Error"); )
+    Log_Prune( String testOK=  A_CHAR("OK");    )
+    Log_Prune( String testERR= A_CHAR("Error"); )
 
     // Test Verbosity setting
     Log_AddDebugLogger();
@@ -484,25 +493,26 @@ UT_METHOD(Log_ScopeInfoCacheTest)
     Log_AddDebugLogger();
 
     Log_Prune( MemoryLogger memLogger;  )
-    if( DirectorySeparator == '/' )
-        { Log_Prune( memLogger.MetaInfo->Format=  ASTR("%Sp/%SF@");   ) }
-    else
-        { Log_Prune( memLogger.MetaInfo->Format=  ASTR("%Sp\\%SF@");  ) }
-
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
+    if( DirectorySeparator == '/' )
+        { Log_Prune( memLogger.MetaInfo->Format.Reset( A_CHAR("%Sp/%SF@" ) ); ) }
+    else
+        { Log_Prune( memLogger.MetaInfo->Format.Reset( A_CHAR("%Sp\\%SF@") ); ) }
 
-    ScopeInfoCacheTest1(); check_MemLogContains( ASTR("unittests/alox/ut_alox_lox.cpp")               , ut, memLogger, false );
-    ScopeInfoCacheTest2(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_domains.cpp")       , ut, memLogger, false );
-    ScopeInfoCacheTest3(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_rel.cpp")           , ut, memLogger, false );
-    ScopeInfoCacheTest2(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_domains.cpp")       , ut, memLogger, false );
-    ScopeInfoCacheTest3(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_rel.cpp")           , ut, memLogger, false );
-    ScopeInfoCacheTest4(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_scopes.cpp")        , ut, memLogger, false );
-    ScopeInfoCacheTest5(); check_MemLogContains( ASTR("unittests/alox/ut_alox_log_scopes_helper.cpp") , ut, memLogger, false );
-    ScopeInfoCacheTest6(); check_MemLogContains( ASTR("unittests/alox/ut_alox_lox.cpp")               , ut, memLogger, false );
-    ScopeInfoCacheTest7(); check_MemLogContains( ASTR("unittests/alox/ut_dox_tutorial.cpp")           , ut, memLogger, false );
+
+    ScopeInfoCacheTest1(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_lox.cpp")               , ut, memLogger, false );
+    ScopeInfoCacheTest2(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_domains.cpp")       , ut, memLogger, false );
+    ScopeInfoCacheTest3(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_rel.cpp")           , ut, memLogger, false );
+    ScopeInfoCacheTest2(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_domains.cpp")       , ut, memLogger, false );
+    ScopeInfoCacheTest3(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_rel.cpp")           , ut, memLogger, false );
+    ScopeInfoCacheTest4(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_scopes.cpp")        , ut, memLogger, false );
+    ScopeInfoCacheTest5(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_log_scopes_helper.cpp") , ut, memLogger, false );
+    ScopeInfoCacheTest6(); check_MemLogContains( A_CHAR("unittests/alox/ut_alox_lox.cpp")               , ut, memLogger, false );
+    ScopeInfoCacheTest7(); check_MemLogContains( A_CHAR("unittests/alox/ut_dox_tutorial.cpp")           , ut, memLogger, false );
 
     Log_RemoveDebugLogger();
     Log_RemoveLogger( &memLogger );
+
 }
 #endif
 
@@ -518,8 +528,8 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
     Log_AddDebugLogger();
 
     Log_Prune( MemoryLogger memLogger;  )
-    Log_Prune( memLogger.MetaInfo->Format=  ASTR("%Sp@");   )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
+    Log_Prune( memLogger.MetaInfo->Format.Reset( A_CHAR("%Sp@") );   )
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
 
@@ -530,13 +540,13 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
 
     #else
         #if !defined(ALOX_UNITTESTS_QMAKE_BUILD) && defined(__unix__)
-            check_MemLogStartsWith( ASTR("/home")               , ut, memLogger );
+            check_MemLogStartsWith( A_CHAR("/home")               , ut, memLogger );
         #endif
     #endif
 
     Log_SetSourcePathTrimRule( "*"         , Inclusion::Include     );  // illegal rule, not stored (debug into)
     Log_SetSourcePathTrimRule( "**"        , Inclusion::Include     );  // illegal rule, not stored (debug into)
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include     );  check_MemLogStartsWith( ASTR("unittests/alox@")     , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/"    , Inclusion::Include     );  check_MemLogStartsWith( A_CHAR("unittests/alox@")     , ut, memLogger );
     Log_SetSourcePathTrimRule( "*"         , Inclusion::Include     );  // illegal rule, not stored (debug into)
 
 // 171209: This single test line 'suddenly' did not work any more with valgrind.
@@ -547,45 +557,49 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
 // No time to investigate right now...postponing investigation, or a new valgrind version will fix it again?
 #if !defined(ALIB_AVOID_ANALYZER_WARNINGS)
     Log_SetSourcePathTrimRule( "**"        , Inclusion::Include     );  // illegal rule, not stored (debug into)
-                                                                        check_MemLogStartsWith( ASTR("unittests/alox@")     , ut, memLogger );
+                                                                        check_MemLogStartsWith( A_CHAR("unittests/alox@")     , ut, memLogger );
 #endif
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include, -3 );  check_MemLogStartsWith( ASTR("rc/unittests/alox@")  , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include, -3 );  check_MemLogStartsWith( A_CHAR("rc/unittests/alox@")  , ut, memLogger );
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include, 2  );  check_MemLogStartsWith( ASTR("ittests/alox@")       , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include, 2  );  check_MemLogStartsWith( A_CHAR("ittests/alox@")       , ut, memLogger );
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude     );  check_MemLogStartsWith( ASTR("/src")            , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude     );  check_MemLogStartsWith( A_CHAR("/src")            , ut, memLogger );
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
     #if !defined(ALOX_UNITTESTS_QMAKE_BUILD)
-        Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, -3 );  check_MemLogStartsWith( ASTR("lib/src")         , ut, memLogger );
+        Log_SetSourcePathTrimRule( "*/unittests/*", Inclusion::Exclude, -2 );  check_MemLogStartsWith( A_CHAR("rc/unittests")         , ut, memLogger );
 
         Log_ClearSourcePathTrimRules( Reach::Global, false )
-        Log_SetSourcePathTrimRule( "*/src/*",Inclusion::Exclude, -3 );  check_MemLogStartsWith( ASTR("lib/src")         , ut, memLogger );
+        Log_SetSourcePathTrimRule( "*/unittests/*", Inclusion::Exclude, -2 );  check_MemLogStartsWith( A_CHAR("rc/unittests")         , ut, memLogger );
 
         // clear only local rule. (the above rule was global)
         Log_ClearSourcePathTrimRules( Reach::Local, false )
-                                                                      check_MemLogStartsWith( ASTR("lib/src")         , ut, memLogger );
+                                                                      check_MemLogStartsWith( A_CHAR("rc/unittests")         , ut, memLogger );
     #endif
 
     // set local rules
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );  check_MemLogStartsWith( ASTR("/src")         , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );  check_MemLogStartsWith( A_CHAR("/src")         , ut, memLogger );
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );  check_MemLogStartsWith( ASTR("/src")         , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );  check_MemLogStartsWith( A_CHAR("/src")         , ut, memLogger );
 
     // check non ignore case
     Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );   check_MemLogStartsWith( ASTR("/src")         , ut, memLogger );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, nullptr, Reach::Local );   check_MemLogStartsWith( A_CHAR("/src")         , ut, memLogger );
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
     Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Sensitive, nullptr, Reach::Local );
 
     Log_RemoveDebugLogger();
     Log_RemoveLogger( &memLogger );
+
+    // clean the config (for subsequent tests)
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
 }
 #endif
 
@@ -596,173 +610,177 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
 UT_METHOD(Log_SetSourcePathTrimRuleExternal)
 {
     UT_INIT();
-        // for the unit tests to reset, we need an extra lox to be able to clear the global rules
-        // beforewe initialize our main lox
-        Lox clearLox("ClearingRules");
+    // for the unit tests to reset, we need an extra lox to be able to clear the global rules
+    // beforewe initialize our main lox
+    Lox clearLox("ClearingRules");
 
-        // global rule
-        clearLox.ClearSourcePathTrimRules( Reach::Global, false );
-        {
-            // store default values
-            Variable var;
-            lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT")                 ), ASTR("%Sp") );
-            lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("GLOBAL_SOURCE_PATH_TRIM_RULES") ), ASTR("*/src., true") );
+    // global rule
+    clearLox.ClearSourcePathTrimRules( Reach::Global, false );
+    {
+        // store default values
+        Variable var;
+        lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT")                 ), A_CHAR("%Sp") );
+        lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("GLOBAL_SOURCE_PATH_TRIM_RULES") ), A_CHAR("*/src., true") );
 
-            // test
-            Lox lox("T_LOX", false);
-            lox.Acquire(ALIB_CALLER);
-
-                Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
-
-                MemoryLogger ml("TESTML");
-                lox.SetVerbosity( &ml, Verbosity::Verbose );
-
-                lox.Info( "" );
-                if( DirectorySeparator == '/' )
-                    { UT_TRUE(ml.MemoryLog.StartsWith(ASTR("cpp/")) );  }
-                else
-                    { UT_TRUE(ml.MemoryLog.StartsWith(ASTR("cpp\\")) ); }
-
-                ml.MemoryLog._(); ml.AutoSizes.Reset();
-
-                lox.RemoveLogger( &ml );
-                lox.RemoveLogger( "CONSOLE" );
-                delete consoleLogger;
-
-            lox.Release();
-        }
-
-
-        // local rule
-        clearLox.ClearSourcePathTrimRules( Reach::Global, false );
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
-        {
-            // store default values
-            Variable var;
-            lib::ALOX.Config->Store(var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT")                     ), ASTR("%Sp") );
-            // default values, 0, ignore" the * will be removed. two illegal rules before and after
-            lib::ALOX.Config->Store(var.Declare( ASTR("ALOX"), ASTR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'  ), ASTR("*;**; *alox.u*, include ;*;**") );
-
-
-            // test
-            Lox lox("T_LOX", false);
-            lox.Acquire(ALIB_CALLER);
-
-                Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
-
-                MemoryLogger ml("TESTML");
-                lox.SetVerbosity( &ml, Verbosity::Verbose );
-
-                lox.Info( "" ); UT_EQ( ASTR("nittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
-
-                lox.RemoveLogger( &ml );
-                lox.RemoveLogger( "CONSOLE" );
-                delete consoleLogger;
-
-            lox.Release();
-        }
-
-        clearLox.ClearSourcePathTrimRules( Reach::Global, false );
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
-        {
-            // create iniFile
-            InMemoryPlugin iniFile("UnitTest");
-            Variable var;
-            iniFile.Store( var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT") ),  ASTR("%Sp") );
-            iniFile.Store( var.Declare( ASTR("ALOX"), ASTR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'),
-                           ASTR("*alox.u, excl, 2, sens") );
-            lib::ALOX.Config->InsertPlugin(&iniFile, Priorities::Standard);
-
-            // test
-            Lox lox("T_LOX", false);
-            #undef LOX_LOX
-            #define LOX_LOX lox
+        // test
+        Lox lox("T_LOX", false);
+        lox.Acquire(ALIB_CALLER);
 
             Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
-            Lox_SetVerbosity( "CONSOLE" , Verbosity::Verbose );
-            Lox_SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
 
             MemoryLogger ml("TESTML");
-            Lox_SetVerbosity( &ml, Verbosity::Verbose );
+            lox.SetVerbosity( &ml, Verbosity::Verbose );
 
-            Lox_Info( "" ); UT_EQ( ASTR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+            lox.Info( "" );
+            if( DirectorySeparator == '/' )
+                { UT_TRUE(ml.MemoryLog.StartsWith(A_CHAR("cpp/")) );  }
+            else
+                { UT_TRUE(ml.MemoryLog.StartsWith(A_CHAR("cpp\\")) ); }
 
+            ml.MemoryLog._(); ml.AutoSizes.Reset();
 
-            // overwrite with source priority
-            Lox_SetSourcePathTrimRule( "*alox.u", Inclusion::Exclude, 0, Case::Ignore, ASTR("REPLACE_1/"), Reach::Local );
-            Lox_Info( "" ); UT_EQ( ASTR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
-            Lox_SetSourcePathTrimRule( "*alox.u", Inclusion::Exclude, 0, Case::Ignore, ASTR("REPLACE_2/"), Reach::Local, Priorities::ProtectedValues );
-            Lox_Info( "" ); UT_TRUE( ml.MemoryLog.StartsWith( ASTR("REPLACE_2/") ) ); ml.MemoryLog._(); ml.AutoSizes.Reset();
-
-            Lox_RemoveLogger( &ml );
-            Lox_RemoveLogger( "CONSOLE" );
+            lox.RemoveLogger( &ml );
+            lox.RemoveLogger( "CONSOLE" );
             delete consoleLogger;
-            lib::ALOX.Config->RemovePlugin(&iniFile);
-        }
 
-        // ignore case
-        clearLox.ClearSourcePathTrimRules( Reach::Global, false );
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
-        {
-            // store default values
-            Variable var;
-            lib::ALOX.Config->Store(var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT")                   ), ASTR("%Sp") );
-            lib::ALOX.Config->Store(var.Declare( ASTR("ALOX"), ASTR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'), ASTR("*aLOX.U, exc, 2, ign")   );
+        lox.Release();
+    }
 
-            // test
-            Lox lox("T_LOX", false);
-            lox.Acquire(ALIB_CALLER);
 
-                Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
+    // local rule
+    clearLox.ClearSourcePathTrimRules( Reach::Global, false );
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
+    {
+        // store default values
+        Variable var;
+        lib::ALOX.Config->Store(var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT")                     ), A_CHAR("%Sp") );
+        // default values, 0, ignore" the * will be removed. two illegal rules before and after
+        lib::ALOX.Config->Store(var.Declare( A_CHAR("ALOX"), A_CHAR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'  ), A_CHAR("*;**; *alox.u*, include ;*;**") );
 
-                MemoryLogger ml("TESTML");
-                lox.SetVerbosity( &ml, Verbosity::Verbose );
 
-                lox.Info( "" ); UT_EQ( ASTR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+        // test
+        Lox lox("T_LOX", false);
+        lox.Acquire(ALIB_CALLER);
 
-                lox.RemoveLogger( &ml );
-                lox.RemoveLogger( "CONSOLE" );
-                delete consoleLogger;
+            Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
 
-            lox.Release();
-        }
+            MemoryLogger ml("TESTML");
+            lox.SetVerbosity( &ml, Verbosity::Verbose );
 
-        clearLox.ClearSourcePathTrimRules( Reach::Global, false );
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
-        {
-            // store default values
-            Variable var;
-            lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT")                     ) , ASTR("%Sp")  );
-            lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("T_LOX_SOURCE_PATH_TRIM_RULES") , ';') , ASTR("*aLOX.U, excl, 2, insens")  );
+            lox.Info( "" ); UT_EQ( A_CHAR("nittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
 
-            // test
-            Lox lox("T_LOX", false);
-            lox.Acquire(ALIB_CALLER);
+            lox.RemoveLogger( &ml );
+            lox.RemoveLogger( "CONSOLE" );
+            delete consoleLogger;
 
-                Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
-                lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
+        lox.Release();
+    }
 
-                MemoryLogger ml("TESTML");
-                lox.SetVerbosity( &ml, Verbosity::Verbose );
+    clearLox.ClearSourcePathTrimRules( Reach::Global, false );
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
+    {
+        // create iniFile
+        InMemoryPlugin iniFile("UnitTest");
+        Variable var;
+        iniFile.Store( var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT") ),  A_CHAR("%Sp") );
+        iniFile.Store( var.Declare( A_CHAR("ALOX"), A_CHAR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'),
+                       A_CHAR("*alox.u, excl, 2, sens") );
+        lib::ALOX.Config->InsertPlugin(&iniFile, Priorities::Standard);
 
-                lox.Info( "" );
-                { UT_EQ( ASTR("ox.unittests") , ml.MemoryLog );  }
+        // test
+        Lox lox("T_LOX", false);
+        #undef LOX_LOX
+        #define LOX_LOX lox
 
-                ml.MemoryLog._(); ml.AutoSizes.Reset();
+        Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
+        Lox_SetVerbosity( "CONSOLE" , Verbosity::Verbose );
+        Lox_SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
 
-                lox.RemoveLogger( &ml );
-                lox.RemoveLogger( "CONSOLE" );
-                delete consoleLogger;
+        MemoryLogger ml("TESTML");
+        Lox_SetVerbosity( &ml, Verbosity::Verbose );
 
-            lox.Release();
-        }
+        Lox_Info( "" ); UT_EQ( A_CHAR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+
+
+        // overwrite with source priority
+        Lox_SetSourcePathTrimRule( "*alox.u", Inclusion::Exclude, 0, Case::Ignore, A_CHAR("REPLACE_1/"), Reach::Local );
+        Lox_Info( "" ); UT_EQ( A_CHAR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+        Lox_SetSourcePathTrimRule( "*alox.u", Inclusion::Exclude, 0, Case::Ignore, A_CHAR("REPLACE_2/"), Reach::Local, Priorities::ProtectedValues );
+        Lox_Info( "" ); UT_TRUE( ml.MemoryLog.StartsWith( A_CHAR("REPLACE_2/") ) ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+
+        Lox_RemoveLogger( &ml );
+        Lox_RemoveLogger( "CONSOLE" );
+        delete consoleLogger;
+        lib::ALOX.Config->RemovePlugin(&iniFile);
+    }
+
+    // ignore case
+    clearLox.ClearSourcePathTrimRules( Reach::Global, false );
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
+    {
+        // store default values
+        Variable var;
+        lib::ALOX.Config->Store(var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT")                   ), A_CHAR("%Sp") );
+        lib::ALOX.Config->Store(var.Declare( A_CHAR("ALOX"), A_CHAR("T_LOX_SOURCE_PATH_TRIM_RULES"),';'), A_CHAR("*aLOX.U, exc, 2, ign")   );
+
+        // test
+        Lox lox("T_LOX", false);
+        lox.Acquire(ALIB_CALLER);
+
+            Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
+
+            MemoryLogger ml("TESTML");
+            lox.SetVerbosity( &ml, Verbosity::Verbose );
+
+            lox.Info( "" ); UT_EQ( A_CHAR("ox.unittests")  , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+
+            lox.RemoveLogger( &ml );
+            lox.RemoveLogger( "CONSOLE" );
+            delete consoleLogger;
+
+        lox.Release();
+    }
+
+    clearLox.ClearSourcePathTrimRules( Reach::Global, false );
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::lib::config::InMemoryPlugin>(Priorities::DefaultValues)->Reset();
+    {
+        // store default values
+        Variable var;
+        lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT")                     ) , A_CHAR("%Sp")  );
+        lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("T_LOX_SOURCE_PATH_TRIM_RULES") , ';') , A_CHAR("*aLOX.U, excl, 2, insens")  );
+
+        // test
+        Lox lox("T_LOX", false);
+        lox.Acquire(ALIB_CALLER);
+
+            Logger* consoleLogger= Lox::CreateConsoleLogger("CONSOLE");
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose );
+            lox.SetVerbosity( "CONSOLE" , Verbosity::Verbose, ALox::InternalDomains );
+
+            MemoryLogger ml("TESTML");
+            lox.SetVerbosity( &ml, Verbosity::Verbose );
+
+            lox.Info( "" );
+            { UT_EQ( A_CHAR("ox.unittests") , ml.MemoryLog );  }
+
+            ml.MemoryLog._(); ml.AutoSizes.Reset();
+
+            lox.RemoveLogger( &ml );
+            lox.RemoveLogger( "CONSOLE" );
+            delete consoleLogger;
+
+        lox.Release();
+    }
+
+    // clean the config (for subsequent tests)
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
+    lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
 }
 #endif
 
@@ -775,19 +793,19 @@ UT_METHOD(Log_MultipleLogables)
 
     Log_AddDebugLogger();
     Log_Prune( MemoryLogger memLogger;  )
-    Log_Prune( memLogger.MetaInfo->Format=  ASTR("");   )
+    Log_Prune( memLogger.MetaInfo->Format.Reset( A_CHAR("") );   )
     Log_SetVerbosity  ( Log::DebugLogger, Verbosity::Verbose, "BOXES" );
     Log_SetVerbosity  ( &memLogger      , Verbosity::Verbose, "BOXES" );
 
     Log_Info ( "BOXES", "Test" );
-    Log_Prune( check_MemLogStartsWith( ASTR("Test")     , ut, memLogger );  )
+    Log_Prune( check_MemLogStartsWith( A_CHAR("Test")     , ut, memLogger );  )
 
     Log_Info ( "BOXES", Boxes("Hello {}", "World" ) );
-    Log_Prune( check_MemLogStartsWith( ASTR("Hello World")     , ut, memLogger ); )
+    Log_Prune( check_MemLogStartsWith( A_CHAR("Hello World")     , ut, memLogger ); )
 
-    Log_Once( "BOXES", Verbosity::Info, Boxes("Just {}!", "once" ), ASTR("GroupBoxes") );
+    Log_Once( "BOXES", Verbosity::Info, Boxes("Just {}!", "once" ), A_CHAR("GroupBoxes") );
 
-    Log_Prune( check_MemLogStartsWith( ASTR("Just once!")     , ut, memLogger ) );
+    Log_Prune( check_MemLogStartsWith( A_CHAR("Just once!")     , ut, memLogger ) );
 
 
 //! [DOX_ALOX_LOX_ONCE]
@@ -829,9 +847,9 @@ UT_METHOD(Log_GetState)
     Log_Prune( MemoryLogger memLogger;  )
 
     // reduce meta information to limit output width
-    Log_Prune( Log::DebugLogger->MetaInfo->Format=  ASTR("[%tN]%V[%D](%#): ");   )
-    Log_Prune( memLogger.MetaInfo->Format=          ASTR("[%tN]%V[%D](%#): ");   )
-    Log_Prune( memLogger.MultiLineMsgMode= 3; )
+    Log_Prune( Log::DebugLogger->MetaInfo->Format.Reset( A_CHAR("[%tN]%V[%D](%#): ") );  )
+    Log_Prune(         memLogger.MetaInfo->Format.Reset( A_CHAR("[%tN]%V[%D](%#): ") );  )
+    Log_Prune(         memLogger.MultiLineMsgMode= 3; )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
 
     // OK, let's use ALox
@@ -851,12 +869,12 @@ UT_METHOD(Log_GetState)
     Log_Info( "/CON", "This goes only to the console logger" );
 
     Log_Once( "Will we see this in the config?" );
-    Log_Once( "Will we see this in the config?", ASTR("ONCEKEY"), Scope::Filename );
+    Log_Once( "Will we see this in the config?", A_CHAR("ONCEKEY"), Scope::Filename );
 
     Log_Store("MyData 1" ,            Scope::Method );
-    Log_Store("MyData 2" , ASTR("DataKey"), Scope::Method );
-    Log_Store(3          , ASTR("DataKey"), Scope::Filename );
-    Log_Store(4          , ASTR("DataKey"), Scope::ThreadOuter );
+    Log_Store("MyData 2" , "DataKey", Scope::Method );
+    Log_Store(3          , "DataKey", Scope::Filename );
+    Log_Store(4          , "DataKey", Scope::ThreadOuter );
 
     Log_SetPrefix( "TPre: "  , Scope::ThreadOuter );
     Log_SetPrefix( "MPre: "  , Scope::Method );
@@ -864,13 +882,13 @@ UT_METHOD(Log_GetState)
     Log_SetPrefix( "Mouse: ", "/UI/MOUSE" );
     Log_SetPrefix( ESC::RED,  "/ERRORS", Inclusion::Exclude );
 
-    Log_MapThreadName( ASTR("TUTORIAL") );
+    Log_MapThreadName( A_CHAR("TUTORIAL") );
 
     // now, log the current config
-    Log_LogState( nullptr, Verbosity::Info, ASTR("State(ALL):") );
+    Log_LogState( nullptr, Verbosity::Info, A_CHAR("State(ALL):") );
 
-    Log_LogState( nullptr, Verbosity::Info, ASTR("State(Domains):"), Lox::StateInfo::Domains );
-    Log_LogState( nullptr, Verbosity::Info, ASTR("State(Loggers):"), Lox::StateInfo::Loggers );
+    Log_LogState( nullptr, Verbosity::Info, A_CHAR("State(Domains):"), Lox::StateInfo::Domains );
+    Log_LogState( nullptr, Verbosity::Info, A_CHAR("State(Loggers):"), Lox::StateInfo::Loggers );
 
 
     // cleanup
@@ -896,30 +914,30 @@ UT_METHOD(Log_DumpStateOnExit)
     Log_RemoveLogger( &memLogger );
     UT_TRUE( Log::DebugLogger->CntLogs == 0 );
 
-    Variable var( ASTR("ALOX"), String128() << LOG_LOX.GetName() << "_DUMP_STATE_ON_EXIT",
+    Variable var( A_CHAR("ALOX"), String128() << LOG_LOX.GetName() << "_DUMP_STATE_ON_EXIT",
                   ',' );
     int cntLogs;
 
 
-    lib::ALOX.Config->Store( var,  ASTR("domain=/TEST, verbosity = e, sptr, basic") );
+    lib::ALOX.Config->Store( var,  A_CHAR("domain=/TEST, verbosity = e, sptr, basic") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     cntLogs= Log::DebugLogger->CntLogs;
     Log_RemoveLogger( &memLogger );
     UT_TRUE( Log::DebugLogger->CntLogs > cntLogs );
 
-    lib::ALOX.Config->Store( var,  ASTR("verbosity = e, domains, basic") );
+    lib::ALOX.Config->Store( var,  A_CHAR("verbosity = e, domains, basic") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     cntLogs= Log::DebugLogger->CntLogs;
     Log_RemoveLogger( &memLogger );
     UT_TRUE( Log::DebugLogger->CntLogs > cntLogs );
 
-    lib::ALOX.Config->Store( var,  ASTR("domains, loggers") );
+    lib::ALOX.Config->Store( var,  A_CHAR("domains, loggers") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     cntLogs= Log::DebugLogger->CntLogs;
     Log_RemoveLogger( &memLogger );
     UT_TRUE( Log::DebugLogger->CntLogs > cntLogs );
 
-    lib::ALOX.Config->Store( var,  ASTR("") );
+    lib::ALOX.Config->Store( var,  A_CHAR("") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     cntLogs= Log::DebugLogger->CntLogs;
     Log_RemoveLogger( &memLogger );
@@ -939,53 +957,53 @@ UT_METHOD(Log_WriteVerbosities)
     Log_Prune( MemoryLogger memLogger("MYLGGR") ;  )
 
     AString varName( LOG_LOX.GetName() );
-    varName._(ASTR("_MYLGGR_VERBOSITY"));
+    varName._(A_CHAR("_MYLGGR_VERBOSITY"));
 
     Variable var;
-    var.Declare( ASTR("ALOX"), varName, ',' );
+    var.Declare( A_CHAR("ALOX"), varName, ',' );
     Variable varBack;
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, ALox::InternalDomains );
 
     // test writing into other variable with variable name error
     UT_PRINT( "An error message should follow (wrong variable format): " );
-    lib::ALOX.Config->Store( var,  ASTR("writeback MY_") );
+    lib::ALOX.Config->Store( var,  A_CHAR("writeback MY_") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     Log_RemoveLogger( &memLogger );
 
     // test writing into other variable
-    lib::ALOX.Config->Store( var,  ASTR("writeback MY_VAR") );
+    lib::ALOX.Config->Store( var,  A_CHAR("writeback MY_VAR") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     Log_RemoveLogger( &memLogger );
-    lib::ALOX.Config->Load( varBack.Declare( ASTR("MY"),  ASTR("VAR")) );
+    lib::ALOX.Config->Load( varBack.Declare( A_CHAR("MY"),  A_CHAR("VAR")) );
     UT_PRINT( "Variable written: ", varBack.GetString() );
-    UT_TRUE( varBack.GetString()->Length() > 0 );
+    UT_TRUE( varBack.GetString().Length() > 0 );
 
     // test writing into other variable without cat
-    lib::ALOX.Config->Store( var,  ASTR("writeback ANON") );
+    lib::ALOX.Config->Store( var,  A_CHAR("writeback ANON") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     Log_RemoveLogger( &memLogger );
-    lib::ALOX.Config->Load( varBack.Declare( nullptr,  ASTR("ANON")) );
+    lib::ALOX.Config->Load( varBack.Declare( nullptr,  A_CHAR("ANON")) );
     UT_PRINT( "Variable written: ", varBack.GetString() );
-    UT_TRUE( varBack.GetString()->Length() > 0 );
+    UT_TRUE( varBack.GetString().Length() > 0 );
 
     // test writing into other variable without cat and with underscores in name
-    lib::ALOX.Config->Store( var,  ASTR("writeback _2ND_ANON") );
+    lib::ALOX.Config->Store( var,  A_CHAR("writeback _2ND_ANON") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     Log_RemoveLogger( &memLogger );
-    lib::ALOX.Config->Load( varBack.Declare( nullptr,  ASTR("2ND_ANON")) );
+    lib::ALOX.Config->Load( varBack.Declare( nullptr,  A_CHAR("2ND_ANON")) );
     UT_PRINT( "Variable written: ", varBack.GetString() );
-    UT_TRUE( varBack.GetString()->Length() > 0 );
+    UT_TRUE( varBack.GetString().Length() > 0 );
 
     // test writing into other the variable itself
-    lib::ALOX.Config->Store( var,  ASTR("writeback") );
+    lib::ALOX.Config->Store( var,  A_CHAR("writeback") );
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
     Log_RemoveLogger( &memLogger );
 
     lib::ALOX.Config->Load( var );
     UT_PRINT( "Variable written: ", var.GetString() );
-    UT_TRUE( var.GetString()->Length() > 0 );
+    UT_TRUE( var.GetString().Length() > 0 );
 
-    Log_RemoveDebugLogger();
+    Log_RemoveDebugLogger()
 }
 
 #endif
@@ -997,3 +1015,4 @@ UT_CLASS_END
     #pragma warning( pop )
 #endif
 
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)

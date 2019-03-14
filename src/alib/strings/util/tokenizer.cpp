@@ -1,29 +1,17 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-
-#if !defined (_GLIBCXX_OSTREAM)
-    #include <ostream>
-#endif
-
-
-// Windows.h might bring in max/min macros
-#if defined( max )
-    #undef max
-    #undef min
-#endif
+#include "alib/strings/util/tokenizer.hpp"
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
-Substring&    Tokenizer::Next( lang::Whitespaces trimming, character newDelim )
+template<typename TChar>
+TSubstring<TChar>& TTokenizer<TChar>::Next( Whitespaces trimming, TChar newDelim )
 {
     if ( Rest.IsNull() )
     {
@@ -41,8 +29,8 @@ Substring&    Tokenizer::Next( lang::Whitespaces trimming, character newDelim )
 
         if ( nextDelimiter >= 0 )
         {
-            Actual= Rest.Substring<false>( 0                , nextDelimiter                       );
-            Rest  = Rest.Substring<false>( nextDelimiter + 1, Rest.Length() - (nextDelimiter + 1) );
+            Actual=  Rest.template Substring<false>( 0                , nextDelimiter                       );
+            Rest  =  Rest.template Substring<false>( nextDelimiter + 1, Rest.Length() - (nextDelimiter + 1) );
         }
         else
         {
@@ -51,12 +39,15 @@ Substring&    Tokenizer::Next( lang::Whitespaces trimming, character newDelim )
         }
 
         // trim
-        if ( trimming == lang::Whitespaces::Trim )
-            Actual.Trim( Whitespaces );
+        if ( trimming == Whitespaces::Trim )
+            Actual.Trim( TrimChars );
     }
     while( skipEmpty && Actual.IsEmpty() && Rest.IsNotNull() );
 
     return Actual;
 }
+
+template TSubstring<nchar>& TTokenizer<nchar>::Next( Whitespaces trimming, nchar newDelim );
+template TSubstring<wchar>& TTokenizer<wchar>::Next( Whitespaces trimming, wchar newDelim );
 
 }}}} // namespace [aworx::lib::strings::util]

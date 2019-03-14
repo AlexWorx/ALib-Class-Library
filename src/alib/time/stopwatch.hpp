@@ -1,25 +1,11 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_TIME_TICKWATCH)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_TIME_STOPWATCH
-//! @cond NO_DOX
 #define HPP_ALIB_TIME_STOPWATCH 1
-//! @endcond
-
 
 #if !defined (HPP_ALIB_TIME_TICKS)
     #include "alib/time/ticks.hpp"
@@ -27,23 +13,29 @@
 
 namespace aworx { namespace lib { namespace time {
 
-
 /** ************************************************************************************************
  * This class encapsulates a system dependent timer value of type \alib{time,Ticks} and provides
- * some simple interface for measuring multiple time spans and providing their sum and average.
+ * some simple interface for measuring multiple time spans and providing their sum, average, minimum
+ * and maximum.
  **************************************************************************************************/
 class StopWatch
 {
     protected:
 
-        /// The current start time.
+        /** The current start time. */
         Ticks           startTime;
 
-        /// The number of samples performed.
+        /** The number of samples performed. */
         int             cntSamples                                                               =0;
 
-        /// The sum of the samples times.
+        /** The sum of the samples times. */
         Ticks::Duration sum;
+
+        /** The minimum duration probed. */
+        Ticks::Duration min;
+
+        /** The maximum duration probed. */
+        Ticks::Duration max;
 
 
     public:
@@ -84,6 +76,9 @@ class StopWatch
         {
             sum= Ticks::Duration::FromNanoseconds(0);
             cntSamples= 0;
+            min= std::numeric_limits<Ticks::Duration>::max();
+            max= std::numeric_limits<Ticks::Duration>::min();
+
             Start();
         }
 
@@ -101,6 +96,8 @@ class StopWatch
         {
             Ticks::Duration sample= startTime.Age();
             sum+= sample;
+            if( min > sample ) min= sample;
+            if( max < sample ) max= sample;
             cntSamples++;
             startTime= Ticks::Now();
 
@@ -133,6 +130,30 @@ class StopWatch
             return cntSamples== 0 ? Ticks::Duration()
                                   : ( sum / static_cast<int64_t>(cntSamples) );
         }
+
+        /** ****************************************************************************************
+         * Returns the minimum duration of all samples since this instance was created or reset.
+         * If no measurement was performed, the value evaluates to the minmum value storable
+         * in type \b Ticks::Duration.
+         *
+         * @return  The minimum measured duration.
+         ******************************************************************************************/
+        inline Ticks::Duration  GetMinimum()    const
+        {
+            return min;
+        }
+
+        /** ****************************************************************************************
+         * Returns the maximum duration of all samples since this instance was created or reset.
+         * If no measurement was performed, the value evaluates to the maximum value storable
+         * in type \b Ticks::Duration.
+         *
+         * @return  The maximum measured duration.
+         ******************************************************************************************/
+        inline Ticks::Duration  GetMaximum()    const
+        {
+            return max;
+        }
 };
 
 }} // namespace lib::time
@@ -140,6 +161,6 @@ class StopWatch
 /// Type alias in namespace #aworx.
 using     StopWatch=            aworx::lib::time::StopWatch;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_TIME_STOPWATCH

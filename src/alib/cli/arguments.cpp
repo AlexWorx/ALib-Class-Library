@@ -1,14 +1,21 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
-#include "alib/cli/cliapp.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_LANG_RESOURCE_TUPLE_LOADER)
-#  include "alib/lang/resourcedtupleloader.hpp"
+#if !defined (HPP_ALIB_CLI_CLI)
+#   include "alib/cli/arguments.hpp"
+#endif
+
+#if !defined (HPP_ALIB_CLI_CLIAPP)
+#   include "alib/cli/cliapp.hpp"
+#endif
+
+#if !defined (HPP_ALIB_RESOURCE_TUPLE_LOADER)
+#   include "alib/resources/resourcedtupleloader.hpp"
 #endif
 
 
@@ -20,11 +27,7 @@ ALIB_ENUM_SPECIFICATION_IMPL( aworx::lib::cli::CommandDecl   )
 ALIB_ENUM_SPECIFICATION_IMPL( aworx::lib::cli::OptionDecl    )
 ALIB_ENUM_SPECIFICATION_IMPL( aworx::lib::cli::ExitCodeDecl  )
 
-using namespace std;
-
 namespace aworx { namespace lib { namespace cli {
-
-
 
 // ##########################################################################################
 // ### Methods of Command, Option, etc.
@@ -35,8 +38,8 @@ void CommandDecl::addParamDecls()
     Tokenizer tknzr( std::get<3>(Tuple) , '/' );
     while( tknzr.Next().IsNotEmpty() )
     {
-        ALIB_DBG( int paramNo;
-                  auto oldSize= Parameters.size(); )
+ALIB_DBG(int paramNo;
+         auto oldSize= Parameters.size();    )
         for( auto& param : Parent.ParameterDecls )
             if( param.Name().StartsWith<true, Case::Ignore>( tknzr.Actual ) )
             {
@@ -49,6 +52,16 @@ void CommandDecl::addParamDecls()
                            paramNo, Identifier()  )
     }
 }
+
+ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
+{
+    for( auto* param : Parameters )
+        if( param->Name().Equals( name ) )
+            return param;
+
+    return nullptr;
+}
+
 
 bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const size_t argNo )
 {
@@ -67,7 +80,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const size_t a
 
     bool potentialIllegalContinuation= false;
     if ( !(   (     identifier.IsNotEmpty()
-               &&  arg.ConsumeString(ASTR("--"))
+               &&  arg.ConsumeString(A_CHAR("--"))
                &&  arg.Length() >=  decl.MinimumParseLen()
                && (    identifier.StartsWith<true, Case::Ignore>( arg )
                     || true == (potentialIllegalContinuation= arg.StartsWith<true,Case::Ignore>( identifier )) )
@@ -147,11 +160,11 @@ bool Command::Read( CommandDecl& decl )
                 else
                     ParametersMandatory.emplace_back( param );
             }
+
             // stop here if parameter read signaled this
             if( !continueReading )
                 return false;
         }
-
 
         return true;
     }
@@ -159,7 +172,7 @@ bool Command::Read( CommandDecl& decl )
     return false;
 }
 
-Parameter* Command::GetParameter(const String& name )
+Parameter* Command::GetParsedParameter(const String& name )
 {
     for( auto& param : ParametersMandatory )
         if( param.Declaration->Name().Equals( name ) )
@@ -172,11 +185,11 @@ Parameter* Command::GetParameter(const String& name )
     return nullptr;
 }
 
-String Command::GetParameterArg( const String& name )
+String Command::GetParsedParameterArg( const String& name )
 {
-    Parameter* param= GetParameter( name );
+    Parameter* param= GetParsedParameter( name );
     return param && param->Args.size() ? param->Args[0]
-                                       : NullString;
+                                       : NullString();
 }
 
 

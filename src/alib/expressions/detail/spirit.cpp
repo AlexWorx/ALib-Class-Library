@@ -1,29 +1,39 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-//! @cond NO_DOX
+#include "alib/alib_precompile.hpp"
 
-#include "alib/alib.hpp"
+#if !defined(HPP_ALIB_EXPRESSIONS_DETAIL_SPIRIT)
+#   include "alib/expressions/detail/spirit.hpp"
+#endif
 
-#include "../expressionslib.hpp"
 #if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
 
-#include "alib/threads/threadlocknr.hpp"
-#include "alib/compatibility/std_vector.hpp"
-#include "alib/compatibility/std_string.hpp"
-#include "alib/compatibility/std_iostream.hpp"
+#if ALIB_MODULE_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCKNR)
+#   include "alib/threads/threadlocknr.hpp"
+#endif
 
 
-#include <iostream>
-#include "spirit.hpp"
-#include "alib/expressions/detail/parser.hpp"
-#include "ast.hpp"
+//! @cond NO_DOX
 
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#   include "alib/compatibility/std_strings_iostream.hpp"
+#endif
+#if !defined(HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
+#   include "alib/expressions/detail/parser.hpp"
+#endif
+#if !defined(HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#   include "alib/expressions/detail/ast.hpp"
+#endif
+#if !defined(BOOST_SPIRIT_INCLUDE_QI)
+#   include <boost/spirit/include/qi.hpp>
+#endif
+#if !defined(BOOST_SPIRIT_INCLUDE_PHOENIX)
+#   include <boost/spirit/include/phoenix.hpp>
+#endif
 
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
@@ -471,8 +481,8 @@ struct BSASTTranslator : boost::static_visitor<AST*>
 
     BSASTTranslator()
     {
-       metaInfoUnaryOps = EnumMetaData<expressions::DefaultUnaryOperators >::GetSingleton();
-       metaInfoBinaryOps= EnumMetaData<expressions::DefaultBinaryOperators>::GetSingleton();
+       metaInfoUnaryOps = &EnumMetaData<expressions::DefaultUnaryOperators >::GetSingleton();
+       metaInfoBinaryOps= &EnumMetaData<expressions::DefaultBinaryOperators>::GetSingleton();
     }
 
     AST* operator() (const integer           literal ) { return new ASTLiteral   ( literal   ,0 );  }
@@ -508,7 +518,7 @@ struct BSASTTranslator : boost::static_visitor<AST*>
         // In this case, our parser adds an ASTIdentifier without a name as node.T.
         // (Unnamed identifiers are otherwise not parsable an thus is used to recognize elvis here!)
         ALIB_ASSERT_ERROR(  static_cast<BSAST>(BSASTIdentifier()).which() == 3,
-                             "The index BSTAST changed! Correct this here." )
+                             "The index BSTAST changed! Correct this here."     )
         if(    node.T.which() == 3
             && boost::get<BSASTIdentifier>( node.T ).Name.IsEmpty() )
         {
@@ -526,7 +536,9 @@ struct BSASTTranslator : boost::static_visitor<AST*>
 struct ParserBoostSpirit : public Parser
 {
     ALibExpressionParserBoostSpirit spiritParser;
+#if ALIB_MODULE_THREADS
     ThreadLockNR         parserLock;
+#endif
 
     ParserBoostSpirit( bool increaseAssignOpPrecedence,
                        bool supportArraySubscriptOperator )
@@ -537,7 +549,7 @@ struct ParserBoostSpirit : public Parser
     {}
 
 
-    virtual AST* Parse( const String& expressionString, strings::NumberFormat*  )           override
+    virtual AST* Parse( const String& expressionString, NumberFormat*  )                    override
     {
         ALIB_LOCK_WITH( parserLock )
         String::ConstIterator   act=         expressionString.begin();
@@ -559,9 +571,9 @@ struct ParserBoostSpirit : public Parser
         {
             delete bsast;
             Exception e  ( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation,
-                         EXPRESSIONS.Get("ExcExp0")                                   );
+                           EXPRESSIONS.GetResource("ExcExp0")      );
             e.Add        ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
-                               expressionString, act - expressionString.begin() + 1  );
+                           expressionString, act - expressionString.begin() + 1    );
             throw e;
         }
         catch (std::runtime_error& e )

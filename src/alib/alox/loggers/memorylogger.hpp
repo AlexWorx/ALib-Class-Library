@@ -1,25 +1,14 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_MEMORY_LOGGER
 #define HPP_ALOX_MEMORY_LOGGER 1
 
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
-    #include "alib/alox/core/textlogger/plaintextlogger.hpp"
+    #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
@@ -28,7 +17,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  *  A logger that logs all messages to an in-memory buffer of type AString. The name of the \e Logger
  *  defaults to "MEMORY".
  **************************************************************************************************/
-class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
+class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 {
     // #############################################################################################
     // public fields
@@ -37,8 +26,8 @@ class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
         /**
          * The logging Buffer. This can be accessed publicly and hence used as preferred.
          * Especially, the whole log can easily be cleared using
-         * \alib{strings,AStringBase::Clear,AString::Clear}.
-         * In multi-threaded environments, \c Lox interfaces' mutex should be acquired
+         * \alib{strings,TAString::Reset,AString::Reset}.
+         * In multi-threaded environments, \c Lox interface's mutex should be acquired
          * before accessing this buffer. The initial size of the buffer is 8kb.
          */
         AString                     MemoryLog;
@@ -70,8 +59,8 @@ class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
                                       bool pruneESCSequences                = true,
                                       bool useWStringLengthForTabAdjustments= true )
                         : PlainTextLogger( name, "MEMORY", false )
-                        , MemoryLog      ( 8092 )
                         {
+                            MemoryLog.SetBuffer( 8092 );
                             PruneESCSequences                = pruneESCSequences;
                             UseWStringLengthForTabAdjustments= useWStringLengthForTabAdjustments;
                         }
@@ -92,10 +81,10 @@ class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          * @param phase  Indicates the beginning or end of a log line.
          * @return Always returns true.
          ******************************************************************************************/
-        virtual bool notifyLogOp(lib::lang::Phase phase)
+        virtual bool notifyLogOp(Phase phase)
         {
             // append new line if buffer has already lines stored
-            if ( phase == lib::lang::Phase::Begin && MemoryLog.IsNotEmpty() )
+            if ( phase == Phase::Begin && MemoryLog.IsNotEmpty() )
                 MemoryLog.NewLine();
             return true;
         }
@@ -119,7 +108,7 @@ class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
-        virtual    void notifyMultiLineOp( lib::lang::Phase )     {}
+        virtual    void notifyMultiLineOp( Phase )     {}
 
 }; // class MemoryLogger
 
@@ -128,7 +117,7 @@ class MemoryLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
 /// Type alias in namespace #aworx.
 using     MemoryLogger=           aworx::lib::lox::loggers::MemoryLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALOX_MEMORY_LOGGER
 

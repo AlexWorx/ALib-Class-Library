@@ -1,23 +1,18 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-    #include "alib/strings/substring.hpp"
+#   include "alib/strings/substring.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
-    #include "alib/strings/numberformat.hpp"
+#if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
+#   include "alib/strings/detail/numberconversion.hpp"
 #endif
-
-#if !defined (_GLIBCXX_OSTREAM)
-    #include <ostream>
-#endif
-
 
 // Windows.h might bring in max/min macros
 #if defined( max )
@@ -28,10 +23,10 @@
 namespace aworx { namespace lib { namespace strings {
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeDecDigitsImpl( uint64_t& result )
+bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result )
 {
     integer idx= 0;
-    result=  NumberFormatBase<TChar>::ParseDecDigits( *this, idx );
+    result=  detail::ParseDecDigits( *this, idx );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -41,13 +36,13 @@ bool   SubstringBase<TChar>::consumeDecDigitsImpl( uint64_t& result )
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeIntImpl( int64_t& result, NumberFormatBase<TChar>* numberFormat )
+bool   TSubstring<TChar>::consumeIntImpl( int64_t& result, TNumberFormat<TChar>* numberFormat )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseInt( *this, idx );
+    result=  detail::ParseInt( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -57,13 +52,13 @@ bool   SubstringBase<TChar>::consumeIntImpl( int64_t& result, NumberFormatBase<T
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeDecImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat )
+bool   TSubstring<TChar>::consumeDecImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseDec( *this, idx );
+    result=  detail::ParseDec( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -73,13 +68,13 @@ bool   SubstringBase<TChar>::consumeDecImpl( uint64_t& result, NumberFormatBase<
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeBinImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat )
+bool   TSubstring<TChar>::consumeBinImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseBin( *this, idx );
+    result=  detail::ParseBin( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -89,13 +84,13 @@ bool   SubstringBase<TChar>::consumeBinImpl( uint64_t& result, NumberFormatBase<
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeHexImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat )
+bool   TSubstring<TChar>::consumeHexImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseHex( *this, idx );
+    result=  detail::ParseHex( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -105,13 +100,13 @@ bool   SubstringBase<TChar>::consumeHexImpl( uint64_t& result, NumberFormatBase<
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::consumeOctImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat )
+bool   TSubstring<TChar>::consumeOctImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseOct( *this, idx );
+    result=  detail::ParseOct( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -121,14 +116,14 @@ bool   SubstringBase<TChar>::consumeOctImpl( uint64_t& result, NumberFormatBase<
 }
 
 template<typename TChar>
-bool   SubstringBase<TChar>::ConsumeFloat( double&          result,
-                                NumberFormatBase<TChar>*    numberFormat   )
+bool   TSubstring<TChar>::ConsumeFloat( double&                result,
+                                        TNumberFormat<TChar>*  numberFormat   )
 {
     if ( numberFormat == nullptr )
-        numberFormat= &NumberFormatBase<TChar>::Computational;
+        numberFormat= &TNumberFormat<TChar>::Computational;
 
     integer idx= 0;
-    result=  numberFormat->ParseFloat( *this, idx );
+    result=  detail::ParseFloat( *this, idx, *numberFormat );
     if( idx > 0 )
     {
         ConsumeChars<false>( idx );
@@ -138,21 +133,28 @@ bool   SubstringBase<TChar>::ConsumeFloat( double&          result,
 }
 
 
+template bool  TSubstring<nchar>::ConsumeFloat        ( double&   , TNumberFormat<nchar>* );
+template bool  TSubstring<nchar>::consumeDecDigitsImpl( uint64_t&                         );
+template bool  TSubstring<nchar>::consumeIntImpl      (  int64_t& , TNumberFormat<nchar>* );
+template bool  TSubstring<nchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<nchar>* );
+template bool  TSubstring<nchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<nchar>* );
+template bool  TSubstring<nchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<nchar>* );
+template bool  TSubstring<nchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<nchar>* );
 
-template bool  SubstringBase<nchar>::ConsumeFloat        ( double&   , NumberFormatBase<nchar>* );
-template bool  SubstringBase<nchar>::consumeDecDigitsImpl( uint64_t&                            );
-template bool  SubstringBase<nchar>::consumeIntImpl      (  int64_t& , NumberFormatBase<nchar>* );
-template bool  SubstringBase<nchar>::consumeDecImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-template bool  SubstringBase<nchar>::consumeBinImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-template bool  SubstringBase<nchar>::consumeHexImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-template bool  SubstringBase<nchar>::consumeOctImpl      ( uint64_t& , NumberFormatBase<nchar>* );
+template bool  TSubstring<wchar>::ConsumeFloat        ( double&   , TNumberFormat<wchar>* );
+template bool  TSubstring<wchar>::consumeDecDigitsImpl( uint64_t&                         );
+template bool  TSubstring<wchar>::consumeIntImpl      (  int64_t& , TNumberFormat<wchar>* );
+template bool  TSubstring<wchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<wchar>* );
+template bool  TSubstring<wchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<wchar>* );
+template bool  TSubstring<wchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<wchar>* );
+template bool  TSubstring<wchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<wchar>* );
 
-template bool  SubstringBase<wchar>::ConsumeFloat        ( double&   , NumberFormatBase<wchar>* );
-template bool  SubstringBase<wchar>::consumeDecDigitsImpl( uint64_t&                            );
-template bool  SubstringBase<wchar>::consumeIntImpl      (  int64_t& , NumberFormatBase<wchar>* );
-template bool  SubstringBase<wchar>::consumeDecImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-template bool  SubstringBase<wchar>::consumeBinImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-template bool  SubstringBase<wchar>::consumeHexImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-template bool  SubstringBase<wchar>::consumeOctImpl      ( uint64_t& , NumberFormatBase<wchar>* );
+template bool  TSubstring<xchar>::ConsumeFloat        ( double&   , TNumberFormat<xchar>* );
+template bool  TSubstring<xchar>::consumeDecDigitsImpl( uint64_t&                         );
+template bool  TSubstring<xchar>::consumeIntImpl      (  int64_t& , TNumberFormat<xchar>* );
+template bool  TSubstring<xchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<xchar>* );
+template bool  TSubstring<xchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<xchar>* );
+template bool  TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<xchar>* );
+template bool  TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
 }}}// namespace [aworx::lib::strings]

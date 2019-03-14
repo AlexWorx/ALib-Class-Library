@@ -1,21 +1,17 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#   include "alib/config/configuration.hpp"
+#if !defined (HPP_ALIB_CONFIG_PLUGINS)
+#   include "alib/config/plugins.hpp"
 #endif
+
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
 #   include "alib/system/environment.hpp"
-#endif
-
-
-#if !defined(_STDIO_H) && !defined(_INC_STDIO)
-    #include <stdio.h>  /* defines FILENAME_MAX */
 #endif
 
 namespace aworx { namespace lib { namespace config {
@@ -168,13 +164,13 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
             break;
 
     String256   stringConverter;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( stringConverter,  ReplaceExternalBuffer )
+    stringConverter.DbgDisableBufferReplacementWarning();
 
     size_t qtyArgs= args != nullptr ?  args->size()
                                     :  argCount;
     for ( size_t i= args != nullptr ? 0 : 1 ; i < qtyArgs ; i++ )
     {
-        // create substring on actual variable (trim if somebody would work with quotation marks...)
+        // create sub-string on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
 
         if( args != nullptr )
@@ -185,21 +181,21 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
             {
                 if(!std::is_same<character, char>::value)
                 {
-                    stringConverter.Clear()._( reinterpret_cast<char**>(argVector)[i] );
+                    stringConverter.Reset( reinterpret_cast<const char**>(argVector)[i] );
                     cliArg= stringConverter;
                 }
                 else
-                    cliArg= reinterpret_cast<character**>(argVector)[i];
+                    cliArg= reinterpret_cast<const character**>(argVector)[i];
             }
             else
             {
                 if(!std::is_same<character, wchar_t>::value)
                 {
-                    stringConverter.Clear()._( reinterpret_cast<wchar_t**>(argVector)[i] );
+                    stringConverter.Reset( reinterpret_cast<const wchar_t**>(argVector)[i] );
                     cliArg= stringConverter;
                 }
                 else
-                    cliArg= reinterpret_cast<character**>(argVector)[i];
+                    cliArg= reinterpret_cast<const character**>(argVector)[i];
             }
         }
 
@@ -212,8 +208,8 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
 
         // try names
 
-        if (    !                          cliArg.ConsumeString<lang::Case::Ignore>( variable.Fullname )
-             && !( allowWithoutCategory && cliArg.ConsumeString<lang::Case::Ignore>( variable.Name     )  )
+        if (    !                          cliArg.ConsumeString<Case::Ignore>( variable.Fullname )
+             && !( allowWithoutCategory && cliArg.ConsumeString<Case::Ignore>( variable.Name     )  )
              && !(    AllowedMinimumShortCut > 0
                    && (                            cliArg.ConsumePartOf( variable.Fullname, AllowedMinimumShortCut + 1 + static_cast<int>(variable.Category.Length()) )
                        ||( allowWithoutCategory && cliArg.ConsumePartOf( variable.Name    , AllowedMinimumShortCut ) )
@@ -281,7 +277,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
 {
     // clear variable name at least. Values remain, until something was found. The caller has
     // to check the result anyhow!
-    variable.Name.Clear();
+    variable.Name.Reset();
 
     size_t qtyArgs= cliArgs.args != nullptr ?  cliArgs.args->size()
                                             :  cliArgs.argCount;
@@ -295,14 +291,14 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
             break;
 
     String256   stringConverter;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( stringConverter,  ReplaceExternalBuffer )
+    stringConverter.DbgDisableBufferReplacementWarning();
 
     // skip index 0 (command name) if not special args string vector set.
     if( nextArgNo == 0 && cliArgs.args == nullptr )
         nextArgNo= 1;
     while( nextArgNo < qtyArgs )
     {
-        // create substring on actual variable (trim if somebody would work with quotation marks...)
+        // create sub-string on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
         if( cliArgs.args != nullptr )
             cliArg= (*cliArgs.args)[nextArgNo];
@@ -312,21 +308,21 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
             {
                 if(!std::is_same<character, char>::value)
                 {
-                    stringConverter.Clear()._( reinterpret_cast<char**>(cliArgs.argVector)[nextArgNo] );
+                    stringConverter.Reset( reinterpret_cast<const char**>(cliArgs.argVector)[nextArgNo] );
                     cliArg= stringConverter;
                 }
                 else
-                    cliArg= reinterpret_cast<character**>(cliArgs.argVector)[nextArgNo];
+                    cliArg= reinterpret_cast<const character**>(cliArgs.argVector)[nextArgNo];
             }
             else
             {
                 if(!std::is_same<character, wchar_t>::value)
                 {
-                    stringConverter.Clear()._( reinterpret_cast<wchar_t**>(cliArgs.argVector)[nextArgNo] );
+                    stringConverter.Reset( reinterpret_cast<const wchar_t**>(cliArgs.argVector)[nextArgNo] );
                     cliArg= stringConverter;
                 }
                 else
-                    cliArg= reinterpret_cast<character**>(cliArgs.argVector)[nextArgNo];
+                    cliArg= reinterpret_cast<const character**>(cliArgs.argVector)[nextArgNo];
             }
         }
         cliArg.Trim();
@@ -339,7 +335,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
 
         // consume category
         if( !allowWithoutCategory && !sectionName.IsEmpty()
-            && (    !cliArg.ConsumeString<lang::Case::Ignore>( sectionName )
+            && (    !cliArg.ConsumeString<Case::Ignore>( sectionName )
                  || !cliArg.ConsumeChar('_' ) ) )
            continue;
 
@@ -379,8 +375,8 @@ Environment::Environment()
 bool  Environment::Load( Variable& variable, bool searchOnly )  const
 {
     String256 value;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( value,  ReplaceExternalBuffer );
-    system::GetEnvironmentVariable( variable.Fullname, value, lang::CurrentData::Keep );
+    value.DbgDisableBufferReplacementWarning();
+    system::GetEnvironmentVariable( variable.Fullname, value, CurrentData::Keep );
     if ( value.IsEmpty() )
         return false;
 

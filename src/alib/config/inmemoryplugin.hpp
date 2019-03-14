@@ -1,38 +1,18 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CONFIG_INMEMORY_PLUGIN
-//! @cond NO_DOX
 #define HPP_ALIB_CONFIG_INMEMORY_PLUGIN 1
-//! @endcond
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALIB_CONFIG_PLUGINS)
-    #include "alib/config/plugins.hpp"
-#endif
-
-#if !defined (_GLIBCXX_VECTOR ) && !defined(_VECTOR_)
-    #include <vector>
+#   include "alib/config/plugins.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace config {
+
 /** ************************************************************************************************
  * Specialization of abstract interface class #ConfigurationPlugin, which holds
  * configuration variables in memory. Instances of this class are used to create two plug-ins
@@ -57,14 +37,14 @@ class InMemoryPlugin : public ConfigurationPlugin
 {
 
     private:
-    /// Internal class implementing per section iteration feature
+    /** Internal class implementing per section iteration feature. */
     class InMemoryPluginIteratorImpl;
 
     // #############################################################################################
     // protected fields
     // #############################################################################################
     protected:
-        /// The name of the plug-in. Provided in constructor, returned with #Name.
+        /** The name of the plug-in. Provided in constructor, returned with #Name. */
         String                         name;
 
     // #############################################################################################
@@ -72,7 +52,7 @@ class InMemoryPlugin : public ConfigurationPlugin
     // #############################################################################################
     public:
         /** ****************************************************************************************
-         * A configuration sections' entry
+         * A configuration section's entry
          ******************************************************************************************/
         class Entry
         {
@@ -91,10 +71,10 @@ class InMemoryPlugin : public ConfigurationPlugin
                  */
                 Entry( const String& varName )
                 {
-                    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( Name,  ReplaceExternalBuffer );
+                    Name.DbgDisableBufferReplacementWarning();
                     Name._( varName );
                 }
-                /// Destructor
+                /** Destructor. */
                 virtual ~Entry()   {}
 
                 /**
@@ -134,10 +114,10 @@ class InMemoryPlugin : public ConfigurationPlugin
             Section( const String& sectionName )
             : Name( sectionName )
             {
-                ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( Name,  ReplaceExternalBuffer);
+                Name.DbgDisableBufferReplacementWarning();
             }
 
-            /// Destructor
+            /** Destructor. */
             virtual ~Section()
             {
                 for ( Entry* entry : Entries )
@@ -181,7 +161,7 @@ class InMemoryPlugin : public ConfigurationPlugin
     // Public fields
     // #############################################################################################
     public:
-        /// The list of sections.
+        /** The list of sections. */
         std::vector<Section*>            Sections;
 
     // #############################################################################################
@@ -233,7 +213,7 @@ class InMemoryPlugin : public ConfigurationPlugin
          * If the section is found and has no comments, then the provided comments are appended.
          * @param sectionName The name of the section to be retrieved.
          * @param comments    The comment lines for the section, in the case the section is not
-         *                    found. If this is nulled, no section comments are created.
+         *                    found. If this is \e nulled, no section comments are created.
          * @return Returns the section if it was found or created. nullptr otherwise.
          ******************************************************************************************/
         ALIB_API
@@ -314,6 +294,6 @@ class InMemoryPlugin : public ConfigurationPlugin
 /// Type alias in namespace #aworx.
 using     InMemoryPlugin=       aworx::lib::config::InMemoryPlugin;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_CONFIG_INMEMORY_PLUGIN

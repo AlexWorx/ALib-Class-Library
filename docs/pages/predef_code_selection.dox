@@ -1,0 +1,618 @@
+// #################################################################################################
+//  Documentation - ALib C++ Library
+//
+//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+#define ALIB_MODULE_ALOX
+#define ALIB_MODULE_EXPRESSIONS
+#define ALIB_MODULE_CONFIGURATION
+#define ALIB_MODULE_CLI
+#define ALIB_MODULE_SYSTEM
+#define ALIB_MODULE_RESULTS
+#define ALIB_MODULE_STRINGFORMAT
+#define ALIB_MODULE_BOXING
+#define ALIB_MODULE_ENUMS
+#define ALIB_MODULE_RESOURCES
+#define ALIB_MODULE_THREADS
+#define ALIB_MODULE_STRINGS
+#define ALIB_MODULE_MEMORY
+#define ALIB_MODULE_CHARACTERS
+#define ALIB_MODULE_TIME
+#define ALIB_MODULE_SINGLETONS
+
+#define ALIB_MODULE_ALOX_ON
+#define ALIB_MODULE_EXPRESSIONS_ON
+#define ALIB_MODULE_CONFIGURATION_ON
+#define ALIB_MODULE_CLI_ON
+#define ALIB_MODULE_SYSTEM_ON
+#define ALIB_MODULE_RESULTS_ON
+#define ALIB_MODULE_STRINGFORMAT_ON
+#define ALIB_MODULE_BOXING_ON
+#define ALIB_MODULE_ENUMS_ON
+#define ALIB_MODULE_RESOURCES_ON
+#define ALIB_MODULE_THREADS_ON
+#define ALIB_MODULE_STRINGS_ON
+#define ALIB_MODULE_MEMORY_ON
+#define ALIB_MODULE_CHARACTERS_ON
+#define ALIB_MODULE_TIME_ON
+#define ALIB_MODULE_SINGLETONS_ON
+
+#define ALIB_DOCUMENTATION_PARSER
+
+#define ALIB_COMPILATION_FLAGS
+
+#define ALIB_DEBUG
+#define ALIB_DEBUG_ON
+#define ALIB_DEBUG_OFF
+#define ALIB_MEMORY_DEBUG
+#define ALIB_MEMORY_DEBUG_ON
+#define ALIB_MEMORY_DEBUG_OFF
+#define ALIB_AVOID_ANALYZER_WARNINGS
+#define ALIB_AVOID_ANALYZER_WARNINGS_OFF
+#define ALIB_AVOID_ANALYZER_WARNINGS_ON
+
+#define ALIB_PRECOMPILED_HEADER_DISABLED
+
+#define ALIB_API
+#define ALIB_API_IS_DLL
+#define ALIB_API_NO_DLL
+#define ALIB_DBG
+#define ALIB_REL
+#define ALIB_REL_DBG
+
+#define ALIB_CPP14
+#define ALIB_CPP14_CONSTEXPR
+#define ALIB_CPP17
+#define ALIB_NO_RETURN
+
+#define ALIB_SIZEOF_WCHAR_T
+#define ALIB_CALLER
+#define ALIB_CALLER_PRUNED
+#define ALIB_CALLER_NULLED
+
+
+#define ALIB_STRINGIFY(a)
+#define ALIB_NSTRINGIFY(a)
+#define ALIB_CONCAT(a,b)
+#define ALIB_IDENTIFIER(prefix)
+
+#define ALIB_GDB_PP_SUPPRESS_CHILDREN
+#define ALIB_GDB_PP_FIND_POINTER_TYPES
+
+#define ALIB_ASSERT_RESULT_EQUALS(      func, value ) {}
+#define ALIB_ASSERT_RESULT_NOT_EQUALS(  func, value ) {}
+#define ALIB_ASSERT_RESULT_GREATER_THAN(func, value ) {}
+#define ALIB_ASSERT_RESULT_LESS_THAN(   func, value ) {}
+
+
+#define ALIB_SIZEOF_INTEGER
+#define ALIB_SIZEOF_INTGAP
+#define ALIB_SIZEOF_LONGDOUBLE
+#define ALIB_FEAT_BOOST_REGEX
+#define ALIB_FEAT_BOOST_REGEX_OFF
+#define ALIB_FEAT_BOOST_REGEX_ON
+
+#define ALIB_FEAT_SINGLETON_MAPPED
+#define ALIB_FEAT_SINGLETON_MAPPED_ON
+#define ALIB_FEAT_SINGLETON_MAPPED_OFF
+
+#define ALIB_CHARACTERS_FORCE_WIDE_ON
+#define ALIB_CHARACTERS_FORCE_WIDE_OFF
+#define ALIB_CHARACTERS_FORCE_NARROW_ON
+#define ALIB_CHARACTERS_FORCE_NARROW_OFF
+#define ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON
+#define ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_OFF
+#define ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON
+#define ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_OFF
+#define ALIB_CHARACTERS_ARE_NARROW
+#define ALIB_CHARACTERS_NATIVE_WCHAR
+#define ALIB_CHARACTERS_SIZEOF_WCHAR
+
+
+#define ALIB_STRINGS_DEBUG
+#define ALIB_STRINGS_DEBUG_ON
+#define ALIB_STRINGS_DEBUG_OFF
+#define ALIB_GTEST
+#define ALIB_GTEST_ON
+
+
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS_ON
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS_OFF
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS_ON
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS_OFF
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS_ON
+#define ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS_OFF
+
+#define ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
+#define ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON
+#define ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_OFF
+
+#define ALOX_DBG_LOG
+#define ALOX_DBG_LOG_ON
+#define ALOX_DBG_LOG_OFF
+
+#define ALOX_REL_LOG
+#define ALOX_REL_LOG_ON
+#define ALOX_REL_LOG_OFF
+
+#define ALOX_DBG_LOG_CI
+#define ALOX_DBG_LOG_CI_ON
+#define ALOX_DBG_LOG_CI_OFF
+
+#define ALOX_REL_LOG_CI
+#define ALOX_REL_LOG_CI_ON
+#define ALOX_REL_LOG_CI_OFF
+
+
+
+/**
+
+@defgroup GrpALibCodeSelectorSymbols ALib Symbols To Select Code Fragments
+
+Symbols (C++ preprocessor macros) listed here, are used internally to select \alib library
+code and can be used with custom code for the same purpose.
+
+The symbol's values are mostly generated out of \ref GrpALibCompilerSymbols.
+In this case, their name usually corresponds to a pair of compilation symbols, excluding
+the suffixes <em>_ON</em> and <em>_OFF</em>.<p>
+
+\note
+  \alib volunteers to strictly distinguish between preprocessor symbols that are to be passed
+  to the compiler (usually using CLI-option <c>"-D"</c>) and preprocessor symbols that are
+  defined in header files.
+
+@{ @}
+
+
+
+\~Comment ##################           General              ################################## \~
+
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+@name General Symbols
+
+\def  ALIB_DEBUG
+ If true (1), plausibility checks and \alib assertions are enabled.
+ See \ref ALIB_DEBUG_ON and \ref ALIB_DEBUG_OFF for information about how to manipulate
+ this symbol.
+
+\def  ALIB_DBG
+   This simple macro may be used for placing debug statements into source code. Those get 'pruned'
+   in release versions of \alib (respectively of the software that uses \alib and then this macro).
+   It replaces
+\verbatim
+    #if ALIB_DEBUG
+        // do stuff
+    #endif
+\endverbatim
+   and is useful especially for single line statements.
+
+\def ALIB_REL_DBG
+   Similar to \ref ALIB_DBG, but accepts a release version of the code as well. The release
+   version is expected as first macro parameter. Note, that the release code must not contain a
+   comma (',')  while the debug code is allowed to. A comma in release code may be substituted
+   with macro \ref ALIB_COMMA. However, more complicated stuff should be placed in usual
+   <c>\#if</c>/<c>\#else</c>/<c>\#endif</c> statements.
+
+\def  ALIB_REL
+   As a counterpart to \ref ALIB_DBG, this macro may be used for placing code that is only
+   available in release compilations. The macro is provided for completeness only and should
+   be used seldom and with care, as it generally implies more intense release code testing.
+   As of Version 1810, \alib does not use this macro internally.
+
+\def  ALIB_CPP14
+ Macro which is \c 1 defined when compiled with <b>C++ 14</b> standard or higher and \c 0
+ with <b>C++ 11</b>.
+
+\def  ALIB_CPP17
+ Macro which is \c 1 defined when compiled with <b>C++ 14</b> standard or higher and \c 0
+ with <b>C++ 11</b>.
+
+\def  ALIB_DOCUMENTATION_PARSER
+ Set to \c true (1) if sources code is parsed by [Doxygen](http://www.stack.nl/~dimitri/doxygen),
+ to \c false (0) if parsed by a C++ compiler.
+
+\def  ALIB_AVOID_ANALYZER_WARNINGS
+  Selects extra debug code to avoid potential warnings of external analyze tools.
+  Gets defined by compiler symbol \ref ALIB_AVOID_ANALYZER_WARNINGS_ON.
+
+\def  ALIB_GTEST
+  Selects unit test code in accordance to the Google Test libraries.
+  Use \ref ALIB_GTEST_ON to define this symbol.
+
+@}
+@}
+
+
+\~Comment ################           Module Selection          ############################# \~
+
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name ALib Module Selection
+
+This group of symbols determine the availability of different <b>%ALib Modules</b> of the
+\alibdist used.
+The symbols are defined in header <c>alib/lib/precomp_modules.hpp</c> which always is and has to
+be the first \alib header file included (directly or indirectly).
+
+In addition to the modules, symbols that determine the availability of \alib
+\ref alib_manual_modules_filesets "file sets" are available for code selection.
+
+Modules are selected by passing corresponding \ref GrpALibCompilerSymbols "compiler symbols"
+which carry either prefix <b>_ON</b> or <b>_OFF</b>.
+
+
+\def  ALIB_MODULE_ALOX
+  Denotes if module \alibmod_alox is included in the \alibdist.
+
+\def  ALIB_MODULE_EXPRESSIONS
+  Denotes if module \alibmod_expressions is included in the \alibdist.
+
+\def  ALIB_MODULE_CONFIGURATION
+  Denotes if module \alibmod_config is included in the \alibdist.
+
+\def  ALIB_MODULE_CLI
+  Denotes if module \alibmod_cli is included in the \alibdist.
+
+\def  ALIB_MODULE_SYSTEM
+  Denotes if module \alibmod_system is included in the \alibdist.
+
+\def  ALIB_MODULE_RESULTS
+  Denotes if module \alibmod_results is included in the \alibdist.
+
+\def  ALIB_MODULE_STRINGFORMAT
+  Denotes if module \alibmod_stringformat is included in the \alibdist.
+
+\def  ALIB_MODULE_BOXING
+  Denotes if module \alibmod_boxing is included in the \alibdist.
+
+\def  ALIB_MODULE_ENUMS
+  Denotes if module \alibmod_enums is included in the \alibdist.
+
+\def  ALIB_MODULE_RESOURCES
+  Denotes if module \alibmod_resources is included in the \alibdist.
+
+\def  ALIB_MODULE_THREADS
+  Denotes if module \alibmod_threads is included in the \alibdist.
+
+\def  ALIB_MODULE_STRINGS
+  Denotes if module \alibmod_strings is included in the \alibdist.
+
+\def  ALIB_MODULE_MEMORY
+  Denotes if module \alibmod_memory is included in the \alibdist.
+
+\def  ALIB_MODULE_CHARACTERS
+  Denotes if module \alibmod_characters is included in the \alibdist.
+
+\def  ALIB_MODULE_TIME
+  Denotes if module \alibmod_time is included in the \alibdist.
+
+\def  ALIB_MODULE_SINGLETONS
+  Denotes if module \alibmod_singletons is included in the \alibdist.
+
+\def ALIB_FILESET_PREDEF_PF
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_PREDEF_TMP
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_TYPEMAP
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_INTEGERS
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_DEBUG
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_OWNER
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_COMMON_ENUMS
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_MODULES
+  Denotes if the named file set is available in the \alibdist.
+\def ALIB_FILESET_PLUGINS
+  Denotes if the named file set is available in the \alibdist.
+
+
+
+
+@}
+@}
+
+
+
+\~Comment ##################      Core Library            ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name Core Library Symbols
+
+\def  ALIB_SIZEOF_INTEGER
+  Contains the size of \c std::size_t, \c std::ptrdiff_t, #aworx::integer and #aworx::uinteger,
+  which all should be the same, depending on the platform/compiler (32-bit or 64 bit system).
+
+\def  ALIB_SIZEOF_INTGAP
+  Contains the size of integral types \alib{intGap_t} and \alib{uintGap_t}.
+
+\def  ALIB_SIZEOF_LONGDOUBLE
+  Contains the size of <c>long double</c>. This is the value that <c>sizeof(long double)</c>
+  returns. This size might be higher to what a copy operation of a value of the type might
+  write.
+
+  \see
+    A different size for <c>long double</c> might be given with a specialization of
+    \alib{boxing,T_SizeInPlaceholder}
+
+
+
+@}
+@}
+
+
+
+\~Comment ##################             Singleton             ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+@name ALib Module Singleton Feature Selection
+
+\def  ALIB_FEAT_SINGLETON_MAPPED
+  Affects implementation of class
+  \alib{singletons,Singleton}. If this symbol represents \c true, then
+  a static hash map is used to find the singleton objects, even if different data segments
+  exist within one software process.<br>
+  While the overhead imposed by such implementation is quite small, with this symbol being
+  \c false, the overhead is omitted in scenarios when such effort is not necessary.
+
+  The symbol defaults to \c true on the windows platform, otherwise to \c false. The default
+  value can be changed by passing one of the symbols
+  \ref ALIB_FEAT_SINGLETON_MAPPED_OFF or \ref ALIB_FEAT_SINGLETON_MAPPED_ON to the C++ compiler
+  when building the library.
+
+
+@}
+@}
+
+
+\~Comment ##################             Memory                ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+@name ALib Module Memory Feature Selection
+
+\def  ALIB_MEMORY_DEBUG
+  Selects extended debug code in module \alibmod_memory.
+
+@}
+@}
+
+
+
+\~Comment ##################              Characters           ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+@name ALib Module Characters
+
+\def  ALIB_CHARACTERS_ARE_NARROW
+  If \c true, type \alib{characters,character} is equivalent to C++ built-in type \c char.
+  Otherwise, \alib{characters,character} equals the multi-byte character type \alib{characters,wchar},
+  which in turn is equivalent to either \c wchar_t, \c char16_t or \c char32_t.
+
+  This symbol depends on operating system and compiler defaults and may be manipulated by passing
+  compiler symbols \ref ALIB_CHARACTERS_FORCE_WIDE_ON or ALIB_CHARACTERS_FORCE_NARROW_ON with
+  library compilation.
+
+  Note, that the use of this symbol to select code should be needed very seldom.
+  Instead, it is advised to use "logical character" types and other provided helpers and macros
+  that convert characters and string types transparently.
+
+  \see
+     Chapter \ref alib_characters_prepro_literals of the
+     Programmer's Manual of module \alibmod_characters.
+
+
+\def  ALIB_CHARACTERS_NATIVE_WCHAR
+  If \c true, type \alib{characters,wchar} is equivalent to C++ built-in type \c wchar_t.
+  Otherwise, \alib{characters,wchar} has a different width than \c wchar_t and equals
+  to either \c char16_t or \c char32_t: If a compiler's defines \c wchar_t as a 2-byte integral,
+  \c char32_t is chosen and \c char16_t if it is a 4-byte integral.
+
+  This symbol depends on operating system and compiler defaults and may be manipulated by passing
+  compiler symbols \ref ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON or ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON
+  with library compilation.
+
+  Note, that the use of this symbol to select code should be needed very seldom.
+  Instead, it is advised to use "logical character" types and other provided helpers and macros
+  that convert characters and string types transparently.
+
+  \see
+     Chapter \ref alib_characters_prepro_literals of the
+     Programmer's Manual of module \alibmod_characters.
+
+
+\def  ALIB_CHARACTERS_SIZEOF_WCHAR
+  Provides the with of \alib type \alib{characters,wchar} in bytes.
+  If code selection symbol ALIB_CHARACTERS_NATIVE_WCHAR evaluates to \c true, then this
+  symbol has the same value as \ref ALIB_SIZEOF_WCHAR_T. Otherwise, it has its complement
+  value, namely \b 2 if \b ALIB_SIZEOF_WCHAR_T equals \b 4 and vice versa.
+
+  \see
+     Chapter \ref alib_characters_prepro_literals of the
+     Programmer's Manual of module \alibmod_characters.
+
+@}
+@}
+
+
+
+
+\~Comment ##################              Strings               ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name ALib Module Strings Feature Selection
+
+\def  ALIB_FEAT_BOOST_REGEX
+  Selects code for class \alib{strings::util,RegexMatcher} and features within \alib
+  that uses this wrapper class.
+
+  See compiler symbol \ref ALIB_FEAT_BOOST_REGEX_ON for information on how to activate this
+  library feature.
+
+\def  ALIB_STRINGS_DEBUG
+  Selects extra debug code within class AString. Gets defined by compiler symbol
+  \ref ALIB_STRINGS_DEBUG_ON.
+
+@}
+@}
+
+\~Comment ##################              Boxing               ################################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name ALib Module Boxing Feature Selection
+
+\def  ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+   Selects code for boxing any C++ integral type to \alib{integer}, respectively
+   \alib{uinteger}.
+
+   Use \ref ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS_OFF to set this symbol to \c 0 to enable
+   bijective boxing, what boxes each type as it is.
+
+   \see
+     Documentation of namespace \ref alib_boxing_fundamentals "4. Boxing Fundamental Types"
+     for more information.
+
+
+\def  ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
+   Selects code for boxing types \c char, \c wchar_t, \c char16_t and \c char32_t as a
+   \alib{characters,character} and disallowing to unbox any other.
+
+   Use \ref ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS_OFF to set this symbol to \c 0 to enable
+   bijective boxing, hence mapping the four types one-to-one.
+
+   \see
+     Documentation of namespace \ref alib_boxing_fundamentals "4. Boxing Fundamental Types"
+     for more information.
+
+
+\def  ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+   Selects code for boxing type \c float as a \c double value and disallowing to unbox
+   \c float.
+
+   Use \ref ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS_OFF to set this symbol to \c 0 to enable
+   bijective boxing, what boxes type \c float as it is.
+
+   \see
+     Documentation of namespace \ref alib_boxing_fundamentals "4. Boxing Fundamental Types"
+     for more information.
+@}
+@}
+
+
+
+\~Comment ######################     ALox Log Output Selection     ############################## \~
+
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name ALox Log Output Selection
+This group of code selection symbols is defined with the use of module \alibmod_alox and
+used to select the inclusion of log code. The symbols are seldom to be used by end-user code.
+Instead, the macros used for the log statements themselves (see
+\ref GrpALibMacros_mod_alox_debug "debug logging macros" and
+\ref GrpALibMacros_mod_alox_release "release logging macros".) are variably defined based on these symbols.
+
+\def  ALOX_DBG_LOG
+  If defined as \c true, debug <em>Log Statements</em> are enabled. Hence, users of \alox can
+  conditionally compile special debug logging code that normally belongs to corresponding
+  debug logging statements.
+  This is useful for example, to conditionally compile code that calculates and gathers
+  information to do some more complex log output.
+
+  See \ref ALOX_DBG_LOG_ON and \ref ALOX_DBG_LOG_OFF for information about how to manipulate
+  this symbol.
+
+\def  ALOX_REL_LOG
+  If defined, release <em>Log Statements</em> are enabled. Hence, users of \alox can conditionally
+  compile special debug logging code that normally belongs to corresponding
+  debug logging statements.
+  This is useful for example, to conditionally compile code that calculates and gathers
+  information to do some more complex log output.
+
+  See \ref ALOX_REL_LOG_ON and \ref ALOX_REL_LOG_OFF for information about how to manipulate
+  this symbol.
+
+\def  ALOX_DBG_LOG_CI
+  If defined, scope information is passed to \alox on invocation of debug
+  <em>Log Statements</em>.
+  Hence, users of \alox can conditionally compile special debug logging code that normally
+  belongs to corresponding debug logging statements based on this symbol. A sample would be
+  the definition of different log line meta information formats, depending on the availability
+  of scope information.
+
+  \note The \alox <em>Scope Domain</em> mechanism as well as the ALox features \e Lox.Once and
+  <em>Log Data</em> rely on caller information.
+  These mechanisms are therefore not available to debug logging unless this symbol is set.
+
+
+  See \ref ALOX_DBG_LOG_CI_ON and \ref ALOX_DBG_LOG_CI_OFF for information about how to manipulate
+  this symbol.
+
+\def  ALOX_REL_LOG_CI
+  If defined, scope information is passed to \alox on invocation of release log
+  statements when using \ref GrpALibMacros_mod_alox_release "release logging macros".<br>
+  Hence, users of \alox can conditionally compile special debug logging code that normally
+  belongs to corresponding debug logging statements based on this symbol. A sample would be
+  the definition of different log line meta-information formats, depending on the availability of
+  scope information.
+
+  \note The \alox <em>Scope Domain</em> mechanism as well as the ALox features \e Lox.Once and
+  <em>Log Data</em> rely on caller information.
+  These mechanisms are therefore not available to debug logging unless this symbol is set.
+
+  See \ref ALOX_REL_LOG_CI_ON and \ref ALOX_REL_LOG_CI_OFF for information about how to manipulate
+  this symbol.
+
+@}
+@}
+
+
+\~Comment ##################            Expressions           ################################## \~
+@addtogroup GrpALibCodeSelectorSymbols
+@{
+
+@name ALib Expressions Feature Selection
+
+\def  ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
+   Selects code within module \alibmod_expressions that switches the
+   integration of an alternative parser for module \alibmod_expressions based on
+   [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html).
+
+   \attention
+     This is an experimental feature only. Some features of this library will be silently (!)
+     lost with its activation.
+     It is discouraged to use the \c boost::spirit parser in combination with this library in
+     production environments!
+
+   \attention
+     Please read the according \ref alib_expressions_appendix_boostspirit "manual section"
+     for more information on the use of the \c boost::spirit parser.
+
+   \see See also compiler symbol \ref ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON.
+
+@}
+@}
+
+
+*/
+
+

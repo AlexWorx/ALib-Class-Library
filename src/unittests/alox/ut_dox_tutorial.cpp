@@ -2,14 +2,19 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+
+
 
 //! [Tut_include_statement]
 #include "alib/alox.hpp"
 #include "alib/alox/loggers/memorylogger.hpp"
-#include "alib/compatibility/std_string.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
 //! [Tut_include_statement]
 
 #include <iostream>
@@ -17,7 +22,7 @@
 #include <string>
 
 #define TESTCLASSNAME       CPP_Dox_Tutorial
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace ut_aworx;
 
@@ -111,9 +116,9 @@ class FileIO
         //...
         //...
         // Identified file version
-        fileVersion= ASTR("3.1");
+        fileVersion= A_CHAR("3.1");
 
-        Log_Store( fileVersion, ASTR("FILE_VERSION") );
+        Log_Store( fileVersion, "FILE_VERSION" );
 
         //...
         //...
@@ -171,8 +176,7 @@ UT_METHOD(Hello_ALox)
     Log_Info ( "Hello ALox" );
     //! [Tut_ALox_Logger_2]
 
-
-    Log_Prune( ut.WriteResultFile( "Tut_ALox_Logger.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_ALox_Logger.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_RemoveLogger( &memLog )
     Log_RemoveDebugLogger();
 }
@@ -209,8 +213,8 @@ UT_METHOD(Tut_Verbosity)
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning );
     //! [Tut_Verbosity_SetVerbosity_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Verbosity.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear(); memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_Verbosity.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     Log_Prune( Log_RemoveDebugLogger();  )
 
     Log_SetVerbosity( &memLog, Verbosity::Warning );
@@ -226,7 +230,7 @@ UT_METHOD(Tut_Verbosity)
     Log_Verbose( "Today, I am in the mood to talk..." );
     //! [Tut_Verbosity_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Verbosity_2.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Verbosity_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog );
@@ -257,8 +261,8 @@ UT_METHOD(Tut_Domains)
     //! [Tut_Domains]
 
 
-    Log_Prune( ut.WriteResultFile( "Tut_Domains.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_Domains.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
     Log_Prune( Log_RemoveDebugLogger();  )
 
     Log_SetVerbosity( &memLog, Verbosity::Verbose,  "HTTP" ); // our interest
@@ -278,7 +282,7 @@ UT_METHOD(Tut_Domains)
     //...
     //! [Tut_Domains_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Domains_2.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Domains_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog );
@@ -313,8 +317,8 @@ UT_METHOD(Tut_HierDom)
     //! [Tut_DomainsHierarchical]
 
 
-    Log_Prune( ut.WriteResultFile( "Tut_DomainsHierarchical.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear(); memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_DomainsHierarchical.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     Log_RemoveDebugLogger();
 
     //! [Tut_DomainsHierarchical_2]
@@ -345,15 +349,15 @@ UT_METHOD(Tut_ScopeDomains)
     TutScopeDom tsd;
     tsd.Extract( "myfile.zip", nullptr );
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear(); memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
 
     // do it once to set the tab positions of the meta info...
     {
         Zipper zip;
         zip.Compress( "myfile.zip", nullptr );
         zip.Extract( "myfile.zip", nullptr );
-        Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+        Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
     }
     // ...and again
     {
@@ -362,7 +366,7 @@ UT_METHOD(Tut_ScopeDomains)
         zip.Extract( "myfile.zip", nullptr );
     }
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper.txt", memLog.MemoryLog, EmptyNString() ); )
 
     //---------- with scope path ---------------
 
@@ -370,13 +374,13 @@ UT_METHOD(Tut_ScopeDomains)
     Log_SetDomain( "UTIL", Scope::Path );
     //! [Tut_ScopeDomains_Path]
 
-    Log_Prune( memLog.MemoryLog.Clear(); memLog.CntLogs= 0; )
+    Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     // do it once to set the tab positions of the meta info...
     {
         Zipper zip;
         zip.Compress( "myfile.zip", nullptr );
         zip.Extract( "myfile.zip", nullptr );
-        Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+        Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
     }
     // ...and again
     {
@@ -384,8 +388,8 @@ UT_METHOD(Tut_ScopeDomains)
         zip.Compress( "myfile.zip", nullptr );
         zip.Extract( "myfile.zip", nullptr );
     }
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper_Path.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper_Path.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
     Log_SetDomain( nullptr, Scope::Path )
     Log_SetDomain( nullptr, Scope::Filename )
@@ -400,12 +404,12 @@ UT_METHOD(Tut_ScopeDomains)
     Log_Prune( memLog.AutoSizes.Reset(); )
     Log_Info(          "No domain parameter given" );
     Log_Info( "PARAM", "Domain parameter \"PARAM\" given" );
-    Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+    Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
     Log_Info(          "No domain parameter given" );
     Log_Info( "PARAM", "Domain parameter \"PARAM\" given" );
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom.txt", memLog.MemoryLog, NEmptyString ); )
-    Log_Prune( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
 
     //! [Tut_ScopeDomains_ParamDom_2]
@@ -416,7 +420,7 @@ UT_METHOD(Tut_ScopeDomains)
     Log_Info( "/CONFIG",   "Path not found." );
     //...
     //! [Tut_ScopeDomains_ParamDom_2]
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom_2.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog );
@@ -442,7 +446,7 @@ UT_METHOD(Tut_Prefix)
     Log_Info( "Well, just a sample" );
     //! [Tut_Prefix]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Prefix.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Prefix.txt", memLog.MemoryLog, EmptyNString() ); )
 
     //! [Tut_Prefix_2]
     Log_SetPrefix( ESC::BG_MAGENTA, Scope::Filename );
@@ -463,19 +467,19 @@ UT_METHOD(Tut_ThreadName )
 
     Log_Prune ( MemoryLogger memLog; )
     Log_SetVerbosity   ( &memLog, Verbosity::Verbose );
-    Log_Prune ( memLog.MemoryLog.Clear();  memLog.CntLogs= 0; )
+    Log_Prune ( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
 
     //! [Tut_MapThreadName]
-    Log_MapThreadName( ASTR("BKGRND") );
+    Log_MapThreadName( A_CHAR("BKGRND") );
     Log_Info ( "Hello ALox" );
     //! [Tut_MapThreadName]
-    Log_MapThreadName( ASTR("MAIN") );
+    Log_MapThreadName( A_CHAR("MAIN") );
 
 
     Log_RemoveLogger( & memLog);
-    Log_Prune( memLog.MemoryLog.SearchAndReplace( ASTR("MEMORY"), ASTR("CONSOLE") );            )
-    Log_Prune( ut.WriteResultFile( "Tut_ThreadName.txt", memLog.MemoryLog, NEmptyString ); )
+    Log_Prune( memLog.MemoryLog.SearchAndReplace( A_CHAR("MEMORY"), A_CHAR("CONSOLE") );            )
+    Log_Prune( ut.WriteResultFile( "Tut_ThreadName.txt", memLog.MemoryLog, EmptyNString() ); )
 
 }
 
@@ -495,7 +499,7 @@ void notCompiledConditionalLogging()
 {
     basic_string<character>* array= nullptr;
     int len= 5;
-    basic_string<character> search= ASTR("");
+    basic_string<character> search= A_CHAR("");
 
     //! [Tut_ConditionalLogging]
     int i= 0;
@@ -547,8 +551,8 @@ UT_METHOD(Tut_LogState)
     Log_Prune( MemoryLogger memLogger;  )
 
     // reduce meta information to limit tutorial output width
-    Log_Prune( Log::DebugLogger->MetaInfo->Format=  ASTR("[%tN]%V[%D](%#): ");   )
-    Log_Prune( memLogger.MetaInfo->Format=          ASTR("[%tN]%V[%D](%#): ");   )
+    Log_Prune( Log::DebugLogger->MetaInfo->Format.Reset( A_CHAR("[%tN]%V[%D](%#): " ) );  )
+    Log_Prune( memLogger.MetaInfo->Format.Reset(         A_CHAR("[%tN]%V[%D](%#): " ) );  )
     Log_Prune( memLogger.MultiLineMsgMode= 3; )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
 
@@ -569,12 +573,12 @@ UT_METHOD(Tut_LogState)
     Log_Info( "/CON", "This goes only to the console logger" );
 
     Log_Once( "Will we see this in the config?" );
-    Log_Once( "Will we see this in the config?", ASTR("ONCEKEY"), Scope::Filename );
+    Log_Once( "Will we see this in the config?", A_CHAR("ONCEKEY"), Scope::Filename );
 
     Log_Store( "MyData 1" ,            Scope::Method );
-    Log_Store( "MyData 2" , ASTR("DataKey"), Scope::Method );
-    Log_Store( 3          , ASTR("DataKey"), Scope::Filename );
-    Log_Store( 4          , ASTR("DataKey"), Scope::ThreadOuter );
+    Log_Store( "MyData 2" , "DataKey", Scope::Method );
+    Log_Store( 3          , "DataKey", Scope::Filename );
+    Log_Store( 4          , "DataKey", Scope::ThreadOuter );
 
     Log_SetPrefix( "TPre: "  , Scope::ThreadOuter );
     Log_SetPrefix( "MPre: "  , Scope::Method );
@@ -582,13 +586,13 @@ UT_METHOD(Tut_LogState)
     Log_SetPrefix( "Mouse: ", "/UI/MOUSE" );
     Log_SetPrefix( ESC::RED,  "/ERRORS", Inclusion::Exclude );
 
-    Log_MapThreadName( ASTR("TUTORIAL") );
+    Log_MapThreadName( A_CHAR("TUTORIAL") );
 
     // now, log the current config
-    Log_LogState( nullptr, Verbosity::Info, ASTR("The current configuration of this Lox is:") );
+    Log_LogState( nullptr, Verbosity::Info, A_CHAR("The current configuration of this Lox is:") );
     //! [Tut_LogState]
 
-    Log_Prune( ut.WriteResultFile( "Tut_LogState.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_LogState.txt", memLogger.MemoryLog, EmptyNString() ); )
     Log_RemoveDebugLogger();
     Log_RemoveLogger( &memLogger );
 }
@@ -604,8 +608,8 @@ UT_METHOD(Tut_LogInternalDomains)
     Log_AddDebugLogger();
     Log_Prune( MemoryLogger memLogger;  )
 
-    Log_Prune( Log::DebugLogger->MetaInfo->Format=  "[%tN]%V[%D](%#): ";   )
-    Log_Prune( memLogger.MetaInfo->Format=          "[%tN]%V[%D](%#): ";   )
+    Log_Prune( Log::DebugLogger->MetaInfo->Format.Reset("[%tN]%V[%D](%#): ");   )
+    Log_Prune(         memLogger.MetaInfo->Format.Reset("[%tN]%V[%D](%#): ");   )
     Log_SetVerbosity( &memLogger, Verbosity::Verbose );
 
     // ... with one difference: we are activating the internal domain
@@ -624,12 +628,12 @@ UT_METHOD(Tut_LogInternalDomains)
     Log_SetVerbosity( "DEBUG_LOGGER" , Verbosity::Info     , "/UI/DLG" );
 
     Log_Once( "Will we see this in the config?" );
-    Log_Once( "Will we see this in the config?", ASTR("ONCEKEY"), Scope::Filename );
+    Log_Once( "Will we see this in the config?", A_CHAR("ONCEKEY"), Scope::Filename );
 
     Log_Store( "MyData 1" ,            Scope::Method );
-    Log_Store( "MyData 2" , ASTR("DataKey"), Scope::Method );
-    Log_Store( 3          , ASTR("DataKey"), Scope::Filename );
-    Log_Store( 4          , ASTR("DataKey"), Scope::ThreadOuter );
+    Log_Store( "MyData 2" , "DataKey", Scope::Method );
+    Log_Store( 3          , "DataKey", Scope::Filename );
+    Log_Store( 4          , "DataKey", Scope::ThreadOuter );
 
     Log_SetPrefix( "TPre: "  , Scope::ThreadOuter );
     Log_SetPrefix( "MPre: "  , Scope::Method );
@@ -637,9 +641,9 @@ UT_METHOD(Tut_LogInternalDomains)
     Log_SetPrefix( "Mouse: ", "/UI/MOUSE" );
     Log_SetPrefix( ESC::RED,  "/ERRORS", Inclusion::Exclude );
 
-    Log_MapThreadName( ASTR("TUTORIAL") );
+    Log_MapThreadName( A_CHAR("TUTORIAL") );
     //! [Tut_LogInternalDomains]
-    Log_Prune( ut.WriteResultFile( "Tut_LogInternalDomains.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_LogInternalDomains.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     Log_RemoveDebugLogger();
     Log_RemoveLogger( "MEMORY" );
@@ -661,7 +665,7 @@ UT_METHOD(Tut_LogData)
     // set auto tabs
     {
         Log_Info( "X" );
-        Log_Prune( memLogger.MemoryLog.Clear(); )
+        Log_Prune( memLogger.MemoryLog.Reset(); )
     }
 
 
@@ -669,14 +673,14 @@ UT_METHOD(Tut_LogData)
     fileIo.Read( "myfile.dat" );
 
     //! [Tut_LogData_2]
-    Log_Retrieve( dbgFileVersion, ASTR("FILE_VERSION") );
+    Log_Retrieve( dbgFileVersion, "FILE_VERSION" );
     Log_Info( "Working on file version {!Q}", dbgFileVersion.Unbox<String>() );
     //! [Tut_LogData_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_LogData.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_LogData.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     //! [Tut_LogData_3]
-    Log_Info( "Working on file version {!Q}", LOG_LOX.Retrieve(ASTR("FILE_VERSION")).Unbox<String>() );
+    Log_Info( "Working on file version {!Q}", LOG_LOX.Retrieve("FILE_VERSION").Unbox<String>() );
     //! [Tut_LogData_3]
 
 
@@ -698,7 +702,7 @@ UT_METHOD(Tut_Format)
     //! [Tut_Format_1]
     Log_Info( "Value=", 5 );
     //! [Tut_Format_1]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_1.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Format_1.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     //! [Tut_Format_P]
     Log_Info( "Value={}", 5 );
@@ -716,13 +720,13 @@ UT_METHOD(Tut_Format)
     Log_Info( "{}-"  , "One", "{}-", "Two", "{}", "Three" );
     //! [Tut_Format_Multi]
 
-    Log_Prune( memLogger.MemoryLog.Clear(); )
+    Log_Prune( memLogger.MemoryLog.Reset(); )
     //! [Tut_Format_Mix]
     Log_Info( "Python Style: {!s}","PS", " - ", "Java Style: \"%s\"", "JS" );
     //! [Tut_Format_Mix]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_Mix.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Format_Mix.txt", memLogger.MemoryLog, EmptyNString() ); )
 
-    Log_Prune( memLogger.MemoryLog.Clear(); )
+    Log_Prune( memLogger.MemoryLog.Reset(); )
     //! [Tut_Format_Sample_1]
     Log_Info( ">{:<10}<" , "left" );
     Log_Info( ">{:>10}<" , "right" );
@@ -744,7 +748,7 @@ UT_METHOD(Tut_Format)
     Log_Info( "Oct: {:#o}. With group chars: {0:o,}", 012345670 );
     Log_Info( "Bin: {:#b}. With group chars: {0:b,}", 145 );
     //! [Tut_Format_Sample_1]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_Sample_1.txt", memLogger.MemoryLog, NEmptyString ); )
+    Log_Prune( ut.WriteResultFile( "Tut_Format_Sample_1.txt", memLogger.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveDebugLogger();
@@ -757,3 +761,5 @@ UT_METHOD(Tut_Format)
 UT_CLASS_END
 
 } // namespace
+
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)

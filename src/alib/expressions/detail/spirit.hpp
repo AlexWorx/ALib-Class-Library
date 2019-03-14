@@ -1,14 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_SPIRIT
 #define HPP_ALIB_EXPRESSIONS_DETAIL_SPIRIT
 
+#if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSIONS)
+#   include "alib/expressions/expressions.hpp"
+#endif
 
 #if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
 

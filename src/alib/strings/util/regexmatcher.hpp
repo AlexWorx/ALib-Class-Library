@@ -1,33 +1,19 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-#error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
-#error "Header already included"
-#endif
-
-
-// then, set include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_REGEXMATCHER
-//! @cond NO_DOX
 #define HPP_ALIB_STRINGS_UTIL_REGEXMATCHER 1
-//! @endcond
+
+#if !defined (HPP_ALIB_STRINGS_CSTRING)
+#   include "alib/strings/cstring.hpp"
+#endif
 
 
-// Check for boost availability
 #if ALIB_FEAT_BOOST_REGEX
-
-
 namespace aworx { namespace lib { namespace strings { namespace util  {
-
 
 /** ************************************************************************************************
  * This utility class wraps [boost::regex library](http://www.boost.org) and interfaces
@@ -54,7 +40,7 @@ class RegexMatcher
 {
     protected:
         /**
-         * This is the internal regex matcher. Yes, nasty \c reinterpret_cast is performed in the
+         * This is the internal regex matcher. Yes, a nasty \c reinterpret_cast is performed in the
          * compilation unit. This is for avoiding the inclusion of external headers with \alib
          * headers at the expense of an otherwise unnecessary heap allocation.
          */
@@ -66,11 +52,11 @@ class RegexMatcher
          * to method #Compile.
          *
          * @param  pattern      The string pattern to match.
-         *                      Defaults to \b NullString to allow parameterless construction,
+         *                      Defaults to \b NullString() to allow parameterless construction,
          *                      with later invocation of #Compile.
          ******************************************************************************************/
         inline
-        RegexMatcher( const String& pattern= NullString  )
+        RegexMatcher( const String& pattern= NullString()  )
         {
             Compile( pattern );
         }
@@ -107,7 +93,7 @@ class RegexMatcher
 /// Type alias in namespace #aworx.
 using     RegexMatcher=     aworx::lib::strings::util::RegexMatcher;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // ALIB_FEAT_BOOST_REGEX
 #endif // HPP_ALIB_STRINGS_UTIL_REGEXMATCHER

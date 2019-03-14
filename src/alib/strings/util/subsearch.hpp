@@ -1,54 +1,44 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-#error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_STRINGS_UTIL_SUBSEARCH)
-#error "Header already included"
-#endif
-
-
-// then, set include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_SUBSEARCH
-//! @cond NO_DOX
 #define HPP_ALIB_STRINGS_UTIL_SUBSEARCH 1
-//! @endcond
+
+#if !defined (HPP_ALIB_STRINGS_ASTRING)
+#   include "alib/strings/astring.hpp"
+#endif
 
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
 /** ************************************************************************************************
- * Implements "Knuth-Morris-Pratt" algorithm for searching a substring within a string.
+ * Implements "Knuth-Morris-Pratt" algorithm for searching a sub-string within a string.
  *
  * While the well known "Boyer-Moore-Algorithm" is even faster in the average case, for
  * uni-code characters its implementation would be efficient only with very long haystack strings.
  *
  * For convenience, the following alias type names are available:
- * - ref aworx::SubstringSearch,
- * - ref aworx::NSubstringSearch and
- * - ref aworx::WSubstringSearch.
+ * - \ref aworx::SubstringSearch,
+ * - \ref aworx::NSubstringSearch and
+ * - \ref aworx::WSubstringSearch.
  *
  * @tparam TChar     The character type of the haystack and needle strings.
  * @tparam TSensitivity The letter case sensitivity of the search..
  **************************************************************************************************/
-template<typename TChar, lang::Case TSensitivity= lang::Case::Sensitive>
-class SubstringSearchBase
+template<typename TChar, Case TSensitivity= Case::Sensitive>
+class TSubstringSearch
 {
     protected:
-        /// The needle set Knuth-Morris-Pratt prefix length table.
-        AStringBase<TChar>  needle;
+        /** The needle set Knuth-Morris-Pratt prefix length table. */
+        TAString<TChar>  needle;
 
-        /// The Knuth-Morris-Pratt prefix length table.
+        /** The Knuth-Morris-Pratt prefix length table. */
         integer*            kmpTable                                                      = nullptr;
 
-        /// Length of #kmpTable.
+        /** Length of #kmpTable. */
         integer             kmpTableLength                                                      = 0;
 
     public:
@@ -56,11 +46,11 @@ class SubstringSearchBase
          * Constructor. Passes the optional parameters to method #Compile.
          *
          * @param pNeedle The string to search.
-         *                Defaults to \b NullString to allow parameterless construction with later
+         *                Defaults to \b NullString() to allow parameterless construction with later
          *                invocation of #Compile.
          ******************************************************************************************/
         inline
-        SubstringSearchBase( const StringBase<TChar>& pNeedle= nullptr )
+        TSubstringSearch( const TString<TChar>& pNeedle= nullptr )
         {
             Compile( pNeedle );
         }
@@ -69,7 +59,7 @@ class SubstringSearchBase
          * Destructor.
          ******************************************************************************************/
         ALIB_API
-        ~SubstringSearchBase();
+        ~TSubstringSearch();
 
     public:
         /** ****************************************************************************************
@@ -77,7 +67,7 @@ class SubstringSearchBase
          * @param  needle   The needle to search.
          ******************************************************************************************/
         ALIB_API
-        void Compile( const StringBase<TChar>& needle );
+        void Compile( const TString<TChar>& needle );
 
         /** ****************************************************************************************
          * Searches for the needle in \p{haystack} starting at \p{startIdx}.
@@ -89,41 +79,41 @@ class SubstringSearchBase
          *         \c -1 if not found.
          ******************************************************************************************/
         ALIB_API
-        integer   Search( const StringBase<TChar>& haystack, integer startIdx= 0 );
+        integer   Search( const TString<TChar>& haystack, integer startIdx= 0 );
 
-}; // class SubstringSearchBase
+}; // class TSubstringSearch
 
-extern template ALIB_API         SubstringSearchBase<nchar, Case::Sensitive>::SubstringSearchBase (const StringBase<nchar>&);
-extern template ALIB_API         SubstringSearchBase<nchar, Case::Ignore   >::SubstringSearchBase (const StringBase<nchar>&);
-extern template ALIB_API         SubstringSearchBase<wchar, Case::Sensitive>::SubstringSearchBase (const StringBase<wchar>&);
-extern template ALIB_API         SubstringSearchBase<wchar, Case::Ignore   >::SubstringSearchBase (const StringBase<wchar>&);
-extern template ALIB_API         SubstringSearchBase<nchar, Case::Sensitive>::~SubstringSearchBase();
-extern template ALIB_API         SubstringSearchBase<nchar, Case::Ignore   >::~SubstringSearchBase();
-extern template ALIB_API         SubstringSearchBase<wchar, Case::Sensitive>::~SubstringSearchBase();
-extern template ALIB_API         SubstringSearchBase<wchar, Case::Ignore   >::~SubstringSearchBase();
-extern template ALIB_API void    SubstringSearchBase<nchar, Case::Sensitive>::Compile             (const StringBase<nchar>&);
-extern template ALIB_API void    SubstringSearchBase<nchar, Case::Ignore   >::Compile             (const StringBase<nchar>&);
-extern template ALIB_API void    SubstringSearchBase<wchar, Case::Sensitive>::Compile             (const StringBase<wchar>&);
-extern template ALIB_API void    SubstringSearchBase<wchar, Case::Ignore   >::Compile             (const StringBase<wchar>&);
-extern template ALIB_API integer SubstringSearchBase<nchar, Case::Sensitive>::Search              (const StringBase<nchar>&, integer);
-extern template ALIB_API integer SubstringSearchBase<nchar, Case::Ignore   >::Search              (const StringBase<nchar>&, integer);
-extern template ALIB_API integer SubstringSearchBase<wchar, Case::Sensitive>::Search              (const StringBase<wchar>&, integer);
-extern template ALIB_API integer SubstringSearchBase<wchar, Case::Ignore   >::Search              (const StringBase<wchar>&, integer);
+extern template ALIB_API         TSubstringSearch<nchar, Case::Sensitive>::TSubstringSearch (const TString<nchar>&);
+extern template ALIB_API         TSubstringSearch<nchar, Case::Ignore   >::TSubstringSearch (const TString<nchar>&);
+extern template ALIB_API         TSubstringSearch<wchar, Case::Sensitive>::TSubstringSearch (const TString<wchar>&);
+extern template ALIB_API         TSubstringSearch<wchar, Case::Ignore   >::TSubstringSearch (const TString<wchar>&);
+extern template ALIB_API         TSubstringSearch<nchar, Case::Sensitive>::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<nchar, Case::Ignore   >::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<wchar, Case::Sensitive>::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<wchar, Case::Ignore   >::~TSubstringSearch();
+extern template ALIB_API void    TSubstringSearch<nchar, Case::Sensitive>::Compile             (const TString<nchar>&);
+extern template ALIB_API void    TSubstringSearch<nchar, Case::Ignore   >::Compile             (const TString<nchar>&);
+extern template ALIB_API void    TSubstringSearch<wchar, Case::Sensitive>::Compile             (const TString<wchar>&);
+extern template ALIB_API void    TSubstringSearch<wchar, Case::Ignore   >::Compile             (const TString<wchar>&);
+extern template ALIB_API integer TSubstringSearch<nchar, Case::Sensitive>::Search              (const TString<nchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<nchar, Case::Ignore   >::Search              (const TString<nchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<wchar, Case::Sensitive>::Search              (const TString<wchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<wchar, Case::Ignore   >::Search              (const TString<wchar>&, integer);
 
 }}} // namespace aworx[::lib::strings::util]
 
 
 /// Type alias in namespace #aworx.
-template<lib::lang::Case TSensitivity>
-using  NSubstringSearch =  aworx::lib::strings::util::SubstringSearchBase<nchar>;
+template<Case TSensitivity>
+using  NSubstringSearch =  aworx::lib::strings::util::TSubstringSearch<nchar>;
 
 /// Type alias in namespace #aworx.
-template<lib::lang::Case TSensitivity>
-using  WSubstringSearch =  aworx::lib::strings::util::SubstringSearchBase<wchar>;
+template<Case TSensitivity>
+using  WSubstringSearch =  aworx::lib::strings::util::TSubstringSearch<wchar>;
 
 /// Type alias in namespace #aworx.
-template<lib::lang::Case TSensitivity>
-using   SubstringSearch =  aworx::lib::strings::util::SubstringSearchBase<character>;
+template<Case TSensitivity>
+using   SubstringSearch =  aworx::lib::strings::util::TSubstringSearch<character>;
 
 
 } // namespace aworx

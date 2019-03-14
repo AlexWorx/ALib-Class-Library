@@ -1,25 +1,19 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
-    #error "Header already included"
-#endif
-
-
-// then, set include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER
-//! @cond NO_DOX
 #define HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER 1
-//! @endcond
+
+#if !defined(HPP_ALIB_STRINGS_CSTRING)
+#   include "alib/strings/cstring.hpp"
+#endif
+
+#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+    #include <vector>
+#endif
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -34,15 +28,15 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * "matching commands". This way, the class is optimized for performance, because after compilation,
  * subsequent invocations of #Match do not need to parse the pattern string.
  *
- * @tparam TChar    The character type. Implementations for \c char and \c wchar_t are provided
+ * @tparam TChar    The character type. Implementations for \c nchar and \c wchar are provided
  *                  with type definitions \ref aworx::WildcardMatcherN and
  *                  \ref aworx::WildcardMatcherW.
  **************************************************************************************************/
 template<typename TChar>
-class WildcardMatcherBase
+class TWildcardMatcher
 {
-        /// The result list of commands created with #Compile and executed with #Match.
-        std::vector<std::pair<int,StringBase<TChar>>>  commands;
+        /** The result list of commands created with #Compile and executed with #Match. */
+        std::vector<std::pair<int,TString<TChar>>>  commands;
 
     public:
         /** ****************************************************************************************
@@ -50,11 +44,11 @@ class WildcardMatcherBase
          * to method #Compile.
          *
          * @param  pattern      The string pattern to match.
-         *                      Defaults to \b NullString to allow parameterless construction,
+         *                      Defaults to \b NullString() to allow parameterless construction,
          *                      with later invocation of #Compile.
          ******************************************************************************************/
         inline
-        WildcardMatcherBase( const StringBase<TChar>& pattern= NullString )
+        TWildcardMatcher( const TString<TChar>& pattern= NullString() )
         {
             Compile( pattern );
         }
@@ -66,7 +60,7 @@ class WildcardMatcherBase
          * @param  pattern      The string pattern to match.
          ******************************************************************************************/
         ALIB_API
-        void Compile( const StringBase<TChar>& pattern );
+        void Compile( const TString<TChar>& pattern );
 
         /** ****************************************************************************************
          * Tests if given \p{haystack} matches the actual pattern.
@@ -78,27 +72,27 @@ class WildcardMatcherBase
          * @return \c true if given \p{haystack} matches the actual pattern, \c false otherwise.
          ******************************************************************************************/
         ALIB_API
-        bool   Match( const StringBase<TChar>& haystack, Case sensitivity = Case::Sensitive  );
+        bool   Match( const TString<TChar>& haystack, Case sensitivity = Case::Sensitive  );
 
 }; // class WildcardMatcher
 
 
-extern template ALIB_API void WildcardMatcherBase<char   >::Compile( const StringBase<nchar>& pattern );
-extern template ALIB_API bool WildcardMatcherBase<char   >::Match  ( const StringBase<nchar>& haystack, Case sensitivity );
-extern template ALIB_API void WildcardMatcherBase<wchar_t>::Compile( const StringBase<wchar>& pattern );
-extern template ALIB_API bool WildcardMatcherBase<wchar_t>::Match  ( const StringBase<wchar>& haystack, Case sensitivity );
+extern template ALIB_API void TWildcardMatcher<nchar>::Compile( const TString<nchar>& );
+extern template ALIB_API bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>&, Case );
+extern template ALIB_API void TWildcardMatcher<wchar>::Compile( const TString<wchar>& );
+extern template ALIB_API bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>&, Case );
 
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcherN=    aworx::lib::strings::util::WildcardMatcherBase<char   >;
+using     WildcardMatcher=     aworx::lib::strings::util::TWildcardMatcher<character>;
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcherW=    aworx::lib::strings::util::WildcardMatcherBase<wchar_t>;
+using     WildcardMatcherN=    aworx::lib::strings::util::TWildcardMatcher<nchar>;
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcher=     aworx::lib::strings::util::WildcardMatcherBase<character>;
+using     WildcardMatcherW=    aworx::lib::strings::util::TWildcardMatcher<wchar>;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER

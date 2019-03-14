@@ -538,7 +538,6 @@ div.toc h3 {
     background-color: #51637b;
 
     color: #9E2544;
-
 }
 
 
@@ -560,7 +559,7 @@ h1.groupheader {
     font-family: "Bitter";
     font-size: 160%;
     font-weight: bold;
-    margin: 0px 0px;
+    margin: 0px 8px;
 }
 
 h2.groupheader {
@@ -581,6 +580,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: "Bitter";
     color: black;
     font-weight: 500;
+
     -webkit-transition: text-shadow 0.5s linear;
     -moz-transition: text-shadow 0.5s linear;
     -ms-transition: text-shadow 0.5s linear;
@@ -589,14 +589,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-    font-size: 180%;
+    font-size: 170%;
     padding-top: 25px;
+    margin-left: -8px;
 }
 
 h2 {
-    font-size: 160%;
-    margin: 25px 0px 0px 0px;
+    font-size: 150%;
+    padding-top: 15px;
+    margin-left: -8px;
+
 }
+
+h3 {
+    font-size: 140%;
+    margin-bottom: -10px;
+}
+
+h4 {
+    font-size: 110%;
+    margin-bottom: -10px;
+}
+
 
 h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
     text-shadow: 0 0 15px cyan;
@@ -663,7 +677,7 @@ div.navtab {
 /* @group Link Styling */
 
 a {
-    font-weight: normal;
+    font-weight: inherit;
     font-size: 100%;
     text-decoration: none;
     color: #7e0015;
@@ -719,7 +733,7 @@ a.code
 
 code
 {
-    font-family: "Fira Mono", monospace;
+    font-family: "Courier New", monospace;
     font-style: italic;
     font-weight: bold;
     font-size: 100%;
@@ -737,7 +751,6 @@ pre.fragment {
     border-radius: 3px;
     background-color: rgb(248, 248, 248);
     padding: 6px 10px;
-    margin: 15px 0px;
     overflow: auto;
     word-wrap: break-word;
 
@@ -840,16 +853,71 @@ div.groupText {
     font-style: italic;
 }
 
-body {
+body
+{
     background-color: white;
     color: black;
     margin: 0;
+
 }
 
-div.contents {
-    margin-top: 10px;
-    margin-left: 12px;
+
+div.contents
+{
+    position: absolute;
+    top:   136px;
+    left:   -5px;
+    right:   -8px;
+    bottom:  0px;
+    z-index: -10;
+}
+
+div.textblock
+{
+    margin-left: 8px;
     margin-right: 8px;
+}
+
+table.markdownTable
+{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+pre.fragment
+{
+    margin-top: 15px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+address.footer {
+    text-align: right;
+    padding-right: 12px;
+
+    position: absolute;
+    height: 25px;
+    width: 100%;
+    right: 0px;
+    bottom: 0px;
+}
+
+img.footer
+{
+    border: 0px;
+    vertical-align: middle;
+}
+
+hr.footer
+{
+    height: 0px;
+    border-top: 3px solid #4c7cc0;
+
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    right: 0px;
+    bottom: 12px;
 }
 
 td.indexkey {
@@ -896,16 +964,6 @@ div.center img {
     border: 0px;
 }
 
-address.footer {
-    text-align: right;
-    padding-right: 12px;
-}
-
-img.footer {
-    border: 0px;
-    vertical-align: middle;
-}
-
 
 /* AWorx dox uses <span></span> to mark parameter names in texts.*/
 span {
@@ -921,15 +979,18 @@ span {
 /* @group Code Colorization */
 
 span.keyword {
-    color: #000040
+    color: #000040;
+    font-weight: normal;
 }
 
 span.keywordtype {
-    color: #604020
+    color: #604020;
+    font-weight: normal;
 }
 
 span.keywordflow {
-    color: #e08000
+    color: #e08000;
+    font-weight: normal;
 }
 
 span.comment {
@@ -941,11 +1002,13 @@ span.preprocessor {
 }
 
 span.stringliteral {
-    color: #802020
+    color: #FF2020;
+    font-weight: normal;
 }
 
 span.charliteral {
-    color: #802020
+    color: #FF2020;
+    font-weight: normal;
 }
 
 span.vhdldigit {
@@ -1014,10 +1077,6 @@ hr {
     border-top: 1px solid #444;
 }
 
-hr.footer {
-    height: 0px;
-    border-top: 3px solid #444;
-}
 
 /* @group Member Descriptions */
 
@@ -1518,6 +1577,7 @@ table.fieldtable {
 
 .navpath {
     border: none;
+    line-height: 20px;
 }
 
 .navpath ul
@@ -1530,8 +1590,12 @@ table.fieldtable {
     border:     none;
     overflow:   hidden;
     margin:     0px;
-    padding:    0px;
+    padding:    1px;
+    padding-bottom: 3px;
+    line-height:11px;
+    height:      13px;
 }
+
 
 .navpath li
 {
@@ -1554,6 +1618,7 @@ table.fieldtable {
     background-image: none;
     color: white;
     text-shadow: none;
+    height: 11px
 }
 
 .navpath li.navelem:last-child a
@@ -1602,7 +1667,7 @@ div.summary
     float: right;
     font-size: 8pt;
     padding-right: 5px;
-    width: 50%;
+    width: auto;
     text-align: right;
 }
 
@@ -1632,9 +1697,9 @@ div.header
 
 div.headertitle
 {
-    padding: 5px 5px 5px 10px;
+    padding: 5px 1px 5px 1px;
     background-color: #CCCCCC;
-
+    white-space: nowrap;
 }
 
 dl
@@ -1642,7 +1707,7 @@ dl
         padding: 0 0 0 10px;
 }
 
-/* dl.note, dl.warning, dl.attention, dl.pre, dl.post, dl.invariant, dl.deprecated, dl.todo, dl.test, dl.bug */
+/* dl.note, dl.warning, dl.attention, dl.pre, dl.post, dl.invariant, dl.deprecated, dl.to-do, dl.test, dl.bug */
 dl.section
 {
     margin-left: 0px;
@@ -1715,6 +1780,7 @@ dl.bug
 
 dl.section dd {
     margin-bottom: 6px;
+    margin-left: 18px;
 }
 
 
@@ -1724,12 +1790,11 @@ dl.section dd {
     border-collapse: separate;
     vertical-align: top;
     horizontal-align: left;
+    padding-top: 4px;
 }
 
 #projectlogo img
 {
-    margin: 4px 0px;
-    border: 0px none;
 }
 
 #projectname
@@ -1737,9 +1802,10 @@ dl.section dd {
     font-family: "Open Sans";
     font-weight: bold;
     margin: 0px;
-    padding: 0px;
+    padding-top:   0px;
+    padding-left: 30px;
     horizontal-align: right;
-    font-size: 350%
+    font-size: 330%
 }
 
 #projectbrief
@@ -1754,10 +1820,10 @@ dl.section dd {
     font-family: "Open Sans";
     margin: 0px;
     padding: 0px;
+    padding-bottom: 5px;
     vertical-align: middle;
-    font-size: 320%
-//    Color: #000000;
-
+    color: black;
+    font-size: 100%
 }
 
 #titlearea
@@ -1765,6 +1831,7 @@ dl.section dd {
     padding: 0px;
     margin: 0px;
     width: 100%;
+    height: 60px;
     border-bottom: 1px solid #5373B4;
     color: #9E2544;
 }
@@ -1820,7 +1887,7 @@ div.toc {
         float: right;
         height: auto;
         margin: 0 20px 10px 10px;
-        width: 200px;
+        width: 40%;
 }
 
 div.toc li {
@@ -1834,9 +1901,11 @@ div.toc li {
 div.toc h3 {
     font: bold 12px/1.2
     font-family: "Open Sans";
+    font-size: 150%;
+    text-align: center;
     color: #4665A2;
-        border-bottom: 0 none;
-        margin: 0;
+    border-bottom: 0 none;
+    margin: 0;
 }
 
 div.toc ul {
@@ -1847,18 +1916,24 @@ div.toc ul {
 
 div.toc li.level1 {
         margin-left: 0px;
+        margin-top: 12px;
+        font-size: 100%;
+        font-weight: bold;
 }
 
 div.toc li.level2 {
         margin-left: 15px;
+        font-size: 90%;
 }
 
 div.toc li.level3 {
-        margin-left: 30px;
+        margin-left: 25px;
+        font-size: 80%;
 }
 
 div.toc li.level4 {
-        margin-left: 45px;
+        margin-left: 40px;
+        font-size: 70%;
 }
 
 .inherit_header {

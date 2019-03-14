@@ -1,21 +1,27 @@
 // #################################################################################################
 //  aworx - Unit Tests
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+
 #include "alib/alox.hpp"
 
 #include "alib/strings/util/tokenizer.hpp"
-#include "alib/compatibility/std_string.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
+#include "alib/compatibility/std_characters.hpp"
 
 #define TESTCLASSNAME       CPP_ALib_Dox_Tokenizer
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 #include <iostream>
 #include <iomanip>
 
 using namespace std;
+using namespace aworx;
 
 namespace ut_aworx {
 
@@ -27,15 +33,15 @@ UT_CLASS()
 
 void documentationSampleTokenizer(AWorxUnitTesting& ut)
 {
-    std::basic_stringstream<aworx::character> testOutputStream;
+    std::stringstream testOutputStream;
     #define cout testOutputStream
 
 //! [DOX_ALIB_TOKENIZER]
     // data string to tokenize
-    aworx::String data=  ASTR("test;  abc ; 1,2 , 3 ; xyz ; including;separator");
+    String data=  A_CHAR("test;  abc ; 1,2 , 3 ; xyz ; including;separator");
 
     // create tokenizer on data with ';' as delimiter
-    aworx::Tokenizer tknzr( data, ';' );
+    Tokenizer tknzr( data, ';' );
 
     // read tokens
     cout << tknzr.Next() << endl; // will print "test"
@@ -43,7 +49,7 @@ void documentationSampleTokenizer(AWorxUnitTesting& ut)
     cout << tknzr.Next() << endl; // will print "1,2 , 3"
 
     // tokenize actual (third) token (nested tokenizer)
-    aworx::Tokenizer subTknzr( tknzr.Actual,  ',');
+    Tokenizer subTknzr( tknzr.Actual,  ',');
     cout << subTknzr.Next();
 
     while( subTknzr.HasNext() )
@@ -74,3 +80,5 @@ UT_METHOD( DOX_ALIB_TOKEN )
 UT_CLASS_END
 
 } //namespace
+
+#endif //!defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)

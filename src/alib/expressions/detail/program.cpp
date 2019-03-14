@@ -1,21 +1,20 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
 
-#include "alib/alib.hpp"
-#include "alib/strings/boxing/debug.hpp"
-
-//#include "../compiler.hpp"
-#include "alib/expressions/compilerplugin.hpp"
-#include "spirit.hpp"
-#include "program.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
+#   include "alib/expressions/compilerplugin.hpp"
+#endif
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
-
 
 //! @cond NO_DOX
 using Command= VirtualMachine::Command;
@@ -26,11 +25,11 @@ using Command= VirtualMachine::Command;
 // #################################################################################################
 
 #if ALIB_DEBUG
-#   define DBG_CALLBACK_INFO(cmd)                                                                  \
-     cmd.DbgInfo.Callback= cInfo.DbgCallBackName;                                                  \
+#define DBG_CALLBACK_INFO(cmd)                                                                  \
+     cmd.DbgInfo.Callback= cInfo.DbgCallbackName;                                                  \
      cmd.DbgInfo.Plugin  = ppp.plugin;
 #else
-#   define DBG_CALLBACK_INFO(cmd)
+#define DBG_CALLBACK_INFO(cmd)
 #endif
 
 Program::~Program()
@@ -64,8 +63,8 @@ const Box& Program::ResultType() const
 //#define RHSCodeStart          (LHSResultPos + 1 )
 
 #define ASSERT_ASSEMBLE                                                                            \
-    if( compileStorage == nullptr )  return;                                                                        \
-    ALIB_ASSERT_ERROR(    compileStorage->resultStack.empty()                                                      \
+    if( compileStorage == nullptr )  return;                                                       \
+    ALIB_ASSERT_ERROR(    compileStorage->resultStack.empty()                                      \
                        || ResultPos == LastCommandNo                                               \
                        || back().IsConditionalJump()                   ,                           \
                        "Internal error: Last in result stack is not last command." )               \
@@ -83,7 +82,7 @@ bool Program::collectArgs( integer qty )
         Command& cmd=  At(*(compileStorage->resultStack.end() - i));
         bool     isConstant=  cmd.IsConstant();
         ctScope->Stack.emplace_back( isConstant ? cmd.Operation.Value
-                                               : cmd.ResultType      );
+                                                : cmd.ResultType      );
         allAreConst&= isConstant;
     }
 
@@ -95,7 +94,7 @@ void Program::AssembleConstant( Box& value, integer idxInOriginal, integer idxIn
 {
     ASSERT_ASSEMBLE
 
-    AddCommand( VM::Command(  value.IsType<String>() ?  Box( ctScope->Memory.AllocAndCopy(value.Unbox<String>()) )
+    AddCommand( VM::Command(  value.IsType<String>() ?  Box( ctScope->Memory.Clone(value.Unbox<String>()) )
                                                      :  value
                               , false, idxInOriginal, idxInNormalized  )  );
     PushResult;
@@ -108,10 +107,10 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
     ASSERT_ASSEMBLE
 
     // Nested expressions
-    if(    compiler.CfgNestedExpressionFunction.Name.IsNotEmpty()
-        && MatchFunctionName( compiler.CfgNestedExpressionFunction, functionName )     )
+    if(    compiler.CfgNestedExpressionFunction.GetRawName().IsNotEmpty()
+        && compiler.CfgNestedExpressionFunction.Match(functionName )       )
     {
-        functionName= compiler.CfgNestedExpressionFunction.Name;
+        functionName.Reset( compiler.CfgNestedExpressionFunction );
 
         if(    qtyArgsOrNoParentheses < (EnumContains( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
                                          ? 1 : 2 )
@@ -119,7 +118,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
                 .ResultType.IsType<String>() )
         {
             throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
-                             compiler.CfgNestedExpressionFunction.Name );
+                             compiler.CfgNestedExpressionFunction );
         }
 
 
@@ -142,14 +141,14 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
             }
             catch( Exception& e )
             {
-                if( e.Code().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
                 {
                     e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT ,
                            nestedExpressionName );
                 }
                 else
                 {
-                    ALIB_ERROR( "Unknown exception {!Q}.", e.Code() );
+                    ALIB_ERROR( "Unknown exception {!Q}.", e.Type() );
                 }
                 throw;
             }
@@ -157,7 +156,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
             ctNestedExpressions.emplace_back(nested);
 
             LastCommand= VM::Command( dynamic_cast<Program*>( nested->GetProgram() ),
-                                      compiler.CfgNestedExpressionFunction.Name,
+                                      compiler.CfgNestedExpressionFunction.GetRawName(),
                                       idxInOriginal, idxInNormalized                       );
             return;
         }
@@ -166,16 +165,16 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
         if( qtyArgsOrNoParentheses == 2 )
         {
             AddCommand( static_cast<Program*>( nullptr ),
-                        compiler.CfgNestedExpressionFunction.Name,
-                        idxInOriginal, idxInNormalized                 );
+                        compiler.CfgNestedExpressionFunction.GetRawName(),
+                        idxInOriginal, idxInNormalized                     );
             back().ResultType= (end()-2)->ResultType;
         }
 
         // 3rd argument given (throw): we send "this" which indicates to throw in expression is not found.
         else
             AddCommand( dynamic_cast<Program*>( this ),
-                        compiler.CfgNestedExpressionFunction.Name,
-                        idxInOriginal, idxInNormalized                 );
+                        compiler.CfgNestedExpressionFunction.GetRawName(),
+                        idxInOriginal, idxInNormalized                     );
 
         PopResult;
         ResultPos= LastCommandNo;
@@ -224,10 +223,6 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
                 }
 
                 #if ALIB_DEBUG
-                    String128 arguments;
-                    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( arguments,  ReplaceExternalBuffer );
-                    if( !cInfo.NoParentheses )
-                        compiler.WriteFunctionSignature( cInfo.ArgsBegin, cInfo.ArgsEnd, arguments );
                     DBG_CALLBACK_INFO(back())
                 #endif
 
@@ -236,7 +231,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
 
             // function
             AddCommand( cInfo.Callback, qtyArgsOrNoParentheses, cInfo.TypeOrValue,
-                        ctScope->Memory.AllocAndCopy( functionName ), false,
+                        ctScope->Memory.Clone( functionName ), false,
                         idxInOriginal, idxInNormalized                                  );
 
             // update result type stack
@@ -251,10 +246,6 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
 
 
             #if ALIB_DEBUG
-                String128 arguments;
-                ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( arguments,  ReplaceExternalBuffer );
-                    if( !cInfo.NoParentheses )
-                        compiler.WriteFunctionSignature( cInfo.ArgsBegin, cInfo.ArgsEnd, arguments );
                 DBG_CALLBACK_INFO(back())
             #endif
             return;
@@ -263,7 +254,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
     catch( Exception& e )
     {
         if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-            && !e.Code().IsType<Exceptions>()                                                    )
+            && !e.Type().IsEnumType<Exceptions>()                                                    )
             e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
 
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
@@ -289,10 +280,9 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
 
     // create function exception
     String128 arguments;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( arguments,  ReplaceExternalBuffer );
-    for( auto& box : ctScope->Stack )
-        arguments << ( arguments.IsNotEmpty() ? ", " : "" )
-                  << TypeStr(box);
+    arguments.DbgDisableBufferReplacementWarning();
+    compiler.WriteFunctionSignature( ctScope->Stack.begin(), ctScope->Stack.end(), arguments );
+
     Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownFunction, functionName, arguments );
 
     for( auto& notMatchedName : cInfo.FunctionsWithNonMatchingArguments )
@@ -339,12 +329,12 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         }
         catch( Exception& e )
         {
-            if( e.Code().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+            if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT,
                        expressionName );
             else
             {
-                ALIB_ERROR( "Unknown exception {!Q}.", e.Code() );
+                ALIB_ERROR( "Unknown exception {!Q}.", e.Type() );
             }
             throw;
         }
@@ -361,46 +351,97 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         return;
     }
 
-    CompilerPlugin::CIUnaryOp cInfo( *ctScope, opReference, isConstant );
 
     try
     {
-        for( auto& ppp : compileStorage->plugins )
+        for( int pass= 0; pass < 2 ; ++pass )
         {
-            if( !ppp.plugin->TryCompilation( cInfo ) )
-                continue;
+            isConstant= collectArgs(1);
+            CompilerPlugin::CIUnaryOp cInfo( *ctScope, opReference, isConstant );
 
-            if( !aliased || EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
-                op= opReference;
-            else
-                if( EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
-                    op= globalAliasIt->first;
-
-            // constant?
-            if( !cInfo.Callback )
+            // search plug-ins
+            for( auto& ppp : compileStorage->plugins )
             {
-                qtyOptimizations++;
+                if( !ppp.plugin->TryCompilation( cInfo ) )
+                    continue;
 
-                // replace last command (unary op arg is always the last)
-                back()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
+                if( !aliased || EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
+                    op= opReference;
+                else
+                    if( EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
+                        op= globalAliasIt->first;
+
+                // constant?
+                if( !cInfo.Callback )
+                {
+                    qtyOptimizations++;
+
+                    // replace last command (unary op arg is always the last)
+                    back()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
+
+                    DBG_CALLBACK_INFO(back())
+
+                    return;
+                }
+
+                // callback
+                AddCommand( cInfo.Callback, 1, cInfo.TypeOrValue, op, true, idxInOriginal, idxInNormalized );
+                ResultPos++;
 
                 DBG_CALLBACK_INFO(back())
-
                 return;
             }
 
-            // callback
-            AddCommand( cInfo.Callback, 1, cInfo.TypeOrValue, op, true, idxInOriginal, idxInNormalized );
-            ResultPos++;
+            // did we try auto cast already?
+            if( pass )
+                break;
 
-            DBG_CALLBACK_INFO(back())
-            return;
-        }
+            // try auto cast
+            CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, op, At( ResultPos ).IsConstant(), false );
+            for( auto& pppAutoCast : compileStorage->plugins )
+            {
+                if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
+                    continue;
+
+                // cast found?
+                if( !ciAutoCast.TypeOrValue.IsType<void>() )
+                {
+                    // const?
+                    if( ciAutoCast.Callback == nullptr )
+                    {
+                        // change constant value conversion
+                        VM::Command& cmdToPatch= *( begin() + ResultPos );
+                        cmdToPatch.Operation.Value= ciAutoCast.TypeOrValue;
+                        ALIB_DBG( cmdToPatch.DbgInfo.Plugin= pppAutoCast.plugin; )
+                    }
+
+                    // non-const
+                    else
+                    {
+                        // insert conversion
+                        ALIB_DBG( auto insertIt= )
+                        emplace( begin() + ResultPos + 1,
+                                 ciAutoCast.Callback, 1,
+                                 ciAutoCast.TypeOrValue,
+                                 ciAutoCast.ReverseCastFunctionName, false,
+                                 idxInOriginal, idxInNormalized                      );
+
+                        (ResultPos) ++;
+                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
+                                  insertIt->DbgInfo.Plugin= pppAutoCast.plugin;            )
+                    }
+                }
+
+                break;
+
+            } // auto cast plug-in loop
+        } // pass loop
+
     }
     catch( Exception& e )
     {
         if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-            && !e.Code().IsType<Exceptions>()                                                    )
+            && !e.Type().IsEnumType<Exceptions>()                                                    )
             e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
         e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
         throw;
@@ -440,7 +481,7 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
         opReference= globalAliasIt->second;
     }
 
-    bool foundOperator=   false;
+    bool foundOperator=   false; // die Variable kann wohl raus. Stattdessen dort wo sie gesetzt wird ein "return" machen.
     bool triedToAutoCast= false;
 
     Box lhsOrigType= At(LHSResultPos).ResultType;
@@ -517,11 +558,97 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                 foundOperator= true;
                 break;
             }
+
+            // success
+            if( foundOperator )
+                return;
+
+            if( !foundOperator && triedToAutoCast )
+            {
+                Exception e( ALIB_CALLER_NULLED, Exceptions::BinaryOperatorNotDefined,
+                             op,
+                             TypeStr( lhsOrigType ),
+                             TypeStr( rhsOrigType )           );
+
+                throw e;
+            }
+
+            // try auto cast (we do this even if types are equal )
+            triedToAutoCast= true;
+            CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, op,
+                                                   At( LHSResultPos ).IsConstant(),
+                                                   At( RHSResultPos ).IsConstant()   );
+
+            for( auto& pppAutoCast : compileStorage->plugins )
+            {
+                if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
+                    continue;
+
+                // cast for lhs?
+                if( !ciAutoCast.TypeOrValue.IsType<void>() )
+                {
+                    // const?
+                    if( ciAutoCast.Callback == nullptr )
+                    {
+                        // change constant value conversion
+                        VM::Command& cmdToPatch= *( begin() + LHSResultPos );
+                        cmdToPatch.Operation.Value= ciAutoCast.TypeOrValue;
+                        ALIB_DBG( cmdToPatch.DbgInfo.Plugin= pppAutoCast.plugin;                 )
+                    }
+
+                    // cast function upgrade for lhs?
+                    else
+                    {
+                        // insert conversion
+                        ALIB_DBG( auto insertIt= )
+                        emplace( begin() + LHSResultPos + 1,
+                                 ciAutoCast.Callback, 1,
+                                 ciAutoCast.TypeOrValue,
+                                 ciAutoCast.ReverseCastFunctionName, false,
+                                 idxInOriginal, idxInNormalized                      );
+
+                        (LHSResultPos) ++;
+                        (RHSResultPos) ++;
+                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
+                                  insertIt->DbgInfo.Plugin=   pppAutoCast.plugin;               )
+                    }
+                }
+
+                // cast for rhs?
+                if( !ciAutoCast.TypeOrValueRhs.IsType<void>() )
+                {
+                    // const?
+                    if( ciAutoCast.CallbackRhs == nullptr )
+                    {
+                        // change constant value conversion
+                        back().Operation.Value= ciAutoCast.TypeOrValueRhs;
+                        ALIB_DBG( back().DbgInfo.Plugin= pppAutoCast.plugin;                 )
+                    }
+
+                    // cast function upgrade for rhs?
+                    else
+                    {
+                        // insert conversion
+                        ALIB_DBG( auto insertIt= )
+                        emplace( begin() + RHSResultPos + 1,
+                                 ciAutoCast.CallbackRhs, 1,
+                                 ciAutoCast.TypeOrValueRhs,
+                                 ciAutoCast.ReverseCastFunctionNameRhs, false,
+                                 idxInOriginal, idxInNormalized                     );
+                        (RHSResultPos)++;
+
+                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
+                                  insertIt->DbgInfo.Plugin= pppAutoCast.plugin;               )
+                    }
+                }
+                break;
+
+            } // auto cast plug-in loop
         }
         catch( Exception& e )
         {
             if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-                && !e.Code().IsType<Exceptions>()                                                    )
+                && !e.Type().IsEnumType<Exceptions>()                                                    )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
             e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,    expression.GetOriginalString(), idxInOriginal  );
             throw;
@@ -538,122 +665,10 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
             throw;
         }
 
-
-        // success
-        if( foundOperator )
-            return;
-
-        if( !foundOperator && triedToAutoCast )
-        {
-            Exception e( ALIB_CALLER_NULLED, Exceptions::BinaryOperatorNotDefined,
-                         op,
-                         TypeStr( lhsOrigType ),
-                         TypeStr( rhsOrigType )           );
-
-            e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal );
-            throw e;
-        }
-
-        // try auto cast (we do this even if types are equal )
-        triedToAutoCast= true;
-        collectArgs(2);
-        CompilerPlugin::CIBinaryAutoCast ciAutoCast( *ctScope, op,
-                                                     At( LHSResultPos ).IsConstant(),
-                                                     At( RHSResultPos ).IsConstant()   );
-
-        try
-        {
-            for( auto& pppInner : compileStorage->plugins )
-            {
-                if( !pppInner.plugin->TryCompilation( ciAutoCast ) )
-                    continue;
-
-                // cast for lhs?
-                if( ciAutoCast.TypeOrValue.IsNotNull() )
-                {
-                    // const?
-                    if( ciAutoCast.Callback == nullptr )
-                    {
-                        // change constant value conversion
-                        VM::Command& cmdToPatch= *( begin() + LHSResultPos );
-                        cmdToPatch.Operation.Value= ciAutoCast.TypeOrValue;
-                        ALIB_DBG( cmdToPatch.DbgInfo.Plugin= pppInner.plugin;                 )
-                    }
-
-                    // cast function upgrade for lhs?
-                    else
-                    {
-                        // insert conversion
-                        ALIB_DBG( auto insertIt= )
-                        emplace( begin() + LHSResultPos + 1,
-                                 ciAutoCast.Callback, 1,
-                                 ciAutoCast.TypeOrValue,
-                                 ciAutoCast.CastExpressionFunctionNameLhs, false,
-                                 idxInOriginal, idxInNormalized                      );
-
-                        (LHSResultPos) ++;
-                        (RHSResultPos) ++;
-                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallBackName;
-                                  insertIt->DbgInfo.Plugin= pppInner.plugin;               )
-                    }
-                }
-
-                // cast for rhs?
-                if( ciAutoCast.TypeOrValueRhs.IsNotNull() )
-                {
-                    // const?
-                    if( ciAutoCast.CallbackRhs == nullptr )
-                    {
-                        // change constant value conversion
-                        back().Operation.Value= ciAutoCast.TypeOrValueRhs;
-                        ALIB_DBG( back().DbgInfo.Plugin= pppInner.plugin;                 )
-                    }
-
-                    // cast function upgrade for rhs?
-                    else
-                    {
-                        // insert conversion
-                        ALIB_DBG( auto insertIt= )
-                        emplace( begin() + RHSResultPos + 1,
-                                 ciAutoCast.CallbackRhs, 1,
-                                 ciAutoCast.TypeOrValueRhs,
-                                 ciAutoCast.CastExpressionFunctionNameRhs, false,
-                                 idxInOriginal, idxInNormalized                     );
-                        (RHSResultPos)++;
-
-                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallBackNameRhs;
-                                  insertIt->DbgInfo.Plugin= pppInner.plugin;               )
-                    }
-                }
-                break;
-
-            } // auto cast plug-in loop
-        }
-        catch( Exception& e )
-        {
-            if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-                && !e.Code().IsType<Exceptions>()                                                    )
-                e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
-            e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
-            throw;
-        }
-        catch( std::exception& stdException )
-        {
-            if( !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
-            {
-                Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name()   );
-                e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,     expression.GetOriginalString(), idxInOriginal );
-                e.Add      ( ALIB_CALLER_NULLED, Exceptions::StdExceptionInfo,   stdException.what() );
-                throw e;
-            }
-            throw;
-        }
-
-
     } // formally endless loop (max 2)
 }
 
-// flags to acces values on the info-stack used to compile conditionals
+// flags to access values on the info-stack used to compile conditionals
 #define QJumpPos    std::get<0>( compileStorage->conditionalStack.top() )
 #define TJumpPos    std::get<1>( compileStorage->conditionalStack.top() )
 #define QConstFlags std::get<2>( compileStorage->conditionalStack.top() )
@@ -677,7 +692,7 @@ void   Program::AssembleCondFinalize_Q( integer idxInOriginal, integer idxInNorm
         qtyOptimizations++;
 
         Box& condition= back().Operation.Value;
-        constQ= 2 + ( condition.Invoke<IIsTrue,bool>()  ?  1 :  0 );
+        constQ= 2 + ( condition.Call<FIsTrue>()  ?  1 :  0 );
         pop_back(); // remove constant Q
     }
 
@@ -718,18 +733,17 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
     if( !At( LHSResultPos ).ResultType.IsSameType( At( RHSResultPos ).ResultType )    )
     {
         collectArgs(2);
-        String noBinaryOp= nullptr;
-        CompilerPlugin::CIBinaryAutoCast ciAutoCast( *ctScope,
-                                                     noBinaryOp,
-                                                     At( LHSResultPos ).IsConstant(),
-                                                     At( RHSResultPos ).IsConstant()   );
+        String condOp= A_CHAR("Q?T:F");
+        CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, condOp,
+                                                At( LHSResultPos ).IsConstant(),
+                                                At( RHSResultPos ).IsConstant()   );
         bool found= false;
         try
         {
             for( auto& ppp : compileStorage->plugins )
                 if( ppp.plugin->TryCompilation( ciAutoCast ) )
                 {
-                    if( ciAutoCast.TypeOrValue.IsNotNull() )
+                    if( !ciAutoCast.TypeOrValue.IsType<void>() )
                     {
                         // const cast upgrade for T?
                         if(  ciAutoCast.Callback == nullptr )
@@ -753,16 +767,16 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
                             emplace( begin() + TJumpPos++,
                                      ciAutoCast.Callback, 1,
                                      ciAutoCast.TypeOrValue,
-                                     ciAutoCast.CastExpressionFunctionNameLhs, false,
+                                     ciAutoCast.ReverseCastFunctionName, false,
                                      idxInOriginal, idxInNormalized                     );
-                            ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallBackName;
+                            ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
                                       insertIt->DbgInfo.Plugin= ppp.plugin;               )
                             LHSResultPos++;
                         }
                     }
 
                     // const cast upgrade for F?
-                    if( ciAutoCast.TypeOrValueRhs.IsNotNull() )
+                    if( !ciAutoCast.TypeOrValueRhs.IsType<void>() )
                     {
                         if( ciAutoCast.Callback == nullptr )
                         {
@@ -770,7 +784,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
                             back().Operation.Value=
                             back().ResultType     =  ciAutoCast.TypeOrValueRhs;
 
-                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallBackNameRhs;
+                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
                                       back().DbgInfo.Plugin= ppp.plugin;                    )
                         }
 
@@ -780,12 +794,12 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
                             // insert conversion
                             AddCommand( ciAutoCast.CallbackRhs, 1,
                                         ciAutoCast.TypeOrValueRhs,
-                                        ciAutoCast.CastExpressionFunctionNameRhs, false,
+                                        ciAutoCast.ReverseCastFunctionNameRhs, false,
                                         idxInOriginal, idxInNormalized                    );
                             RHSResultPos++;
                             At(TJumpPos).Operation.Distance++;
 
-                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallBackNameRhs;
+                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
                                       back().DbgInfo.Plugin= ppp.plugin;                    )
                         }
                     }
@@ -797,7 +811,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
         catch( Exception& e )
         {
             if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-                && !e.Code().IsType<Exceptions>()                                                    )
+                && !e.Type().IsEnumType<Exceptions>()                                                    )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
             e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
             throw;
@@ -861,10 +875,12 @@ void Program::AssembleFinalize()
 {
     ASSERT_ASSEMBLE
 
-    ALIB_ASSERT_ERROR(compileStorage->conditionalStack.size() == 0,
-                      "Finalizing program, while conditional stack is of size {}.", compileStorage->conditionalStack.size() );
-    ALIB_ASSERT_ERROR(compileStorage->resultStack.size() == 1,
-                      "Finalizing program, while result stack is of size {}.", compileStorage->resultStack.size() );
+    ALIB_ASSERT_ERROR( compileStorage->conditionalStack.size() == 0,
+                       "Finalizing program, while conditional stack is of size {}.",
+                       compileStorage->conditionalStack.size()                             )
+    ALIB_ASSERT_ERROR( compileStorage->resultStack.size() == 1,
+                       "Finalizing program, while result stack is of size {}.",
+                       compileStorage->resultStack.size()                                  )
     if( compileStorage )
     {
         delete compileStorage;
@@ -872,6 +888,19 @@ void Program::AssembleFinalize()
     }
 }
 
+
+#undef TypeStr
+#undef AddCommand
+#undef RemoveLastCommand
+#undef LastCommandNo
+#undef LastCommand
+#undef PushResult
+#undef PopResult
+#undef ResultPos
+#undef LHSResultPos
+#undef RHSResultPos
+#undef LHSCodeStart
+//#undef RHSCodeStart
 
 }}}} // namespace [aworx::lib::expressions::detail]
 

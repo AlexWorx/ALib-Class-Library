@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -12,6 +12,9 @@
 #   include "alib/expressions/compilerplugin.hpp"
 #endif
 
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
+    #include "alib/compatibility/std_strings_functional.hpp"
+#endif
 
 
 namespace aworx { namespace lib { namespace expressions {
@@ -30,9 +33,13 @@ namespace plugins {
 
 #if ALIB_DEBUG
     #define CALCULUS_CALLBACK(func)     func, ALIB_NSTRINGIFY(func)
+    #define CALCULUS_DEFAULT_AUTOCAST   nullptr, nullptr
 #else
     #define CALCULUS_CALLBACK(func)     func
+    #define CALCULUS_DEFAULT_AUTOCAST   nullptr
 #endif
+
+#define CALCULUS_SIGNATURE(BoxPointerArray)  BoxPointerArray, std::extent<decltype(BoxPointerArray)>::value
 
 
 
@@ -111,23 +118,23 @@ namespace plugins {
  *   signature.
  * - Variadic functions are supported by adding a final \e nulled \b %Box to the argument list.
  *   All sample argument types before this box are mandatory, but an arbitrary amount of arguments
- *   of likewise arbitrary type may be followed. It is also allowed to add just that one nulled
+ *   of likewise arbitrary type may be followed. It is also allowed to add just that one \e nulled
  *   \b %Box to the signature vector, which leads to functions that accept just any number of any
  *   type of argument, including zero arguments.
  * - In debug compilations, besides the callback function pointer, the C++ name of the callback
  *   function is to be provided. For this, macro \ref CALCULUS_CALLBACK is defined.
  *   The macro creates a stringified version of the given function pointer, separated by a comma.
  * - Flag \alib{expressions::plugins::Calculus,FunctionEntry::IsCTInvokable} is a boolean value
- *   that denotes whether a function can be evaluated at compile time in the case that all of the
+ *   that denotes whether a function can be evaluated at compile-time in the case that all of the
  *   parameters given in the expression are constant.
- *   If so, this struct will do the invocation at compile time and return the constant result value
+ *   If so, this struct will do the invocation at compile-time and return the constant result value
  *   instead of the function call.<br>
- *   Most built-in functions are compile time invokable. For example most mathematical functions
- *   like \c log(Float) or \c sin(Float) can be evaluated at compile time (again, only in the case
+ *   Most built-in functions are compile-time invokable. For example most mathematical functions
+ *   like \c log(Float) or \c sin(Float) can be evaluated at compile-time (again, only in the case
  *   that the given parameters are constant). The reason is, that
  *   these functions are independent from custom scope data.
  *   In contrast to this, custom functions, especially even parameterless identifiers usually are
- *   dependent on scope information and thus often can not be evaluated at compile time.
+ *   dependent on scope information and thus often can not be evaluated at compile-time.
  *
  * ## 4. Specifics For Unary Operators ##
  *
@@ -323,14 +330,14 @@ struct Calculus   : public CompilerPlugin
      */
     struct ConstantIdentifierEntry
     {
-        /// The name, minimum length and letter case sensitivity  of the function to recognize.
-        FunctionNameDescriptor      Descriptor;
+        /** The name, minimum length and letter case sensitivity  of the function to recognize. */
+        Token                       Descriptor;
 
-        /// The constant result.
+        /** The constant result. */
         Box                         Result;
     };
 
-    /// List of identifiers that return constant values to be compiled by this plug-in.
+    /** List of identifiers that return constant values to be compiled by this plug-in. */
     std::vector<ConstantIdentifierEntry>   ConstantIdentifiers;
 
     /**
@@ -339,19 +346,30 @@ struct Calculus   : public CompilerPlugin
      */
     struct FunctionEntry
     {
-        /// The name, minimum length and letter case sensitivity  of the function to recognize.
-        FunctionNameDescriptor      Descriptor;
+        /** The name, minimum length and letter case sensitivity  of the function to recognize. */
+        Token                       Descriptor;
 
         /**
-         * The number and type of arguments accepted.
-         * If empty, then the function is equal to an identifier with empty brackets.
+         * A pointer to list of pointers to sample boxes that describe the function signature.
+         * If \c nullptr, then the function does not accept parameters (aka is an identifier).
          *
-         * To "declare" variadic parameters (similar to C/C++ ellipsis operator \c "..." )
-         * a \e nulled boxed may be added to the end of the vector. In this case, all
-         * other boxes represent are mandatory arguments while the function accepts an arbitrary
-         * number of arguments of arbitrary types.
+         * To denote variadic parameters (similar to C/C++ ellipsis operator \c "..." ), either
+         * \c nullptr or a \ref alib_boxing_more_void_void "void box" may be given as the last
+         * array element. All prior provided boxes represent mandatory arguments, while the
+         * function accepts an arbitrary amount of arguments of arbitrary type in addition.
+         *
+         * The length of this list is given with field #SignatureLength.
+         *
+         * \see Macro \ref CALCULUS_SIGNATURE which is recommended to be used to pass both
+         *      fields (this and #SignatureLength). The macro accepts a C++ array of \b Box* and
+         *      deducts the array's length from the declaration type of the given array.
          */
-        std::vector<Box>*           ArgTypes;
+        Box**                       Signature;
+
+        /**
+         * See #Signature for more information.
+         */
+        size_t                      SignatureLength;
 
         /** Callback function to add to the program. If \c nullptr, field #ResultType is
          *  used as both: a constant value added to the program and the result type! */
@@ -359,26 +377,29 @@ struct Calculus   : public CompilerPlugin
 
 
         #if ALIB_DEBUG
-            /** The C++ name of the callback function (only available in debug compilations of the
-             *  library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
-             *  together with field #Callback. The macro selects to prune the name string
-             *  in release compilations. */
+            /**
+             * The C++ name of the callback function (only available in debug compilations of the
+             * library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
+             * together with field #Callback. The macro selects to prune the name string
+             * in release compilations. */
             const char*             DbgCallbackName;
         #endif
 
         /**
-         * The result type given a \ref alib_expressions_prereq_sb "sample box".
+         * The result type given as a pointer to a \ref alib_expressions_prereq_sb "sample box".
          *
          * \note
          *   If #Callback is \c nullptr, this box changes its meaning from being just a sample that
          *   provides the return type of the callback function, to being the 'real' constant
-         *   result value that the function represents!
+         *   result value that the function represents. However, it is preferable, to
+         *   implement such constant functions using field
+         *   \alib{expressions::plugins,Calculus::ConstantIdentifiers}
          */
-        Box                         ResultType;
+        Box*                        ResultType;
 
         /**
          * Denotes, if the callback function is allowed to be invoked on the
-         * \alib{expressions,Scope} object used at compile time.
+         * \alib{expressions,Scope} object used at compile-time.
          * This scope object is of the same (eventually custom) type as the one for evaluation,
          * however the evaluation-specific data is not set.
          * If allowed, such invocation is performed, if all function arguments are constant and
@@ -387,19 +408,19 @@ struct Calculus   : public CompilerPlugin
         CTInvokable                 IsCTInvokable;
     };
 
-    /// List of functions to be compiled by this plug-in.
+    /** List of functions to be compiled by this plug-in. */
     std::vector<FunctionEntry>      Functions;
 
     /** ********************************************************************************************
      * Searches in vectors #Functions and #ConstantIdentifiers for an entry matching \p{name} and,
-     * if found, adds either a constant value or a callback function to \p{program}.
+     * if found, adds either a constant value or a callback function to \p{ciFunction}.
      *
      * This plug-in corrects abbreviated and letter case differences in functions within
      * in/out parameter \alib{expressions::CompilerPlugin,CIFunction::Name}.
      *
      * @param[in,out]  ciFunction  The compilation result.
      * @return \c true if an entry was found in #Functions and a corresponding command
-     *         was added to \p{program}. \c false otherwise.
+     *         was added to \p{ciFunction}. \c false otherwise.
      **********************************************************************************************/
     ALIB_API
     virtual bool    TryCompilation( CIFunction& ciFunction )                              override;
@@ -414,12 +435,12 @@ struct Calculus   : public CompilerPlugin
      *
      * A third member of type #CTInvokable is to be set to \c true, if the
      * callback function is allowed to be invoked on the \alib{expressions,Scope} object used
-     * at compile time.
+     * at compile-time.
      * This scope object is of the same (eventually custom) type as the one for evaluation, however
      * the evaluation-specific data is not set. In other words, the third tuple member denotes
      * if during program compilation, constant input values might be evaluated right away.
      *
-     * A fourth tuple member of type \alib{strings,StringBase,String} is available only in debug compilations
+     * A fourth tuple member of type \alib{strings,TString,String} is available only in debug compilations
      * and receives the name of the callback function.
      *
      * \note
@@ -475,7 +496,7 @@ struct Calculus   : public CompilerPlugin
     */
     using UnaryOpAliasTableEntry= const std::tuple<String, Type, String>;
 
-    #if defined(DOX_PARSER)
+    #if ALIB_DOCUMENTATION_PARSER
     /** ********************************************************************************************
      * Adds an unary operator's callback function and return type to the compilation map
      * #UnaryOpMap.
@@ -581,16 +602,20 @@ struct Calculus   : public CompilerPlugin
     void AddUnaryOpAliases( UnaryOpAliasTableEntry* table, size_t length );
 
     /** ********************************************************************************************
-     * Searches in #UnaryOpMap for an entry matching the combination of \p{operation} and \p{argType}.
-     * If found, the corresponding callback function and result type are added the \p{program}.
+     * Searches in #UnaryOpMap for an entry matching the combination of
+     * \alib{expressions,CIUnaryOp::Operator} and the argument type of operand found with iterator
+     * \alib{expressions,CompilationInfo::ArgsBegin}.
+     * If found, the corresponding callback function and result type are added the \p{CIUnaryOp}.
      *
-     * Before the search, it is checked whether the given \p{operation} is an alias for another
+     * Before the search, it is checked whether the given operation is an alias for another
      * operator. Operator aliases might be defined by filling map #UnaryOpAliases in the constructor
-     * of the derived types. The corrected operator is returned in in/out parameter \p{operation}.
+     * of the derived types.
+     * The corrected operator is to be returned in in/out parameter
+     * \alib{expressions,CIUnaryOp::Operator}.
      *
      * @param[out]    ciUnaryOp    The compilation result.
      * @return \c true if an entry was found in #UnaryOpMap and a corresponding command was added to
-     *         \p{program}. \c false otherwise.
+     *         \p{CIUnaryOp}. \c false otherwise.
      **********************************************************************************************/
     ALIB_API
     virtual bool    TryCompilation( CIUnaryOp&    ciUnaryOp  )                          override;
@@ -606,12 +631,12 @@ struct Calculus   : public CompilerPlugin
      *
      * A third member of type #CTInvokable is to be set to \c true, if the
      * callback function is allowed to be invoked on the \alib{expressions,Scope} object used at
-     * compile time.
+     * compile-time.
      * This scope object is of the same (eventually custom) type as the one for evaluation, however
      * the evaluation-specific data is not set. In other words, the third tuple member denotes
      * if during program compilation, constant input values might be evaluated right away.
      *
-     * A fourth tuple member of type \alib{strings,StringBase,String} is available only in debug compilations
+     * A fourth tuple member of type \alib{strings,TString,String} is available only in debug compilations
      * and receives the name of the callback function.
      *
      *
@@ -679,7 +704,7 @@ struct Calculus   : public CompilerPlugin
      * This map is to be filled with #AddBinaryOpOptimizations, which is usually done in the.
      * constructor of derived classes.
      */
-    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>                 BinaryOpConstLHSOptimizations;
+    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>          BinaryOpConstLHSOptimizations;
 
     /**
      * Nested hash map assigning combinations of binary operators and right-hand side operator
@@ -688,7 +713,7 @@ struct Calculus   : public CompilerPlugin
      * This map is to be filled with #AddBinaryOpOptimizations, which is usually done in the.
      * constructor of derived classes.
      */
-    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>                 BinaryOpConstRHSOptimizations;
+    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>          BinaryOpConstRHSOptimizations;
 
 
     /**
@@ -699,7 +724,7 @@ struct Calculus   : public CompilerPlugin
      * - The type of the non-constant argument.
      * - The type and value of the constant argument.
      * - Either, a constant result value that replaces the binary operation
-     *   (as in <c> x || true</c>) or a nulled box, which indicates that the result equals the
+     *   (as in <c> x || true</c>) or a \e nulled box, which indicates that the result equals the
      *   non-constant argument (as in <c>x && true</c>).
      */
     using BinaryOpOptimizationsTableEntry=   const std::tuple<String,Type, const Box&, const Box&>;
@@ -707,7 +732,7 @@ struct Calculus   : public CompilerPlugin
 
 
 
-    #if defined(DOX_PARSER)
+    #if ALIB_DOCUMENTATION_PARSER
     /** ********************************************************************************************
      * Adds a binary operator's callback function and return type to the compilation map
      * #BinaryOpMap.
@@ -859,32 +884,140 @@ struct Calculus   : public CompilerPlugin
                                    bool lhsOrRhs );
 
     /** ********************************************************************************************
-     * Searches in #BinaryOpMap for an entry matching the combination of \p{operation}, \p{lhsType}
-     * and \p{rhsType}.
-     * If found, the corresponding callback function and result type are added the \p{program}.
+     * Searches in #BinaryOpMap for an entry matching the combination of
+     * \alib{expressions,CIBinaryOp::Operator} and the argument types of operands found with
+     * argument iterators
+     * \alib{expressions,CompilationInfo::ArgsBegin} and
+     * \alib{expressions,CompilationInfo::ArgsEnd}.
+     * If found, the corresponding callback function and result type are added the \p{CIBinaryOp}.
      *
-     * Before the search, it is checked whether the given \p{operation} is an alias for another
-     * operator. Operator aliases might be defined by filling map #BinaryOpAliases in the constructor
-     * of the derived types. The corrected operator is returned in in/out parameter \p{operation}.
+     * Before the search, it is checked whether the given operation is an alias for another
+     * operator. Operator aliases might be defined by filling map #BinaryOpAliases in the
+     * constructor of the derived types.
+     * The corrected operator is to be returned in in/out parameter
+     * \alib{expressions,CIBinaryOp::Operator}.
      *
      * @param[in,out]  ciBinaryOp  The compilation info struct.
-     * @return \c true if an entry was found in #BinaryOpMap and a corresponding command was added to
-     *         \p{program}. \c false otherwise.
+     * @return \c true if an entry was found in #BinaryOpMap and a corresponding command was added
+     *         to \p{CIBinaryOp}. \c false otherwise.
      **********************************************************************************************/
     ALIB_API
-    virtual bool    TryCompilation( CIBinaryOp&       ciBinaryOp      )                  override;
+    virtual bool    TryCompilation( CIBinaryOp&  ciBinaryOp      )                         override;
 
+
+    // #############################################################################################
+    // Auto-Casts
+    // #############################################################################################
+
+    /**
+     * An entry of field #AutoCasts. Defines auto-casts for custom types.
+     */
+    struct AutoCastEntry
+    {
+        /** The type that is to be automatically casted.*/
+        Box                        Type;
+
+        /**
+         * List of operators that the auto-cast accepts.
+         * If \e nulled, then just any operator that is not in #OperatorsDeclined is accepted.
+         */
+        std::vector<String>*        OperatorsAccepted;
+
+        /**
+         * List of operators that the auto-cast does not accept. An operator should not appear
+         * in this both lists, this one and list #OperatorsAccepted. However, it is does, then the
+         * operator is not accepted.
+         *
+         * A value of \c nullptr is allowed to indicate no declined operators.
+         */
+        std::vector<String>*        OperatorsDeclined;
+
+        /**
+         * Callback function to add to the program that performs the auto-cast.
+         *
+         * If \c nullptr is given, then an internal, predefined callback is used, which
+         * returns a value of type \alib{expressions,Types::Integer} which is generated by
+         * taking the \alib{boxing,Box::Data,raw value} of the argument box. This is
+         * especially useful for any boxed enum type that is to be made compatible
+         * with bitwise boolean operators (and other integral calculations and functions).
+         */
+        CallbackDecl                Callback;
+
+
+        #if ALIB_DEBUG
+            /**
+             * The C++ name of the callback function (only available in debug compilations of the
+             * library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
+             * together with field #Callback. The macro selects to prune the name string
+             * in release compilations.
+             *
+             * If #Callback is set to nullptr, the name of the internal function (\e "any2int")
+             * is inserted automatically. Instead of aforementioned macro \ref CALCULUS_CALLBACK
+             * use macro \ref CALCULUS_DEFAULT_AUTOCAST instead.
+             */
+            const char*             DbgCallbackName;
+        #endif
+
+        /**
+         * The result type given a \ref alib_expressions_prereq_sb "sample box".
+         *
+         * If field #Callback is \c nullptr to specify the use of the internal, default cast
+         * function, this field will be ignored and \alib{expressions,Types::Integer}, will
+         * be set instead. Hence, in this case, this field can be specified as \c nullptr.
+         */
+        Box                         ResultType;
+
+        /**
+         * This is the name of the function that reverses the cast. The function is used when an
+         * expression with an auto-cast functions is \e decompiled to generate compilable,
+         * optimized expression strings.
+         *
+         * \note
+         *   This method is needed only if "normalized, optimized expression strings" are
+         *   to be generated. For more information on this topic consult manual section
+         *   \ref alib_expressions_details_optimizations_norm.
+         *
+         * \note
+         *   Note that, If the aformentioned feature is used, then this function name has to be
+         *   provided together with the implementation of the expression function itself,
+         *   even if the internal default cast implementation (activated by setting field
+         *   #Callback to \c nullptr) is used. The rationale is, that this library can not
+         *   automatically convert integral types back to a custom type. This is even true
+         *   for simple enumeration types.
+         */
+        String                      ReverseCastFunctionName;
+    };
+
+    /** List of auto-casts to be compiled by this plug-in. */
+    std::vector<AutoCastEntry>      AutoCasts;
 
 
     /** ********************************************************************************************
-     * Re-implementing virtual method of basic class, to allow derived types to override this.
-     * @return returns constant \c false.
+     * Searches in #AutoCasts for an entry matching the combination of
+     * \alib{expressions,CIBinaryOp::Operator} and the type(s) that might be auto-casted.
+     *
+     * An entry in #AutoCasts might also be defined to work on just all operators.
+     *
+     * For the very frequent use case of auto-casting custom enum types to integral types, only
+     * fields
+     * \alib{expression::Calculus,AutoCastEntry::Type} and
+     * \alib{expression::Calculus,AutoCastEntry::ReverseCastFunctionName} have to be provided.
+     *
+     * \note
+     *   This method of this helper class is not applicable (what means that a custom
+     *   version has to be implemented) if one of the following items apply to a use case:
+     *   - Different auto-casts are to be applied for the first and second arguments of binary
+     *     operators.
+     *   - The custom auto-cast method is not compile-time invokable.
+     *
+     * @param[in,out]  autoCast  The compilation info struct.
+     * @return \c true if a matching entry was found in #AutoCasts and a corresponding command
+     *         was added to \p{autoCast}. \c false otherwise.
      **********************************************************************************************/
-    virtual bool TryCompilation( CIBinaryAutoCast&)                                         override
-    {
-        return false;
-    }
+    ALIB_API
+    virtual bool    TryCompilation( CIAutoCast& autoCast)                                  override;
 };
+
 
 
 }}} // namespace aworx[::lib::expressions::plugin]

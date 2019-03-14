@@ -1,16 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //  Boxing And Strings Sample
 //
-//  Copyright 2018 A-Worx GmbH, Germany
+//  Copyright 2019 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/compatibility/std_characters.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
 
-#include "alib/compatibility/std_string.hpp"
-#include "alib/compatibility/std_iostream.hpp"
-
-#include "alib/strings/format/formatterpythonstyle.hpp"
+#include "alib/stringformat/formatterpythonstyle.hpp"
+#include "alib/lib/alibmodules.hpp"
 
 using namespace aworx;
 
@@ -18,8 +17,8 @@ using namespace aworx;
 // There is a lot to say and demonstrate about both "ALib Boxing" and "ALib Strings".
 // This is a quick demo of the combined distribution "ALib BoxingAndStrings". The most obvious
 // benefits of combining both libraries are
-// - to be able to apply (append) any boxed value to an AString
-// - to have type safe formatter classes which allow to format "anything" into AString representation.
+// - to be able to append any boxed value to an AString.
+// - to have type-safe formatter classes which allow to format "anything" into AString representation.
 //
 // Such formatter classes reside in namespace "aworx::lib::strings", but are not included in the
 // plain ALib String module distribution (due to the lack of ALib Boxing).
@@ -28,11 +27,12 @@ using namespace aworx;
 // For other samples, documentation and inspiration consult the complete ALib distribution
 // at https://github.com/AlexWorx/ALox-Logging-Library.
 
-void ApplyToAString( const Box& box )
+void AppendToAString( const Box& box );
+void AppendToAString( const Box& box )
 {
     AString aString("The object/value passed is: " );
 
-    aString << box; // "Apply" box object. Usually this appends a string representation of it.
+    aString << box; // "Append" box object. This calls box-function FAppend.
 
     std::cout << aString << std::endl;
 }
@@ -41,17 +41,19 @@ void ApplyToAString( const Box& box )
 int main()
 {
     // it is important to initialize ALib once on bootstrap
-    lib::ALIB.Init();
+    aworx::ALIB.Init();
 
-    // simple "applying" any type of object to AString
-    ApplyToAString( "Hello ALib Boxing & Stings" );
-    ApplyToAString( 12345 );
-    ApplyToAString( 3.1415 );
+    // Simple appending of different boxed types to an AString.
+    // Note: This is sampled here, because with module STRINGFORMAT, modules Strings and Boxing are
+    //       included, which allows to append boxes to AString objects.)
+    AppendToAString( "Hello ALib Stringformat" );
+    AppendToAString( 12345 );
+    AppendToAString( 3.1415 );
 
     std::cout << std::endl;
 
 
-    // quick, simple ALib formatter test
+    // A quick, simple ALib formatter test
     AString                 target;
     FormatterPythonStyle    formatter;
     const char*             formatString= "Host name: {!Tab20}\\n"

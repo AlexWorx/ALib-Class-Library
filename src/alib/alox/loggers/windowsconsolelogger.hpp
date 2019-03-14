@@ -1,28 +1,17 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_WINDOWS_CONSOLE_LOGGER
 #define HPP_ALOX_WINDOWS_CONSOLE_LOGGER 1
 
+#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
+    #include "alib/alox/detail/textlogger/textlogger.hpp"
+#endif
+
 #if defined( _WIN32 )
 
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
-    #include "alib/alox/core/textlogger/textlogger.hpp"
-#endif
 
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
@@ -42,7 +31,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * are the same (they then still differ). However, the right setting for this is dependent on
  * the color scheme of the final output device (window). To manipulate the right setting, see field
  * #UseLightColors and also configuration variable
- * [ALOX_CONSOLE_LIGHT_COLORS](../group__GrpALoxConfigVars.html).
+ * [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html).
  *
  * In the constructor, a default format string and some other definitions in member
  * \ref MetaInfo get set to include ESC sequences. Of-course, these publicly accessible
@@ -52,13 +41,13 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * log data) to support the windows API call <em>SetConsoleTextAttribute</em>.
  * The opposite is right: this class should be used only if the output console supports such calls.
  **************************************************************************************************/
-class WindowsConsoleLogger : public aworx::lib::lox::core::textlogger::TextLogger
+class WindowsConsoleLogger : public aworx::lib::lox::detail::textlogger::TextLogger
 {
     // #############################################################################################
     // Internals
     // #############################################################################################
     protected:
-        /// The attributes that were set on the windows console at the time this object was created.
+        /** The attributes that were set on the windows console at the time this object was created. */
         WORD        originalConsoleAttributes;
 
     // #############################################################################################
@@ -82,7 +71,7 @@ class WindowsConsoleLogger : public aworx::lib::lox::core::textlogger::TextLogge
          * - If \ref LightColorUsage "LightColorUsage::ForegroundDark", background colors will be
          *   light colors and foreground colors dark ones.
          *
-         * The configuration variable [ALOX_CONSOLE_LIGHT_COLORS](../group__GrpALoxConfigVars.html)
+         * The configuration variable [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
          * allows to externally modify this flag. It is read once within the constructor .
          */
         LightColorUsage    UseLightColors;
@@ -96,9 +85,9 @@ class WindowsConsoleLogger : public aworx::lib::lox::core::textlogger::TextLogge
          * This flag can be modified from outside any time. If the value is not equal to 0,
          * the code page of the output console is set prior to each log output.
          *
-         * The configuration variable [ALOX_CODE_PAGE](../group__GrpALoxConfigVars.html)
+         * The configuration variable [ALOX_CODE_PAGE](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
          * is evaluated within the constructor of this class, to allow to modifying the codepage at
-         * runtime.
+         * run-time.
          */
 
         UINT            CodePage                                                            =65001;
@@ -139,17 +128,17 @@ class WindowsConsoleLogger : public aworx::lib::lox::core::textlogger::TextLogge
          *                    single line messages this is -1.
          ******************************************************************************************/
         ALIB_API
-        virtual void logText(  core::Domain&     domain,
+        virtual void logText(  detail::Domain&     domain,
                                Verbosity         verbosity,
                                AString&          msg,
-                               core::ScopeInfo&  scope,
+                               detail::ScopeInfo&  scope,
                                int               lineNumber);
 
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
         ALIB_API
-        virtual void notifyMultiLineOp (lib::lang::Phase )    {  }
+        virtual void notifyMultiLineOp (lib::Phase )    {  }
 
 }; // class WindowsConsoleLogger
 
@@ -158,7 +147,7 @@ class WindowsConsoleLogger : public aworx::lib::lox::core::textlogger::TextLogge
 /// Type alias in namespace #aworx.
 using     WindowsConsoleLogger=     aworx::lib::lox::loggers::WindowsConsoleLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // defined( _WIN32 )
 

@@ -1,15 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
 
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#   include "../plugins/calculus.hpp"
+#   include "alib/expressions/plugins/calculus.hpp"
 #endif
 
 
@@ -71,7 +70,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * | Return Type | Name      |Min. Abbreviation| Signature| Description
  * |-------------|-----------|-----------------|--------- |------------
- * | Boolean     |\b Boolean |bool             | \<any\>  | Converts any type of boxed value by invoking boxing interface \alib{boxing,IIsTrue}.
+ * | Boolean     |\b Boolean |bool             | \<any\>  | Converts any type of boxed value by invoking box-function \alib{boxing,FIsTrue}.
  * | Integer     |\b Integer |int              | Boolean  | Converts \c true to \c 1, \c false to \c 0.
  * | Integer     |\b Integer |int              | Integer  | Does nothing (identity function).
  * | Integer     |\b Integer |int              | Float    | Returns the integral part of a floating point number.
@@ -91,148 +90,142 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * | Return Type    | Operator | Argument Type | Description|
  * |--------------|----------|----------|---------------------
- * | Integer      |<c>'+'</c> |Boolean | Converts the boolean value to integer.
- * | Integer      |<c>'+'</c> |Integer | Does nothing (identity operator).
- * | Float        |<c>'+'</c> |Float   | Does nothing (identity operator).
- * | Integer      |<c>'-'</c> |Boolean | Converts the boolean value to integer and negates it.
- * | Integer      |<c>'-'</c> |Integer | Negates an integral value.
- * | Float        |<c>'-'</c> |Float   | Negates a floating point value.
- * | Boolean      |<c>'!'</c> |Boolean | Boolean not operator.
- * | Boolean      |<c>'!'</c> |Integer | Returns the result of the comparison with <c>0</c>.
- * | Boolean      |<c>'!'</c> |Float   | Returns the result of the comparison with <c>0.0</c>.
- * | Integer      |<c>'~'</c> |Integer | Bitwise integral negation.
+ * | Integer      |<b>+</b> |Boolean | Converts the boolean value to integer.
+ * | Integer      |<b>+</b> |Integer | Identity operator (has no effect).
+ * | Float        |<b>+</b> |Float   | Identity operator (has no effect).
+ * | Integer      |<b>-</b> |Boolean | Converts the boolean value to integer and negates it.
+ * | Integer      |<b>-</b> |Integer | Negates an integral value.
+ * | Float        |<b>-</b> |Float   | Negates a floating point value.
+ * | Boolean      |<b>!</b> |Boolean | Boolean not operator.
+ * | Boolean      |<b>!</b> |Integer | Returns the result of the comparison with <c>0</c>.
+ * | Boolean      |<b>!</b> |Float   | Returns the result of the comparison with <c>0.0</c>.
+ * | Integer      |<b>~</b> |Integer | Bitwise integral negation.
  *
  * <br>
  * <b>Binary Operators:</b><br>
  *
  * | Return Type | Lhs Type | Operator | Rhs Type | Description|
  * |-------------|----------|----------|----------|------------|
- * |Integer      | Boolean  | <c>'*'</c>    | Boolean | Operator <c>"*"</c>.
- * |Integer      | Boolean  | <c>'*'</c>    | Integer | Operator <c>"*"</c>.
- * |Float        | Boolean  | <c>'*'</c>    | Float   | Operator <c>"*"</c>.
- * |Integer      | Integer  | <c>'*'</c>    | Boolean | Operator <c>"*"</c>.
- * |Integer      | Integer  | <c>'*'</c>    | Integer | Operator <c>"*"</c>.
- * |Float        | Integer  | <c>'*'</c>    | Float   | Operator <c>"*"</c>.
- * |Float        | Float    | <c>'*'</c>    | Boolean | Operator <c>"*"</c>.
- * |Float        | Float    | <c>'*'</c>    | Integer | Operator <c>"*"</c>.
- * |Float        | Float    | <c>'*'</c>    | Float   | Operator <c>"*"</c>.
- * |Integer      | Boolean  | <c>'/'</c>    | Boolean | Operator <c>"/"</c>.
- * |Integer      | Boolean  | <c>'/'</c>    | Integer | Operator <c>"/"</c>.
- * |Float        | Boolean  | <c>'/'</c>    | Float   | Operator <c>"/"</c>.
- * |Integer      | Integer  | <c>'/'</c>    | Boolean | Operator <c>"/"</c>.
- * |Integer      | Integer  | <c>'/'</c>    | Integer | Operator <c>"/"</c>.
- * |Float        | Integer  | <c>'/'</c>    | Float   | Operator <c>"/"</c>.
- * |Float        | Float    | <c>'/'</c>    | Boolean | Operator <c>"/"</c>.
- * |Float        | Float    | <c>'/'</c>    | Integer | Operator <c>"/"</c>.
- * |Float        | Float    | <c>'/'</c>    | Float   | Operator <c>"/"</c>.
- * |Integer      | Boolean  | <c>'\%'</c>   | Boolean | Operator <c>"%"</c>.
- * |Integer      | Boolean  | <c>'\%'</c>   | Integer | Operator <c>"%"</c>.
- * |Float        | Boolean  | <c>'\%'</c>   | Float   | Operator <c>"%"</c>.
- * |Integer      | Integer  | <c>'\%'</c>   | Boolean | Operator <c>"%"</c>.
- * |Integer      | Integer  | <c>'\%'</c>   | Integer | Operator <c>"%"</c>.
- * |Float        | Integer  | <c>'\%'</c>   | Float   | Operator <c>"%"</c>.
- * |Float        | Float    | <c>'\%'</c>   | Boolean | Operator <c>"%"</c>.
- * |Float        | Float    | <c>'\%'</c>   | Integer | Operator <c>"%"</c>.
- * |Float        | Float    | <c>'\%'</c>   | Float   | Operator <c>"%"</c>.
- * |Integer      | Boolean  | <c>'+'</c>    | Boolean | Operator <c>"+"</c>.
- * |Integer      | Boolean  | <c>'+'</c>    | Integer | Operator <c>"+"</c>.
- * |Float        | Boolean  | <c>'+'</c>    | Float   | Operator <c>"+"</c>.
- * |Integer      | Integer  | <c>'+'</c>    | Boolean | Operator <c>"+"</c>.
- * |Integer      | Integer  | <c>'+'</c>    | Integer | Operator <c>"+"</c>.
- * |Float        | Integer  | <c>'+'</c>    | Float   | Operator <c>"+"</c>.
- * |Float        | Float    | <c>'+'</c>    | Boolean | Operator <c>"+"</c>.
- * |Float        | Float    | <c>'+'</c>    | Integer | Operator <c>"+"</c>.
- * |Float        | Float    | <c>'+'</c>    | Float   | Operator <c>"+"</c>.
- * |Integer      | Boolean  | <c>'-'</c>    | Boolean | Operator <c>"-"</c>.
- * |Integer      | Boolean  | <c>'-'</c>    | Integer | Operator <c>"-"</c>.
- * |Float        | Boolean  | <c>'-'</c>    | Float   | Operator <c>"-"</c>.
- * |Integer      | Integer  | <c>'-'</c>    | Boolean | Operator <c>"-"</c>.
- * |Integer      | Integer  | <c>'-'</c>    | Integer | Operator <c>"-"</c>.
- * |Float        | Integer  | <c>'-'</c>    | Float   | Operator <c>"-"</c>.
- * |Float        | Float    | <c>'-'</c>    | Boolean | Operator <c>"-"</c>.
- * |Float        | Float    | <c>'-'</c>    | Integer | Operator <c>"-"</c>.
- * |Float        | Float    | <c>'-'</c>    | Float   | Operator <c>"-"</c>.
- * |Integer      | Boolean  | <c>'<<'</c>   | Integer | Operator <c>"<<"</c>.
- * |Integer      | Integer  | <c>'<<'</c>   | Boolean | Operator <c>"<<"</c>.
- * |Integer      | Integer  | <c>'<<'</c>   | Integer | Operator <c>"<<"</c>.
- * |Integer      | Boolean  | <c>'>>'</c>   | Integer | Operator <c>">>"</c>.
- * |Integer      | Integer  | <c>'>>'</c>   | Boolean | Operator <c>">>"</c>.
- * |Integer      | Integer  | <c>'>>'</c>   | Integer | Operator <c>">>"</c>.
- * |Boolean      | Boolean  | <c>'<'</c>    | Boolean | Operator <c>"<"</c>.
- * |Boolean      | Boolean  | <c>'<'</c>    | Integer | Operator <c>"<"</c>.
- * |Boolean      | Boolean  | <c>'<'</c>    | Float   | Operator <c>"<"</c>.
- * |Boolean      | Integer  | <c>'<'</c>    | Boolean | Operator <c>"<"</c>.
- * |Boolean      | Integer  | <c>'<'</c>    | Integer | Operator <c>"<"</c>.
- * |Boolean      | Integer  | <c>'<'</c>    | Float   | Operator <c>"<"</c>.
- * |Boolean      | Float    | <c>'<'</c>    | Boolean | Operator <c>"<"</c>.
- * |Boolean      | Float    | <c>'<'</c>    | Integer | Operator <c>"<"</c>.
- * |Boolean      | Float    | <c>'<'</c>    | Float   | Operator <c>"<"</c>.
- * |Boolean      | Boolean  | <c>'<='</c>   | Boolean | Operator <c>"<="</c>.
- * |Boolean      | Boolean  | <c>'<='</c>   | Integer | Operator <c>"<="</c>.
- * |Boolean      | Boolean  | <c>'<='</c>   | Float   | Operator <c>"<="</c>.
- * |Boolean      | Integer  | <c>'<='</c>   | Boolean | Operator <c>"<="</c>.
- * |Boolean      | Integer  | <c>'<='</c>   | Integer | Operator <c>"<="</c>.
- * |Boolean      | Integer  | <c>'<='</c>   | Float   | Operator <c>"<="</c>.
- * |Boolean      | Float    | <c>'<='</c>   | Boolean | Operator <c>"<="</c>.
- * |Boolean      | Float    | <c>'<='</c>   | Integer | Operator <c>"<="</c>.
- * |Boolean      | Float    | <c>'<='</c>   | Float   | Operator <c>"<="</c>.
- * |Boolean      | Boolean  | <c>'>'</c>    | Boolean | Operator <c>">"</c>.
- * |Boolean      | Boolean  | <c>'>'</c>    | Integer | Operator <c>">"</c>.
- * |Boolean      | Boolean  | <c>'>'</c>    | Float   | Operator <c>">"</c>.
- * |Boolean      | Integer  | <c>'>'</c>    | Boolean | Operator <c>">"</c>.
- * |Boolean      | Integer  | <c>'>'</c>    | Integer | Operator <c>">"</c>.
- * |Boolean      | Integer  | <c>'>'</c>    | Float   | Operator <c>">"</c>.
- * |Boolean      | Float    | <c>'>'</c>    | Boolean | Operator <c>">"</c>.
- * |Boolean      | Float    | <c>'>'</c>    | Integer | Operator <c>">"</c>.
- * |Boolean      | Float    | <c>'>'</c>    | Float   | Operator <c>">"</c>.
- * |Boolean      | Boolean  | <c>'>='</c>   | Boolean | Operator <c>">="</c>.
- * |Boolean      | Boolean  | <c>'>='</c>   | Integer | Operator <c>">="</c>.
- * |Boolean      | Boolean  | <c>'>='</c>   | Float   | Operator <c>">="</c>.
- * |Boolean      | Integer  | <c>'>='</c>   | Boolean | Operator <c>">="</c>.
- * |Boolean      | Integer  | <c>'>='</c>   | Integer | Operator <c>">="</c>.
- * |Boolean      | Integer  | <c>'>='</c>   | Float   | Operator <c>">="</c>.
- * |Boolean      | Float    | <c>'>='</c>   | Boolean | Operator <c>">="</c>.
- * |Boolean      | Float    | <c>'>='</c>   | Integer | Operator <c>">="</c>.
- * |Boolean      | Float    | <c>'>='</c>   | Float   | Operator <c>">="</c>.
- * |Boolean      | Boolean  | <c>'=='</c>   | Boolean | Operator <c>"=="</c>.
- * |Boolean      | Boolean  | <c>'=='</c>   | Integer | Operator <c>"=="</c>.
- * |Boolean      | Boolean  | <c>'=='</c>   | Float   | Operator <c>"=="</c>.
- * |Boolean      | Integer  | <c>'=='</c>   | Boolean | Operator <c>"=="</c>.
- * |Boolean      | Integer  | <c>'=='</c>   | Integer | Operator <c>"=="</c>.
- * |Boolean      | Integer  | <c>'=='</c>   | Float   | Operator <c>"=="</c>.
- * |Boolean      | Float    | <c>'=='</c>   | Boolean | Operator <c>"=="</c>.
- * |Boolean      | Float    | <c>'=='</c>   | Integer | Operator <c>"=="</c>.
- * |Boolean      | Float    | <c>'=='</c>   | Float   | Operator <c>"=="</c>.
- * |Boolean      | Boolean  | <c>'!='</c>   | Boolean | Operator <c>"!="</c>.
- * |Boolean      | Boolean  | <c>'!='</c>   | Integer | Operator <c>"!="</c>.
- * |Boolean      | Boolean  | <c>'!='</c>   | Float   | Operator <c>"!="</c>.
- * |Boolean      | Integer  | <c>'!='</c>   | Boolean | Operator <c>"!="</c>.
- * |Boolean      | Integer  | <c>'!='</c>   | Integer | Operator <c>"!="</c>.
- * |Boolean      | Integer  | <c>'!='</c>   | Float   | Operator <c>"!="</c>.
- * |Boolean      | Float    | <c>'!='</c>   | Boolean | Operator <c>"!="</c>.
- * |Boolean      | Float    | <c>'!='</c>   | Integer | Operator <c>"!="</c>.
- * |Boolean      | Float    | <c>'!='</c>   | Float   | Operator <c>"!="</c>.
- * |Integer      | Integer  | <c>'&'</c>    | Integer | Operator <c>"&"</c>.
- * |Integer      | Integer  | <c>'^'</c>    | Integer | Operator <c>"^"</c>.
- * |Integer      | Integer  | <c>'\|'</c>   | Integer | Operator <c>"|"</c>.
- * |Boolean      | Boolean  | <c>'&&'</c>   | Boolean | Operator <c>"&&"</c>.
- * |Boolean      | Boolean  | <c>'&&'</c>   | Integer | Operator <c>"&&"</c>.
- * |Boolean      | Boolean  | <c>'&&'</c>   | Float   | Operator <c>"&&"</c>.
- * |Boolean      | Integer  | <c>'&&'</c>   | Boolean | Operator <c>"&&"</c>.
- * |Boolean      | Integer  | <c>'&&'</c>   | Integer | Operator <c>"&&"</c>.
- * |Boolean      | Integer  | <c>'&&'</c>   | Float   | Operator <c>"&&"</c>.
- * |Boolean      | Float    | <c>'&&'</c>   | Boolean | Operator <c>"&&"</c>.
- * |Boolean      | Float    | <c>'&&'</c>   | Integer | Operator <c>"&&"</c>.
- * |Boolean      | Float    | <c>'&&'</c>   | Float   | Operator <c>"&&"</c>.
- * |Boolean      | Boolean  | <c>'\|\|'</c> | Boolean | Operator <c>"||"</c>.
- * |Boolean      | Boolean  | <c>'\|\|'</c> | Integer | Operator <c>"||"</c>.
- * |Boolean      | Boolean  | <c>'\|\|'</c> | Float   | Operator <c>"||"</c>.
- * |Boolean      | Integer  | <c>'\|\|'</c> | Boolean | Operator <c>"||"</c>.
- * |Boolean      | Integer  | <c>'\|\|'</c> | Integer | Operator <c>"||"</c>.
- * |Boolean      | Integer  | <c>'\|\|'</c> | Float   | Operator <c>"||"</c>.
- * |Boolean      | Float    | <c>'\|\|'</c> | Boolean | Operator <c>"||"</c>.
- * |Boolean      | Float    | <c>'\|\|'</c> | Integer | Operator <c>"||"</c>.
- * |Boolean      | Float    | <c>'\|\|'</c> | Float   | Operator <c>"||"</c>.
+ * |Integer      | Boolean  | <b>*</b>    | Boolean | Multiplication with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Integer      | Boolean  | <b>*</b>    | Integer | Multiplication with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Float        | Boolean  | <b>*</b>    | Float   | Multiplication with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b>*</b>    | Boolean | Multiplication with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Integer      | Integer  | <b>*</b>    | Integer | Multiplication.
+ * |Float        | Integer  | <b>*</b>    | Float   | Multiplication.
+ * |Float        | Float    | <b>*</b>    | Boolean | Multiplication with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Float        | Float    | <b>*</b>    | Integer | Multiplication.
+ * |Float        | Float    | <b>*</b>    | Float   | Multiplication.
+ * |Integer      | Boolean  | <b>/</b>    | Integer | Division with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Float        | Boolean  | <b>/</b>    | Float   | Division with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Integer      | Integer  | <b>/</b>    | Integer | Division.
+ * |Float        | Integer  | <b>/</b>    | Float   | Division.
+ * |Float        | Float    | <b>/</b>    | Integer | Division.
+ * |Float        | Float    | <b>/</b>    | Float   | Division.
+ * |Integer      | Boolean  | <b>\%</b>   | Integer | Modulo with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Float        | Boolean  | <b>\%</b>   | Float   | Modulo with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Integer      | Integer  | <b>\%</b>   | Integer | Modulo.
+ * |Float        | Integer  | <b>\%</b>   | Float   | Modulo.
+ * |Float        | Float    | <b>\%</b>   | Integer | Modulo.
+ * |Float        | Float    | <b>\%</b>   | Float   | Modulo.
+ * |Integer      | Boolean  | <b>+</b>    | Boolean | Addition with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Integer      | Boolean  | <b>+</b>    | Integer | Addition with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Float        | Boolean  | <b>+</b>    | Float   | Addition with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b>+</b>    | Boolean | Addition with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Integer      | Integer  | <b>+</b>    | Integer | Addition.
+ * |Float        | Integer  | <b>+</b>    | Float   | Addition.
+ * |Float        | Float    | <b>+</b>    | Boolean | Addition with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Float        | Float    | <b>+</b>    | Integer | Addition.
+ * |Float        | Float    | <b>+</b>    | Float   | Addition.
+ * |Integer      | Boolean  | <b>-</b>    | Boolean | Subtraction with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Integer      | Boolean  | <b>-</b>    | Integer | Subtraction with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Float        | Boolean  | <b>-</b>    | Float   | Subtraction with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b>-</b>    | Boolean | Subtraction with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Integer      | Integer  | <b>-</b>    | Integer | Subtraction.
+ * |Float        | Integer  | <b>-</b>    | Float   | Subtraction.
+ * |Float        | Float    | <b>-</b>    | Boolean | Subtraction with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Float        | Float    | <b>-</b>    | Integer | Subtraction.
+ * |Float        | Float    | <b>-</b>    | Float   | Subtraction.
+ * |Integer      | Boolean  | <b><<</b>   | Integer | Bitwise shift left with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b><<</b>   | Boolean | Bitwise shift left with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b><<</b>   | Integer | Bitwise shift left.
+ * |Integer      | Boolean  | <b>>></b>   | Integer | Bitwise shift right with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b>>></b>   | Boolean | Bitwise shift right with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Integer      | Integer  | <b>>></b>   | Integer | Bitwise shift right.
+ * |Boolean      | Boolean  | <b><</b>    | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b><</b>    | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b><</b>    | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b><</b>    | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b><</b>    | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b><</b>    | Float   | Comparison operator.
+ * |Boolean      | Float    | <b><</b>    | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b><</b>    | Integer | Comparison operator.
+ * |Boolean      | Float    | <b><</b>    | Float   | Comparison operator.
+ * |Boolean      | Boolean  | <b><=</b>   | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b><=</b>   | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b><=</b>   | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b><=</b>   | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b><=</b>   | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b><=</b>   | Float   | Comparison operator.
+ * |Boolean      | Float    | <b><=</b>   | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b><=</b>   | Integer | Comparison operator.
+ * |Boolean      | Float    | <b><=</b>   | Float   | Comparison operator.
+ * |Boolean      | Boolean  | <b>></b>    | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>></b>    | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>></b>    | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b>></b>    | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b>></b>    | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b>></b>    | Float   | Comparison operator.
+ * |Boolean      | Float    | <b>></b>    | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b>></b>    | Integer | Comparison operator.
+ * |Boolean      | Float    | <b>></b>    | Float   | Comparison operator.
+ * |Boolean      | Boolean  | <b>>=</b>   | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>>=</b>   | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>>=</b>   | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b>>=</b>   | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b>>=</b>   | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b>>=</b>   | Float   | Comparison operator.
+ * |Boolean      | Float    | <b>>=</b>   | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b>>=</b>   | Integer | Comparison operator.
+ * |Boolean      | Float    | <b>>=</b>   | Float   | Comparison operator.
+ * |Boolean      | Boolean  | <b>==</b>   | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>==</b>   | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>==</b>   | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b>==</b>   | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b>==</b>   | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b>==</b>   | Float   | Comparison operator.
+ * |Boolean      | Float    | <b>==</b>   | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b>==</b>   | Integer | Comparison operator.
+ * |Boolean      | Float    | <b>==</b>   | Float   | Comparison operator.
+ * |Boolean      | Boolean  | <b>!=</b>   | Boolean | Comparison operator with interpreting both boolean operands as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>!=</b>   | Integer | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Boolean  | <b>!=</b>   | Float   | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Integer  | <b>!=</b>   | Boolean | Comparison operator with interpreting the boolean operand as integral value \c 0 or \c 1.
+ * |Boolean      | Integer  | <b>!=</b>   | Integer | Comparison operator.
+ * |Boolean      | Integer  | <b>!=</b>   | Float   | Comparison operator.
+ * |Boolean      | Float    | <b>!=</b>   | Boolean | Comparison operator with interpreting the boolean operand as floating point value \c 0.0 or \c 1.0.
+ * |Boolean      | Float    | <b>!=</b>   | Integer | Comparison operator.
+ * |Boolean      | Float    | <b>!=</b>   | Float   | Comparison operator.
+ * |Integer      | Integer  | <b>&</b>    | Integer | Bitwise boolean "and" operator.
+ * |Integer      | Integer  | <b>\|</b>   | Integer | Bitwise boolean "or" operator.
+ * |Integer      | Integer  | <b>^</b>    | Integer | Bitwise boolean "xor" operator.
+ * |Boolean      | Boolean  | <b>&&</b>   | Boolean | Logical boolean "and" operator.
+ * |Boolean      | Boolean  | <b>&&</b>   | Integer | Logical boolean "and" operator. The integral operand is tested for a non-zero value.
+ * |Boolean      | Boolean  | <b>&&</b>   | Float   | Logical boolean "and" operator. The floating point operand is tested for a non-zero value.
+ * |Boolean      | Integer  | <b>&&</b>   | Boolean | Logical boolean "and" operator. The integral operand is tested for a non-zero value.
+ * |Boolean      | Integer  | <b>&&</b>   | Integer | Logical boolean "and" operator. The integral operands are tested for a non-zero value.
+ * |Boolean      | Integer  | <b>&&</b>   | Float   | Logical boolean "and" operator. The integral and floating point operands are tested for a non-zero value.
+ * |Boolean      | Float    | <b>&&</b>   | Boolean | Logical boolean "and" operator. The floating point operand is tested for a non-zero value.
+ * |Boolean      | Float    | <b>&&</b>   | Integer | Logical boolean "and" operator. The integral and floating point operands are tested for a non-zero value.
+ * |Boolean      | Float    | <b>&&</b>   | Float   | Logical boolean "and" operator. The floating point operands are tested for a non-zero value.
+ * |Boolean      | Boolean  | <b>\|\|</b> | Boolean | Logical boolean "or" operator.
+ * |Boolean      | Boolean  | <b>\|\|</b> | Integer | Logical boolean "or" operator. The integral operand is tested for a non-zero value.
+ * |Boolean      | Boolean  | <b>\|\|</b> | Float   | Logical boolean "or" operator. The floating point operand is tested for a non-zero value.
+ * |Boolean      | Integer  | <b>\|\|</b> | Boolean | Logical boolean "or" operator. The integral operand is tested for a non-zero value.
+ * |Boolean      | Integer  | <b>\|\|</b> | Integer | Logical boolean "or" operator. The integral operands are tested for a non-zero value.
+ * |Boolean      | Integer  | <b>\|\|</b> | Float   | Logical boolean "or" operator. The integral and floating point operands are tested for a non-zero value.
+ * |Boolean      | Float    | <b>\|\|</b> | Boolean | Logical boolean "or" operator. The floating point operand is tested for a non-zero value.
+ * |Boolean      | Float    | <b>\|\|</b> | Integer | Logical boolean "or" operator. The integral and floating point operands are tested for a non-zero value.
+ * |Boolean      | Float    | <b>\|\|</b> | Float   | Logical boolean "or" operator. The floating point operands are tested for a non-zero value.
  *
  **************************************************************************************************/
 struct Arithmetics   : public plugins::Calculus
@@ -268,7 +261,7 @@ struct Arithmetics   : public plugins::Calculus
  * The rationale for this is that the function is also used for auto-casting custom types to
  * boolean values, which is performed with compiler plug-in \alib{expressions,plugins::AutoCast}.
  *
- * The function is compile-time invokable and uses boxing interface \alib{boxing,IIsTrue} to
+ * The function is compile-time invokable and uses box-function \alib{boxing,FIsTrue} to
  * determine if a boxed value represents \c true or \c false.
  *
  * @param scope The scope.

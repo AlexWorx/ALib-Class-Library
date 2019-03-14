@@ -1,10 +1,9 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS
 
@@ -27,11 +26,11 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * equal types.
  *
  * This built-in compiler plug-in covers the operator for virtually any type, including custom ones.
- * The implementation invokes boxing interface \alib{boxing,IIsTrue} on term \c 'A' and chooses
+ * The implementation invokes box-function \alib{boxing,FIsTrue} on term \c 'A' and chooses
  * \c 'A' if the interface returned \c true, otherwise it chooses \c 'B'.
  *
  * Often, the elvis operator is used with strings. Because the default implementation of boxing
- * interface \alib{boxing,IIsTrue} returns \c true if the boxed value is an array type and the
+ * interface \alib{boxing,FIsTrue} returns \c true if the boxed value is an array type and the
  * array length is not zero, with strings given (which are arrays of characters) only empty strings
  * evaluate to \c false. This way the expression:
  *

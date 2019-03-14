@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2018 A-Worx GmbH, Germany
+#  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -14,6 +14,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
+    cmake_minimum_required( VERSION 3.3.0 )
 
     ### uncomment to force cotire on clean cmake built
     #set( ALIB_CMAKE_COTIRE   "On" )
@@ -21,33 +22,33 @@
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-
     project("ALib_UnitTests")
-    cmake_minimum_required( VERSION 3.1.0 ) ###FATAL_ERROR)
 
     # enable modules in project path
     set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.")
 
-
 ## -------------------------------------------------------------------------------------------------
 ## include ALib base cmake file
 ## -------------------------------------------------------------------------------------------------
-    list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11" )
-    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_17" )
+
+    #list( APPEND ALIB_COMPILATION_SYMBOLS   "ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON"    )
+
+    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11" )
+    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_14" )
+    list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_17" )
+    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_20" )
     include( ../../../build/cmake/ALib.cmake )
 
 
 # --------------------------------------------------------------------------------------------------
-# set cache variables
+# set variables
 # --------------------------------------------------------------------------------------------------
     set( ALIB_GTEST                 "On"                                                CACHE STRING
          "If true, unit tests are compiled for gtest library."   )
 
-
 # -------------------------------------------------------------------------------------------------
 # source code definitions
 # -------------------------------------------------------------------------------------------------
-
     # ALib unit tests
     set (              ALIB_UTESTS_SRC_DIR  ${ALIB_BASE_DIR}/src/unittests       )
     file( GLOB_RECURSE ALIB_UTESTS_INCS     ${ALIB_UTESTS_SRC_DIR}/*.h*              )
@@ -91,9 +92,11 @@
 
     endif()
 
-    # QT
-    find_package(Qt5Core)
-    find_package(Qt5Widgets)
+    # QT (only in 64bit compilations)
+    if( NOT  "-m32" IN_LIST CMAKE_CXX_FLAGS )
+        find_package(Qt5Core)
+        find_package(Qt5Widgets)
+    endif()
 
     # multithreading
     if ( NOT ${ALIB_FEAT_THREADS} )
@@ -112,12 +115,22 @@
 # -------------------------------------------------------------------------------------------------
 # Target
 # -------------------------------------------------------------------------------------------------
-    ALibAddSharedLibrary()
+    if( NOT DEFINED  ALIB_UT_USE_STATIC_LIB )
+        set( ALIB_UT_USE_STATIC_LIB              "On"                                  CACHE   BOOL
+             "If 'On' compiles and links to static library, otherwise uses a shared (dynamic) one." )
+    endif()
+
+    if( ${ALIB_UT_USE_STATIC_LIB} )
+        ALibAddStaticLibrary()
+    else()
+        ALibAddSharedLibrary()
+    endif()
+
 
 
     add_executable             ( ALib_UT    ${ALIB_INCLUDE_FILES}
-                                                 ${ALIB_UTESTS_INCS}
-                                                 ${ALIB_UTESTS_SRCS}  )
+                                            ${ALIB_UTESTS_INCS}
+                                            ${ALIB_UTESTS_SRCS}  )
 
     target_include_directories ( ALib_UT    PRIVATE   ${ALIB_UTESTS_SRC_DIR}           )
     ALibSetCompilerAndLinker   ( ALib_UT )
@@ -130,12 +143,25 @@
     endif()
 
     target_link_libraries      ( ALib_UT    ${ALIB_EXTERNAL_LIBS}
-                                            ALib_SharedLib
                                             stdc++fs                                    )
+
+    if( ${ALIB_UT_USE_STATIC_LIB} )
+        if( ${ALIB_CMAKE_COTIRE} )
+            target_link_libraries     ( ALib_UT   ALib_StaticLib_unity  )
+        else()
+            target_link_libraries     ( ALib_UT   ALib_StaticLib        )
+        endif()
+    else()
+        if( ${ALIB_CMAKE_COTIRE} )
+            target_link_libraries     ( ALib_UT   ALib_SharedLib_unity  )
+        else()
+            target_link_libraries     ( ALib_UT   ALib_SharedLib        )
+        endif()
+    endif()
 
     if ( ${ALIB_GTEST} )
         target_compile_definitions( ALib_UT PRIVATE  "ALIB_GTEST_ON"                    )
-        target_include_directories( ALib_UT    PRIVATE   ${gtest_source_dir}/include    )
+        target_include_directories( ALib_UT PRIVATE   ${gtest_source_dir}/include       )
         target_link_libraries     ( ALib_UT gtest                                       )
     endif()
 
@@ -162,15 +188,21 @@ if ( ${ALIB_CMAKE_COTIRE} )
     # use multiple processor cores
     set_target_properties( ALib_UT    PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j" )
 
-    # header for precomp is "alox/alox.hpp"
-    set_target_properties( ALib_UT    PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alox/alox.hpp" )
+    # header for precomp is "alib/alib_precompile.hpp"
+    set_target_properties( ALib_UT    PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alib/alib_precompile.hpp" )
 
     #set some other cotire specific settings
     set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/alox/ut_alox_log_scopes.cpp   PROPERTIES COTIRE_EXCLUDED "1"  )
     set_target_properties      ( ALib_UT PROPERTIES   COTIRE_UNITY_SOURCE_POST_UNDEFS "LOX_LOX;TESTCLASSNAME;cout" )
 
+
     # add cotire to project
+    cotire               ( ALib_StaticLib )
     cotire               ( ALib_UT )
+
+#set_target_properties( ALib_StaticLib PROPERTIES EXCLUDE_FROM_ALL           1 )
+#set_target_properties( ALib_StaticLib PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1 )
+
 
 
     #--- dump cotire properties ---

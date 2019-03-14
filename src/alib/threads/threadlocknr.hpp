@@ -1,38 +1,28 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_THREADS_THREADLOCKNR)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_THREADS_THREADLOCKNR
-//! @cond NO_DOX
 #define HPP_ALIB_THREADS_THREADLOCKNR 1
-//! @endcond
 
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (HPP_ALIB_LANG_OWNER)
-    #include "alib/lang/owner.hpp"
+#if !defined (HPP_ALIB_OWNER)
+    #include "alib/lib/owner.hpp"
 #endif
+
+ALIB_ASSERT_MODULE(THREADS)
 
 #if !defined (_GLIBCXX_MUTEX) && !defined(_MUTEX_)
     #include <mutex>
 #endif
 
+#if !defined(HPP_ALIB_STRINGS_CSTRING)
+#   include "alib/strings/cstring.hpp"
+#endif
+
 // #################################################################################################
-// Macros (for technical reasons, doxed in file alib.cpp)
+// Macros
 // #################################################################################################
 #define   ALIB_LOCK                     ALIB_OWN(*this)
 #define   ALIB_LOCK_WITH(lock)          ALIB_OWN(lock)
@@ -40,178 +30,152 @@
 
 namespace aworx { namespace lib { namespace threads {
 /** ************************************************************************************************
- * This class is a simple wrapper around std::mutex (provided solely to reach compatibility of ALIB
- * across programming languages) and hence allows *mutual exclusive access* to resources, by
- * protecting data from concurrent access by different threads.
+ * This class is a simple wrapper around C++ standard library type \c std::mutex and hence allows
+ * <em>mutual exclusive access</em> to resources, by protecting data from concurrent thread access.
  *
- * Unlike class ThreadLock, this class ThreadLockNR does not use an internal counter to allow
- * recursive calls to Acquire() and Release(). Also, no owner is recorded, no ALIB
- * \ref aworx::lib::lang::ReportWriter "ReportWriter"
- * is invoked on misuse and no time limit warnings are supported.
- * Consider using ThreadLock in most cases. The advantage of ThreadLockNR is that it operates
- * several times faster than ThreadLock. So, for very time critical sections with frequent
- * Lock.Release()use of ThreadLockNR can be taken into consideration.
+ * When a pair of #Acquire and #Release invocations is performed within the same code block, then
+ * it is recommended to use a stack instantiation of class \alib{Owner} to acquire and release
+ * objects of this class. Such use is highly simplified with macros \ref ALIB_LOCK and
+ * \ref ALIB_LOCK_WITH.
  *
- * \attention Nested (recursive) acquisitions are not supported and lead to undefined behavior.
+ * This class allows to be "disabled" with method #SetSafeness. The objective here is to
+ * gain execution speed, as thread synchronization causes "relatively" expensive system calls.
+ * An interface of a class might this way be designed to be "thread safe" by default, but in the
+ * case that a user of such class assures that an individual instance is used in a context that
+ * is free of race conditions, a corresponding lock might be disabled.
+ *
+ * This class does not allow repeated calls to method #Acquire without prior invocations of
+ * #Release. Repeated acquisitions cause undefined behavior.
+ * In debug compilations, an assertion is raised when #Acquire is invoked while the lock is already
+ * acquired.
+ *
+ * Due to this limitation, the class performs several times faster than sibling class
+ * \alib{threads,ThreadLock}. For very time critical code sections which are invoked
+ * often in relation to their length, the use of this class might be considered, taking its
+ * limitation into account.
  **************************************************************************************************/
 class ThreadLockNR
 {
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
     protected:
-        /// The internal object to lock on.
-        #if ALIB_FEAT_THREADS
-            std::mutex*             mutex                                                 = nullptr;
-        #else
-            void*                   mutex                                                 = nullptr;
-        #endif
+        /** The std::mutex used for locking. */
+        typename std::mutex         mutex;
+
+        /** The safeness mode. */
+        Safeness                    safeness;
 
         #if ALIB_DEBUG
-            /// Debug information on acquirement location.
-            NTString                acquirementSourcefile                                  =nullptr;
+            /** Debug information on acquirement location. */
+            NCString                acquirementSourcefile                                  =nullptr;
 
-            /// Debug information on acquirement location.
+            /** Debug information on acquirement location. */
             int                     acquirementLineNumber;
 
-            /// Debug information on acquirement location.
-            NTString                acquirementMethodName                                  =nullptr;
+            /** Debug information on acquirement location. */
+            NCString                acquirementMethodName                                  =nullptr;
 
-            /// Counter of (forbidden!) recursive acquirements. Available only in debug compilations.
+            /** Counter of (forbidden!) recursive acquirements. Available only in debug
+             *  compilations. */
             bool                    dbgIsAcquired= false;
         #endif
 
-    // #############################################################################################
-    // constructor/destructor
-    // #############################################################################################
     public:
         /** ****************************************************************************************
-         *  Create a ThreadLockNR that does not allow recursion. Consider using class ThreadLock
-         *  instead of this.
-         * @param safeness  (Optional) Can be used to set this unsafe mode. See \#SetMode
-         *                  for more information.
+         * Simple constructor.
          *
+         * @param pSafeness  The safeness mode. See #SetSafeness for more information.
          ******************************************************************************************/
         explicit
-        ThreadLockNR( lang::Safeness safeness= lang::Safeness::Safe )
-        {
-            mutex= safeness == lang::Safeness::Unsafe ? nullptr
-                                                   #if ALIB_FEAT_THREADS
-                                                       : new std::mutex();
-                                                   #else
-                                                       : reinterpret_cast<void*>(1);
-                                                   #endif
-        }
+        ThreadLockNR( Safeness pSafeness= Safeness::Safe )
+        : safeness( pSafeness )
+        {}
 
         /** ****************************************************************************************
-         *   Destructor.    *
-         ******************************************************************************************/
-        virtual ~ThreadLockNR()
-        {
-            #if ALIB_FEAT_THREADS
-                if( mutex != nullptr )
-                    delete mutex;
-            #endif
-        }
-
-    // #############################################################################################
-    // Interface
-    // #############################################################################################
-    public:
-
-        /** ****************************************************************************************
-         * Thread which invokes this method gets registered  as the current owner of this object,
+         * A thread which invokes this method gets registered as the current owner of this object,
          * until the same thread releases the ownership invoking #Release.
          * In the case that this object is already owned by another thread, the invoking thread is
          * suspended until ownership can be gained.
          * Multiple (nested) calls to this method are not supported and lead to undefined behavior.
+         *
+         * \note
+         *   In debug-compilations of the library, this method accepts three parameters,
+         *   providing information about the caller. In the release version these parameters do not
+         *   exist. Therefore use macro \ref ALIB_CALLER_PRUNED to provide the parameters:
+         *
+         *          sample.Acquire( ALIB_CALLER_PRUNED );
+         *
          * @param file  Caller information. Available only in debug compilations.
          * @param line  Caller information. Available only in debug compilations.
          * @param func  Caller information. Available only in debug compilations.
          ******************************************************************************************/
          #if ALIB_DEBUG
-            virtual void  Acquire( const NTString& file, int line, const NTString& func )
+            void  Acquire( const NCString& file, int line, const NCString& func )
             {
                 acquirementSourcefile= file;
                 acquirementLineNumber= line;
                 acquirementMethodName= func;
 
          #else
-            virtual void  Acquire()
+            void  Acquire()
             {
          #endif
 
                 ALIB_ASSERT_ERROR( !dbgIsAcquired,
-                        ASTR("Must not be recursively acquired. Use class ThreadLock if recursion is needed") );
+                   "Must not be recursively acquired. Use class ThreadLock if recursion is needed" )
 
-                #if ALIB_FEAT_THREADS
-                    if ( mutex != nullptr )
-                        mutex->lock();
-                #endif
+                if ( safeness == Safeness::Safe )
+                    mutex.lock();
 
                 ALIB_DBG( dbgIsAcquired= true; )
             }
 
         /** ****************************************************************************************
-         * Releases ownership of this object. If #Acquire was called multiple times before, the same
-         * number of calls to this method have to be performed to release ownership.
+         * Releases ownership of this object.
+         * If this method is invoked on an object that is not acquired, in debug-compilations an
+         * assertion is raised. In release compilations, this leads to undefined behaviour.
          ******************************************************************************************/
-        virtual void Release()
+        void Release()
         {
-            ALIB_ASSERT_ERROR( dbgIsAcquired,  ASTR("Release without prior acquisition") );
-            #if ALIB_FEAT_THREADS
-                if ( mutex != nullptr )
-                        mutex->unlock();
-            #endif
+            ALIB_ASSERT_ERROR( dbgIsAcquired,  "Release without prior acquisition" )
+                if ( safeness == Safeness::Safe )
+                    mutex.unlock();
             ALIB_DBG( dbgIsAcquired= false; )
         }
 
         /** ****************************************************************************************
-         *  If parameter is \c true, the whole locking system is disabled. The only objective here is
-         *  to gain execution speed, as thread synchronization causes relatively expensive system
-         *  calls. Use this method only if you are 100% sure that your (otherwise) critical section
-         *  are executed in a single threaded environment. And: "relative expensive" means:
-         *  they are not really expensive. This is only for the rare case that your critical
-         *  section is very, very frequently executed.
-         * @param safeness   Denotes the safeness mode.
+         * If parameter is \c Unsafe, the whole locking system is disabled.
+         * The only objective here is to gain execution speed, as thread synchronization causes
+         * relatively expensive system calls. Use this method only if you are 100% sure that your
+         * (otherwise) critical section is executed in a single threaded environment or otherwise
+         * it is assured that no concurrent thread access is performed.
+         *
+         * Note that "relative expensive" means: locking is not "really" expensive.
+         * This is only for the rare case that your critical section is very, very frequently
+         * executed.
+         *
+         * @param pSafeness    Denotes the new safeness mode.
          ******************************************************************************************/
-        void SetSafeness( lang::Safeness safeness )
+        void SetSafeness( Safeness pSafeness )
         {
-            #if ALIB_FEAT_THREADS
-                if( safeness == lang::Safeness::Unsafe && mutex != nullptr )
-                {
-                    delete mutex;
-                    mutex= nullptr;
-                    return;
-                }
-
-                if( safeness == lang::Safeness::Safe && mutex == nullptr )
-                {
-                    mutex= new std::mutex();
-                    return;
-                }
-            #else
-                mutex= safeness == lang::Safeness::Safe ? reinterpret_cast<void*>(1) : nullptr;
-            #endif
+            ALIB_ASSERT_ERROR( !dbgIsAcquired, "Changing safeness while acquired" )
+            safeness= pSafeness;
         }
 
         /** ****************************************************************************************
-         * Query if this instance was set to unsafe mode.
+         * Query the safeness mode of this object.
          * @return   The safeness mode of this object.
          ******************************************************************************************/
-        lang::Safeness GetSafeness()    const
+        Safeness GetSafeness()    const
         {
-            return  mutex == nullptr ? lang::Safeness::Unsafe
-                                     : lang::Safeness::Safe;
+            return  safeness;
         }
 };
 
 
-}} // namespace lib::threads
+}} // namespace aworx[::lib::threads]
 
 /// Type alias in namespace #aworx.
 using     ThreadLockNR= aworx::lib::threads::ThreadLockNR;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_THREADS_THREADLOCKNR

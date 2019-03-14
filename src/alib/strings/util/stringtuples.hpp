@@ -1,30 +1,31 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_STRINGS_UTIL_STRINGTUPLES)
-    #error "Header already included"
-#endif
-
-
-// then, set include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_STRINGTUPLES
-//! @cond NO_DOX
 #define HPP_ALIB_STRINGS_UTIL_STRINGTUPLES 1
-//! @endcond
 
-#if !defined (HPP_ALIB_LANG_MEMORYBLOCKS)
-#   include "alib/util/memoryblocks.hpp"
+#ifndef HPP_ALIB_STRINGS_STRING
+#   include "alib/strings/string.hpp"
 #endif
 
+#ifndef HPP_ALIB_STRINGS_SUBSTRING
+#   include "alib/strings/substring.hpp"
+#endif
+
+#if ALIB_MODULE_MEMORY && !defined (HPP_ALIB_MEMORY_MEMORYBLOCKS)
+#   include "alib/memory/memoryblocks.hpp"
+#endif
+
+#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+#   include <vector>
+#endif
+
+#if !defined (_GLIBCXX_TUPLE) && !defined(_TUPLE_)
+#   include <tuple>
+#endif
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
 /**
@@ -115,14 +116,14 @@ std::tuple<T_TupleTypes...> const * FindStringStartInTupleVector( const std::vec
     return nullptr;
 }
 
+#if ALIB_MODULE_MEMORY
 /** ************************************************************************************************
  * Variadic Template class implementing a vector of tuples whose first element is of type
- * \c ref aworx::lib::strings::String "String" and the further elements are
+ * \alib{strings,TString<TChar>,String} and the further elements are
  * the variadic types \p{TAssociatedTypes}.
  *
  * When new tuples are added with method #Add, then memory for copying the provided string is
- * allocated using an internal field of type
- * \c ref aworx::lib::lang::MemoryBlock "MemoryBlock".
+ * allocated using an internal field of type \alib{memory,MemoryBlocks}.
  * This allows to add single strings, which are allocated in bigger memory chunks.
  *
  * Note that standard vector operations, including insertions and deletions are still allowed!
@@ -135,7 +136,10 @@ std::tuple<T_TupleTypes...> const * FindStringStartInTupleVector( const std::vec
  *
  * \note
  *   This class is new with \alib. It is not considered finished, optimized and stable in design.
- **************************************************************************************************/
+ *
+ * ## Module Dependencies ##
+ * This class is only available if module \alibmod_memory is included in the \alibdist.
+  **************************************************************************************************/
 template< typename... TAssociatedTypes >
 class StringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
 {
@@ -161,7 +165,7 @@ class StringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
     // protected fields
     // #############################################################################################
     protected:
-        /// The list of allocated memory blocks.
+        /** The list of allocated memory blocks. */
         MemoryBlocks                                 blocks;
 
    // #############################################################################################
@@ -172,14 +176,13 @@ class StringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
          * Constructor.
          * Accepts a value \c stdBlockSize to manipulate the standard size of allocated memory
          * chunks. (This value, is forwarded to the constructor of class
-         * \alib{util,MemoryBlocks}.)
+         * \alib{memory,MemoryBlocks}.)
          *
          * @param stdBlockSize The standard size of memory blocks allocated.
          ******************************************************************************************/
         StringTable( size_t stdBlockSize = 8 * 1024 )
         : blocks( stdBlockSize )
-        {
-        }
+        {}
 
    // #############################################################################################
    // Interface
@@ -191,11 +194,6 @@ class StringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
          * field #blocks.<br>
          * The other members of the tuple added are forwarded from variadic parameter block \p{args}.
          *
-         * \note
-         *   With some compilers (as the type of writing this with \b clang), a compilation error
-         *   might occur. To avoid this, the tuple type used needs to be fixed with using macro
-         *   \ref ALIB_STRING_CONSTRUCTOR_FIX "ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<String ALIB_COMMA ...<yourtypes>... )"
-
          * @param src   The string to copy into the first member of the tuple.
          * @param args  Variadic arguments to fill the rest of the inserted tuple.
          *
@@ -204,26 +202,22 @@ class StringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
         String& Add( const String& src, TAssociatedTypes... args )
         {
             // on errors, see note above!
-            VectorType::emplace_back( blocks.AllocAndCopy( src ), args...  );
+            VectorType::emplace_back( blocks.Clone( src ), args...  );
             return std::get<0>(VectorType::back());
         }
 
 
         /** ****************************************************************************************
-         * Clears this vector of tuples and frees the allocated block memory, either for reuse
-         * or completely. (Parameter \c deallocate is forwarded to
-         * \ref aworx::lib::lang::MemoryBlocks::Clear "MemoryBlocks::Clear".)
-         *
-         * @param deallocate If \b %CurrentData::Clear , all allocated memory chunks are freed.
-         *                   If \b %CurrentData::Keep, which is the default, they
-         *                   will be reused for future new strings that are added.
+         * Clears this vector of tuples and frees the allocated block memory (for reuse).
          ******************************************************************************************/
-        void    Clear( CurrentData deallocate= CurrentData::Keep )
+        void    Clear()
         {
             VectorType::clear();
-            blocks.Clear( deallocate );
+            blocks.Reset();
         }
 };
+
+#endif
 
 }}} // namespace aworx[::lib::strings::util]
 

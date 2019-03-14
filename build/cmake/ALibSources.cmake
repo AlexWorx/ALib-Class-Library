@@ -1,7 +1,7 @@
-# #################################################################################################
+# ##################################################################################################
 #  ALibSources.cmake - CMake file for projects using ALib
 #
-#  Copyright 2015-2018 A-Worx GmbH, Germany
+#  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Notes:
@@ -14,309 +14,508 @@
 #    DO NOT INCLUDE THIS FILE MANUALLY !
 #    This CMake file is inlcuded by "ALib.cmake" automatically. Its contents was separated into a
 #    separated cmake file soley for clearity.
-# #################################################################################################
-
-
-
-
+# ##################################################################################################
 if( NOT DEFINED  ALIB_SOURCE_DIR )
     set ( ALIB_SOURCE_DIR       ${ALIB_BASE_DIR}/src    )
 endif()
 
-# for speeding cmake up, "ALL" is captured with full globbing
-if( modALL )
-    file( GLOB_RECURSE ALIB_INCLUDE_FILES        ${ALIB_SOURCE_DIR}/alib/*.h*     )
-    file( GLOB_RECURSE ALIB_SOURCE_FILES         ${ALIB_SOURCE_DIR}/alib/*.cpp    )
-else()
-    list( APPEND ALIB_INCLUDE_FILES  ${ALIB_SOURCE_DIR}/alib/alib.hpp             )
+SET( ALIB_SOURCE_FILES  "" )
+SET( ALIB_INCLUDE_FILES "" )
 
-    if( modCORE )
-        list( APPEND ALIB_INCLUDE_FILES  ${ALIB_SOURCE_DIR}/alib/alib.cpp         )
-
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/debug/*.h*      )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/debug/*.cpp     )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/lang/*.h*       )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/lang/*.cpp      )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/strings/*.h*    )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/strings/*.cpp   )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/boxing/*.h*     )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/boxing/*.cpp    )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/compatibility/*.h*    )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/compatibility/*.cpp   )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/util/*.h*       )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/util/*.cpp      )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/time/*.h*       )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/time/*.cpp      )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/system/*.h*     )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/system/*.cpp    )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/threads/*.h*    )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/threads/*.cpp   )
-        list( APPEND ALIB_SOURCE_FILES   ${tmp} )
-        if ( ${APPLE} )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/directory.mm            )
-        endif()
+# always included!
+    list( APPEND ALIB_INCLUDE_FILES     alib/alib_precompile.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_modules.hpp         )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_compiler.hpp        )
 
 
-    else() # no core?
-        if( modCONFIGURATION )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/threads/threadlocknr.hpp       )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/threads/threadlock.hpp         )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/threads/threadlock.cpp         )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/threads/threadlib.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/threads/threadlib.cpp          )
+# File-Sets
+if( "PREDEF_PF" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_platform.hpp        )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_features.hpp        )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_tools.hpp           )
+endif()
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/system/environment.hpp         )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/environment.cpp         )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/system/process.hpp             )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/process.cpp             )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/system/directory.hpp           )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/directory.cpp           )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/system/systemlib.hpp           )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/systemlib.cpp           )
-            if ( ${APPLE} )
-                list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/system/directory.mm        )
-            endif()
+if( "PREDEF_TMP" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/predef_tmp.hpp             )
+endif()
+
+if( "INTEGERS" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/integers.hpp               )
+endif()
+
+if( "COMMON_ENUMS" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/commonenums.hpp            )
+endif()
+
+if( "DEBUG" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/assert.hpp                 )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/typedemangler.hpp          )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/assert.cpp                 )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/typedemangler.cpp          )
+endif()
+
+if( "OWNER" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/owner.hpp                  )
+endif()
+
+if( "TYPEMAP" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/typemap.hpp                )
+endif()
+
+if( "MODULES" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/commonenumsresourced.hpp   )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/module.hpp                 )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/module.cpp                 )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/alibmodules.hpp            )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/alibmodules.cpp            )
+endif()
+
+if( "PLUGINS" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/plugincontainer.hpp        )
+endif()
 
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/calendar.hpp              )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/time/calendar.cpp              )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/datetime.hpp              )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/ticks.hpp                 )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/ticksconverter.hpp        )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/timelib.hpp               )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/time/timelib.cpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/time/timepointbase.hpp         )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/time/datetime.hpp              )
+#--------- compatibility headers ---------
+if( "CHARACTERS"  IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/std_characters.hpp        )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/qt_characters.hpp         )
+endif()
+
+if( "BOXING"  IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/std_boxing.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/std_boxing_functional.hpp )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/qt_boxing.hpp             )
+endif()
+
+if( "STRINGS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/std_strings_functional.hpp)
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/std_strings_iostream.hpp  )
+    list( APPEND ALIB_SOURCE_FILES  alib/compatibility/std_strings_iostream.cpp  )
+    list( APPEND ALIB_INCLUDE_FILES alib/compatibility/qt_strings.hpp            )
+endif()
 
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/util/plugincontainer.hpp       )
+#--------------- "Micro" modules ------------
 
-        endif()
+if( "MEMORY" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/memory/memoryblocks.hpp              )
+    list( APPEND ALIB_SOURCE_FILES      alib/memory/memoryblocks.cpp              )
+endif()
 
-        if( modSINGLETON )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/prepro.hpp                )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/rtti.hpp                  )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/rtti.cpp                  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/singleton.hpp             )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/singleton.cpp             )
-        endif()
+if( "ENUMS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/enums/enumvalue.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES     alib/enums/enumbitwise.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/enums/enumiterators.hpp              )
+    list( APPEND ALIB_INCLUDE_FILES     alib/enums/enumarithmetical.hpp           )
+endif()
 
-        if( modBOXING OR modSTRINGS )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/alib.cpp                       )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/debug/assert.hpp               )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/debug/assert.cpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/types.hpp                 )
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/compatibility/std_iostream.hpp )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/compatibility/std_iostream.cpp )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/compatibility/std_string.hpp   )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/compatibility/std_vector.hpp   )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/compatibility/qt.hpp           )
-        endif()
+if( "SINGLETONS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/singletons/singletons_predef.hpp     )
+    list( APPEND ALIB_INCLUDE_FILES     alib/singletons/singleton.hpp             )
+    list( APPEND ALIB_SOURCE_FILES      alib/singletons/singleton.cpp             )
+endif()
 
-        if( modSTRINGS )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enums.hpp                 )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enumbitwise.hpp           )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enumiterators.hpp         )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enumarithmetical.hpp      )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enummetadata.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/enummetadata.cpp          )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/langlib.hpp               )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/langlib.cpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/library.hpp               )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/library.cpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/resources.hpp             )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/resources.cpp             )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/resourcedtupleloader.hpp  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/util/memoryblocks.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/util/memoryblocks.cpp          )
+if( "CHARACTERS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/characters/characters.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES     alib/characters/characters_predef.hpp     )
+    list( APPEND ALIB_INCLUDE_FILES     alib/characters/chararray.hpp             )
+    list( APPEND ALIB_SOURCE_FILES      alib/characters/chararray.cpp             )
+endif()
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/applicables.hpp        )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/applicables.cpp        )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/astring.hpp            )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/astring.cpp            )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/numberformat.hpp       )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/numberformat.cpp       )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/preallocatedstring.hpp )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/resourcestring.hpp     )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/resourcestring.cpp     )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/cstring.hpp            )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/cstring.cpp            )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/string.hpp             )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/string.cpp             )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/stringlib.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/stringlib.cpp          )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/stringliteral.hpp      )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/strings.hpp            )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/substring.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/substring.cpp          )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/tstring.hpp            )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/tstring.cpp            )
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/autosizes.hpp     )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/util/autosizes.cpp     )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/spaces.hpp        )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/util/spaces.cpp        )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/stringio.hpp      )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/stringmap.hpp     )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/stringtuples.hpp  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/tokenizer.hpp     )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/util/tokenizer.cpp     )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/util/wildcardmatcher.hpp)
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/util/wildcardmatcher.cpp)
-        endif()
+if( "BOXING" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/box.inl                           )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/boxes.inl                         )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/boxing.hpp                        )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/boxing_predef.hpp                 )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/customizations.inl                )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/dbgboxing.hpp                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/enum.hpp                          )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/fwds.hpp                          )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/functions.inl                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/functiondefs.inl                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/placeholder.inl                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/typetraits.inl                    )
+    list( APPEND ALIB_INCLUDE_FILES alib/boxing/detail/vtable.inl                 )
 
-        if( modBOXING )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/box.hpp                 )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/boxer.hpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/boxes.hpp               )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/boxinglib.hpp           )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/boxing/boxinglib.cpp           )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/ftypes.hpp              )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/boxing/ftypes.cpp              )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/interface.hpp           )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/boxing/interface_builtin.hpp   )
-        endif()
+    list( APPEND ALIB_SOURCE_FILES  alib/boxing/boxing.cpp                        )
+    list( APPEND ALIB_SOURCE_FILES  alib/boxing/dbgboxing.cpp                     )
+    list( APPEND ALIB_SOURCE_FILES  alib/boxing/detail/vtable.cpp                 )
+endif()
 
-        if( modBOXING AND modSTRINGS )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enum.hpp                  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/enummetadataspec.hpp      )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/lang/exception.hpp             )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/exception.cpp             )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/lang/owner.hpp                 )
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/formatter.hpp           )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/formatter.cpp           )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/formatterjavastyle.hpp  )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/formatterjavastyle.cpp  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/formatterpythonstyle.hpp)
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/formatterpythonstyle.cpp)
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/formatterstdimpl.hpp    )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/formatterstdimpl.cpp    )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/propertyformatter.hpp   )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/propertyformatter.cpp   )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/propertyformatters.hpp  )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/format/simpletext.hpp          )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/format/simpletext.cpp          )
+if( "STRINGS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/appendables.inl                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/astring.hpp                      )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/chararraytraits.inl              )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/cstring.hpp                      )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/fwds.hpp                         )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/numberformat.hpp                 )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/localstring.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/string.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/stringnzt.hpp                    )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/substring.hpp                    )
 
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/boxing/stringboxing.hpp        )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/boxing/stringboxing.cpp        )
-            list( APPEND ALIB_INCLUDE_FILES ${ALIB_SOURCE_DIR}/alib/strings/boxing/debug.hpp               )
-            list( APPEND ALIB_SOURCE_FILES  ${ALIB_SOURCE_DIR}/alib/strings/boxing/debug.cpp               )
-        endif()
-    endif()
 
-    if( modCONFIGURATION )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/config/*.h*       )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/config/*.cpp      )
-        list( APPEND ALIB_SOURCE_FILES    ${tmp} )
-    endif()
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/appendables.cpp                  )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/astring.cpp                      )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/numberformat.cpp                 )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/string.cpp                       )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/substring.cpp                    )
 
-    if( modALOX )
-        list( APPEND ALIB_INCLUDE_FILES   ${ALIB_SOURCE_DIR}/alib/alox.hpp          )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/alox/*.h*         )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/alox/*.cpp        )
-        list( APPEND ALIB_SOURCE_FILES    ${tmp} )
-    endif()
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/detail/numberconversion.hpp      )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/detail/numberconversion.cpp      )
 
-    if( modCLI )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/cli/*.h*          )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/cli/*.cpp         )
-        list( APPEND ALIB_SOURCE_FILES    ${tmp} )
-    endif()
 
-    if( modEXPRESSIONS )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/expressions/*.h*  )
-        list( APPEND ALIB_INCLUDE_FILES   ${tmp} )
-        file( GLOB_RECURSE tmp            ${ALIB_SOURCE_DIR}/alib/expressions/*.cpp )
-        list( APPEND ALIB_SOURCE_FILES    ${tmp} )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/autosizes.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/regexmatcher.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/spaces.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/stringtree.hpp              )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/stringtuples.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/subsearch.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/token.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/tokenizer.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES alib/strings/util/wildcardmatcher.hpp         )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/autosizes.cpp               )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/regexmatcher.cpp            )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/spaces.cpp                  )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/subsearch.cpp               )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/token.cpp                   )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/tokenizer.cpp               )
+    list( APPEND ALIB_SOURCE_FILES  alib/strings/util/wildcardmatcher.cpp         )
+
+endif()
+
+#--------------- "Real" modules ------------
+if( "RESOURCES" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/resources/resources.hpp              )
+    list( APPEND ALIB_INCLUDE_FILES     alib/resources/resourcedtupleloader.hpp   )
+    list( APPEND ALIB_INCLUDE_FILES     alib/resources/enummetadata.hpp           )
+    list( APPEND ALIB_INCLUDE_FILES     alib/resources/enummetadataspec.hpp       )
+    list( APPEND ALIB_SOURCE_FILES      alib/resources/resources.cpp              )
+    list( APPEND ALIB_SOURCE_FILES      alib/resources/enummetadata.cpp           )
+    if( "MODULES" IN_LIST ALIB_FILESETS )
+        list( APPEND ALIB_INCLUDE_FILES alib/resources/resourcestring.hpp         )
+        list( APPEND ALIB_SOURCE_FILES  alib/resources/resourcestring.cpp         )
     endif()
 
 endif()
 
+if( "STRINGFORMAT" IN_LIST ALIB_MODULES )
 
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/formatter.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/formatterjavastyle.hpp      )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/formatterpythonstyle.hpp    )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/formatterstdimpl.hpp        )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/fwds.hpp                    )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/stringformat.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/propertyformatter.hpp       )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/propertyformatters.hpp      )
+    list( APPEND ALIB_INCLUDE_FILES alib/stringformat/text.hpp                    )
 
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/formatter.cpp               )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/formatterjavastyle.cpp      )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/formatterpythonstyle.cpp    )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/formatterstdimpl.cpp        )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/stringformat.cpp            )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/propertyformatter.cpp       )
+    list( APPEND ALIB_SOURCE_FILES  alib/stringformat/text.cpp                    )
 
-# Remove doubly defined sources (should never happen)
-list(LENGTH ALIB_SOURCE_FILES  len1)
-list(REMOVE_DUPLICATES ALIB_SOURCE_FILES)
-list(LENGTH ALIB_SOURCE_FILES  len2)
-if( NOT(len1 EQUAL len2))
-    message(WARNING "ALib: Internal error in cmake script \"Doubly defined source file\". This should never happen.")
+    if( "CONFIGURATION" IN_LIST ALIB_FILESETS )
+        list( APPEND ALIB_INCLUDE_FILES alib/stringformat/propertyformatters.hpp  )
+    endif()
+
 endif()
-list(LENGTH ALIB_INCLUDE_FILES  len1)
-list(REMOVE_DUPLICATES ALIB_INCLUDE_FILES)
-list(LENGTH ALIB_INCLUDE_FILES  len2)
-if( NOT(len1 EQUAL len2))
-    message(WARNING "ALib: Internal error in cmake script \"Doubly defined header file\". This should never happen.")
+
+if( "RESULTS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES     alib/results/exception.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/results/iclonemessageargument.hpp    )
+    list( APPEND ALIB_INCLUDE_FILES     alib/results/message.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES     alib/results/report.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES     alib/results/results.hpp                  )
+    list( APPEND ALIB_SOURCE_FILES      alib/results/exception.cpp                )
+    list( APPEND ALIB_SOURCE_FILES      alib/results/report.cpp                   )
+    list( APPEND ALIB_SOURCE_FILES      alib/results/results.cpp                  )
 endif()
 
 
+if( "THREADS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/smartlock.hpp                    )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/thread.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlock.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlocknr.hpp                 )
 
-# #################################################################################################
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/smartlock.cpp                    )
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/thread.cpp                       )
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/threadlock.cpp                   )
+endif()
+
+
+if( "SYSTEM" IN_LIST ALIB_MODULES )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/system/calendar.hpp                      )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/console.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/directory.hpp                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/environment.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/processinfo.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/system.hpp                        )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/system/calendar.cpp                      )
+    list( APPEND ALIB_SOURCE_FILES  alib/system/console.cpp                       )
+    list( APPEND ALIB_SOURCE_FILES  alib/system/directory.cpp                     )
+    list( APPEND ALIB_SOURCE_FILES  alib/system/environment.cpp                   )
+    list( APPEND ALIB_SOURCE_FILES  alib/system/processinfo.cpp                   )
+    list( APPEND ALIB_SOURCE_FILES  alib/system/system.cpp                        )
+    if ( ${APPLE} )
+        list( APPEND ALIB_SOURCE_FILES  alib/system/directory.mm                  )
+    endif()
+endif()
+
+if( "TIME" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/datetime.hpp                        )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/stopwatch.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/tickconverter.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/ticks.hpp                           )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/time.hpp                            )
+    list( APPEND ALIB_INCLUDE_FILES alib/time/timepointbase.hpp                   )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/time/time.cpp                            )
+endif()
+
+if( "CONFIGURATION" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/config.hpp                        )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/configuration.hpp                 )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/inifile.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/inmemoryplugin.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/plugins.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/config/variable.hpp                      )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/config/config.cpp                        )
+    list( APPEND ALIB_SOURCE_FILES  alib/config/configuration.cpp                 )
+    list( APPEND ALIB_SOURCE_FILES  alib/config/inifile.cpp                       )
+    list( APPEND ALIB_SOURCE_FILES  alib/config/inmemoryplugin.cpp                )
+    list( APPEND ALIB_SOURCE_FILES  alib/config/plugins.cpp                       )
+    list( APPEND ALIB_SOURCE_FILES  alib/config/variable.cpp                      )
+endif()
+
+if( "CLI" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/cli/arguments.hpp                        )
+    list( APPEND ALIB_INCLUDE_FILES alib/cli/cliapp.hpp                           )
+    list( APPEND ALIB_INCLUDE_FILES alib/cli/cli.hpp                              )
+    list( APPEND ALIB_INCLUDE_FILES alib/cli/cliutil.hpp                          )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/cli/arguments.cpp                        )
+    list( APPEND ALIB_SOURCE_FILES  alib/cli/cliapp.cpp                           )
+    list( APPEND ALIB_SOURCE_FILES  alib/cli/cli.cpp                              )
+    list( APPEND ALIB_SOURCE_FILES  alib/cli/cliutil.cpp                          )
+endif()
+
+if( "EXPRESSIONS" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/compiler.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/compilerplugin.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/expression.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/expressions.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/scope.hpp                     )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/compiler.cpp                  )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/expression.cpp                )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/expressions.cpp               )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/ast.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/parser.hpp             )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/parser_impl.hpp        )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/program.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/spirit.hpp             )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/detail/virtualmachine.hpp     )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/ast.cpp                )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/parser.cpp             )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/parser_impl.cpp        )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/program.cpp            )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/spirit.cpp             )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/detail/virtualmachine.cpp     )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/arithmetics.hpp       )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/autocast.hpp          )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/calculus.hpp          )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/elvisoperator.hpp     )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/math.hpp              )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/scopestring.hpp       )
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/strings.hpp           )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/arithmetics.cpp       )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/autocast.cpp          )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/calculus.cpp          )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/elvisoperator.cpp     )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/math.cpp              )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/strings.cpp           )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/expressions/util/expressionformatter.hpp  )
+    list( APPEND ALIB_SOURCE_FILES  alib/expressions/util/expressionformatter.cpp  )
+
+    if( "SYSTEM" IN_LIST ALIB_MODULES )
+        list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/dateandtime.hpp       )
+        list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/dateandtime.cpp       )
+    endif()
+
+ endif()
+
+if( "ALOX" IN_LIST ALIB_MODULES )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox.hpp                                 )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/alox.hpp                            )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/alox_predef.hpp                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/log.inl                             )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/logtools.hpp                        )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/lox.inl                             )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/macros.inl                          )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/reportwriter.hpp                    )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/variables.hpp                       )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/alox.cpp                            )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/log.cpp                             )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/logtools.cpp                        )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/lox.cpp                             )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/lox_getstate.cpp                    )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/reportwriter.cpp                    )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/domain.inl                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/logger.inl                     )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/scopedump.inl                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/scopeinfo.inl                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/scopestore.inl                 )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/domain.cpp                     )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/scopedump.cpp                  )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/scopeinfo.cpp                  )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/scopestore.cpp                 )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/textlogger/plaintextlogger.hpp )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/detail/textlogger/textlogger.hpp      )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/textlogger/plaintextlogger.cpp )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/detail/textlogger/textlogger.cpp      )
+
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/ansilogger.hpp              )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/consolelogger.hpp           )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/memorylogger.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/textfilelogger.hpp          )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/vstudiologger.hpp           )
+    list( APPEND ALIB_INCLUDE_FILES alib/alox/loggers/windowsconsolelogger.hpp    )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/loggers/ansilogger.cpp              )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/loggers/consolelogger.cpp           )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/loggers/textfilelogger.cpp          )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/loggers/vstudiologger.cpp           )
+    list( APPEND ALIB_SOURCE_FILES  alib/alox/loggers/windowsconsolelogger.cpp    )
+
+endif()
+
+
+# ##################################################################################################
+# Check for duplicates. This is a pure double-check to detect that this script needs changes.
+# ##################################################################################################
+
+CollectAndRemoveDuplicates( "ALIB_INCLUDE_FILES"  "duplicates" )
+LIST( LENGTH  duplicates  qtyDuplicates )
+
+
+
+IF( ${qtyDuplicates} GREATER  0  )
+    message( WARNING "Internal script error ALIBSources.cmake: "
+                     "DUPLICATE HEADER FILES FOUND.\nSee list below! "
+                     "(Processing continues with de-duplicated list)"          )
+    message( STATUS  "LIST OF DUPLICATE HEADER FILES:" )
+    LIST(SORT duplicates)
+    FOREACH( entry IN LISTS duplicates  )
+        message( STATUS "    ${entry}" )
+    ENDFOREACH()
+    message( STATUS  "(end of list)" )
+ENDIF()
+
+CollectAndRemoveDuplicates( "ALIB_SOURCE_FILES"  "duplicates" )
+LIST( LENGTH  duplicates  qtyDuplicates )
+IF( ${qtyDuplicates} GREATER  0  )
+    message( WARNING "Internal script error ALIBSources.cmake: "
+                     "DUPLICATE SOURCE FILES FOUND.\nSee list below! "
+                     "(Processing continues with de-duplicated list)"          )
+    message( STATUS  "LIST OF DUPLICATE SOURCE FILES:" )
+    LIST(SORT duplicates)
+    FOREACH( entry IN LISTS duplicates  )
+        message( STATUS "    ${entry}" )
+    ENDFOREACH()
+    message( STATUS  "(end of list)" )
+ENDIF()
+
+# ##################################################################################################
+# Check for ".hpp" in header files or ".cpp" in sources
+# ##################################################################################################
+FOREACH( entry IN LISTS ALIB_INCLUDE_FILES  )
+    IF( NOT ${entry} MATCHES "([.]inl$)|([.]hpp$)"  )
+        message( FATAL_ERROR  "Non-header file found in header file list: ${entry}" )
+    ENDIF()
+ENDFOREACH()
+
+FOREACH( entry IN LISTS ALIB_SOURCE_FILES  )
+    IF( NOT ${entry} MATCHES "([.]mm$)|([.]cpp$)"  )
+        message( FATAL_ERROR  "Non-source file found in source file list: ${entry}" )
+    ENDIF()
+ENDFOREACH()
+
+# ##################################################################################################
 # Copy sources if requested
-# #################################################################################################
-
+# ##################################################################################################
 if( ALIB_MODULE_SOURCE_COPY_DIR )
 
-    if( NOT IS_DIRECTORY ${ALIB_MODULE_SOURCE_COPY_DIR})
-        MESSAGE(FATAL_ERROR "Variable ALIB_MODULE_SOURCE_COPY_DIR=\"${ALIB_MODULE_SOURCE_COPY_DIR}\" is set but is not a valid directory. Stopping here!")
+    if( ${ALIB_MODULE_SOURCE_COPY_DIR} EQUAL ${ALIB_SOURCE_DIR})
+        MESSAGE(FATAL_ERROR "Variable ALIB_MODULE_SOURCE_COPY_DIR=\"${ALIB_MODULE_SOURCE_COPY_DIR}\" "
+                "is set and equals ALIB_SOURCE_DIR. This would delete origninal sources!")
     endif()
 
-    MESSAGE( STATUS "Copying source files of selected ALib modules to: ${ALIB_MODULE_SOURCE_COPY_DIR}")
+    # Add the build type to the directory name. Otherwise, if CMake was executed for different
+    # configurations in parallel, a clash of file copy/delete operations may happen.
+    if( NOT IS_DIRECTORY ${ALIB_MODULE_SOURCE_COPY_DIR})
+        MESSAGE(FATAL_ERROR "Variable ALIB_MODULE_SOURCE_COPY_DIR=\"${ALIB_MODULE_SOURCE_COPY_DIR}\" "
+                            "is set but is not a valid directory. Stopping here!"  )
+    endif()
 
-    string(LENGTH ${ALIB_SOURCE_DIR} _srcDirStrlen)
+    SET( ALIB_MODULE_SOURCE_COPY_DIR  "${ALIB_MODULE_SOURCE_COPY_DIR}/${CMAKE_BUILD_TYPE}" )
+
+    MESSAGE( STATUS "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    MESSAGE( STATUS "!!! ATTENTION: Copying sources.                             !!!")
+    MESSAGE( STATUS "!!!            Destination directory will be deleted, hence !!!")
+    MESSAGE( STATUS "!!!            CHANGES WILL BE LOST with next CMake run!    !!!")
+    MESSAGE( STATUS "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    MESSAGE( STATUS "Copying source files of selected ALib modules to: ’${ALIB_MODULE_SOURCE_COPY_DIR}’")
+
+    # delete destination directory
+    file( REMOVE_RECURSE ${ALIB_MODULE_SOURCE_COPY_DIR} )
 
     #### copy compilation units ####
-    foreach( _origFilePathName ${ALIB_SOURCE_FILES})
-        #MESSAGE("${_origFilePathName}")
-        string(SUBSTRING ${_origFilePathName} ${_srcDirStrlen} -1 _FileRelativePathName)
-        set(_newFilePathName "${ALIB_MODULE_SOURCE_COPY_DIR}${_FileRelativePathName}")
-        get_filename_component(_newFilePath ${_newFilePathName} DIRECTORY )
-        #MESSAGE("${_origFilePathName} ->${_newFilePath}")
+    foreach( fileName IN LISTS   ALIB_INCLUDE_FILES  ALIB_SOURCE_FILES  )
+        SET( destPath  "${ALIB_MODULE_SOURCE_COPY_DIR}/${fileName}" )
+        get_filename_component(destPath ${destPath} DIRECTORY )
 
-        file( COPY ${_origFilePathName} DESTINATION ${_newFilePath} )
-        list( APPEND _newlist   ${_newFilePathName} )
+
+        file( COPY   "${ALIB_SOURCE_DIR}/${fileName}"  DESTINATION  "${destPath}" )
     endforeach()
-
-    set( ALIB_SOURCE_FILES ${_newlist} )
-    unset( _newlist )
-
-    #### copy headers ####
-    foreach( _origFilePathName ${ALIB_INCLUDE_FILES})
-        #MESSAGE("${_origFilePathName}")
-        string(SUBSTRING ${_origFilePathName} ${_srcDirStrlen} -1 _FileRelativePathName)
-        set(_newFilePathName "${ALIB_MODULE_SOURCE_COPY_DIR}${_FileRelativePathName}")
-        get_filename_component(_newFilePath ${_newFilePathName} DIRECTORY )
-        #MESSAGE("${_origFilePathName} ->${_newFilePath}")
-
-        file( COPY ${_origFilePathName} DESTINATION ${_newFilePath} )
-        list( APPEND _newlist   ${_newFilePathName} )
-    endforeach()
-
-    set( ALIB_INCLUDE_FILES ${_newlist} )
 
     ### now also switch source base directories ###
     set( ALIB_SOURCE_DIR  ${ALIB_MODULE_SOURCE_COPY_DIR} )
-
 endif()
+
+# ##################################################################################################
+# Add base directory to files
+# ##################################################################################################
+SET( temp "" )
+foreach( fileName IN LISTS   ALIB_INCLUDE_FILES )
+    LIST( APPEND  temp "${ALIB_SOURCE_DIR}/${fileName}" )
+endforeach()
+SET( ALIB_INCLUDE_FILES ${temp} )
+
+SET( temp "" )
+foreach( fileName IN LISTS   ALIB_SOURCE_FILES )
+    LIST( APPEND  temp "${ALIB_SOURCE_DIR}/${fileName}" )
+endforeach()
+SET( ALIB_SOURCE_FILES  ${temp} )
+
