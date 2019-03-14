@@ -1,18 +1,22 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#   include "alib/expressions/detail/ast.hpp"
+#endif
 
-#include "alib/alib.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
+#   include "alib/expressions/compilerplugin.hpp"
+#endif
 
-#include "../compiler.hpp"
-#include "alib/expressions/compilerplugin.hpp"
-
-#include "program.hpp"
-#include "ast.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -25,11 +29,11 @@ namespace aworx { namespace lib { namespace expressions { namespace detail {
 //! @cond NO_DOX
 namespace {
 
-const String normSpace(ASTR(" "));
-const String normBracketOpen[4]  {ASTR("("), ASTR("( "), ASTR(" ("), ASTR(" ( ")};
-const String normBracketClose[4] {ASTR(")"), ASTR(" )"), ASTR(") "), ASTR(" ) ")};
+const String normSpace(A_CHAR(" "));
+const String normBracketOpen[4]  {A_CHAR("("), A_CHAR("( "), A_CHAR(" ("), A_CHAR(" ( ")};
+const String normBracketClose[4] {A_CHAR(")"), A_CHAR(" )"), A_CHAR(") "), A_CHAR(" ) ")};
 
-#define      SPACE(flag)          ( EnumContains(format, Normalization::flag ) ? normSpace : EmptyString )
+#define      SPACE(flag)          ( EnumContains(format, Normalization::flag ) ? normSpace : EmptyString() )
 #define COND_SPACE(flag, force) if( EnumContains(format, Normalization::flag ) || force ) normalized << ' '
 
 void checkForbiddenStrings( Compiler& compiler, AString& normalized, integer positionToCheck, integer spaceInsertionPos )
@@ -37,7 +41,7 @@ void checkForbiddenStrings( Compiler& compiler, AString& normalized, integer pos
     for( auto& it : compiler.CfgNormalizationDisallowed )
         if( it.Length() > spaceInsertionPos && normalized.ContainsAt( it, positionToCheck ) )
         {
-            normalized.InsertAt( ASTR(" "), positionToCheck + spaceInsertionPos );
+            normalized.InsertAt( A_CHAR(" "), positionToCheck + spaceInsertionPos );
             return;
         }
 }
@@ -89,14 +93,14 @@ AST* ASTUnaryOp::Optimize( Normalization normalization )
 
     if( EnumContains( normalization, Normalization::RemoveRedundantUnaryOpsOnNumberLiterals ) )
     {
-        if( Argument->NodeType == Types::Literal && (Operator == ASTR("+") || Operator == ASTR("-")) )
+        if( Argument->NodeType == Types::Literal && (Operator == A_CHAR("+") || Operator == A_CHAR("-")) )
         {
             ASTLiteral* astLiteral= dynamic_cast<ASTLiteral*>( Argument );
 
-            if( astLiteral->Value.IsType<boxed_int>() )
+            if( astLiteral->Value.IsType<integer>() )
             {
                 if( Operator.CharAtStart<false>() == '-'  )
-                    astLiteral->Value= - astLiteral->Value.Unbox<boxed_int>();
+                    astLiteral->Value= - astLiteral->Value.Unbox<integer>();
                 Argument= nullptr;
                 delete this;
                 return astLiteral;
@@ -126,9 +130,10 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
 {
     integer idxInNormalized= normalized.Length();
 
-    if( Value.HasInterface<IToLiteral>() )
+    auto* func= Value.GetFunction<FToLiteral>( Reach::Local );
+    if( func )
     {
-        Value.Invoke<IToLiteral,void,AString&>( normalized );
+        Value.CallDirect <FToLiteral>( func, normalized );
     }
     else if( Value.IsType<String>() )
     {
@@ -149,7 +154,7 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
         normalized <<   aworx::Format( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
         nf->ForceScientific=     oldState;
     }
-    else if( Value.IsType<boxed_int>() )
+    else if( Value.IsType<integer>() )
     {
         NFHint format= Format;
              if( EnumContains(program.compiler.CfgNormalization, Normalization::ForceHexadecimal ) )
@@ -160,7 +165,7 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
             format= NFHint::Binary;
 
         NumberFormat* nf   = &program.compiler.CfgFormatter->DefaultNumberFormat;
-        boxed_int     value= Value.Unbox<boxed_int>();
+        integer     value= Value.Unbox<integer>();
              if( format == NFHint::Hexadecimal )  normalized << nf->HexLiteralPrefix << aworx::Format::Hex(static_cast<uint64_t>(value), 0, nf );
         else if( format == NFHint::Octal       )  normalized << nf->OctLiteralPrefix << aworx::Format::Oct(static_cast<uint64_t>(value), 0, nf );
         else if( format == NFHint::Binary )       normalized << nf->BinLiteralPrefix << aworx::Format::Bin(static_cast<uint64_t>(value), 0, nf );
@@ -177,16 +182,13 @@ void ASTIdentifier::Assemble( Program& program, AString & normalized )
     auto format= program.compiler.CfgNormalization;
 
     String64 identifier;
-
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( identifier,  ReplaceExternalBuffer );
-    bool completeIdentifierNames= EnumContains( format,
-                                                Normalization::ReplaceFunctionNames );
+    identifier.DbgDisableBufferReplacementWarning();
     identifier << Name;
 
     // -1 indicates that not even parentheses were given
     program.AssembleFunction( identifier, -1, Position, normalized.Length() );
 
-    normalized << (completeIdentifierNames ? identifier : Name);
+    normalized << (EnumContains( format, Normalization::ReplaceFunctionNames ) ? identifier : Name);
 }
 
 
@@ -194,7 +196,7 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
 {
     auto format= program.compiler.CfgNormalization;
     String64 functionName;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( functionName,  ReplaceExternalBuffer );
+    functionName.DbgDisableBufferReplacementWarning();
 
     bool completeIdentifierNames= EnumContains( format, Normalization::ReplaceFunctionNames );
     functionName << Name;
@@ -207,12 +209,12 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
     // the function used for nested expressions?
     bool replacedNestedExpressionIdentifierByLiteral= false;
     bool thirdArgumentIsThrowIdentifier= false;
-    if( MatchFunctionName( program.compiler.CfgNestedExpressionFunction, Name ) )
+    if( program.compiler.CfgNestedExpressionFunction.Match( Name ) )
     {
         if( Arguments.size() < 1 ||  Arguments.size() > 3 )
         {
             throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
-                             program.compiler.CfgNestedExpressionFunction.Name );
+                             program.compiler.CfgNestedExpressionFunction );
         }
 
         // if an identifier is given for the first argument, we optionally convert the identifier
@@ -235,7 +237,7 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
                                              program.compiler.CfgNestedExpressionThrowIdentifier) )
             {
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
-                                 program.compiler.CfgNestedExpressionFunction.Name );
+                                 program.compiler.CfgNestedExpressionFunction );
             }
             thirdArgumentIsThrowIdentifier= true;
         }
@@ -255,7 +257,7 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
                 {
                     integer lenBeforeArgument= normalized.Length();
                     Arguments[i]->Assemble( program, normalized );
-                    normalized.SetLength<false>( lenBeforeArgument );
+                    normalized.ShortenTo( lenBeforeArgument );
                     normalized << dynamic_cast<ASTLiteral*>( Arguments[0] )->stringValue;
                     continue;
                 }
@@ -272,12 +274,12 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
     }
     else
         normalized  << (EnumContains(format, Normalization::FunctionInnerBracketSpaceIfNoArguments )
-                        ? ASTR("()") : ASTR("( )") );
+                        ? A_CHAR("()") : A_CHAR("( )") );
 
 
     program.AssembleFunction( functionName, static_cast<int>(Arguments.size()), Position, namePos );
     if( completeIdentifierNames )
-        normalized.ReplaceSubstring( functionName, namePos, nameLen );
+        normalized.ReplaceSubstring<false>( functionName, namePos, nameLen );
 }
 
 
@@ -324,7 +326,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
     normalized << ( brackets
                     ? normBracketOpen[   EnumContains(format, Normalization::UnaryOpInnerBracketSpace    )
                                        + EnumContains(format, Normalization::UnaryOpSpaceIfBracketFollows) * 2]
-                    : (opSpaceIfNotVerbal || isVerbalOp ) ? ASTR(" ") : ASTR("")
+                    : String( (opSpaceIfNotVerbal || isVerbalOp ) ? A_CHAR(" ") : A_CHAR("") )
                   );
 
     // recursion
@@ -335,7 +337,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
     if(    replacedNestedExpressionIdentifierByLiteral
         && !EnumContains(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
     {
-        normalized.SetLength<false>( lenBeforeArgument );
+        normalized.ShortenTo( lenBeforeArgument );
         normalized << dynamic_cast<ASTLiteral*>( Argument )->stringValue;
     }
 
@@ -351,7 +353,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
         {
             // replace in any case: class program would have changed the op only if the corresponding
             // flags had been set:
-            normalized.ReplaceSubstring( op, opIdx, opLen );
+            normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
 
             // we have to check only two of four format flags here, the rest was is (was) done in program
@@ -360,8 +362,8 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
                 != Normalization::NONE)
                 for( integer i= opIdx ; i < opIdx + opLen ; ++i )
                     normalized[i] = EnumContains(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
-                                    ? static_cast<char>( tolower(normalized[i] ) )
-                                    : static_cast<char>( toupper(normalized[i] ) );
+                                    ? static_cast<character>( tolower( static_cast<int>(normalized[i]) ) )
+                                    : static_cast<character>( toupper( static_cast<int>(normalized[i]) ) );
 
             // remove space that was inserted for non-verbal op, if op is now symbolic
             if( !opSpaceIfNotVerbal && !isalpha(op.CharAtStart() ) )
@@ -371,7 +373,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
 
         else if( EnumContains(format, Normalization::ReplaceAliasOperators ) )
         {
-            normalized.ReplaceSubstring( op, opIdx, opLen );
+            normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
         }
     }
@@ -389,7 +391,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
     String op=    Operator;
 
     //----------- Special treatment for subscript operator (needs different normalization) ---------
-    if( op == ASTR("[]") )
+    if( op == A_CHAR("[]") )
     {
         // LHS recursion
         Lhs->Assemble( program, normalized );
@@ -488,7 +490,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
         {
             // replace in any case: class program would have changed the op only if the corresponding
             // flags had been set:
-            normalized.ReplaceSubstring( op, opIdx, opLen );
+            normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
 
             // we have to check only two of four format flags here, the rest was is (was) done in program
@@ -497,8 +499,8 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
                 != Normalization::NONE)
                 for( integer i= opIdx ; i < opIdx + opLen ; ++i )
                     normalized[i] = EnumContains(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
-                                    ? static_cast<char>( tolower(normalized[i] ) )
-                                    : static_cast<char>( toupper(normalized[i] ) );
+                                    ? static_cast<character>( tolower(static_cast<int>(normalized[i]) ) )
+                                    : static_cast<character>( toupper(static_cast<int>(normalized[i]) ) );
 
             // remove operator spaces if they were inserted for non-verbal op, if op is now symbolic
             if( !EnumContains(format, Normalization::BinaryOpSpaces) && !isalpha(op.CharAtStart() ) )
@@ -511,7 +513,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 
         else if( EnumContains(format, Normalization::ReplaceAliasOperators ) )
         {
-            normalized.ReplaceSubstring( op, opIdx, opLen );
+            normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
         }
     }
@@ -534,7 +536,7 @@ void ASTConditional::Assemble( Program& program, AString & normalized )
     Q->Assemble( program, normalized );
     normalized << SPACE(ConditionalOpSpaceBeforeQM);
     program.AssembleCondFinalize_Q( Position, normalized.Length() );
-    normalized << ASTR("?") << SPACE(ConditionalOpSpaceAfterQM);
+    normalized << A_CHAR("?") << SPACE(ConditionalOpSpaceAfterQM);
 
     // T
     integer idxInNormalized= normalized.Length();

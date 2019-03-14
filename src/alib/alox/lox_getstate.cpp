@@ -1,33 +1,31 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_ALOX)
     #include "alib/alox/alox.hpp"
 #endif
 
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
 #if !defined (HPP_ALIB_TIME_TICKSCONVERTER)
-    #include "alib/time/ticksconverter.hpp"
-#endif
-#if !defined (HPP_ALIB_TIME_CALENDAR)
-    #include "alib/time/calendar.hpp"
-#endif
-#if !defined (HPP_ALOX_CORE_SCOPEDUMP)
-    #include "core/scopedump.hpp"
-#endif
-#if !defined (HPP_ALIB_CONTAINERS_STRINGTREE)
-    #include "alib/containers/stringtree.hpp"
+    #include "alib/time/tickconverter.hpp"
 #endif
 
-#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
-    #include <algorithm>
+#if !defined (HPP_ALIB_SYSTEM_CALENDAR)
+    #include "alib/system/calendar.hpp"
+#endif
+
+#if !defined (HPP_ALOX_CORE_SCOPEDUMP)
+    #define HPP_ALIB_LOX_PROPPERINCLUDE
+    #   include "alib/alox/detail/scopedump.inl"
+    #undef HPP_ALIB_LOX_PROPPERINCLUDE
+#endif
+
+#if !defined (HPP_ALIB_LIB_COMMONENUMS_RESOURCED)
+    #include "alib/lib/commonenumsresourced.hpp"
 #endif
 
 // For code compatibility with ALox Java/C++
@@ -45,16 +43,15 @@
 #endif
 
 
-using namespace std;
 
 namespace aworx { namespace lib { namespace lox {
 
-using namespace core;
+using namespace detail;
 
 
 //! @cond NO_DOX
-void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, AString& buf );
-void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, AString& buf )
+void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAString& buf );
+void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, NAString& buf )
 {
     integer reference= buf.Length();
     buf._("  "); domain.ToString( buf );
@@ -67,8 +64,8 @@ void getStateDomainRecursive( Domain& domain, integer maxDomainPathLength, AStri
         getStateDomainRecursive( *subDomain, maxDomainPathLength, buf );
 }
 
-void getStateDomainsWithDiffVerb( Domain* dom, int loggerNo, vector<Domain*>& results );
-void getStateDomainsWithDiffVerb( Domain* dom, int loggerNo, vector<Domain*>& results )
+void getStateDomainsWithDiffVerb( Domain* dom, int loggerNo, std::vector<Domain*>& results );
+void getStateDomainsWithDiffVerb( Domain* dom, int loggerNo, std::vector<Domain*>& results )
 {
     if (    dom->Parent == nullptr
         ||  dom->Parent->GetVerbosity(loggerNo) != dom->GetVerbosity(loggerNo) )
@@ -78,74 +75,69 @@ void getStateDomainsWithDiffVerb( Domain* dom, int loggerNo, vector<Domain*>& re
         getStateDomainsWithDiffVerb( it, loggerNo, results );
 }
 
-void getStateCollectPrefixes( Domain* dom, integer indentSpaces, AString& target );
-void getStateCollectPrefixes( Domain* dom, integer indentSpaces, AString& target )
+void getStateCollectPrefixes( Domain* dom, integer indentSpaces, NAString& target );
+void getStateCollectPrefixes( Domain* dom, integer indentSpaces, NAString& target )
 {
+    AString buffer;
     for ( auto& pfl : dom->PrefixLogables )
     {
-        target.InsertChars( ' ', indentSpaces );
-        target << '"';
-        integer actLen= target.Length();
-        target._( static_cast<Box*>(pfl.first) );
-        ESC::ReplaceToReadable( target, actLen );
-        target << Format::Escape( Switch::On, actLen );
-        target << '"';
+        buffer.InsertChars( ' ', indentSpaces );
+        buffer << '"';
+        integer actLen= buffer.Length();
+        buffer._( *static_cast<Box*>(pfl.first) );
+        ESC::ReplaceToReadable( buffer, actLen );
+        buffer << Format::Escape( Switch::On, actLen );
+        buffer << '"';
         if ( pfl.second == Inclusion::Exclude )
-            target._NC( ASTR(" (Excl.)") );
-        target._NC( Format::Tab( 25, -1 ) );
-        target._NC( ASTR("<domain>           [") )._NC( dom->FullPath )._NC(']').NewLine();
+            buffer._NC( " (Excl.)" );
+        buffer._NC( Format::Tab( 25, -1 ) );
+        buffer._NC( "<domain>           [" )._NC( dom->FullPath )._NC(']').NewLine();
     }
+    target << buffer;
 
     for( auto* it : dom->SubDomains )
         getStateCollectPrefixes( it, indentSpaces, target );
 }
 //! @endcond
 
-void Lox::GetState( AString& buf, StateInfo flags )
+void Lox::GetState( NAString& buf, StateInfo flags )
 {
     ALIB_ASSERT_ERROR ( Lock.GetSafeness() == Safeness::Unsafe || Lock.CountAcquirements() > 0,
-                        ASTR("Lox not acquired") );
+                        "Lox not acquired" )
 
 
-    ScopeDump scopeDump( threadDictionary, noKeyHashKey, buf );
+    ScopeDump scopeDump( scopeInfo.threadDictionary, noKeyHashKey, buf );
 
     if ( EnumContains( flags, StateInfo::CompilationFlags ) )
     {
-        buf._NC( ASTR("ALib Version:      ") )._NC( lib::ALIB.Version)._NC(ASTR(" (Rev. "))._( lib::ALIB.Revision)._(')').NewLine();
-        buf._NC( ASTR("ALib compilation symbols:") ).NewLine();
+        buf._NC( "ALib Version:      " )._NC( ALIB.Version)
+           ._NC(" (Rev. ")                ._( ALIB.Revision)._(')').NewLine();
+        buf._NC( "ALib compilation symbols:" ).NewLine();
         {
-            for( auto& p : lib::ALIB.CompilationFlagMeanings )
+            for( auto& p : ALIB.CompilationFlagMeanings )
             {
-                buf << ASTR("  ") << Format::Field( p.first, 28, Alignment::Left ) << ':'
-                    << (lib::ALIB.CompilationFlags & p.second  ? ASTR(" On") : ASTR(" Off"))
-                    << NewLine;
+                buf << "  " << NFormat::Field( p.first, 41, Alignment::Left ) << ':'
+                    << (ALIB.CompilationFlags & p.second  ? " On" : " Off")
+                    << NewLine();
             }
         }
 
-        buf._NC( ASTR("ALox compilation symbols:") ).NewLine();
-        {
-            for( auto& p : lib::ALOX.CompilationFlagMeanings )
-            {
-                buf << ASTR("  ") << Format::Field( p.first, 28, Alignment::Left ) << ':'
-                    << (lib::ALOX.CompilationFlags & p.second  ? ASTR(" On") : ASTR(" Off"))
-                    << NewLine;
-            }
-        }
         buf.NewLine();
     }
 
     // basic lox info
     if( EnumContains( flags,  StateInfo::Basic ) )
-        buf._NC( ASTR("Name:            \"" ))._( scopeInfo.GetLoxName() )._('\"').NewLine();
+        buf._NC( "Name:            \"" )._( scopeInfo.GetLoxName() )._('\"').NewLine();
 
     if( EnumContains( flags,  StateInfo::Version ) )
     {
-        buf._NC( ASTR("Version:         ") )._NC( ALOX.Version)._NC(ASTR(" (Rev. "))._( ALOX.Revision)._(')').NewLine();
-        buf._NC( ASTR("Thread Safeness: ") )._NC( Lock.GetSafeness() ).NewLine();
+        buf._NC( "Version:         " )._NC( ALOX.Version)
+           ._NC(" (Rev. "            )._(   ALOX.Revision)._(')').NewLine();
+        buf._NC( "Thread Safeness: " )._NC( Lock.GetSafeness() ).NewLine();
     }
 
     if( EnumContains( flags,  StateInfo::Basic ) )
-        buf._NC( ASTR("#Log Calls:      ") )._NC( CntLogCalls     ).NewLine();
+        buf._NC( "#Log Calls:      " )._NC( CntLogCalls     ).NewLine();
 
     if(    EnumContains( flags,  StateInfo::Basic )
         || EnumContains( flags,  StateInfo::Version )  )
@@ -154,7 +146,7 @@ void Lox::GetState( AString& buf, StateInfo flags )
     //  source path trim info
     if( EnumContains( flags,  StateInfo::SPTR ) )
     {
-        buf._NC( ASTR("Source Path Trimming Rules: ") ).NewLine();
+        buf._NC( "Source Path Trimming Rules: " ).NewLine();
 
         int cnt= 0;
         // do 2 times, 0== global list, 1 == local list
@@ -170,28 +162,28 @@ void Lox::GetState( AString& buf, StateInfo flags )
             for ( auto& ti : *trimInfoList )
             {
                 cnt++;
-                buf._NC( trimInfoNo == 0 ? ASTR("  Global: ")
-                                         : ASTR("  Local:  ") );
-                buf._NC( ti.IsPrefix ?  ASTR("\"") : ASTR("\"*"));
-                buf._NC( ti.Path )._NC( ASTR("\", ") );
+                buf._NC( trimInfoNo == 0 ? "  Global: "
+                                         : "  Local:  " );
+                buf._NC( ti.IsPrefix ?  "\"" : "\"*");
+                buf._NC( ti.Path )._NC( "\", " );
                 buf._NC( ti.IncludeString );
                 if ( ti.TrimOffset != 0 )
-                    buf._NC( ti.Path )._NC( ASTR("\", Offset: ") )._NC( ti.TrimOffset );
-                buf._NC( ASTR(", Priority: ") )._( ti.Priority );
+                    buf._NC( ti.Path )._NC( "\", Offset: " )._NC( ti.TrimOffset );
+                buf._NC( ", Priority: " )._( ti.Priority );
                 buf.NewLine();
             }
         }
 
 
         if ( cnt == 0 )
-            buf._NC(ASTR("  <no rules set>") ).NewLine();
+            buf._NC("  <no rules set>" ).NewLine();
         buf.NewLine();
     }
 
     //  domain substitutions
     if( EnumContains( flags,  StateInfo::DSR ) )
     {
-        buf._NC( ASTR("Domain Substitution Rules: ") ).NewLine();
+        buf._NC( "Domain Substitution Rules: " ).NewLine();
         if( domainSubstitutions.size() > 0 )
         {
             // get size
@@ -204,7 +196,7 @@ void Lox::GetState( AString& buf, StateInfo flags )
             // write
             for ( auto& it : domainSubstitutions )
             {
-                buf._NC( ASTR("  ") );
+                buf._NC( "  " );
                 if (    it.type == DomainSubstitutionRule::Type::EndsWith
                      || it.type == DomainSubstitutionRule::Type::Substring )
                     buf._NC( '*' );
@@ -214,57 +206,57 @@ void Lox::GetState( AString& buf, StateInfo flags )
                      || it.type == DomainSubstitutionRule::Type::Substring )
                     buf._NC( '*' );
 
-                buf._NC( Format::Tab( maxWidth, -1, 0 ) )
-                   ._NC( ASTR(" -> ") )
+                buf._NC( NFormat::Tab( maxWidth, -1, 0 ) )
+                   ._NC( " -> " )
                    ._NC( it.Replacement );
                 buf.NewLine();
             }
         }
         else
-            buf._NC(ASTR("  <no rules set>") ).NewLine();
+            buf._NC("  <no rules set>" ).NewLine();
         buf.NewLine();
     }
 
     // Log Once Counters
     if( EnumContains( flags,  StateInfo::Once ) )
     {
-        buf._NC( ASTR("Once() Counters: ") ).NewLine();
+        buf._NC( "Once() Counters: " ).NewLine();
         if ( scopeDump.writeStoreMap( &scopeLogOnce ) == 0 )
-            buf._NC(ASTR("  <no Once() counters set>") ).NewLine();
+            buf._NC("  <no Once() counters set>" ).NewLine();
         buf.NewLine();
     }
 
     // Log Data
     if( EnumContains( flags,  StateInfo::LogData ) )
     {
-        buf._NC( ASTR("Log Data: ") ).NewLine();
+        buf._NC( "Log Data: " ).NewLine();
         if ( scopeDump.writeStoreMap( &scopeLogData ) == 0 )
-            buf._NC(ASTR("  <no data objects stored>") ).NewLine();
+            buf._NC("  <no data objects stored>" ).NewLine();
         buf.NewLine();
     }
 
     // Prefix Logables
     if( EnumContains( flags,  StateInfo::PrefixLogables ) )
     {
-        buf._NC( ASTR("Prefix Logables: ") ).NewLine();
+        buf._NC( "Prefix Logables: " ).NewLine();
         integer oldLength= buf.Length();
         scopeDump.writeStore( &scopePrefixes, 2 );
         getStateCollectPrefixes( &domains, 2, buf );
         if ( oldLength == buf.Length() )
-            buf._NC(ASTR("  <no prefix logables set>") ).NewLine();
+            buf._NC("  <no prefix logables set>" ).NewLine();
         buf.NewLine();
     }
 
     // thread mappings
     if( EnumContains( flags,  StateInfo::ThreadMappings ) )
     {
-        buf._NC( ASTR("Named Threads:   ") ).NewLine();
-        if ( threadDictionary.size() == 0 )
-            buf._NC(ASTR("  <no thread name mappings set>") ).NewLine();
+        buf._NC( "Named Threads:   " ).NewLine();
+        if ( scopeInfo.threadDictionary.size() == 0 )
+            buf._NC("  <no thread name mappings set>" ).NewLine();
         else
-            for ( auto& pair : threadDictionary )
+            for ( auto& pair : scopeInfo.threadDictionary )
             {
-                buf._NC( ASTR("  ") ) << Format::Field( String32() << '(' << pair.first << ASTR("):"), 7, Alignment::Left )
+                buf._NC( "  " ) << NFormat::Field( String32() << '(' << pair.first << "):", 7, Alignment::Left )
                                 << '\"' << pair.second << '\"';
                 buf.NewLine();
             }
@@ -274,17 +266,17 @@ void Lox::GetState( AString& buf, StateInfo flags )
     // Scope Domains
     if( EnumContains( flags,  StateInfo::ScopeDomains ) )
     {
-        buf._NC( ASTR("Scope Domains: ") ).NewLine();
+        buf._NC( "Scope Domains: " ).NewLine();
         if ( scopeDump.writeStore( &scopeDomains, 2 ) == 0 )
-            buf._NC(ASTR("  <no scope domains set>") ).NewLine();
+            buf._NC("  <no scope domains set>" ).NewLine();
         buf.NewLine();
     }
 
     // Loggers
     if( EnumContains( flags,  StateInfo::Loggers ) )
     {
-        TicksConverter dateTimeConverter;
-        vector<Domain*> domainsWithDiffVerb;
+        TickConverter dateTimeConverter;
+        std::vector<Domain*> domainsWithDiffVerb;
         for (int treeNo= 0; treeNo < 2; ++treeNo )
         {
             int cnt= 0;
@@ -292,12 +284,12 @@ void Lox::GetState( AString& buf, StateInfo flags )
             if( treeNo==0 )
             {
                  domTree= &domains;
-                 buf._NC( ASTR("Loggers:") ).NewLine();
+                 buf._NC( "Loggers:" ).NewLine();
             }
             else
             {
                  domTree= &internalDomains;
-                 buf._NC( ASTR("Loggers on Internal Domains:") ).NewLine();
+                 buf._NC( "Loggers on Internal Domains:" ).NewLine();
             }
 
             for ( int loggerNo= 0; loggerNo< domTree->CountLoggers(); loggerNo++ )
@@ -307,32 +299,32 @@ void Lox::GetState( AString& buf, StateInfo flags )
                 CalendarDateTime ct(Initialization::Suppress);
 
                 Logger* logger= domTree->GetLogger(loggerNo);
-                buf._NC( ASTR("  ")  )._NC( logger  ).NewLine();
-                buf._NC( ASTR("    Lines logged:  ")     )._NC( logger->CntLogs                                   ).NewLine();
+                buf._NC( "  "  )._NC( *logger  ).NewLine();
+                buf._NC( "    Lines logged:  "     )._NC( logger->CntLogs                                   ).NewLine();
 
                 ct.Set( dateTimeConverter.ToDateTime(logger->TimeOfCreation) );
-                buf._NC( ASTR("    Creation time: ")     )._NC( ct.Format( ASTR("yyyy-MM-dd HH:mm:ss"), as64._()) ).NewLine();
+                buf._NC( "    Creation time: "     )._NC( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
 
                 ct.Set( dateTimeConverter.ToDateTime(logger->TimeOfLastLog) );
-                buf._NC( ASTR("    Last log time: ")     )._NC( ct.Format( ASTR("yyyy-MM-dd HH:mm:ss"), as64._()) ).NewLine();
+                buf._NC( "    Last log time: "     )._NC( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
 
                 domainsWithDiffVerb.clear();
                 getStateDomainsWithDiffVerb( domTree, loggerNo, domainsWithDiffVerb);
                 for ( Domain* dom : domainsWithDiffVerb )
                 {
-                    buf._NC( ASTR("    ") )
-                       ._(  dom == *domainsWithDiffVerb.begin() ? ASTR("Verbosities:   ")
-                                                                : ASTR("               ") );
+                    buf._NC("    ")
+                       ._(  dom == *domainsWithDiffVerb.begin() ? "Verbosities:   "
+                                                                : "               " );
 
                     integer tabRef= buf.Length();
-                    buf << dom->FullPath << Format::Tab( maxDomainPathLength +1, tabRef);
+                    buf << dom->FullPath << NFormat::Tab( maxDomainPathLength +1, tabRef);
 
-                    buf << ASTR("= ") << std::make_pair(dom->GetVerbosity( loggerNo ), dom->GetPriority(loggerNo) )
-                        << NewLine;
+                    buf << "= " << std::make_pair(dom->GetVerbosity( loggerNo ), dom->GetPriority(loggerNo) )
+                        << NewLine();
                 }
             }
             if ( cnt == 0 )
-                buf._NC(ASTR("  <no loggers attached>") ).NewLine();
+                buf._NC("  <no loggers attached>" ).NewLine();
             buf.NewLine();
         }
     }
@@ -340,7 +332,7 @@ void Lox::GetState( AString& buf, StateInfo flags )
     // Internal Domains
     if( EnumContains( flags,  StateInfo::InternalDomains ) )
     {
-        buf._NC( ASTR("Internal Domains:") ).NewLine();
+        buf._NC( "Internal Domains:" ).NewLine();
         getStateDomainRecursive( internalDomains, maxDomainPathLength, buf );
         buf.NewLine();
     }
@@ -348,7 +340,7 @@ void Lox::GetState( AString& buf, StateInfo flags )
     // Domains
     if( EnumContains( flags,  StateInfo::Domains ) )
     {
-        buf._NC( ASTR("Domains:") ).NewLine();
+        buf._NC( "Domains:" ).NewLine();
         getStateDomainRecursive( domains,  maxDomainPathLength,  buf );
         buf.NewLine();
     }

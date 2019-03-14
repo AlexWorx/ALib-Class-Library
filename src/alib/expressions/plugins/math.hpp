@@ -1,15 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_MATH
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_MATH
 
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#   include "../plugins/calculus.hpp"
+#   include "alib/expressions/plugins/calculus.hpp"
 #endif
 
 
@@ -20,8 +19,8 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * All identifier and function names are defined case insensitive and can \e not be abbreviated with
  * the exclamation of
- * \b remainder (abbreviatable up to \b rem) and
- * \b random (abbreviatable up to \b rand).
+ * \b remainder (shortenable up to \b remain) and
+ * \b random (shortenable up to \b rand).
  *
  * <b>Constants:</b><br>
  *

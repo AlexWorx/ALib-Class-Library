@@ -1,20 +1,30 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
+#   include "alib/expressions/plugins/strings.hpp"
+#endif
 
-#include "alib/alib.hpp"
-#include "alib/strings/substring.hpp"
-#include "alib/strings/util/wildcardmatcher.hpp"
-#include "alib/strings/util/regexmatcher.hpp"
-#include "alib/strings/util/tokenizer.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_SCOPESTRING)
+#   include "alib/expressions/plugins/scopestring.hpp"
+#endif
 
-#include "strings.hpp"
-#include "scopestring.hpp"
-#include "../compiler.hpp"
+#if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
+#   include "alib/strings/util/wildcardmatcher.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
+#   include "alib/strings/util/regexmatcher.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#   include "alib/strings/util/tokenizer.hpp"
+#endif
 
 
 #if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
@@ -29,10 +39,10 @@
 #define ARG1           (*(args+1))
 #define ARG2           (*(args+2))
 #define BOL(box)       (box).Unbox<bool     >()
-#define INT(box)       (box).Unbox<boxed_int>()
+#define INT(box)       (box).Unbox<integer>()
 #define FLT(box)       (box).Unbox<double   >()
 #define STR(box)       (box).Unbox<String   >()
-#define LEN(box)       (box).Length()
+#define LEN(box)       (box).UnboxLength()
 #define CPY(str,size)  ScopeString( scope, STR(str), size)
 #define WRT(box,size)  ScopeString( scope, size, box)
 #define EMP(size )     ScopeString( scope, size)
@@ -41,6 +51,12 @@
                                   ArgIterator  args,                                              \
                                   ArgIterator  end    )                                           \
                                   { (void) scope; (void) args; (void) end; __VA_ARGS__ }
+#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#   define TOINT(arg) static_cast<integer>(arg)
+#else
+#   define TOINT(arg)                      arg
+#endif
+
 
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
 
@@ -50,11 +66,11 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
 Box CBToString( Scope& scope, ArgIterator  args, ArgIterator end)
 {
     String256 tmp;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( tmp, ReplaceExternalBuffer )
+    tmp.DbgDisableBufferReplacementWarning();
     while( args < end )
     {
         Box& arg= *args;
-             if( arg.IsType<boxed_int>() ) tmp << Format( INT(arg), &scope.Formatter->DefaultNumberFormat);
+             if( arg.IsType<integer>() ) tmp << Format( INT(arg), &scope.Formatter->DefaultNumberFormat);
         else if( arg.IsType<double   >() ) tmp << Format( FLT(arg), &scope.Formatter->DefaultNumberFormat);
         else                               tmp << arg;
 
@@ -70,12 +86,12 @@ Box CBToString( Scope& scope, ArgIterator  args, ArgIterator end)
 Box CBFormat( Scope& scope, ArgIterator  args, ArgIterator end)
 {
     String256 buf;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( buf, ReplaceExternalBuffer )
+    buf.DbgDisableBufferReplacementWarning();
     Boxes fmtArgs;
     fmtArgs.reserve( static_cast<size_t>( end - args ) );
     while( args != end)
         fmtArgs.Add( *args++ );
-    scope.Formatter->Format( buf, fmtArgs );
+    scope.Formatter->FormatArgs( buf, fmtArgs );
     return ScopeString( scope, buf, 0 );
 }
 
@@ -93,19 +109,6 @@ Box constNL;
 // ### String functions
 // #################################################################################################
 
-// Parameter signatures
-std::vector<Box>  SIG_S;
-std::vector<Box>  SIG_I;
-std::vector<Box>  SIG_II;
-std::vector<Box>  SIG_V;
-std::vector<Box>  SIG_SS;
-std::vector<Box>  SIG_SV;
-std::vector<Box>  SIG_SSB;
-std::vector<Box>  SIG_SSI;
-std::vector<Box>  SIG_SSS;
-std::vector<Box>  SIG_SI;
-std::vector<Box>  SIG_SII;
-
 FUNC(toUpper    ,   return CPY(ARG0, 0).ToUpper(); )
 FUNC(toLower    ,   return CPY(ARG0, 0).ToLower(); )
 FUNC(startsWith ,   return             STR(ARG0).StartsWith<true,Case::Sensitive>( STR(ARG1) ); )
@@ -121,12 +124,12 @@ FUNC(idxof      ,   String needle= STR(ARG1); return needle.Length() == 1 ? STR(
 FUNC(count      ,   String needle= STR(ARG1); return needle.Length() == 1 ? STR(ARG0).CountChar       ( needle[0]    )
                                                                           : STR(ARG0).Count           ( needle   , 0 ); )
 
-FUNC(trim       ,                                               return Substring(STR(ARG0)).Trim     (  ); )
-FUNC(trim2      ,   String256 ws(STR(ARG1)); ws.Terminate();    return Substring(STR(ARG0)).Trim     (ws); )
-FUNC(trimStart  ,                                               return Substring(STR(ARG0)).TrimStart(  ); )
-FUNC(trimStart2 ,   String256 ws(STR(ARG1)); ws.Terminate();    return Substring(STR(ARG0)).TrimStart(ws); )
-FUNC(trimEnd    ,                                               return Substring(STR(ARG0)).TrimEnd  (  ); )
-FUNC(trimEnd2   ,   String256 ws(STR(ARG1)); ws.Terminate();    return Substring(STR(ARG0)).TrimEnd  (ws); )
+FUNC(trim       ,                              return Substring(STR(ARG0)).Trim     (  ); )
+FUNC(trim2      ,   String256 ws(STR(ARG1));   return Substring(STR(ARG0)).Trim     (ws); )
+FUNC(trimStart  ,                              return Substring(STR(ARG0)).TrimStart(  ); )
+FUNC(trimStart2 ,   String256 ws(STR(ARG1));   return Substring(STR(ARG0)).TrimStart(ws); )
+FUNC(trimEnd    ,                              return Substring(STR(ARG0)).TrimEnd  (  ); )
+FUNC(trimEnd2   ,   String256 ws(STR(ARG1));   return Substring(STR(ARG0)).TrimEnd  (ws); )
 
 FUNC(parsei     ,   integer result; Substring(STR(ARG0)).ConsumeInt  (result, &scope.Formatter->DefaultNumberFormat); return result; )
 FUNC(parsef     ,   double  result; Substring(STR(ARG0)).ConsumeFloat(result, &scope.Formatter->DefaultNumberFormat); return result; )
@@ -168,13 +171,10 @@ Box replace( Scope& scope, ArgIterator  args, ArgIterator )
     }
 
     // replace string with char or string
-    String128 tNeedle;
     String256 buf;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( tNeedle, ReplaceExternalBuffer )
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( buf    , ReplaceExternalBuffer )
-    tNeedle << needle;
+    buf.DbgDisableBufferReplacementWarning();
     buf << src;
-    buf.SearchAndReplace( tNeedle, replacement, 0 );
+    buf.SearchAndReplace( needle, replacement, 0 );
     return ScopeString( scope, buf, 0 );
 }
 
@@ -182,7 +182,7 @@ Box repeat( Scope& scope, ArgIterator  args, ArgIterator )
 {
     String src        = STR(ARG0);
     String256 buf;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( buf    , ReplaceExternalBuffer )
+    buf.DbgDisableBufferReplacementWarning();
     for( auto i= INT(ARG1) ; i > 0  ; --i )
         buf << src;
     return ScopeString( scope, buf, 0 );
@@ -196,9 +196,9 @@ FUNC(boolNot,   return LEN(ARG0) == 0;         )
 
 constexpr Calculus::UnaryOpTableEntry        unaryTable[] =
 {
-    { ASTR("!") , Types::String, CALCULUS_CALLBACK( boolNot ), Types::Boolean , Calculus::CTI },
-    { ASTR("+") , Types::String, CALCULUS_CALLBACK( toUpper ), Types::String  , Calculus::CTI },
-    { ASTR("-") , Types::String, CALCULUS_CALLBACK( toLower ), Types::String  , Calculus::CTI },
+    { A_CHAR("!") , Types::String, CALCULUS_CALLBACK( boolNot ), Types::Boolean , Calculus::CTI },
+    { A_CHAR("+") , Types::String, CALCULUS_CALLBACK( toUpper ), Types::String  , Calculus::CTI },
+    { A_CHAR("-") , Types::String, CALCULUS_CALLBACK( toLower ), Types::String  , Calculus::CTI },
 };
 
 
@@ -215,12 +215,12 @@ FUNC(add_FS, return EMP(LEN(ARG1) + 48      ) << Format( FLT(ARG0), &scope.Forma
 FUNC(add_SS, return CPY(ARG0, LEN(ARG1)) << STR(ARG1); )
 FUNC(add_SX,
     String256 tmp;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( tmp, ReplaceExternalBuffer )
+    tmp.DbgDisableBufferReplacementWarning();
     tmp << ARG1;
     return CPY(ARG0, tmp.Length()  ) << tmp;
 )
 
-FUNC(add_XS,  return WRT( ARG0, ARG1.Length()  ) << ARG1; )
+FUNC(add_XS,  return WRT( ARG0, ARG1.UnboxLength()  ) << ARG1; )
 
 
 FUNC(     sm, return  STR(ARG0)   <   ( STR(ARG1) ); )
@@ -232,14 +232,14 @@ FUNC(    neq, return !STR(ARG0).Equals( STR(ARG1) ); )
 
 FUNC(    arr, return  STR(ARG0).Substring( INT(ARG1), 1); )
 
-FUNC( compSS, return              STR(ARG0).CompareTo<true,Case::Sensitive>( STR(ARG1) ); )
-FUNC(compSSB, return  BOL(ARG2) ? STR(ARG0).CompareTo<true,Case::Ignore   >( STR(ARG1) )
-                                : STR(ARG0).CompareTo<true,Case::Sensitive>( STR(ARG1) ); )
+FUNC( compSS, return TOINT(             STR(ARG0).CompareTo<true ALIB_COMMA Case::Sensitive>( STR(ARG1) ) ); )
+FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<true ALIB_COMMA Case::Ignore   >( STR(ARG1) )
+                                      : STR(ARG0).CompareTo<true ALIB_COMMA Case::Sensitive>( STR(ARG1) ) ); )
 
 // #################################################################################################
 // ### Strings - Wildcard matching
 // #################################################################################################
-//! [DOX_ALIB_EXPR_CTRES_1]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_1])
 struct ScopeWildcardMatcher : public ScopeResource
 {
     // the matcher object
@@ -248,9 +248,9 @@ struct ScopeWildcardMatcher : public ScopeResource
     // virtual destructor, implicitly deletes the matcher.
     virtual ~ScopeWildcardMatcher()  {}
 };
-//! [DOX_ALIB_EXPR_CTRES_1]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_1])
 
-//! [DOX_ALIB_EXPR_CTRES_6]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_6])
 Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
 {
     String haystack= STR(ARG0);
@@ -261,8 +261,8 @@ Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
     if( !scope.IsCompileTime() )
     {
         // Search for resource named "_wc"+ pattern.
-        String128 keyString(ASTR("_wc"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        NString128 keyString("_wc");
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
         auto storedMatcher=  scope.CTScope->NamedResources.find( keyString );
         if( storedMatcher != scope.CTScope->NamedResources.end() )
@@ -271,16 +271,16 @@ Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
             return matcher->matcher.Match( haystack, sensitivity );
         }
     }
-//! [DOX_ALIB_EXPR_CTRES_6]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_6])
 
-//! [DOX_ALIB_EXPR_CTRES_7]
-    // This is either compile time or the pattern string is not constant
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_7])
+    // This is either compile-time or the pattern string is not constant
     {
         WildcardMatcher matcher( pattern );
         return matcher.Match( haystack, sensitivity );
     }
 }
-//! [DOX_ALIB_EXPR_CTRES_7]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_7])
 
 // #################################################################################################
 // ### Strings - Regex matching
@@ -303,8 +303,8 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
     if( !scope.IsCompileTime() )
     {
         // Search for resource named  "_wc"+ pattern.
-        String128 keyString(ASTR("_re"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        String128 keyString(A_CHAR("_re"));
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
         auto storedMatcher=  scope.CTScope->NamedResources.find( keyString );
         if( storedMatcher != scope.CTScope->NamedResources.end() )
@@ -314,7 +314,7 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
         }
     }
 
-    // This is either compile time or the pattern string is not constant
+    // This is either compile-time or the pattern string is not constant
     {
         RegexMatcher matcher( pattern  );
         return matcher.Match( haystack );
@@ -325,24 +325,24 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
 // #################################################################################################
 // ### Strings - Tables
 // #################################################################################################
-constexpr Calculus::BinaryOpTableEntry  binaryOpTable[] =
+constexpr Calculus::BinaryOpTableEntry  binaryOpTableStrings[] =
 {
-    { ASTR("+") , Types::String , Types::String , CALCULUS_CALLBACK(add_SS), Types::String , Calculus::CTI},
-    { ASTR("+") , Types::String , Types::Integer, CALCULUS_CALLBACK(add_SI), Types::String , Calculus::CTI},
-    { ASTR("+") , Types::String , Types::Float  , CALCULUS_CALLBACK(add_SF), Types::String , Calculus::CTI},
-    { ASTR("+") , Types::Integer, Types::String , CALCULUS_CALLBACK(add_IS), Types::String , Calculus::CTI},
-    { ASTR("+") , Types::Float  , Types::String , CALCULUS_CALLBACK(add_FS), Types::String , Calculus::CTI},
-    { ASTR("<") , Types::String , Types::String , CALCULUS_CALLBACK(    sm), Types::Boolean, Calculus::CTI},
-    { ASTR("<="), Types::String , Types::String , CALCULUS_CALLBACK(  smEq), Types::Boolean, Calculus::CTI},
-    { ASTR(">") , Types::String , Types::String , CALCULUS_CALLBACK(    gt), Types::Boolean, Calculus::CTI},
-    { ASTR(">="), Types::String , Types::String , CALCULUS_CALLBACK(  gtEq), Types::Boolean, Calculus::CTI},
-    { ASTR("=="), Types::String , Types::String , CALCULUS_CALLBACK(    eq), Types::Boolean, Calculus::CTI},
-    { ASTR("!="), Types::String , Types::String , CALCULUS_CALLBACK(   neq), Types::Boolean, Calculus::CTI},
-    { ASTR("*") , Types::String , Types::String , CALCULUS_CALLBACK(wldcrd), Types::Boolean, Calculus::CTI},
+    { A_CHAR("+") , Types::String , Types::String , CALCULUS_CALLBACK(add_SS), Types::String , Calculus::CTI},
+    { A_CHAR("+") , Types::String , Types::Integer, CALCULUS_CALLBACK(add_SI), Types::String , Calculus::CTI},
+    { A_CHAR("+") , Types::String , Types::Float  , CALCULUS_CALLBACK(add_SF), Types::String , Calculus::CTI},
+    { A_CHAR("+") , Types::Integer, Types::String , CALCULUS_CALLBACK(add_IS), Types::String , Calculus::CTI},
+    { A_CHAR("+") , Types::Float  , Types::String , CALCULUS_CALLBACK(add_FS), Types::String , Calculus::CTI},
+    { A_CHAR("<") , Types::String , Types::String , CALCULUS_CALLBACK(    sm), Types::Boolean, Calculus::CTI},
+    { A_CHAR("<="), Types::String , Types::String , CALCULUS_CALLBACK(  smEq), Types::Boolean, Calculus::CTI},
+    { A_CHAR(">") , Types::String , Types::String , CALCULUS_CALLBACK(    gt), Types::Boolean, Calculus::CTI},
+    { A_CHAR(">="), Types::String , Types::String , CALCULUS_CALLBACK(  gtEq), Types::Boolean, Calculus::CTI},
+    { A_CHAR("=="), Types::String , Types::String , CALCULUS_CALLBACK(    eq), Types::Boolean, Calculus::CTI},
+    { A_CHAR("!="), Types::String , Types::String , CALCULUS_CALLBACK(   neq), Types::Boolean, Calculus::CTI},
+    { A_CHAR("*") , Types::String , Types::String , CALCULUS_CALLBACK(wldcrd), Types::Boolean, Calculus::CTI},
   #if ALIB_FEAT_BOOST_REGEX
-    { ASTR("%") , Types::String , Types::String , CALCULUS_CALLBACK( regex), Types::Boolean, Calculus::CTI},
+    { A_CHAR("%") , Types::String , Types::String , CALCULUS_CALLBACK( regex), Types::Boolean, Calculus::CTI},
   #endif
-    { ASTR("[]"), Types::String , Types::Integer, CALCULUS_CALLBACK(arr   ), Types::String , Calculus::CTI},
+    { A_CHAR("[]"), Types::String , Types::Integer, CALCULUS_CALLBACK(arr   ), Types::String , Calculus::CTI},
 };
 
 
@@ -354,28 +354,23 @@ constexpr Calculus::BinaryOpTableEntry  binaryOpTable[] =
 Strings::Strings( Compiler& compiler )
 : Calculus( "ALib Strings", compiler )
 {
-    constTAB=  ASTR("\t"); // Initialize constant static boxes. This must not be done
-    constNL =  NewLine;    // in the C++ bootstrap code.
-    SIG_S   = { Types::String                                  };
-    SIG_I   = { Types::Integer                                 };
-    SIG_II  = { Types::Integer, Types::Integer                 };
-    SIG_V   = { nullptr                                        };
-    SIG_SS  = { Types::String , Types::String                  };
-    SIG_SV  = { Types::String , nullptr                        };
-    SIG_SSB = { Types::String , Types::String , Types::Boolean };
-    SIG_SSI = { Types::String , Types::String , Types::Integer };
-    SIG_SI  = { Types::String , Types::Integer                 };
-    SIG_SII = { Types::String , Types::Integer, Types::Integer };
-    SIG_SSS = { Types::String , Types::String , Types::String  };
-
+    constTAB=  A_CHAR("\t"); // Initialize constant static boxes. This must not be done
+    constNL =  NewLine();    // in the C++ bootstrap code.
 
     AddUnaryOps ( unaryTable    );
-    AddBinaryOps( binaryOpTable );
+    AddBinaryOps( binaryOpTableStrings );
 
     // load identifier/function names from resources
-    FunctionNameDescriptor functionNames[25];
-    LoadResourcedFunctionDescriptors( lib::EXPRESSIONS, ASTR("Strings"), functionNames);
-    FunctionNameDescriptor* descriptor= functionNames;
+    #if ALIB_FEAT_BOOST_REGEX
+        constexpr int tableSize= 25;
+    #else
+        constexpr int tableSize= 24;
+    #endif
+
+    Token functionNames[tableSize];
+    Token::LoadResourcedTokens( EXPRESSIONS, "Strings", functionNames
+                                ALIB_DBG(,tableSize)                                 );
+    Token* descriptor= functionNames;
 
 
     // Constant identifiers
@@ -388,70 +383,74 @@ Strings::Strings( Compiler& compiler )
 
     Functions=
     {
-        { *descriptor++, &SIG_V   , CALCULUS_CALLBACK(CBToString ), Types::String , CTI   },
-        { *descriptor  , &SIG_SS  , CALCULUS_CALLBACK(wldcrd     ), Types::Boolean, CTI   },
-        { *descriptor++, &SIG_SSB , CALCULUS_CALLBACK(wldcrd     ), Types::Boolean, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::Var ), CALCULUS_CALLBACK(CBToString ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(wldcrd     ), &Types::Boolean, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSB ), CALCULUS_CALLBACK(wldcrd     ), &Types::Boolean, CTI   },
 #if ALIB_FEAT_BOOST_REGEX
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(regex      ), Types::Boolean, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(regex      ), &Types::Boolean, CTI   },
 #endif
-        { *descriptor++, &SIG_SV  , CALCULUS_CALLBACK(CBFormat   ), Types::String , CTI   },
-        { *descriptor++, &SIG_S   , CALCULUS_CALLBACK(toUpper    ), Types::String , CTI   },
-        { *descriptor++, &SIG_S   , CALCULUS_CALLBACK(toLower    ), Types::String , CTI   },
-        { *descriptor  , &SIG_SS  , CALCULUS_CALLBACK(compSS     ), Types::Integer, CTI   },
-        { *descriptor++, &SIG_SSB , CALCULUS_CALLBACK(compSSB    ), Types::Integer, CTI   },
-        { *descriptor  , &SIG_SS  , CALCULUS_CALLBACK(startsWith ), Types::Boolean, CTI   },
-        { *descriptor++, &SIG_SSB , CALCULUS_CALLBACK(startsWithC), Types::Boolean, CTI   },
-        { *descriptor  , &SIG_SS  , CALCULUS_CALLBACK(  endsWith ), Types::Boolean, CTI   },
-        { *descriptor++, &SIG_SSB , CALCULUS_CALLBACK(  endsWithC), Types::Boolean, CTI   },
-        { *descriptor  , &SIG_SI  , CALCULUS_CALLBACK(substr     ), Types::String , CTI   },
-        { *descriptor++, &SIG_SII , CALCULUS_CALLBACK(substr2    ), Types::String , CTI   },
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(idxof      ), Types::Integer, CTI   },
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(count      ), Types::Integer, CTI   },
-        { *descriptor  , &SIG_S   , CALCULUS_CALLBACK(trim       ), Types::String , CTI   },
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(trim2      ), Types::String , CTI   },
-        { *descriptor  , &SIG_S   , CALCULUS_CALLBACK(trimStart  ), Types::String , CTI   },
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(trimStart2 ), Types::String , CTI   },
-        { *descriptor  , &SIG_S   , CALCULUS_CALLBACK(trimEnd    ), Types::String , CTI   },
-        { *descriptor++, &SIG_SS  , CALCULUS_CALLBACK(trimEnd2   ), Types::String , CTI   },
-        { *descriptor++, &SIG_S   , CALCULUS_CALLBACK(parsei     ), Types::Integer, CTI   },
-        { *descriptor++, &SIG_S   , CALCULUS_CALLBACK(parsef     ), Types::Float  , CTI   },
-        { *descriptor++, &SIG_SSI , CALCULUS_CALLBACK(token      ), Types::String , CTI   },
-        { *descriptor  , &SIG_I   , CALCULUS_CALLBACK(hex        ), Types::String , CTI   },
-        { *descriptor++, &SIG_II  , CALCULUS_CALLBACK(hex        ), Types::String , CTI   },
-        { *descriptor  , &SIG_I   , CALCULUS_CALLBACK(oct        ), Types::String , CTI   },
-        { *descriptor++, &SIG_II  , CALCULUS_CALLBACK(oct        ), Types::String , CTI   },
-        { *descriptor  , &SIG_I   , CALCULUS_CALLBACK(bin        ), Types::String , CTI   },
-        { *descriptor++, &SIG_II  , CALCULUS_CALLBACK(bin        ), Types::String , CTI   },
-        { *descriptor++, &SIG_SSS , CALCULUS_CALLBACK(replace    ), Types::String , CTI   },
-        { *descriptor++, &SIG_SI  , CALCULUS_CALLBACK(repeat     ), Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SVar), CALCULUS_CALLBACK(CBFormat   ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(toUpper    ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(toLower    ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(compSS     ), &Types::Integer, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSB ), CALCULUS_CALLBACK(compSSB    ), &Types::Integer, CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(startsWith ), &Types::Boolean, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSB ), CALCULUS_CALLBACK(startsWithC), &Types::Boolean, CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(  endsWith ), &Types::Boolean, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSB ), CALCULUS_CALLBACK(  endsWithC), &Types::Boolean, CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::SI  ), CALCULUS_CALLBACK(substr     ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SII ), CALCULUS_CALLBACK(substr2    ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(idxof      ), &Types::Integer, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(count      ), &Types::Integer, CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(trim       ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(trim2      ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(trimStart  ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(trimStart2 ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(trimEnd    ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(trimEnd2   ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(parsei     ), &Types::Integer, CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::S   ), CALCULUS_CALLBACK(parsef     ), &Types::Float  , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSI ), CALCULUS_CALLBACK(token      ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(hex        ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::II  ), CALCULUS_CALLBACK(hex        ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(oct        ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::II  ), CALCULUS_CALLBACK(oct        ), &Types::String , CTI   },
+        { *descriptor  , CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(bin        ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::II  ), CALCULUS_CALLBACK(bin        ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSS ), CALCULUS_CALLBACK(replace    ), &Types::String , CTI   },
+        { *descriptor++, CALCULUS_SIGNATURE(Signatures::SI  ), CALCULUS_CALLBACK(repeat     ), &Types::String , CTI   },
     };
+
+    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
+                       "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
+                       descriptor - functionNames, tableSize                                     )
 }
 
 namespace {
 bool genericConcatenation( Type type )
 {
     return !(
-                type.IsType<boxed_int>()
+                type.IsType<integer>()
              || type.IsType<double   >()
              || type.IsType<String   >() );
 
 }
 }
 
-//! [DOX_ALIB_EXPR_CTRES_2]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_2])
 bool Strings::TryCompilation( CIFunction& ciFunction )
 {
     // invoke parent
     if( !Calculus::TryCompilation( ciFunction ) )
         return false;
-//! [DOX_ALIB_EXPR_CTRES_2]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_2])
 
 #if ALIB_FEAT_BOOST_REGEX
-    if( ciFunction.Callback == regex && (ciFunction.ArgsBegin + 1)->Length() > 0)
+    if( ciFunction.Callback == regex && (ciFunction.ArgsBegin + 1)->UnboxLength() > 0)
     {
         String pattern= (ciFunction.ArgsBegin + 1)->Unbox<String>();
-        String128 keyString(ASTR("_re"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        String128 keyString(A_CHAR("_re"));
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
         auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources.find( keyString );
         if( storedMatcher == ciFunction.CompileTimeScope.NamedResources.end() )
@@ -463,27 +462,30 @@ bool Strings::TryCompilation( CIFunction& ciFunction )
     }
 #endif
 
-//! [DOX_ALIB_EXPR_CTRES_3]
-    if( ciFunction.Callback == wldcrd && (ciFunction.ArgsBegin + 1)->Length() > 0)
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_3])
+    if( ciFunction.Callback == wldcrd && (ciFunction.ArgsBegin + 1)->UnboxLength() > 0)
     {
-//! [DOX_ALIB_EXPR_CTRES_3]
-//! [DOX_ALIB_EXPR_CTRES_4]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_3])
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_4])
         String pattern= (ciFunction.ArgsBegin + 1)->Unbox<String>();
-        String128 keyString(ASTR("_wc"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        NString128 keyString(A_CHAR("_wc"));
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-//! [DOX_ALIB_EXPR_CTRES_4]
-//! [DOX_ALIB_EXPR_CTRES_5]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_4])
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_5])
         auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources.find( keyString );
         if( storedMatcher == ciFunction.CompileTimeScope.NamedResources.end() )
         {
             ScopeWildcardMatcher* matcher= new ScopeWildcardMatcher();
             matcher->matcher.Compile( pattern );
-            ciFunction.CompileTimeScope.NamedResources[ScopeString( ciFunction.CompileTimeScope, keyString, 0 )]= matcher;
+            NString keyCopy( ciFunction.CompileTimeScope.Memory.AllocArray<nchar>( keyString.Length() ),
+                         keyString.Length() );
+            keyString.CopyTo( const_cast<nchar*>( keyCopy.Buffer() ) );
+            ciFunction.CompileTimeScope.NamedResources[keyCopy]= matcher;
         }
     }
     return true;
-//! [DOX_ALIB_EXPR_CTRES_5]
+DOX_MARKER([DOX_ALIB_EXPR_CTRES_5])
 }
 
 
@@ -493,7 +495,7 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
     Box& rhs= *(ciBinaryOp.ArgsBegin + 1);
 
     // fetch string concatenation operator '+'
-    if( ciBinaryOp.Operator == ASTR("+") )
+    if( ciBinaryOp.Operator == A_CHAR("+") )
     {
         bool argsAreConst= ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst;
 
@@ -505,7 +507,7 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
                 ciBinaryOp.TypeOrValue     = add_SX( ciBinaryOp.CompileTimeScope,
                                                      ciBinaryOp.ArgsBegin,
                                                      ciBinaryOp.ArgsEnd           );
-      ALIB_DBG( ciBinaryOp.DbgCallBackName = "add_SX";      )
+      ALIB_DBG( ciBinaryOp.DbgCallbackName = "add_SX";      )
                 return true;
             }
 
@@ -521,7 +523,7 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
                 ciBinaryOp.TypeOrValue     = add_XS( ciBinaryOp.CompileTimeScope,
                                                      ciBinaryOp.ArgsBegin,
                                                      ciBinaryOp.ArgsEnd           );
-      ALIB_DBG( ciBinaryOp.DbgCallBackName = "add_XS";      )
+      ALIB_DBG( ciBinaryOp.DbgCallbackName = "add_XS";      )
                 return true;
             }
 
@@ -538,11 +540,11 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
     // Perform the same mechanics as with TryCompilation("regex") above:
     // check for regex match operator '*'
 #if ALIB_FEAT_BOOST_REGEX
-    if( ciBinaryOp.Operator == ASTR("%") && !ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst  )
+    if( ciBinaryOp.Operator == A_CHAR("%") && !ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst  )
     {
         String pattern= (ciBinaryOp.ArgsBegin + 1)->Unbox<String>();
-        String128 keyString(ASTR("_re"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        String128 keyString(A_CHAR("_re"));
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
 
         auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources.find( keyString );
@@ -556,11 +558,11 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
 #endif
 
     // check for wildcard match operator '*'
-    if( ciBinaryOp.Operator == ASTR("*") && !ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst  )
+    if( ciBinaryOp.Operator == A_CHAR("*") && !ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst  )
     {
         String pattern= (ciBinaryOp.ArgsBegin + 1)->Unbox<String>();
-        String128 keyString(ASTR("_wc"));
-        ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( keyString, ReplaceExternalBuffer )
+        NString128 keyString(A_CHAR("_wc"));
+        keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
 
         auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources.find( keyString );
@@ -568,11 +570,15 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
         {
             ScopeWildcardMatcher* matcher= new ScopeWildcardMatcher();
             matcher->matcher.Compile( pattern );
-            ciBinaryOp.CompileTimeScope.NamedResources[ScopeString( ciBinaryOp.CompileTimeScope, keyString, 0 )]= matcher;
+
+            NString keyCopy( ciBinaryOp.CompileTimeScope.Memory.AllocArray<nchar>( keyString.Length() ),
+                         keyString.Length() );
+            keyString.CopyTo( const_cast<nchar*>( keyCopy.Buffer() ) );
+
+            ciBinaryOp.CompileTimeScope.NamedResources[keyCopy]= matcher;
         }
     }
     return true;
-
 }
 
 }}}} // namespace [aworx::lib::expressions::detail]

@@ -1,23 +1,18 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#   include "alib/config/configuration.hpp"
-#endif
-#if !defined (HPP_ALIB_COMPATIBILITY_STD_IOSTREAM)
-#   include "alib/compatibility/std_iostream.hpp"
-#endif
 #if !defined (HPP_ALOX_TEXT_FILE_LOGGER)
 #   include "alib/alox/loggers/textfilelogger.hpp"
 #endif
 
+
 #if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
-#include <fstream>
+#   include <fstream>
 #endif
 
 
@@ -25,13 +20,13 @@ using namespace aworx;
 
 void TextFileLogger::openFile()
 {
-    ALIB_STD_TO_NARROW_TSTRING(FileName,nFileName)
+    ALIB_STRINGS_TO_NARROW(FileName,nFileName,1024)
 
-    auto* os= new std::ofstream( nFileName.ToCString(), std::ios::app );
+    auto* os= new std::ofstream( nFileName, std::ios::app );
 
     if ( !os->is_open() )
     {
-        ALIB_WARNING( "Could not open file: '{}'.", FileName);
+        ALIB_WARNING( "Could not open file: {!Q}.", FileName);
         delete os;  os= nullptr;
         hasIoError= true;
         return;
@@ -83,7 +78,7 @@ bool TextFileLogger::notifyLogOp( Phase phase )
 integer TextFileLogger::logSubstring( const String& buffer, integer start, integer length )
 {
     if (!hasIoError)
-        return writer.Write( buffer.Substring<false>( start, length ) );
+        return writer.WriteAndGetWideLength( buffer.Substring<false>( start, length ) );
 
     return 0;
 }

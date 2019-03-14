@@ -1,18 +1,18 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
-#include "alib/alib.hpp"
-#include "alib/strings/format/formatter.hpp"
-#include "alib/strings/boxing/debug.hpp"
-#include "alib/expressions/compiler.hpp"
-#include "parser.hpp"
-#include "alib/expressions/detail/ast.hpp"
-#include "alib/expressions/detail/parser_impl.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
+#   include "alib/expressions/detail/parser_impl.hpp"
+#endif
 
+#if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
+#   include "alib/expressions/compiler.hpp"
+#endif
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -26,9 +26,9 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
 , internalizedStrings(128)
 {
     // characters to be known
-    syntaxTokens[static_cast<unsigned char>('(')]= true;
-    syntaxTokens[static_cast<unsigned char>(')')]= true;
-    syntaxTokens[static_cast<unsigned char>(',')]= true;
+    syntaxTokens [static_cast<unsigned char>('(')]= true;
+    syntaxTokens [static_cast<unsigned char>(')')]= true;
+    syntaxTokens [static_cast<unsigned char>(',')]= true;
 
     operatorChars[static_cast<unsigned char>('?')]= true;
     operatorChars[static_cast<unsigned char>(':')]= true;
@@ -60,7 +60,7 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
     {
         ALIB_ASSERT_ERROR( binaryOperators.find(op.first) == binaryOperators.end(),
                            "Doubly defined binary operator symbol '{}'.", op.first )
-        if( op.first == ASTR("[]") )
+        if( op.first == A_CHAR("[]") )
         {
             syntaxTokens[static_cast<unsigned char>('[')]= true;
             syntaxTokens[static_cast<unsigned char>(']')]= true;
@@ -136,14 +136,14 @@ void ParserImpl::NextToken()
         tokString= String( expression.Buffer() + tokPosition, operatorLength );
 
         // special treatment for Elvis with spaces "? :"
-        if(    tokString == ASTR("?")
-            && compiler.BinaryOperators.find( ASTR("?:") ) != compiler.BinaryOperators.end()   )
+        if(    tokString == A_CHAR("?")
+            && compiler.BinaryOperators.find( A_CHAR("?:") ) != compiler.BinaryOperators.end()   )
         {
             // patch existing token and return
             Substring backup= scanner;
             if( scanner.TrimStart().CharAtStart() == ':' )
             {
-                tokString= ASTR("?:");
+                tokString= A_CHAR("?:");
                 scanner.ConsumeChar();
             }
             else
@@ -208,13 +208,13 @@ void ParserImpl::NextToken()
             || scanner.Substring( endOfDecPart ).StartsWith( numberFormat->ExponentSeparator ) )
 
         {
-            Substring numberParsed= scanner;
+            auto oldStart= scanner.Buffer();
             double value;
             scanner.ConsumeFloat( value, numberFormat );
-            token= Tokens::LitFloat;
-            tokFloat=  value;
+            token   = Tokens::LitFloat;
+            tokFloat= value;
 
-            numberParsed.SetLength( numberParsed.Length() - scanner.Length() );
+            String numberParsed( oldStart, scanner.Buffer() - oldStart );
             tokLiteralHint=        numberParsed.IndexOf('e') > 0
                                 || numberParsed.IndexOf('E') > 0
                                 || numberParsed.IndexOf( numberFormat->ExponentSeparator ) > 0
@@ -258,7 +258,7 @@ void ParserImpl::NextToken()
         if( next != '"' )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation,
-                         EXPRESSIONS.Get(ASTR("ExcExp4"))                                   );
+                         EXPRESSIONS.GetResource("ExcExp4")                                   );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
                          expression, expression.Length() - scanner.Length() );
             throw e;
@@ -299,7 +299,7 @@ detail::AST* ParserImpl::Parse( const String& expressionString, NumberFormat* nf
 
     expression= expressionString;
     numberFormat= nf;
-    internalizedStrings.Clear();
+    internalizedStrings.Reset();
 
     // load first token
     scanner=    expression;
@@ -326,7 +326,7 @@ detail::AST* ParserImpl::Parse( const String& expressionString, NumberFormat* nf
     if( token != Tokens::EOT )
     {
         delete ast;
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp5")) );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp5") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
@@ -344,16 +344,16 @@ AST* ParserImpl::parseConditional()
 
 
     if(     token        == Tokens::Operator
-        &&  tokString == ASTR("?")           )
+        &&  tokString == A_CHAR("?")           )
     {
         NextToken();
         push( Start() ); // T
 
         // expect colon
         if(    token        != Tokens::Operator
-            || tokString != ASTR(":")          )
+            || tokString != A_CHAR(":")          )
         {
-            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp6")) );
+            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp6") );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
             throw e;
         }
@@ -397,7 +397,7 @@ AST* ParserImpl::parseBinary()
    // check if tokens remain
     if( token == Tokens::EOT )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp7")) );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp7") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
@@ -436,7 +436,7 @@ AST* ParserImpl::parseSimple()
 
         if( token != Tokens::BraceClose )
         {
-            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp1")));
+            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp1"));
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
             throw e;
         }
@@ -486,7 +486,7 @@ AST* ParserImpl::parseSimple()
 
                 if( token != Tokens::BraceClose )
                 {
-                    Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp2")) );
+                    Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp2") );
                     e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
                     throw e;
                 }
@@ -501,6 +501,35 @@ AST* ParserImpl::parseSimple()
         replace( parseSubscript( push(new ASTIdentifier( name, position ) ) ) );
         return pop();
     }
+
+    if( token == Tokens::EOT )
+    {
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp20") );
+        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+
+    if( token == Tokens::BraceClose )
+    {
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp21") );
+        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+
+    if( token == Tokens::SubscriptOpen || token == Tokens::SubscriptClose )
+    {
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp22") );
+        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+
+    if( token == Tokens::Comma )
+    {
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp23") );
+        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+
 
     ALIB_ERROR( "Internal parser Error. This should never happen");
     return nullptr;
@@ -520,14 +549,14 @@ AST* ParserImpl::parseSubscript( AST *function )
 
     if( token != Tokens::SubscriptClose )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.Get(ASTR("ExcExp3")) );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp3") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
     // success
     NextToken();
-    return new ASTBinaryOp( ASTR("[]"), function, pop(), position );
+    return new ASTBinaryOp( A_CHAR("[]"), function, pop(), position );
 }
 
 
@@ -539,7 +568,7 @@ AST* ParserImpl::parseSubscript( AST *function )
 String ParserImpl::getUnaryOp()
 {
     if( token != Tokens::Operator )
-        return NullString;
+        return NullString();
 
     // unary ops may be nested. Hence, we find one by one from the actual token and consume the
     // token only if all is consumed.
@@ -569,12 +598,12 @@ String ParserImpl::getUnaryOp()
 String ParserImpl::getBinaryOp()
 {
     if( token != Tokens::Operator )
-        return NullString;
+        return NullString();
 
     // ignore ternary
-    if(    tokString == ASTR("?")
-        || tokString == ASTR(":") )
-        return NullString;
+    if(    tokString == A_CHAR("?")
+        || tokString == A_CHAR(":") )
+        return NullString();
 
     // binary ops may be longer and concatenated with unaries. So we consume as much as possible
     // but are happy with less than available

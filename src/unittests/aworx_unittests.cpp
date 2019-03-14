@@ -1,15 +1,17 @@
 // #################################################################################################
 //  aworx - Unit Tests
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
 #include "alib/alox.hpp"
 #include "alib/strings/substring.hpp"
 #include "alib/system/environment.hpp"
 
-#include "aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
+#include <limits>
 
 #if defined(__clang__)
     #pragma message "Clang Compiler (not a warning, just for information)"
@@ -19,10 +21,9 @@
     #pragma message ("MS Compiler (not a warning, just for information)")
 #endif
 
-
 using namespace std;
 using namespace aworx;
-using namespace aworx::lib::lox::core;
+using namespace aworx::lib::lox::detail;
 
 namespace ut_aworx {
 
@@ -32,18 +33,18 @@ namespace ut_aworx {
 // #################################################################################################
 String128 AWorxUnitTesting::LastAutoSizes;
 NAString  AWorxUnitTesting::GeneratedSamplesDir;
-String    AWorxUnitTesting::GeneratedSamplesSearchDir= ASTR("docs/pages");
+String    AWorxUnitTesting::GeneratedSamplesSearchDir= A_CHAR("docs/pages");
 AString   AWorxUnitTesting::CustomMetaInfoFormat;
 
 
 // #################################################################################################
 // Constructors/destructor
 // #################################################################################################
-AWorxUnitTesting::AWorxUnitTesting( const NTString& pdomain, const NTString& testName)
-: initializer(lib::ALIB.Init())
+AWorxUnitTesting::AWorxUnitTesting( const NCString& pdomain, const NCString& testName)
+: initializer(ALIB.Init())
 , lox( "UTLox", false )
 {
-    this->Domain=  pdomain;
+    this->Domain.Reset( pdomain );
     this->Domain.ToUpper();
     this->ActTestName=  testName;
 
@@ -53,7 +54,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NTString& pdomain, const NTString& tes
         utl= new UTVStudioLogger();
     #elif defined(ALOX_UNITTESTS_QMAKE_BUILD)
         {
-            utl= new ConsoleLogger();
+            utl= new ConsoleLogger("UT_LOGGER");
 
             // if QTCreator/ QMake was detected, then use absolute paths
             utl->MetaInfo->Format= "   Loc: [%SP/%SF(%SL)]:%A3%SM %A3{%TC +%TL}{%tN}{%D}%A1#%#: ";
@@ -76,14 +77,12 @@ AWorxUnitTesting::AWorxUnitTesting( const NTString& pdomain, const NTString& tes
             utl->SetReplacement( "]", "}" );
         }
     #else
-        utl= Lox::CreateConsoleLogger();
+        utl= Lox::CreateConsoleLogger("UT_LOGGER");
 
         // check if we are in CLion. Here it is important to switch off the use of dark/light colors
-        if( utl->GetName().Equals("ANSI_CONSOLE") )
+        if( utl->GetTypeName().Equals("ANSI_CONSOLE") )
         {
-            AString classPath;
-            aworx::lib::system::GetEnvironmentVariable( ASTR("CLASSPATH"), classPath );
-            if ( classPath.IndexOf<true, Case::Ignore>(ASTR("CLion"), 0) >= 0 )
+            if ( NString(*ALIB.ArgVN).IndexOf<true, Case::Ignore>( "CLion", 0) >= 0 )
                 dynamic_cast<AnsiConsoleLogger*>(utl)->UseLightColors= AnsiLogger::LightColorUsage::Never;
         }
     #endif
@@ -101,7 +100,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NTString& pdomain, const NTString& tes
         lox.SetVerbosity( utl, Verbosity::Info,    NString64() << ALox::InternalDomains << "UT_REPORT" );
     lox.Release();
 
-    lib::lang::Report::GetDefault().PushWriter( this );
+    lib::results::Report::GetDefault().PushWriter( this );
 }
 
 AWorxUnitTesting::~AWorxUnitTesting()
@@ -110,25 +109,25 @@ AWorxUnitTesting::~AWorxUnitTesting()
         lox.RemoveLogger( utl );
     lox.Release();
 
-    LastAutoSizes.Clear();
+    LastAutoSizes.Reset();
     utl->AutoSizes.Export( LastAutoSizes );
 
     // clean debug lox and ALox
     Log_Prune( lib::ALOX.Reset() );
 
-    lib::ALIB.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
-    lib::ALIB.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
-    if( lib::ALOX.Config != lib::ALIB.Config )
-    {
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
-        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
-    }
+//    ALIB.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
+//    ALIB.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
+//    if( lib::ALOX.Config != ALIB.Config )
+//    {
+//        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Reset();
+//        lib::ALOX.Config->GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Reset();
+//    }
 
     // check if ALib SmartLock for std I/O was released properly
-    this->EQ (__FILE__, __LINE__, 0, lib::ALIB.StdOutputStreamsLock.CntAcquirers() );
-    this->EQ (__FILE__, __LINE__, 0, lib::ALIB.StdOutputStreamsLock.CountAcquirements() );
+    this->EQ (__FILE__, __LINE__, 0, SmartLock::StdOutputStreams.CntAcquirers() );
+    this->EQ (__FILE__, __LINE__, 0, SmartLock::StdOutputStreams.CountAcquirements() );
 
-    lib::lang::Report::GetDefault().PopWriter( this );
+    lib::results::Report::GetDefault().PopWriter( this );
     delete utl;
 }
 
@@ -136,8 +135,22 @@ AWorxUnitTesting::~AWorxUnitTesting()
 // #################################################################################################
 // Print
 // #################################################################################################
+void AWorxUnitTesting::print (  const aworx::NCString& file, int line, aworx::Verbosity verbosity, aworx::Boxes& args )
+{
+    if( args.size() == 1 && args.back().IsType<aworx::Exception*>() )
+    {
+        aworx::LogTools::Exception( lox, *args.back().Unbox<aworx::Exception*>()  );
+        return;
+    }
 
-void AWorxUnitTesting::Failed( const NString& file, int line, const Box& exp, const Box& given )
+    lox.Acquire(file, line, ActTestName);
+    lox.GetLogableContainer().Add( args );
+    lox.Entry( Domain, verbosity );
+    lox.Release();
+}
+
+
+void AWorxUnitTesting::Failed( const NCString& file, int line, const Box& exp, const Box& given )
 {
     Print( file, line, aworx::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\\n"
                                                 "               given: \"{!ESC}\"", exp, given );
@@ -149,11 +162,11 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
     integer start= 0;
     for(;;)
     {
-        start= output.IndexOf( ASTR("/home"), start );
+        start= output.IndexOf( A_CHAR("/home"), start );
         if ( start < 0 )
             break;
-        integer end= output.IndexOf( ASTR("/ALib"), start );
-        ALIB_ASSERT_ERROR( end >0 && end - start < 25, "Error pruning home directory" );
+        integer end= output.IndexOf( A_CHAR("/ALib"), start );
+        ALIB_ASSERT_ERROR( end >0 && end - start < 25, "Error pruning home directory" )
         if (end < 0 )
             end= output.Length();
         output.Delete( start + 5, end - start - 5 );
@@ -163,7 +176,7 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
     // if invoked the first time, search the right directory
     if ( GeneratedSamplesDir.IsNull() )
     {
-        GeneratedSamplesDir= "";
+        GeneratedSamplesDir.Reset( "" );
         String128 testDir; testDir << "../" << GeneratedSamplesSearchDir;
         for( int depth= 0; depth < 10 ; depth++ )
         {
@@ -171,14 +184,14 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
             {
                 GeneratedSamplesDir << testDir << "/generated/";
                 GeneratedSamplesDir.SearchAndReplace( "//", "/" );
-#if ALIB_NARROW_STRINGS
+#if ALIB_CHARACTERS_ARE_NARROW
                 Directory::Create( GeneratedSamplesDir );
 #else
                 Directory::Create( String512(GeneratedSamplesDir) );
 #endif
                 break;
             }
-            testDir.InsertAt( ASTR("../"), 0 );
+            testDir.InsertAt( A_CHAR("../"), 0 );
         }
     }
 
@@ -191,7 +204,7 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
     NString256 fileName( GeneratedSamplesDir );
     fileName._( name );
     ofstream outputFile;
-    outputFile.open ( fileName.ToCString() );
+    outputFile.open ( fileName );
     if ( doxyTag.IsNotEmpty() )   outputFile << doxyTag <<endl;
     outputFile << output;
     if ( doxyTag.IsNotEmpty() )   outputFile << doxyTag <<endl;
@@ -201,15 +214,15 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
 // #################################################################################################
 // Error/Warning
 // #################################################################################################
-void AWorxUnitTesting::Report  ( const lib::lang::Report::Message& msg )
+void AWorxUnitTesting::Report  ( const lib::results::Message& msg )
 {
         lox.Acquire(msg.File, msg.Line, msg.Func);
-            lox.GetLogableContainer().Add( static_cast<const Boxes&>( msg ) );
+            lox.GetLogableContainer().Add( msg.Args );
             lox.Entry( NString16() << ALox::InternalDomains << "UT_REPORT",
-                       msg.Type == 0 ? Verbosity::Error    :
-                       msg.Type == 1 ? Verbosity::Warning  :
-                       msg.Type == 2 ? Verbosity::Info     :
-                                       Verbosity::Verbose                         );
+                       msg.Type == aworx::lib::results::Report::Types::Error   ? Verbosity::Error    :
+                       msg.Type == aworx::lib::results::Report::Types::Warning ? Verbosity::Warning  :
+                       msg.Type == aworx::lib::results::Report::Types::Message ? Verbosity::Info     :
+                                                                               Verbosity::Verbose    );
 
         lox.Release();
 }
@@ -220,7 +233,10 @@ void AWorxUnitTesting::Report  ( const lib::lang::Report::Message& msg )
     : MemoryLogger( "VSTUDIO_UNITTEST_CONSOLE" )
     {
         // prevent cutting off filenames
-        MetaInfo->Format.SearchAndReplace( ASTR("%Sp"), ASTR("%SP") );
+        MetaInfo->Format.SearchAndReplace( A_CHAR("%Sp"), A_CHAR("%SP") );
+
+        // we set this, to make the unit-tests compatible in respect to locking SmartLock::StdOutputStreams
+        usesStdStreams= true;
     }
 
     UTVStudioLogger::~UTVStudioLogger()
@@ -232,17 +248,17 @@ void AWorxUnitTesting::Report  ( const lib::lang::Report::Message& msg )
         // when added to a lox, we register as std output stream user. This would not be necessary, because
         // we do not write to the std output stream. But in other environments, the unit test logger does
         // so, and therefore, if we dont do it, the unit test which tests the whole concept would fail.
-         lib::ALIB.StdOutputStreamsLock.AddAcquirer( this );
+         SmartLock::StdOutputStreams.AddAcquirer( this );
 
-        // call parents' implementation
+        // call parent's implementation
         return Logger::AddAcquirer( newAcquirer );
     }
 
     int   UTVStudioLogger::RemoveAcquirer( ThreadLock* acquirer )
     {
-         lib::ALIB.StdOutputStreamsLock.RemoveAcquirer( this );
+         SmartLock::StdOutputStreams.RemoveAcquirer( this );
 
-        // call parents' implementation
+        // call parent's implementation
         return Logger::RemoveAcquirer( acquirer );
     }
 
@@ -256,9 +272,9 @@ void AWorxUnitTesting::Report  ( const lib::lang::Report::Message& msg )
 
     {
         MemoryLogger::logText( domain, verbosity, msg, scope, lineNumber );
-        outputString.Clear() << MemoryLog;
-        Microsoft::VisualStudio::CppUnitTestFramework::Logger::WriteMessage( outputString.ToCString() );
-        MemoryLog.Clear();
+        outputString.Reset( MemoryLog );
+        Microsoft::VisualStudio::CppUnitTestFramework::Logger::WriteMessage( outputString );
+        MemoryLog.Reset();
     }
 #endif
 
@@ -268,21 +284,26 @@ void AWorxUnitTesting::Report  ( const lib::lang::Report::Message& msg )
 // #################################################################################################
 
 #if ALIB_GTEST
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, double         exp, double    d )                         { double p= 0.00000000000001; if ((d < exp ? exp-d : d-exp) > p)
-                                                                                                                                                                    Failed(file,line,exp,d); EXPECT_NEAR ( exp, d, p     ); }
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, const String&  exp, const String&   s )                   { if (!exp.Equals(s))                  Failed(file,line,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, wchar_t*       exp, wchar_t*        s )                   { if (wcscmp(exp,s)!=0)                Failed(file,line,exp,s); EXPECT_STREQ( exp, s        ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, long double    exp, long double     d )  { EQ(file,line,static_cast<double>(exp), static_cast<double>(d) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const NString& exp, const NString&  s )  { if (!exp.Equals(s))                  Failed(file,line,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const WString& exp, const WString&  s )  { if (!exp.Equals(s))                  Failed(file,line,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, wchar_t*       exp, wchar_t*        s )  { if (wcscmp(exp,s)!=0)                Failed(file,line,exp,s); EXPECT_STREQ( exp, s        ); }
 
-    void AWorxUnitTesting::IsTrue ( const NTString& file, int line, bool cond )                                               {                        if (!cond )   Failed(file,line, true , false ); EXPECT_TRUE ( cond ); }
-    void AWorxUnitTesting::IsFalse( const NTString& file, int line, bool cond )                                               {                        if (cond )    Failed(file,line, false, true  ); EXPECT_FALSE( cond ); }
+    void AWorxUnitTesting::IsTrue ( const NCString& file, int line, bool cond )                              {                        if (!cond )   Failed(file,line, true , false ); EXPECT_TRUE ( cond ); }
+    void AWorxUnitTesting::IsFalse( const NCString& file, int line, bool cond )                              {                        if (cond )    Failed(file,line, false, true  ); EXPECT_FALSE( cond ); }
 
 #elif defined(_WIN32)
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, double         exp, double          v )                   { if (v!=exp)                                      Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::AreEqual( exp, v ); }
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, const String&  exp, const String&   v )                   { if (!exp.Equals(v))                              Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
-    void AWorxUnitTesting::EQ     ( const NTString& file, int line, wchar_t*       exp,       wchar_t*  v )                   { bool c= wcscmp( v, exp )==0;              if(!c) Failed(file,line,"","Differences in wchar string."); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, long double    exp, long double     d )  { EQ(file,line,static_cast<double>(exp), static_cast<double>(d) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const NString& exp, const NString&  v )  { if (!exp.Equals(v))                              Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const WString& exp, const WString&  v )  { if (!exp.Equals(v))                              Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const NCString& file, int line, wchar_t*       exp,       wchar_t*  v )  { bool c= wcscmp( v, exp )==0;              if(!c) Failed(file,line,"","Differences in wchar string."); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
 
-    void AWorxUnitTesting::IsTrue ( const NTString& file, int line, bool c )                                                  {                                           if(!c) Failed(file,line,true ,false);Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
-    void AWorxUnitTesting::IsFalse( const NTString& file, int line, bool c )                                                  {                                           if( c) Failed(file,line,false,true );Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( c      ); }
+    void AWorxUnitTesting::IsTrue ( const NCString& file, int line, bool c )                                 {                                           if(!c) Failed(file,line,true ,false);Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
+    void AWorxUnitTesting::IsFalse( const NCString& file, int line, bool c )                                 {                                           if( c) Failed(file,line,false,true );Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( c      ); }
 
 #else
     #pragma message ("Unknown Testing platform in: " __FILE__ )

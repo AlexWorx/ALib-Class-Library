@@ -1,0 +1,109 @@
+// #################################################################################################
+//  Documentation - ALib C++ Library
+//
+//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_mod_resources   ALib Module Resources - Programmer's Manual
+
+
+# Contents #
+
+<br>\ref                   alib_resources_intro                 "1. Introduction"
+<br>\ref                   alib_resources_classresources        "2. Class Resources"
+<br>\ref                   alib_resources_modules               "3. Resources and Modules"
+<br>\ref                   alib_resources_emd                   "4. Resourced Meta Data For C++ Enumerations"
+
+
+
+ \~Comment ###################################################################################### \~
+# 1. Introduction # {#alib_resources_intro}
+
+What is called "resources" with \alib is (as of today) exclusively consisting of string data.
+In similar contexts, resourced strings are often referred to as "externalized strings".
+
+Externalized strings are not only helpful if a software is to be translated to a different
+human language. The strings also often contain encoded data (like colors, width, server names, etc.)
+and with the externalization, also this data can be changed without changing (recompiling) the
+a software.
+
+
+\~Comment ####################################################################################### \~
+# 2. Class Resources # {#alib_resources_classresources}
+The central class of the module is \alib{resources,Resources}.
+The class has a simple interface to receive strings using a pair of strings as the resource identifier.
+The pair denotes a "category" and a "name", which allows a bit of sorting of the entries.
+(Technically, a simple single key string would have been enough, but computer history showed
+that a two-level hierarchy is very helpful in many respects. See for example INI-files...).
+
+Now, the class as it is implemented and used with other \alibmods, does \b not externalize the
+strings: All data is still "hard-coded" and stored in the data-segment of a compiled executable
+or library.<br>
+Instead, three things can be done:
+- A 3rd party system (library) for managing externalized string resources may be used to
+  feed resource data into a process, maybe replacing that data that was statically defined.
+- A derived class might be used that accesses a such 3rd party system in the moment a resource
+  is requested.
+- If a 3rd-party software uses the same mechanism for managing externalized strings
+  as for managing application configuration data and if furthermore that
+  3rd-party software has written (or plans to write) a plug-in for \alib class \alib{config,Configuration}
+  to access such system, then a third obvious option is to use the same plug-in for the optional
+  configuration object found with member \alib{resources,Resources::Config}.
+  This way, with one adoption (the plug-in) both \alib systems become compatible: Resources and
+  configuration data.
+
+All options are well supported with the accurately defined
+\ref alib_manual_bootstrapping "bootstrapping procedure" of the \aliblong.
+
+For details on class \b %Resources, please consult the class's
+\alib{resources,Resources,reference documentation}.
+
+
+\~Comment ####################################################################################### \~
+# 3. Resources and Modules # {#alib_resources_modules}
+
+As documented in chapter \ref alib_manual_modules "2. ALib Modules" of the \alib Programmer's Manual,
+the various \alibmods can be separated into "full" modules and the rest which are not. In this
+\ref alib_manual_modules_dependency_graph "module dependency graph" it could be noted that
+all "full modules" (dark blue) are dependent on this module "Resources".
+
+This relation is explained as follows:
+- All high-level \alib modules need resources (e.g. for exceptions, enumeration meta data, etc.).
+- Resources need a controlled process of bootstrapping of a software.
+- Library class \alib{Module} holds a pointer to an object of type \alib{resources,Resources}.
+- Class \b %Module provides a controlled (phased) bootstrapping mechanics, especially designed
+  to support customization of resource management.
+
+Therefore, all "full" \alib modules depend on this module "Resources" and dispose about a
+singleton type derived from core library class \b %Module.
+
+This also means, that when looking at the
+\ref alib_manual_modules_dependency_graph "module dependency graph", it must not be misunderstood
+that the high-level modules are dependent on this module only indirectly (through modules
+\b Messages and \b Stringformat), but in contrast, these modules usually are actively using
+resources for their own purposes.
+
+
+\~Comment ####################################################################################### \~
+# 4. Resourced Meta Data For C++ Enumerations # {#alib_resources_emd}
+
+A powerful concept that plays an important role in in various \alibmods, is called
+"resourced enumeration meta data". This is all about associating C++ 11 scoped enumeration elements
+with tuples of externally defined (resourced) data.
+
+In combination with class \alib{boxing,Enum} (found in module \alibmod_boxing),
+different enum types that are enriched with the same tuple-scheme, can be treated as if they
+were of a same type, or rather as if they had been derived from the same base type (while
+unfortunately, enum types can not be derived types in C++).
+
+This concept is for example used with classes \alib{results,Exception} and \alib{config,Variable}
+and especially widely used with module \alibmod_cli.
+
+An introductory tutorial on "resourced enumeration meta data" is provided with the documentation
+of TMP-type \alib{resources,T_EnumMetaDataDecl}.
+
+*/
+
+

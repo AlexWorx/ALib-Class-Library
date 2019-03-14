@@ -1,18 +1,16 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
 
 // include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_AUTOSIZES
 #define HPP_ALIB_STRINGS_UTIL_AUTOSIZES 1
 
-// to preserve the right order, we check if string is already included
-#if !defined(HPP_ALIB_STRINGS_STRING)
-    #error "include 'alib/alib.hpp' before including this header. Also make sure to include ALib Module Strings"
+#if !defined (HPP_ALIB_STRINGS_STRING)
+#   include "alib/strings/string.hpp"
 #endif
 
 
@@ -27,103 +25,183 @@
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
 /** ************************************************************************************************
- * Auto sizes are used for tabulator positions and field sizes that expand automatically when they
- * are exceeded. This way, any next line will have that new, expanded tabs and field sizes set
- * leading to a nicely formatted, but still flexible, minimized width of output.
+ * This class stores and manages tabulator positions and field sizes. The class supports a
+ * simple session handling, by storing each value once for the actual output session and a
+ * second time for a future session. The motivation for writing this class came from the
+ * requirements of logging library \alibmod_alox. The goals here are:
+ *
+ * - During a logging session, log output should be as much tabular as possible.
+ * - On the same time, the log output should be as "narrow" as possible.
+ *
+ * If used correctly, this class helps to achieve the following:
+ * - A new log-output session increases tab stops and field widths during execution as needed.
+ * - If values need to be increased, a certain amount of "extra padding" might be
+ *   added to avoid too many small increments.
+ * - Once all tab stops or fields have been logged with values of their maximum size, the log output
+ *   will not vary in respect to tab stops and autosizes any more.
+ * - If a subsequent session contains the very same log-output (aka the same requested tab positions
+ *   and field width), all extra space is removed and the log output is 100% tabular
+ *   beginning with the session start.
+ * - If a subsequent session contains smaller values, then this session is formatted with the
+ *   (still larger) width of the previous session. After that, the next session will use the smaller
+ *   sizes.
+ *
+ * This approach very well guarantees stable log output widths across sessions. Only if the
+ * execution path of a software changes (or logging verbosity setting is changed), adjustments
+ * are performed.
  *
  * To preserve the information across <em>sessions</em>, this class provides methods to transform
  * it's information from and to string representations which can be stored in configuration files.
  *
- * All values are doubly stored: once for the session and once for the last imported values.
- * Those values that were imported are used for getting the actual size. However, those that are
- * stored for the session are the ones that would have been created if there was no import done.
- * This leads to the fact that the session values may be smaller than the actual (imported) ones.
- * This mechanism, in combination with the fact that on importing it can be decided if the session
- * is newly started or not, allows the values to shrink again over different sessions.
+ * As the use case of this class is not restricted to log output, this class is exposed
+ * as a general utility class of \alibmod_nolink_strings.
  **************************************************************************************************/
 class AutoSizes
 {
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
-    protected:
-        /// The current sizes
-        std::vector<integer>           values;
-
-        /** The sizes measured in this session. These are the ones that will be received in method
-         *  #Export                                         */
-        std::vector<integer>           sessionValues;
 
     // #############################################################################################
     // Public fields
     // #############################################################################################
     public:
-        /**  The actual index requested by #Next. This is reset to 0 with every invocation of
-         *   #Start. */
-        int                             ActualIndex;
+        /** The entry type, tab stop or field width. */
+        enum class Types
+        {
+            Tabstop, ///< denotes a tab stop entry.
+            Field,   ///< denotes a field width entry.
+        };
+
+        /**
+         * The actual index requested by #Next.
+         * This field is reset to 0 with every invocation of #Start. The field is public and
+         * may be read and manipulated, which is considered "expert use".
+         */
+        size_t                      ActualIndex;
+
+
+
+    // #############################################################################################
+    // Protected fields
+    // #############################################################################################
+    protected:
+        /** Actual and current session entries of tab stop indexes, respectively field widths. */
+        struct Entry
+        {
+            Types       type;         ///< The type of entry.
+            integer     actual;       ///< The actually used tab stop or size
+            integer     session;      ///< The maximum requested size in actual session.
+
+            /**
+             * Constructor.
+             * @param t Value for field #type.
+             * @param v Value for field #actual.
+             * @param s Value for field #session.
+             */
+            inline Entry( Types t, integer v, integer s )
+            : type(t), actual(v), session(s)
+            {}
+        };
+
+        /** The current and measured sizes. */
+        std::vector<Entry>          data;
 
     // #############################################################################################
     // Interface
     // #############################################################################################
     public:
         /** ****************************************************************************************
-         * Resets the whole object. All values get deleted.
+         * Resets the all values, current ones and the once of the currently measured session.
          ******************************************************************************************/
         inline
-        void        Reset ()                      {   values.clear(); sessionValues.clear();  Start();  }
+        void        Reset ()                 {   data.clear(); Start();  }
+
+        /** ****************************************************************************************
+         * Consolidates the values. This method is usually not invoked directly.
+         * Instead, it is invoked with method #Import.
+         *
+         * The method loops through all values and copies the session values to the actual ones.
+         * The difference of both values is summed up during the loop and entries of type
+         * \alib{strings::util::AutoSizes,Types::Tabstop} are adjusted by that difference.
+         * As a result, the new values represent the smallest output format that fits all
+         * rows, if the same output is performed as in the previous "session".
+         ******************************************************************************************/
+        ALIB_API
+        void        Consolidate ();
 
         /** ****************************************************************************************
          * Initializes a new query sequence, which is a series of invocations of method #Next.
          ******************************************************************************************/
         inline
-        void        Start ()                      {   ActualIndex=   0; }
+        void        Start ()                 {   ActualIndex=   0; }
 
         /** ****************************************************************************************
          * Returns the actual auto value stored, respectively, if the given requested size is
-         * higher, stores and returns the requested size. The given extra growth is added to the
-         * requested size if the currently stored value is unequal to 0. In other words, the extra
-         * size is added only with the second growth and each subsequent one.
+         * higher than what is stored, stores and returns the requested size.
          *
-         * @param requestedSize   The minimum size that is requested.
-         * @param growthPadding   Added to the new size if the requested size is greater than
-         *                        the stored size and if the stored size does not equal \c 0.
+         * In the latter case, the given extra growth is added to the requested size, but only if
+         * the value was set at least once before. In other words, the extra size is added only with
+         * the second growth and each subsequent one.
+         *
+         * The requested size in addition replaces the current "session" value if it is higher than
+         * the currently stored value. To this value, the growth padding is not added.
+         *
+         * @param type           The type of entry.
+         * @param requestedSize  The minimum size that is requested.
+         * @param growthPadding  Added to the new size, if the requested size is greater than
+         *                       the stored size and if the stored size does not equal \c -1.
          *
          * @return The (new) size of the auto field.
          ******************************************************************************************/
         ALIB_API
-        int         Actual( integer requestedSize, integer growthPadding );
+        integer     Actual( Types type, integer requestedSize, integer growthPadding );
 
         /** ****************************************************************************************
          * Invokes #Actual and then increases the internal position counter.
          *
+         * @param type            The type of entry.
          * @param requestedSize   The minimum size that is requested.
          * @param growthPadding   Added to the new size if the requested size is greater than
-         *                        the stored size and if the stored size does not equal \c 0.
+         *                        the stored size and if the stored size does not equal \c -1.
          *
          * @return The (new) size of the auto field.
          ******************************************************************************************/
-        ALIB_API
-        int         Next  ( integer requestedSize, integer growthPadding );
+        inline
+        integer     Next  ( Types type, integer requestedSize, integer growthPadding )
+        {
+            auto result= Actual( type, requestedSize, growthPadding );
+            ActualIndex++;
+            return result;
+        }
 
         /** ****************************************************************************************
-         * Imports values from the given
-         * \alib{strings,StringBase,String} by parsing it. The numbers in the string have
-         * to be separated by ' ' characters (space).
+         * Imports values from the given \alib{strings,TString,String} by parsing it.
+         * Usually, string data are used for importing values was previously generated
+         * with method #Export.
          *
-         * @param source    The \b %String that is parsed for the numbers
-         * @param session   If \c CurrentData::Clear, which is the default, the current values
-         *                  are taken from the last session stored and the sessions data is set to 0.
-         *                  If \c CurrentData::Keep, both, current values and
-         *                  session values are taken from the string.
+         * If parameter \p{session} equals \alib{CurrentData,Clear} (which is the default),
+         * then after the import, method #Consolidate is invoked.
+         *
+         * \note
+         *   Parsing is 100% error tolerant. If the given string does not contain what is expected
+         *   (see method #Export), then only a part or just nothing is imported.
+         *   This is due to the purpose of this class, which is to allow nicer, tabbed output.
+         *   If this is not possible due to import problems, the system should work normally still.<br>
+         *   In debug compilations, an \ref ALIB_WARNING is written.
+         *
+         *
+         * @param source    The \b %String that is parsed for the exported data.
+         * @param session   Denotes if #Consolidate is to be invoked after import.
+         *                  Defaults to \alib{CurrentData,Clear}.
          ******************************************************************************************/
         ALIB_API
-        void        Import( const String& source, lib::lang::CurrentData session= lib::lang::CurrentData::Clear );
+        void        Import( const String& source, CurrentData session= CurrentData::Clear );
 
         /** ****************************************************************************************
-         * Exports the current session values by converting the stored numbers to a string
+         * Exports the current session values by converting the stored values to a string
          * representation and appending them to the given
-         * \alib{strings,AStringBase,AString} object.
-         * The numbers in the string will be separated by ' ' characters (space).
+         * \alib{strings,TAString,AString} object.
+         *
+         * The format of the entries written into the string is <c>"(T|F,Actual,Measured)</c>
+         * which should be self-explanatory.
          *
          * @param target       The \b %AString to receive the our values
          ******************************************************************************************/
@@ -138,6 +216,6 @@ class AutoSizes
 /// Type alias in namespace #aworx.
 using     AutoSizes=            aworx::lib::strings::util::AutoSizes;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_STRINGS_UTIL_AUTOSIZES

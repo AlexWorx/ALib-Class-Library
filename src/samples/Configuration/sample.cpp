@@ -1,15 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //  Configuration Sample
 //
-//  Copyright 2018 A-Worx GmbH, Germany
+//  Copyright 2019 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
 #include "alib/config/configuration.hpp"
 #include "alib/config/inifile.hpp"
 #include "alib/system/directory.hpp"
-#include "alib/compatibility/std_iostream.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
+#include "alib/lib/alibmodules.hpp"
 
 #include <fstream>
 
@@ -20,7 +20,7 @@ int main(  int argc, char *argv[]  )
     //
     // Initialize ALib and pass command line arguments to the default configuration instance
     //
-    lib::ALIB.Init( argc, argv );
+    ALIB.Init( argc, argv );
 
     //
     // first, lets write a simple INI-file
@@ -44,7 +44,7 @@ int main(  int argc, char *argv[]  )
         fileName <<  "/sample.ini";
 
         std::ofstream iniFile;
-        iniFile.open ( fileName.ToCString() );
+        iniFile.open ( fileName );
         iniFile << iniFileContents;
         iniFile.close();
     }
@@ -63,19 +63,19 @@ int main(  int argc, char *argv[]  )
     Variable var;
 
     iniFile.Load( var.Declare( "",           "Test"        ) );
-    std::cout << "  Test:        " << *var.GetString() << std::endl;
+    std::cout << "  Test:        " << var.GetString() << std::endl;
 
     iniFile.Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
-    std::cout << "  SectionVar:  " << *var.GetString() << std::endl;
+    std::cout << "  SectionVar:  " << var.GetString() << std::endl;
 
     iniFile.Load( var.Declare( "MY_SECTION", "PI"          ) );
-    std::cout << "  PI:          " << *var.GetString() << std::endl;
-    std::cout << "  PI as float: " <<  var.GetFloat()  << std::endl;
+    std::cout << "  PI:          " << var.GetString() << std::endl;
+    std::cout << "  PI as float: " << var.GetFloat()  << std::endl;
 
     //
     // Now we attach the INI-File to the configuration and read the same variables once more
     //
-    lib::ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
+    ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
 
     std::cout << std::endl;
     std::cout << "Reading Variables from Configuration: " << std::endl;
@@ -83,15 +83,15 @@ int main(  int argc, char *argv[]  )
     std::cout << "then these will overwrite the values from the INI-file)" <<std::endl;
 
 
-    lib::ALIB.Config->Load( var.Declare( "",           "Test"        ) );
-    std::cout << "  Test:        " << *var.GetString() << std::endl;
+    ALIB.Config->Load( var.Declare( "",           "Test"        ) );
+    std::cout << "  Test:        " << var.GetString() << std::endl;
 
-    lib::ALIB.Config->Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
-    std::cout << "  SectionVar:  " << *var.GetString() << std::endl;
+    ALIB.Config->Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
+    std::cout << "  SectionVar:  " << var.GetString() << std::endl;
 
-    lib::ALIB.Config->Load( var.Declare( "MY_SECTION", "PI"          ) );
-    std::cout << "  PI:          " << *var.GetString() << std::endl;
-    std::cout << "  PI as float: " <<  var.GetFloat()  << std::endl;
+    ALIB.Config->Load( var.Declare( "MY_SECTION", "PI"          ) );
+    std::cout << "  PI:          " << var.GetString() << std::endl;
+    std::cout << "  PI as float: " << var.GetFloat()  << std::endl;
 
 
     //
@@ -99,12 +99,12 @@ int main(  int argc, char *argv[]  )
     //
     var.Declare( "New_Section",  "programatically", 0, "This variable was written by the test program"   );
     var.Add("written");
-    lib::ALIB.Config->Store( var );
+    ALIB.Config->Store( var );
 
     //
     // Copy programatically set default values to the INI-file
     //
-    lib::ALIB.Config->FetchFromDefault( iniFile );
+    ALIB.Config->FetchFromDefault( iniFile );
     iniFile.WriteFile();
 
     return 0;

@@ -1,17 +1,17 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
-#include "alib/alib.hpp"
+#if !defined (HPP_ALOX_WINDOWS_CONSOLE_LOGGER)
+#   include "alib/alox/loggers/windowsconsolelogger.hpp"
+#endif
+
 
 #if defined( _WIN32 )
-
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
 
 #if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
     #include "alib/strings/util/tokenizer.hpp"
@@ -20,8 +20,9 @@
     #include "alib/strings/util/spaces.hpp"
 #endif
 
-
-#include "alib/alox/loggers/windowsconsolelogger.hpp"
+#if !defined (HPP_ALIB_ALOX_VARIABLES)
+    #include "alib/alox/variables.hpp"
+#endif
 
 #if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
     #include <iostream>
@@ -31,11 +32,9 @@
 #endif
 
 
-using namespace std;
 namespace aworx { namespace lib { namespace lox {
-using namespace core;
 
-
+using namespace detail;
 
 // #################################################################################################
 // Windows Console Colors
@@ -88,7 +87,7 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
     Variable variable( Variables::CONSOLE_LIGHT_COLORS );
     if ( ALOX.Config->Load( variable ) != Priorities::NONE && variable.Size() > 0)
     {
-        Substring p= *variable.GetString();
+        Substring p= variable.GetString();
         if(p.Trim().IsNotEmpty())
         {
             if( !p.ConsumeEnum<LightColorUsage>( UseLightColors ) )
@@ -107,11 +106,11 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
     }
 
     // move verbosity information to the end to colorize the whole line
-    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( ASTR("]%V["), ASTR("][")), 0);
-    MetaInfo->Format._(ASTR("%V"));
+    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( A_CHAR("]%V["), A_CHAR("][")), 0);
+    MetaInfo->Format._(A_CHAR("%V"));
     MetaInfo->VerbosityError           = ESC::RED;
     MetaInfo->VerbosityWarning         = ESC::BLUE;
-    MetaInfo->VerbosityInfo            = ASTR("");
+    MetaInfo->VerbosityInfo            = A_CHAR("");
     MetaInfo->VerbosityVerbose         = ESC::GRAY;
 
     // evaluate config variable CODE_PAGE
@@ -156,7 +155,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
     {
         if ( msgParts.Next( Whitespaces::Keep ).IsNotEmpty() )
         {
-            #if ALIB_NARROW_STRINGS
+            #if ALIB_CHARACTERS_ARE_NARROW
                 WriteConsoleA( H, actual.Buffer(), (DWORD) actual.Length(), &ignore, NULL );
             #else
                 WriteConsoleW( H, actual.Buffer(), (DWORD) actual.Length(), &ignore, NULL );
@@ -178,7 +177,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
             c= rest.ConsumeChar();
             int colNo= c - '0';
-            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ConsoleLogger: Unknown ESC-c code" );
+            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ConsoleLogger: Unknown ESC-c code" )
 
             WORD attr= 0;
             WORD light=  UseLightColors != LightColorUsage::Never && ((UseLightColors== LightColorUsage::Foreground) == isForeGround )  ? FOREGROUND_INTENSITY : 0;
@@ -193,7 +192,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                                                                :  ( originalConsoleAttributes & ~W32C_BACKGROUND_MASK ) >> 4;
             else
             {
-                ALIB_WARNING( "Unknown ESC- code" );
+                ALIB_WARNING( "Unknown ESC- code \"C{}{}...\"", c, rest.Substring(0,10) );
             }
 
             actualAttributes=  isForeGround  ?  ( actualAttributes & W32C_FOREGROUND_MASK ) |   attr
@@ -218,7 +217,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                                                   : (int) ( c - 'A' ) + 10;
 
             // tab stop (write spaces using a growing buffer)
-            integer tabStop= AutoSizes.Next( column, extraSpace );
+            integer tabStop= AutoSizes.Next( AutoSizes::Types::Tabstop, column, extraSpace );
             integer qtySpaces= tabStop - column;
             if( qtySpaces > 0 )
             {
@@ -228,7 +227,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                 {
                     integer nextQty= qtySpaces < spaces.Length() ? qtySpaces
                                                                  : spaces.Length();
-                    #if ALIB_NARROW_STRINGS
+                    #if ALIB_CHARACTERS_ARE_NARROW
                         WriteConsoleA( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );
                     #else
                         WriteConsoleW( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );
@@ -263,7 +262,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
     ALIB_ASSERT_RESULT_NOT_EQUALS( SetConsoleTextAttribute( H, previousAttributes ), 0 );
 
-    cout << endl;
+    std::cout << std::endl;
 
 
 }

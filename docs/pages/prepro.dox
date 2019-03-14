@@ -1,7 +1,7 @@
 // #################################################################################################
-//  Documentation - ALox Logging Library
+//  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -13,7 +13,7 @@
 \page alib_ref_prepro    ALib and the C++ Preprocessor
 
 Generally, the (mis-)use of the C/C++ preprocessor can lead to confusion and hard to understand
-compile time errors. For all software, it is advisable to restrict the use of the preprocessor
+compile-time errors. For all software, it is advisable to restrict the use of the preprocessor
 facilities of C++ to achieve the following:
 1. Pass symbol definitions from outside (the build process) to the compiler.
 2. Select different versions of the code dependent on the platform, the type of \e 'build' that is to
@@ -30,8 +30,10 @@ Therefore, the reference documentation is separated into three areas:
 2. \ref GrpALibCodeSelectorSymbols <br>
 3. \ref GrpALibMacros <br>
 
-Most preprocessor symbols prefixed with <b>ALIB_</b>. One important exclamation is symbol
-\ref ASTR and symbols defined by module \alibmod_alox, which are prefixed <b>ALOX_</b>.
+All preprocessor symbols are prefixed with <b>ALIB_</b>. Most symbols then continue with
+the name of their \alib module.
+One important exclamation are the symbols defined by module \alibmod_alox, which are prefixed
+<b>ALOX_</b>.
 
 */
 

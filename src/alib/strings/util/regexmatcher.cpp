@@ -1,20 +1,19 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
+#include "alib/strings/util/regexmatcher.hpp"
 #if ALIB_FEAT_BOOST_REGEX
 
-#if !defined (HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
-    #include "alib/strings/util/regexmatcher.hpp"
-#endif
-
 #include <boost/regex.hpp>
-#include <string>
 
+#if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
+#   include <string>
+#endif
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -52,4 +51,4 @@ bool RegexMatcher::Match( const String& haystack )
 
 }}}} // namespace [aworx::lib::strings::util]
 
-#endif
+#endif  // ALIB_FEAT_BOOST_REGEX

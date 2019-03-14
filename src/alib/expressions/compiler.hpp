@@ -1,15 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILER
 #define HPP_ALIB_EXPRESSIONS_COMPILER
 
-#ifndef HPP_ALIB_EXPRESSIONS_BOOLEXPRESSION
-#   include "expression.hpp"
+#ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
+#   include "alib/expressions/expression.hpp"
 #endif
 
 #if ALIB_MODULE_CONFIGURATION
@@ -18,12 +17,20 @@
 #   endif
 #endif
 
-#ifndef HPP_ALIB_UTIL_PLUGINCONTAINER
-#   include "alib/util/plugincontainer.hpp"
+#ifndef HPP_ALIB_PLUGINCONTAINER
+#   include "alib/lib/plugincontainer.hpp"
 #endif
 
-#if !defined(HPP_ALIB_STRINGS_UTIL_STRINGMAP)
-    #include "alib/strings/util/stringmap.hpp"
+#if !defined(HPP_ALIB_LIB_TYPEMAP)
+#    include "alib/lib/typemap.hpp"
+#endif
+
+#if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
+#   include "alib/strings/util/token.hpp"
+#endif
+
+#if !defined(HPP_ALIB_STRINGFORMAT_FWDS)
+    #include "alib/stringformat/fwds.hpp"
 #endif
 
 namespace aworx {
@@ -41,33 +48,38 @@ struct  CompilerPlugin;
  *
  * For information about general use and features of this class consult the
  * \ref aworx::lib::expressions "ALib Expressions User Manual".
+ *
+ * ## Friends ##
+ * class \alib{expressions,Expression}
  **************************************************************************************************/
-class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities>
+class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 {
-    /// Expressions are friends.
-    friend class Expression;
+    #if !ALIB_DOCUMENTATION_PARSER
+        // Expressions are friends.
+        friend class Expression;
+    #endif
 
     public:
-       /// Alias shortcut to the type of the plug-in vector inherited from \b %PluginContainer.
-       using Plugins= std::vector<util::PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
+       /** Alias shortcut to the type of the plug-in vector inherited from \b %PluginContainer. */
+       using Plugins= std::vector<PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
 
     // #############################################################################################
     // internal fields
     // #############################################################################################
     protected:
-        /// The parser based on \c boost::spirit.
+        /** The parser based on \c boost::spirit. */
         detail::Parser*                         parser                                    = nullptr;
 
 
-        /// The map of Type names and bit flag values.
+        /** The map of Type names and bit flag values. */
         TypeMap<NString>                        types;
 
 
-        /// The map of 'named' expressions.
+        /** The map of 'named' expressions. */
         UnorderedAStringMap<SPExpression>       namedExpressions;
 
         #if ALIB_MODULE_CONFIGURATION
-            /// A variable object, reused (performance vs memory)
+            /** A variable object, reused (performance vs memory) */
             Variable        var;
         #endif // ALIB_MODULE_CONFIGURATION
 
@@ -118,8 +130,13 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
          */
         void AddUnaryOperator( const String& symbol  )
         {
-            //ALIB_ASSERT_ERROR( UnaryOperators.find( symbol ) == UnaryOperators.end(),
-            //                   "Unary operator '{}' already defined.", symbol )
+            #if ALIB_DEBUG
+                for( auto& op : UnaryOperators )
+                    if( op.Equals( symbol ) )
+                    {
+                        ALIB_ASSERT_ERROR( false, "Unary operator '{}' already defined.", symbol )
+                    }
+            #endif
             UnaryOperators.emplace_back(symbol);
         }
 
@@ -180,6 +197,9 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
     #if ALIB_MODULE_CONFIGURATION
 
         /**
+         * This object defaults to \c nullptr and may be set in during bootstrap of the comiler
+         * object (at the same time the plug-ins are attached, etc.)
+         *
          * If set, method #getExpressionString will use this object to try to find named
          * expression in the configuration.
          */
@@ -219,7 +239,7 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
     #endif
 
         /**
-         * \alib{lang,T_EnumIsBitwise,Bitwise enum class } that lists the plug-ins built-into
+         * \alib{enums,T_EnumIsBitwise,Bitwise enum class} that lists the plug-ins built-into
          * \alib expression library. This bitfield is used with method #SetupDefaults, which
          * reads the flags set in #CfgBuiltInPlugins and installs the plug-ins accordingly.
          */
@@ -232,7 +252,9 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
             Arithmetics        = (1 << 3),   ///< Installs \alib{expressions,plugins::Arithmetics}.
             Math               = (1 << 4),   ///< Installs \alib{expressions,plugins::Math}.
             Strings            = (1 << 5),   ///< Installs \alib{expressions,plugins::Strings}.
+#if ALIB_MODULE_SYSTEM
             DateAndTime        = (1 << 6),   ///< Installs \alib{expressions,plugins::DateAndTime}.
+#endif
         };
 
 
@@ -261,17 +283,17 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
          * \see Manual chapter \ref alib_expressions_nested "10. Nested Expressions".
          *
          */
-        String                      CfgNestedExpressionOperator                         = ASTR("*");
+        String                      CfgNestedExpressionOperator                         = A_CHAR("*");
 
         /**
-         * Function descriptor for nested expression function.
+         * Name descriptor for nested expression function.
          * Defaults to "Expression" with minimum abbreviation of \c 4 characters, ignoring letter
          * case.<br>
          * Resourced with key \c "EF"
          *
          * \see Manual chapter \ref alib_expressions_nested "10. Nested Expressions".
          */
-        FunctionNameDescriptor      CfgNestedExpressionFunction;
+        strings::util::Token        CfgNestedExpressionFunction;
 
         /**
          * Keyword used with optional third parameter of expression function.
@@ -318,7 +340,7 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
         /**
          * Formatter used throughout all phases of the life-cycle of an expression:
          * - Used for parsing expression strings (Using the encapsulated
-         *   \alib{strings,NumberFormatBase,NumberFormat} object. This is also the reason, why the type of
+         *   \alib{strings,TNumberFormat,NumberFormat} object. This is also the reason, why the type of
          *   formatter is \b %Formatter and not its more abstract base % \b %Formatter.)
          * - Used for the generation of the normalized expression strings.
          * - Used for the generation of constant string objects during compilation.
@@ -330,9 +352,8 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
          * compile-time scope and the creation of the evaluation-time scope. If done,
          * the expression results could differ when optimizations during compilation are performed.
          *
-         * In the constructor of this class, a
-         * \alib{strings::format,FormatterBase::Clone,clone} of the \alib
-         * \alib{strings::Strings,GetDefaultFormatter,default formatter} is set here.
+         * In the constructor of this class, a \alib{stringformat,Formatter::Clone,clone} of the
+         * \alib \alib{stringformat::Stringformat,GetDefaultFormatter,default formatter} is set here.
          */
         SPFormatter              CfgFormatter;
 
@@ -378,35 +399,39 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
 
         /** ****************************************************************************************
          * Returns the name of the type of the boxed value.
-         * Note that custom types need to be registered with #AddType.
+         * Note that custom types need to be registered with method #AddType.
+         *
+         * If given argument \p{box} is \ref alib_boxing_more_void_void "a void box", the returned
+         * string is <b>"NONE"</b>.
          *
          * @param box  The box to receive the type name for.
          * @return The type name as string.
          ******************************************************************************************/
-        inline
-        NString             TypeName(Type box)
-        {
-            auto entry= types.find( box.GetTypeInfo<0>() );
-            ALIB_ASSERT_WARNING( entry != types.end(),
-                                 "Custom type {!Q} not registered. Please use Compiler::AddType to do so.",
-                               box.GetTypeInfo() )
-            if( entry == types.end() )
-                return "<Unknown Type>";
-
-            return entry->second;
-        }
+        ALIB_API
+        NString             TypeName(Type box);
 
         /** ****************************************************************************************
-         * Writes the signature of a function according to normalization settings into
-         * the given string buffer.
+         * Writes the signature of a function (as for example found in
+         * \alib{expressions::plugins,Calculus::FunctionEntry}) to a string buffer.
          *
-         * @param begin     Iterator to the first argument
+         * @param boxArray  The start of the array of pointers.
+         * @param qty       The array's length.
+         * @param target    The string to write into.
+         ******************************************************************************************/
+        ALIB_API
+        void                WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target );
+
+        /** ****************************************************************************************
+         * Writes the signature of an argument list to a string buffer.
+         *
+         * @param begin     Iterator to the first argument.
          * @param end       End-iterator.
          * @param target    The string to write into.
          ******************************************************************************************/
         ALIB_API
-        void                WriteFunctionSignature( ArgIterator begin, ArgIterator end,
-                                                    AString& target                           );
+        void                WriteFunctionSignature( ArgIterator     begin,
+                                                    ArgIterator     end,
+                                                    AString&        target   );
 
         /** ****************************************************************************************
          * Completes construction according to configuration options provided with fields
@@ -433,7 +458,7 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
          *
          * For compilation, a compile-time scope object is created by calling virtual method
          * #getCompileTimeScope. If not overwritten, a standard scope object is used.
-         * If custom callbacks exists that are invokable at compile time
+         * If custom callbacks exists that are invokable at compile-time
          * (to perform program optimization) and that at the same time rely on custom mechanics
          * provided with a custom scope class, then a custom, derived version of this class
          * has to be used that overrides method #getCompileTimeScope accordingly.
@@ -468,7 +493,7 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
         inline
         bool                RemoveNamed( const String& identifier )
         {
-            return AddNamed( identifier, NullString );
+            return AddNamed( identifier, NullString() );
         }
 
         /** ****************************************************************************************
@@ -513,7 +538,7 @@ class Compiler  : public util::PluginContainer<CompilerPlugin, CompilePriorities
          *
          * Compile-time allocations occur when expression terms that use purely constant arguments
          * are evaluated at compile-time. Such optimization consequently leads to the invocation
-         * of callback functions at compile time.
+         * of callback functions at compile-time.
          *
          * If now, custom callback functions rely on custom allocation mechanics, provided with
          * custom scope types, then this method has to be overridden to return such custom
@@ -566,7 +591,7 @@ using     Compiler=           aworx::lib::expressions::Compiler;
 
 }// namespace [aworx]
 
-ALIB_LANG_ENUM_IS_BITWISE(aworx::lib::expressions::Compiler::BuiltInPlugins)
+ALIB_ENUM_IS_BITWISE(aworx::lib::expressions::Compiler::BuiltInPlugins)
 
 
 #endif // HPP_ALIB_EXPRESSIONS_COMPILER

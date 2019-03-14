@@ -1,17 +1,138 @@
 // #################################################################################################
-//  Documentation - ALox Logging Library
+//  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
 \page alib_changelog         Change Log
+\~Comment ####################################################################################### \~
+\~Comment #####################         Version 1903         #################################### \~
+\~Comment ####################################################################################### \~
 
-This change log is sorted reversely in respect to chronology.
+# Version 1903, Revision 0, released March 14th, 2019 #
+
+\attention
+  Once more, this library version is not tested (probably does not compile!) under Mac OS.
+  While we promise to fix that rather quickly now, we would also be thankful if volunteers from
+  the community would provide such support.
+
+This is a complete overhaul of the library. With the separation of this \b C++ implementation
+from the sibling libraries implemented in programming languages \b Java and \b C#
+(see chang log entry <b>Version 1805</b> below),
+this C++ version was "set free" from many compromises that were formerly made to keep the language
+versions compatible.
+
+As a result, <b>ALib for C++ is now 100% modern C++!</b>
+(To the extent that the authors of this library "think modern".)
+
+With that new freedom, the changes that have been performed in the recent 10 month are too
+many to be listed and documented in each detail. (Only for module \alibmod_nolink_expressions,
+a detail list is given below.)
+Consequently, the adoption of user code might become a little more effort than with previous \alib updates,
+as many entities have been moved to a different place.
+
+The following provides a high level list of changes.
+
+
+- <b>Refactoring of the module structure:</b>
+  The former seven modules have been refactored to now \ref alib_manual_modules_overview "16 modules".
+  With that, almost any type of the library found a new "home", respectively namespace.
+  The modules now strictly obey to a well defined dependency relationship which
+  \ref alib_manual_modules_dependencies "is documented here".
+
+- New \b CMake build scripts support the selection and compilation of only a subset of the 16 modules
+  into an so called \alibdist.<br>
+  For users of other build systems, the \b CMake scripts allow to generate source listings
+  to determine the exact subset of library files needed for a built.
+
+- With the restructuring the code, also the documentation was restructured. Besides the complete
+  \ref aworx::lib "reference documentation", \alib now has
+  a separated \ref alib_manual "general user manual" along with <b>14 module-specific
+  programmer manuals</b>.
+  (Two small modules do not have a dedicated programming manual, hence only reference documentation
+  is available for those.)
+
+- New module \alibmod_characters was extracted from both, module \alibmod_strings and
+  \alibmod_boxing. While it is rather small, it provides a good abstraction layer to mitigate
+  general challenges when using characters, character arrays, string literals and 3rd-party string
+  types with C++.<br>
+  A dedicated \ref alib_mod_characters "Programmer's Manual" is available for this module.
+
+- Module \alibmod_boxing was completely rewritten. While the API for boxing and unboxing values
+  remained almost unchanged, in the area of
+  \ref alib_boxing_customizing "customization of boxing for user types" as well as of the definition of
+  \ref alib_boxing_functions "box-functions", existing user code needs to be revised.
+  Along with the code, the dedicated \ref alib_mod_boxing "Programmer's Manual" of module
+  \alibmod_nolink_boxing was completely rewritten.
+
+- Module \alibmod_strings was refactored in respect to now building on \alibmod_nolink_characters.
+  Apart from the former terminated string type \b %TString, which is now named \c %CString,
+  code adoptions should be required mostly in the fields of adopting 3rd-party types to
+  be transparently accepted as strings and to make 3rd-party types compatible (appendable) to
+  class \alib{strings,TAString,AString}.<br>
+  Default character width of strings can now be adjusted to \b 1, \b 2 or \b 4 bytes.
+  <b>Tons of further small changes</b> have been implemented, including a change of all internal TMP
+  programming.<br>
+  This module's \ref alib_mod_strings "Programmer's Manual" was also completely rewritten.
+
+#### Module Expressions: ####
+Apart from the many changes due to refactoring the library, explicit change information
+this time is only given for module \alibmod_expressions:
+
+- Added auto-cast option for casting arguments of unary operators (which was available only to
+  binary operator and ternary operator <c>Q ? T : F</c> only).
+- Added auto-cast feature to helper class \alib{expressions,plugins::Calculus} for easy
+  implementation of custom type auto-casting.<br>
+  Added manual chapter
+  \ref alib_expressions_tut_ffext_autocasts_using_calculus "6.5.2 Implementing Auto-Casts Using Class Calculus"
+  to sample the use of this feature.
+- Changed name of ternary operator <c>Q ? T : F</c> when given with
+  \alib{expressions::CompilerPlugin,CIAutoCast::Op}
+  from \b "?:" to \b "Q?T:F" to make it distinguishable from the binary "Elvis-operator".
+- Renamed fields \b DbgCallBackName and \b DbgCallBackNameRhs in \alib{expressions,CompilerPlugin},
+  respectively in derived types, to use a lower case letter \b 'b'.
+- Changed field \alib{expressions::plugins,Calculus::FunctionEntry::ResultType} to being a pointer
+  to a sample box, instead of a sample box (shorter footprint and slightly faster).
+- Added static struct \alib{expressions,Signatures} which contains expression function signatures
+  for all built-in functions. On the one hand, this reduced the footprint of the library (slightly)
+  and on the other hand these static objects can be also used by custom plug-ins (in case a
+  matching signature is found in the list).
+- Renamed fields \b CastExpressionFunctionName and \b CastExpressionFunctionNameRhs to
+  \alib{expressions::plugins::Calculus,CIAutoCast::ReverseCastFunctionName}, respectively
+  \alib{expressions::plugins::Calculus,CIAutoCast::ReverseCastFunctionNameRhs}.
+- Fixed internal assertions that had been raised with malformed expression input. In these instances,
+  now exceptions of type \alib{expressions,Exceptions::SyntaxErrorExpectation} are thrown.
+- Fixed the meta data of \alib{expressions,Exception::NestedExpressionResultTypeError} to
+  display the expected and given types correctly (had been reversed).
+- Removed class \b FunctionNameDescriptor and replaced it with new class \alib{strings::util,Token}.
+  This has two compatibility consequences:
+  - Custom expression plug-in resources have to be adopted to the new parsing format of identifier
+    and function names.
+  - Many built-in function abbreviations have changed to support abbreviation of single
+    camel-case humps.
+- Added class \alib{expressions::util,ExpressionFormatter} which is similar to existing
+  \alib{stringformat,PropertyFormatter}, but supports the use of expressions instead of just
+  simple property callbacks.
+- Removed division and modulo operators from compiler plug-in \alib{expressions::plugins,Arithmetics}
+  with boolean divisor type (not useful and dangerous in respect to division by zero exceptions).
+- Fixed minor formatting issues of program listings generated by \alib{expressions::detail,VirtualMachine::DbgList}.
+- Corrected a longer list of typos and small errors of the module's manual. Added some notes
+  about how sample boxes of abstract types can be created.
+
+#### PS:####
+We very much hope that this overhaul and "refactoring orgy" now finally led to a stable structure
+that will not dramatically change in the future. The foundation set in this release allows
+growth and extension of the library by new independent and optional \alibmods, similar to
+modules \alibmod_alox, \alibmod_expressions and \alibmod_cli.
+
+We think that the library is now well prepared to support the future C++ language feature
+of modularization (see for example the [current clang draft](https://clang.llvm.org/docs/Modules.html))
+without further need of heavy refactoring.
 
 \~Comment ####################################################################################### \~
-\~Comment #############################       V. 1804 R0     #################################### \~
+\~Comment #############################       V. 1805 R0     #################################### \~
 \~Comment ####################################################################################### \~
 
 # Version 1805, Revision 0, released May 12th, 2018 #
@@ -33,7 +154,7 @@ This reaches from directory names to the CMake and IDE-specific project files pr
 
 These changes are not listed in detail here.
 Instead, for information about building this new version, users of previous versions should
-read manual section \ref alib_man_setup and start "from scratch".
+read the \ref alib_manual and start "from scratch".
 
 Support for preconfigured QTCreator project files was dropped.
 
@@ -47,18 +168,18 @@ Support for preconfigured QTCreator project files was dropped.
 - Added macro  \ref ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS.
 
 #### Module Core: ####
-- Removed virtual base class \b %Ownable. Instead, class \alib{lang,Owner} now is templated.
+- Removed virtual base class \b %Ownable. Instead, class \b Owner now is templated.
   This allowed several classes to be non-virtual, for example \alib{threads,ThreadLock} or
   \alox{Lox}.
 - Added method \alib{threads,ThreadLock::Owner}.
 - Renamed method \b %DbgCountAcquirements to \alib{threads,ThreadLock::CountAcquirements}, removed
   its former parameter. The former behaviour can be accomplished using by comparing result of
-  new method \alib{threads,ThreadLock::Owner} with \alib{threads,Threads::CurrentThread}.
-- Fixed infinite recursion with method \alib{lang,Enum::IsType}.
+  new method \b ThreadLock::Owner with \b Threads::CurrentThread.
+- Fixed infinite recursion with method \b Enum::IsType.
 - Added class \alib{system,Console}.
-- Overhauled class \alib{util,MemoryBlocks}. More changes to be expected in future
+- Overhauled class \b MemoryBlocks. More changes to be expected in future
   versions.
-- Introduced \alib{util,StringTreeBlockAllocator} and made class \alib{util,StringTree}
+- Introduced \b StringTreeBlockAllocator and made class \b StringTree
   be able to use it. This allows very memory efficient allocations with \b %StringTree in
   appropriate use cases.
 
@@ -70,12 +191,12 @@ Support for preconfigured QTCreator project files was dropped.
   The changes of code are so dramatic that they can not be listed here completely.
   Nevertheless, user code should not be effected very much, because the now templated types have
   alias names that correspond to the former, non-templated types!
-- Added virtual method \alib{strings::format,FormatterBase::Clone}.
+- Added virtual method \b FormatterBase::Clone.
 - Removed static methods \b %Formatter::AcquireDefault and \b %Formatter::ReleaseDefault.
   Instead, a shared pointer holding a \b %Formatter object is available with
-  \alib{strings,Strings::GetDefaultFormatter}.<br>
+  \b GetDefaultFormatter.<br>
   The feature of resetting the default formatter with former method \b %Formatter::ReleaseDefault
-  was moved to now overloaded method \alib{strings::format,FormatterBase::Acquire,Formatter::Acquire}
+  was moved to now overloaded method \b Formatter::Acquire
   and therefore is now available more generally to all formatters.
 - Added compatibility with C++ 17 standard type \c std_string_view.
 

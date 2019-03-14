@@ -1,15 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS
 
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#   include "../plugins/calculus.hpp"
+#   include "alib/expressions/plugins/calculus.hpp"
 #endif
 
 
@@ -29,7 +28,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * Type    | Name        | Min. Abbreviation | Description
  * --------|-------------|-------------------|--------------
- * String  |\b Newline   | newl  | System dependent new line character combination ( <c>"\n"</c> or <c>"\r\n"</c>).
+ * String  |\b NewLine   | nl    | System dependent new line character combination ( <c>"\n"</c> or <c>"\r\n"</c>).
  * String  |\b Tabulator | tab   | String with single tabulator character (<c>"\t"</c>).
  *
  * <br>
@@ -40,17 +39,17 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * Return Type    | Name      | Min. Abbreviation| Signature | Description
  * ---------------|-----------|------------------|-----------|-------------
  * String  | \b String        | str      | ...                     | Creates and returns a string representation of the arguments, concatenated from left to right.
- * String  | \b ToUpper       | tou      | String                  | Converts all appropriate characters of a string to upper case letters. This function is aliased by unary operator <c>'+'</c>.
- * String  | \b ToLower       | tol      | String                  | Converts all appropriate characters of a string to lower case letters. This function is aliased by unary operator <c>'-'</c>.
+ * String  | \b ToUpper       | tu       | String                  | Converts all appropriate characters of a string to upper case letters. This function is aliased by unary operator <c>'+'</c>.
+ * String  | \b ToLower       | tl       | String                  | Converts all appropriate characters of a string to lower case letters. This function is aliased by unary operator <c>'-'</c>.
  * Boolean | \b Compare       | comp     | String, String          | Returns \c 0 if strings are equal, a negative value if the first string is "smaller" than the second and a positive otherwise.
  * Boolean | \b Compare       | comp     | String, String, Boolean | Same as Compare(String,String) if third parameter is \c false. If it is \c true letter case is ignored.
- * Boolean | \b StartsWith    | startsw  | String, String          | Tests if the first given string starts with the second. Comparison is case sensitive.
- * Boolean | \b StartsWith    | startsw  | String, String, Boolean | Tests if the first given string starts with the second. The third parameter is \c true, letter case is ignored.
- * Boolean | \b EndsWith      | endsw    | String, String          | Tests if the first given string ends with the second. Comparison is case sensitive.
- * Boolean | \b EndsWith      | endsw    | String, String, Boolean | Tests if the first given string ends with the second. The third parameter is \c true, letter case is ignored.
- * String  | \b Substring     | subs     | String, Integer         | Returns the substring, starting at given position (2nd argument) to the end of the string..
- * String  | \b Substring     | subs     | String, Integer, Integer| Returns the substring, starting at given position (2nd argument) with the given length (3rd argument).
- * Integer | \b IndexOf       | index    | String, String          | Searches the first occurrence of the second string in the first. Returns the position if found, otherwise \c -1.
+ * Boolean | \b StartsWith    | sw       | String, String          | Tests if the first given string starts with the second. Comparison is case sensitive.
+ * Boolean | \b StartsWith    | sw       | String, String, Boolean | Tests if the first given string starts with the second. The third parameter is \c true, letter case is ignored.
+ * Boolean | \b EndsWith      | ew       | String, String          | Tests if the first given string ends with the second. Comparison is case sensitive.
+ * Boolean | \b EndsWith      | ew       | String, String, Boolean | Tests if the first given string ends with the second. The third parameter is \c true, letter case is ignored.
+ * String  | \b Substring     | subs     | String, Integer         | Returns the sub-string, starting at given position (2nd argument) to the end of the string..
+ * String  | \b Substring     | subs     | String, Integer, Integer| Returns the sub-string, starting at given position (2nd argument) with the given length (3rd argument).
+ * Integer | \b IndexOf       | indo     | String, String          | Searches the first occurrence of the second string in the first. Returns the position if found, otherwise \c -1.
  * Integer | \b Count         | count    | String, String          | Counts the number of occurrences of the second string in the first.
  * String  | \b Replace       | repl     | String, String, String  | Returns a copy of the 1st argument, with occurrences of 2nd argument replaced by 3rd argument.
  * String  | \b Repeat        | repeat   | String, Integer         | Returns 1st argument concatenated \e N times (2nd argument).
@@ -61,48 +60,48 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * String  | \b TrimStart     | trims    | String, String          | Trims the string at the start by removing the whitespace characters listed in the second string.
  * String  | \b TrimEnd       | trime    | String                  | Trims the string at the end by removing the following whitespace characters: <c>' '</c>, <c>'\\n'</c>, <c>'\\r'</c> and <c>'\\t'</c>.
  * String  | \b TrimEnd       | trime    | String, String          | Trims the string at the end by removing the whitespace characters listed in the second string.
- * Integer | \b Integer       | int      | String                  | Parses an integer value from the string. Allows decimal, hexadecimal, octal and binary formats. Literal prefixes default to <c>'0x'</c>, <c>'0o'</c> and <c>'0b'</c>, which can be changed by configuring object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * Float   | \b Float         | float    | String                  | Parses a floating point value from the string. Allows scientific format and change of decimal point character by configuring object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * String  | \b Hexadecimal   | hex      | Integer                 | Converts an integer value to a hexadecimal string representation. Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Hexadecimal   | hex      | Integer, Integer        | Converts an integer value to a hexadecimal string representation of the given output width (2nd argument). Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Octal         | oct      | Integer                 | Converts an integer value to a binary string representation. Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Octal         | oct      | Integer, Integer        | Converts an integer value to a binary string representation of the given output width (2nd argument). Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Binary        | bin      | Integer                 | Converts an integer value to an octal string representation. Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Binary        | bin      | Integer, Integer        | Converts an integer value to an octal string representation of the given output width (2nd argument). Format options are available with object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * Integer | \b Integer       | int      | String                  | Parses an integer value from the string. Allows decimal, hexadecimal, octal and binary formats. Literal prefixes default to <c>'0x'</c>, <c>'0o'</c> and <c>'0b'</c>, which can be changed by configuring object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * Float   | \b Float         | float    | String                  | Parses a floating point value from the string. Allows scientific format and change of decimal point character by configuring object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * String  | \b Hexadecimal   | hex      | Integer                 | Converts an integer value to a hexadecimal string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Hexadecimal   | hex      | Integer, Integer        | Converts an integer value to a hexadecimal string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Octal         | oct      | Integer                 | Converts an integer value to a binary string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Octal         | oct      | Integer, Integer        | Converts an integer value to a binary string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Binary        | bin      | Integer                 | Converts an integer value to an octal string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Binary        | bin      | Integer, Integer        | Converts an integer value to an octal string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
  * String  | \b Format        | format   | String, ...             | Formats the given variadic parameters according to the given format string. See notes below, for further information.
- * Boolean | \b WildcardMatch | wildcard | String, String          | Matches a string against a wildcard pattern. See notes below, for further information.
- * Boolean | \b RegexMatch    | regex    | String, String          | Matches a string against a regex pattern. See notes below, for further information.
+ * Boolean | \b WildCardMatch | wcm      | String, String          | Matches a string against a wildcard pattern. See notes below, for further information.
+ * Boolean | \b RegExMatch    | rem      | String, String          | Matches a string against a regex pattern. See notes below, for further information.
  *
  * <br>
  * <b>Unary Operators:</b><br>
  *
- * | Return Type | Operator  | Argument Type | Description|
- * |-------------|-----------|---------------|---------------------
- * | String      |<c>'+'</c> | String        | Alias to function \b %ToUpper.
- * | String      |<c>'-'</c> | String        | Alias to function \b %ToLower.
- * | Boolean     |<c>'!'</c> | String        | Tests a string for emptiness. See notes below.
+ * | Return Type | Operator| Argument Type | Description|
+ * |-------------|---------|---------------|---------------------
+ * | String      |<b>+</b> | String        | Alias to function \b %ToUpper.
+ * | String      |<b>-</b> | String        | Alias to function \b %ToLower.
+ * | Boolean     |<b>!</b> | String        | Tests a string for emptiness. See notes below.
  *
  * <br>
  * <b>Binary Operators:</b><br>
  *
  * | Return Type | Lhs Type | Operator   | Rhs Type | Description
  * |-------------|----------|------------|----------|--------------------
- * |String       | String   |<c>'+'</c>  | Integer  | Concatenates an integral value to a string. The number conversion is performed using object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | String   |<c>'+'</c>  | Float    | Concatenates a floating point value to a string. The number conversion is performed using object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | String   |<c>'+'</c>  | \<any\>  | Converts a boxed value of arbitrary type to a string and appends the result to another string. The conversion of the boxed value is performed by invoking boxing interface \alib{strings::boxing,IApply}.
- * |String       | Integer  |<c>'+'</c>  | String   | Converts an integral value to a string and concatenates another string. The number conversion is performed using object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | Float    |<c>'+'</c>  | String   | Converts a floating point value to a string and concatenates another string. The number conversion is performed using object \alib{strings::format::FormatterBase,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | \<any\>  |<c>'+'</c>  | String   | Converts a boxed value of arbitrary type to a string and appends another string. The conversion of the boxed value is performed by invoking boxing interface \alib{strings::boxing,IApply}.
- * |String       | String   |<c>'+'</c>  | String   | Concatenates two strings.
- * |Boolean      | String   |<c>'<'</c>  | String   | Compares two strings using method \alib{strings,StringBase::CompareTo,String::CompareTo}.
- * |Boolean      | String   |<c>'<='</c> | String   | Compares two strings using method \alib{strings,StringBase::CompareTo,String::CompareTo}.
- * |Boolean      | String   |<c>'>'</c>  | String   | Compares two strings using method \alib{strings,StringBase::CompareTo,String::CompareTo}.
- * |Boolean      | String   |<c>'>='</c> | String   | Compares two strings using method \alib{strings,StringBase::CompareTo,String::CompareTo}.
- * |Boolean      | String   |<c>'=='</c> | String   | Compares two strings using method \alib{strings,StringBase::Equals,String::Equals}.
- * |Boolean      | String   |<c>'!='</c> | String   | Compares two strings using method \alib{strings,StringBase::Equals,String::Equals}.
- * |Boolean      | String   |<c>'*'</c>  | String   | Alias to expression function \b %WildCardMatch. See notes below, for further information.
- * |Boolean      | String   |<c>'\%'</c> | String   | Alias to expression function \b %RegexMatch. See notes below, for further information.
- * |Boolean      | String   |<c>'[]'</c> | Integer  | Returns the sub-string of length \c 1 at index \e rhs in string \e lhs.
+ * |String       | String   |<b>+</b>  | Integer  | Concatenates an integral value to a string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | String   |<b>+</b>  | Float    | Concatenates a floating point value to a string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | String   |<b>+</b>  | \<any\>  | Converts a boxed value of arbitrary type to a string and appends the result to another string. The conversion of the boxed value is performed by invoking box-function \alib{boxing,FAppend}.
+ * |String       | Integer  |<b>+</b>  | String   | Converts an integral value to a string and concatenates another string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | Float    |<b>+</b>  | String   | Converts a floating point value to a string and concatenates another string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | \<any\>  |<b>+</b>  | String   | Converts a boxed value of arbitrary type to a string and appends another string. The conversion of the boxed value is performed by invoking box-function \alib{boxing,FAppend}.
+ * |String       | String   |<b>+</b>  | String   | Concatenates two strings.
+ * |Boolean      | String   |<b><</b>  | String   | Compares two strings using method \alib{strings,TString::CompareTo,String::CompareTo}.
+ * |Boolean      | String   |<b><=</b> | String   | Compares two strings using method \alib{strings,TString::CompareTo,String::CompareTo}.
+ * |Boolean      | String   |<b>></b>  | String   | Compares two strings using method \alib{strings,TString::CompareTo,String::CompareTo}.
+ * |Boolean      | String   |<b>>=</b> | String   | Compares two strings using method \alib{strings,TString::CompareTo,String::CompareTo}.
+ * |Boolean      | String   |<b>==</b> | String   | Compares two strings using method \alib{strings,TString::Equals,String::Equals}.
+ * |Boolean      | String   |<b>!=</b> | String   | Compares two strings using method \alib{strings,TString::Equals,String::Equals}.
+ * |Boolean      | String   |<b>*</b>  | String   | Alias to expression function \b %WildCardMatch. See notes below, for further information.
+ * |Boolean      | String   |<b>\%</b> | String   | Alias to expression function \b %RegexMatch. See notes below, for further information.
+ * |Boolean      | String   |<b>[]</b> | Integer  | Returns the sub-string of length \c 1 at index \e rhs in string \e lhs.
  *
  *
  \~Comment ####################################################################################### \~
@@ -114,16 +113,18 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * compiler.
  *
  * ### Underlying %String %Types: ###
- * While all string manipulation is based on \alib classes \alib{strings,StringBase,String},
- * \alib{strings,AStringBase,AString} and \alib{strings,SubstringBase,Substring}, due to the
+ * While all string manipulation is based on \alib classes \alib{strings,TString,String},
+ * \alib{strings,TAString,AString} and \alib{strings,TSubstring,Substring}, due to the
  * "harmonizing" way that string classes become boxed, none of these types appears as an expression
  * result type. This means that custom expression functions can unbox strings that have been created
  * by callback functions of this plug-in to their own custom string type (e.g. \c std::string,
  * \c QString, or whatever), and, the other way round, results of custom callback functions that
  * returned custom strings objects, can seamlessly be used by functions and operators defined here.
  *
- * Details of this are explained in
- * \ref alib_namespace_boxing_basics_nonbij "ALib Boxing: 3.5 Non-Bijective Type Mapping".
+ * Details of this are explained in chapters
+ * \ref alib_boxing_bijective "3. Non-Bijective Type Relationships" and
+ * \ref alib_boxing_strings   "10. Boxing Character Strings" of the
+ * \ref alib_mod_boxing "Programmer's Manual" of module \alibmod_nolink_boxing.
  *
  *
  * ### Determine A String's Length ###
@@ -173,33 +174,35 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * the following rules apply:
  *
  * - Types \alib{expressions::Types,Integer} and \alib{expressions::Types,Float} are converted
- *   to string types using object \alib{strings::format::FormatterBase,DefaultNumberFormat} of
+ *   to string types using object \alib{stringformat::Formatter,DefaultNumberFormat} of
  *   field \alib{expressions,Scope::Formatter}.
  *   With this, detailed options for the number output format is available.
  *   Even more options are available when using expression function \b %Format instead of
  *   the <c>'+'</c> operator.
  *
  * <p>
- * - Any other type is converted to a string representation using \alib \b %Boxing interface
- *   \alib{strings::boxing,IApply}. For information on how to implement this for custom
- *   types, consult the documentation of module \alibmod_boxing. The following provides a quick
- *   sample snippet, taken from the unit tests.
+ * - Any other type is converted to a string representation by using box-function
+ *   \alib{boxing,FAppend}. For information on how to implement this for custom
+ *   types, consult the documentation of module \alibmod_boxing.
+ *   The following provides a quick sample snippet, taken from the unit tests:
  *
  *   1. The custom type:
- *   \snippet "ut_alib_expr_basics.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPLY_1
+ *      \snippet "ut_alib_expr.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_1
  *
- *   2. Definition of interface \b %IApply for type <b>MyType</b>:
- *   \snippet "ut_alib_expr_basics.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPLY_2
+ *   2. Definition of functor \alib{strings,T_Append} type <b>MyType</b>.
+ *      Because the type will be boxed as a pointer, we also define the functor for the pointer type:
+ *      \snippet "ut_alib_expr.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_2
  *
- *   3. In the bootstrap section of an application, the interface has to be registered with \alibmod_nolink_boxing:
- *   \snippet "ut_alib_expr_basics.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPLY_3
+ *   3. In the bootstrap section of an application, an implementation of the templated interface
+ *      function has be registered with \alibmod_nolink_boxing:
+ *      \snippet "ut_alib_expr.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_3
  *
  *   With this short setup code, objects of type \e MyType, which might be returned by custom
  *   identifiers, can be added to strings in expressions!
  *
  * <p>
- * - With type \alib{expressions::Types,Boolean}, the \alib{lang,Resources,resourced}
- *   string values generally used with boxing interface \alib{strings::boxing,IApply} defined for
+ * - With type \alib{expressions::Types,Boolean}, the \alib{resources,Resources,resourced}
+ *   string values generally used with box-function \alib{boxing,FAppend} defined for
  *   C++ type \c bool are used.
  *   These string resources default to \b "true" and \b "false". While resources can be customized,
  *   such customization has process-wide effect.<br>
@@ -212,8 +215,8 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * ### Comparison: ###
  * Operators <c>'=='</c>, <c>'!='</c>, <c>'<'</c>, <c>'<='</c>, <c>'>'</c> and <c>'>='</c>
  * perform comparisons between two string operands.
- * Internally, to perform the comparison, methods \alib{strings,StringBase::Equals,String::Equals} and
- * \alib{strings,StringBase::CompareTo,String::CompareTo} are used.
+ * Internally, to perform the comparison, methods \alib{strings,TString::Equals,String::Equals} and
+ * \alib{strings,TString::CompareTo,String::CompareTo} are used.
  *
  * Case insensitive comparison can be performed by converting the operand(s) to upper case
  * using expression function \b %ToUpper or its "alias operator", unary <c>'+'</c>.
@@ -221,20 +224,20 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * third operator of type \b %Boolean, which if \c true is given performs a case insensitive
  * search without performing string conversions.
  *
- *
+ * \anchor cpp_alib_expressions_Strings_Formatting
  * ### Formatting: ###
  * Function <b>Format(String, ...)</b> offers full featured string formatting in expressions.
  * Being based on classes of underlying module \alibmod_strings, there is a choice between
- * \alib{strings::format,FormatterPythonStyleBase,python style} or
- * \alib{strings::format,FormatterJavaStyleBase,Java/printf style} format strings. It is even possible
+ * \alib{stringformat,FormatterPythonStyle,python style} or
+ * \alib{stringformat,FormatterJavaStyle,Java/printf style} format strings. It is even possible
  * to allow both formats, of-course not within the same string, but within different
  * evaluations of the same expression!
  *
  * Please consult the documentation of classes
- * - \alib{strings::format,FormatterBase,Formatter},
- * - \alib{strings::format,FormatterBase,Formatter},
- * - \alib{strings::format,FormatterPythonStyleBase,FormatterPythonStyle} and
- * - \alib{strings::format,FormatterJavaStyleBase,FormatterJavaStyle} for details.
+ * - \alib{stringformat,Formatter},
+ * - \alib{stringformat,Formatter},
+ * - \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle} and
+ * - \alib{stringformat,FormatterJavaStyle,FormatterJavaStyle} for details.
  *
  *
  * ### Wildcard Match: ###

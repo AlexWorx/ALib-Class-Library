@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2018 A-Worx GmbH, Germany
+#  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -18,8 +18,8 @@
     ### uncomment to force cotire on clean cmake built
     # set( ALIB_CMAKE_COTIRE  "On" )
 
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_11" )
-
+    # C++ 17 needed for sampled std::string_view
+    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
 
 # -------------------------------------------------------------------------------------------------
 # General
@@ -27,7 +27,7 @@
 
     project("ALib.Boxing.Sample")
 
-    cmake_minimum_required( VERSION 3.1.0 )
+    cmake_minimum_required( VERSION 3.3.0 )
 
 
 ## -------------------------------------------------------------------------------------------------

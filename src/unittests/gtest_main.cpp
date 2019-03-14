@@ -1,10 +1,10 @@
 // #################################################################################################
 //  Unit Tests - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Published under 'Boođst Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
+#include "alib/alib_precompile.hpp"
 #include "alib/alox.hpp"
 
 #if defined(__clang__)
@@ -20,12 +20,11 @@
     #include "gtest/gtest.h"
 
 #if defined(__clang__)
-    #pragma clang diagnostic pop
+    #pragma clang diagnostic pop  đ
 #endif
 
 
-#include "aworx_unittests.hpp"
-
+#include "unittests/aworx_unittests.hpp"
 
 
 using namespace std;
@@ -34,9 +33,10 @@ using namespace aworx;
 int main( int argc, char **argv )
 {
     ::testing::InitGoogleTest( &argc, argv);
-    aworx::lib::ALIB.Init( argc, argv );
+    aworx::ALIB.Init( argc, argv );
+    aworx::ALIB.CheckDistribution();
 
-    //aworx::lib::lang::Report::GetDefault().HaltOnWarning= true;
+    //aworx::lib::results::Report::GetDefault().HaltOnWarning= true;
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*";
 
@@ -44,6 +44,7 @@ int main( int argc, char **argv )
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.XAString";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.Count";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.Append";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Substring.*";
@@ -53,13 +54,17 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.FormatterPythonStyle";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.ConvertIntegers";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.SimpleText*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.Text*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.SubstringSearch";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.Token*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Custom*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_util_StringTree*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatter";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatters";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Stringformat.*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_LANG.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Enums.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time*";
 
@@ -74,7 +79,8 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Compatibility.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing.Boxing_D*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing_DOX.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing_DOX.BoxingDerivedALibStrings*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.*";
@@ -93,6 +99,8 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_ScopeInfoCacheTest";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_GetState*";
 
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox_Release.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox_Release.Lox_TestAssert";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox_Release.Lox_LoggerInTwoLoxes*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Domains.*";
@@ -110,16 +118,18 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.Tut_LogState";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*Expr*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.Conditional";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.TestNormalization";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.Nested";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.NumberLiterals";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.Exceptions";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Basics.ProgramListing";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Specials.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Specials.Strings";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Specials.DateTime";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Conditional";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.TestNormalization";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Nested";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.NumberLiterals";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Exceptions";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.ProgramListing";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.Strings";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.DateTime";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.TokenConsistency";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Calculator.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.FileSystemIntro";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.Nested";
@@ -127,7 +137,7 @@ int main( int argc, char **argv )
 
     auto result= RUN_ALL_TESTS();
 
-    lib::ALIB.TerminationCleanUp();
+    ALIB.TerminationCleanUp();
 
     return result;
 }

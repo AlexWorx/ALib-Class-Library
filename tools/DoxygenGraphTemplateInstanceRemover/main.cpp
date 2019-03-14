@@ -1,7 +1,7 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -15,11 +15,10 @@
 // This is a quick and dirty written piece of code.
 // Maybe doxygen will support an option to remove instantiated classes some day.
 // #################################################################################################
-/** @file */ // Hello Doxygen
 
 // to preserve the right order, we are not includable directly from outside.
 #include <alib/alox.hpp>
-#include "alib/compatibility/std_iostream.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/config/inifile.hpp"
 
 #include <fstream>
@@ -208,7 +207,7 @@ int ReadFile()
     Log_Info( "Reading file: ", FileName );
 
     dotFile.Lines.clear();
-    ifstream file( FileName.ToCString() );
+    ifstream file( FileName.Terminate() );
     if ( !file.is_open() )
     {
         cerr << "DoxygenGraphTemplateInstanceRemover:  Error opening file: "<< FileName << endl;
@@ -226,24 +225,27 @@ int ReadFile()
         {
             line->original.SearchAndReplace("\\l", "" ); // new line characters
             line->original.SearchAndReplace("aworx::lib::boxing::"                 , "" );
+            line->original.SearchAndReplace("aworx::lib::characters::"             , "" );
+            line->original.SearchAndReplace("aworx::lib::cli::"                    , "" );
+            line->original.SearchAndReplace("aworx::lib::compatibility::"          , "" );
             line->original.SearchAndReplace("aworx::lib::config::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::debug::"                  , "" );
-            line->original.SearchAndReplace("aworx::lib::lang::"                   , "" );
+            line->original.SearchAndReplace("aworx::lib::enums::"                  , "" );
+            line->original.SearchAndReplace("aworx::lib::expressions::"            , "" );
+            line->original.SearchAndReplace("aworx::lib::system::"                 , "" );
+            line->original.SearchAndReplace("aworx::lib::lox::detail::textlogger::", "" );
+            line->original.SearchAndReplace("aworx::lib::lox::detail::"            , "" );
+            line->original.SearchAndReplace("aworx::lib::lox::"                    , "" );
+            line->original.SearchAndReplace("aworx::lib::memory::"                 , "" );
+            line->original.SearchAndReplace("aworx::lib::resources::"              , "" );
+            line->original.SearchAndReplace("aworx::lib::results::"                , "" );
+            line->original.SearchAndReplace("aworx::lib::singletons::"             , "" );
+            line->original.SearchAndReplace("aworx::lib::stringformat::"           , "" );
             line->original.SearchAndReplace("aworx::lib::strings::"                , "" );
             line->original.SearchAndReplace("aworx::lib::system::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::threads::"                , "" );
+            line->original.SearchAndReplace("aworx::lib::threads"                  , "" );
             line->original.SearchAndReplace("aworx::lib::time"                     , "" );
-            line->original.SearchAndReplace("aworx::lib::util::"                   , "" );
             line->original.SearchAndReplace("aworx::lib::"                         , "" );
-            line->original.SearchAndReplace("aworx::lib::lox::core::textlogger::"  , "" );
-            line->original.SearchAndReplace("aworx::lib::lox::core::"              , "" );
-            line->original.SearchAndReplace("aworx::lib::lox::"                    , "" );
 
-            //line->original.SearchAndReplace("aworx::lib::lox::lang::textlogger::",       "" ); //very strange, but this occurs!?
-            //line->original.SearchAndReplace("lang::aworx::lib::lox::core::",             "" );
-            //line->original.SearchAndReplace("aworx::lib::lox::lang::",                   "" );
-            //line->original.SearchAndReplace("lox::lang::",                          "" );
-            //line->original.SearchAndReplace("lang::",                               "" );
 
             line->original.SearchAndReplace("std::",                                "" );
             line->original.SearchAndReplace("< ",        "<" );
@@ -303,15 +305,14 @@ bool Build()
             {
                 if( entry->Name.StartsWith( "TCLASS_" ) )
                 {
-                    String32 className( entry->Name, 7 );
-                    if( theTNode->original.IndexOf( className ) > 0 )
+                    if( theTNode->original.IndexOf( entry->Name.Substring( 7 ) ) > 0 )
                     {
                         Variable var( nullptr, entry->Name );
                         Inifile->Load( var );
                         if( theTNode->original.IndexOf( var.GetString() ) < 0 )
                         {
                             //Log_Warning( String512() << "Deleting inherit file (single node): " << theTNode->original );
-                            theTNode->original= "";
+                            theTNode->original.Reset();
                             theTNode->content= nullptr;
                             IsSingleTNodeInheritFile= true;
                             return true;
@@ -359,7 +360,7 @@ bool Build()
 
             Variable var( nullptr, String64() << "TCLASS_" << actNode->TClassName );
             if ( Inifile->Load( var ) )
-                actNode->TParamName._()._( var.GetString() );
+                actNode->TParamName.Reset( var.GetString() );
             else
                 actNode->TParamName= "T";
 
@@ -471,7 +472,7 @@ bool WriteFile()
     if (!DebugMode)
     {
         FileName._(NewFileNameSuffix);
-        file= new ofstream( FileName.ToCString() );
+        file= new ofstream( FileName.Terminate() );
         if ( !file->is_open() )
         {
             cerr << "DoxygenGraphTemplateInstanceRemover: Error writing file" << endl;
@@ -543,12 +544,12 @@ void     InvokeDotAndExit( int argc, char *argv[] )
         return;
 
     //----- invoking dot ---------
-    AString dotCommand("dot");
+    NAString dotCommand("dot");
     dotCommand._(' ')._(FileName);
     for( int i= 2; i< argc ; i++ )
-        dotCommand << ' ' << argv[i];
+        dotCommand << ' ' << NString(argv[i]);
 
-    FILE* pipe = popen( dotCommand.ToCString(), "r");
+    FILE* pipe = popen( dotCommand.Terminate(), "r");
 
     string result;
     if (!pipe)
@@ -570,10 +571,10 @@ int main(int argc, char *argv[])
     DebugMode= argc==1;
 
     // init ALib
-    lib::ALIB.Init( argc, argv);
+    ALIB.Init( argc, argv);
     Log_AddDebugLogger();
     Log_SetDomain( "DOXGRAPH", Scope::Filename  );
-    Log_SetVerbosity( "DEBUG_LOGGER", DebugMode || lib::ALIB.IsDebuggerPresent()
+    Log_SetVerbosity( "DEBUG_LOGGER", DebugMode || ALIB.IsDebuggerPresent()
                                       ?  Verbosity::Verbose :  Verbosity::Warning,
                                       "/DOXGRAPH" );
 
@@ -581,8 +582,8 @@ int main(int argc, char *argv[])
     if (!DebugMode )
     {
       //Log_SetVerbosity( "DEBUG_LOGGER",  Verbosity::Info , "/DOXGRAPH" );
-        lib::lang::Report::GetDefault().PushHaltFlags( false, false );
-        FileName= argv[1];
+        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        FileName.Reset( NCString(argv[1]) );
     }
     else
     {
@@ -591,9 +592,9 @@ int main(int argc, char *argv[])
         //String debugFile( "/classaworx_1_1lox_1_1core_1_1textlogger_1_1TextLogger__inherit__graph.dot");
         //String debugFile( "/classaworx_1_1lox_1_1core_1_1textlogger_1_1MetaInfo__coll__graph.dot" );
         //String debugFile( "/classaworx_1_1lox_1_1loggers_1_1AnsiConsoleLogger__coll__graph.dot" );
-        String debugFile( "classaworx_1_1lib_1_1lang_1_1Singleton__inherit__graph.dot" ); // "inherit_graph_49.dot" );
+        String debugFile( "classaworx_1_1lib_1_1singletons_1_1Singleton__inherit__graph.dot" ); // "inherit_graph_49.dot" );
 
-        FileName._("../html/cpp_ref");
+        FileName._("../html");
         for( int depth= 0; depth < 10 ; depth++ )
         {
             if ( Directory::Exists( FileName ) )
@@ -607,14 +608,15 @@ int main(int argc, char *argv[])
 
     Log_Warning( "dotFixer: Processing File: ", FileName );
 
+
     // read INI file
     Inifile= new IniFile("doxygenDotFixer.cfg");
     //Log_Assert( Inifile->LastStatus == IniFile::Status::Ok , "IniFile not found" );
     Inifile->AutoSave=      true;
-    Inifile->FileComments=
+    Inifile->FileComments.Reset(
      "======================================================================================" "\n"
-     "ALib - A-Worx Utility Library"                                                          "\n"
-     "Copyright 2013-2018 A-Worx GmbH, Germany"                                               "\n"
+     "ALib C++ Library"                                                          "\n"
+     "Copyright 2013-2019 A-Worx GmbH, Germany"                                               "\n"
      "Published under 'Boost Software License' (a free software license, see LICENSE.txt)"    "\n"
      "======================================================================================" "\n"
      "This tool replaces simple, pure 'integer' template instantiation nodes in doxygen"      "\n"
@@ -628,7 +630,7 @@ int main(int argc, char *argv[])
      "This cfg-file is auto generated."                                                       "\n"
      "Template parameter names detected across invocations are stored here."                  "\n"
      "--------------------------------------------------------------------------------------"
-     ;
+    );
 
     // do it
     if( ReadFile() )
@@ -652,7 +654,7 @@ int main(int argc, char *argv[])
 
     delete Inifile;
     FileName.SetNull();
-    lib::ALIB.TerminationCleanUp();
+    ALIB.TerminationCleanUp();
 
     return 0;
 }

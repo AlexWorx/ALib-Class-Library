@@ -1,0 +1,38 @@
+// #################################################################################################
+//  Documentation - ALib C++ Library
+//
+//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_mod_alox   ALib Module ALox
+
+The <b>ALox Logging Library</b> is developed in three programming languages: \b C#, \b Java and
+\b C++. With \b C++, the library is implemented as an \alibmod.  With \b C# and \b JAVA versions it
+is different. There, \alib classes are a part of the logging library.
+
+All three language incarnations share <b>a joint website</b> that explains all about \alox.
+Here are some links into this external site:
+
+
+- [ALox Logging Library Homepage](http://alexworx.github.io/ALox-Logging-Library/index.html)
+- [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/manual.html)
+- [ALox C++ Subpage](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_mainpage.html)
+- [ALox C++ Tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html)
+
+\attention
+  Please do not be confused: The previous links refer to a different project and site, which has a
+  very similar layout!
+
+
+Note, that the
+
+- \ref aworx::lib::lox "ALox Reference Documentation"
+
+is located within this project site (\alib). Of-course, the same is true for source code, unit tests,
+tool- and sample code of the \b C++ version.
+
+*/
+
+

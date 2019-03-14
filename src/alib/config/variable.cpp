@@ -1,29 +1,18 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
+
+#if !defined (HPP_ALIB_CONFIG_VARIABLE)
+    #include "alib/config/variable.hpp"
+#endif
 
 #if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
     #include "alib/config/configuration.hpp"
 #endif
-
-#if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
-    #include "alib/strings/numberformat.hpp"
-#endif
-
-#if !defined(HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-
-#if !defined (HPP_ALIB_LANG_RESOURCE_TUPLE_LOADER)
-    #include "alib/lang/resourcedtupleloader.hpp"
-#endif
-
-
-
 
 namespace aworx { namespace lib { namespace config {
 
@@ -34,10 +23,10 @@ void    Variable::clear()
     Delim=          '\0';
     FmtHints=       FormatHints::None;
 
-    Category._();
-    Name    ._();
-    Comments._();
-    Fullname._();
+    Category.Reset();
+    Name    .Reset();
+    Comments.Reset();
+    Fullname.Reset();
     ClearValues();
 
 }
@@ -56,7 +45,7 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  Boxes& replac
     Comments._( declaration.Comments()  );
 
     if ( declaration.DefaultValue().IsNotNull() )
-        DefaultValue._()._( declaration.DefaultValue() );
+        DefaultValue.Reset( declaration.DefaultValue() );
     else
         DefaultValue.SetNull();
 
@@ -67,12 +56,14 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  Boxes& replac
     for ( auto& replacement : replacements )
     {
         String64  search("%"); search._( replCnt );
-        replace.Clear() << replacement;
-        if ( replacement.IsNotNull() ) { Category    .SearchAndReplace( search, replace );
-                                         Name        .SearchAndReplace( search, replace );
-                                         Comments    .SearchAndReplace( search, replace );
-                                         DefaultValue.SearchAndReplace( search, replace );
-                                       }
+        replace.Reset( replacement );
+        if ( !replacement.IsType<void>() )
+        {
+            Category    .SearchAndReplace( search, replace );
+            Name        .SearchAndReplace( search, replace );
+            Comments    .SearchAndReplace( search, replace );
+            DefaultValue.SearchAndReplace( search, replace );
+        }
 
         replCnt++;
     }
@@ -82,7 +73,7 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  Boxes& replac
         Fullname._( Category )._( '_' );
     Fullname._( Name );
 
-    ALIB_ASSERT_WARNING(  Name.IsNotEmpty(), ASTR("Empty variable name given") );
+    ALIB_ASSERT_WARNING(  Name.IsNotEmpty(), "Empty variable name given" )
 
     return *this;
 }
@@ -108,7 +99,7 @@ void Variable::ReplaceValue( int idx, Variable& replVariable )
 {
     if( idx < 0 || idx >= qtyValues )
     {
-        ALIB_WARNING( ASTR("Index out of range: "), idx  );
+        ALIB_WARNING( "Index out of range: ", idx  )
         return;
     }
 
@@ -119,7 +110,7 @@ void Variable::ReplaceValue( int idx, Variable& replVariable )
         return;
     }
 
-    values[static_cast<size_t>(idx)]._()._( replVariable.GetString(0) );
+    values[static_cast<size_t>(idx)].Reset( replVariable.GetString() );
     for( int i= 1 ; i < replSize; i++ )
     {
         values.insert( values.begin() + idx + i, AString( replVariable.GetString(i) ) );
@@ -132,25 +123,28 @@ AString&    Variable::Add()
     size_t actIdx= static_cast<size_t>(qtyValues);
     qtyValues++;
     if( actIdx < values.size() )
-        return values[actIdx].Clear();
+        return values[actIdx].Reset();
 
     return *values.insert( values.end(), AString() );
 }
 
 
 
-bool        Variable::IsTrue    (int idx) { return  idx < qtyValues ? Config->IsTrue( GetString (idx) )                   : false; }
-integer     Variable::GetInteger(int idx) { return  idx < qtyValues ? static_cast<integer>(GetString(idx)->ParseInt())    : 0;     }
-double      Variable::GetFloat  (int idx) { return  idx < qtyValues ? GetString(idx)->ParseFloat( Config ? &Config->NumberFormat : &NumberFormat::Global ) : 0.0;   }
+bool        Variable::IsTrue    (int idx) { return idx < qtyValues ? Config->IsTrue( GetString (idx) )
+                                                                   : false; }
+integer     Variable::GetInteger(int idx) { return idx < qtyValues ? static_cast<integer>( GetString(idx).ParseInt())
+                                                                   : 0;     }
+double      Variable::GetFloat  (int idx) { return idx < qtyValues ? GetString(idx).ParseFloat( Config ? &Config->NumberFormat : &NumberFormat::Global )
+                                                                   : 0.0;   }
 
 
-bool Variable::GetAttribute( const String& attrName, Substring& result, char attrDelim )
+bool Variable::GetAttribute( const String& attrName, Substring& result, character attrDelim )
 {
     for ( int i= 0; i< Size(); i++ )
     {
         result= GetString( i );
-        if (    result.ConsumeString<lang::Case::Ignore, lang::Whitespaces::Trim>( attrName )
-             && result.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( attrDelim ) )
+        if (    result.ConsumeString<Case::Ignore, Whitespaces::Trim>( attrName  )
+             && result.ConsumeChar  <Case::Ignore, Whitespaces::Trim>( attrDelim ) )
         {
             result.Trim();
             return true;

@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2018 A-Worx GmbH, Germany
+#  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -25,7 +25,7 @@
 
 #! [DOXYGEN_CMAKE_INCLUDE_1]
     project("ALox.Samples")
-    cmake_minimum_required( VERSION 3.1.0 )
+    cmake_minimum_required( VERSION 3.3.0 )
 #! [DOXYGEN_CMAKE_INCLUDE_1]
 
 
@@ -72,7 +72,7 @@
 # https://github.com/sakra/cotire/
 # -------------------------------------------------------------------------------------------------
     if( ${ALIB_CMAKE_COTIRE} )
-        set_target_properties( ALoxSamples     PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT   "${ALIB_SOURCE_DIR}/alib/alib.hpp" )
+        set_target_properties( ALoxSamples     PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT   "${ALIB_SOURCE_DIR}/alib/alib_precompile.hpp" )
         set_target_properties( ALoxSamples     PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j" )
 
         cotire( ALoxSamples )

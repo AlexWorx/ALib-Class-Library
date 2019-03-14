@@ -1,27 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CLI_ARGUMENTS)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CLI_ARGUMENTS
-//! @cond NO_DOX
 #define HPP_ALIB_CLI_ARGUMENTS 1
-//! @endcond
 
-#if !defined (HPP_ALIB_CLI_LIB)
-    #include "alib/cli/clilib.hpp"
+#if !defined (HPP_ALIB_CLI_CLI)
+    #include "alib/cli/cli.hpp"
 #endif
 
 
@@ -43,16 +30,10 @@ struct ExitCodeDecl;
 
 ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::cli::CommandDecl  , String,int,String )
 ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::cli::OptionDecl   , String,int,String,String,size_t,bool,String )
-ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::cli::ParameterDecl, String,String,int,String,char,int,int )
+ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::cli::ParameterDecl, String,String,int,String,nchar,int,int )
 ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::cli::ExitCodeDecl , String,int )
 
 namespace aworx { namespace lib { namespace  cli {
-
-
-
-// #################################################################################################
-// Details
-// #################################################################################################
 
 /**
  * Struct used as parent for types
@@ -61,10 +42,10 @@ namespace aworx { namespace lib { namespace  cli {
  * - \alib{cli,ParameterDecl} and
  * - \alib{cli,ExitCodeDecl}.
  *
- * Stores runtime information of user-defined enum types.
+ * Stores run-time information of user-defined enum types.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
- * \alib{lang,T_EnumMetaDataDecl,enum meta data} of a distinct type.
+ * \alib{resources,T_EnumMetaDataDecl,enum meta data} of a distinct type.
  *
  * Such enums are announced to <b>%ALib CLI</b> using macros
  * - \ref ALIB_CLI_COMMANDS,
@@ -80,29 +61,32 @@ namespace aworx { namespace lib { namespace  cli {
 template<typename TEMD>
 struct ArgumentDecl
 {
-    /// The meta data tuple type.
-    using TTuple = typename lang::T_EnumMetaDataSpecification<TEMD>::TTuple;
+    /** The meta data tuple type. */
+    using TTuple = typename resources::T_EnumMetaDataSpecification<TEMD>::TTuple;
 
-    Enum           EnumBox;   ///< The enum element boxed in class \b %Enum.
-    TTuple&        Tuple;     ///< The resource tuple of the enum element.
-    Library&       ResLib;    ///< The library associated with the type \p{TEnum}.
-                              ///< Used to load dependent  resources.
+    Enum                  ID;                ///< The enum element boxed in class \b %Enum.
+    TTuple&               Tuple;             ///< The resource tuple of the enum element.
+    resources::Resources& Resources;         ///< The resources associated with the type \p{TEnum}.
+                                             ///< Used to load dependent  resources.
+    NString               ResourcesCategory; ///< The resource category within #Resources.
+                                             ///< Used to load dependent  resources.
 
     /**
      * Templated constructor which takes an enum element of a custom enum type (enabled as
      * described in class documentation).
      *
-     * Stores the enum code, the tuple and the resource library.
+     * Stores the enum code, the tuple and the resource module.
      *
      * @param element   The enum element
      * @tparam TEnum    C++ enum type enabled with \ref ALIB_CLI_EXIT_CODES.
      */
     template<typename TEnum>
     inline
-    ArgumentDecl( TEnum element )
-    : EnumBox( element )
-    , Tuple  ( *EnumMetaData<TEnum>::GetSingleton()->Get( element ) )
-    , ResLib ( lang::T_Resourced<TEnum>::Lib() )
+    ArgumentDecl        ( TEnum element )
+    : ID                ( element )
+    , Tuple             ( *EnumMetaData<TEnum>::GetSingleton().Get( element ) )
+    , Resources         ( *lib::resources::T_Resourced<TEnum>::Resource() )
+    , ResourcesCategory (  lib::resources::T_Resourced<TEnum>::Category() )
     {}
 };
 
@@ -124,14 +108,15 @@ struct ArgumentDecl
  */
 struct ArgumentDef
 {
-    /// The cli application.
+    /** The cli application. */
     CLIApp*                      Parent;
 
     /** The index in \alib{cli,CLIApp::ArgNOriginal}, respectively \alib{cli,CLIApp::ArgWOriginal}
      *  that this instance was found. */
     size_t                       Position;
 
-    /// Not essential, to whom it may concern...
+    /** The number of command line arguments that a command consumed. This includes the command name
+        itself. Not essential, to whom it may concern...                                          */
     size_t                       QtyArgsConsumed;
 
     /**
@@ -158,7 +143,7 @@ struct ArgumentDef
  * A parameter of a \alib{cli,CommandDecl}.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
- * \alib{lang,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
+ * \alib{resources,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
  * to <b>%ALib CLI</b> using macro \ref ALIB_CLI_PARAMETERS.
  *
  * When bootstrapping \alibmod_nolink_cli, method \alib{cli,CLIApp::DefineParameters} has to be
@@ -168,15 +153,15 @@ struct ArgumentDef
  * The tuple elements have the following meaning:
  *
  * Index | Description
- * - - - | - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 0     | The underlying integer value of the enum element
- * 1     | The name of the parameter (usually same as C++ enum element name).
- * 2     | The identifier of the parameter.
- * 3     | The minimum amount of characters to parse to accept the option.
- * 4     | An optional separator string (usually "=") that separates the parameter name from a value within the parameter itself.
- * 5     | A separator character for parsing multiple values.
- * 6     | The number of arguments to consume and store in \alib{cli,Parameter::Args}. if negative, parsing stops. If previous field, separator string is set and this value is equal or greater to \c 1, then a missing separator string leads to a parsing exception.
- * 7     | Denotes if this is an optional parameter
+ * ------|-------------
+ *   0   | The underlying integer value of the enum element
+ *   1   | The name of the parameter (usually same as C++ enum element name).
+ *   2   | The identifier of the parameter.
+ *   3   | The minimum amount of characters to parse to accept the option.
+ *   4   | An optional separator string (usually "=") that separates the parameter name from a value within the parameter itself.
+ *   5   | A separator character for parsing multiple values.
+ *   6   | The number of arguments to consume and store in \alib{cli,Parameter::Args}. if negative, parsing stops. If previous field, separator string is set and this value is equal or greater to \c 1, then a missing separator string leads to a parsing exception.
+ *   7   | Denotes if this is an optional parameter
  *
  */
 struct ParameterDecl : public ArgumentDecl<ParameterDecl>
@@ -185,7 +170,7 @@ struct ParameterDecl : public ArgumentDecl<ParameterDecl>
      * Templated constructor which takes an enum element of a custom type that was enabled
      * using \ref ALIB_CLI_PARAMETERS.
      *
-     * Stores the enum code, the tuple and the resource library.
+     * Stores the enum code, the tuple and the resource module.
      *
      * @param element   The enum element
      * @tparam TEnum    C++ enum type enabled with \ref ALIB_CLI_PARAMETERS.
@@ -247,7 +232,7 @@ struct ParameterDecl : public ArgumentDecl<ParameterDecl>
      * Returns the separator character (in case of multiple values).
      * @return The separator character.
      */
-    inline char Separator()
+    inline nchar Separator()
     {
         return std::get<5>( Tuple ) != 'C' ? std::get<5>( Tuple ): ',';
     }
@@ -264,7 +249,10 @@ struct ParameterDecl : public ArgumentDecl<ParameterDecl>
     }
 
     /**
-     * Returns \c true if the parameter is optional.
+     * Returns \c true if the parameter is optional. The information about this attribute is
+     * used to create help messages and usage format strings only. It does not automatically
+     * raise an exception if a parameter is not given. Such exception or other error treatment
+     * is up to the user code.
      * @return \c true if the parameter is optional, \c false otherwise.
      */
     inline bool IsOptional()
@@ -274,39 +262,39 @@ struct ParameterDecl : public ArgumentDecl<ParameterDecl>
 
     /**
      * Returns the short help text.
-     * Loads the string from the resources of #ResLib using resource name \c "THelpParShtNN",
+     * Loads the string from #Resources using resource name \c "THelpParShtNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  GetHelpTextShort()
     {
-        return ResLib.Get( String64("THlpParSht" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("THlpParSht_" ) << Name() ALIB_DBG(, true));
     }
 
     /**
      * Returns the long help text.
-     * Loads the string from the resources of #ResLib using resource name \c "THelpParLngNN",
+     * Loads the string from #Resources using resource name \c "THelpParLngNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  GetHelpTextLong()
     {
-        return ResLib.Get( String64("THlpParLng" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("THlpParLng_" ) << Name() ALIB_DBG(, true));
     }
 };
 
 /**
- * A declaration for an \alib{cli::Parameter}.
+ * A declaration for a \alib{cli::Parameter}.
  */
 struct Parameter : public ArgumentDef
 {
-    /// Expose parent classes' constructor.
+    /** Expose parent class's constructor. */
     using ArgumentDef::ArgumentDef;
 
-    /// The underlying declaration.
+    /** The underlying declaration. */
     ParameterDecl*      Declaration                                                       = nullptr;
 
-    /// Arguments belonging to us.
+    /** Arguments belonging to us. */
     std::vector<String>     Args;
 
     /**
@@ -336,7 +324,7 @@ struct Parameter : public ArgumentDef
  * A declaration for an \alib{cli::Option}.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
- * \alib{lang,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
+ * \alib{resources,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
  * to <b>%ALib CLI</b> using macro \ref ALIB_CLI_OPTIONS.
  *
  * When bootstrapping \alibmod_nolink_cli, method \alib{cli,CLIApp::DefineOptions} has to be
@@ -345,20 +333,20 @@ struct Parameter : public ArgumentDef
  * The tuple elements have the following meaning:
  *
  * Index | Description
- * - - - | - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 0     | The underlying integer value of the enum element
- * 1     | The name of the option as parsed from command line if double hyphen <c>'--'</c> is used.
- * 2     | The minimum amount of characters to parse to accept the option.
- * 3     | The name of the option as parsed from command line if single hyphen <c>'-'</c> is used. Defined as string to be able to have empty strings, which disables single char options.
- * 4     | An optional separator string (usually "=") that separates the option name from a value within the first argument itself. If this is given, the number of arguments to consume should be \c 0.
- * 5     | The number of arguments to consume and store in \alib{cli,Option::Args}. If previous field, separator string is set and this value is equal or greater to \c 1, then a missing separator string leads to a parsing exception.
- * 6     | If \c true, a next occurrence overwrites previous. Overwritten options are stored in \alib{cli,CLIApp::OptionsOverwritten}. Otherwise, multiple occurrencies are stored.
- * 7     | If not empty, the argument string will be replaced by this and search for next options continue. Note: Shortcut options have to occur earlier in the enum resource table!
+ * ------|-------------
+ *   0   | The underlying integer value of the enum element
+ *   1   | The name of the option as parsed from command line if double hyphen <c>'--'</c> is used.
+ *   2   | The minimum amount of characters to parse to accept the option.
+ *   3   | The name of the option as parsed from command line if single hyphen <c>'-'</c> is used. Defined as string to be able to have empty strings, which disables single character options.
+ *   4   | An optional separator string (usually "=") that separates the option name from a value within the first argument itself. If this is given, the number of arguments to consume should be \c 0.
+ *   5   | The number of arguments to consume and store in \alib{cli,Option::Args}. If previous field, separator string is set and this value is equal or greater to \c 1, then a missing separator string leads to a parsing exception.
+ *   6   | If \c true, a next occurrence overwrites previous. Overwritten options are stored in \alib{cli,CLIApp::OptionsOverwritten}. Otherwise, multiple occurrencies are stored.
+ *   7   | If not empty, the argument string will be replaced by this and search for next options continue. Note: Shortcut options have to occur earlier in the enum resource table!
  *
  */
 struct OptionDecl : public ArgumentDecl<OptionDecl>
 {
-    /// Expose parent classes' constructor.
+    /** Expose parent class's constructor. */
     using ArgumentDecl<OptionDecl>::ArgumentDecl;
 
 
@@ -432,24 +420,24 @@ struct OptionDecl : public ArgumentDecl<OptionDecl>
 
     /**
      * Returns a formal description of the usage.
-     * Loads the string from the resources of #ResLib using resource name \c "TOptUsgNN",
+     * Loads the string from #Resources using resource name \c "TOptUsgNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  HelpUsageLine()
     {
-        return ResLib.Get( String64("TOptUsg" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("TOptUsg_" ) << Identifier() ALIB_DBG(, true));
     }
 
     /**
      * Returns the help text.
-     * Loads the string from the resources of #ResLib using resource name \c "TOptHlpNN",
+     * Loads the string from #Resources using resource name \c "TOptHlpNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  HelpText()
     {
-        return ResLib.Get( String64("TOptHlp" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("TOptHlp_" ) << Identifier() ALIB_DBG(, true));
     }
 
 
@@ -480,13 +468,13 @@ struct OptionDecl : public ArgumentDecl<OptionDecl>
  */
 struct Option : public ArgumentDef
 {
-    /// Arguments belonging to this option.
+    /** Arguments belonging to this option. */
     std::vector<String>     Args;
 
-    /// The declaration struct.
+    /** The declaration struct. */
     OptionDecl*             Declaration                                                   = nullptr;
 
-    /// Expose parent classes' constructor.
+    /** Expose parent class's constructor. */
     using ArgumentDef::ArgumentDef;
 
     /**
@@ -509,10 +497,10 @@ struct Option : public ArgumentDef
 
 
 /**
- * A declaration for an \alib{cli::Command}.
+ * A declaration for a \alib{cli::Command}.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
- * \alib{lang,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
+ * \alib{resources,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
  * to <b>%ALib CLI</b> using macro \ref ALIB_CLI_COMMANDS.
  *
  * When bootstrapping \alibmod_nolink_cli, method \alib{cli,CLIApp::DefineCommands} has to be
@@ -521,26 +509,26 @@ struct Option : public ArgumentDef
  * The tuple elements have the following meaning:
  *
  * Index | Description
- * - - - | - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 0     | The underlying integer value of the enum element
- * 1     | The name of the command as parsed from command line.
- * 2     | The minimum amount of characters to parse to accept the command.
- * 3     | List of parameters attached. Separated by /.
+ * ------|-------------
+ *   0   | The underlying integer value of the enum element
+ *   1   | The name of the command as parsed from command line.
+ *   2   | The minimum amount of characters to be parsed to accept the command.
+ *   3   | List of parameters attached. Separated by <c>'/'</c>.
  *
  */
 struct CommandDecl : public ArgumentDecl<CommandDecl>
 {
-    /// The cli application we are belong to
-    CLIApp&                     Parent;
+    /** The cli application we are belong to */
+    CLIApp&                         Parent;
 
-    /// Command parameters.
+    /** Command parameters. */
     std::vector<ParameterDecl*>     Parameters;
 
 
     /**
      * Templated constructor which takes an enum element of a custom type that was enabled
      * using \ref ALIB_CLI_COMMANDS.<br>
-     * Stores the enum code, the tuple and the resource library.
+     * Stores the enum code, the tuple and the resource module.
      *
      * Furthermore, parameters are added, as specified in the resource table entry.
      *
@@ -560,7 +548,7 @@ struct CommandDecl : public ArgumentDecl<CommandDecl>
 
 
     /**
-     * Returns the identifier of the command
+     * Returns the identifier (name) of the command
      * @return The command identifier.
      */
     inline String  Identifier()
@@ -579,25 +567,33 @@ struct CommandDecl : public ArgumentDecl<CommandDecl>
 
     /**
      * Returns the short version of the help text.
-     * Loads the string from the resources of #ResLib using resource name \c "THlpCmdShtNN",
+     * Loads the string from #Resources using resource name \c "THlpCmdShtNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  HelpTextShort()
     {
-        return ResLib.Get( String64("THlpCmdSht" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("THlpCmdSht_" ) << Identifier() ALIB_DBG(, true));
     }
 
     /**
      * Returns the long version of the help text.
-     * Loads the string from the resources of #ResLib using resource name \c "THlpCmdLngNN",
+     * Loads the string from #Resources using resource name \c "THlpCmdLngNN",
      * where \c NN is the enum element integer value.
      * @return The help text.
      */
     inline String  HelpTextLong()
     {
-        return ResLib.Get( String64("THlpCmdLng" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("THlpCmdLng_" ) << Identifier() ALIB_DBG(, true));
     }
+
+    /**
+     * Searches in #Parameters for the declaration of parameter \p{name}.
+     * @param name   The declaration name of the parameter.
+     * @return A pointer to the parameter's declaration, \c nullptr if parameter was not declared.
+     */
+    ALIB_API
+    ParameterDecl* GetParameterDecl(const String& name );
 
 
     private:
@@ -614,16 +610,16 @@ struct CommandDecl : public ArgumentDecl<CommandDecl>
  */
 struct Command  : public ArgumentDef
 {
-    /// Mandatory parameters parsed.
+    /** Mandatory parameters parsed. */
     std::vector<Parameter>      ParametersMandatory;
 
-    /// Optional parameters parsed.
+    /** Optional parameters parsed. */
     std::vector<Parameter>      ParametersOptional;
 
-    /// The underlying declaration.
+    /** The underlying declaration. */
     CommandDecl*                Declaration                                               = nullptr;
 
-    /// Expose parent classes' constructor.
+    /** Expose parent class's constructor. */
     using ArgumentDef::ArgumentDef;
 
     /**
@@ -637,19 +633,19 @@ struct Command  : public ArgumentDef
     /**
      * Searches in #ParametersMandatory and #ParametersOptional for parameter \p{name}.
      * @param name   The declaration name of the parameter.
-     * @return A pointer to the parameter, \c nullptr if not given.
+     * @return A pointer to the parameter, \c nullptr if parameter was not parsed.
      */
     ALIB_API
-    Parameter* GetParameter(const String& name );
+    Parameter* GetParsedParameter(const String& name );
 
     /**
      * Searches in #ParametersMandatory and #ParametersOptional for parameter \p{name} and returns
      * its (first) argument.
      * @param name   The declaration name of the parameter.
-     * @return The argument string. \c NullString if not given.
+     * @return The argument string, \b NullString()  if parameter was not parsed if not given.
      */
     ALIB_API
-    String GetParameterArg( const String& name );
+    String GetParsedParameterArg( const String& name );
 };
 
 
@@ -657,7 +653,7 @@ struct Command  : public ArgumentDef
  * An exit code of the cli application.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
- * \alib{lang,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
+ * \alib{resources,T_EnumMetaDataDecl,enum meta data} of a distinct type. Such enums are announced
  * to <b>%ALib CLI</b> using macro \ref ALIB_CLI_EXIT_CODES.
  *
  * When bootstrapping \alibmod_nolink_cli, method \alib{cli,CLIApp::DefineExitCodes} has to be
@@ -666,20 +662,20 @@ struct Command  : public ArgumentDef
  * The tuple elements have the following meaning:
  *
  * Index | Description
- * - - - | - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 0     | The underlying integer value of the enum element
- * 1     | The name of the exit code (usually same as C++ enum element name.
- * 2     | The CLI library exception associated to this exit code.
+ * ------|-------------
+ *   0   | The underlying integer value of the enum element
+ *   1   | The name of the exit code (usually same as C++ enum element name.
+ *   2   | The CLI module exception associated to this exit code.
  *
- * Announcing the main application's exit codes to the \alibmod_nolink_cli library has two reasons:
+ * Announcing the main application's exit codes to the \alibmod_nolink_cli module has two reasons:
  * - The exit codes are included in the help output text utility methods provided by class
  *   \alib{cli,CLIApp}.
- * - \alibmod_nolink_cli library \alib{cli,Exceptions} can be translated to valid exit codes using
+ * - \alibmod_nolink_cli module exit codes can be translated to valid exit codes using
  *   method \alib{cli,CLIUtil::GetExitCode}.
  */
 struct ExitCodeDecl : public ArgumentDecl<ExitCodeDecl>
 {
-    /// Expose parent classes' constructor.
+    /** Expose parent class's constructor. */
     using ArgumentDecl<ExitCodeDecl>::ArgumentDecl;
 
     /**
@@ -694,13 +690,13 @@ struct ExitCodeDecl : public ArgumentDecl<ExitCodeDecl>
 
     /**
      * Returns the format string associated with this exit code.
-     * Loads the string from the resources of #ResLib using resource name \c "TExitNN",
+     * Loads the string from #Resources using resource name \c "TExitNN",
      * where \c NN is the enum element integer value.
      * @return The format string.
      */
     inline String  FormatString()
     {
-        return ResLib.Get( String64("TExit" ) << EnumBox.Value() );
+        return Resources.Get( ResourcesCategory, NString64("TExit" ) << ID.Value() ALIB_DBG(, true));
     }
 
     /**
@@ -723,70 +719,22 @@ struct ExitCodeDecl : public ArgumentDecl<ExitCodeDecl>
 // Preprocessor definitions to declare enums as to be used as CLI types
 // #################################################################################################
 
-/**
- * @addtogroup GrpALibMacros
- * @{
- * @name  Macros Supporting ALib CLI
- * @{
- *
- * \def  ALIB_CLI_COMMANDS
- *   Associates a specific scheme of \alib{lang,T_EnumMetaDataDecl,ALib enum meta data }
- *   with custom enumeration type \p{TEnum} to make the elements of the type usable
- *   to create \alib{cli,CommandDecl} objects.
- *
- *   @param TEnum            The enumeration type to make \alibmod_nolink_cli commands of.
- *   @param ResourceLibrary  The resource library to load enum meta data and further resources.
- *   @param ResourceName     The resource name of the enum meta data tuple.
- *
- *
- * \def  ALIB_CLI_PARAMETERS
- *   Associates a specific scheme of \alib{lang,T_EnumMetaDataDecl,ALib enum meta data }
- *   with custom enumeration type \p{TEnum} to make the elements of the type usable
- *   to create \alib{cli,ParameterDecl} objects.
- *
- *   @param TEnum            The enumeration type to make \alibmod_nolink_cli commands of.
- *   @param ResourceLibrary  The resource library to load enum meta data and further resources.
- *   @param ResourceName     The resource name of the enum meta data tuple.
- *
- *
- * \def  ALIB_CLI_OPTIONS
- *   Associates a specific scheme of \alib{lang,T_EnumMetaDataDecl,ALib enum meta data }
- *   with custom enumeration type \p{TEnum} to make the elements of the type usable
- *   to create \alib{cli,OptionDecl} objects.
- *
- *   @param TEnum            The enumeration type to make \alibmod_nolink_cli commands of.
- *   @param ResourceLibrary  The resource library to load enum meta data and further resources.
- *   @param ResourceName     The resource name of the enum meta data tuple.
- *
- *
- * \def  ALIB_CLI_EXIT_CODES
- *   Associates a specific scheme of \alib{lang,T_EnumMetaDataDecl,ALib enum meta data }
- *   with custom enumeration type \p{TEnum} to make the elements of the type usable
- *   to create \alib{cli,ExitCodeDecl} objects.
- *
- *   @param TEnum            The enumeration type to make \alibmod_nolink_cli commands of.
- *   @param ResourceLibrary  The resource library to load enum meta data and further resources.
- *   @param ResourceName     The resource name of the enum meta data tuple.
- *
- * @}
- * @}
- */
 
-#define ALIB_CLI_COMMANDS( TEnum, ResourceLibrary, ResourceName )                                  \
-ALIB_ENUM_SPECIFICATION( aworx::lib::cli::CommandDecl,                                             \
-                         TEnum, ResourceLibrary, ResourceName )                                    \
+#define ALIB_CLI_COMMANDS( TEnum, TModule, ResourceName )                                          \
+ALIB_RESOURCED_IN_MODULE( TEnum, TModule, ResourceName)                                            \
+ALIB_ENUM_SPECIFICATION( aworx::lib::cli::CommandDecl, TEnum )
 
-#define ALIB_CLI_PARAMETERS( TEnum, ResourceLibrary, ResourceName )                                \
-ALIB_ENUM_SPECIFICATION( aworx::lib::cli::ParameterDecl,                                           \
-                         TEnum, ResourceLibrary, ResourceName )                                    \
+#define ALIB_CLI_PARAMETERS( TEnum, TModule, ResourceName )                                        \
+ALIB_RESOURCED_IN_MODULE( TEnum, TModule, ResourceName)                                            \
+ALIB_ENUM_SPECIFICATION( aworx::lib::cli::ParameterDecl, TEnum )
 
-#define ALIB_CLI_OPTIONS( TEnum, ResourceLibrary, ResourceName )                                   \
-ALIB_ENUM_SPECIFICATION( aworx::lib::cli::OptionDecl,                                              \
-                         TEnum, ResourceLibrary, ResourceName )                                    \
+#define ALIB_CLI_OPTIONS( TEnum, TModule, ResourceName )                                           \
+ALIB_RESOURCED_IN_MODULE( TEnum, TModule, ResourceName)                                            \
+ALIB_ENUM_SPECIFICATION( aworx::lib::cli::OptionDecl, TEnum )
 
-#define ALIB_CLI_EXIT_CODES( TEnum, ResourceLibrary, ResourceName )                                \
-ALIB_ENUM_SPECIFICATION( aworx::lib::cli::ExitCodeDecl,                                            \
-                         TEnum, ResourceLibrary, ResourceName )                                    \
+#define ALIB_CLI_EXIT_CODES( TEnum, TModule, ResourceName )                                        \
+ALIB_RESOURCED_IN_MODULE( TEnum, TModule, ResourceName)                                            \
+ALIB_ENUM_SPECIFICATION( aworx::lib::cli::ExitCodeDecl, TEnum )
 
 
 

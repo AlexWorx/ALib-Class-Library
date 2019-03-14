@@ -1,15 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN
 #define HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN
 
-#ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONSLIB
-#   include "expressionslib.hpp"
+#ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONS
+#   include "alib/expressions/expressions.hpp"
 #endif
 
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
@@ -41,7 +41,7 @@ namespace aworx { namespace lib { namespace expressions {
  * - \alib{expressions::CompilerPlugin,CIFunction},
  * - \alib{expressions::CompilerPlugin,CIUnaryOp},
  * - \alib{expressions::CompilerPlugin,CIBinaryOp} or
- * - \alib{expressions::CompilerPlugin,CIBinaryAutoCast}.
+ * - \alib{expressions::CompilerPlugin,CIAutoCast}.
  *
  * These inner types of this struct are derived from likewise inner struct
  * \alib{expressions::CompilerPlugin,CompilationInfo}, which provides all output members and
@@ -70,7 +70,7 @@ namespace aworx { namespace lib { namespace expressions {
  *    identifiers \c "True" or \c "Monday" do that, while \c "Today" returns a callback function.).
  * 2. The compiler provides information about whether the given parameters are constant values.
  *    In this case, a compiler plug-in may decide to evaluate the result of the function at
- *    compile time. This is often, but not always possible and depends largely on the fact
+ *    compile-time. This is often, but not always possible and depends largely on the fact
  *    if scope information is used with the function as well. <br>
  *    For more details on this topic see manual section
  *    \ref alib_expressions_details_optimizations "11.5 Optimizations".
@@ -78,9 +78,10 @@ namespace aworx { namespace lib { namespace expressions {
  * \attention
  *   If constant data is returned, it has to be assured, that the contents of the returned
  *   \b %Box remains valid during the lifecycle of the expression. This is assured for all
- *   \ref alib_namespace_boxing_types_ftypes "boxed C++ fundamental types". For custom types
- *   it depends on where the constant value is received from and how boxing is performed.
- *   (By default, custom types are boxed as pointers to the assigned object.)<br>
+ *   C++ fundamental types. For custom types it depends on where the constant value is received
+ *   from and how boxing is performed.
+ *   (By default, custom types bigger as two "words" (2 x 64/32 bits) are boxed as pointers to the
+ *   assigned object.)<br>
  *   Field \alib{expressions::CompilerPlugin,CompilationInfo::CompileTimeScope}
  *   is to be used for compile-time allocations.
  *
@@ -110,8 +111,8 @@ struct CompilerPlugin
      */
     const NString   Name;
 
-    /// The compiler that this plug-in is attached to.
-    Compiler&       Parent;
+    /** The compiler that this plug-in is attached to. */
+    Compiler&       Cmplr;
 
     /** ********************************************************************************************
      * Public inner base struct which provides input and output information for compiling
@@ -124,7 +125,7 @@ struct CompilerPlugin
      *
      * extend this struct with input information, specific to the type of <em>AST</em>-node
      * currently compiled. Special, descendant type
-     * - \alib{expressions::CompilerPlugin,CIBinaryAutoCast}
+     * - \alib{expressions::CompilerPlugin,CIAutoCast}
      *
      * in addition adds specific output members.
      *
@@ -134,7 +135,7 @@ struct CompilerPlugin
     struct CompilationInfo
     {
         /**
-         * The scope found here is the the same object that is passed to method
+         * The scope found here is the same object that is passed to method
          * \alib{expressions,Compiler::Compile}, which internally invokes the overloaded
          * methods #TryCompilation, that receive an object of this type.
          *
@@ -170,7 +171,7 @@ struct CompilerPlugin
              * compilations of the library. Hence, setting it must be performed with preprocessor
              * conditionals.
              */
-            const char*     DbgCallBackName                                               = nullptr;
+            const nchar*    DbgCallbackName                                               = nullptr;
         #endif
 
         /**
@@ -189,7 +190,7 @@ struct CompilerPlugin
 
         /**
          * Constructor.
-         * @param scope   The scope usable for allocation of constant values (compile time
+         * @param scope   The scope usable for allocation of constant values (compile-time
          *                allocations).
          */
         CompilationInfo( Scope& scope )
@@ -317,7 +318,7 @@ struct CompilerPlugin
      *
      * If both flags evaluate to \c true, operator callback functions that do not use context
      * information from the scope (or otherwise rely on external or random data), should calculate
-     * the - then constant - result at compile time and return a constant value instead of the
+     * the - then constant - result at compile-time and return a constant value instead of the
      * callback method.
      *
      * If exactly one of the argument is constant, then some operators might detect further
@@ -352,13 +353,13 @@ struct CompilerPlugin
     {
         String&         Operator;     ///< Input/Output: The binary operation symbol.
 
-        /// Input: Denotes if the lhs-argument is a constant value.
+        /** Input: Denotes if the lhs-argument is a constant value. */
         bool            LhsIsConst;
 
-        /// Input: Denotes if the rhs-argument is a constant value.
+        /** Input: Denotes if the rhs-argument is a constant value. */
         bool            RhsIsConst;
 
-        /// Output: Used with optimization, see this struct's documentation for more information.
+        /** Output: Used with optimization, see this struct's documentation for more information. */
         bool            NonConstArgIsResult;
 
 
@@ -380,57 +381,56 @@ struct CompilerPlugin
 
     /** ********************************************************************************************
      * Info struct for compiling automatic type casts. Such automatic cast is tried to be inserted
-     * into the expression program by the compiler in exactly two occasions:
+     * into the expression program by the compiler if:
      *
-     * - With binary operators with a combination of types that no plug-in claimed responsibility
-     *   for.
-     * - With conditional operator <c>Q ? T : F</c>, if different types for \c T and \c F were
-     *   given.
+     * - An unary operator for a type can not be found.
+     * - A binary operator for a combination of types can not be found.
+     * - Two different types for \c T and \c F were given with conditional operator <c>Q ? T : F</c>.
      *
-     * Which of the two scenarios a cast is needed for is provided with field #BinaryOp.
+     * For which the scenarios a cast is needed can be determined with field #Op and also by
+     * checking the number of given arguments.
      *
-     * Note that the built-in compiler plug-in \alib{expressions::plugins,AutoCast} ignores
-     * this field even if a binary operator is given. It just always tries to match both types
-     * to the 'major' one, in the "hope", that for two same types an operator is available
-     * when the search for such is repeated after a successful cast.<br>
+     * Built-in compiler plug-in \alib{expressions::plugins,AutoCast} ignores unary operations.
+     * For binary operations, it just always tries to match both types to the 'major' one. It does
+     * this, as it is more probable, that for two same types an operator is available.<br>
      *
      * In contrast to this, a custom plug-in may choose to cast both values to a joint one or to
-     * a combination of types that it provides an operator for!
+     * any combination of types that it provides an operator for!
      *
      * Compile-time optimization is supported with auto-casts the same as with other compilation
      * mechanics.
-     * Information about whether the arguments are constants is separately given for \e lhs and
-     * \e rhs with fields #LhsIsConst and #RhsIsConst.
+     * Information about whether the arguments are constants is separately given for the first and
+     * second argument with fields #IsConst and #RhsIsConst.
      *
      * Hence, if a plug-in leaves the parent field
-     * \alib{expressions::CompilerPlugin::CompilationInfo,Callback} and/or field #CallbackRhs nulled,
-     * but stores a constant result value in
-     * \alib{expressions::CompilerPlugin::CompilationInfo,TypeOrValue} and/or #TypeOrValueRhs
-     * (by assigning the casted value), then this is detected by the compiler and instead of
-     * inserting a cast function call, the original constant value is replaced with the returned
-     * constant value(s).
+     * \alib{expressions::CompilerPlugin::CompilationInfo,Callback} and/or field #CallbackRhs
+     * \e nulled, but stores a constant casted result value in
+     * \alib{expressions::CompilerPlugin::CompilationInfo,TypeOrValue} and/or #TypeOrValueRhs,
+     * then this is detected by the compiler and instead of inserting a cast function call, the
+     * original constant value is replaced with the returned constant value(s).
      *
      * If a cast function is compiled (returned with this struct), and the resulting program
      * should be duly \e "decompilable", then along with the callback information, a
      * compilable expression function name has to be returned in field
-     * #CastExpressionFunctionNameLhs, respectively #CastExpressionFunctionNameRhs.
+     * #ReverseCastFunctionName, respectively #ReverseCastFunctionNameRhs.
      * For further information on this topic see
      * \ref alib_expressions_details_optimizations_norm "11.5.6 Optimized Expression Strings"
      **********************************************************************************************/
-    struct CIBinaryAutoCast  : public CompilationInfo
+    struct CIAutoCast  : public CompilationInfo
     {
         /**
-         * The operator that the cast is required for. If this is \e nulled then
+         * The operator that the cast is required for. If this is <b>'?:'</b> then
          * the request is made for conditional operator <c>Q ? T : F</c>. In this case, the
-         * requirement is to cast both sides to the very same type - otherwise, the
+         * requirement is to cast both given arguments to the same type - otherwise, the
          * conditional operator does not compile!
          */
-        String&             BinaryOp;
+        String&             Op;
 
-        /// Input: denotes if lhs argument is constant value.
-        bool                LhsIsConst;
+        /** Input: denotes if the unary argument, respectively the lhs argument of a binary
+            operation, is a constant value. */
+        bool                IsConst;
 
-        /// Input: denotes if rhs argument is constant value.
+        /** Input: denotes if rhs argument is constant value. */
         bool                RhsIsConst;
 
         /**
@@ -453,18 +453,18 @@ struct CompilerPlugin
         Box                 TypeOrValueRhs;
 
         /**
-         * This is the name of the left-hand side cast function that is inserted when an expression
-         * with an auto-cast functions is \e decompiled to generate compilable, optimized expression
-         * strings.
+         * This is the name of the left-hand side cast function, respectively that of the unary
+         * argument's cast function, that is used when an expression with auto-cast
+         * functions is \e decompiled to generate compilable, optimized expression strings.
          */
-        String              CastExpressionFunctionNameLhs;
+        String              ReverseCastFunctionName;
 
         /**
          * This is the name of the right-hand side cast function that is inserted when an expression
          * with an auto-cast functions is \e decompiled to generate compilable, optimized expression
          * strings.
          */
-        String              CastExpressionFunctionNameRhs;
+        String              ReverseCastFunctionNameRhs;
 
         #if ALIB_DEBUG
             /**
@@ -472,23 +472,23 @@ struct CompilerPlugin
              * compilations of the library. Hence, setting it must be performed with preprocessor
              * conditionals.
              */
-            const char*     DbgCallBackNameRhs;
+            const nchar*    DbgCallbackNameRhs;
         #endif
 
         /**
          * Constructor.
          * @param scope         Passed to parent.
-         * @param binaryOp      Stored in #BinaryOp.
-         * @param lhsIsConst    Stored in LhsIsConst.
+         * @param op            Stored in #Op.
+         * @param isConst       Stored in IsConst.
          * @param rhsIsConst    Stored in RhsIsConst.
          */
-        CIBinaryAutoCast( Scope& scope, String& binaryOp, bool lhsIsConst, bool rhsIsConst )
-        : CompilationInfo   ( scope          )
-        , BinaryOp          ( binaryOp       )
-        , LhsIsConst        ( lhsIsConst     )
-        , RhsIsConst        ( rhsIsConst     )
-        , CallbackRhs       ( nullptr        )
-        , TypeOrValueRhs    ( nullptr        )
+        CIAutoCast( Scope& scope, String& op, bool isConst, bool rhsIsConst )
+        : CompilationInfo   ( scope       )
+        , Op                ( op          )
+        , IsConst           ( isConst     )
+        , RhsIsConst        ( rhsIsConst  )
+        , CallbackRhs       ( nullptr     )
+        , TypeOrValueRhs    ( nullptr     )
         {
         }
     };
@@ -496,11 +496,11 @@ struct CompilerPlugin
     /** ********************************************************************************************
      * Constructor.
      * @param name      Assigned to field #Name.
-     * @param compiler  The compiler we will get attached to. Gets stored in field #Parent.
+     * @param compiler  The compiler we will get attached to. Gets stored in field #Cmplr.
      **********************************************************************************************/
                 CompilerPlugin( const NString& name, Compiler& compiler )
     : Name( name )
-    , Parent( compiler)
+    , Cmplr( compiler)
     {}
 
     /** ********************************************************************************************
@@ -530,7 +530,7 @@ struct CompilerPlugin
      * of that function.
      *
      * Alternatively, if a constant identifier is compiled or if all parameters are known to be
-     * constant at compile time, a constant value might be returned.
+     * constant at compile-time, a constant value might be returned.
      * For details of the input and output parameters of the function, see struct
      * \alib{expressions::CompilerPlugin,CIFunction}.
      *
@@ -604,17 +604,17 @@ struct CompilerPlugin
      * Used to provide information to the compiler for casting types.
      *
      * For details on how this method is overridden, consult the documentation of the input/output
-     * parameter type \alib{expressions::CompilerPlugin,CIBinaryAutoCast}.
+     * parameter type \alib{expressions::CompilerPlugin,CIAutoCast}.
      *
      *
-     * @param[in,out]  ciBinaryAutoCast  The compilation info struct.
+     * @param[in,out]  ciAutoCast  The compilation info struct.
      * @return Implementations have to return \c true if the given info struct was filled, or in
      *         other words, if the plug-in chose to provide auto-cast information as requested.<br>
      *         This default implementation returns \c false to indicate that no compilation
      *         was done.
      **********************************************************************************************/
-    virtual bool TryCompilation( CIBinaryAutoCast& ciBinaryAutoCast )
-    { (void) ciBinaryAutoCast; return false; }
+    virtual bool TryCompilation( CIAutoCast& ciAutoCast )
+    { (void) ciAutoCast; return false; }
 
 };
 

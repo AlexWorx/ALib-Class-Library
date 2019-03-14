@@ -1,24 +1,21 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
 #define HPP_ALIB_EXPRESSIONS_EXPRESSION
 
-#ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONSLIB
-#   include "expressionslib.hpp"
+#ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONS
+#   include "alib/expressions/expressions.hpp"
 #endif
 
-#ifdef ALIB_DEBUG
-#   if !defined (HPP_ALIB_TIME_TICKS)
-#      include "alib/time/ticks.hpp"
-#   endif
+#if ALIB_MODULE_TIME && ALIB_DEBUG && !defined (HPP_ALIB_TIME_TICKS)
+#  include "alib/time/ticks.hpp"
 #endif
 
-#ifndef _GLIBCXX_MEMORY
+#if !defined (_GLIBCXX_MEMORY) && !defined(_MEMORY_)
 #   include <memory>
 #endif
 
@@ -40,33 +37,39 @@ namespace detail{ class Program; }
  *
  * For information about general use and features of this class consult the
  * \ref aworx::lib::expressions "ALib Expressions User Manual".
+ *
+ * ## Friends ##
+ * class \alib{expressions,Compiler}
+ * class \alib{expressions,detail::Program}
  **************************************************************************************************/
 class Expression
 {
-    /// The compiler builds this this type which by design does not expose a constructor.
-    friend class Compiler;
+    #if !ALIB_DOCUMENTATION_PARSER
+        // The compiler builds this this type which by design does not expose a constructor.
+        friend class Compiler;
 
-    /// The program that evaluates us.
-    friend class detail::Program;
+        // The program that evaluates us.
+        friend class detail::Program;
+    #endif
 
     protected:
-        /// The name of the expression (if named, otherwise resourced, usually "ANONYMOUS" ).
+        /** The name of the expression (if named, otherwise resourced, usually "ANONYMOUS" ). */
         AString             name;
 
-        /// The compiled expression program.
+        /** The compiled expression program. */
         detail::Program*    program;
 
-        /// The original source string of the expression.
+        /** The original source string of the expression. */
         AString             originalString;
 
-        /// The normalized string as a result of compilation.
+        /** The normalized string as a result of compilation. */
         AString             normalizedString;
 
-        /// The normalized string generated on request out of optimized expression program.
+        /** The normalized string generated on request out of optimized expression program. */
         AString             optimizedString;
 
     public:
-    #if ALIB_DEBUG
+    #if ALIB_MODULE_TIME && ALIB_DEBUG
         /**
          * Provides the time needed to parse the expression into an abstract syntax tree.
          *
@@ -228,9 +231,32 @@ using     SPExpression=    aworx::lib::expressions::SPExpression;
 }// namespace [aworx]
 
 
-ALIB_STRINGS_SPECIALIZE_T_APPLY_INLINE( aworx::lib::expressions::Expression,
-    target << src.GetNormalizedString();
-    return 1;
-)
+namespace aworx { namespace lib { namespace strings {
+#if ALIB_DOCUMENTATION_PARSER
+namespace APPENDABLES {
+#endif
+    /** ********************************************************************************************
+     * Specialization of functor \alib{strings,T_Append} for type
+     * \alib{expressions,Expression}.
+     **********************************************************************************************/
+    template<> struct T_Append<expressions::Expression,aworx::character>
+    {
+        /**
+         * Appends the result of \alib{expressions,Expression::GetNormalizedString} to the
+         * \p{target}.
+         *
+         * @param target The \b AString that method \b Append was invoked on.
+         * @param src    The expression to append.
+         */
+        inline void operator()( AString& target, const expressions::Expression& src )
+        {
+           target << src.GetNormalizedString();
+        }
+    };
+#if ALIB_DOCUMENTATION_PARSER
+}
+#endif
+}}}
+
 
 #endif // HPP_ALIB_EXPRESSIONS_EXPRESSION

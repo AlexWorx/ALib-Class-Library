@@ -1,18 +1,26 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
+#ifndef HPP_ALIB_STRINGS_STRING
+#define HPP_ALIB_STRINGS_STRING 1
 
-// Include guard
-#ifndef HPP_ALIB_STRINGS_STRING_BASE
-#define HPP_ALIB_STRINGS_STRING_BASE 1
+#if !defined (HPP_ALIB_LIB_ASSERT)
+#   include "alib/lib/assert.hpp"
+#endif
 
-// to preserve the right order, we are not includable directly from outside.
-#if !defined(ALIB_PROPER_INCLUSION)
-    #error "include 'alib/alib.hpp' instead of this header"
+#if !defined(HPP_ALIB_STRINGS_FWDS)
+#   include "alib/strings/fwds.hpp"
+#endif
+
+#define HPP_ALIB_STRING_PROPPERINCLUDE
+#   include "alib/strings/chararraytraits.inl"
+#undef  HPP_ALIB_STRING_PROPPERINCLUDE
+
+#if !defined (_GLIBCXX_ITERATOR) && !defined (_ITERATOR_)
+#   include <iterator>
 #endif
 
 
@@ -23,305 +31,47 @@
     #pragma warning( disable : 4127 )
 #endif
 
-// #################################################################################################
-// Macros
-// #################################################################################################
-
-
-/**
- * @addtogroup GrpALibCompilerSymbols
- * @{ \def  ALIB_DEBUG_STRINGS_ON
- *  This compiler symbol enables additional debug code within class AString. When provided,
- *  it defines \ref ALIB_DEBUG_STRINGS to \c true. This is useful when extending or specifically
- *  debugging class AString.
- * @}
- *
- * @addtogroup GrpALibCompilerSymbols
- * @{ \def  ALIB_DEBUG_STRINGS_OFF
- *  Disables certain debug code within class AString. See \ref ALIB_DEBUG_STRINGS_ON.
- *  This symbol represents the default behavior and is provided for completeness.
- * @}
- *
- * @addtogroup GrpALibCodeSelectorSymbols
- * @{ \def  ALIB_DEBUG_STRINGS
- *  Selects extra debug code within class AString. Gets defined by compiler symbol
- *  \ref ALIB_DEBUG_STRINGS_ON.
- * @}
- */
-
-#if defined(DOX_PARSER)
-    #define     ALIB_DEBUG_STRINGS
-    #define     ALIB_DEBUG_STRINGS_ON
-    #define     ALIB_DEBUG_STRINGS_OFF
-#else
-    #if defined(ALIB_DEBUG_STRINGS_OFF) && defined(ALIB_DEBUG_STRINGS_ON)
-        #error "ALIB_DEBUG_STRINGS_OFF / ALIB_DEBUG_STRINGS_ON are both set"
-    #endif
-
-    #if defined( ALIB_DEBUG_STRINGS_ON )
-        #define    ALIB_DEBUG_STRINGS 1
-    #else
-        #define    ALIB_DEBUG_STRINGS 0
-    #endif
-#endif //DOX_PARSER
-
-
-/**
- * @addtogroup GrpALibStringsMacros
- * @{ \def  ALIB_STRING_DBG_CHK
- * Simple macro that just invokes method _dbgCheck(), which is defined for classes
- * \alib{strings,StringBase,String},
- * \alib{strings,TStringBase,TString} and
- * \alib{strings,AStringBase,AString}.
- * It is active only when compiler symbol \ref ALIB_DEBUG_STRINGS is \c true.
- * The macro is placed in almost every method.
- * @}
- */
-
-// do not indent this, for the sake of doxygen formatting
-#if ALIB_DEBUG_STRINGS
-#define ALIB_STRING_DBG_CHK(instance)    \
-{                                        \
-    (instance)->_dbgCheck();             \
-}
-#else
-#define  ALIB_STRING_DBG_CHK(instance)
-#endif
-
-
-/**
- * @addtogroup GrpALibStringsMacros
- * @{ \def  ALIB_STRING_CONSTRUCTOR_FIX
- * Defines template class
- * \ref aworx::lib::strings::T_String  "T_String" for the given type. This may be used to suppress
- * "false errors" on compilation for certain types. For example (at the time of writing this), the
- * use of \c std::tuple with elements of type \b %String might lead to errors in certain complex
- * usage scenarios.<br>
- * The macro defines methods \c %Buffer and \c %Length to return \c nullptr and \c 0. In effect
- * the methods are never called. The same as the specialization of the struct itself, the
- * methods need to exist only to avoid the failure of a static assertion, as evaluated by some
- * compilers in the constructor of class \alib{strings,StringBase,String}.
- *
- * The macro must be placed outside of any namespace.<br>
- * When passing template types with comma separated type lists, the commas must be given using
- * macro \ref ALIB_COMMA.
- * @}
- */
-#define ALIB_STRING_CONSTRUCTOR_FIX(TYPE,TCHAR)                                                    \
-namespace aworx { namespace lib { namespace strings {                                              \
-    template<>   struct      T_String<TYPE,TCHAR>   : public std::true_type                        \
-    {                                                                                              \
-        static inline const char* Buffer( const TYPE&  )                                           \
-        {                                                                                          \
-            ALIB_ERROR( "Macro ALIB_STRING_CONSTRUCTOR_FIX set for type \""                        \
-                        ALIB_STRINGIFY((TYPE))                                                     \
-                        "\", which is used for string construction" );                             \
-            return nullptr;                                                                        \
-        }                                                                                          \
-                                                                                                   \
-        static inline integer     Length( const TYPE&  )  { return 0; }                            \
-    };                                                                                             \
-}}}
-
-
 
 namespace aworx { namespace lib { namespace strings {
 
-/// The maximum length of an \alib string.
-constexpr static integer         MaxLen=            (std::numeric_limits<integer>::max)();
-
-
-
-#if !defined(DOX_PARSER)
-    ALIB_WARNINGS_ALLOW_TEMPLATE_META_PROGRAMMING;
-#endif
-
-/** ********************************************************************************************
- * This is a specializable struct which defaults the question whether a given type
- * can be used to construct an \alib{strings,StringBase,String} to \c false.
- *
- * Specializations of this struct inherit from \c std::true_type, to define a type to be a usable
- * constructor parameter type of \b %String.
- *
- * Hence, this template struct supports converting 'external' <em>user defined</em> to
- * \alib{strings,StringBase,String}. It has a central role for using \alib in a
- * \ref aworx::lib "non intrusive" way, by allowing to pass external string types just as
- * the are when invoking \alib functions and methods that expect parameters of type
- * <c>const %String&</c>. Due to the implicit constructor invocation of C++
- * and the template meta programming in constructor of class \b %String, custom types
- * (that specialize this struct) may be passed "as is" to such methods.
- *
- * Methods #Buffer and #Length of partially specialized versions of this struct are invoked
- * by constructor \alib{strings::StringBase,StringBase(const TStringLike&)}
- * to receive a pointer to the character buffer and the length of the string.
- *
- * The following sample demonstrates the use of this technique:
- *
- * \snippet "DOX_ALIB_TOAS.cpp"     DOX_ALIB_TOAS
- *  The output will be:
- * \snippet "DOX_ALIB_TOAS.txt"     OUTPUT
- *
- * \note
- *   As shown in the sample, if a specialized version of this struct for a custom type exists, such
- *   type becomes automatically also an "applicable" type to class #AString, because method
- *   \b %AString::Apply checks for the existence of a specialization of this struct likewise
- *   the constructor of class \b %String does.
- *
- * A compile-time assertion will be raised when a String is constructed with a type that has
- * no specialization of this struct.
- *
- * @tparam TStringLike The type for which string construction compatibility is declared.
- * @tparam TChar       The character type of the strings that can be constructed with
- *                     \p{TStringLike}.
- * **********************************************************************************************/
-template<typename TStringLike, typename TChar>
-struct T_String     : public std::false_type
-{
-    /** ********************************************************************************************
-     * In specialized versions, this method has to return a pointer to the buffer of the given
-     * object of type \p{TStringLike}.
-     *
-     * This default implementation makes some static assertions to detect usage of an unsupported
-     * type (a type that is not allowed to construct class \b %String with).
-     *
-     * @returns Has to return a pointer to the buffer of object of type T, respectively its length.
-     **********************************************************************************************/
-    static inline constexpr
-    const TChar* Buffer( const TStringLike& )
-    {
-        // should never happen, because of static assert in string constructor
-        return nullptr;
-    }
-
-    /** ********************************************************************************************
-     * In specialized versions, this method has to return the length of the buffer of the given
-     * object of type \p{TStringLike}.
-     *
-     * @returns Has to return the length of the string.
-     **********************************************************************************************/
-    static inline
-    integer Length( const TStringLike& )
-    {
-        return (integer) 0;
-    }
-};
-
-
+/** The maximum length of an \alib string. */
+constexpr static integer  MAX_LEN = (std::numeric_limits<integer>::max)();
 
 /** ************************************************************************************************
- * This TMP struct is similar to \ref aworx::lib::strings::T_String.
- * It is to be specialized for custom string types that allow to infer the string length already
- * from the \p{TLiteral} itself.
+ * This class is the base class of all \ref alib_strings_classes "ALib string classes".
+ * Objects of this type represent character strings whose data is allocated outside their scope.
+ * In particular, the class does not allocate a character array buffer to store and manipulate
+ * string data.
  *
- * The most obvious type are C++ string literals, hence character arrays \c char[TCapacity] of a
- * given length.
+ * Once constructed, objects of this class are immutable, except for the possibility to assign
+ * a complete new object value.
+ * This means, there is no interface to change the single two data members #buffer and #length.
+ * The immutable nature of this type is lifted by derived types. While class
+ * \alib{strings,TSubstring,Substring} allows to change the start and
+ * length of the string represented, class \alib{strings,TAString,AString} holds a copy of the
+ * data and consequently allows to modify the string stored.<br>
  *
- * See also class \alib{strings,StringLiteralBase,StringLiteral} which comes with a
- * (templated) specialization of this struct and can be used to declare C++ strings of fixed size
- * with variable contents.
+ * \see
+ *   For an introduction into the \alib string classes see this module's
+ *   \ref alib_mod_strings "Programmer's Manual".
  *
- * The benefit of specializing this struct when possible (in comparison to specializing
- * \ref aworx::lib::strings::T_String) is that method #Length is a \c constexpr with this struct.
- * This allows shorter template code and a small performance gain with some methods.
- *
- * @tparam TLiteral The literal type.
- * @tparam TChar    The character type of the string
- **********************************************************************************************/
-template<typename TLiteral,typename TChar>
-struct T_StringLiteral  : public std::false_type
-{
-    /**
-     * Returns the buffer of the literal.
-     * @return The buffer of the literal.
-     */
-    static inline constexpr TChar* Buffer(const TLiteral& )  { return nullptr; }
-
-    /**
-     * Returns the constant length (length is depending only on type \p{TLiteral})
-     * @return The length.
-     */
-    static inline constexpr integer Length()      { return  1;      };
-
-};
-
-#if !defined(DOX_PARSER)
-    ALIB_WARNINGS_RESTORE;
-#endif
-
-// #################################################################################################
-// Forwards of detail functions
-// #################################################################################################
-
-/** ************************************************************************************************
- * This class is the base class of all \alib string classes. It represents a character string
- * whose data is allocated outside the scope of objects of this class.
- *
- * Once constructed, objects
- * of this class are immutable. This means, there is no interface to change their buffer or length
- * during their lifetime, which normally is rather volatile.
- *
- * The buffer represented might be zero-terminated or not. This is dependent on the data it was
- * constructed from. The buffer must not be changed and might even reside in read-only memory.
- *
- * <b>Templated Construction</b><br>
- * What makes this class very flexible, is the constructor variant
- * \alib{strings,StringBase::StringBase(const TStringLike&)}.
- * This template method internally uses <em>template meta programming</em> to detect known types
- * and, and to convert them to constant references of those. They are then passed to template
- * methods \alib{strings,T_String} that simply return a pointer to the external types' buffer
- * and length. This way, objects of this class can be implicitly constructed from just anything that
- * 'smells' like a string.<br>
- * For more information on how to make %String support to implicitly construct from user defined types,
- * see namespace template function
- * \ref aworx::lib::strings::T_String "T_String".
- *
- * This class provides compiler defined copy and move constructors and assignment operators.
- * Once and object is constructed, methods #Buffer and #Length allow read access to the contents.
- *
- * <b>Null-State</b><br> \anchor CPP_STRINGS_AS_NULLSTATE
- * Objects of this class can be \e nulled which means that it is a difference whether they are
- * representing an empty string or a \c nullptr. As objects are immutable, this is decided
- * on construction: once a %String is nulled, it will remain nulled.
- * In other words, it makes a difference if an %String is constructed using
- * - <em>%String()</em>, which creates a \e nulled object, method #IsNull will give \c true, or
- * - <em>%String("")</em>, which creates an empty object. Method #IsNull will give \c false while
- *   method #IsEmpty will give \c true
- *
- * <b>Non-checking Method Variants</b><br> \anchor CPP_STRINGS_AS_NC
- * Some of the provided methods are templated with boolean parameter <em>TCheck</em> which allow
- * to invoke a faster and shorter version of the same method. For more information see
- * \ref alib_strings_details_nonchecking in the namespace documentation.
- *
- * \note Almost all methods of this class are declared <em>inline</em>.
- *
- * <p>
- * \note The immutable nature of %String is lifted by derived types. While class
- *       \alib{strings,SubstringBase,Substring} allows to change the start and
- *       length of the string represented, class
- *       \alib{strings,AStringBase,AString} holds a copy of the data and allows to
- *       modify the contents. Field #buffer of this class is declared
- *       as an anonymous union of a <em>const char*</em> and a <em>char*</em> but the latter is
- *       not exposed. It might be exposed by derived classes (and is by class \p{%AString}).
- *
- * <p>
- * \note For an introduction into the \alib string classes see
- *       \ref aworx::lib::strings "namespace strings"
- *
- * @tparam TChar    The character type. Implementations for \c char and \c wchar_t are provided
- *                  with type definitions \ref aworx::NString and \ref aworx::WString.
+ * @tparam TChar The character type.<br>
+ *   Alias names for specializations of this class using character types
+ *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
+ *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
+ *   are provided in namespace #aworx with type definitions \aworx{String}, \aworx{NString},
+ *   \aworx{WString}, \aworx{XString}, \aworx{ComplementString} and \aworx{StrangeString}.
  **************************************************************************************************/
 template<typename TChar>
-class StringBase
+class TString
 {
     // #############################################################################################
     // Debug warnings
     // #############################################################################################
     public:
         //! @cond NO_DOX
-            ALIB_WARN_ONCE_PER_TYPE_DECL(ALIB_API, SetLengthLonger)
-
-            #if ALIB_DEBUG_STRINGS
-                void     _dbgCheck()   const;
+            #if ALIB_STRINGS_DEBUG
+                void     dbgCheck()   const;
             #endif
         //! @endcond
 
@@ -329,7 +79,7 @@ class StringBase
     // Private fields
     // #############################################################################################
     protected:
-    #if !defined( DOX_PARSER )
+    #if !ALIB_DOCUMENTATION_PARSER
 
          union
          {
@@ -339,28 +89,41 @@ class StringBase
 
     #else
             /**
-             * Pointer to an array of characters that holds the string we are representing.
+             * Pointer to an array of constant character values. This array holds the string that
+             * an instance of this type is representing.<br>
              * Read access to this field is granted with method #Buffer.
+             *
+             * For technical reasons, this documentation unfortunaltely omits the important fact that
+             * this field is part of an anonymous union declared like this:
+             *
+             *      union
+             *      {
+             *          const TChar*   buffer;
+             *                TChar*  vbuffer;
+             *      };
+             *
+             * Hence, the field can also be interpreted as a pointer to an array of <b>non-constant</b>
+             * character values.
+             * Derived classes might use the sibling version \b vbuffer to modify the contents of
+             * the string if it is assured that such memory is writable.
+             * This is for example done extensively by the implementation of class
+             * \alib{strings,TAString,AString}.
+             *
+             * \note
+             *   It might not be considered pure/nice OO-design to prepare a feature of specialized
+             *   classes in a non-abstract base class, as done here. But the alternative would have
+             *   been to force derived classes to perform re-interpret casts or even worse tricks
+             *   to rightfully access a writeable buffer.
              */
              const TChar*   buffer;
 
-            /**
-             * Non-constant version of field #buffer. This field is not used in this class, but
-             * has to be declared here, because it constitutes an anonymous union with field
-             * #buffer.
-             * Derived classes might use and expose this field, like e.g. class
-             * \alib{strings,AStringBase,AString} does.
-             */
-                   TChar*  vbuffer;
     #endif
 
         /**
-         * The length of the string represented by us.
+         * The length of the character string represented.
          * Read access to this field is granted with method #Length.
          */
         integer         length;
-
-    public:
 
     /** ############################################################################################
      * @name Constructors
@@ -368,175 +131,165 @@ class StringBase
      public:
 
         /** ****************************************************************************************
-         * Constructs a \e nulled %StringBase
+         * Default constructor creating a \ref alib_strings_details_nulled \e "nulled" string.
          ******************************************************************************************/
         inline
-        constexpr StringBase()
+        constexpr TString()
         : buffer(nullptr)
         , length(0)
         {}
 
         /** ****************************************************************************************
-         * Constructs this object using the given external buffer and length of content.
+         * Constructor accepting a pointer to a character array and a string length.
          *
-         *  \note The provided buffer does not need to be zero-terminated. However, there must not
-         *        be any '\0' characters within the start and the given \p{contentLength}.
-         *
-         * @param buffer          The buffer to use.
-         * @param contentLength   The length of the content in the given buffer.
+         * @param pBuffer   Pointer to the start of the character string to represent.
+         * @param pLength   The length of the character string to represent.
          ******************************************************************************************/
         inline
         constexpr
-        StringBase( const TChar* buffer, integer contentLength )
-        : buffer(buffer)
-        , length(contentLength )
+        TString( const TChar* pBuffer, integer pLength )
+        : buffer(pBuffer)
+        , length(pLength)
         {}
 
-
-        #if !defined(DOX_PARSER)
-            ALIB_WARNINGS_ALLOW_TEMPLATE_META_PROGRAMMING;
-        #endif
+    #if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
-         * Templated constructor for different types. This constructor uses some template meta
-         * programming to provide maximum flexibility to implicitly embed the data of any string
-         * type in an object of type %String.
+         * This templated constructor accepts various different kinds of source data.
+         * Unlike this documentation suggests, this constructor is internally implemented by a
+         * series of different constructors which are selected using template meta programming
+         * (i.e. \c std::enable_if).
          *
-         * This constructor accepts the following types:
-         * - <em>nullptr</em> (creates a \e nulled %String).
-         * - <em>[const] TChar*</em>
-         * - Classes derived from %String.
-         * - User defined (external) types. See documentation of
-         *   \ref aworx::lib::strings::T_String "T_String" on how to add support for implicit
-         *   construction of  \alib strings from custom string types.
-         * - User defined literal types. See documentation of
-         *   \ref aworx::lib::strings::T_StringLiteral "T_StringLiteral".
+         * Together, the set of constructors provide maximum flexibility by allowing implicit
+         * construction with (and assignment of) any built-in or third-party character array type.
+         * Some of the constructors are defined using keyword \c explict.
          *
-         * When a non-supported type is passed, a compile-time error (\c static_assert) is raised.
-         * In some rare cases, dependent on the compiler and platform, some false alarms may be
-         * given for types that are not even passed to the constructor, but the compiler wrongly
-         * "thinks" that such type is passed. For example, with advanced use of \c std::tuple template
-         * class, such errors might occur. To suppress a "false" error, use macro
-         * \ref ALIB_STRING_CONSTRUCTOR_FIX for the type in question.
+         * \see
+         *   More information about string construction is provided with chapter
+         *   \ref alib_strings_cc_construction of the Programmer's Manual of module
+         *   \alibmod_strings.
          *
-         * \note
-         *   Other than the type of parameter \p{src} (<em>const TStringLike&</em>) may indicate,
-         *   objects of the class types named above may be provided as pointer or reference.
-         *   The TMP will detect \c nullptr and otherwise convert pointers to references.
-         *
-         * \see For more information, see
-         * \ref aworx::lib::strings "namespace documentation" and template
-         * function \ref aworx::lib::strings::T_String "T_String".
-         *
-         * @tparam TStringLike  Type that allows to construct Strings.
-         * @param src           The source of template type T to take the buffer and length from.
+         * @tparam TCharArray  Type that comprises a character array.
+         * @param  src        The source object.
          ******************************************************************************************/
-        template <typename TStringLike>
+        template <typename TCharArray>
         inline
         constexpr
-        StringBase(const  TStringLike& src )
-        : buffer(
-            // nullptr ?
-            std::is_same<decltype(nullptr), TStringLike>::value
-              ? nullptr
-            : std::is_pointer<TStringLike>::value && (*(TChar**)&src) == nullptr
-              ? nullptr
-
-            // String literal?
-            :   T_StringLiteral<typename std::remove_cv<TStringLike                                    >::type,TChar>::value
-              ? T_StringLiteral<typename std::remove_cv<TStringLike                                    >::type,TChar>::Buffer( (typename std::add_const<TStringLike>::type &) src )
-
-            // String literal pointer?
-            :   T_StringLiteral<typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-              ? T_StringLiteral<typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::Buffer( *(typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type *&)  src )
-
-            // Custom string?
-            :   T_String       <typename std::remove_cv<TStringLike                                    >::type,TChar>::value
-              ? T_String       <typename std::remove_cv<TStringLike                                    >::type,TChar>::Buffer( (typename std::add_const<TStringLike>::type &) src )
-
-            // Custom string pointer?
-            :   T_String       <typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-              ? T_String       <typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::Buffer( *(typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type *&)  src )
-
-            // Derived string type?
-            :  std::is_base_of<StringBase<TChar>, TStringLike  >::value
-              ?  ((StringBase<TChar>*) &src)->buffer
-
-            // Pointer to derived string type?
-            :  std::is_base_of<StringBase<TChar>, typename std::remove_pointer<TStringLike>::type  >::value
-              ?  (*(StringBase<TChar>**) &src)->buffer
-
-            : (const TChar*) -1   // this should never happen due to the static assert below
-        )
-
-        , length(
-            // nullptr ?
-            std::is_same<decltype(nullptr), TStringLike>::value
-              ? 0
-            : std::is_pointer<TStringLike>::value && (*(TChar**)&src) == nullptr
-              ? 0
-
-            // String literal?
-            :   T_StringLiteral<typename std::remove_cv<TStringLike                                    >::type,TChar>::value
-              ? T_StringLiteral<typename std::remove_cv<TStringLike                                    >::type,TChar>::Length()
-
-            // String literal pointer?
-            :   T_StringLiteral<typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-              ? T_StringLiteral<typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::Length()
-
-            // Custom string?
-            :   T_String       <typename std::remove_cv<TStringLike                                    >::type,TChar>::value
-              ? T_String       <typename std::remove_cv<TStringLike                                    >::type,TChar>::Length( (typename std::add_const<TStringLike>::type &) src )
-
-            // Custom string pointer?
-            :   T_String       <typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-              ? T_String       <typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::Length( *(typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type *&)  src )
-
-            // Derived string type?
-            :  std::is_base_of<StringBase<TChar>, TStringLike  >::value
-              ?  ((StringBase<TChar>*) &src)->length
-
-            // Pointer to derived string type?
-            :  std::is_base_of<StringBase<TChar>, typename std::remove_pointer<TStringLike>::type  >::value
-              ?  (*(StringBase<TChar>**) &src)->length
-
-            : -1  // this should never happen due to the static assert below
-        )
-        {
-            static_assert
-            (
-                std::is_same   <decltype(nullptr),                                   TStringLike                    >::value
-             || T_StringLiteral<typename std::remove_cv<                             TStringLike       >::type,TChar>::value
-             || T_StringLiteral<typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-             || T_String       <typename std::remove_cv<                             TStringLike       >::type,TChar>::value
-             || T_String       <typename std::remove_cv<typename std::remove_pointer<TStringLike>::type>::type,TChar>::value
-             || std::is_base_of<StringBase<TChar>,                                TStringLike              >::value
-             || std::is_base_of<StringBase<TChar>,   typename std::remove_pointer<TStringLike>::type       >::value
-
-               , "aworx::StringBase<TChar> can not be constructed from type TStringLike."
-            );
-        }
-
-        #if !defined(DOX_PARSER)
-            ALIB_WARNINGS_RESTORE
-        #endif
+        TString(const  TCharArray& src );
 
         /** ****************************************************************************************
-         * Returns a sub-string of this object.
+         * \b Implicit cast operator to objects of templated type \p{TCharArray}.<br>
+         * This operator is available for all custom types that have an accordingly specialized
+         * version of TMP struct \alib{characters,T_CharArray} defined.
          *
-         * @param  regionStart  The start of the region within this string.
-         * @param  regionLength The length of the region to return.
-         *                      Defaults to \b %MaxLen
+         * \see
+         *   More information about casting \alib string types to built-in C++ types or custom
+         *   types is provided with chapter \ref alib_strings_cc_cast of the programmer's
+         *   manual of module \alibmod_strings.
+         *
+         * @tparam TCharArray The custom type to implicitly convert this object to.
+         * @return A value of custom string type.
+         ******************************************************************************************/
+        template<typename TCharArray>
+        inline
+        operator TCharArray () const
+        {}
+
+        /** ****************************************************************************************
+         * \b Explicit cast operator to objects of templated  type \p{TCharArray}.<br>
+         * This operator is available for all custom types that have an accordingly specialized
+         * version of TMP struct \alib{characters,T_CharArray} defined.
+         *
+         * \see
+         *   More information about casting \alib string types to built-in C++ types or custom
+         *   types is provided with chapter \ref alib_strings_cc_cast of the programmer's
+         *   manual of module \alibmod_strings.
+         *
+         * @tparam TCharArray The custom type to explicitly convert this object to.
+         * @return A value of custom string type.
+         ******************************************************************************************/
+        template<typename TCharArray>
+        inline explicit
+        operator TCharArray () const
+        {}
+
+    #else // doxygen end
+
+        ATMP_SELECT_IF_1TP( typename T,
+            std::is_same<std::nullptr_t,T>::value )
+        constexpr
+        TString(const T&)
+        : buffer( nullptr )
+        , length( 0       )
+        {}
+
+        ATMP_SELECT_IF_1TP( typename T,
+            characters::T_CharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit )
+        constexpr
+        TString(const T& src)
+        : buffer( characters::T_CharArray<ATMP_RCV(T),TChar>::Buffer( src ) )
+        , length( characters::T_CharArray<ATMP_RCV(T),TChar>::Length( src ) )
+        {}
+
+        ATMP_SELECT_IF_1TP( typename T,
+            characters::T_CharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::ExplicitOnly )
+        constexpr
+        explicit
+        TString(const T& src)
+        : buffer( characters::T_CharArray<ATMP_RCV(T),TChar>::Buffer( src ) )
+        , length( characters::T_CharArray<ATMP_RCV(T),TChar>::Length( src ) )
+        {}
+
+        ATMP_SELECT_IF_1TP( typename T,
+            characters::T_CharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::MutableOnly && !std::is_const<T>::value )
+        constexpr
+        explicit
+        TString(      T& src)
+        : buffer( characters::T_CharArray<ATMP_RCV(T),TChar>::Buffer( const_cast<T&>( src ) ) )
+        , length( characters::T_CharArray<ATMP_RCV(T),TChar>::Length( const_cast<T&>( src ) ) )
+        {}
+
+        // ##############################    casting  back    ######################################
+        ATMP_SELECT_IF_1TP( typename T,
+            characters::T_CharArray<T,TChar>::Construction == characters::ConstructionType::Implicit
+        && !T_SuppressAutoCast<TString<TChar>,characters::ConstructionType::Implicit    ,ATMP_RCV(T)>::value)
+        constexpr
+        operator T () const
+        {
+            return characters::T_CharArray<T,TChar>::Construct( buffer, length );
+        }
+
+        ATMP_SELECT_IF_1TP( typename T,
+            characters::T_CharArray<T,TChar>::Construction == characters::ConstructionType::ExplicitOnly
+        && !T_SuppressAutoCast<TString<TChar>,characters::ConstructionType::ExplicitOnly,ATMP_RCV(T)>::value)
+        constexpr
+        explicit
+        operator T () const
+        {
+            return characters::T_CharArray<T,TChar>::Construct( buffer, length );
+        }
+
+    #endif // doxygen
+
+ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
+
+        /** ****************************************************************************************
+         * Returns a new string object representing a sub-string of the string that this object
+         * represents.
+         *
+         * @param  regionStart  The start of the sub-string within this string.
+         * @param  regionLength The length of the sub-string to return.
+         *                      Defaults to \alib{strings,MAX_LEN}.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c false is given, no range check is performed.
          * @return A string representing a region of this string.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        StringBase<TChar>   Substring(integer regionStart, integer regionLength=  MaxLen )     const
+        TString<TChar>   Substring(integer regionStart, integer regionLength =MAX_LEN )        const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 AdjustRegion( regionStart, regionLength );
             }
@@ -547,11 +300,11 @@ class StringBase
                     integer rl= regionLength;
                     AdjustRegion( rs, rl );
                     ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength,
-                                       ASTR("Non checking and region out of range or empty") );
+                                       "Non checking and region out of range or empty" )
                 #endif
             }
 
-            return StringBase<TChar>( buffer + regionStart, regionLength );
+            return TString<TChar>( buffer + regionStart, regionLength );
         }
 
 
@@ -560,26 +313,26 @@ class StringBase
      ##@{ ########################################################################################*/
 
         /** ****************************************************************************************
-         *  Returns a pointer to the first character of the string we are representing.
-         *  \note The string is not guaranteed to be zero terminated.
+         * Returns a pointer to the first character of the string we are representing.
+         * \note The string is not guaranteed to be zero terminated.
          *
-         * @return The internal buffer array.
+         * @return The start of the character array comprising the string represented by this
+         *         object.
          ******************************************************************************************/
         inline
-        const TChar*  Buffer()          const       { return buffer;    }
+        constexpr const TChar*  Buffer()          const       { return buffer;    }
 
         /** ****************************************************************************************
-         *  Returns the length of the string we are representing.
+         * Returns the length of the string that this object represents.
          *
-         * @return The length of the string represented by this.
+         * @return The length of the string represented by this object.
          ******************************************************************************************/
         inline
-        integer       Length()          const       { return length;    }
+        constexpr integer       Length()          const       { return length;    }
 
         /** ****************************************************************************************
          * Returns the length of the string if represented as a wide character string.
-         * If template parameter \p{TChar} equals \c wchar_t, then this is identical with #Length.
-         *
+         * If template parameter \p{TChar} equals \c wchar, then this is identical with #Length.
          * Otherwise the calculation is done using
          * - <em>mbsnrtowcs()</em>
          *   (without providing a conversion buffer) on glibc platforms (e.g. Linux)
@@ -589,10 +342,11 @@ class StringBase
          * If the conversion fails, \c -1 is returned.
          *
          * \note
-         *   On GNU/Linux and Mac OS, it might be necessary to invoke std c method
+         *   On GNU/Linux and Mac OS, it might be necessary to invoke standard C method
          *   <em>setlocale()</em> once, prior to using this method, to successfully calculate
          *   the length.
-         *   This, by default, is done in \ref aworx::lib::ALib::init "ALib::init".
+         *   This by default is done during \ref alib_manual_bootstrapping "library initialization",
+         *   if performed on class \aworx{lib,ALibModules}.
          *
          * @return  The length of string when it was converted to wide characters.
          *          If counting failed (what means that the conversion will fail) \c -1 is returned.
@@ -601,7 +355,13 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Returns \c true if field #buffer equals nullptr, \c false otherwise.
+         * Returns \c true if field #buffer equals \c nullptr, \c false otherwise.
+         * Note that a \e nulled string is also considered \ref IsEmpty "empty".
+         *
+         * \see
+         *   Details on the concept of \e nulled and \e empty strings are documented in chapter
+         *   \ref alib_strings_details_nulled_vsempty of this module's
+         *   \ref alib_mod_strings "Programmer's Manual".
          *
          * @return \c true if no buffer is allocated.
          ******************************************************************************************/
@@ -609,22 +369,28 @@ class StringBase
         bool         IsNull()           const       { return buffer == nullptr; }
 
         /** ****************************************************************************************
-         * Returns \c true if field #buffer does not equal nullptr, \c false otherwise.
+         * Returns \c true if field #buffer does not equal \c nullptr, \c false otherwise.
          *
-         * @return \c true if no buffer is allocated.
+         * @return The negated value of method #IsNull.
          ******************************************************************************************/
         inline
         bool         IsNotNull()        const       { return buffer != nullptr; }
 
         /** ****************************************************************************************
-         *  Returns \c true if this string is of zero length.
+         * Returns \c true if this string is of zero length.
+         * Note that a \e nulled string is also considered empty.
+         *
+         * \see
+         *   Details on the concept of \e nulled and \e empty strings are documented in chapter
+         *   \ref alib_strings_details_nulled_vsempty of this module's
+         *   \ref alib_mod_strings "Programmer's Manual".
          * @return \c true if the actual length equals zero.
          ******************************************************************************************/
         inline
         bool         IsEmpty()          const       { return length == 0; }
 
         /** ****************************************************************************************
-         *  Returns \c true if this string has a length of 1 or more.
+         * Returns \c true if this string has a length of \c 1 or more.
          * @return \c true if the actual length does not equal zero.
          ******************************************************************************************/
         inline
@@ -637,7 +403,7 @@ class StringBase
 
         /** ****************************************************************************************
          * Retrieves the character at the given index. A range check is performed. If this fails,
-         * '\0' is returned.
+         * \c '\0' is returned.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
          *                 If \c false is given, no range check is performed.
@@ -648,11 +414,10 @@ class StringBase
         inline
         TChar        CharAt( integer idx )          const
         {
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
                 return  ( idx >= 0 && idx < length ) ? *(buffer + idx )
                                                      : '\0' ;
-            ALIB_ASSERT_ERROR( idx >= 0 && idx < length, ASTR("Non checking version: Index out of range") );
-
+            ALIB_ASSERT_ERROR( idx >= 0 && idx < length, "Non checking version: Index out of range" )
             return  *(buffer + idx );
         }
 
@@ -660,44 +425,42 @@ class StringBase
          * Retrieves the first character. In case of an empty or \e nulled string, '\0' is returned.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
-         *                 If \c false is given, no check for an empty or \e nulled object is
-         *                 performed.
-         * @return The first character in the %String.
+         *                 If \c false is given, no check for an empty string object is performed.
+         * @return The first character of the %String.
          *         If this instance's length is zero,  '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
         TChar        CharAtStart()          const
         {
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
                 return length > 0  ?  *(buffer)
                                    :  '\0';
-            ALIB_ASSERT_ERROR(  length > 0, ASTR("Non checking invocation on empty string") );
 
+            ALIB_ASSERT_ERROR(  length > 0, "Non checking invocation on empty string" )
             return  *(buffer);
         }
 
 
         /** ****************************************************************************************
-         * Retrieves the last character. In case of an empty or \e nulled string, '\0' is returned.
+         * Retrieves the last character. In case of an empty string, '\0' is returned.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
          *                 If \c false is given, no check for an empty or \e nulled object is
          *                 performed.
          *
-         * @return The last character in the %String.
+         * @return The last character of the %String.
          *         If this instance's length is zero,  '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
         TChar        CharAtEnd()          const
         {
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
                 return length > 0   ?  *(buffer + length - 1)
                                     : '\0';
 
-            ALIB_ASSERT_ERROR( length > 0, ASTR("Non checking invocation on empty string") );
-
+            ALIB_ASSERT_ERROR( length > 0, "Non checking invocation on empty string" )
             return  *(buffer + length - 1);
         }
 
@@ -705,23 +468,25 @@ class StringBase
          * Reads a character at a given index.
          *
          * \attention
-         *   Unlike other operator methods in the family of of \alib string classes, which are
-         *   performing parameter checks (in this case a range check), this operator does
-         *   <em>not</em> do a check!<br>
-         *   The rationale is that in derived class %AString, which overrides this operator
-         *   returning, a reference to the character to provide write access, no reference
-         *   to a character can be given if the index is out of range. This way, this method is
-         *   equivalent to method #CharAt<\c false>.<br>
-         *   For safe access to characters in the buffer use #CharAt (with template parameter
-         *   \p{TCheck} being \c true).
+         *   Unlike method #CharAt, this operator does <em>not</em> perform do range check on
+         *   parameter \p{idx}.
+         *   The rationale for this is that in derived class %AString, which overrides this operator
+         *   but returning a reference to the character (that provides write access), such reference
+         *   to a character could not be given if the index was out of range.
+         *   This way, a check in the derived type could not be implemented.<br>
+         *   Consequently, this operator is equivalent to the non-checking version of method
+         *   #CharAt<\c false>. For safe access to characters in the buffer use #CharAt
+         *   (with template parameter \p{TCheck} being \c true) which returns <c>'\0'</c> in the
+         *   case of that \p{idx} is out of bounds.<br>
+         *   In debug-compilations this operator raises an assertion if \p{idx} is out of bounds.
          *
-         * @param   idx    The index of the character within this objects' buffer.
-         * @returns If the character contained at index \p{op}.
+         * @param   idx    The index of the character within this object's buffer.
+         * @returns If the character contained at index \p{idx}.
          ******************************************************************************************/
          inline
          TChar    operator[] (integer idx) const
          {
-            ALIB_ASSERT_ERROR( idx >= 0  && idx < length, ASTR("Index out of bounds") );
+            ALIB_ASSERT_ERROR( idx >= 0  && idx < length, "Index out of bounds" )
             return buffer[idx];
          }
 
@@ -730,58 +495,292 @@ class StringBase
      ##@{ ########################################################################################*/
 
         /** ****************************************************************************************
-         * Compares this with given %String.
-         * \c true is returned if both are \e nulled or empty.
-         * If only one is \e nulled, \c false is returned.
+         * Shortcut to method \ref #Equals "Equals<Case::Sensitive>( rhs )".
          *
-         * @param needle        An %String that is compared to this.
-         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
-         *
-         * @return    \c true, if contents of this and the given %String are equal.
+         * @tparam TCharArray  A type that
+         *                     \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns The result of the call to #Equals.
          ******************************************************************************************/
-        template<lang::Case TSensitivity =lang::Case::Sensitive>
+        template<typename TCharArray> inline  bool  operator== (const TCharArray& rhs)         const
+        {
+            return  Equals<Case::Sensitive>( rhs );
+        }
+
+        /** ****************************************************************************************
+         * Shortcut to method \ref #Equals "Equals<Case::Sensitive>( rhs )".
+         *
+         * @tparam TCharArray  A type that
+         *                     \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns The negated result of the call to #Equals.
+         ******************************************************************************************/
+        template<typename TCharArray> inline  bool  operator!= (const TCharArray& rhs)         const
+        {
+            return !Equals<Case::Sensitive>( rhs );
+        }
+
+        /** ****************************************************************************************
+         * Invokes  \ref #CompareTo "CompareTo<true, Case::Sensitive>( rhs )" and tests the result
+         * to be negative.
+         *
+         * @tparam TCharArray  A type that
+         *                    \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns \c true if the call to #CompareTo returned a negative result, \c false
+         *          otherwise.
+         ******************************************************************************************/
+        template<typename TCharArray> inline  bool  operator<  (const TCharArray& rhs)         const
+        {
+            return CompareTo<true, Case::Sensitive>( rhs ) <  0;
+        }
+
+        /** ****************************************************************************************
+         * Invokes  \ref #CompareTo "CompareTo<true, Case::Sensitive>( rhs )" and tests the result
+         * to be negative or zero.
+         *
+         * @tparam TCharArray  A type that
+         *                    \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns \c true if the call to #CompareTo returned a negative or zero result, \c false
+         *          otherwise.
+         ******************************************************************************************/
+        template<typename TCharArray> inline  bool  operator<= (const TCharArray& rhs)         const
+        {
+            return CompareTo<true, Case::Sensitive>( rhs ) <= 0;
+        }
+
+        /** ****************************************************************************************
+         * Invokes  \ref #CompareTo "CompareTo<true, Case::Sensitive>( rhs )" and tests the result
+         * to be positive excluding zero.
+         *
+         * @tparam TCharArray  A type that
+         *                    \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns \c true if the call to #CompareTo returned a positive but non-zero result,
+         *          \c false otherwise.
+         ******************************************************************************************/
+        template<typename TCharArray> inline  bool  operator>  (const TCharArray& rhs)         const
+        {
+            return CompareTo<true, Case::Sensitive>( rhs ) >  0;
+        }
+
+        /** ****************************************************************************************
+         * Invokes  \ref #CompareTo "CompareTo<true, Case::Sensitive>( rhs )" and tests the result
+         * to be positive (including zero).
+         *
+         * @tparam TCharArray  A type that
+         *                    \ref alib_strings_cc "constructs String objects implicitly".
+         * @param rhs  The object to compare this string with.
+         * @returns \c true if the call to #CompareTo returned a positive result, \c false
+         *          otherwise.
+         ******************************************************************************************/
+        template<typename TCharArray> inline  bool  operator>= (const TCharArray& rhs)         const
+        {
+            return CompareTo<true, Case::Sensitive>( rhs ) >=  0;
+        }
+
+        /** ****************************************************************************************
+         * Compares this string with a
+         * \ref alib_strings_cc_construction_string "string-like object".
+         *
+         * \c true is returned if this and the compared string are \e nulled or empty.
+         * If only one is \e nulled or empty, \c false is returned.
+         *
+         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
+         * @param  rhs          The object to compare.
+         *
+         * @return  \c true, if contents of this string and the string representation of the
+         *          given \p{rhs} are equal.
+         ******************************************************************************************/
+        template <Case TSensitivity =Case::Sensitive>
         inline
-        bool Equals( const StringBase& needle )                                               const
+        bool Equals( const TString<TChar>& rhs )                                            const
         {
             ALIB_STRING_DBG_CHK(this)
-            if (    ( IsNull() !=  needle.IsNull() )
-                    || ( length   !=  needle.length   )    )
+            if (    ( IsNull() !=  rhs.IsNull() )
+                 || ( length   !=  rhs.length   )    )
                 return false;
 
             if ( length == 0 )
                 return true;
 
-            return TSensitivity == lang::Case::Sensitive
-                   ? CString<TChar>::Equal            ( buffer, needle.buffer, length )
-                   : CString<TChar>::CompareIgnoreCase( buffer, needle.buffer, length ) == 0 ;
+            if ALIB_CPP17_CONSTEXPR (TSensitivity == Case::Sensitive )
+                return  characters::CharArray<TChar>::Equal            ( buffer, rhs.buffer, length );
+            else
+                return  characters::CharArray<TChar>::CompareIgnoreCase( buffer, rhs.buffer, length ) == 0;
         }
 
+        /** ****************************************************************************************
+         * Compares this string with a
+         * \ref alib_strings_cc_construction_string "string-like object".
+         *
+         * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
+         *                      If \c false is given, no check for a \e nulled object (this) is
+         *                      performed and this string must not be of zero length
+         *                      (while \p{rhs} might be of zero length).
+         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
+         * @param  rhs          The object to compare.
+         *
+         * @return
+         *  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+         *       share the same content
+         *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+         *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+         ******************************************************************************************/
+        template <bool TCheck       = true,
+                  Case TSensitivity = Case::Sensitive>
+        inline
+        int CompareTo( const TString<TChar>& rhs )                                          const
+        {
+            ALIB_STRING_DBG_CHK(this)
+
+            // check \c nullptr arguments
+            if (TCheck &&     IsNull() )  return  rhs.IsNull() ? 0 : -1;
+            if (TCheck && rhs.IsNull() )  return  +1;
+
+            // zero length ?
+            if ( TCheck && length == 0 )  return  rhs.length == 0 ? 0 : -1;
+            if (       rhs.length == 0 )  return +1;
+
+            bool    iAmShorter=  (length < rhs.length);
+            integer shortLen  =  iAmShorter ?  length  :  rhs.length;
+
+            int cmpVal=  (TSensitivity == Case::Sensitive)
+                         ? characters::CharArray<TChar>::Compare          ( buffer, rhs.buffer, shortLen )
+                         : characters::CharArray<TChar>::CompareIgnoreCase( buffer, rhs.buffer, shortLen );
+
+            if ( cmpVal != 0 || length == rhs.length )
+                return cmpVal;
+            return iAmShorter ? -1 : 1;
+        }
 
         /** ****************************************************************************************
-         * Returns \c true, if the given %String is found at the given position.
+         * Compares this string with a region of another
+         * \ref alib_strings_cc_construction_string "string-like object".
          *
-         *  \note The following rules apply
-         *        - If \p{pos} is out of range or \p{needle} is \e nulled, \c false is returned.
-         *          (This check only done if \p{TCheck} equals \c true.)
-         *        - Otherwise, if the length of \p{needle} is 0, \c true is returned.
+         * @param rhs             The string to compare this string with.
+         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
+         *                        with.
+         *                        Defaults to \alib{strings,MAX_LEN}.
+         * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
+         *                        If \c false is given, no check for a \e nulled comparison
+         *                        object is performed and this string must not be empty.
+         *                        Furthermore, no check is performed whether the given region
+         *                        fits to parameter \p{rhs}. This also means that the default
+         *                        value must not be used with <em>TCheck==\<\c false\></em>.
+         * @tparam TSensitivity   Determines if comparison is case sensitive (the default) or not.
          *
-         * @param needle        The string to compare with. If is \e nulled or empty, \c true is
-         *                      returned.
+         * @return
+         *  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+         *       share the same content
+         *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+         *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+         ******************************************************************************************/
+        template < bool TCheck       = true,
+                   Case TSensitivity = Case::Sensitive>
+        inline
+        int CompareTo(  const TString&  rhs,
+                        integer            rhsRegionStart,
+                        integer            rhsRegionLength   =MAX_LEN  )                       const
+        {
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            {
+                TString cmpSub( rhs.buffer, 0);
+                rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
+                cmpSub.buffer+=   rhsRegionStart;
+                cmpSub.length=    rhsRegionLength;
+
+                return CompareTo<true,  TSensitivity>( cmpSub );
+            }
+            else
+                return CompareTo<false, TSensitivity>( TString( rhs.buffer + rhsRegionStart,
+                                                                   rhsRegionLength ) );
+        }
+
+        /** ****************************************************************************************
+         * Compares a region of this object with a region of another
+         * \ref alib_strings_cc_construction_string "string-like object".
+         *
+         * @param rhs             The string to compare this string with.
+         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param regionStart     The start of the region in this object to compare with
+         * @param regionLength    The length of the region in this object to compare with.
+         *                        Defaults to \alib{strings,MAX_LEN}.
+         * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
+         *                        If \c false is given, no check for a \e nulled comparison
+         *                        object is performed and this string must not be empty.
+         *                        Furthermore, no check is performed whether the given regions fit
+         *                        to this object respectively the other region to the object given
+         *                        with parameter \p{rhs}.
+         *                        This also means that the default value of \p{regionLength} must
+         *                        not be used in this case.
+         * @tparam TSensitivity   Determines if comparison is case sensitive (the default) or not.
+         *
+         * @return
+         *  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
+         *       share the same content
+         *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
+         *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
+         ******************************************************************************************/
+        template < bool TCheck       = true,
+                   Case TSensitivity = Case::Sensitive>
+        inline
+        int CompareTo(  const TString&  rhs,
+                        integer            rhsRegionStart,
+                        integer            rhsRegionLength,
+                        integer            regionStart,
+                        integer            regionLength      =MAX_LEN  )                       const
+        {
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            {
+                TString cmpSub( rhs.buffer, 0);
+                rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
+                cmpSub.buffer+=   rhsRegionStart;
+                cmpSub.length=    rhsRegionLength;
+
+                AdjustRegion( regionStart, regionLength );
+                return TString( buffer + regionStart, regionLength ).CompareTo<true, TSensitivity>( cmpSub );
+            }
+
+            return TString( buffer + regionStart, regionLength )
+                    .CompareTo<false, TSensitivity>( TString( rhs.buffer + rhsRegionStart,
+                                                              rhsRegionLength )               );
+        }
+
+        /** ****************************************************************************************
+         * Returns \c true, if the contents of the given
+         * \ref alib_strings_cc_construction_string "string-like object" is found at the given
+         * position.
+         *
+         * \note
+         *   The following rules apply:
+         *   - If \p{pos} is out of range or \p{needle} is \e nulled, \c false is returned.
+         *     (This check only done if \p{TCheck} equals \c true.)
+         *   - Otherwise, if the length of \p{needle} is 0, \c true is returned.
+         *
+         * @param needle        The string to compare with. If it is \ref IsEmpty "empty", \c true
+         *                      is returned.
          * @param pos           The position to search for needle.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c <false\> is given, no check on parameter
          *                      \p{pos} is performed and \p{needle} must not be \e nulled.
          * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
-         * @return \c true if \p{needle} is found at the given position. False otherwise. *
+         * @return \c true if \p{needle} is found at the given position. False otherwise.
          ******************************************************************************************/
-        template< bool        TCheck       = true,
-                  lang::Case  TSensitivity = lang::Case::Sensitive >
+        template< bool  TCheck       = true,
+                  Case  TSensitivity = Case::Sensitive >
         inline
-        bool ContainsAt( const StringBase& needle, integer pos )                               const
+        bool ContainsAt( const TString& needle, integer pos )                               const
         {
             integer needleLength= needle.length;
             ALIB_STRING_DBG_CHK(this)
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( pos < 0 || pos + needleLength > length || needle.IsNull () )
                     return false;
@@ -791,19 +790,21 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( pos >= 0 && pos + needleLength <= length && !needle.IsNull(),
-                                   ASTR("Non checking and index out of range") );
+                                   "Non checking and index out of range" )
                 ALIB_ASSERT_ERROR( needleLength != 0,
-                                   ASTR("Non checking and emtpy compare string") );
+                                   "Non checking and emtpy compare string" )
             }
 
-            return TSensitivity == lang::Case::Sensitive
-                   ? CString<TChar>::Equal            ( buffer + pos,  needle.buffer, needleLength )
-                   : CString<TChar>::CompareIgnoreCase( buffer + pos,  needle.buffer, needleLength ) == 0 ;
+            return TSensitivity == Case::Sensitive
+                   ? characters::CharArray<TChar>::Equal            ( buffer + pos,  needle.buffer, needleLength )
+                   : characters::CharArray<TChar>::CompareIgnoreCase( buffer + pos,  needle.buffer, needleLength ) == 0 ;
         }
 
         /** ****************************************************************************************
-         * Returns \c true, if this string starts with the string found in parameter \p{needle}.
-         * If \p{needle} is \e nulled or empty, \c true is returned.
+         * Returns \c true, if this string starts with the contents of the
+         * \ref alib_strings_cc_construction_string "string-like object" given with parameter
+         * \p{needle}.
+         * In the special case that \p{needle} is \ref IsEmpty "empty", \c true is returned.
          *
          * @param needle        The string to compare the start of this string with.
          *                      If \e nulled or empty, \c true is returned.
@@ -812,14 +813,14 @@ class StringBase
          *                      If \c <false\> is given, the given needle must not be empty
          *                      and must not be longer than this string!
          *                      \p{pos} is performed and \p{needle} must not be \e nulled.
-         * @return \c true if \p{needle} is found at the start of this, \c false otherwise. *
+         * @return \c true if \p{needle} is found at the start of this string, \c false otherwise.
          ******************************************************************************************/
-        template<bool        TCheck      = true,
-                 lang::Case  TSensitivity =lang::Case::Sensitive>
+        template<bool  TCheck      = true,
+                 Case  TSensitivity =Case::Sensitive>
         inline
-        bool StartsWith( const StringBase& needle )                                            const
+        bool StartsWith( const TString& needle )                                            const
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -829,31 +830,32 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( needle.length <= length,
-                                   ASTR("Non checking and needle longer than this string.") );
+                                   "Non checking and needle longer than this string." )
                 ALIB_ASSERT_ERROR( needle.length != 0,
-                                   ASTR("Non checking and emtpy needle given.") );
+                                   "Non checking and emtpy needle given." )
             }
 
-            return TSensitivity == lang::Case::Sensitive
-                   ? CString<TChar>::Equal            ( buffer,  needle.buffer, needle.length )
-                   : CString<TChar>::CompareIgnoreCase( buffer,  needle.buffer, needle.length ) == 0;
+            if ALIB_CPP17_CONSTEXPR ( TSensitivity == Case::Sensitive )
+                return  characters::CharArray<TChar>::Equal            ( buffer,  needle.buffer, needle.length );
+            else
+                return  characters::CharArray<TChar>::CompareIgnoreCase( buffer,  needle.buffer, needle.length ) == 0;
         }
 
         /** ****************************************************************************************
          * Returns \c true, if this string ends with the string found in parameter \p{needle}.
-         * If \p{needle} is \e nulled or empty, \c true is returned.
+         * If \p{needle} is \ref IsEmpty "empty", \c true is returned.
          *
          * @param needle        The string to compare the end of this string with.
          *                      If \e nulled or empty, \c true is returned.
          * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
-         * @return \c true if \p{needle} is found at the end of this, \c false otherwise. *
+         * @return \c true if \p{needle} is found at the end of this, \c false otherwise.
          ******************************************************************************************/
         template<bool        TCheck      = true,
-                 lang::Case  TSensitivity =lang::Case::Sensitive>
+                 Case  TSensitivity =Case::Sensitive>
         inline
-        bool EndsWith( const StringBase& needle )                                              const
+        bool EndsWith( const TString& needle )                                              const
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -863,206 +865,16 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( needle.length <= length,
-                                   ASTR("Non checking and needle longer than this string.") );
+                                   "Non checking and needle longer than this string." )
                 ALIB_ASSERT_ERROR( needle.length != 0,
-                                   ASTR("Non checking and emtpy needle given.") );
+                                   "Non checking and emtpy needle given." )
             }
 
-            return TSensitivity == lang::Case::Sensitive
-                   ? CString<TChar>::Equal            ( buffer + length - needle.length,  needle.buffer, needle.length )
-                   : CString<TChar>::CompareIgnoreCase( buffer + length - needle.length,  needle.buffer, needle.length ) == 0;
-        }
-
-        /** ****************************************************************************************
-         * Compares this with another %StringBase.
-         *
-         * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
-         *                      If \c false is given, no check for a \e nulled object (this)
-         *                      performed and this string must not be of zero length
-         *                      (while \p{needle} might be of zero length).
-         * @param  needle       The string to compare this string with.
-         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
-         *
-         * @return
-         *  -  0 if this and \p{needle} are \e nulled or if both have a length of 0 or if both
-         *       share the same content
-         *  - <0 if this is \e nulled and \p{needle} is not or if this is smaller than \p{needle}.
-         *  - >0 if this is not \e nulled but \p{needle} is or if this is greater than \p{needle}.
-         ******************************************************************************************/
-        template < bool TCheck       = true,
-                   Case TSensitivity = Case::Sensitive>
-        inline
-        int CompareTo( const StringBase&  needle )                                             const
-        {
-            // check \c nullptr arguments
-            if (TCheck &&        IsNull() )  return  needle.IsNull() ? 0 : -1;
-            if (TCheck && needle.IsNull() )  return  +1;
-
-            // zero length ?
-            if ( TCheck && length == 0 )  return  needle.length == 0 ? 0 : -1;
-            if (     needle.length == 0 )  return +1;
-
-            bool   iAmShorter= length < needle.length;
-            integer shortLen=   iAmShorter ? length : needle.length;
-
-            int cmpVal=  (TSensitivity == lang::Case::Sensitive)
-                         ? CString<TChar>::Compare          ( buffer, needle.buffer, shortLen )
-                         : CString<TChar>::CompareIgnoreCase( buffer, needle.buffer, shortLen );
-
-            if ( cmpVal != 0 || length == needle.length )
-                return cmpVal;
-            return iAmShorter ? -1 : 1;
-        }
-
-        /** ****************************************************************************************
-         * Compares this with a region of another %StringBase.
-         *
-         * @param needle             The string to compare this string with.
-         * @param needleRegionStart  The start of the region in \p{needle} to compare this object
-         *                           with.
-         * @param needleRegionLength The length of the region in \p{needle} to compare this object
-         *                           with.
-         *                           Defaults to \b MaxLen;
-         * @tparam TCheck            Defaults to \c true which is the normal invocation mode.
-         *                           If \c false is given, no check for a \e nulled comparison
-         *                           object is performed and this string must not be empty.
-         *                           Furthermore, no check is performed whether the given region
-         *                           fits to parameter \p{needle}. This also means that the default
-         *                           value must not be used with <em>TCheck==\<\c false\></em>.
-         * @tparam TSensitivity      Determines if comparison is case sensitive (the default) or not.
-         *
-         * @return
-         *  -  0 if this and \p{needle} are \e nulled or if both have a length of 0 or if both
-         *       share the same content
-         *  - <0 if this is \e nulled and \p{needle} is not or if this is smaller than \p{needle}.
-         *  - >0 if this is not \e nulled but \p{needle} is or if this is greater than \p{needle}.
-         ******************************************************************************************/
-        template < bool TCheck       = true,
-                   Case TSensitivity = Case::Sensitive>
-        inline
-        int CompareTo(  const StringBase&  needle,
-                        integer       needleRegionStart,
-                        integer       needleRegionLength  = MaxLen  )                          const
-        {
-            if ( TCheck )
-            {
-                StringBase cmpSub( needle.buffer, 0);
-                needle.AdjustRegion( needleRegionStart, needleRegionLength );
-                cmpSub.buffer+=   needleRegionStart;
-                cmpSub.length=    needleRegionLength;
-
-                return CompareTo<true,  TSensitivity>( cmpSub );
-            }
+            if ALIB_CPP17_CONSTEXPR ( TSensitivity == Case::Sensitive )
+                return characters::CharArray<TChar>::Equal            ( buffer + length - needle.length,  needle.buffer, needle.length );
             else
-                return CompareTo<false, TSensitivity>( StringBase( needle.buffer + needleRegionStart, needleRegionLength ) );
+                return characters::CharArray<TChar>::CompareIgnoreCase( buffer + length - needle.length,  needle.buffer, needle.length ) == 0;
         }
-
-        /** ****************************************************************************************
-         * Compares a region of this object with a region of another %StringBase.
-         *
-         * @param needle          The string to compare this string with.
-         * @param cmpRegionStart  The start of the region in \p{needle} to compare this object
-         *                        with.
-         * @param cmpRegionLength The length of the region in \p{needle} to compare this object
-         *                        with.
-         * @param regionStart     The start of the region in this object to compare with
-         * @param regionLength   The length of the region in this object to compare with.
-         *                        Defaults to \b MaxLen;
-         * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
-         *                        If \c false is given, no check for a \e nulled comparison
-         *                        object is performed and this string must not be empty.
-         *                        Furthermore, no check is performed whether the given regions fit
-         *                        to this object respectively the other region to the object given
-         *                        with parameter \p{needle}.
-         *                        This also means that the default value must not be used
-         *                        with <em>TCheck==\<\c false\></em>.
-         * @tparam TSensitivity   Determines if comparison is case sensitive (the default) or not.
-         *
-         * @return
-         *  -  0 if this and \p{needle} are \e nulled or if both have a length of 0 or if both
-         *       share the same content
-         *  - <0 if this is \e nulled and \p{needle} is not or if this is smaller than \p{needle}.
-         *  - >0 if this is not \e nulled but \p{needle} is or if this is greater than \p{needle}.
-         ******************************************************************************************/
-        template < bool TCheck       = true,
-                   Case TSensitivity = Case::Sensitive>
-        inline
-        int CompareTo(  const StringBase&   needle,
-                        integer         cmpRegionStart,
-                        integer         cmpRegionLength,
-                        integer         regionStart,
-                        integer         regionLength    = MaxLen    )                          const
-        {
-            if ( TCheck )
-            {
-                StringBase cmpSub( needle.buffer, 0);
-                needle.AdjustRegion( cmpRegionStart, cmpRegionLength );
-                cmpSub.buffer+=   cmpRegionStart;
-                cmpSub.length=    cmpRegionLength;
-
-                AdjustRegion( regionStart, regionLength );
-                return StringBase( buffer + regionStart, regionLength ).CompareTo<true, TSensitivity>( cmpSub );
-            }
-            else
-                return StringBase( buffer + regionStart, regionLength )
-                        .CompareTo<false, TSensitivity>( StringBase( needle.buffer + cmpRegionStart,
-                                                                     cmpRegionLength )               );
-
-        }
-
-        /**
-         * Uses method #CompareTo with parameter \p{op} to perform a lexical comparison.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if this is lexically smaller then \p{op}, \c false otherwise.
-         */
-        inline
-        bool     operator<  (const StringBase& op) const { return CompareTo( op ) <  0 ;  }
-
-        /**
-         * Uses method #CompareTo with parameter \p{op} to perform a lexical comparison.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if this is lexically smaller or equal then \p{op}, \c false otherwise.
-         */
-        inline
-        bool     operator<= (const StringBase& op) const { return CompareTo( op ) <=  0 ;  }
-
-        /**
-         * Uses method #CompareTo with parameter \p{op} to perform a lexical comparison.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if this is lexically greater then \p{op}, \c false otherwise.
-         */
-        inline
-        bool     operator>  (const StringBase& op) const { return CompareTo( op ) >  0 ;  }
-
-        /**
-         * Uses method #CompareTo with parameter \p{op} to perform a lexical comparison.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if this is lexically greater or equal then \p{op}, \c false otherwise.
-         */
-        inline
-        bool     operator>= (const StringBase& op) const { return CompareTo( op ) >=  0 ;  }
-
-        /**
-         * Uses method #Equals with parameter \p{op} to test on equality.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if the strings are equal, \c false otherwise.
-         */
-        inline
-        bool     operator== (const StringBase& op) const { return Equals( op );  }
-
-        /**
-         * Uses method #Equals with parameter \p{op} to test on equality.
-         *
-         * @param op The string to compare this string with.
-         * @returns \c true if the strings are equal, \c false otherwise.
-         */
-        inline
-        bool     operator!= (const StringBase& op) const { return !Equals( op ) != 0 ;  }
 
     /** ############################################################################################
      * @name Search
@@ -1077,7 +889,7 @@ class StringBase
          * @param startIdx  The index in this to start searching the character.
          *                  Defaults to \c 0.
          *
-         * @return  -1 if the character \p{needle} is not found.
+         * @return  \c -1 if the character \p{needle} is not found.
          *          Otherwise the index of its first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
@@ -1086,7 +898,7 @@ class StringBase
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -1095,10 +907,10 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length,
-                                   ASTR("Non checking and index out of range") );
+                                   "Non checking and index out of range" )
             }
 
-            const TChar* result=  CString<TChar>::Search( buffer + startIdx, length - startIdx, needle );
+            const TChar* result=  characters::CharArray<TChar>::Search( buffer + startIdx, length - startIdx, needle );
 
             return result != nullptr ? result  -  buffer
                                      : -1;
@@ -1112,7 +924,7 @@ class StringBase
          * @param regionLength The length of the region to search the character in.
          * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
          *                     If \c false is given, no range check is performed.
-         * @return  -1 if the character \p{needle} is not found.
+         * @return  \c -1 if the character \p{needle} is not found.
          *          Otherwise the index of its first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
@@ -1121,7 +933,7 @@ class StringBase
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( AdjustRegion( regionStart, regionLength ) )
@@ -1133,38 +945,38 @@ class StringBase
                     integer rs= regionStart;
                     integer rl= regionLength;
                     ALIB_ASSERT_ERROR( !AdjustRegion( rs, rl ) && rs == regionStart && rl == regionLength,
-                                       ASTR("Non checking and region out of range or empty") );
+                                       "Non checking and region out of range or empty" )
                 #endif
             }
 
-            const TChar* result=  CString<TChar>::Search( buffer + regionStart, regionLength, needle );
+            const TChar* result=  characters::CharArray<TChar>::Search( buffer + regionStart, regionLength, needle );
 
             return result != nullptr ? result  -  buffer
                                      : -1;
         }
 
         /** ****************************************************************************************
-         * Like \alib{strings::StringBase,IndexOf} but in case the character is not found, this
+         * Like \alib{strings::TString,IndexOf} but in case the character is not found, this
          * method returns the length of this string instead of \c -1.
          * Depending on the invocation context, the choice for the right version of this method may
          * lead to shorter and more efficient code.
          *
          * @param needle  The character to search for.
-         * @return  This strings #Length if the character \p{needle} is not found.
+         * @return  This string's #Length if character \p{needle} is not found.
          *          Otherwise the index of first occurrence.
          ******************************************************************************************/
         inline
         integer      IndexOfOrLength( TChar needle )                                           const
         {
             ALIB_STRING_DBG_CHK(this)
-            const TChar* result=   CString<TChar>::Search( buffer, length, needle );
+            const TChar* result=   characters::CharArray<TChar>::Search( buffer, length, needle );
 
             return result != nullptr ? result  -  buffer
                                      : length;
         }
 
         /** ****************************************************************************************
-         * Like \alib{strings::StringBase,IndexOf} but in case the character is not found, this
+         * Like \alib{strings::TString,IndexOf} but in case the character is not found, this
          * method returns the length of this string instead of \c -1.
          * Depending on the invocation context, the choice for the right version of this method may
          * lead to shorter and more efficient code.
@@ -1173,7 +985,7 @@ class StringBase
          * @param startIdx  The index in this to start searching the character.
          * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
          *                  If \c false is given, no range check is performed.
-         * @return  This strings #Length if the character \p{needle} is not found.
+         * @return  This string's #Length if  character \p{needle} is not found.
          *          Otherwise the index of first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
@@ -1181,7 +993,7 @@ class StringBase
         integer      IndexOfOrLength( TChar needle, integer startIdx )                         const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -1190,10 +1002,10 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length,
-                                 ASTR("Non checking and index out of range") );
+                                 "Non checking and index out of range" )
             }
 
-            const TChar* result= CString<TChar>::Search( buffer + startIdx, length - startIdx, needle );
+            const TChar* result= characters::CharArray<TChar>::Search( buffer + startIdx, length - startIdx, needle );
             return result != nullptr ? result  -  buffer
                                      : length;
         }
@@ -1203,22 +1015,23 @@ class StringBase
          *
          * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
          *                     If \c false is given, no range check is performed.
-         *                     Also, in this case, parameter startIndex must be provided.
+         *                     Consequently, in this case, optional parameter startIndex must be
+         *                     provided.
          *
          * @param needle       The character to search for.
-         * @param startIndex   The index in this to start searching the character.
-         *                     Defaults to \b MaxLen.
+         * @param startIndex   The index within this string to start searching the character.
+         *                     Defaults to \alib{strings,MAX_LEN}.
          *
-         * @return  -1 if the character \p{needle} is not found.
-         *          Otherwise the index of its last occurrence relative to the start index.
+         * @return  \c -1 if the character \p{needle} is not found.
+         *          Otherwise the index of its last occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        integer    LastIndexOf( TChar needle, integer startIndex= MaxLen )                     const
+        integer    LastIndexOf( TChar needle, integer startIndex =MAX_LEN )                    const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( startIndex <  0      )   return -1;
@@ -1227,7 +1040,7 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startIndex >= 0 && startIndex < length,
-                                  ASTR("Non checking and index out of range")   );
+                                  "Non checking and index out of range"   )
             }
 
             while( startIndex >= 0 && buffer[ startIndex ] != needle )
@@ -1238,12 +1051,15 @@ class StringBase
 
         /** ****************************************************************************************
          * Returns the index of the first character which is included, respectively <em>not</em>
-         * included in a given set of characters.
+         * included in a set of characters given as a
+         * \ref alib_strings_cc_construction_string "string-like object".
          *
          * \note
-         *   In derived class \b %TString, a faster version (using \e std::strpbrk() respectively
-         *   \e std::strspn()) is available. So, if performance is important, it might be advisable
-         *   to copy this \b %StringBase (and the needles) to a terminatable buffer.
+         *   In derived class \b %CString, a faster version of this method (using \c std::strpbrk()
+         *   respectively \c std::strspn()) is available.
+         *   So, if performance is important and repetitive calls are performed, it might be
+         *   advisable to hold this string and the needles in a zero-terminated string buffer,
+         *   for example in an \b AString.
          *
          * This method searches forwards. For backwards search, see #LastIndexOf.
          *
@@ -1263,12 +1079,12 @@ class StringBase
          *         included, in the given set of characters.
          *         If nothing is found, -1 is returned.
          ******************************************************************************************/
-        template <lang::Inclusion   TInclusion,
-                  bool              TCheck      = true>
+        template <Inclusion   TInclusion,
+                  bool        TCheck      = true>
         inline
-        integer    IndexOfAny( const StringBase& needles, integer startIdx= 0 )                const
+        integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                const
         {
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
             {
                 if ( startIdx < 0       ) startIdx= 0;
                 if ( startIdx >= length ) return   -1;
@@ -1276,28 +1092,29 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length && needles.Length() != 0,
-                                   ASTR("Non checking and illegal parameters") );
+                                   "Non checking and illegal parameters" )
             }
 
 
-            integer idx= TInclusion == lang::Inclusion::Include
-              ? CString<TChar>::IndexOfAnyIncluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() )
-              : CString<TChar>::IndexOfAnyExcluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() );
+            integer idx= TInclusion == Inclusion::Include
+              ? characters::CharArray<TChar>::IndexOfAnyIncluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() )
+              : characters::CharArray<TChar>::IndexOfAnyExcluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() );
 
             return idx == -1 ? -1 : startIdx + idx;
         }
 
         /** ****************************************************************************************
          * Returns the index of the last character which is included, respectively <em>not</em>
-         * included in a given set of characters.
+         * included in set of characters given as a
+         * \ref alib_strings_cc_construction_string "string-like object".
          *
          * This method searches backwards starting at the given index. For forwards search, see
-         * #IndexOf.
+         * #IndexOfAny.
          *
          * @param needles     Pointer to a zero terminated set of characters to be searched for.
          * @param startIdx    The index to start the search at. The value is cropped to be in
          *                    the bounds of 0 and the length of this object minus one.
-         *                    Defaults to maximum integer value.
+         *                    Defaults to \alib{strings,MAX_LEN}.
          * @tparam TInclusion Denotes whether the search returns the first index that holds a value
          *                    that is included or that is not excluded in the set of needle
          *                    characters.
@@ -1308,12 +1125,12 @@ class StringBase
          *         included, in the given set of characters.
          *         If nothing is found, -1 is returned.
          ******************************************************************************************/
-        template <lang::Inclusion   TInclusion,
-                  bool              TCheck = true   >
+        template <Inclusion   TInclusion,
+                  bool        TCheck = true>
         inline
-        integer LastIndexOfAny( const StringBase& needles, integer startIdx= MaxLen ) const
+        integer LastIndexOfAny( const TString& needles, integer startIdx =MAX_LEN )            const
         {
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
             {
                 if ( startIdx < 0       ) return -1;
                 if ( startIdx >= length ) startIdx=  length - 1;
@@ -1321,53 +1138,51 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx < length && needles.Length() != 0,
-                                   ASTR("Non checking and illegal parameters") );
+                                   "Non checking and illegal parameters" )
             }
 
-            return   TInclusion == lang::Inclusion::Include
-                       ? CString<TChar>::LastIndexOfAnyInclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() )
-                       : CString<TChar>::LastIndexOfAnyExclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
+            if ALIB_CPP17_CONSTEXPR ( TInclusion == Inclusion::Include )
+                return characters::CharArray<TChar>::LastIndexOfAnyInclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
+            else
+                return characters::CharArray<TChar>::LastIndexOfAnyExclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
         }
 
         /** ****************************************************************************************
-         * Searches the given (unterminated) %StringBase in the Buffer.
+         * Searches the given \ref alib_strings_cc_construction_string "string-like object"
+         * in this string.
          *
-         * If this string and string \p{needle} \p{needle} are known to be zero-terminated,
-         * it is advisable to use the faster implementation of this method,
-         * \ref aworx::lib::strings::TStringBase::IndexOf "TString::IndexOf".<br>
-         * This method is useful for example to search needles of type
-         * \alib{strings,SubstringBase,Substring} (which are not terminatable).
-         *
-         * If \p{needle} is empty, \p{startIdx} is returned.
+         * If \p{needle} is empty, the adjusted value of \p{startIdx} is returned.
          *
          * @param  needle         The string to search for.
          * @param  startIdx       The index to start the search at. Optional and defaults to \c 0.
          * @tparam TSensitivity   Case sensitivity of the comparison.
          *                        Optional and defaults to \b Case::Sensitive.
          * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
-         *                        If \c false is given, parameter \p{startIdx} must be valid and
-         *                        \p{needle} must not be empty.
+         *                        If \c false is given, parameter \p{needle} must not be empty and
+         *                        \p{startIdx} must be in the range of [0 ... #Length() - needle.Length()].
+         *                        This also implies that this string must not be empty.
          *
-         * @return    -1 if the string is not found. Otherwise the index of first occurrence.
+         *
+         * @return    If the string is not found or the checking of parameters failed, \c -1 is
+         *            returned. Otherwise the index of the first occurrence of \p{needle}.
          ******************************************************************************************/
-        template<bool           TCheck        = true,
-                 lang::Case     TSensitivity  = lang::Case::Sensitive>
+        template<bool     TCheck        = true,
+                 Case     TSensitivity  = Case::Sensitive>
         inline
-        integer  IndexOf( const StringBase&  needle,
-                          integer            startIdx= 0    )                                  const
+        integer  IndexOf( const TString&  needle,
+                          integer         startIdx= 0  )                                       const
         {
-            integer nLen=   needle.Length();
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
             {
                 if ( needle.IsNull()  )
                     return  -1;
-                if ( startIdx < 0 )                startIdx= 0;
-                if ( startIdx + nLen > length )    return -1;
+                if ( startIdx < 0                        )    startIdx= 0;
+                if ( startIdx + needle.Length() > length )    return -1;
             }
             else
             {
                 ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx <= length && needle.IsNotNull(),
-                                   ASTR("Non checking and illegal parameters") );
+                                   "Non checking and illegal parameters" )
             }
 
 
@@ -1375,28 +1190,31 @@ class StringBase
         }
 
         /** ****************************************************************************************
-         * Searches the first difference with given string.
-         * If this string starts with \p{needle}, then the length of \p{needle} is returned.
+         * Searches the first difference of a sub-string of this string and a
+         * \ref alib_strings_cc_construction_string "string-like object" given with parameter
+         * \p{needle}.
+         * If no difference is found, then the index of the first character behind the sub-string
+         * is returned.
          *
          * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
          *                     If \c false is given, no range check is performed.
-         * @param needle       The character to search for.
-         * @param sensitivity  Case sensitivity of the comparison.
+         * @param needle       The sub-string to search for.
+         * @param sensitivity  Letter case sensitivity of the comparison.
          *                     Optional and defaults to \b Case::Sensitive.
-         * @param idx          The index in this to start comparing with \p{needle}.
+         * @param idx          The index in this string to start the comparison with \p{needle}.
          *                     Optional and defaults to \c 0.
          *
-         * @return   The index of the first difference found in \p{needle} or the needle's length.
+         * @return The index of the first difference found or \p{idx} plus the length of \p{needle}.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        integer  IndexOfFirstDifference( const StringBase&  needle,
-                                         lang::Case     sensitivity = lang::Case::Sensitive,
-                                         integer        idx         = 0                     )  const
+        integer  IndexOfFirstDifference( const TString&  needle,
+                                         Case     sensitivity = Case::Sensitive,
+                                         integer  idx         = 0                     )  const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( idx <  0      )  idx= 0;
@@ -1405,20 +1223,44 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( idx >= 0 && idx < length,
-                                   ASTR("Non checking and index out of range") );
+                                   "Non checking and index out of range" )
             }
 
-            return   CString<TChar>::IndexOfFirstDifference(  buffer + idx,   length - idx,
-                                                              needle.buffer,  needle.length,
-                                                              sensitivity                         );
+            return   characters::CharArray<TChar>::IndexOfFirstDifference( buffer + idx,   length - idx,
+                                                                           needle.buffer,  needle.length,
+                                                                           sensitivity                       );
         }
 
         /** ****************************************************************************************
-         * Counts all occurrences of \p{needle} from \p{startPos} to the end of the string.
+         * The method searches the next matching \p{closer}-character while taking nested pairs of
+         * \p{opener} and \p{closer} characters into account.
+         *
+         * Prior to the invocation of this method, the initial \p{opener} has to be known already
+         * and the given \p{idx} has to point to the first character behind the opener, where the
+         * search for an according \p{closer} is to be started.
+         *
+         * This method is useful to scan a string for pairs of opening and closing brackets, while
+         * the found segment may contain nested pairs of the same brackets.
+         *
+         * @param opener The character that represents the opening bracket, e.g. <c>'{'</c>.
+         * @param closer The character that represents the closing bracket, e.g. <c>'}'</c>.
+         * @param idx    Index pointing to first character behind the (first) \p{opener}.
+         *
+         * @return   The index of the corresponding closing character. If none was found, a negative
+         *           value is returned.
+         *           In the latter case the negated (absolute) value is indicating the number of
+         *           still open (nested) brackets.
+         ******************************************************************************************/
+        integer  IndexOfSegmentEnd( TChar opener, TChar closer, integer idx )                 const;
+
+
+        /** ****************************************************************************************
+         * Counts all occurrences of character \p{needle} in the range from \p{startPos} to the end
+         * of the string.
          *
          * For empty strings \p{needle}, \c 0 is returned.
          *
-         * @param needle    The string to search for.
+         * @param needle    The character to search for.
          * @param startPos  The index to start the counting.
          *                  Optional and defaults to \c 0.
          * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
@@ -1428,11 +1270,11 @@ class StringBase
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        int  CountChar( TChar           needle,
-                        integer         startPos        = 0                                  ) const
+        integer  CountChar( TChar           needle,
+                            integer         startPos        = 0   )                            const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1441,7 +1283,7 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length,
-                                 ASTR("Non checking and index out of range") );
+                                   "Non checking and index out of range" )
             }
 
 
@@ -1456,13 +1298,13 @@ class StringBase
         }
 
         /** ****************************************************************************************
-         * Counts all occurrences of \p{needle}, unless followed by \p{omit}, starting at
-         * \p{startPos} to the end of the string.
+         * Counts all occurrences of character \p{needle}, unless followed by character \p{omit}
+         * in the range from \p{startPos} to the end of the string.
          *
          * For empty strings \p{needle}, \c 0 is returned.
          * Also, for empty strings \p{omit}, \c 0 is returned.
          *
-         * @param needle    The string to search for.
+         * @param needle    The character to search for.
          * @param omit      Omit occurrence if the given character follows.
          * @param startPos  The index to start the counting.
          * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
@@ -1471,12 +1313,12 @@ class StringBase
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
         template <bool TCheck= true>
-        int  CountChar( TChar           needle,
-                        TChar           omit,
-                        integer         startPos                                             ) const
+        integer  CountChar( TChar           needle,
+                            TChar           omit,
+                            integer         startPos  )                                        const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1485,7 +1327,7 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length,
-                                   ASTR("Non checking and index out of range") );
+                                   "Non checking and index out of range" )
             }
 
             int     result= 0;
@@ -1518,15 +1360,15 @@ class StringBase
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
         template< bool        TCheck       = true,
-                  lang::Case  TSensitivity = lang::Case::Sensitive >
-        int  Count( const StringBase&   needle,
-                    integer         startPos        = 0                               )        const
+                  Case  TSensitivity = Case::Sensitive >
+        integer Count( const TString& needle,
+                       integer           startPos   = 0 )                                      const
         {
             ALIB_STRING_DBG_CHK(this)
             integer nLen= needle.Length();
             if( nLen == 0  )
                 return 0;
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1534,7 +1376,7 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length,
-                                   ASTR("Non checking and illegal parameters") );
+                                   "Non checking and illegal parameters" )
             }
 
             int     result= 0;
@@ -1561,22 +1403,22 @@ class StringBase
          * @tparam TSensitivity Case sensitivity of the comparison.
          *                      Optional and defaults to \b Case::Sensitive.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
-         *                      If \c false is given, parameter \p{startIdx} must be valid and
+         *                      If \c false is given, parameter \p{startPos} must be valid and
          *                      \p{needle} must not be empty.
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
-        template<bool           TCheck        = true,
-                 lang::Case     TSensitivity  = lang::Case::Sensitive>
-        int  Count( const StringBase&   needle,
-                    const StringBase&   omit,
-                    integer         startPos        = 0                                  )     const
+        template<bool     TCheck        = true,
+                 Case     TSensitivity  = Case::Sensitive>
+        integer  Count( const TString&   needle,
+                        const TString&   omit,
+                        integer         startPos        = 0         )                          const
         {
             ALIB_STRING_DBG_CHK(this)
             integer nLen= needle.Length();
             if ( nLen == 0  )
                 return  0;
-            if (TCheck)
+            if ALIB_CPP17_CONSTEXPR (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1584,7 +1426,7 @@ class StringBase
             else
             {
                 ALIB_ASSERT_ERROR( startPos >= 0 && startPos < length,
-                                   ASTR("Non checking and illegal parameters") );
+                                   "Non checking and illegal parameters" )
             }
 
 
@@ -1592,9 +1434,9 @@ class StringBase
             while( (startPos= IndexOf<false, TSensitivity>( needle, startPos )) >= 0 )
             {
                 startPos+= nLen;
-                if(     startPos + omit.Length() <= Length()
-                    &&  this->Substring<false>( startPos, omit.Length() ).template Equals<TSensitivity>( omit )
-                  )
+                if(    startPos + omit.Length() <= Length()
+                    && (    omit.IsEmpty()
+                         || ContainsAt<false>( omit, startPos ) )    )
                     continue;
 
                 result++;
@@ -1602,6 +1444,8 @@ class StringBase
 
             return result;
         }
+
+ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 
 
@@ -1630,11 +1474,10 @@ class StringBase
 
         /** ****************************************************************************************
          * Parses an integer value in decimal, binary, hexadecimal or octal format from
-         * the string by invoking method
-         * \alib{strings,NumberFormatBase::ParseInt,NumberFormat::ParseInt}
-         * on the given \p{numberFormat} instance.<br>
+         * the string
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to not using - and therefore also not parsing - grouping characters.
          *
          * Optional output parameter \p{newIdx} may be used to detect if parsing was successful.
@@ -1642,7 +1485,7 @@ class StringBase
          * read.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}. All of its interface methods
+         * \alib{strings,TNumberFormat,NumberFormat}. All of its interface methods
          * have a corresponding implementation within class \b %AString.
          *
          * @param startIdx     The start index for parsing.
@@ -1655,12 +1498,13 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        int64_t  ParseInt( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        int64_t  ParseInt( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                            integer* newIdx= nullptr ) const;
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseInt(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseInt(integer\,TNumberFormat<TChar>*\,integer*)const,ParseInt}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -1670,14 +1514,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        int64_t  ParseInt( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        int64_t  ParseInt( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseInt( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseInt(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseInt(integer\,TNumberFormat<TChar>*\,integer*)const,ParseInt}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -1693,8 +1538,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseInt(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseInt(integer\,TNumberFormat<TChar>*\,integer*)const,ParseInt}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1712,10 +1558,10 @@ class StringBase
 
         /** ****************************************************************************************
          * Reads an unsigned 64-bit integer in standard decimal format at the given position
-         * from this %AString. This is done, by invoking \alib{strings,NumberFormatBase::ParseDec}
-         * on the given \p{numberFormat} instance.<br>
+         * from this %AString.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational}
+         * \alib{strings,TNumberFormat::Computational}
          * which is configured to not using - and therefore also not parsing - grouping characters.
          *
          * Optional output parameter \p{newIdx} may be used to detect if parsing was successful.
@@ -1726,10 +1572,9 @@ class StringBase
          * For reading signed integer values, see methods #ParseInt, for floating point numbers
          * #ParseFloat.
          *
-         * For more information on number conversion, see class \alib{strings,NumberFormatBase}.
-         * All of its interface methods have a corresponding implementation within class
-         * \b %AString.
-         *
+         * For more information on number conversion, see class
+         * \alib{strings,TNumberFormat,NumberFormat}. All number-parsing interface methods
+         * have a corresponding implementation within this class.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1741,12 +1586,13 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        uint64_t  ParseDec( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        uint64_t  ParseDec( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                             integer* newIdx= nullptr ) const;
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseDec(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseDec(integer\,TNumberFormat<TChar>*\,integer*)const,ParseDec}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -1756,14 +1602,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        uint64_t  ParseDec( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        uint64_t  ParseDec( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseDec( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseDec(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseDec(integer\,TNumberFormat<TChar>*\,integer*)const,ParseDec}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -1779,8 +1626,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseDec(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseDec(integer\,TNumberFormat<TChar>*\,integer*)const,ParseDec}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1798,11 +1646,10 @@ class StringBase
 
         /** ****************************************************************************************
          * Reads an unsigned 64-bit integer in binary format at the given position
-         * from this \b %AString. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseBin,NumberFormat::ParseBin}
-         * on the given \p{numberFormat} instance.<br>
+         * from this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to not using - and therefore also not parsing - grouping characters.
          *
          * Optional output parameter \p{newIdx} may be used to detect if parsing was successful.
@@ -1810,8 +1657,8 @@ class StringBase
          * read.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}. All of its interface methods
-         * have a corresponding implementation within class \b %AString.
+         * \alib{strings,TNumberFormat,NumberFormat}. All number-parsing interface methods
+         * have a corresponding implementation within this class.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1823,13 +1670,14 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        uint64_t  ParseBin( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        uint64_t  ParseBin( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                             integer* newIdx= nullptr ) const;
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseBin(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseBin(integer\,TNumberFormat<TChar>*\,integer*)const,ParseBin}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -1839,14 +1687,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        uint64_t  ParseBin( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        uint64_t  ParseBin( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseBin( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseBin(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseBin(integer\,TNumberFormat<TChar>*\,integer*)const,ParseBin}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -1862,8 +1711,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseBin(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseBin(integer\,TNumberFormat<TChar>*\,integer*)const,ParseBin}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1881,11 +1731,10 @@ class StringBase
 
         /** ****************************************************************************************
          * Reads an unsigned 64-bit integer in hexadecimal format at the given position
-         * from this \b %AString. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseHex,NumberFormat::ParseHex}
-         * on the given \p{numberFormat} instance.<br>
+         * from this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to not using - and therefore also not parsing - grouping characters.
          *
          * Optional output parameter \p{newIdx} may be used to detect if parsing was successful.
@@ -1893,8 +1742,8 @@ class StringBase
          * read.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}. All of its interface methods
-         * have a corresponding implementation within class \b %AString.
+         * \alib{strings,TNumberFormat,NumberFormat}. All number-parsing interface methods
+         * have a corresponding implementation within this class.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1906,13 +1755,14 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        uint64_t  ParseHex( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        uint64_t  ParseHex( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                             integer* newIdx= nullptr ) const;
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseHex(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseHex(integer\,TNumberFormat<TChar>*\,integer*)const,ParseHex}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -1922,14 +1772,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        uint64_t  ParseHex( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        uint64_t  ParseHex( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseHex( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseHex(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseHex(integer\,TNumberFormat<TChar>*\,integer*)const,ParseHex}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -1945,8 +1796,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseHex(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseHex(integer\,TNumberFormat<TChar>*\,integer*)const,ParseHex}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1964,11 +1816,10 @@ class StringBase
 
         /** ****************************************************************************************
          * Reads an unsigned 64-bit integer in octal format at the given position
-         * from this \b %AString. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseOct,NumberFormat::ParseOct}
-         * on the given \p{numberFormat} instance.<br>
+         * from this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to not using - and therefore also not parsing - grouping characters.
          *
          * Optional output parameter \p{newIdx} may be used to detect if parsing was successful.
@@ -1976,8 +1827,8 @@ class StringBase
          * read.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}. All of its interface methods
-         * have a corresponding implementation within class \b %AString.
+         * \alib{strings,TNumberFormat,NumberFormat}. All number-parsing interface methods
+         * have a corresponding implementation within this class.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -1989,13 +1840,14 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        uint64_t  ParseOct( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        uint64_t  ParseOct( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                             integer* newIdx= nullptr ) const;
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseOct(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseOct(integer\,TNumberFormat<TChar>*\,integer*)const,ParseOct}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -2005,14 +1857,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        uint64_t  ParseOct( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        uint64_t  ParseOct( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseOct( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseOct(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseOct(integer\,TNumberFormat<TChar>*\,integer*)const,ParseOct}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -2028,8 +1881,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseOct(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseOct(integer\,TNumberFormat<TChar>*\,integer*)const,ParseOct}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -2046,12 +1900,10 @@ class StringBase
         }
 
         /** ****************************************************************************************
-         * Reads a floating point number at the given position from this \b %AString.
-         * This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseFloat,NumberFormat::ParseFloat}
-         * on the given \p{numberFormat} instance.<br>
+         * Reads a floating point number at the given position from this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to 'international' settings (not using the locale) and therefore
          * also not parsing grouping characters.
          *
@@ -2059,10 +1911,9 @@ class StringBase
          * If not, it receives the value of \p{startIdx}, even if leading whitespaces had been
          * read.
          *
-         * For more information on parsing options for floating point numbers and number
-         * conversion in general, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}. All of its interface methods
-         * have a corresponding implementation within class \b %AString.
+         * For more information on number conversion, see class
+         * \alib{strings,TNumberFormat,NumberFormat}. All number-parsing interface methods
+         * have a corresponding implementation within this class.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -2074,12 +1925,13 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         ALIB_API
-        double   ParseFloat( integer startIdx =0, NumberFormatBase<TChar>* numberFormat= nullptr,
+        double   ParseFloat( integer startIdx =0, TNumberFormat<TChar>* numberFormat= nullptr,
                              integer* newIdx= nullptr ) const;
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseFloat(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseFloat(integer\,TNumberFormat<TChar>*\,integer*)const,ParseFloat}
+         * providing default values for omitted parameters.
          *
          * @param numberFormat The format definition. Defaults to \c nullptr.
          * @param[out] newIdx  Optional output variable that will point to the first
@@ -2089,14 +1941,15 @@ class StringBase
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
         inline
-        double  ParseFloat( NumberFormatBase<TChar>* numberFormat, integer* newIdx= nullptr ) const
+        double  ParseFloat( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseFloat( 0, numberFormat, newIdx );
         }
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseFloat(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseFloat(integer\,TNumberFormat<TChar>*\,integer*)const,ParseFloat}
+         * providing default values for omitted parameters.
          *
          * @param[out] newIdx  Optional output variable that will point to the first
          *                     character in this string after the number parsed.
@@ -2112,8 +1965,9 @@ class StringBase
 
 
         /** ****************************************************************************************
-         * Overloaded version of #ParseFloat(int =,NumberFormatBase<TChar>* =,int* =) providing default values
-         * for omitted parameters.
+         * Overloaded version of
+         * \alib{strings,TString::ParseFloat(integer\,TNumberFormat<TChar>*\,integer*)const,ParseFloat}
+         * providing default values for omitted parameters.
          *
          * @param startIdx     The start index for parsing.
          *                     Optional and defaults to \c 0.
@@ -2134,7 +1988,8 @@ class StringBase
      ##@{ ########################################################################################*/
 
         /** ****************************************************************************************
-         * Copies the strings contents into a given character buffer.
+         * Copies this string's contents into a given character buffer.
+         * It is the caller's responsibility that \p{dest} is large enough, write-enabled, etc.
          *
          * @param dest   The destination buffer.
          * @return    The length of this string.
@@ -2142,7 +1997,7 @@ class StringBase
         inline
         integer CopyTo( TChar* dest ) const
         {
-            CString<TChar>::Copy( buffer, length, dest );
+            characters::CharArray<TChar>::Copy( buffer, length, dest );
             return length;
         }
 
@@ -2151,7 +2006,7 @@ class StringBase
      ##@{ ########################################################################################*/
     public:
         /** ************************************************************************************
-         * Adjusts a given region (in/out parameters) to fit to this object's range [0..length].
+         * Adjusts a region given as in/out parameters, to fit to this object's range [0..length].
          *
          * @param[in,out] regionStart  The proposed region start which might get adjusted to fit to
          *                             range [0..length].
@@ -2174,16 +2029,20 @@ class StringBase
             // if negative start, cut it from the length
             if (regionStart < 0 )
             {
-                regionLength+=    regionStart; // this adds a negative value, hence we do not exceed a given MAXINT
+                regionLength+=  regionStart;
                 regionStart=    0;
             }
 
             // adjust length
-            integer maxLen=  length - regionStart;
-            if ( regionLength > maxLen )
-                 regionLength=  maxLen;
             if ( regionLength < 0 )
+            {
                 regionLength= 0;
+                return true;
+            }
+
+            integer maxRegionLength=  length - regionStart;
+            if ( regionLength > maxRegionLength )
+                 regionLength=  maxRegionLength;
 
             // return true if adjusted region is empty
             return  regionLength == 0;
@@ -2194,16 +2053,17 @@ class StringBase
      ##@{ ########################################################################################*/
     public:
         /** ****************************************************************************************
-         * Implementation of \c std::iterator for class \b %StringBase. This class exposes
-         * #ConstIterator which uses <c>const TChar*</c> and <c>const TChar&</c> as
-         * pointer and reference types. Descendant classes may expose a mutable version
-         * (e.g. \alib{strings,AStringBase,AString}).
+         * Implementation of \c std::iterator for class \b %TString and its descendents.
+         * Base class \b String exposes #ConstIterator which uses
+         * <c>const TChar*</c> and <c>const TChar&</c> for template types \p{TPointer} and
+         * \p{TReference}. Descendant classes may expose a mutable
+         * version (e.g. \alib{strings,TAString,AString}).
          *
          * As the name of the class indicates, this iterator satisfies the std library concept
          * [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator).
          ******************************************************************************************/
         template<typename TPointer, typename TReference>
-        class RandomAccessIteratorBase
+        class TRandomAccessIterator
             : public std::iterator< std::random_access_iterator_tag,  // iterator_category
                                     TChar,                            // value_type
                                     integer,                          // distance type
@@ -2212,37 +2072,38 @@ class StringBase
                                   >
         {
             protected:
-                /// The pointer into the buffer is all we store.
+                /** The pointer into the buffer is all we store. */
                 TPointer p;
 
             public:
                 /** Constructor.
-                 *  @param _p Our initial value       */
-                explicit RandomAccessIteratorBase( TPointer _p = nullptr ) : p(_p)
+                 *  @param start Pointer to the initial character.   */
+                explicit TRandomAccessIterator( TPointer start = nullptr ) : p(start)
                 {
                 }
 
             //######################   To satisfy concept of  InputIterator   ######################
 
                 /** Prefix increment operator.
-                 *  @return A reference to ourselves. */
-                RandomAccessIteratorBase& operator++()
+                 *  @return A reference to this object. */
+                TRandomAccessIterator& operator++()
                 {
                     p++;
                     return *this;
                 }
 
-                /** Postfix increment operator.
-                 *  @return A reference to ourselves. */
-                RandomAccessIteratorBase operator++(int)
+                 /** Postfix increment operator.
+                 *  @return An iterator value that is not increased, yet. */
+               TRandomAccessIterator operator++(int)
                 {
-                    return RandomAccessIteratorBase(p++);
+                    return TRandomAccessIterator(p++);
                 }
 
                 /** Comparison operator.
                  *  @param other  The iterator to compare ourselves to.
-                 *  @return \c true if this and given iterator are equal, \c false otherwise. */
-                bool operator==(RandomAccessIteratorBase other)                                const
+                 *  @return \c true if this and the given iterator are pointing to the same character
+                 *          in the same array, \c false otherwise. */
+                bool operator==(TRandomAccessIterator other)                                const
                 {
                     return p == other.p;
                 }
@@ -2250,7 +2111,7 @@ class StringBase
                 /** Comparison operator.
                  *  @param other  The iterator to compare ourselves to.
                  *  @return \c true if this and given iterator are not equal, \c false otherwise. */
-                bool operator!=(RandomAccessIteratorBase other)                                const
+                bool operator!=(TRandomAccessIterator other)                                const
                 {
                     return !(*this == other);
                 }
@@ -2266,8 +2127,8 @@ class StringBase
             //##################   To satisfy concept of  BidirectionalIterator   ##################
 
                 /** Prefix decrement operator.
-                 *  @return A reference to ourselves. */
-                RandomAccessIteratorBase& operator--()
+                 *  @return A reference to this object. */
+                TRandomAccessIterator& operator--()
                 {
                     p--;
                     return *this;
@@ -2275,10 +2136,10 @@ class StringBase
 
 
                 /** Postfix decrement operator.
-                 *  @return An iterator that with the old value. */
-                RandomAccessIteratorBase operator--(int)
+                 *  @return The iterator value prior the decrement operation. */
+                TRandomAccessIterator operator--(int)
                 {
-                    return RandomAccessIteratorBase(p--);
+                    return TRandomAccessIterator(p--);
                 }
 
 
@@ -2286,8 +2147,8 @@ class StringBase
 
                 /** Addition assignment.
                  *  @param n The value to subtract.
-                 *  @return A reference to ourselves. */
-                RandomAccessIteratorBase& operator+=(integer n)
+                 *  @return A reference to this iterator. */
+                TRandomAccessIterator& operator+=(integer n)
                 {
                     p+= n;
                     return *this;
@@ -2295,8 +2156,8 @@ class StringBase
 
                 /** Subtraction assignment.
                  *  @param n The value to subtract.
-                 *  @return A reference to ourselves. */
-                RandomAccessIteratorBase& operator-=(integer n)
+                 *  @return A reference to this iterator. */
+                TRandomAccessIterator& operator-=(integer n)
                 {
                     p-= n;
                     return *this;
@@ -2304,31 +2165,33 @@ class StringBase
 
                 /** Addition.
                  *  @param n The value to subtract.
-                 *  @return A reference to the new iterator. */
-                RandomAccessIteratorBase operator+(integer n)                                  const
+                 *  @return The resulting iterator value. */
+                TRandomAccessIterator operator+(integer n)                                  const
                 {
-                    return RandomAccessIteratorBase( p + n );
+                    return TRandomAccessIterator( p + n );
                 }
 
                 /** Subtraction.
                  *  @param n The value to subtract.
-                 *  @return A reference to the new iterator. */
-                RandomAccessIteratorBase operator-(integer n)                                  const
+                 *  @return The resulting iterator value. */
+                TRandomAccessIterator operator-(integer n)                                  const
                 {
-                    return RandomAccessIteratorBase( p - n );
+                    return TRandomAccessIterator( p - n );
                 }
 
                 /** Difference (distance) from this iterator to the given one.
                  *  @param other  The iterator to subtract
-                 *  @return The iterator to subtract.    */
-                integer operator-(RandomAccessIteratorBase other)                              const
+                 *  @return The difference between (distance of) this and the given iterator.    */
+                integer operator-(TRandomAccessIterator other)                              const
                 {
                     return p - other.p;
                 }
 
                 /** Subscript operator.
-                 *  @param n  The iterator to subtract
-                 *  @return <c>*( (*this) + n )</c>.          */
+                 *  @param n  The distance to add.
+                 *  @return Reference to the character referenced by this iterator plus the distance
+                 *          given.
+                 */
                 TReference operator[]( integer n )                                             const
                 {
                     return *( p + n );
@@ -2340,7 +2203,7 @@ class StringBase
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e smaller than \p{other},
                  *          \c false otherwise. */
-                bool operator<(RandomAccessIteratorBase other)                                 const
+                bool operator<(TRandomAccessIterator other)                                 const
                 {
                     return p < other.p;
                 }
@@ -2349,7 +2212,7 @@ class StringBase
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e smaller than or equal to \p{other},
                  *          \c false otherwise. */
-                bool operator<=(RandomAccessIteratorBase other)                                const
+                bool operator<=(TRandomAccessIterator other)                                const
                 {
                     return p <= other.p;
                 }
@@ -2359,7 +2222,7 @@ class StringBase
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e greater than \p{other},
                  *          \c false otherwise. */
-                bool operator>(RandomAccessIteratorBase other)                                 const
+                bool operator>(TRandomAccessIterator other)                                 const
                 {
                     return p > other.p;
                 }
@@ -2368,16 +2231,17 @@ class StringBase
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e greater than or equal to \p{other},
                  *          \c false otherwise. */
-                bool operator>=(RandomAccessIteratorBase other)                                const
+                bool operator>=(TRandomAccessIterator other)                                const
                 {
                     return p >= other.p;
                 }
         };
 
-        /** The constant iterator exposed by this character container. A Mutable version is
-         *  found only in descendant classes (e.g. \alib{strings,AStringBase,AString}).
+        /**
+         * The constant iterator exposed by this character container. A Mutable version is
+         * found only in descendant classes (e.g. \alib{strings,TAString,AString}).
          */
-        using ConstIterator= RandomAccessIteratorBase<const TChar*, const TChar&>;
+        using ConstIterator= TRandomAccessIterator<const TChar*, const TChar&>;
 
 
         /**
@@ -2405,141 +2269,118 @@ class StringBase
          * @param end   An iterator referencing the end of the string.
          ******************************************************************************************/
         inline
-        StringBase( ConstIterator& start, ConstIterator& end )
+        TString( ConstIterator& start, ConstIterator& end )
         : buffer( &*start)
         , length( end-start >= 0 ? end-start : 0 )
         {}
 
     protected:
-        ALIB_WARNINGS_IGNORE_DOCS // needed due to a bug in current clang
+        #if !ALIB_DOCUMENTATION_PARSER
+            ALIB_WARNINGS_IGNORE_DOCS // needed due to a bug in current clang
+        #endif
+
         /** ****************************************************************************************
-         * Implementation of substring search function.
-         * @param  needle       The substring to search.
+         * Implementation of the sub-string search function.
+         * @param  needle       The sub-string to search.
          * @param  startIdx     The start index of the search.
          * @tparam TSensitivity The letter case sensitivity of the search.
          * @return The index of the first occurrence of \p{needle}, respectively \c -1 if not found.
          ******************************************************************************************/
-        template<lang::Case TSensitivity =lang::Case::Sensitive>
+        template<Case TSensitivity =Case::Sensitive>
         ALIB_API integer
-        indexOfString( const StringBase&  needle, integer startIdx )                          const;
+        indexOfString( const TString&  needle, integer startIdx )                          const;
 
-        ALIB_WARNINGS_RESTORE
-}; // class StringBase
-
-
-//! @cond NO_DOX
-
-// #################################################################################################
-// NString specifics
-// #################################################################################################
-
-template<> struct T_String<nchar*, nchar> : public std::true_type
-{
-    static inline constexpr const nchar*   Buffer(nchar* const       & src) { return src;  }
-    static inline integer                 Length(nchar* const       & src) { return static_cast<integer>( strlen(src) );  }
-};
-
-template<> struct T_String<nchar const*, nchar> : public std::true_type
-{
-    static inline constexpr const nchar*   Buffer(const nchar* const & src) { return src; }
-    static inline integer                 Length(const nchar* const & src) { return static_cast<integer>( strlen(src) ); }
-};
-
-template<size_t TCapacity>
-struct T_StringLiteral<nchar[TCapacity], nchar>  : public std::true_type
-{
-    static inline constexpr const nchar*   Buffer( nchar const (&src) [TCapacity]  ) { return src; }
-    static inline constexpr integer       Length()                                  { return TCapacity -1; }
-};
-
-template<> ALIB_API integer StringBase<nchar>::WStringLength()                                 const;
-
-#if ALIB_DEBUG && !defined(_MSC_VER)
-    template<> bool    StringBase<nchar>::ALIB_OTW_SetLengthLonger;
-#endif
-
-#if ALIB_DEBUG_STRINGS
-extern template ALIB_API void    StringBase<nchar>::_dbgCheck() const;
-#endif
-
-extern template ALIB_API integer  StringBase<nchar>::indexOfString<Case::Sensitive>(const StringBase<nchar   >&, integer)  const;
-extern template ALIB_API integer  StringBase<nchar>::indexOfString<Case::Ignore   >(const StringBase<nchar   >&, integer)  const;
-extern template ALIB_API uint64_t StringBase<nchar>::ParseDecDigits( integer, integer*                           ) const;
-extern template ALIB_API  int64_t StringBase<nchar>::ParseInt      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<nchar>::ParseDec      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<nchar>::ParseBin      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<nchar>::ParseHex      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<nchar>::ParseOct      ( integer, NumberFormatBase<nchar>*, integer* ) const;
-extern template ALIB_API double   StringBase<nchar>::ParseFloat    ( integer, NumberFormatBase<nchar>*, integer* ) const;
+        #if !ALIB_DOCUMENTATION_PARSER
+            ALIB_WARNINGS_RESTORE
+        #endif
+}; // class TString
 
 
 // #################################################################################################
-// WString specifics
+// Template instantiation declarations
 // #################################################################################################
+#if !ALIB_DOCUMENTATION_PARSER
 
-template<> struct T_String<wchar_t*, wchar_t> : public std::true_type
-{
-    static inline constexpr const wchar_t*   Buffer(wchar_t* const & src)  { return src;  }
-    static inline integer                    Length(wchar_t* const & src)  { return static_cast<integer>( wcslen(src) );  }
-};
+template<>      ALIB_API integer  TString<nchar>::WStringLength                 ()                                           const;
+extern template ALIB_API integer  TString<nchar>::indexOfString<Case::Sensitive>( const TString<nchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<nchar>::indexOfString<Case::Ignore   >( const TString<nchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<nchar>::IndexOfSegmentEnd             ( nchar, nchar, integer                    ) const;
+extern template ALIB_API uint64_t TString<nchar>::ParseDecDigits                ( integer, integer*                        ) const;
+extern template ALIB_API  int64_t TString<nchar>::ParseInt                      ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<nchar>::ParseDec                      ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<nchar>::ParseBin                      ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<nchar>::ParseHex                      ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<nchar>::ParseOct                      ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API double   TString<nchar>::ParseFloat                    ( integer, TNumberFormat<nchar>*, integer* ) const;
 
-template<> struct T_String<wchar_t const*, wchar_t> : public std::true_type
-{
-    static inline constexpr const wchar_t*   Buffer(const wchar_t* const & src) { return src; }
-    static inline integer                    Length(const wchar_t* const & src) { return static_cast<integer>( wcslen(src) ); }
-};
+template<> inline        integer  TString<wchar>::WStringLength() const  { return length; }
+extern template ALIB_API integer  TString<wchar>::indexOfString<Case::Sensitive>(const TString<wchar>&, integer            ) const;
+extern template ALIB_API integer  TString<wchar>::indexOfString<Case::Ignore   >(const TString<wchar>&, integer            ) const;
+extern template ALIB_API integer  TString<wchar>::IndexOfSegmentEnd             (wchar, wchar, integer                     ) const;
+extern template ALIB_API uint64_t TString<wchar>::ParseDecDigits                ( integer, integer*                        ) const;
+extern template ALIB_API  int64_t TString<wchar>::ParseInt                      ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<wchar>::ParseDec                      ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<wchar>::ParseBin                      ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<wchar>::ParseHex                      ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<wchar>::ParseOct                      ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API double   TString<wchar>::ParseFloat                    ( integer, TNumberFormat<wchar>*, integer* ) const;
 
-template<size_t TCapacity>
-struct T_StringLiteral<wchar_t[TCapacity], wchar_t>  : public std::true_type
-{
-    static inline constexpr const wchar_t*   Buffer( wchar_t  const (&src) [TCapacity]   ) { return src; }
-    static inline constexpr integer          Length()                                      { return TCapacity -1; }
-};
+template<>      ALIB_API integer  TString<xchar>::WStringLength                 ()                                           const;
+extern template ALIB_API integer  TString<xchar>::indexOfString<Case::Sensitive>( const TString<xchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<xchar>::indexOfString<Case::Ignore   >( const TString<xchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<xchar>::IndexOfSegmentEnd             ( xchar, xchar, integer                    ) const;
+extern template ALIB_API uint64_t TString<xchar>::ParseDecDigits                ( integer, integer*                        ) const;
+extern template ALIB_API  int64_t TString<xchar>::ParseInt                      ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<xchar>::ParseDec                      ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<xchar>::ParseBin                      ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<xchar>::ParseHex                      ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API uint64_t TString<xchar>::ParseOct                      ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API double   TString<xchar>::ParseFloat                    ( integer, TNumberFormat<xchar>*, integer* ) const;
 
-template<> inline   integer StringBase<wchar_t>::WStringLength()                               const
-{
-    return length;
-}
-
-extern template ALIB_API integer  StringBase<wchar>::indexOfString<Case::Sensitive>(const StringBase<wchar_t>&, integer)  const;
-extern template ALIB_API integer  StringBase<wchar>::indexOfString<Case::Ignore   >(const StringBase<wchar_t>&, integer)  const;
-extern template ALIB_API uint64_t StringBase<wchar>::ParseDecDigits( integer, integer*                           ) const;
-extern template ALIB_API  int64_t StringBase<wchar>::ParseInt      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<wchar>::ParseDec      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<wchar>::ParseBin      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<wchar>::ParseHex      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-extern template ALIB_API uint64_t StringBase<wchar>::ParseOct      ( integer, NumberFormatBase<wchar>*, integer* ) const;
-extern template ALIB_API double   StringBase<wchar>::ParseFloat    ( integer, NumberFormatBase<wchar>*, integer* ) const;
-
-
-#if ALIB_DEBUG && !defined(_MSC_VER)
-    template<> bool    StringBase<wchar_t>::ALIB_OTW_SetLengthLonger;
+// #################################################################################################
+// debug members
+// #################################################################################################
+#if ALIB_STRINGS_DEBUG
+    extern template ALIB_API void    TString<nchar>::dbgCheck() const;
+    extern template ALIB_API void    TString<wchar>::dbgCheck() const;
+    extern template ALIB_API void    TString<xchar>::dbgCheck() const;
 #endif
 
-#if ALIB_DEBUG_STRINGS
-extern template ALIB_API void    StringBase<wchar_t>::_dbgCheck() const;
-#endif
+#endif //!ALIB_DOCUMENTATION_PARSER
 
-//! @endcond
-
-}}} // namespace [aworx::lib::strings]
-
-// #############    False assertion fixes. Dependent on compiler and library    #############
-#if defined(__clang__)
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<nchar>   > , nchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<nchar> & > , nchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<const StringBase<nchar> & > , nchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<nchar> &&> , nchar )
-
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<wchar>   > , wchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<wchar> & > , wchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<const StringBase<wchar> & > , wchar )
-    ALIB_STRING_CONSTRUCTOR_FIX( std::tuple<      StringBase<wchar> &&> , wchar )
-#endif
-
-
+}} // namespace aworx[::lib::strings]
 
 #if defined(_MSC_VER)
     #pragma warning( pop )
 #endif
-#endif // HPP_ALIB_STRINGS_STRING_BASE
+
+/// Inline shortcut method to create a constexpr \e nulled string of standard character size.
+/// @return A \e nulled string.
+inline constexpr  String            NullString()            { return String(nullptr);  }
+
+/// Inline shortcut method to create a constexpr \e nulled string of complementary character size.
+/// @return A \e nulled string.
+inline constexpr  ComplementString  NullComplementString()  { return ComplementString(nullptr);}
+
+/// Inline shortcut method to create a constexpr \e nulled string of strange character size.
+/// @return A \e nulled string.
+inline constexpr  StrangeString     NullStrangeString()     { return StrangeString(nullptr);  }
+
+/// Inline shortcut method to create a constexpr \e nulled string of narrow character size.
+/// @return A \e nulled string.
+inline constexpr NString            NullNString()           { return NString(nullptr);  }
+
+/// Inline shortcut method to create a constexpr \e nulled string of wide character size.
+/// @return A \e nulled string.
+inline constexpr WString            NullWString()           { return WString(nullptr);  }
+
+/// Inline shortcut method to create a constexpr \e nulled string of strange character size.
+/// @return A \e nulled string.
+inline constexpr XString            NullXString()           { return XString(nullptr);  }
+
+
+} // namespace [aworx]
+
+
+
+#endif // HPP_ALIB_STRINGS_STRING

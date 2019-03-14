@@ -1,72 +1,72 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if defined(_MSC_VER)
-    #include <algorithm>
+#include "alib/strings/astring.hpp"
+
+#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+    #include "alib/strings/localstring.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_CSTRING)
+#   include "alib/strings/cstring.hpp"
+#endif
+
+#if ALIB_MODULE_STRINGFORMAT
+#   include "alib/stringformat/formatter.hpp"
+#endif
+
+#if defined(_MSC_VER) && !defined(_ALGORITHM_)
+#   include <algorithm>
+#endif
+
+#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+#   include <vector>
 #endif
 
 #include <codecvt>
 
 namespace aworx { namespace lib { namespace strings {
-// #################################################################################################
-//  globals
-// #################################################################################################
-
-//! @cond NO_DOX
-ALIB_DBG( void appendErrorToAString( AStringBase<nchar>& target ) { target._( "T_Apply<Unknown Type>");} )
-ALIB_DBG( void appendErrorToAString( AStringBase<wchar>& target ) { target._(L"T_Apply<Unknown Type>");} )
-//! @endcond
-
-
 // ####################################################################################################
 // AString::_dbgCheck()
 // ####################################################################################################
 //! @cond NO_DOX
-#if ALIB_DEBUG_STRINGS
+#if ALIB_STRINGS_DEBUG
 
 #if !ALIB_DEBUG
-    #pragma message "Compiler symbol ALIB_DEBUG_STRINGS_ON set, while ALIB_DEBUG is off. Is this really wanted?"
+    #pragma message "Compiler symbol ALIB_STRINGS_DEBUG_ON set, while ALIB_DEBUG is off. Is this really wanted?"
 #endif
 
 template<typename TChar>
-void AStringBase<TChar>::_dbgCheck() const
+void TAString<TChar>::dbgCheck() const
 {
-    TStringBase<TChar>::_dbgCheck();
+    TString<TChar>::dbgCheck();
+
     integer cap= Capacity();
 
-    ALIB_ASSERT_ERROR(      StringBase<TChar>::buffer != nullptr
-                            ||  StringBase<TChar>::length  == 0
-                            ,ASTR("No buffer but length != 0") );
+    ALIB_ASSERT_ERROR( debugLastAllocRequest == 0
+                       ||  TString<TChar>::length <= debugLastAllocRequest
+                       ,"Error: Previous allocation request was too short"         );
 
-    ALIB_ASSERT_ERROR(      cap      == 0
-                            ||  TStringBase<TChar>::debugIsTerminated != 0
-                            ||  StringBase<TChar>::buffer[StringBase<TChar>::length]   == '\1'
-                            ,ASTR("Not terminated but dbg-terminator character '\\1' not present") );
+    ALIB_ASSERT_ERROR( TString<TChar>::length <= cap
+                       ,"Error: Length greater than allocation size"               );
 
-    ALIB_ASSERT_ERROR(      debugLastAllocRequest == 0
-                            ||  StringBase<TChar>::length <= debugLastAllocRequest
-                            ,ASTR("Error: Previous allocation request was too short")         );
-
-    ALIB_ASSERT_ERROR(      StringBase<TChar>::length <= cap
-                            ,ASTR("Error: Length greater than allocation size")               );
-
-    if( StringBase<TChar>::buffer && debugBufferWithMagicBytePadding )
+    if( TString<TChar>::buffer && HasInternalBuffer() )
     {
-        for (integer aworx_astring_dbg_i= -16 ; aworx_astring_dbg_i < 0 ; aworx_astring_dbg_i++)
-            if ( StringBase<TChar>::buffer[aworx_astring_dbg_i] != 2 )
+        for (integer i= -16 ; i < 0 ; i++)
+            if ( TString<TChar>::buffer[i] != 2 )
             {
-                ALIB_ERROR( ASTR("Magic byte not found at start of buffer.") );
+                ALIB_ERROR( "Magic byte not found at start of buffer." );
                 break;
             }
-        for (integer aworx_astring_dbg_i= 1 ; aworx_astring_dbg_i <= 16 ; aworx_astring_dbg_i++)
-            if ( StringBase<TChar>::buffer[ cap + aworx_astring_dbg_i] != 3 )
+        for (integer i= 1 ; i <= 16 ; i++)
+            if ( TString<TChar>::buffer[ cap + i] != 3 )
             {
-                ALIB_ERROR( ASTR("Magic byte not found at end of buffer.") );
+                ALIB_ERROR( "Magic byte not found at end of buffer." );
                 break;
             }
     }
@@ -76,12 +76,45 @@ void AStringBase<TChar>::_dbgCheck() const
 //! @endcond
 
 
-
 // ####################################################################################################
 // Allocation
 // ####################################################################################################
+
 template<typename TChar>
-void AStringBase<TChar>::SetBuffer( integer newCapacity )
+void TAString<TChar>::GrowBufferAtLeastBy( integer minimumGrowth )
+{
+    integer actCapacity= Capacity();
+
+    ALIB_ASSERT_WARNING (  TString<TChar>::length + minimumGrowth > actCapacity,
+                           "Unnecessary invocation of Grow()" )
+
+    // first allocation? Go with given growth as size
+    if (actCapacity == 0 )
+    {
+        SetBuffer( minimumGrowth > 16 ? minimumGrowth : 16 );
+        #if ALIB_STRINGS_DEBUG
+        debugLastAllocRequest= minimumGrowth;
+        #endif
+
+        return;
+    }
+
+    // calc new size: in general grow by 50%
+    integer newCapacity= actCapacity + (actCapacity / 2);
+    if ( newCapacity < TString<TChar>::length + minimumGrowth )
+        newCapacity+= minimumGrowth;
+
+    if ( newCapacity < 16 )
+        newCapacity= 16;
+
+    SetBuffer( newCapacity );
+    #if ALIB_STRINGS_DEBUG
+    debugLastAllocRequest= actCapacity + minimumGrowth;
+    #endif
+}
+
+template<typename TChar>
+void TAString<TChar>::SetBuffer( integer newCapacity )
 {
     ALIB_STRING_DBG_CHK(this)
 
@@ -91,149 +124,146 @@ void AStringBase<TChar>::SetBuffer( integer newCapacity )
     if ( capacity >= 0 && capacity == newCapacity )
         return;
 
-    #if ALIB_DEBUG_STRINGS
+    #if ALIB_STRINGS_DEBUG
         debugLastAllocRequest= newCapacity;
     #endif
 
     // set uninitialized (and return)
     if ( newCapacity == 0 )
     {
+        ALIB_ASSERT_WARNING( !dbgWarnWhenExternalBufferIsReplaced || capacity >= 0,
+            "AString::SetBuffer(): removing an external buffer (setting string nulled). "
+            "This may not be wanted."  )
+
         if ( capacity > 0 )
-            #if !ALIB_DEBUG_STRINGS
-                delete[] StringBase<TChar>::buffer;
-            #else
-                delete[] (StringBase<TChar>::buffer - (debugBufferWithMagicBytePadding ? 16 : 0) );
-            #endif
+            std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
+                                              #if ALIB_STRINGS_DEBUG
+                                                                        - 16
+                                              #endif
+                                                                                               )) );
 
         capacity=
-        StringBase<TChar>::length=     0;
-        StringBase<TChar>::buffer=     nullptr;
+        TString<TChar>::length=     0;
+        TString<TChar>::buffer=     nullptr;
         return;
     }
 
-    ALIB_WARN_ONCE_IF( *this, ReplaceExternalBuffer, capacity < 0,
-                      ASTR("AString::SetAllocation(): replacing an external buffer. This may not be wanted.") )
+    ALIB_ASSERT_WARNING( !dbgWarnWhenExternalBufferIsReplaced || capacity >= 0,
+        "AString::SetBuffer(): replacing an external buffer by an internally managed one. "
+        "This may not be wanted."   )
 
     // extend or shrink an existing buffer (and return)
     if( capacity > 0 )
     {
-        #if !ALIB_DEBUG_STRINGS
-            StringBase<TChar>::buffer= static_cast<TChar*>( std::realloc(  StringBase<TChar>::vbuffer,
+        #if !ALIB_STRINGS_DEBUG
+            TString<TChar>::buffer= static_cast<TChar*>( std::realloc(  TString<TChar>::vbuffer,
                                                                            static_cast<size_t>(newCapacity  + 1)
                                                                            * sizeof( TChar )                       ) );
             #if ALIB_AVOID_ANALYZER_WARNINGS
                 if( newCapacity > capacity )
-                    CString<TChar>::Fill( StringBase<TChar>::vbuffer + StringBase<TChar>::length, '\0', newCapacity  + 1 - StringBase<TChar>::length);
+                    characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + TString<TChar>::length,
+                                                        newCapacity  + 1 - TString<TChar>::length
+                                                        ,'\0'                                                   );
             #endif
         #else
             // add 16 characters of padding at start/end
-            StringBase<TChar>::buffer= static_cast<TChar*>( std::realloc( StringBase<TChar>::vbuffer - 16,
+            TString<TChar>::buffer= static_cast<TChar*>( std::realloc( TString<TChar>::vbuffer - 16,
                                                                           static_cast<size_t>( newCapacity  + 1 + 33 )
                                                                           * sizeof( TChar ) ) ) + 16;
 
             // write '\3' to end ('\0'= termination byte, '\1'= untermination byte )
-            CString<TChar>::Fill( StringBase<TChar>::vbuffer + newCapacity + 1, '\3', 16 );
+            characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + newCapacity + 1, 16, '\3' );
         #endif
 
         capacity=   newCapacity;
-        if ( StringBase<TChar>::length > capacity )
-            StringBase<TChar>::length= capacity;
+        if ( TString<TChar>::length > capacity )
+            TString<TChar>::length= capacity;
 
-        ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0)
-        #if ALIB_DEBUG_STRINGS
-            debugBufferWithMagicBytePadding= true;
-        #endif
         return;
     }
 
     // create new Buffer
-    #if !ALIB_DEBUG_STRINGS
+    #if !ALIB_STRINGS_DEBUG
         TChar* newBuffer= static_cast<TChar*>( std::malloc(  static_cast<size_t>(newCapacity  + 1)
                                                            * sizeof( TChar )                       ) );
         #if ALIB_AVOID_ANALYZER_WARNINGS
-            CString<TChar>::Fill( newBuffer, '\0', newCapacity  + 1 );
+            characters::CharArray<TChar>::Fill( newBuffer, newCapacity  + 1, '\0' );
         #endif
     #else
         // add 16 characters of padding at start/end
-        TChar* newBuffer= static_cast<TChar*>(   std::malloc(static_cast<size_t>( newCapacity  + 1 + 33 )
+        TChar* newBuffer= static_cast<TChar*>(   std::malloc(static_cast<size_t>( newCapacity  + 1 + 32 )
                                                * sizeof( TChar ) ) ) + 16;
 
         // write '\2' to start, '\3' to end ('\0'= termination byte, '\1'= untermination byte )
-        CString<TChar>::Fill( newBuffer - 16,              '\2', 16 );
-        CString<TChar>::Fill( newBuffer + newCapacity + 1, '\3', 16 );
+        characters::CharArray<TChar>::Fill( newBuffer - 16             , 16 , '\2');
+        characters::CharArray<TChar>::Fill( newBuffer + newCapacity + 1, 16 , '\3');
     #endif
 
     // if we had a buffer before
     if ( capacity != 0 )
     {
         // copy data and delete old buffer
-        CString<TChar>::Copy( StringBase<TChar>::buffer, (std::min)( StringBase<TChar>::length + 1, newCapacity + 1),
-                    newBuffer );
+        characters::CharArray<TChar>::Copy( TString<TChar>::buffer, (std::min)( TString<TChar>::length + 1, newCapacity + 1),
+                                            newBuffer );
         if ( capacity > 0 )
-          #if !ALIB_DEBUG_STRINGS
-            delete[] StringBase<TChar>::buffer;
-          #else
-            delete[] (StringBase<TChar>::buffer - (debugBufferWithMagicBytePadding ? 16 : 0) );
-          #endif
+            std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
+                                                                #if ALIB_STRINGS_DEBUG
+                                                                        - 16
+                                                                #endif
+                                                                                               )) );
+
     }
     else
     {
-        ALIB_ASSERT( StringBase<TChar>::length == 0 );
+        ALIB_ASSERT( TString<TChar>::length == 0 );
     }
 
     // set new Buffer and adjust length
-    StringBase<TChar>::buffer=     newBuffer;
+    TString<TChar>::buffer=     newBuffer;
     capacity=   newCapacity;
-    if ( StringBase<TChar>::length > capacity )
-        StringBase<TChar>::length= capacity;
-
-    ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0)
-    #if ALIB_DEBUG_STRINGS
-        debugBufferWithMagicBytePadding= true;
-    #endif
+    if ( TString<TChar>::length > capacity )
+        TString<TChar>::length= capacity;
 }
 
 
 template<typename TChar>
-void AStringBase<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, integer extLength,
+void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, integer extLength,
                                     Responsibility responsibility  )
 {
     ALIB_ASSERT_ERROR(    !(extBufferSize == 0 && extBuffer != nullptr)
                        && !(extBufferSize != 0 && extBuffer == nullptr) ,
-                       ASTR("AString::SetBuffer(): Given buffer is nullptr while given alloc size is not 0 (or vice versa)") );
+        "AString::SetBuffer(): Given buffer is nullptr while given alloc size is not 0 (or vice versa)" )
 
     // delete any existing
     if ( capacity > 0 )
-    {
-        #if !ALIB_DEBUG_STRINGS
-            delete[] StringBase<TChar>::buffer;
-        #else
-            delete[] (StringBase<TChar>::buffer - (debugBufferWithMagicBytePadding ? 16 : 0) );
-        #endif
-    }
+        std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
+                                                            #if ALIB_STRINGS_DEBUG
+                                                                    - 16
+                                                            #endif
+                                                                                               )) );
 
     // too small? treat as if a nullptr was given.
     if ( extBufferSize < 1 )
     {
-        ALIB_ERROR( ASTR("allocation size < 1") );
+        ALIB_ERROR( "allocation size < 1" );
         extBuffer= nullptr;
     }
 
     // null buffer?
-    if ( (StringBase<TChar>::buffer= extBuffer) == nullptr )
+    if ( (TString<TChar>::buffer= extBuffer) == nullptr )
     {
-        #if ALIB_DEBUG_STRINGS
+        #if ALIB_STRINGS_DEBUG
             debugLastAllocRequest=
         #endif
         capacity=
-        StringBase<TChar>::length=       0;
+        TString<TChar>::length=       0;
         return;
     }
 
 
     if ( extLength >= extBufferSize  )
     {
-        ALIB_ERROR( ASTR("ext length >= ext allocation size") );
+        ALIB_ERROR( "ext length >= ext allocation size" );
         extLength= extBufferSize -1;
     }
 
@@ -242,12 +272,10 @@ void AStringBase<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, int
     extBufferSize--;     // we count one less
     capacity=   responsibility==Responsibility::Transfer ?  extBufferSize
                                                          : -extBufferSize;
-    #if ALIB_DEBUG_STRINGS
+    #if ALIB_STRINGS_DEBUG
         debugLastAllocRequest= extBufferSize;
     #endif
-    StringBase<TChar>::length=     extLength;
-
-    ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0)
+    TString<TChar>::length=     extLength;
 }
 
 
@@ -257,20 +285,20 @@ void AStringBase<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, int
 // #############################################################################################
 
 template<typename TChar>
-integer AStringBase<TChar>::TrimAt( integer idx, const TStringBase<TChar>& trimChars )
+integer TAString<TChar>::TrimAt( integer idx, const TCString<TChar>& trimChars )
 {
     if ( idx < 0 )
          return 0;
-    if ( idx >= StringBase<TChar>::length )
-         return StringBase<TChar>::length;
+    if ( idx >= TString<TChar>::length )
+         return TString<TChar>::length;
 
-    integer regionStart=  TStringBase<TChar>::template LastIndexOfAny<Inclusion::Exclude, false>( trimChars, idx ) + 1;
+    integer regionStart=  TString<TChar>::template       LastIndexOfAny<Inclusion::Exclude, false>( trimChars, idx ) + 1;
     if (regionStart < 0 )
         regionStart= 0;
 
-    integer regionEnd=    TStringBase<TChar>::template IndexOfAny    <Inclusion::Exclude, false>( trimChars, idx );
+    integer regionEnd=    TCString<TChar>(this).template IndexOfAny    <Inclusion::Exclude, false>( trimChars, idx );
     if (regionEnd < 0 )
-        regionEnd= StringBase<TChar>::length;
+        regionEnd= TString<TChar>::length;
 
     integer regionLength= regionEnd - regionStart;
     if ( regionLength > 0 )
@@ -280,23 +308,22 @@ integer AStringBase<TChar>::TrimAt( integer idx, const TStringBase<TChar>& trimC
 }
 
 template<typename TChar>
-AStringBase<TChar>& AStringBase<TChar>::Trim( const TStringBase<TChar>& trimChars )
+TAString<TChar>& TAString<TChar>::Trim( const TCString<TChar>& trimChars )
 {
     // check
-    if (StringBase<TChar>::length == 0 || trimChars.IsEmpty() )
+    if (TString<TChar>::length == 0 || trimChars.IsEmpty() )
         return *this;
 
     // trim end
-    integer idx= TStringBase<TChar>::template LastIndexOfAny<Inclusion::Exclude, false>( trimChars, StringBase<TChar>::length - 1 ) + 1;
-    if ( (StringBase<TChar>::length= idx) > 0 )
+    integer idx= TString<TChar>::template LastIndexOfAny<Inclusion::Exclude, false>( trimChars, TString<TChar>::length - 1 ) + 1;
+    if ( (TString<TChar>::length= idx) > 0 )
     {
         // trim front
-        idx= TStringBase<TChar>::template IndexOfAny<Inclusion::Exclude,false>( trimChars );
+        idx= TCString<TChar>(this).template IndexOfAny<Inclusion::Exclude,false>( trimChars );
         if ( idx > 0 )
             Delete<false>( 0, idx );
     }
 
-    ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0)
     return *this;
 }
 
@@ -305,35 +332,36 @@ AStringBase<TChar>& AStringBase<TChar>::Trim( const TStringBase<TChar>& trimChar
 //  Replace()
 // #################################################################################################
 template<typename TChar>
-integer AStringBase<TChar>::SearchAndReplace(  TChar       needle,
-                                    TChar       replacement,
-                                    integer    startIdx        )
+integer TAString<TChar>::SearchAndReplace(  TChar      needle,
+                                            TChar      replacement,
+                                            integer    startIdx        )
 {
     ALIB_STRING_DBG_CHK(this)
          if ( startIdx < 0  )       startIdx= 0;
-    else if ( startIdx >= StringBase<TChar>::length )  return 0;
+    else if ( startIdx >= TString<TChar>::length )  return 0;
 
     // replacement loop
+    TCString<TChar> thisAsCString= this;
     integer cntReplacements=    0;
     do
     {
-        startIdx= TStringBase<TChar>::template IndexOfOrLength<false>( needle, startIdx );
-        if ( startIdx == StringBase<TChar>::length  )
+        startIdx= thisAsCString.template IndexOfOrLength<false>( needle, startIdx );
+        if ( startIdx == TString<TChar>::length  )
             break;
-        StringBase<TChar>::vbuffer[ startIdx ]= replacement;
+        TString<TChar>::vbuffer[ startIdx ]= replacement;
         cntReplacements++;
     }
-    while(  ++startIdx < StringBase<TChar>::length ) ;
+    while(  ++startIdx < TString<TChar>::length ) ;
     return cntReplacements;
 }
 
 
 template<typename TChar>
-integer AStringBase<TChar>::SearchAndReplace(  const TStringBase<TChar>&  needle,
-                                               const  StringBase<TChar>&  replacement,
-                                               integer                    startIdx,
-                                               integer                    maxReplacements,
-                                               Case                       sensitivity        )
+integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
+                                           const TString<TChar>&  replacement,
+                                           integer                startIdx,
+                                           integer                maxReplacements,
+                                           Case                   sensitivity       )
 {
     ALIB_STRING_DBG_CHK(this)
 
@@ -345,17 +373,14 @@ integer AStringBase<TChar>::SearchAndReplace(  const TStringBase<TChar>&  needle
     integer rLen=    replacement.Length();
     integer lenDiff= rLen - nLen;
 
-    // terminate needle
-    needle.Terminate();
-
     // replacement loop
     integer cntReplacements=    0;
-    while ( cntReplacements < maxReplacements && startIdx < StringBase<TChar>::length)
+    while ( cntReplacements < maxReplacements && startIdx < TString<TChar>::length)
     {
         // search  next occurrence
-        ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0);
-        integer    idx= ( sensitivity == Case::Sensitive ? TStringBase<TChar>::template IndexOf<false, Case::Sensitive>( needle, startIdx  )
-                                                         : TStringBase<TChar>::template IndexOf<false, Case::Ignore   >( needle, startIdx  ) );
+        integer    idx= sensitivity == Case::Sensitive
+                        ? TString<TChar>(*this).template IndexOf<false, Case::Sensitive>( needle, startIdx )
+                        : TString<TChar>(*this).template IndexOf<false, Case::Ignore   >( needle, startIdx );
         if ( idx < 0 )
             break;
 
@@ -364,16 +389,15 @@ integer AStringBase<TChar>::SearchAndReplace(  const TStringBase<TChar>&  needle
         {
             if ( lenDiff > 0 )
                 EnsureRemainingCapacity( lenDiff );
-            CString<TChar>::Move( StringBase<TChar>::vbuffer + idx + nLen,
-                                           StringBase<TChar>::length  - idx - nLen,
-                                           StringBase<TChar>::vbuffer + idx + nLen + lenDiff );
-            StringBase<TChar>::length+= lenDiff;
-            ALIB_STRING_DBG_UNTERMINATE(TChar,*this, 0);
+            characters::CharArray<TChar>::Move( TString<TChar>::vbuffer + idx + nLen,
+                                                TString<TChar>::length  - idx - nLen,
+                                                TString<TChar>::vbuffer + idx + nLen + lenDiff );
+            TString<TChar>::length+= lenDiff;
         }
 
         // fill replacement in
         if( rLen > 0 )
-            CString<TChar>::Copy( replacement.Buffer(), rLen, StringBase<TChar>::vbuffer + idx );
+            characters::CharArray<TChar>::Copy( replacement.Buffer(), rLen, TString<TChar>::vbuffer + idx );
 
         // set start index to first character behind current replacement
         startIdx= idx + rLen;
@@ -387,33 +411,121 @@ integer AStringBase<TChar>::SearchAndReplace(  const TStringBase<TChar>&  needle
     return cntReplacements;
 }
 
+// #################################################################################################
+// Format() and formatting constructor (only for aworx::character)
+// #################################################################################################
+#if ALIB_MODULE_STRINGFORMAT && !ALIB_DOCUMENTATION_PARSER
+template<>
+TAString<character>&  TAString<character>::FormatArgs( const lib::boxing::Boxes& args )
+{
+    SPFormatter formatter= GetDefaultFormatter();
+    formatter->Acquire(ALIB_CALLER_PRUNED);
+        formatter->FormatArgs( *this, args );
+    formatter->Release();
+    return *this;
+}
+#endif
 
-//! @cond NO_DOX
 
-#if ALIB_DEBUG_STRINGS
-template   void AStringBase<nchar>::_dbgCheck() const;
-template   void AStringBase<wchar>::_dbgCheck() const;
+#if !ALIB_DOCUMENTATION_PARSER
+
+#if ALIB_STRINGS_DEBUG
+template   void TAString<nchar>::dbgCheck() const;
+template   void TAString<wchar>::dbgCheck() const;
+template   void TAString<xchar>::dbgCheck() const;
 #endif
 
 // #################################################################################################
 // #################################################################################################
-// NString specific implementations
+// Template instantiations
 // #################################################################################################
 // #################################################################################################
 
-template  void                AStringBase<nchar>::SetBuffer       (integer);
-template  void                AStringBase<nchar>::SetBuffer       (nchar*,integer,integer,lang::Responsibility);
-template  integer             AStringBase<nchar>::SearchAndReplace(nchar,nchar,integer );
-template  integer             AStringBase<nchar>::SearchAndReplace(const TStringBase<nchar>&,const StringBase<nchar>&,integer,integer,lang::Case );
-template  AStringBase<nchar>& AStringBase<nchar>::Trim            (const TStringBase<nchar>& );
-template  integer             AStringBase<nchar>::TrimAt          (integer,const TStringBase<nchar>& );
+template  void             TAString<nchar>::GrowBufferAtLeastBy(integer);
+template  void             TAString<nchar>::SetBuffer          (integer);
+template  void             TAString<nchar>::SetBuffer          (nchar*,integer,integer,Responsibility);
+template  integer          TAString<nchar>::SearchAndReplace   (nchar,nchar,integer );
+template  integer          TAString<nchar>::SearchAndReplace   (const TString<nchar>&,const TString<nchar>&,integer,integer,Case );
+template  TAString<nchar>& TAString<nchar>::Trim               (const TCString<nchar>& );
+template  integer          TAString<nchar>::TrimAt             (integer,const TCString<nchar>& );
 
-template<>
-template<>
-AStringBase<nchar>& AStringBase<nchar>::Append<false>( const wchar* src, integer srcLength )
+template  void             TAString<wchar>::GrowBufferAtLeastBy(integer);
+template  void             TAString<wchar>::SetBuffer          (integer);
+template  void             TAString<wchar>::SetBuffer          (wchar*,integer,integer,Responsibility);
+template  integer          TAString<wchar>::SearchAndReplace   (wchar,wchar,integer );
+template  integer          TAString<wchar>::SearchAndReplace   (const TString<wchar>&,const TString<wchar>&,integer,integer,Case );
+template  TAString<wchar>& TAString<wchar>::Trim               (const TCString<wchar>& );
+template  integer          TAString<wchar>::TrimAt             (integer,const TCString<wchar>& );
+
+template  void             TAString<xchar>::GrowBufferAtLeastBy(integer);
+template  void             TAString<xchar>::SetBuffer          (integer);
+template  void             TAString<xchar>::SetBuffer          (xchar*,integer,integer,Responsibility);
+template  integer          TAString<xchar>::SearchAndReplace   (xchar,xchar,integer );
+template  integer          TAString<xchar>::SearchAndReplace   (const TString<xchar>&,const TString<xchar>&,integer,integer,Case );
+template  TAString<xchar>& TAString<xchar>::Trim               (const TCString<xchar>& );
+template  integer          TAString<xchar>::TrimAt             (integer,const TCString<xchar>& );
+
+
+// #################################################################################################
+// #################################################################################################
+// Append methods
+// #################################################################################################
+// #################################################################################################
+
+// NOTE:
+// The implementations of specialized "Append" methods are using the C++ native character
+// definitions. This way, the code can use external functions more efficient.
+// What we need for this, is the knowledge of the third C++ type used by ALib besides char and
+// wchar_t. It will be one of char16_t and char32_t and is defined below as CHARXX_T.
+// Depending on the compilation settings, this is either equal to wchar or xchar.
+#if ALIB_SIZEOF_WCHAR_T == 2
+#   define CHARXX_T    char32_t
+#else
+#   define CHARXX_T    char16_t
+#endif
+
+// #################################################################################################
+// TCheck==true Versions
+//   Checks the src parameter. Then, if src not nullptr but empty, then this string is
+//   assured to be not nulled, which means a buffer is allocated if non was before.
+// #################################################################################################
+#define CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(TChar,TCharParam)                                \
+    template<> template<>                                                                          \
+    TAString<TChar>& TAString<TChar>::Append<true> ( const TCharParam* src, integer srcLength )    \
+    {                                                                                              \
+        if( !src )                                                                                 \
+            return *this;                                                                          \
+                                                                                                   \
+        if ( srcLength <= 0 )                                                                      \
+        {                                                                                          \
+            if ( TString<TChar>::IsNull() )                                                        \
+                SetBuffer( 15 );                                                                   \
+            return *this;                                                                          \
+        }                                                                                          \
+                                                                                                   \
+        return Append<false>( src, srcLength );                                                    \
+    }                                                                                              \
+
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(char    , wchar_t  )
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(char    , CHARXX_T )
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(wchar_t , char     )
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(wchar_t , CHARXX_T )
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(CHARXX_T, char     )
+    CHECKING_VERSION_IMPLEMENTATION_OF_APPEND(CHARXX_T, wchar_t  )
+
+#undef CHECKING_VERSION_IMPLEMENTATION_OF_APPEND
+
+
+// #################################################################################################
+// <char>
+// #################################################################################################
+template<> template<>
+TAString<char>& TAString<char>::Append<false>( const wchar_t* src, integer srcLength )
 {
     ALIB_STRING_DBG_CHK( this )
-    ALIB_ASSERT_ERROR( src || srcLength == 0,  ASTR("NC: nullptr passed") )
+    ALIB_ASSERT_ERROR( src,  "NC: nullptr passed" )
+    if( srcLength == 0 )
+        return *this;
 
     //--------- __GLIBCXX__ Version ---------
     #if defined (__GLIBCXX__) || defined(__APPLE__)
@@ -422,21 +534,21 @@ AStringBase<nchar>& AStringBase<nchar>::Append<false>( const wchar* src, integer
         mbstate_t ps;
         EnsureRemainingCapacity( maxConversionSize );
         memset( &ps, 0, sizeof(mbstate_t) );
-        const wchar* srcp= src;
-        size_t conversionSize= wcsnrtombs( StringBase<nchar>::vbuffer + StringBase<nchar>::length, &srcp, static_cast<size_t>(srcLength), static_cast<size_t>(maxConversionSize),  &ps);
+        const wchar_t* srcp= src;
+        size_t conversionSize= wcsnrtombs( TString<char>::vbuffer + TString<char>::length, &srcp, static_cast<size_t>(srcLength), static_cast<size_t>(maxConversionSize),  &ps);
         if ( conversionSize == static_cast<size_t>( -1 ) )
         {
-            ALIB_WARNING( ASTR("Cannot convert WCS to MBCS.") );
+            ALIB_WARNING( "Cannot convert WCS to MBCS. Check locale settings (should be UTF-8)" )
             return *this;
         }
 
         if ( conversionSize < 1 )
         {
-            ALIB_ERROR( ASTR("Error converting WCS to MBCS.") );
+            ALIB_ERROR( "Error converting WCS to MBCS." );
             return *this;
         }
 
-        SetLength<false>( StringBase<nchar>::length + static_cast<integer>(conversionSize) );
+        TString<char>::length+= conversionSize;
         return *this;
 
     //--------- Windows Version ---------
@@ -448,11 +560,11 @@ AStringBase<nchar>& AStringBase<nchar>::Append<false>( const wchar* src, integer
         {
             int conversionSize= WideCharToMultiByte( CP_UTF8, NULL,
                                                      src, static_cast<int>( srcLength),
-                                                     StringBase<nchar>::vbuffer + StringBase<nchar>::length, static_cast<int>( Capacity() - StringBase<nchar>::length ),
+                                                     TString<char>::vbuffer + TString<char>::length, static_cast<int>( Capacity() - TString<char>::length ),
                                                      NULL, NULL );
             if ( conversionSize > 0 )
             {
-                SetLength<false>( StringBase<nchar>::length + conversionSize );
+                TString<char>::length+= conversionSize;
                 return *this;
             }
 
@@ -466,11 +578,11 @@ AStringBase<nchar>& AStringBase<nchar>::Append<false>( const wchar* src, integer
 
             // quit on other errors
             ALIB_WARNING(
-                     ASTR("AString: Cannot convert wide character string to UTF-8. Error: "),
-                         ( error == ERROR_INVALID_FLAGS          ? ASTR("ERROR_INVALID_FLAGS.")
-                        :  error == ERROR_INVALID_PARAMETER      ? ASTR("ERROR_INVALID_PARAMETER")
-                        :  error == ERROR_NO_UNICODE_TRANSLATION ? ASTR("ERROR_NO_UNICODE_TRANSLATION")
-                                                                 : (String32()._( error )).ToCString())
+                     "AString: Cannot convert wide character string to UTF-8. Error: ",
+                      (   error == ERROR_INVALID_FLAGS          ? "ERROR_INVALID_FLAGS."
+                        : error == ERROR_INVALID_PARAMETER      ? "ERROR_INVALID_PARAMETER"
+                        : error == ERROR_NO_UNICODE_TRANSLATION ? "ERROR_NO_UNICODE_TRANSLATION"
+                                                                : NString64(error)      )
                     )
 
             return *this;
@@ -481,78 +593,26 @@ AStringBase<nchar>& AStringBase<nchar>::Append<false>( const wchar* src, integer
         return *this;
     #endif
 }
+
 template<>
 template<>
-AStringBase<nchar>& AStringBase<nchar>::Append<true>( const wchar* src, integer srcLength )
+TAString<char>& TAString<char>::Append<false>( const CHARXX_T* src, integer srcLength )
 {
-    if ( src == nullptr ||  srcLength <= 0 )
-    {
-        if ( StringBase<nchar>::IsNull() )
-        {
-            // special treatment if currently nothing is allocated and a blank string ("") is added:
-            // we allocate, which means, we are not a nulled object anymore!
-            // (...also, in this case we check the src parameter)
-            SetBuffer( 15 );
-            ALIB_STRING_DBG_UNTERMINATE(nchar,*this, 0);
-        }
-
-        return *this;
-    }
-    return Append<false>( src, srcLength );
-}
-
-
-template<>
-template<>
-AStringBase<nchar>& AStringBase<nchar>::Append<false>( const strangeChar* src, integer srcLength )
-{
-    // convert to wchar and invoke wchar version
-    WString4K   converter;
-    converter.Append( src, srcLength );
-    Append( converter.Buffer(), converter.Length() );
+    // convert to wchar_t and invoke wchar_t version
+    TLocalString<wchar_t,2048>   converter;
+    converter.DbgDisableBufferReplacementWarning();
+    converter.Append<false>( src, srcLength );
+    Append<false>( converter.Buffer(), converter.Length() );
 
     return *this;
 }
 
-template<>
-template<>
-AStringBase<nchar>& AStringBase<nchar>::Append<true> ( const strangeChar* src, integer srcLength )
-{
-    if ( src == nullptr ||  srcLength <= 0 )
-    {
-        if ( StringBase<nchar>::IsNull() )
-        {
-            // special treatment if currently nothing is allocated and a blank string ("") is added:
-            // we allocate, which means, we are not a nulled object anymore!
-            // (...also, in this case we check the src parameter)
-            SetBuffer( 15 );
-            ALIB_STRING_DBG_UNTERMINATE(nchar,*this, 0);
-        }
-
-        return *this;
-    }
-
-    // convert to wchar and invoke wchar version
-    return Append<false>( src, srcLength );
-}
-
-
 
 // #################################################################################################
+// <wchar_t>
 // #################################################################################################
-// WString specific implementations
-// #################################################################################################
-// #################################################################################################
-template  void                  AStringBase<wchar>::SetBuffer       (integer);
-template  void                  AStringBase<wchar>::SetBuffer       (wchar*,integer,integer,lang::Responsibility);
-template  integer               AStringBase<wchar>::SearchAndReplace(wchar,wchar,integer );
-template  integer               AStringBase<wchar>::SearchAndReplace(const TStringBase<wchar>&,const StringBase<wchar>&,integer,integer,lang::Case );
-template  AStringBase<wchar>&   AStringBase<wchar>::Trim            (const TStringBase<wchar>& );
-template  integer               AStringBase<wchar>::TrimAt          (integer,const TStringBase<wchar>& );
-
-template<>
-template<>
-AStringBase<wchar>& AStringBase<wchar>::Append<false>( const nchar* src, integer srcLength )
+template<> template<>
+TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer srcLength )
 {
     ALIB_STRING_DBG_CHK( this )
 
@@ -569,7 +629,7 @@ AStringBase<wchar>& AStringBase<wchar>::Append<false>( const nchar* src, integer
             {
 
                 mbstate_t    ps;    memset( &ps, 0, sizeof(mbstate_t) );
-                const nchar* srcp= src;
+                const char* srcp= src;
                 size_t       wcWritten= mbsnrtowcs( vbuffer + length,  &srcp,
                                                     static_cast<size_t>(actConversionLenght),
                                                     static_cast<size_t>(Capacity() - length), &ps );
@@ -601,11 +661,12 @@ AStringBase<wchar>& AStringBase<wchar>::Append<false>( const nchar* src, integer
                 break;
             }
         }
-        ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
         return *this;
 
     //--------- Windows Version ----------
     #elif defined( _WIN32 )
+        if( srcLength == 0)
+            return *this;
         integer conversionSize= MultiByteToWideChar( CP_UTF8, NULL,
                                                      src, static_cast<int>( srcLength ),
                                                      vbuffer + length, static_cast<int>( Capacity() - length ) );
@@ -617,23 +678,22 @@ AStringBase<wchar>& AStringBase<wchar>::Append<false>( const nchar* src, integer
                 int error= GetLastError();
 
                 ALIB_WARNING(
-                    ( String128( "MBCS to WCS conversion failed (Error: " )._(
-                          ( error == ERROR_INSUFFICIENT_BUFFER      ?  ASTR("ERROR_INSUFFICIENT_BUFFER."  )
-                          : error == ERROR_INVALID_FLAGS            ?  ASTR("ERROR_INVALID_FLAGS."        )
-                          : error == ERROR_INVALID_PARAMETER        ?  ASTR("ERROR_INVALID_PARAMETER"     )
-                          : error == ERROR_NO_UNICODE_TRANSLATION   ?  ASTR("ERROR_NO_UNICODE_TRANSLATION")
-                                                                    : ( String32()._( error ) ).ToCString() ) )
-                        ._( ')' ) ) )
+                    "MBCS to WCS conversion failed (Error: ",
+                    (  error == ERROR_INSUFFICIENT_BUFFER      ?  "ERROR_INSUFFICIENT_BUFFER."
+                     : error == ERROR_INVALID_FLAGS            ?  "ERROR_INVALID_FLAGS."
+                     : error == ERROR_INVALID_PARAMETER        ?  "ERROR_INVALID_PARAMETER"
+                     : error == ERROR_NO_UNICODE_TRANSLATION   ?  "ERROR_NO_UNICODE_TRANSLATION"
+                                                               :  NString64( error )            ),
+                     ")" )
             }
 
             ALIB_ASSERT_ERROR( conversionSize <= srcLength,
-                              String128( "MBCS to WCS conversion failed. Requested length=" )._( srcLength )
-                                 ._( ", conversion length=" )._(conversionSize)
+                               NString128( "MBCS to WCS conversion failed. Requested length=" )._( srcLength )
+                                        ._( ", conversion length=" )._(conversionSize)
                             )
         #endif
 
         length+= conversionSize;
-        ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
         return *this;
 
 
@@ -644,46 +704,23 @@ AStringBase<wchar>& AStringBase<wchar>::Append<false>( const nchar* src, integer
     #endif
 }
 
-template<>
-template<>
-AStringBase<wchar>& AStringBase<wchar>::Append<true>( const nchar* src, integer srcLength )
-{
-    ALIB_STRING_DBG_CHK( this )
-
-    if ( src == nullptr ||  srcLength <= 0 )
-    {
-        if ( StringBase<wchar>::IsNull() )
-        {
-            // special treatment if currently nothing is allocated and a blank string ("") is added:
-            // we allocate, which means, we are not a nulled object anymore!
-            // (...also, in this case we check the src parameter)
-            SetBuffer( 15 );
-            ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
-        }
-
-        return *this;
-    }
-
-    return Append<false>(src, srcLength);
-}
-
 
 #if ALIB_SIZEOF_WCHAR_T == 4
 
     template<>
     template<>
-    AStringBase<wchar>& AStringBase<wchar>::Append<false>( const strangeChar* src, integer srcLength )
+    TAString<wchar_t>& TAString<wchar_t>::Append<false>( const CHARXX_T* src, integer srcLength )
     {
         EnsureRemainingCapacity( srcLength );
 
         // convert UTF16 to UTF32
-        const strangeChar* srcEnd=    src + srcLength;
+        const CHARXX_T* srcEnd=    src + srcLength;
         while (src < srcEnd)
         {
             const char32_t uc = *src++;
             if ((uc - 0xd800) >= 2048) // not surrogate
             {
-                vbuffer[length++] = static_cast<wchar>(uc);
+                vbuffer[length++] = static_cast<wchar_t>(uc);
             }
             else
             {
@@ -692,11 +729,10 @@ AStringBase<wchar>& AStringBase<wchar>::Append<true>( const nchar* src, integer 
                                    && ((*src  & 0xfffffc00) == 0xdc00),   // is high
                                    "Error decoding UTF16" )
 
-                vbuffer[length++]=  static_cast<wchar>(     (uc << 10)
+                vbuffer[length++]=  static_cast<wchar_t>(     (uc << 10)
                                                          +  ((*src++) - 0x35fdc00 )    );
             }
         }
-        ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
 
         return *this;
     }
@@ -705,112 +741,120 @@ AStringBase<wchar>& AStringBase<wchar>::Append<true>( const nchar* src, integer 
 
     template<>
     template<>
-    AStringBase<wchar>& AStringBase<wchar>::Append<false>( const strangeChar* src, integer srcLength )
+    TAString<wchar_t>& TAString<wchar_t>::Append<false>( const CHARXX_T* src, integer srcLength )
     {
         // convert UTF32 to UTF16
         EnsureRemainingCapacity( srcLength * 2 );
 
-        const strangeChar* srcEnd=    src + srcLength;
+        const CHARXX_T* srcEnd=    src + srcLength;
         while (src < srcEnd)
         {
             uinteger uc= *src++;
             ALIB_ASSERT_ERROR(       uc <  0xd800
                                 || ( uc >= 0xe000 && uc <= 0x10ffff ),
-                                ASTR("Illegal unicode 32 bit codepoint")       )
+                                "Illegal unicode 32 bit codepoint"       )
 
             if( uc < 0x10000 )
             {
-                  vbuffer[length++]=  static_cast<wchar>( uc );
+                  vbuffer[length++]=  static_cast<wchar_t>( uc );
             }
             else
             {
                 uc-= 0x10000;
-                vbuffer[length++]= static_cast<wchar>(  ( uc >> 10    ) + 0xd800  );
-                vbuffer[length++]= static_cast<wchar>(  ( uc &  0x3ff ) + 0xdc00  );
+                vbuffer[length++]= static_cast<wchar_t>(  ( uc >> 10    ) + 0xd800  );
+                vbuffer[length++]= static_cast<wchar_t>(  ( uc &  0x3ff ) + 0xdc00  );
             }
         }
-        ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
 
         return *this;
     }
 
 #endif
 
-template<>
-template<>
-AStringBase<wchar>& AStringBase<wchar>::Append<true>( const strangeChar* src, integer srcLength )
+// #################################################################################################
+// <XCHARXX_T> (char16_t or char32_t)
+// #################################################################################################
+
+#if ALIB_SIZEOF_WCHAR_T == 2
+    template<> template<>
+    TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const wchar_t* src, integer srcLength )
+    {
+        EnsureRemainingCapacity( srcLength );
+
+        // convert UTF16 to UTF32
+        const wchar_t* srcEnd=    src + srcLength;
+        while (src < srcEnd)
+        {
+            const char32_t uc = *src++;
+            if ((uc - 0xd800) >= 2048) // not surrogate
+            {
+                vbuffer[length++] = static_cast<CHARXX_T>(uc);
+            }
+            else
+            {
+                ALIB_ASSERT_ERROR(    src < srcEnd                        // has one more?
+                                   && ((uc    & 0xfffffc00) == 0xd800)    // is low
+                                   && ((*src  & 0xfffffc00) == 0xdc00),   // is high
+                                   "Error decoding UTF16" )
+
+                vbuffer[length++]=  static_cast<CHARXX_T>(     (uc << 10)
+                                                         +  ((*src++) - 0x35fdc00 )    );
+            }
+        }
+
+        return *this;
+    }
+
+#else
+
+    template<> template<>
+    TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const wchar_t* src, integer srcLength )
+    {
+        // convert UTF32 to UTF16
+        EnsureRemainingCapacity( srcLength * 2 );
+
+        const wchar_t* srcEnd=    src + srcLength;
+        while (src < srcEnd)
+        {
+            uinteger uc= static_cast<uinteger>( *src++ );
+            ALIB_ASSERT_ERROR(       uc <  0xd800
+                                || ( uc >= 0xe000 && uc <= 0x10ffff ),
+                                "Illegal unicode 32 bit codepoint"       )
+
+            if( uc < 0x10000 )
+            {
+                  vbuffer[length++]=  static_cast<CHARXX_T>( uc );
+            }
+            else
+            {
+                uc-= 0x10000;
+                vbuffer[length++]= static_cast<CHARXX_T>(  ( uc >> 10    ) + 0xd800  );
+                vbuffer[length++]= static_cast<CHARXX_T>(  ( uc &  0x3ff ) + 0xdc00  );
+            }
+        }
+
+        return *this;
+    }
+
+#endif
+
+template<> template<>
+TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const char* src, integer srcLength )
 {
     ALIB_STRING_DBG_CHK( this )
-    if ( src == nullptr ||  srcLength <= 0 )
-    {
-        if ( StringBase<wchar>::IsNull() )
-        {
-            SetBuffer( 15 );
-            ALIB_STRING_DBG_UNTERMINATE(wchar,*this, 0);
-        }
 
-        return *this;
-    }
-
-    return Append<false>( src, srcLength );
+    // We are using a WAString to do the job. Not efficient, but for today, this should be all we do!
+    TLocalString<wchar_t,2048>   converter;
+    converter.Append<false>( src, srcLength );
+    return Append<false>( converter.Buffer(), converter.Length() );
 }
 
 
-//! @cond NO_DOX
+#undef CHARXX_T
+
+#endif // !ALIB_DOCUMENTATION_PARSER
 
 
-} // aworx::lib[::strings]
 
-// #################################################################################################
-// debug
-// #################################################################################################
-#if ALIB_DEBUG
-//! @cond NO_DOX
-
-namespace debug {
-
-    AString&  RemoveALibNamespaces( AString& target, bool remove )
-    {
-        if( remove )
-        {
-            target.SearchAndReplace(ASTR("aworx::lib::boxing::ftypes::")        , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::boxing::")                , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::config::")                , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::debug::")                 , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::lang::")                  , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::strings::boxing::")       , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::strings::util::")         , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::strings::format::")       , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::strings::")               , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::system::")                , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::threads::")               , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::time::")                  , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::util::")                  , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::")                        , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::lox::core::textlogger::") , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::lox::core::")             , EmptyString );
-            target.SearchAndReplace(ASTR("aworx::lib::lox::")                   , EmptyString );
-
-            ALIB_ASSERT_ERROR( target.IndexOf(ASTR("aworx::lib")) < 0,
-                               ASTR("Not all namespaces were fetched")    );
-
-        }
-        return target;
-    }
-
-    #if ALIB_FEAT_SINGLETON_MAPPED
-        int GetSingletons( NAString& target )
-        {
-            auto types= GetSingletons();
-            for( auto& it : types )
-                target << it.first <<  " = 0x" << NFormat::Hex(reinterpret_cast<uint64_t>(it.second) ) << NNewLine;
-
-            return static_cast<int>( types.size() );
-        }
-    #endif
-}
-#endif
-//! @endcond
-
-}}// namespace [aworx::lib]
+}}}// namespace [aworx::lib::strings]
 

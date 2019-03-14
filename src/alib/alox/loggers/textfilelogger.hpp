@@ -1,29 +1,18 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_TEXT_FILE_LOGGER
 #define HPP_ALOX_TEXT_FILE_LOGGER 1
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
-    #include "alib/alox/core/textlogger/plaintextlogger.hpp"
+    #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
-#if !defined (HPP_ALIB_STRINGS_UTIL_STRING_IO)
-    #include "alib/strings/util/stringio.hpp"
+
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+    #include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
 
@@ -34,17 +23,17 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * in the constructor is not verified.
  * The fileName may be changed by simply setting the public member #FileName.
  **************************************************************************************************/
-class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
+class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 {
     // #############################################################################################
     // Internal fields
     // #############################################################################################
     protected:
 
-        /// Encapsulates the text file stream in a system dependent way.
+        /** Encapsulates the text file stream in a system dependent way. */
         StringWriter            writer;
 
-        /// Flag to prevent file open/close operations when multi line text logging is performed.
+        /** Flag to prevent file open/close operations when multi line text logging is performed. */
         bool                    currentlyInMultiLineOp                                      = false;
 
 
@@ -52,10 +41,10 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
     // Public fields
     // #############################################################################################
     public:
-        /// The path and fileName to the log file.
+        /** The path and fileName to the log file. */
         aworx::AString          FileName;
 
-        /// Flag that indicates if there was an error opening he file
+        /** Flag that indicates if there was an error opening he file. */
         bool                    hasIoError                                                   =false;
 
 
@@ -74,6 +63,10 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
         : PlainTextLogger( loggerName, "TEXTFILE", false )
         {
             FileName << fileName;
+
+            // clear default std::cout stream to prevent assertion in destructor in case this
+            // logger was not not used.
+            ALIB_DBG( writer.SetStream( nullptr ) );
         }
 
 
@@ -83,7 +76,7 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
         inline
         virtual            ~TextFileLogger()
         {
-             ALIB_ASSERT_ERROR( writer.GetStream() == nullptr, ASTR("ostream not deleted") )
+             ALIB_ASSERT_ERROR( writer.GetStream() == nullptr, "ostream not deleted" )
         }
 
     // #############################################################################################
@@ -113,7 +106,7 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool    notifyLogOp( lib::lang::Phase phase );
+        virtual bool    notifyLogOp( Phase phase );
 
         /** ****************************************************************************************
          * Writes the given region of the given string to the console.
@@ -132,7 +125,7 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
          * @param phase  Indicates the beginning or end of a multi-line operation.
          ******************************************************************************************/
         ALIB_API
-        virtual void    notifyMultiLineOp (lib::lang::Phase phase );
+        virtual void    notifyMultiLineOp ( Phase phase );
 
 }; // class TextFileLogger
 
@@ -142,7 +135,7 @@ class TextFileLogger : public aworx::lib::lox::core::textlogger::PlainTextLogger
 /// Type alias in namespace #aworx.
 using     TextFileLogger=           aworx::lib::lox::loggers::TextFileLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALOX_TEXT_FILE_LOGGER
 

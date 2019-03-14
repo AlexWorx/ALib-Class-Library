@@ -1,36 +1,17 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CONFIG_CONFIGURATION)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CONFIG_CONFIGURATION
-//! @cond NO_DOX
 #define HPP_ALIB_CONFIG_CONFIGURATION 1
-//! @endcond
 
-// #################################################################################################
-// includes
-// #################################################################################################
-
-#if !defined (HPP_ALIB_LANG_ENUM_BITWISE)
-    #include "alib/lang/enumbitwise.hpp"
+#if !defined (HPP_ALIB_ENUMS_ENUM_BITWISE)
+    #include "alib/enums/enumbitwise.hpp"
 #endif
 
-#if !defined (HPP_ALIB_THREADS_THREADLOCK)
-    #include "alib/threads/threadlock.hpp"
-#endif
+ALIB_ASSERT_MODULE(CONFIGURATION)
 
 #if !defined(HPP_ALIB_STRINGS_SUBSTRING)
     #include "alib/strings/substring.hpp"
@@ -46,8 +27,8 @@
 #if !defined(HPP_ALIB_CONFIG_PLUGINS)
     #include "alib/config/plugins.hpp"
 #endif
-#if !defined(HPP_ALIB_UTIL_PLUGINCONTAINER)
-    #include "alib/util/plugincontainer.hpp"
+#if !defined(HPP_ALIB_PLUGINCONTAINER)
+    #include "alib/lib/plugincontainer.hpp"
 #endif
 #if !defined(HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
     #include "alib/config/inmemoryplugin.hpp"
@@ -68,20 +49,19 @@ namespace aworx { namespace lib { namespace config {
  * from those.
  *
  * The class inherits from
- * \ref aworx::lib::threads::ThreadLock "ThreadLock" and interface methods are implemented
- * <em>synchronized</em>.
+ * \alib{threads,ThreadLock} and interface methods are implemented <em>synchronized</em>.
  *
  * By default, all category and variable names are case insensitive. This is at least true for the
  * default plug-ins delivered with \alib.
  *
  * Variables by default can contain other variables, which are recursively substituted
  * by this method. For more information about the (adjustable) syntax, see
- * \ref cpp_alib_namespace_config_substitution "Variable Substitution".
+ * \ref alib_config_substitution "Variable Substitution".
  *
  * See documentation of namespace #aworx::lib::config for more information on \alib
  * external configuration variables.
  **************************************************************************************************/
-class Configuration : public util::PluginContainer<ConfigurationPlugin, Priorities>
+class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
 {
     // #############################################################################################
     // internal fields
@@ -103,7 +83,7 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          */
         std::vector<String>                 TrueValues;
 
-        /// Number format definition used to read and write int and float values.
+        /** Number format definition used to read and write int and float values. */
         aworx::NumberFormat                 NumberFormat;
 
         /**
@@ -111,12 +91,12 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          * Defaults to single character \c '$'. If a string is set, i.e. \c "${", then field
          * #SubstitutionVariableEnd may be set accordingly, i.e. \c "}"
          */
-        String                              SubstitutionVariableStart                   = ASTR("$");
+        String                              SubstitutionVariableStart                   = A_CHAR("$");
 
         /**
          * The end of a substitution variables.
-         * If this field is set, then field #SubstitutionVariableDelimiters is ignored. If this field
-         * is nullptr (the default) or empty, it is ignored and characters in field
+         * If this field is set, then field #SubstitutionVariableDelimiters is ignored. If this
+         * field is nullptr (the default) or empty, it is ignored and characters in field
          * #SubstitutionVariableDelimiters are used to identify the end of the variable.
          */
         String                              SubstitutionVariableEnd                       = nullptr;
@@ -127,7 +107,7 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          * characters defined in this string are used to identify the end of a substitution
          * variable.
          */
-        String                              SubstitutionVariableDelimiters= ASTR(" $@,.;:\"\'+-*/\\§%&()[]{}<>=?'`~#");
+        CString          SubstitutionVariableDelimiters= A_CHAR(" $@,.;:\"\'+-*/\\§%&()[]{}<>=?'`~#");
 
     // #############################################################################################
     // Constructor/destructor
@@ -160,9 +140,9 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          * This method should be called for instances of this class after construction.
          *
          * \note
-         *   In standard application scenarios, this method is invoked when the
-         *   \alib{lang,Library} is initialized using an interface method that accepts
-         *   CLI arguments.
+         *   For the standard configuration objects found in class \alib{Module},
+         *   this method is automatically invoked when CLI arguments are passed to one of the
+         *   overloaded methods \alib{Module::Init}.
          *
          * <p>
          *
@@ -175,36 +155,38 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          *                (the number of arguments in \p{argv}).
          *                Defaults to 0.
          * @param argv    Parameter usually taken from <em>standard C</em> \c main() method
-         *                (pointer to a list of command line arguments).
+         *                (pointer to a zero-terminated list of zero-terminated strings comprising
+         *                the command line arguments).
          *                Defaults to nullptr.
          ******************************************************************************************/
-        inline void         SetCommandLineArgs( int argc  =0,  char** argv  =nullptr )
+        inline void         SetCommandLineArgs( int argc  =0, const nchar** argv  =nullptr )
         {
             if ( argc > 1 )
             {
                 ALIB_LOCK
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, ASTR("No CLIArgs  installed") );
-                cliParameters->SetArgs( argc, reinterpret_cast<void**>( argv ), false );
+                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" );
+                cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ), false );
             }
         }
 
         /** ****************************************************************************************
          * Variant of method #SetCommandLineArgs, accepting command line arguments of
-         * type \c wchar_t.
+         * type \c wchar.
          *
          * @param argc    Parameter usually taken from <em>standard C</em> \c main() method
          *                (the number of arguments in \p{argv}).
-         * @param argv    The command line parameters as \c wchar_t.
+         * @param argv    The command line arguments as a zero-terminated list of pointers to
+         *                zero-terminated \c wchar_c strings.
          ******************************************************************************************/
-        inline void         SetCommandLineArgs( int  argc,    wchar_t **argv )
+        inline void         SetCommandLineArgs( int argc, const wchar_t **argv )
         {
             if ( argc > 1 )
             {
                 ALIB_LOCK
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, ASTR("No CLIArgs  installed") );
-                cliParameters->SetArgs( argc, reinterpret_cast<void**>( argv ),  true );
+                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" );
+                cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ),  true );
             }
         }
 
@@ -214,6 +196,7 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
     public:
 
 
+#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * This method "pre-loads" all variables of the given enum type.
          * This way, their default value is stored in the default configuration plug-in and
@@ -225,39 +208,42 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this constructor
          *                       only for associated custom C++ enum types.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename TEnableIf= typename std::enable_if<
-                            std::is_same< VariableDecl::TTuple, typename lang::T_EnumMetaDataDecl<TEnum>::TTuple >::value
-                                                             >::type>
+        template<typename TEnum, typename TEnableIf=void>
+        inline
+        void     PreloadVariables();
+#else
+        template<typename TEnum, typename TEnableIf=
+        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
         inline
         void     PreloadVariables()
         {
             Variable  var;
-            auto metaData= lib::lang::EnumMetaData<TEnum>::GetSingleton();
-            metaData->CheckLoad();
-            for( auto& entry : metaData->Table )
+            auto& metaData= lib::resources::EnumMetaData<TEnum>::GetSingleton();
+            metaData.CheckLoad();
+            for( auto& entry : metaData.Table )
                 Load( var.Declare( TEnum( std::get<0>(entry) ) ));
         }
+#endif
 
         /** ****************************************************************************************
          * This method fetches all values from a plug-in of priority #DefaultValues, which are not
          * present in the given plug-in \p{dest} and stores them in that.
-         * This is useful to collect all generated default values and store them in a users'
+         * This is useful to collect all generated default values and store them in a user's
          * configuration file. This way, the user can identify configurable options easily.
          *
          * \note
          *   Applications might want to copy only a portion of the default values (of a section)
-         *   to not blow up a users' configuration. To achieve this, a custom method to fetch
+         *   to not blow up a user's configuration. To achieve this, a custom method to fetch
          *   selected values has to be implemented. In this respect, this method is a very simple
          *   default and its source might be used as a jump start.
          *
          * @param dest      The destination plug-in.
          * @param section   Optional string denoting a section to fetch.
-         *                  Defaults to \c NullString.
+         *                  Defaults to \b NullString().
          * @return The number of variables fetched.
          ******************************************************************************************/
         ALIB_API
-        int     FetchFromDefault( ConfigurationPlugin& dest, const String& section= NullString );
+        int     FetchFromDefault( ConfigurationPlugin& dest, const String& section= NullString() );
 
 
         /** ****************************************************************************************
@@ -290,64 +276,66 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
         Priorities     Load( Variable& variable );
 
         /** ****************************************************************************************
-         * Writes the variable to the configuration.
-         * In general, this is done by asking  each of our installed plug-ins - in the order of
-         * their priority - to do so.
-         * As soon as the first plug-in returns \c true, the variable is considered written and no
-         * other plug-in is asked.
-         * This way, the variable is stored by the plug-in with the highest priority.
+         * Writes the variable into one of the plug-ins registered with this configuration object.
+         * The plug-ins are looped in descending order of priority, until a first plug-in
+         * confirms the variable to be written.
          *
-         * The maximum priority to start the loop with depends on field
-         * \ref aworx::lib::config::Variable::Priority "Variable::Priority"
-         * of the given \p{variable}. The rules are as follows:
-         * - If the value is \alib{config,Priorities::NONE}, which is the default value of new
-         *   variables or ones that were freshly declared, then prior to storing the value, the
-         *   variable is (tried to be) loaded first (without actually overwriting the values).
-         *   After that, one of the next two rules apply.
-         * - If the value is still \alib{config,Priorities::NONE}, which indicates that a previous
-         *   load operation failed, the loop starts with \alib{config,Priorities,Priorities::DefaultValues}
-         *   (and usually ends there, as standard configuration sets
-         *   do not have plug-ins with lower priorities installed). In other words, newly created
-         *   variables are stored in the plug-in of priority #DefaultValues (usually an
-         *   \b InMemoryPlugin). This way, they are
-         *   not written to external configuration files, unless the application explicitly moves
-         *   such new default values to dedicated other plug-ins (e.g. on termination).
-         * - If the value is greater than \c 0, the value is used as the start of the loop.
-         *   This way, an already defined variable will be stored in the same plug-in as it was
-         *   found or one with a lower priority, if that plug-in does not provide writing
-         *   capabilities.
+         * The first (most highly prioritized) plug-in to start the loop with, is defined by
+         * field \alib{config,Variable::Priority} of the given \p{variable}.
          *
-         * Consequently, as field \alib{config,Variable::Priority} is public, the behavior
-         * can be manipulated, by setting the field explicitly prior to invoking this method.
-         * Some frequent use cases shall be named here:
+         * If this is unset (\alib{config,Priorities::NONE}), which is the default value of the field
+         * for freshly declared variable objects, the starting priority value  of the loop is
+         * \b detected.
+         *
+         * Detection is made by searching the variable in the plug-ins prior to storing it.
+         * The search order is likewise by priority, starting with the highest.
+         * If the variable was not found, \alib{config,Priorities,Priorities::DefaultValues}
+         * is chosen. Usually the writing loop then will also already end there,
+         * because standard configuration sets have a write-enabled in-memory plug-in at
+         * that priority.
+         *
+         * If the variable was found in the plug-in of priority
+         * \alib{config,Priorities::ProtectedValues}, the method stops without storing anything.
+         *
+         *
+         * This approach of storing variables, supports various use cases very nicely.
+         * Some of the frequent ones shall be named here:
+         * - By setting the field to \alib{config,Priorities::DefaultValues}, the value
+         *   becomes just a default and does not overwrite externally specified values.
+         * - Leaving the field to its uninitialized state \alib{config,Priorities::NONE},
+         *   allows to store the variable in the plug-in that it was originally read from,
+         *   or - if not stored already - in default values.
          * - Setting the field to \alib{config,Priorities::ProtectedValues} allows to protect the
          *   variable value in respect to external manipulation.
-         * - By setting the field to #DefaultValues, the value becomes just a default
-         *   and does not overwrite externally specified values.
-         * - Setting the field to a distinct priority value that names a user-specific configuration
-         *   (vs. a system-wide configuration) to store into.
-         * - Setting the field to #ProtectedValues <c>- 1</c>, allows to store the
-         *   variable just in the plug-in with highest possible priority, for example
-         *   a user specific configuration is preferred to a system wide configuration)
-         * - A variable might be related to a second one. If the priority of the second one is
-         *   known, that priority might be set to possibly have both variables stored in the same
-         *   plug-in.
+         * - Setting the field to \alib{config,Priorities::ProtectedValues}<c> - 1</c>,
+         *   allows to store the variable just in the plug-in with highest possible priority.
+         * - Finally, an application specific reason might motivate a caller of this method to
+         *   preset a distinct priority value prior to invoking this method. For example, a variable
+         *   might be related to a second one. If the priority of the second one is
+         *   known, that priority might be set prior to invoking this message, to have both
+         *   variables potentially stored in the same plug-in.
          *
          * The method returns the priority of the configuration plug-in that the value was written
-         * to as well as storing this value in field \alib{config,Variable::Priority}.
-         * If the result is \c 0, the variable was not written. This might only happen if
-         * - either field default plug-in of priority #DefaultValues was modified
-         *   (removed or exchanged with a different  plug-in that does not write the value)
-         * - or if field \p{Priority} of the variable was set below #DefaultValues and greater
-         *   than \c 0.
-         * - The detected (!) priority was #ProtectedValues.
-         *   In this case, obviously the application does not want to allow changes and writing the
+         * to. This value is as well stored in field \alib{config,Variable::Priority} of the given
+         * object.
+         *
+         * A result of \alib{config,Priorities::NONE} indicates that the variable was not written.
+         * This might only happen if
+         * - the default plug-in of this configuration is not configured or does not support
+         *   writing variables,
+         * - field \p{Priority} of the variable was set below \alib{config,Priorities::DefaultValues}
+         *   (but greater than \alib{config,Priorities::NONE}),
+         * - the \b detected priority was \alib{config,Priorities::ProtectedValues}.
+         *   (In this case, obviously the application does not want to allow changes and writing the
          *   variable into a different plug-in has no effect.
-         *   This way, such variables also do not appear in a users' configuration
-         *   in the case that on program termination, new default values are copied there.
+         *   This way, such variables also do not appear in a user's configuration
+         *   in the case that on program termination, new default values are copied there.)
          *
          * Optional parameter \p{externalizedValue} allows to provide a string that is parsed
-         * by the storing plug-in to reset the variables' values prior to writing.
+         * by the storing plug-in to reset the variable's values prior to writing.
+         *
+         * \see Default variables are often to be stored with the termination of a process.
+         *      For this, see method #FetchFromDefault.
          *
          * @param variable              The variable object.
          * @param externalizedValue     Optional externalized value string. If given, the variable
@@ -429,7 +417,7 @@ class Configuration : public util::PluginContainer<ConfigurationPlugin, Prioriti
         class Iterator
         {
             public:
-            /// The actual variable loaded with successful call to #Next.
+            /** The actual variable loaded with successful call to #Next. */
             Variable                Actual;
 
             /**

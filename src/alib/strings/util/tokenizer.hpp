@@ -1,20 +1,18 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include guard
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKENIZER
 #define HPP_ALIB_STRINGS_UTIL_TOKENIZER 1
 
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
     #include "alib/strings/substring.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+    #include "alib/strings/localstring.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace strings {
@@ -28,11 +26,11 @@ namespace util  {
 
 /** ************************************************************************************************
  * This class operates on strings which contains data separated by a delimiter character.
- * It identifies the substrings between the delimiters as \e tokens of type
- * \alib{strings,SubstringBase,Substring}. After an instance of this class is constructed,
+ * It identifies the sub-strings between the delimiters as \e tokens of type
+ * \alib{strings,TSubstring,Substring}. After an instance of this class is constructed,
  * three methods are available:
  * - #HasNext: Indicates if there are further tokens available.
- * - #Next: Sets field #Actual (which is of type Substring) to reference the next token and
+ * - #Next: Sets field #Actual (which is of type \b Substring) to reference the next token and
  *   returns it.<br>
  *   With each call to %Next, a different delimiter can be provided, which then serves as the
  *   delimiter for this and subsequent tokens.<br>
@@ -43,7 +41,7 @@ namespace util  {
  *   After this method was invoked, #HasNext() will return \c false.
  *
  * After a token was retrieved, it might be modified using the interface of class
- * \alib{strings,SubstringBase,Substring} as the tokenizer does not rely on the bounds of
+ * \alib{strings,TSubstring,Substring} as the tokenizer does not rely on the bounds of
  * the current token when receiving the next. Furthermore, even field #Rest is allowed
  * to be changed using the interface of \b %Substring if it seems appropriate. The effect is the
  * same as if method #Set was invoked to apply a different source string.
@@ -59,42 +57,46 @@ namespace util  {
  *
  * \snippet "DOX_ALIB_TOKENIZER.txt"     OUTPUT
  *
+ * @tparam TChar    The character type. Implementations for \c nchar and \c wchar are provided
+ *                  with type definitions \ref aworx::TokenizerN and
+ *                  \ref aworx::TokenizerW.
  **************************************************************************************************/
-class Tokenizer
+template<typename TChar>
+class TTokenizer
 {
     // #############################################################################################
     // Public fields
     // #############################################################################################
     public:
         /**
-         *  A \alib{strings,SubstringBase,Substring} that represents the part of
+         *  A \alib{strings,TSubstring,Substring} that represents the part of
          *  the underlying data that has not been tokenized, yet.
          *  It is allowed to manipulate this public field, which has a similar effect as
          *  using method #Set.<br>
          */
-        Substring       Rest;
+        TSubstring<TChar>               Rest;
 
         /**
          *  The actual token, which is returned with every invocation of #Next() or #Rest().
          *  It is allowed to manipulate this field any time.<br>
          */
-        Substring       Actual;
+        TSubstring<TChar>               Actual;
 
         /**
          * The white spaces characters used to trim the tokens.
          * Defaults to  \ref aworx::DefaultWhitespaces
          */
-        String16        Whitespaces                                            = DefaultWhitespaces;
+        TLocalString<TChar, 8>          TrimChars;
 
 
     // #############################################################################################
     // Internal fields
     // #############################################################################################
     protected:
-        /// The most recently set delimiter used by default for the next token extraction.
-        character           delim;
+        /** The most recently set delimiter used by default for the next token extraction. */
+        TChar           delim;
 
-        /// If \c true, empty tokens are omitted.
+        /** If \c true, empty tokens are omitted. */
         bool            skipEmpty;
 
 
@@ -105,7 +107,7 @@ class Tokenizer
         /** ****************************************************************************************
          * Constructs an empty tokenizer. To initialize, method #Set needs to be invoked.
          ******************************************************************************************/
-        Tokenizer()
+        TTokenizer()
         {}
 
         /** ****************************************************************************************
@@ -117,8 +119,9 @@ class Tokenizer
          * @param  skipEmptyTokens If \c true, empty tokens are omitted.
          *                         Optional and defaults to \c false.
          ******************************************************************************************/
-        Tokenizer( const String& src, character delimiter, bool skipEmptyTokens= false )
+        TTokenizer( const TString<TChar>& src, TChar delimiter, bool skipEmptyTokens= false )
         : Rest(src)
+        , TrimChars( TT_StringConstants<TChar>::DefaultWhitespaces() )
         , delim(delimiter)
         , skipEmpty(skipEmptyTokens)
         {}
@@ -136,19 +139,19 @@ class Tokenizer
          * @param  skipEmptyTokens If \c true, empty tokens are omitted.
          *                         Optional and defaults to \c false.
          ******************************************************************************************/
-        void Set( const String& src, character delimiter, bool skipEmptyTokens= false )
+        void Set( const TString<TChar>& src, TChar delimiter, bool skipEmptyTokens= false )
         {
-            Actual= nullptr;
-            Rest= src;
-            this->delim=            delimiter;
-            this->skipEmpty=  skipEmptyTokens;
+            Actual          = nullptr;
+            Rest            = src;
+            this->delim     = delimiter;
+            this->skipEmpty = skipEmptyTokens;
         }
 
         /** ****************************************************************************************
          * Returns the next token, which is afterwards also available through field #Actual.
          * If no further token  was available, the returned
-         * \alib{strings,SubstringBase,Substring} will be \e nulled.
-         * (see \alib{strings,StringBase::IsNull,String::IsNull}).
+         * \alib{strings,TSubstring,Substring} will be \e nulled.
+         * (see \alib{strings,TString::IsNull,String::IsNull}).
          * To prevent this, the availability of a next token should be
          * checked using method #HasNext().
          *
@@ -163,41 +166,58 @@ class Tokenizer
          * @return \c true if a next token was available, \c false if not.
          ******************************************************************************************/
         ALIB_API
-        Substring&  Next( lang::Whitespaces trimming= lang::Whitespaces::Trim, character newDelim= '\0' );
+        TSubstring<TChar>&  Next( Whitespaces trimming= Whitespaces::Trim,
+                                     TChar       newDelim= '\0' );
 
         /** ****************************************************************************************
          * Returns the currently remaining string (without searching for further delimiter
          * characters).
-         * After this call #HasNext will return \c false and #Next will return a \e nulled Substring.
+         * After this call #HasNext will return \c false and #Next will return a \e nulled
+         * Substring.
          *  @param trimming  Determines if the token is trimmed in respect to the white space
          *                   characters defined in field #Whitespaces.
          *                   Defaults to \b Whitespaces.Trim.
          * @return The rest of the original source string, which was not returned by #Next(), yet.
          ******************************************************************************************/
-        Substring&  GetRest( lang::Whitespaces trimming= lang::Whitespaces::Trim )
+        TSubstring<TChar>&  GetRest( Whitespaces trimming= Whitespaces::Trim )
         {
             // set start, end and end of tokenizer
             Actual=  Rest;
             Rest  =  nullptr;
-            if ( trimming == lang::Whitespaces::Trim )
-                Actual.Trim( Whitespaces );
+            if ( trimming == Whitespaces::Trim )
+                Actual.Trim( TrimChars );
             return Actual;
         }
 
         /** ****************************************************************************************
          * If this returns \c true, a call to #Next will be successful and will return a
-         * Substring which is not \e nulled.
+         * \b Substring which is not \e nulled.
          * @return \c true if a next token is available.
          ******************************************************************************************/
-        bool        HasNext()       { return Rest.IsNotNull() && ( !skipEmpty || Rest.IsNotEmpty() ); }
+        bool        HasNext()
+        {
+            return Rest.IsNotNull() && ( !skipEmpty || Rest.IsNotEmpty() );
+        }
 
 }; // class Tokenizer
+
+
+extern template ALIB_API TSubstring<nchar>& TTokenizer<nchar>::Next( Whitespaces, nchar );
+extern template ALIB_API TSubstring<wchar>& TTokenizer<wchar>::Next( Whitespaces, wchar );
 
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     Tokenizer=     aworx::lib::strings::util::Tokenizer;
+using     Tokenizer=     aworx::lib::strings::util::TTokenizer<character>;
 
-}  // namespace aworx
+/// Type alias in namespace #aworx.
+using     TokenizerN=    aworx::lib::strings::util::TTokenizer<nchar>;
+
+/// Type alias in namespace #aworx.
+using     TokenizerW=    aworx::lib::strings::util::TTokenizer<wchar>;
+
+
+
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_STRINGS_UTIL_TOKENIZER

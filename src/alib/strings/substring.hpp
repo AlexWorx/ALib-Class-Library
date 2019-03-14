@@ -1,191 +1,144 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include guard
 #ifndef HPP_ALIB_STRINGS_SUBSTRING
 #define HPP_ALIB_STRINGS_SUBSTRING 1
 
-// to preserve the right order, we are not includable directly from outside.
-#if !defined(HPP_ALIB_STRINGS_STRING)
-    #error "include 'alib/alib.hpp' before including this header. Also make sure to include ALib Module Strings"
+#if !defined (HPP_ALIB_STRINGS_CSTRING)
+#   include "alib/strings/cstring.hpp"
 #endif
 
-#if !defined (HPP_ALIB_LANG_ENUM_BITWISE)
-#   include "alib/lang/enumbitwise.hpp"
+#if !defined (HPP_ALIB_STRINGS_ATRING)
+#   include "alib/strings/astring.hpp"
 #endif
+
+#if ALIB_MODULE_RESOURCES
+#   if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA)
+#      include "alib/resources/enummetadata.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA_SPECIFICATION)
+#      include "alib/resources/enummetadataspec.hpp"
+#   endif
+#endif
+
+#if ALIB_MODULE_ENUMS
+#   if !defined(HPP_ALIB_ENUMS_ENUM_BITWISE)
+#      include "alib/enums/enumbitwise.hpp"
+#   endif
+#endif
+
 
 namespace aworx { namespace lib { namespace strings {
 
 /** ************************************************************************************************
- * This class defines a variable region on an existing character array.
- * Objects of this class will not manipulate the underlying data.
+ * This class specializes parent class \alib{strings,TString,String} to allow reduction of
+ * the length of the represented string by cutting characters from the front or the end.
+ * Such reduction does not affect the character array represented, but only its representation
+ * by instances of this type.
  *
- * Unlike in the \e C# and \e Java versions of \alib, the represented region is defined
- * by the protected fields inherited from class #String.
- * The difference to base class \alib{strings,StringBase,String} is, that class \b %Substring
- * allows to change the buffer's start and its length.  Otherwise, this class has the
- * very same lightweight nature and performance as its base.
- * In general, while working with a \b %Substring, the size of it should shrink, e.g. by trimming
- * and using the various "consume"-methods.
+ * In other words, the difference to base class \alib{strings,TString,String} is, that this type
+ * allows to increase the pointer to the character array's start and to decrease its stored length.
+ * In all other respects, this class has the same lightweight nature and performance as its base.
+ * Furthermore, the flexible TMP mechanics for seamless construction is exposed from the base
+ * class and likewise available.
  *
- * Like base class \alib{strings,StringBase,String}, the class can not, and therefore does not,
- * verify that the underlying buffer is still allocated or contains termination characters within
- * the region (which would be is against the rules).
+ * Like base class \alib{strings,TString,String}, the class can not, and therefore does not,
+ * verify that the underlying buffer is (still) properly allocated and contains valid data.
  * It is up to the user of this class to make sure the buffer stays intact until any referencing
- * object of this type is destructed (or just is not used any more).
+ * object of this type is disposed.
  *
- * @tparam TChar  The character type. Implementations for \c char and \c wchar_t are provided
- *                with type definitions \ref aworx::NSubstring and \ref aworx::WSubstring.
+ * @tparam TChar The character type.<br>
+ *   Alias names for specializations of this class using character types
+ *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
+ *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
+ *   are provided in namespace #aworx with type definitions \aworx{Substring}, \aworx{NSubstring},
+ *   \aworx{WSubstring}, \aworx{XSubstring}, \aworx{ComplementSubstring} and
+ *   \aworx{StrangeSubstring}.
  **************************************************************************************************/
 template<typename TChar>
-class SubstringBase : public StringBase<TChar>
+class TSubstring : public TString<TChar>
 {
-    /** ############################################################################################
-     * @name Constructors
-     ##@{ ########################################################################################*/
-
     public:
+    #if !ALIB_DOCUMENTATION_PARSER
         // Import parent constructors
         // Due to a doxygen bug in 1.8.14, we must not tell doxygen that we import overloaded methods.
-        //! @cond NO_DOX
-        using StringBase<TChar>::StringBase;
-        //! @endcond
+        using TString<TChar>::TString;
+    #endif
 
         /** ****************************************************************************************
-         * Parameterless constructor.
-         * (Note: This constructor is needed with some compilers only.)
+         * Default constructor creating a \ref alib_strings_details_nulled \e "nulled" sub-string.
          ******************************************************************************************/
         inline
-        SubstringBase()
-        : StringBase<TChar>()
+        TSubstring()
+        : TString<TChar>()
         {}
 
         /** ****************************************************************************************
          * Constructor using a string reference.
-         * (Note: This constructor is needed with some compilers only.)
          * @param src   The source string.
          ******************************************************************************************/
         inline
-        SubstringBase( const StringBase<TChar>& src )
-        : StringBase<TChar>(src)
+        TSubstring( const TString<TChar>& src )
+        : TString<TChar>(src)
         {}
 
-
-    /** ############################################################################################
-     * @name Set Data
-     ##@{ ########################################################################################*/
-
-    public:
         /** ****************************************************************************************
          * Sets this object to zero length.
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         inline
-        SubstringBase&  Clear()
+        TSubstring&  Clear()
         {
-            StringBase<TChar>::length=  0;
+            TString<TChar>::length=  0;
             return *this;
         }
 
         /** ****************************************************************************************
-         * Set the length of the substring. The string can only be shortened.
-         *
-         * \note
-         *   If the new length is requested to be higher than the current length,
-         *   an one-time warning is issued. The warning occurs only once for the first
-         *   occurrence of an invocation of this method with such wrong parameter.
-         *   To enable/disable this warning use macros
-         *   - \ref ALIB_WARN_ONCE_PER_TYPE_ENABLE(String, SetLengthLonger) and
-         *   - \ref ALIB_WARN_ONCE_PER_TYPE_DISABLE(String, SetLengthLonger).
-         *
-         * The non-checking version does not do any checks but just applies the new length.
-         *
-         * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
-         *                     If \c \<false\> is added to the method name, no parameter checks are
-         *                     performed.
-         * @param newLength    The new length of the string. Must be between 0 and the current
-         *                     length.
-         ******************************************************************************************/
-        template <bool TCheck= true>
-        inline
-        void        SetLength( integer newLength )
-        {
-            ALIB_STRING_DBG_CHK(this)
-
-            if ( TCheck )
-            {
-                #if ALIB_DEBUG // ALIB_WARN_ONCE_IF_NOT
-                    if( newLength > StringBase<TChar>::length && StringBase<TChar>::ALIB_OTW_SetLengthLonger  )
-                    {
-                        StringBase<TChar>::ALIB_OTW_SetLengthLonger= false;
-                        ALIB_WARNING( "Replacing preallocated buffer on move construction." );
-                    }
-                #endif
-
-
-
-                ALIB_ASSERT_ERROR(     newLength >= 0,      ASTR("Negative length") );
-
-                if ( newLength >= 0 && newLength < StringBase<TChar>::length )
-                    StringBase<TChar>::length= newLength;
-            }
-            else
-            {
-                StringBase<TChar>::length= newLength;
-            }
-        }
-
-    /** ############################################################################################
-     * @name Trim
-     ##@{ ########################################################################################*/
-
-        /** ****************************************************************************************
-         * Moves the start to the first character not found given \p{whiteSpaces}.
+         * Moves the start to the first character not found in given character set \p{whiteSpaces}.
          *
          * @param whiteSpaces  The characters used for trimming.
          *                     Defaults to  \ref aworx::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         inline
-        SubstringBase&  TrimStart( const TStringBase<TChar>& whiteSpaces = StringConstants<TChar>::DefaultWhitespaces )
+        TSubstring&  TrimStart( const TCString<TChar>& whiteSpaces
+                                                    = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
-            if ( StringBase<TChar>::length > 0 )
+            if ( TString<TChar>::length > 0 )
             {
-                integer idx= CString<TChar>::IndexOfAnyExcluded( StringBase<TChar>::buffer  , StringBase<TChar>::length,
-                                                                           whiteSpaces.Buffer(),        whiteSpaces.Length() );
+                integer idx= characters::CharArray<TChar>::IndexOfAnyExcluded( TString<TChar>::buffer  , TString<TChar>::length,
+                                                                                      whiteSpaces.Buffer(),        whiteSpaces.Length() );
                 if(  idx < 0 )
-                    idx= StringBase<TChar>::length;
-                StringBase<TChar>::buffer+= idx;
-                StringBase<TChar>::length-= idx;
+                    idx= TString<TChar>::length;
+                TString<TChar>::buffer+= idx;
+                TString<TChar>::length-= idx;
             }
             return *this;
         }
 
         /** ****************************************************************************************
-         * Moves the start to the first character not found given \p{whiteSpaces}.
+         * Moves the start to the first character not found in given character set \p{whiteSpaces}.
          *
          * @param whiteSpaces  The characters used for trimming.
          *                     Defaults to  \ref aworx::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         inline
-        SubstringBase&  TrimEnd( const TStringBase<TChar>& whiteSpaces = StringConstants<TChar>::DefaultWhitespaces )
+        TSubstring&  TrimEnd( const TCString<TChar>& whiteSpaces
+                                                    = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
-            if ( StringBase<TChar>::length > 0 )
+            if ( TString<TChar>::length > 0 )
             {
-                StringBase<TChar>::length= CString<TChar>::LastIndexOfAnyExclude( StringBase<TChar>::buffer,
-                                                                                  StringBase<TChar>::length - 1,
-                                                                                         whiteSpaces.Buffer(),
-                                                                                         whiteSpaces.Length() ) + 1;
+                TString<TChar>::length= characters::CharArray<TChar>::LastIndexOfAnyExclude( TString<TChar>::buffer,
+                                                                                             TString<TChar>::length - 1,
+                                                                                                 whiteSpaces.Buffer(),
+                                                                                                 whiteSpaces.Length() ) + 1;
             }
             return *this;
         }
-
 
         /** ****************************************************************************************
          * Invokes #TrimStart and #TrimEnd .
@@ -195,19 +148,17 @@ class SubstringBase : public StringBase<TChar>
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         inline
-        SubstringBase&  Trim( const TStringBase<TChar>& whiteSpaces = StringConstants<TChar>::DefaultWhitespaces )
+        TSubstring&  Trim( const TCString<TChar>& whiteSpaces
+                                                    = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
             return   TrimEnd  ( whiteSpaces )
                     .TrimStart( whiteSpaces );
         }
 
+ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
-    /** ############################################################################################
-     * @name Consume
-     ##@{ ########################################################################################*/
-        ALIB_WARNINGS_ALLOW_TEMPLATE_META_PROGRAMMING
         /** ****************************************************************************************
-         * Retrieve and remove the first character from the substring.
+         * Retrieve and remove the first character from the sub-string.
          *
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
@@ -218,55 +169,56 @@ class SubstringBase : public StringBase<TChar>
          * @return The character at the start of the represented region.
          *         If this \b %Substring is empty or \e nulled, '\0' is returned.
          ******************************************************************************************/
-        template < bool              TCheck            = true,
-                   lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep  >
+        template < bool        TCheck            = true,
+                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep  >
         inline
         TChar       ConsumeChar()
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
-                if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
-                if( StringBase<TChar>::IsEmpty() )
+                if( TString<TChar>::IsEmpty() )
                     return '\0';
             }
             else
             {
-                ALIB_ASSERT_ERROR( !StringBase<TChar>::IsEmpty(), ASTR("NC: empty string") );
-                if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "NC: empty string" )
+                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
             }
 
-            StringBase<TChar>::length--;
-            return *StringBase<TChar>::buffer++;
+            TString<TChar>::length--;
+            return *TString<TChar>::buffer++;
         }
 
         /** ****************************************************************************************
          * Checks if this object starts with the given character \p{consumable}. If it does, this
          * character is cut from this object.
          *
-         * @param  consumable         The consumable character
+         * @param  consumable         The consumable character.
          *
          * @tparam TSensitivity       The sensitivity of the comparison.
+         *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                           consume operation. Defaults to \b Whitespaces::Keep.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
-        template< lang::Case        TSensitivity=        lang::Case::Sensitive,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
+        template< Case        TSensitivity=       Case::Sensitive,
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
         inline
         bool        ConsumeChar( TChar   consumable )
 
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
-            if (    ( TSensitivity == lang::Case::Sensitive &&         StringBase<TChar>::CharAtStart()  !=         consumable  )
-                 || ( TSensitivity == lang::Case::Ignore    && toupper(StringBase<TChar>::CharAtStart()) != toupper(consumable) ) )
+            if (    ( TSensitivity == Case::Sensitive &&         TString<TChar>::CharAtStart()  !=         consumable  )
+                 || ( TSensitivity == Case::Ignore    && toupper(TString<TChar>::CharAtStart()) != toupper(consumable) ) )
                 return false;
-            StringBase<TChar>::buffer++;
-            StringBase<TChar>::length--;
+            TString<TChar>::buffer++;
+            TString<TChar>::length--;
             return true;
         }
 
@@ -274,34 +226,35 @@ class SubstringBase : public StringBase<TChar>
          * Checks if this object ends with the given character \p{consumable}. If it does, this
          * character is cut from the end of object.
          *
-         * @param consumable          The consumable character
+         * @param consumable          The consumable character.
          * @tparam TSensitivity       The sensitivity of the comparison.
+         *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
-        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
+        template< Case        TSensitivity=       Case::Sensitive,
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
         inline
-        bool        ConsumeCharFromEnd( char  consumable )
+        bool        ConsumeCharFromEnd( nchar  consumable )
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
-            if (    ( TSensitivity == lang::Case::Sensitive &&         StringBase<TChar>::CharAtEnd()  !=         consumable  )
-                 || ( TSensitivity == lang::Case::Ignore    && toupper(StringBase<TChar>::CharAtEnd()) != toupper(consumable) ) )
+            if (    ( TSensitivity == Case::Sensitive &&         TString<TChar>::CharAtEnd()  !=         consumable  )
+                 || ( TSensitivity == Case::Ignore    && toupper(TString<TChar>::CharAtEnd()) != toupper(consumable) ) )
                 return false;
-            StringBase<TChar>::length--;
+            TString<TChar>::length--;
             return true;
         }
 
         /** ****************************************************************************************
-         * Retrieve and remove the last character in the substring.
+         * Retrieve and remove the last character in the sub-string.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
-         *                 If \c \<false\> is added to the method name, no parameter check is
-         *                 performed.
+         *                 If \c \<false\> is added to the method name, no check whether this
+         *                 string is empty is performed.
          *
          * @tparam TTrimBeforeConsume Determines if the string should be (right-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
@@ -309,70 +262,70 @@ class SubstringBase : public StringBase<TChar>
          *         If this \b %Substring is empty or \e nulled, '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         inline
         TChar     ConsumeCharFromEnd()
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+                TrimEnd();
+
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
-                if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
-                    TrimEnd();
-                if( StringBase<TChar>::IsEmpty() )
+                if( TString<TChar>::IsEmpty() )
                     return '\0';
             }
             else
             {
-                ALIB_ASSERT_ERROR( !StringBase<TChar>::IsEmpty(), ASTR("NC: empty string") );
-                if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
-                    TrimEnd();
+                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "NC: empty string" )
             }
-            return *(StringBase<TChar>::buffer + --StringBase<TChar>::length );
+            return *(TString<TChar>::buffer + --TString<TChar>::length );
         }
 
         /** ****************************************************************************************
          * Cuts the given number of characters from the beginning of the Substring and optionally
          * places the portion that was cut in parameter \p{target} (if provided).<br>
-         * Parameter \p{regionLength} is checked to be between 0 and length. If negative, nothing
-         * is cut and \p{target} is set empty. If \p{regionLength} is greater than this
-         * objects' length, all contents is 'moved' to \p{target}.
+         *
+         * If parameter \p{regionLength} is negative, nothing is cut and optional argument
+         * \p{target} is set empty. If \p{regionLength} is equal or greater than this
+         * object's length, all contents is 'moved' to \p{target}.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
-         *                 If \c \<false\> is added to the method name, no parameter check is
-         *                 performed.
+         *                 If \c \<false\>, parameter \p{regionLength} has to be in the range of
+         *                 this object's size.
          *
          * @param regionLength  The length of the region at the start to delete.
          * @param target        An optional target \b %Substring that receives the portion that
          *                      is cut from this object. Defaults to nullptr.
          *
-         * @return The new length of the substring.
+         * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        integer  ConsumeChars( integer regionLength, SubstringBase* target= nullptr )
+        integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr )
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
                     if ( target != nullptr )
                         target->Clear();
-                    return  StringBase<TChar>::length;
+                    return  TString<TChar>::length;
                 }
-                if ( regionLength > StringBase<TChar>::length )
-                    regionLength= StringBase<TChar>::length;
+                if ( regionLength > TString<TChar>::length )
+                    regionLength= TString<TChar>::length;
             }
             else
             {
-                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= StringBase<TChar>::length,
-                                   ASTR("NC: regionLength out of bounds")             )
+                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= TString<TChar>::length,
+                                   "NC: regionLength out of bounds"            )
             }
 
             if ( target != nullptr )
-                *target= this->StringBase<TChar>::template Substring<false>( 0, regionLength );
+                *target= this->TString<TChar>::template Substring<false>( 0, regionLength );
 
-            StringBase<TChar>::buffer+= regionLength;
-            StringBase<TChar>::length-= regionLength;
-            return StringBase<TChar>::length;
+            TString<TChar>::buffer+= regionLength;
+            TString<TChar>::length-= regionLength;
+            return TString<TChar>::length;
         }
 
         /** ****************************************************************************************
@@ -380,7 +333,7 @@ class SubstringBase : public StringBase<TChar>
          * places the portion that was cut in parameter \p{target} (if provided).<br>
          * Parameter \p{regionLength} is checked to be between 0 and length. If negative, nothing
          * is cut and \p{target} is set empty. If \p{regionLength} is greater than this
-         * objects' length, all contents is 'moved' to \p{target}.
+         * object's length, all contents is 'moved' to \p{target}.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
          *                 If \c \<false\> is added to the method name, no parameter check is
@@ -390,34 +343,34 @@ class SubstringBase : public StringBase<TChar>
          * @param target        An optional target \b %Substring that receives the portion that
          *                      is cut from this object. Defaults to nullptr.
          *
-         * @return The new length of the substring.
+         * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        integer   ConsumeCharsFromEnd( integer regionLength, SubstringBase* target= nullptr )
+        integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr )
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
                     if ( target != nullptr )
                         target->Clear();
-                    return  StringBase<TChar>::length;
+                    return  TString<TChar>::length;
                 }
-                if ( regionLength > StringBase<TChar>::length )
-                    regionLength= StringBase<TChar>::length;
+                if ( regionLength > TString<TChar>::length )
+                    regionLength= TString<TChar>::length;
             }
             else
             {
-                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= StringBase<TChar>::length,
-                                   ASTR("NC: regionLength out of bounds")             )
+                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= TString<TChar>::length,
+                                   "NC: regionLength out of bounds"             )
             }
 
             if ( target != nullptr )
-                *target= this->StringBase<TChar>::template Substring<false>( StringBase<TChar>::length - regionLength, regionLength );
+                *target= this->TString<TChar>::template Substring<false>( TString<TChar>::length - regionLength, regionLength );
 
-            StringBase<TChar>::length-= regionLength;
-            return StringBase<TChar>::length;
+            TString<TChar>::length-= regionLength;
+            return TString<TChar>::length;
         }
 
         /** ****************************************************************************************
@@ -427,7 +380,7 @@ class SubstringBase : public StringBase<TChar>
          * is cut and \p{target} is set empty, respectively left untouched depending on
          * \p{TTargetData}.
          *
-         * If \p{regionLength} is greater than this  objects' length, all contents is 'moved'
+         * If \p{regionLength} is greater than this  object's length, all contents is 'moved'
          * to \p{target}.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
@@ -440,49 +393,49 @@ class SubstringBase : public StringBase<TChar>
          * @param separatorWidth  This width is added to what is cut from this string, while
          *                        \p{target} still receives the portion defined by \p{regionLength}.
          *                        Defaults to 0.
-         * @tparam TTargetData    If \c CurrentData::Keep, the parameter \p{target} is not cleared
+         * @tparam TTargetData    If \c CurrentData::Keep, \b %AString \p{target} is not cleared
          *                        before the result is written. Defaults to \c CurrentData::Clear.
          *
-         * @return The new length of the substring.
+         * @return The new length of the sub-string.
          ******************************************************************************************/
-        template <bool               TCheck           = true,
-                  lang::CurrentData  TTargetData      = lang::CurrentData::Clear>
+        template <bool         TCheck           = true,
+                  CurrentData  TTargetData      = CurrentData::Clear>
         inline
         integer ConsumeChars( integer              regionLength,
-                              AStringBase<TChar>&  target,
+                              TAString<TChar>&  target,
                               integer              separatorWidth   =0         )
         {
-            if ( TTargetData == lang::CurrentData::Clear  )
-                target.Clear();
+            if ALIB_CPP17_CONSTEXPR ( TTargetData == CurrentData::Clear  )
+                target.Reset();
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( separatorWidth < 0 )                        separatorWidth= 0;
-                if ( regionLength   < 0 )                        return  StringBase<TChar>::length;
-                if ( regionLength   > StringBase<TChar>::length - separatorWidth )  regionLength= StringBase<TChar>::length - separatorWidth;
-                if ( regionLength   < 0 )                        return  StringBase<TChar>::length;
+                if ( regionLength   < 0 )                        return  TString<TChar>::length;
+                if ( regionLength   > TString<TChar>::length - separatorWidth )  regionLength= TString<TChar>::length - separatorWidth;
+                if ( regionLength   < 0 )                        return  TString<TChar>::length;
             }
             else
             {
-                ALIB_ASSERT_ERROR( separatorWidth >=0 , ASTR("NC: separator width negative")  )
-                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= StringBase<TChar>::length,
-                                   ASTR("NC: regionLength out of bounds")             )
+                ALIB_ASSERT_ERROR( separatorWidth >=0 , "NC: separator width negative"  )
+                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= TString<TChar>::length,
+                                   "NC: regionLength out of bounds"             )
             }
 
             target.template _<false>( *this, 0, regionLength );
 
             regionLength+= separatorWidth;
-            StringBase<TChar>::buffer+= regionLength ;
-            StringBase<TChar>::length-= regionLength;
-            return StringBase<TChar>::length;
+            TString<TChar>::buffer+= regionLength ;
+            TString<TChar>::length-= regionLength;
+            return TString<TChar>::length;
         }
 
         /** ****************************************************************************************
-         * Cuts the given number of characters from the end of the Substring and
+         * Cuts the given number of characters from the end of the sub-string and
          * places the portion that was cut in parameter \p{target}.<br>
          * Parameter \p{regionLength} is checked to be between 0 and length. If negative, nothing
          * is cut and \p{target} is set empty, respectively left untouched depending on \p
-         * If \p{regionLength} is greater than this objects' length, all contents is 'moved'
+         * If \p{regionLength} is greater than this object's length, all contents is 'moved'
          * to \p{target}.
          *
          * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
@@ -498,36 +451,36 @@ class SubstringBase : public StringBase<TChar>
          * @tparam TTargetData    If \c CurrentData::Keep, the parameter \p{target} is not cleared
          *                        before the result is written. Defaults to \c CurrentData::Clear.
          *
-         * @return The new length of the substring.
+         * @return The new length of the sub-string.
          ******************************************************************************************/
-        template <bool                  TCheck           = true,
-                  lang::CurrentData     TTargetData      =lang::CurrentData::Clear>
+        template <bool            TCheck           = true,
+                  CurrentData     TTargetData      = CurrentData::Clear>
         inline
         integer ConsumeCharsFromEnd( integer             regionLength,
                                      AString&            target,
                                      integer             separatorWidth   =0      )
         {
-            if ( TTargetData == lang::CurrentData::Clear  )
-                target.Clear();
+            if ALIB_CPP17_CONSTEXPR ( TTargetData == CurrentData::Clear  )
+                target.Reset();
 
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
                 if ( separatorWidth < 0 )                        separatorWidth= 0;
-                if ( regionLength   < 0 )                        return  StringBase<TChar>::length;
-                if ( regionLength   > StringBase<TChar>::length - separatorWidth )  regionLength= StringBase<TChar>::length - separatorWidth;
-                if ( regionLength   < 0 )                        return  StringBase<TChar>::length;
+                if ( regionLength   < 0 )                        return  TString<TChar>::length;
+                if ( regionLength   > TString<TChar>::length - separatorWidth )  regionLength= TString<TChar>::length - separatorWidth;
+                if ( regionLength   < 0 )                        return  TString<TChar>::length;
             }
             else
             {
-                ALIB_ASSERT_ERROR( separatorWidth >=0 , ASTR("NC: separator width negative")  )
-                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= StringBase<TChar>::length,
-                                   ASTR("NC: regionLength out of bounds")             )
+                ALIB_ASSERT_ERROR( separatorWidth >=0 , "NC: separator width negative"  )
+                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= TString<TChar>::length,
+                                   "NC: regionLength out of bounds"             )
             }
 
-            target._<false>( *this, StringBase<TChar>::length - regionLength, regionLength );
+            target._<false>( *this, TString<TChar>::length - regionLength, regionLength );
 
-            StringBase<TChar>::length-= regionLength + separatorWidth;
-            return StringBase<TChar>::length;
+            TString<TChar>::length-= regionLength + separatorWidth;
+            return TString<TChar>::length;
         }
 
         /** ****************************************************************************************
@@ -542,18 +495,18 @@ class SubstringBase : public StringBase<TChar>
          * @return The token consumed.
          ******************************************************************************************/
         inline
-        StringBase<TChar>  ConsumeToken( char separator= ',' )
+        TString<TChar>  ConsumeToken( TChar separator= ',' )
         {
-            ALIB_ASSERT_ERROR( StringBase<TChar>::IsNotNull() , ASTR("ConsumeToken on nulled Substring")  )
-            integer separatorPos= StringBase<TChar>::IndexOfOrLength( separator );
-            StringBase<TChar> result= StringBase<TChar>( StringBase<TChar>::buffer, separatorPos );
+            ALIB_ASSERT_ERROR( TString<TChar>::IsNotNull() , "ConsumeToken on nulled Substring" )
+            integer separatorPos= TString<TChar>::IndexOfOrLength( separator );
+            TString<TChar> result= TString<TChar>( TString<TChar>::buffer, separatorPos );
 
-            StringBase<TChar>::buffer+= separatorPos;
-            StringBase<TChar>::length-= separatorPos;
-            if( StringBase<TChar>::length > 0 )
+            TString<TChar>::buffer+= separatorPos;
+            TString<TChar>::length-= separatorPos;
+            if( TString<TChar>::length > 0 )
             {
-                StringBase<TChar>::buffer++;
-                StringBase<TChar>::length--;
+                TString<TChar>::buffer++;
+                TString<TChar>::length--;
             }
             return result;
         }
@@ -564,24 +517,25 @@ class SubstringBase : public StringBase<TChar>
          *
          * @param  consumable         The consumable string.
          * @tparam TSensitivity       The sensitivity of the comparison.
+         *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
-        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
+        template< Case        TSensitivity=       Case::Sensitive,
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         inline
-        bool        ConsumeString( const StringBase<TChar>&     consumable  )
+        bool        ConsumeString( const TString<TChar>&     consumable  )
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
-            if ( !StringBase<TChar>::template StartsWith<true,TSensitivity>( consumable ) )
+            if ( !TString<TChar>::template StartsWith<true,TSensitivity>( consumable ) )
                 return false;
 
-            StringBase<TChar>::buffer+= consumable.Length();
-            StringBase<TChar>::length-= consumable.Length();
+            TString<TChar>::buffer+= consumable.Length();
+            TString<TChar>::length-= consumable.Length();
             return true;
         }
 
@@ -591,31 +545,34 @@ class SubstringBase : public StringBase<TChar>
          *
          * @param  consumable         The consumable string
          * @tparam TSensitivity       The sensitivity of the comparison.
+         *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                           consume operation. Defaults to \b Whitespaces::Keep.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
-        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
+        template< Case        TSensitivity=       Case::Sensitive,
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         inline
-        bool        ConsumeStringFromEnd( const StringBase<TChar>&  consumable )
+        bool        ConsumeStringFromEnd( const TString<TChar>&  consumable )
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
-            if ( !StringBase<TChar>::template EndsWith<true,TSensitivity>( consumable ) )
+            if ( !TString<TChar>::template EndsWith<true,TSensitivity>( consumable ) )
                 return false;
-            StringBase<TChar>::length-= consumable.Length();
+            TString<TChar>::length-= consumable.Length();
             return true;
         }
 
         /** ****************************************************************************************
-         * Consumes a minimum of \p{minChars} of string \c consumable from the start of this
-         * substring. If the minimum characters could not be found, nothing is consumed, otherwise
-         * as much as possible.<br>
-         * This method is useful for example to read commands from a string that may be
-         * abbreviated.
+         * Consumes a minimum of \p{minChars} of string \p{consumable} from the start of this
+         * sub-string. If the minimum characters could not be found, nothing is consumed, otherwise,
+         * the method consumes as much as possible.<br>
+         *
+         * This method is useful read "tokens" from a string that may be abbreviated. Internally,
+         * this method is used by method #ConsumeEnum.
+         *
          *
          * @param  consumable         The consumable string.
          * @param  minChars           The minimum amount of characters to consume. If \c 0 or
@@ -628,12 +585,12 @@ class SubstringBase : public StringBase<TChar>
          *                            Defaults to \b Whitespaces::Keep.
          * @return The amount of characters consumed.
          ******************************************************************************************/
-        template< lang::Case        TSensitivity=       lang::Case::Ignore,
-                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
-        integer    ConsumePartOf(  const StringBase<TChar>&     consumable,
-                                   int               minChars           = 1 )
+        template< Case        TSensitivity=       Case::Ignore,
+                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+        integer    ConsumePartOf(  const TString<TChar>&     consumable,
+                                   int                          minChars           = 1 )
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
             if ( minChars <= 0 )
                 minChars= static_cast<int>( consumable.Length() );
@@ -641,7 +598,7 @@ class SubstringBase : public StringBase<TChar>
             if ( minChars == 0 || minChars > consumable.Length() )
                 return 0;
 
-            integer diff= StringBase<TChar>::IndexOfFirstDifference( consumable, TSensitivity );
+            integer diff= TString<TChar>::IndexOfFirstDifference( consumable, TSensitivity );
             if( diff < static_cast<integer>( minChars ) )
                 return 0;
             ConsumeChars( diff );
@@ -649,7 +606,7 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes a field from the beginning of this substring, which is surrounded by
+         * Consumes a field from the beginning of this sub-string, which is surrounded by
          * given start end end character identifiers. If both are the same, e.g. \c '"', then
          * the first occurrence of the end character is used. If they are not the same, e.g.
          * \c '<' and \c '>', then repeated start characters are counted and consumption only ends
@@ -661,47 +618,35 @@ class SubstringBase : public StringBase<TChar>
          *                            consume operation. Defaults to \b Whitespaces::Keep.
          * @return The string consumed. \b NullString on error (start/end character not found)
          ******************************************************************************************/
-        template< lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
+        template< Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         inline
-        StringBase<TChar>  ConsumeField( char startChar, char endChar  )
+        TString<TChar>  ConsumeField( TChar startChar, TChar endChar  )
         {
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
-            if ( StringBase<TChar>::CharAtStart() != startChar )
+            integer endIdx;
+            if (    TString<TChar>::CharAtStart() != startChar
+                 || (endIdx= TString<TChar>::IndexOfSegmentEnd( startChar, endChar, 1)) < 0  )
                 return nullptr;
 
-            int cntStartChars= 1;
-            for ( integer i= 1; i < StringBase<TChar>::length ; i++ )
-            {
-                TChar actChar= StringBase<TChar>::buffer[i];
-                if( actChar == endChar )
-                {
-                    if( --cntStartChars == 0 )
-                    {
-                        StringBase<TChar> result= StringBase<TChar>( StringBase<TChar>::buffer + 1, i - 1 );
-                        StringBase<TChar>::buffer+= (i + 1);
-                        StringBase<TChar>::length-= (i + 1);
-                        return result;
-                    }
-                }
-                else if( actChar == startChar )
-                    cntStartChars++;
-            }
 
-            return nullptr;
+            TString<TChar> result= TString<TChar>( TString<TChar>::buffer + 1, endIdx - 1 );
+            TString<TChar>::buffer+= (endIdx + 1);
+            TString<TChar>::length-= (endIdx + 1);
+            return result;
         }
 
+    #if ALIB_MODULE_RESOURCES
         /** ****************************************************************************************
-         * Consumes an element of an C++ enum which is equipped with "\alib enum meta data".
+         * Consumes an element of a C++ enum which is equipped with "\alib enum meta data".
          * For more information consult
          * \ref anchor_T_EnumMetaDataDecl_read_enum "T_EnumMetaDataDecl documentation".
          *
          * \note
-         *   This method is applicable to bitwise enums as well. However, only one element name is
-         *   parsed. To parse multiple elements (ored to one enum value), use method
-         *   #ConsumeEnumBitwise.
-         *
+         *   This method is applicable to \alib{enums,T_EnumIsBitwise,bitwise enums} as well.
+         *   However, only one element name is parsed.
+         *   To parse multiple elements (ored to one enum value), use method #ConsumeEnumBitwise.
          *
          * @param[out] result         The result enum element given as reference.
          * @tparam TEnum              The enumeration type.
@@ -713,27 +658,29 @@ class SubstringBase : public StringBase<TChar>
          * @tparam TEnableIf          Internal. Do \b not specify!<br>
          *                            (Defaults to \c std::enable_if type, to enable the compiler to
          *                            select this method only for types that have specialized member
-         *                            \alib{lang,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
+         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
          *                            evaluating to a value different to \c 0.
          * @return \c true if an enum element was read, \c false otherwise.
+         *
+         * \par Module Dependencies
+         *   This method is only available if \alibmod_resources is included in the \alibdist.
          ******************************************************************************************/
-        template<typename          TEnum,
-                 lang::Case        TSensitivity        = lang::Case::Ignore,
-                 lang::Whitespaces TTrimBeforeConsume  = lang::Whitespaces::Trim,
-                 typename TEnableIf= typename std::enable_if<T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex
-                                                             != 0 >::type>
+        template<typename    TEnum,
+                 Case        TSensitivity        = Case::Ignore,
+                 Whitespaces TTrimBeforeConsume  = Whitespaces::Trim,
+        typename TEnableIf= ATMP_VOID_IF( resources::T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex!= 0)>
         bool    ConsumeEnum(  TEnum&  result )
         {
-            auto& enumMetaData= *EnumMetaData<TEnum>::GetSingleton();
+            auto& enumMetaData= EnumMetaData<TEnum>::GetSingleton();
             enumMetaData.CheckLoad();
 
-            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
             for( auto& entry : enumMetaData.Table )
             {
                 if ( ConsumePartOf<TSensitivity>( EnumReadWriteInfo<TEnum>::Name( entry ),
-                                                 std::get<lang::T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex>( entry )
+                                                  std::get<T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex>( entry )
                                                  )  > 0 )
                 {
                     result= enumMetaData.Enum( entry );
@@ -743,23 +690,24 @@ class SubstringBase : public StringBase<TChar>
             return false;
         }
 
+#if ALIB_MODULE_ENUMS
         /** ****************************************************************************************
          * Repeatedly invokes #ConsumeEnum until \p{delim} is not found. The enum element values
          * are or'ed in \p{result}.
          *
          * \note
-         *   This method is applicable to \alib{lang,T_EnumIsBitwise,bitwise enums} only.
+         *   This method is applicable to \alib{enums,T_EnumIsBitwise,bitwise enums} only.
          *
          *
          * @param[out] result         The result enum element given as reference.
          * @tparam TSensitivity       The sensitivity of the comparison.
-         *                            Defaults to \b Case::Sensitive.
+         *                            Defaults to \b Case::Ignore.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before and
          *                            after each consume operation.<br>
          *                            Defaults to \b Whitespaces::Trim.
          * @tparam delimiter          The delimiter character of the enum elements.<br>
          *                            Defaults to <c>','</c>.
-         * @tparam keepLastDelim      If \c true , the delimiter will be kept in this substring, if
+         * @tparam keepLastDelim      If \c true , the delimiter will be kept in this sub-string, if
          *                            after the delimiter no further enum element was found.
          *                            If \c false, the delimiter will be kept.<br>
          *                            Defaults to \c true.
@@ -767,53 +715,56 @@ class SubstringBase : public StringBase<TChar>
          * @tparam TEnableIf          Internal. Do \b not specify!<br>
          *                            (Defaults to \c std::enable_if type, to enable the compiler to
          *                            select this operator only for types that have specialized
-         *                            \alib{lang,T_EnumIsBitwise} and also specialized member
-         *                            \alib{lang,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
+         *                            \alib{enums,T_EnumIsBitwise} and also specialized member
+         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
          *                            evaluating to a value different to \c 0.)
          * @return \c true if an enum element was read, \c false otherwise.
+         *
+         * \par Module Dependencies
+         *   This method is only available if module \alibmod_enums is included in the \alibdist.
          ******************************************************************************************/
-        template<typename          TEnum,
-                 lang::Case        TSensitivity       = lang::Case::Ignore,
-                 lang::Whitespaces TTrimBeforeConsume = lang::Whitespaces::Trim,
-                 char              delimiter          = ',',
-                 bool              keepLastDelim      = true,
-                 typename TEnableIf= typename std::enable_if< ( T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex
-                                                                !=  0 )
-                                                              && lang::T_EnumIsBitwise<TEnum>::value
-                                                            >::type>
+        template<typename    TEnum,
+                 Case        TSensitivity       = Case::Ignore,
+                 Whitespaces TTrimBeforeConsume = Whitespaces::Trim,
+                 TChar       delimiter          = ',',
+                 bool        keepLastDelim      = true,
+                 typename TEnableIf= ATMP_VOID_IF(   T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex
+                                                     !=  0
+                                                  && T_EnumIsBitwise<TEnum>::value)>
         bool    ConsumeEnumBitwise( TEnum&  result )
         {
             bool mResult= false;
             result= TEnum(0);
-            SubstringBase restoreBeforeDelim;
-            if( keepLastDelim )
+            TSubstring restoreBeforeDelim;
+            if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
                 restoreBeforeDelim= *this;
             for(;;)
             {
-                if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
+                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
                 TEnum actEnum;
                 if ( !ConsumeEnum<TEnum, TSensitivity, TTrimBeforeConsume>( actEnum ) )
                 {
-                    if( keepLastDelim )
+                    if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
                         *this= restoreBeforeDelim;
                     return mResult;
                 }
                 result|=  actEnum;
                 mResult=  true;
-                if( TTrimBeforeConsume == lang::Whitespaces::Trim )
+                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
-                if( keepLastDelim )
+                if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
                     restoreBeforeDelim=  *this;
                 if( !ConsumeChar<TSensitivity, TTrimBeforeConsume>( delimiter ) )
                     return mResult;
 
             }
         }
+#endif
 
         /** ****************************************************************************************
-         * Convenience method that first uses #ConsumeEnum to try and read an element of an C++
-         * enum. If this is not successful, an enum of type \alib{lang,Bool} is tried to be read.
+         * Convenience method that first uses #ConsumeEnum to try and read an element of a C++
+         * enum. If this is not successful, an enum of type \alib{Bool} is tried to be read.
          * If this is successful, depending on the value read, the \p{TEnum} values given
          * as parameters \p{falseValue} and \p{trueValue} are assigned.
          * Otherwise false is returned.
@@ -835,19 +786,19 @@ class SubstringBase : public StringBase<TChar>
          *                            consume operation. Passed to #ConsumeEnum.<br>
          *                            Defaults to \b Whitespaces::Trim.
          * @tparam TSensitivity       The sensitivity of the comparison.
+         *                            Defaults to \b Case::Ignore.
          * @tparam TEnableIf          Internal. Do \b not specify!<br>
          *                            (Defaults to \c std::enable_if type, to enable the compiler to
          *                            select this method only for types that have specialized member
-         *                            \alib{lang,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
+         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
          *                            evaluating to a value different to \c 0.
-         * @return \c true if an element of \p{TEnum} or \alib{lang,Bool} could be read,
+         * @return \c true if an element of \p{TEnum} or \alib{Bool} could be read,
          *         \c false otherwise.
          ******************************************************************************************/
-        template<typename          TEnum,
-                 lang::Case        TSensitivity       = lang::Case::Ignore,
-                 lang::Whitespaces TTrimBeforeConsume = lang::Whitespaces::Trim,
-                 typename          TEnableIf= typename std::enable_if< T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex
-                                                                       !=  0 >::type>
+        template<typename    TEnum,
+                 Case        TSensitivity       = Case::Ignore,
+                 Whitespaces TTrimBeforeConsume = Whitespaces::Trim,
+        typename TEnableIf= ATMP_VOID_IF(T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex != 0) >
         bool    ConsumeEnumOrBool(  TEnum&            result,
                                     TEnum             falseValue,
                                     TEnum             trueValue         )
@@ -867,14 +818,16 @@ class SubstringBase : public StringBase<TChar>
             // failed
             return false;
         }
+    #endif
 
-        ALIB_WARNINGS_RESTORE
+ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
-        /** ****************************************************************************************
+
+                /** ****************************************************************************************
          * Consumes all characters \c '0' to \c '9' at the start of this object and stores the
-         * value they represent in \p{result}.
-         * <br>Unlike with #ConsumeInt or #ConsumeDec, no sign, whitespaces or group characters are
-         * consumed.
+         * value they represent in \p{result}.<br>
+         * Unlike methods #ConsumeInt or #ConsumeDec, this method does not consume (accept)
+         * sign-, whitespace- or group-characters.
          *
          * @param [out] result    A reference to the result value.
          * @tparam    TInteger    The output type.
@@ -898,16 +851,15 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes an integer value in decimal, binary, hexadecimal or octal format from
-         * the string by invoking method
-         * \alib{strings,NumberFormatBase::ParseInt,NumberFormat::ParseInt}
-         * on the given \p{numberFormat} instance.<br>
+         * Consumes an integer value in decimal, binary, hexadecimal or octal format from the
+         * string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
-         * which is configured to not using - and therefore also not parsing - grouping characters.
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
+         * which is configured to not using (not allowing) grouping characters.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param  numberFormat   The number format to use. Defaults to \c nullptr.
@@ -923,7 +875,7 @@ class SubstringBase : public StringBase<TChar>
                                                             >::type
                 >
         inline
-        bool   ConsumeInt( TInteger& result, NumberFormatBase<TChar>* numberFormat= nullptr )
+        bool   ConsumeInt( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             int64_t resultImpl;
             bool    returnValue= consumeIntImpl( resultImpl, numberFormat );
@@ -932,20 +884,18 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes an unsigned integer in standard decimal format
-         * from the start of this %AString. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseDec,NumberFormat::ParseDec}
-         * on the given \p{numberFormat} instance.<br>
+         * Consumes an unsigned integer in standard decimal format from the start of this %AString.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
-         * which is configured to not using - and therefore also not parsing - grouping characters.
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
+         * which is configured to not using (not allowing) grouping characters.
          *
          * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail.
          * For reading signed integer values, see methods #ConsumeInt, for floating point numbers
          * #ConsumeFloat.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
@@ -961,7 +911,7 @@ class SubstringBase : public StringBase<TChar>
                                                             >::type
                 >
         inline
-        bool   ConsumeDec( TInteger& result, NumberFormatBase<TChar>* numberFormat= nullptr )
+        bool   ConsumeDec( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeDecImpl( resultImpl, numberFormat );
@@ -970,16 +920,14 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes an unsigned integer in binary format at the given position
-         * from the start of this string. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseBin,NumberFormat::ParseBin}
-         * on the given \p{numberFormat} instance.<br>
+         * Consumes an unsigned integer in binary format from the start of this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
-         * which is configured to not using - and therefore also not parsing - grouping characters.
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
+         * which is configured to not using (not allowing) grouping characters.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
@@ -996,7 +944,7 @@ class SubstringBase : public StringBase<TChar>
                                                             >::type
                 >
         inline
-        bool   ConsumeBin( TInteger& result, NumberFormatBase<TChar>* numberFormat= nullptr )
+        bool   ConsumeBin( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeBinImpl( resultImpl, numberFormat );
@@ -1005,16 +953,14 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes an unsigned integer in hexadecimal format at the given position
-         * from the start of this string. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseHex,NumberFormat::ParseHex}
-         * on the given \p{numberFormat} instance.<br>
+         * Consumes an unsigned integer in hexadecimal format from the start of this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
-         * which is configured to not using - and therefore also not parsing - grouping characters.
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
+         * which is configured to not using (not allowing) grouping characters.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
@@ -1031,7 +977,7 @@ class SubstringBase : public StringBase<TChar>
                                                             >::type
                 >
         inline
-        bool   ConsumeHex( TInteger& result, NumberFormatBase<TChar>* numberFormat= nullptr )
+        bool   ConsumeHex( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeHexImpl( resultImpl, numberFormat );
@@ -1040,16 +986,14 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes an unsigned integer in octal format at the given position
-         * from the start of this string. This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseOct,NumberFormat::ParseOct}
-         * on the given \p{numberFormat} instance.<br>
+         * Consumes an unsigned integer in octal format from the start of this string.
+         *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
-         * which is configured to not using - and therefore also not parsing - grouping characters.
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
+         * which is configured to not using (not allowing) grouping characters.
          *
          * For more information on number conversion, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
@@ -1066,7 +1010,7 @@ class SubstringBase : public StringBase<TChar>
                                                             >::type
                 >
         inline
-        bool   ConsumeOct( TInteger& result, NumberFormatBase<TChar>* numberFormat= nullptr )
+        bool   ConsumeOct( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeOctImpl( resultImpl, numberFormat );
@@ -1075,18 +1019,17 @@ class SubstringBase : public StringBase<TChar>
         }
 
         /** ****************************************************************************************
-         * Consumes a floating point number at the given position from the start of this string.
-         * This is done, by invoking
-         * \alib{strings,NumberFormatBase::ParseFloat,NumberFormat::ParseFloat}
+         * Consumes a floating point number from the start of this string.
+         *
          * on the given \p{numberFormat} instance.<br>
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
-         * \alib{strings,NumberFormatBase::Computational,NumberFormat::Computational}
+         * \alib{strings,TNumberFormat::Computational,NumberFormat::Computational}
          * which is configured to 'international' settings (not using the locale) and therefore
          * also not parsing grouping characters.
          *
          * For more information on parsing options for floating point numbers and number
          * conversion in general, see class
-         * \alib{strings,NumberFormatBase,NumberFormat}.
+         * \alib{strings,TNumberFormat,NumberFormat}.
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
@@ -1094,12 +1037,12 @@ class SubstringBase : public StringBase<TChar>
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
         ALIB_API
-        bool  ConsumeFloat( double&         result,
-                            NumberFormatBase<TChar>*   numberFormat     =nullptr   );
+        bool  ConsumeFloat( double&                 result,
+                            TNumberFormat<TChar>*   numberFormat     =nullptr   );
 
 
         /** ****************************************************************************************
-         * Splits this substring into two parts. What remains in this object is the region
+         * Splits this sub-string into two parts. What remains in this object is the region
          * from 0 to \p{position}.
          * \p{target} receives the rest. If \p{separatorWidth} is given, this is subtracted from
          * the front of \p{target}.
@@ -1109,33 +1052,35 @@ class SubstringBase : public StringBase<TChar>
          *                 performed.
          *
          * @param position        The index where this object is split.
-         * @param target          The target substring to receive the right part of the string.
+         * @param target          The target sub-string to receive the right part of the string.
          * @param separatorWidth  This does not change what remains in this object, but defines
          *                        the number of characters that are cut from the front of the
          *                        \p{target}. Defaults to 0.
-         * @param trim            If \c true, both substrings will be trimmed.
+         * @param trim            If \c true, both sub-strings will be trimmed.
          *
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
         inline
-        SubstringBase& Split( integer position, SubstringBase& target, integer separatorWidth  =0, bool trim= false )
+        TSubstring& Split( integer position, TSubstring& target, integer separatorWidth =0,
+                           bool trim= false )
 
         {
-            if ( TCheck )
+            if ALIB_CPP17_CONSTEXPR ( TCheck )
             {
-                StringBase<TChar>::AdjustRegion( position, separatorWidth );
+                TString<TChar>::AdjustRegion( position, separatorWidth );
             }
             else
             {
-                ALIB_ASSERT_ERROR( position >=0 && position <= StringBase<TChar>::length,
-                                   ASTR("NC: position out of bounds")             )
-                ALIB_ASSERT_ERROR( position + separatorWidth <= StringBase<TChar>::length,
-                                   ASTR("NC: position + separator width out of bounds") )
+                ALIB_ASSERT_ERROR( position >=0 && position <= TString<TChar>::length,
+                                   "NC: position out of bounds"             )
+                ALIB_ASSERT_ERROR( position + separatorWidth <= TString<TChar>::length,
+                                   "NC: position + separator width out of bounds" )
             }
 
-            target= this->StringBase<TChar>::template Substring<false>( position + separatorWidth, StringBase<TChar>::length - position - separatorWidth );
-            StringBase<TChar>::length= position;
+            target= this->TString<TChar>::template Substring<false>( position + separatorWidth,
+                                                                     TString<TChar>::length - position - separatorWidth );
+            TString<TChar>::length= position;
             if( trim )
             {
                 target.Trim();
@@ -1149,7 +1094,7 @@ class SubstringBase : public StringBase<TChar>
     //##############################################################################################
     protected:
         /** ****************************************************************************************
-         * Implementation for #ConsumeDecDigits.
+         * Implementation of #ConsumeDecDigits (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @return  \c true if a number was found and consumed, \c false otherwise.
@@ -1157,75 +1102,90 @@ class SubstringBase : public StringBase<TChar>
         ALIB_API  bool   consumeDecDigitsImpl( uint64_t& result );
 
         /** ****************************************************************************************
-         * Implementation for #ConsumeInt.
+         * Implementation of #ConsumeInt (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API  bool   consumeIntImpl( int64_t& result, NumberFormatBase<TChar>* numberFormat );
+        ALIB_API  bool   consumeIntImpl( int64_t& result, TNumberFormat<TChar>* numberFormat );
 
         /** ****************************************************************************************
-         * Implementation for #ConsumeDec.
+         * Implementation of #ConsumeDec (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API  bool   consumeDecImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat );
+        ALIB_API  bool   consumeDecImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
         /** ****************************************************************************************
-         * Implementation for #ConsumeBin.
+         * Implementation of #ConsumeBin (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API  bool   consumeBinImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat );
+        ALIB_API  bool   consumeBinImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
         /** ****************************************************************************************
-         * Implementation for #ConsumeHex.
+         * Implementation of #ConsumeHex (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API  bool   consumeHexImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat );
+        ALIB_API  bool   consumeHexImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
         /** ****************************************************************************************
-         * Implementation for #ConsumeOct.
+         * Implementation of #ConsumeOct (the non-inline part).
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API  bool   consumeOctImpl( uint64_t& result, NumberFormatBase<TChar>* numberFormat );
+        ALIB_API  bool   consumeOctImpl( uint64_t& result, TNumberFormat<TChar>* numberFormat );
 
 
-}; // class SubstringBase
+}; // class TSubstring
 
-extern template ALIB_API bool SubstringBase<nchar>::ConsumeFloat        ( double&   , NumberFormatBase<nchar>* );
-extern template ALIB_API bool SubstringBase<nchar>::consumeDecDigitsImpl( uint64_t&                            );
-extern template ALIB_API bool SubstringBase<nchar>::consumeIntImpl      (  int64_t& , NumberFormatBase<nchar>* );
-extern template ALIB_API bool SubstringBase<nchar>::consumeDecImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-extern template ALIB_API bool SubstringBase<nchar>::consumeBinImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-extern template ALIB_API bool SubstringBase<nchar>::consumeHexImpl      ( uint64_t& , NumberFormatBase<nchar>* );
-extern template ALIB_API bool SubstringBase<nchar>::consumeOctImpl      ( uint64_t& , NumberFormatBase<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::ConsumeFloat        (   double& , TNumberFormat<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::consumeDecDigitsImpl( uint64_t&                         );
+extern template ALIB_API bool TSubstring<nchar>::consumeIntImpl      (  int64_t& , TNumberFormat<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<nchar>* );
+extern template ALIB_API bool TSubstring<nchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<nchar>* );
 
-extern template ALIB_API bool SubstringBase<wchar>::ConsumeFloat        ( double&   , NumberFormatBase<wchar>* );
-extern template ALIB_API bool SubstringBase<wchar>::consumeDecDigitsImpl( uint64_t&                            );
-extern template ALIB_API bool SubstringBase<wchar>::consumeIntImpl      (  int64_t& , NumberFormatBase<wchar>* );
-extern template ALIB_API bool SubstringBase<wchar>::consumeDecImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-extern template ALIB_API bool SubstringBase<wchar>::consumeBinImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-extern template ALIB_API bool SubstringBase<wchar>::consumeHexImpl      ( uint64_t& , NumberFormatBase<wchar>* );
-extern template ALIB_API bool SubstringBase<wchar>::consumeOctImpl      ( uint64_t& , NumberFormatBase<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::ConsumeFloat        (   double& , TNumberFormat<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::consumeDecDigitsImpl( uint64_t&                         );
+extern template ALIB_API bool TSubstring<wchar>::consumeIntImpl      (  int64_t& , TNumberFormat<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<wchar>* );
+extern template ALIB_API bool TSubstring<wchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<wchar>* );
+
+extern template ALIB_API bool TSubstring<xchar>::ConsumeFloat        (   double& , TNumberFormat<xchar>* );
+extern template ALIB_API bool TSubstring<xchar>::consumeDecDigitsImpl( uint64_t&                         );
+extern template ALIB_API bool TSubstring<xchar>::consumeIntImpl      (  int64_t& , TNumberFormat<xchar>* );
+extern template ALIB_API bool TSubstring<xchar>::consumeDecImpl      ( uint64_t& , TNumberFormat<xchar>* );
+extern template ALIB_API bool TSubstring<xchar>::consumeBinImpl      ( uint64_t& , TNumberFormat<xchar>* );
+extern template ALIB_API bool TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<xchar>* );
+extern template ALIB_API bool TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
 }} // namespace aworx::[lib::strings]
 
 /// Type alias in namespace #aworx.
-using     NSubstring =    lib::strings::SubstringBase<nchar>;
-using     WSubstring =    lib::strings::SubstringBase<wchar>;
-using     Substring  =    lib::strings::SubstringBase<character>;
+using     Substring  =    lib::strings::TSubstring<character>;
+
+/// Type alias in namespace #aworx.
+using     NSubstring =    lib::strings::TSubstring<nchar>;
+
+/// Type alias in namespace #aworx.
+using     WSubstring =    lib::strings::TSubstring<wchar>;
+
+/// Type alias in namespace #aworx.
+using     XSubstring =    lib::strings::TSubstring<xchar>;
 
 } // namespace aworx
 

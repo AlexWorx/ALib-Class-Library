@@ -1,13 +1,21 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
 #define HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
+
+#if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
+#   include "alib/expressions/expression.hpp"
+#endif
+
+#ifndef HPP_ALIB_ENUMS_ENUM_VALUE
+#   include "alib/enums/enumvalue.hpp"
+#endif
+
+
 
 namespace aworx { namespace lib { namespace expressions {
 
@@ -31,8 +39,8 @@ struct  AST;
  * This class implements a very simple stack machine that understands just four commands (!) plus
  * a fifth to execute sub-programs.
  *
- * This class is part of module \alibmod_nolink_expressions. It is not too well documented as it resides
- * in a \c detail namespace and is not to be used from the outside expression API.
+ * This class is part of module \alibmod_nolink_expressions. It is not too well documented as it
+ * resides in a \c detail namespace and is not to be used from the outside expression API.
  **************************************************************************************************/
 class VirtualMachine
 {
@@ -48,7 +56,7 @@ class VirtualMachine
             public:
                 /**
                  * The opcode type of VM commands. This is defined as a
-                 * \alib{lang,T_EnumIsBitwise,bitwise enum type} as also flags may be set in
+                 * \alib{enums,T_EnumIsBitwise,bitwise enum type} as also flags may be set in
                  * addition to defining the type of operation.
                  */
                 enum class OpCodes
@@ -148,11 +156,11 @@ class VirtualMachine
             };
 
             protected:
-                /// Operation code of this command.
+                /** Operation code of this command. */
                 OpCodes             opcode;
 
             public:
-                /// The parameter of the operation
+                /** The parameter of the operation. */
                 OperationParam      Operation;
 
             /**
@@ -182,7 +190,7 @@ class VirtualMachine
             uinteger                ExpressionPositions;
 
 
-            /// Type of expression term used with decompilation.
+            /** Type of expression term used with decompilation. */
             DecompileInfoType       DecompileType;
 
             /** The operator symbol or function name used with decompilation to recreate an
@@ -191,7 +199,7 @@ class VirtualMachine
 
 
             #if ALIB_DEBUG
-                /// Operation code of this command.
+                /** Operation code of this command. Available only in debug compilations. */
                 DbgInformation      DbgInfo;
             #endif
 
@@ -359,10 +367,13 @@ class VirtualMachine
 
 }}}}; // namespace [aworx::lib::expressions::detail]
 
-ALIB_LANG_ENUM_IS_BITWISE(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
+
+ALIB_ENUM_IS_BITWISE(   aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
 #if ALIB_DEBUG
-    ALIB_LANG_ENUM_NAMED(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
-    ALIB_LANG_RESOURCED (aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, aworx::lib::EXPRESSIONS, ASTR("VM_CMD_OPCODES") )
+    ALIB_ENUM_NAMED(    aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
+    ALIB_RESOURCED_IN_MODULE(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes,
+                             aworx::lib::EXPRESSIONS, "VM_CMD_OPCODES" )
 #endif
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE

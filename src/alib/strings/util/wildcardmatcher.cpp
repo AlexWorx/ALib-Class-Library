@@ -1,18 +1,16 @@
 ﻿// #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-
-#if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
-    #include "alib/strings/util/wildcardmatcher.hpp"
-#endif
+#include "alib/strings/util/wildcardmatcher.hpp"
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-    #include "alib/strings/substring.hpp"
+
+#   include "alib/strings/substring.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
@@ -21,7 +19,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
 #define    ASTERISK  -2
 
 template<typename TChar>
-void WildcardMatcherBase<TChar>::Compile( const StringBase<TChar>& pattern )
+void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
 {
     // Note: The following invariants will be true in the command vector:
     //       - A String-entry will be a non-empty string
@@ -30,7 +28,7 @@ void WildcardMatcherBase<TChar>::Compile( const StringBase<TChar>& pattern )
 
     commands.clear();
 
-    SubstringBase<TChar> parser= pattern;
+    TSubstring<TChar> parser= pattern;
     while( parser.IsNotEmpty() )
     {
         // *
@@ -78,7 +76,7 @@ void WildcardMatcherBase<TChar>::Compile( const StringBase<TChar>& pattern )
         while ( idx < parser.Length() && parser[idx] != '*' && parser[idx] != '?'  )
             idx++;
 
-        commands.emplace_back( STRING, StringBase<TChar>(parser.Buffer(), idx ) );
+        commands.emplace_back( STRING, TString<TChar>(parser.Buffer(), idx ) );
         parser.ConsumeChars( idx );
         continue;
     }
@@ -86,7 +84,7 @@ void WildcardMatcherBase<TChar>::Compile( const StringBase<TChar>& pattern )
 }
 
 template<typename TChar>
-bool WildcardMatcherBase<TChar>::Match( const StringBase<TChar>& pHaystack, Case sensitivity  )
+bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, Case sensitivity  )
 {
     if( commands.size() == 0 )
         return true;
@@ -94,7 +92,7 @@ bool WildcardMatcherBase<TChar>::Match( const StringBase<TChar>& pHaystack, Case
     if( pHaystack.IsNull() )
         return false;
 
-    SubstringBase<TChar> haystack= pHaystack;
+    TSubstring<TChar> haystack= pHaystack;
     size_t  actCmd = 0;
     size_t  lastCmd= static_cast<size_t>( commands.size() - 1 );
     bool    lastWasAsterisk= false;
@@ -147,10 +145,10 @@ bool WildcardMatcherBase<TChar>::Match( const StringBase<TChar>& pHaystack, Case
     return haystack.IsEmpty() || lastWasAsterisk;
 }
 
-template void WildcardMatcherBase<char   >::Compile( const StringBase<char   >& pattern );
-template bool WildcardMatcherBase<char   >::Match  ( const StringBase<char   >& haystack, Case sensitivity );
-template void WildcardMatcherBase<wchar_t>::Compile( const StringBase<wchar_t>& pattern );
-template bool WildcardMatcherBase<wchar_t>::Match  ( const StringBase<wchar_t>& haystack, Case sensitivity );
+template void TWildcardMatcher<nchar>::Compile( const TString<nchar>& pattern );
+template bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>& haystack, Case sensitivity );
+template void TWildcardMatcher<wchar>::Compile( const TString<wchar>& pattern );
+template bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>& haystack, Case sensitivity );
 
 #undef   STRING
 #undef   ASTERISK

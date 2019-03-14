@@ -1,16 +1,16 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
 #   include "alib/system/directory.hpp"
 #endif
 #if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-#   include "alib/system/process.hpp"
+#   include "alib/system/processinfo.hpp"
 #endif
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
 #   include "alib/system/environment.hpp"
@@ -28,8 +28,8 @@
     #pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
 
-#if !defined (HPP_ALIB_COMPATIBILITY_STD_IOSTREAM)
-    #include "alib/compatibility/std_iostream.hpp"
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
 #include <fstream>
@@ -52,7 +52,7 @@ void createTempFolderInHomeDir( const String& folderName, AString& resultPath, c
 {
     // get home directory and set this as fallback result value
     Directory homeTemp( Directory::SpecialFolder::Home );
-    resultPath=   homeTemp.Path;
+    resultPath.Reset( homeTemp.Path );
 
     // add given folder name and check if already exists
     homeTemp.Path._( DirectorySeparator )._( folderName );
@@ -64,11 +64,11 @@ void createTempFolderInHomeDir( const String& folderName, AString& resultPath, c
             exists= true;
             NAString fileName( homeTemp.Path ); fileName._( DirectorySeparator )._( "readme.txt" );
 
-            std::ofstream file ( fileName.ToCString() );
+            std::ofstream file ( fileName );
             if ( file.is_open() )
             {
                 const ProcessInfo& pi= ProcessInfo::Current();
-                file << "This folder was created by \"" << pi.CmdLine.ToCString()
+                file << "This folder was created by \"" << pi.CmdLine
                      << "\"" << std::endl
                      << "to be used for temporary files." << std::endl;
                 file.write( reasonMsg.Buffer(), reasonMsg.Length() );
@@ -80,7 +80,7 @@ void createTempFolderInHomeDir( const String& folderName, AString& resultPath, c
 
     // if existed or got created
     if( exists )
-        resultPath=   homeTemp.Path;
+        resultPath.Reset( homeTemp.Path );
 }
 //! @endcond
 
@@ -96,13 +96,10 @@ void Directory::Change( SpecialFolder special )
         {
 
             #if defined (__unix__)
-                if ( !system::GetEnvironmentVariable( ASTR("HOME"), Path ) )
+                if ( !system::GetEnvironmentVariable( A_CHAR("HOME"), Path ) )
                 {
                     struct passwd* pwd = getpwuid(getuid());
-                    if (pwd)
-                        Path= pwd->pw_dir;
-                    else
-                        Path._( "~/" );
+                    Path.Reset( pwd ? NString( pwd->pw_dir ) :  "~/" );
                 }
 
             #elif defined(__APPLE__)
@@ -111,17 +108,17 @@ void Directory::Change( SpecialFolder special )
                 {
                     struct passwd* pwd = getpwuid(getuid());
                     if (pwd)
-                        Path= pwd->pw_dir;
+                        Path= NString( pwd->pw_dir );
                     else
                         Path._( "~/" );
                 }
 
 
             #elif defined(_WIN32)
-                if ( !system::GetEnvironmentVariable( ASTR("USERPROFILE"), Path ) || !Directory::Exists( Path ) )
+                if ( !system::GetEnvironmentVariable( A_CHAR("USERPROFILE"), Path ) || !Directory::Exists( Path ) )
                 {
-                    system::GetEnvironmentVariable( ASTR("HOMEDRIVE"), Path );
-                    system::GetEnvironmentVariable( ASTR("HOMEPATH" ), Path, CurrentData::Keep );
+                    system::GetEnvironmentVariable( A_CHAR("HOMEDRIVE"), Path );
+                    system::GetEnvironmentVariable( A_CHAR("HOMEPATH" ), Path, CurrentData::Keep );
                 }
             #else
                 #pragma message ("Unknown Platform in file: " __FILE__ )
@@ -135,11 +132,11 @@ void Directory::Change( SpecialFolder special )
 
             // try ".config" and "AppData/Roaming" subdirectories.
             #if defined (__unix__)
-                Change( ASTR(".config") );
+                Change( A_CHAR(".config") );
             #elif defined(__APPLE__)
-                Change( ASTR("Library/Preferences") );
+                Change( A_CHAR("Library/Preferences") );
             #elif defined(_WIN32)
-                Change( String16(ASTR("AppData")) << DirectorySeparator << ASTR("Roaming") );
+                Change( String16(A_CHAR("AppData")) << DirectorySeparator << A_CHAR("Roaming") );
             #else
                 #pragma message ("Unknown Platform in file: " __FILE__ )
             #endif
@@ -149,7 +146,7 @@ void Directory::Change( SpecialFolder special )
 
         case SpecialFolder::Module:
         {
-            Path._()._( ProcessInfo::Current().ExecFilePath );
+            Path.Reset( ProcessInfo::Current().ExecFilePath );
         }
         break;
 
@@ -160,24 +157,24 @@ void Directory::Change( SpecialFolder special )
             {
                 #if defined (__unix__)
                     NString reasonMsg=  "(The default temporary folder \"/tmp\" could not be found.)";
-                    if ( Directory::Exists( ASTR("/tmp") ) )
-                        evaluatedTempDir= ASTR("/tmp");
+                    if ( Directory::Exists( A_CHAR("/tmp") ) )
+                        evaluatedTempDir.Reset( A_CHAR("/tmp") );
 
                 #elif defined(__APPLE__)
                     NString reasonMsg=  "(The default temporary folder \"/tmp\" could not be found.)";
                     macos::ALIB_APPLE_OC_NSTemporaryDirectory( evaluatedTempDir );
                     if ( evaluatedTempDir.IsEmpty() )
                     {
-                        if ( Directory::Exists( ASTR("/tmp") ) )
-                            evaluatedTempDir= ASTR("/tmp");
+                        if ( Directory::Exists( A_CHAR("/tmp") ) )
+                            evaluatedTempDir= A_CHAR("/tmp");
                     }
 
 
                 #elif defined(_WIN32)
                     NString reasonMsg=  "(Environment variables TMP and TEMP either not set or not containing valid paths.)";
                     AString testDir;
-                    if (     ( system::GetEnvironmentVariable( ASTR("TMP") , testDir ) && Directory::Exists( testDir ) )
-                         ||  ( system::GetEnvironmentVariable( ASTR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
+                    if (     ( system::GetEnvironmentVariable( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
+                         ||  ( system::GetEnvironmentVariable( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
                     {
                         evaluatedTempDir= testDir;
                     }
@@ -188,20 +185,20 @@ void Directory::Change( SpecialFolder special )
 
                 if( evaluatedTempDir.IsEmpty() )
                 {
-                    createTempFolderInHomeDir( ASTR(".tmp"), evaluatedTempDir, reasonMsg );
+                    createTempFolderInHomeDir( A_CHAR(".tmp"), evaluatedTempDir, reasonMsg );
 
                     // If this did not work, use home
                     if( evaluatedTempDir.IsEmpty() )
                     {
                         Change( SpecialFolder::Home );
-                        evaluatedTempDir= Path;
+                        evaluatedTempDir.Reset( Path );
                     }
                 }
 
             }
 
             // set path to evaluated dir name
-            Path= evaluatedTempDir;
+            Path.Reset( evaluatedTempDir );
         }
         break;
 
@@ -212,19 +209,19 @@ void Directory::Change( SpecialFolder special )
                 #if defined (__unix__)
                     NString reasonMsg=  "(The default folder \"/var/tmp\" could not be found.)";
 
-                    if ( Directory::Exists( ASTR("/var/tmp") ) )
-                        evaluatedVarTempDir= ASTR("/var/tmp");
+                    if ( Directory::Exists( A_CHAR("/var/tmp") ) )
+                        evaluatedVarTempDir.Reset( A_CHAR("/var/tmp") );
                 #elif defined(__APPLE__)
                     const NString reasonMsg=  "(The default folder \"/private/var/tmp\" could not be found.)";
 
-                    if ( Directory::Exists( ASTR("/private/var/tmp") ) )
-                        evaluatedVarTempDir= ASTR("/private/var/tmp");
+                    if ( Directory::Exists( A_CHAR("/private/var/tmp") ) )
+                        evaluatedVarTempDir= A_CHAR("/private/var/tmp");
 
                 #elif defined(_WIN32)
                     const NString reasonMsg=  "(Environment variables TMP and TEMP either not set or not containing valid paths.)";
                     AString testDir;
-                    if (     ( system::GetEnvironmentVariable( ASTR("TMP") , testDir ) && Directory::Exists( testDir ) )
-                         ||  ( system::GetEnvironmentVariable( ASTR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
+                    if (     ( system::GetEnvironmentVariable( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
+                         ||  ( system::GetEnvironmentVariable( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
                     {
                         evaluatedVarTempDir= testDir;
                     }
@@ -235,26 +232,38 @@ void Directory::Change( SpecialFolder special )
 
                 if( evaluatedVarTempDir.IsEmpty() )
                 {
-                    createTempFolderInHomeDir( ASTR(".var.tmp"), evaluatedVarTempDir, reasonMsg );
+                    createTempFolderInHomeDir( A_CHAR(".var.tmp"), evaluatedVarTempDir, reasonMsg );
 
                     // If this did not work, use home
                     if( evaluatedVarTempDir.IsEmpty() )
                     {
                         Change( SpecialFolder::Home );
-                        evaluatedVarTempDir= Path;
+                        evaluatedVarTempDir.Reset( Path );
                     }
                 }
 
             }
             // now path to evaluated dir name
-            Path= evaluatedVarTempDir;
+            Path.Reset( evaluatedVarTempDir );
         }
         break;
     }
 }
 
-bool Directory::Change( const String& path )
+bool Directory::Change( const CString& path )
 {
+    // absolute addressing
+    if( path.CharAtStart() == DirectorySeparator )
+    {
+        if( !Directory::Exists( path ) )
+            return false;
+
+        Path.Reset( path );
+        return true;
+    }
+
+
+    // relative addressing
     integer origLength= Path.Length();
     Path._<false>( DirectorySeparator )
         ._( path );
@@ -262,18 +271,50 @@ bool Directory::Change( const String& path )
     if( Directory::Exists( Path ) )
         return true;
 
-    Path.SetLength<false>( origLength );
+    Path.ShortenTo( origLength );
     return false;
 }
+
+bool Directory::Change( const StringNZT& path )
+{
+    // absolute addressing
+    if( path.CharAtStart() == DirectorySeparator )
+    {
+        integer origLength= Path.Length();
+        Path._<false>( path ).Terminate();
+
+        if( !Directory::Exists( CString(Path.Buffer() + origLength, path.Length() ) ) )
+        {
+            Path.ShortenTo( origLength );
+            return false;
+        }
+
+        Path.Reset( path );
+        return true;
+    }
+
+
+    // relative addressing
+    integer origLength= Path.Length();
+    Path._<false>( DirectorySeparator )
+        ._( path );
+
+    if( Directory::Exists( Path ) )
+        return true;
+
+    Path.ShortenTo( origLength );
+    return false;
+}
+
 
 // #################################################################################################
 // Static methods
 // #################################################################################################
 
-bool Directory::CurrentDirectory( AString& target )
+bool Directory::CurrentDirectory( AString& target )         // static
 {
-    target.Clear();
-    char charBuf[FILENAME_MAX];
+    target.Reset();
+    nchar charBuf[FILENAME_MAX];
 
     #if   defined(__GLIBCXX__) || defined(__APPLE__)
         if ( !getcwd( charBuf, sizeof(charBuf ) ) )
@@ -286,17 +327,15 @@ bool Directory::CurrentDirectory( AString& target )
         return false;
     }
 
-    charBuf[ sizeof(charBuf) - 1 ] = '\0'; // not really required, but who knows
-
-    target._( static_cast<const char*>( charBuf ) );
+    target._( static_cast<const nchar*>( charBuf ) );
     return true;
 }
 
-bool Directory::Exists( const TString& path )
+bool Directory::Exists( const CString& path )               // static
 {
     #if defined (__GLIBC__) || defined(__APPLE__)
-        ALIB_STD_TO_NARROW_TSTRING(path,nPath)
-        DIR* dir= opendir( nPath.ToCString() );
+        ALIB_STRINGS_TO_NARROW(path,nPath,1024)
+        DIR* dir= opendir( nPath );
         if ( dir != nullptr )
         {
             closedir( dir );
@@ -306,10 +345,10 @@ bool Directory::Exists( const TString& path )
 
     #elif defined(_WIN32)
 
-        #if ALIB_NARROW_STRINGS
-            DWORD dwAttrib = GetFileAttributesA( path.ToCString() );
+        #if ALIB_CHARACTERS_ARE_NARROW
+            DWORD dwAttrib = GetFileAttributesA( path );
         #else
-            DWORD dwAttrib = GetFileAttributesW( path.ToCString() );
+            DWORD dwAttrib = GetFileAttributesW( path );
         #endif
         if( dwAttrib == INVALID_FILE_ATTRIBUTES )
             return false;
@@ -322,20 +361,20 @@ bool Directory::Exists( const TString& path )
     #endif
 }
 
-SystemErrors Directory::Create( const TString& path )
+SystemErrors Directory::Create( const CString& path )       // static
 {
     #if defined (__GLIBC__)  || defined(__APPLE__)
-        ALIB_STD_TO_NARROW_TSTRING(path,nPath)
-        int errCode= mkdir( nPath.ToCString(), S_IRWXU | S_IRGRP | S_IROTH
-                                                       | S_IXGRP | S_IXOTH  );
+        ALIB_STRINGS_TO_NARROW(path,nPath,1024)
+        int errCode= mkdir( nPath,    S_IRWXU | S_IRGRP | S_IROTH
+                                    | S_IXGRP | S_IXOTH             );
 
         return SystemErrors(errCode);
 
     #elif defined(_WIN32)
-        #if ALIB_NARROW_STRINGS
-            BOOL result= CreateDirectoryA( path.ToCString(), NULL );
+        #if ALIB_CHARACTERS_ARE_NARROW
+            BOOL result= CreateDirectoryA( path, NULL );
         #else
-            BOOL result= CreateDirectoryW( path.ToCString(), NULL );
+            BOOL result= CreateDirectoryW( path, NULL );
         #endif
 
 

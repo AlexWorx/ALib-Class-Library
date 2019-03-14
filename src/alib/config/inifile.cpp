@@ -1,46 +1,40 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_LANG_EXCEPTION)
-    #include "alib/lang/exception.hpp"
-#endif
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
 #if !defined (HPP_ALIB_CONFIG_INI_FILE)
-    #include "alib/config/inifile.hpp"
+#   include "alib/config/inifile.hpp"
 #endif
+
 #if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-    #include "alib/system/directory.hpp"
+#   include "alib/system/directory.hpp"
 #endif
 #if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-    #include "alib/system/process.hpp"
+#   include "alib/system/processinfo.hpp"
 #endif
 #if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-#if !defined (HPP_ALIB_COMPATIBILITY_STD_IOSTREAM)
-    #include "alib/compatibility/std_iostream.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
 #endif
 #if !defined (HPP_ALIB_STRINGS_UTIL_SPACES)
-    #include "alib/strings/util/spaces.hpp"
+#   include "alib/strings/util/spaces.hpp"
 #endif
-#if !defined (HPP_ALIB_STRINGS_FORMAT_SIMPLETEXT)
-    #include "alib/strings/format/simpletext.hpp"
+#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
+#   include "alib/stringformat/text.hpp"
 #endif
-#if !defined (HPP_ALIB_STRINGS_UTIL_STRING_IO)
-    #include "alib/strings/util/stringio.hpp"
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
+#if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
+#   include <fstream>
+#endif
 
-#include <fstream>
-#if defined(_MSC_VER)
-    #include <algorithm>
+#if defined(_MSC_VER) && !defined(_ALGORITHM_)
+#   include <algorithm>
 #endif
 
 
@@ -49,7 +43,7 @@ namespace aworx { namespace lib { namespace config {
 // #################################################################################################
 // static/globals
 // #################################################################################################
-String                IniFile::DefaultFileExtension                                  = ASTR(".ini");
+String                IniFile::DefaultFileExtension                                = A_CHAR(".ini");
 
 // #################################################################################################
 // class InMemoryPlugin::Entry
@@ -65,13 +59,13 @@ void IniFile::Entry::ToVariable( const InMemoryPlugin& parent, Variable& variabl
 
     // store delim and comment
     Delim= variable.Delim;
-    variable.Comments._()._( Comments );
+    variable.Comments.Reset( Comments );
 
     // parse the INI file content
 
     //-----  remove INI-File specific from raw value -----
     String512 raw;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( raw,  ReplaceExternalBuffer);
+    raw.DbgDisableBufferReplacementWarning();
     raw._( RawValue );
 
     // remove '='
@@ -80,8 +74,9 @@ void IniFile::Entry::ToVariable( const InMemoryPlugin& parent, Variable& variabl
         raw.DeleteStart(1).TrimStart();
     else
     {
-        ALIB_WARNING( ASTR("No equal sign in INI-file variable \""), variable.Fullname.ToCString(), ASTR("\".") );
+        ALIB_WARNING( "No equal sign in INI-file variable {!Q}.", variable.Fullname )
     }
+
 
 
     // remove "\\n"
@@ -138,7 +133,7 @@ void IniFile::Entry::ToVariable( const InMemoryPlugin& parent, Variable& variabl
 
 void IniFile::Entry::FromVariable( const InMemoryPlugin& parent, Variable& variable )
 {
-    RawValue._();
+    RawValue.Reset();
     InMemoryPlugin::Entry::FromVariable( parent, variable );
 }
 
@@ -147,11 +142,11 @@ void IniFile::Entry::FromVariable( const InMemoryPlugin& parent, Variable& varia
 // Constructor/Destructor
 // #################################################################################################
 IniFile::IniFile( const String& fileName )
-: InMemoryPlugin( NullString )
+: InMemoryPlugin( NullString() )
 {
 
     // don't read anything
-    if ( fileName.StartsWith( ASTR("*") ) )
+    if ( fileName.StartsWith( A_CHAR("*") ) )
     {
         AutoSave= false;
         return;
@@ -174,7 +169,7 @@ IniFile::IniFile( const String& fileName )
         FileName._( ProcessInfo::Current().Name  );
 
         #if defined(_WIN32)
-            if( FileName.EndsWith( ASTR(".exe") ) )
+            if( FileName.EndsWith( A_CHAR(".exe") ) )
                 FileName.DeleteEnd( 4 );
         #endif
 
@@ -190,21 +185,20 @@ IniFile::IniFile( const String& fileName )
 void  IniFile::Reset()
 {
     InMemoryPlugin::Reset();
-    FileComments.Clear();
+    FileComments.Reset();
     LinesWithReadErrors.clear();
 }
 
 IniFile::Section*  IniFile::createSection(const String& sectionName )
 {
     auto* section= new IniFile::Section( sectionName );
-    String comments= lib::CONFIG.GetTry(String128(ASTR("INI_CMT_"))._(sectionName) );
+    String comments= CONFIG.TryResource(NString128("INI_CMT_")._(sectionName) );
     if( comments.IsNotEmpty() )
     {
-        SimpleText text;
+        Text text(section->Comments);
         text.LineWidth= 100;
         text.AddMarked( comments );
         text.RemoveLastNewLine();
-        section->Comments << text.Text;
     }
     return section;
 }
@@ -218,7 +212,7 @@ IniFile::Section*  IniFile::createSection(const String& sectionName )
 bool startsWithCommentSymbol( Substring& subs );
 bool startsWithCommentSymbol( Substring& subs )
 {
-    integer i= String(ASTR("#;/")).IndexOfOrLength( subs.CharAtStart() );
+    integer i= String(A_CHAR("#;/")).IndexOfOrLength( subs.CharAtStart() );
     return       i <  2
             || ( i == 2 && subs.Length() > 1 && subs[1] == '/'  );
 }
@@ -229,8 +223,8 @@ void  IniFile::ReadFile()
     Reset();
 
     // open file
-    ALIB_STD_TO_NARROW_TSTRING(FileName, nFileName)
-    std::ifstream file( nFileName.ToCString() );
+    ALIB_STRINGS_TO_NARROW(FileName, nFileName, 1024)
+    std::ifstream file( nFileName );
 
 
     if ( !file.is_open() )
@@ -242,12 +236,13 @@ void  IniFile::ReadFile()
             return;
 
         // other errors: throw
-        auto& systemErrorMetaData= *EnumMetaData<system::SystemErrors>::GetSingleton();
+        auto& systemErrorMetaData= EnumMetaData<system::SystemErrors>::GetSingleton();
         systemErrorMetaData.CheckLoad();
-        throw Exception( ALIB_CALLER_NULLED,  system::SystemErrors(errNo),
-                         systemErrorMetaData.Value<1>( system::SystemErrors(errNo) ),  errNo )
-                   .Add( ALIB_CALLER_NULLED,  config::Exceptions::ErrorOpeningFile,
-                         ASTR("INI-"), FileName                                                        );
+        Exception e( ALIB_CALLER_NULLED,  system::SystemErrors(errNo),
+                         systemErrorMetaData.Value<1>( system::SystemErrors(errNo) ),  errNo );
+                  e.Add( ALIB_CALLER_NULLED,  config::Exceptions::ErrorOpeningFile,
+                         A_CHAR("INI-"), FileName                                                );
+        throw e;
     }
 
     AString     lineAS;
@@ -265,7 +260,7 @@ void  IniFile::ReadFile()
     reader.SetStream( &file );
 
     String16 separatorCharacters( '=' );
-    separatorCharacters._( DefaultWhitespaces );
+    separatorCharacters._( DefaultWhitespaces() );
 
     while( !reader.IsEOF() )
     {
@@ -289,7 +284,7 @@ void  IniFile::ReadFile()
         {
             fileHeaderRead= true;
             FileComments=   comments;
-            comments.Clear();
+            comments.Reset();
         }
 
         // empty line?
@@ -313,22 +308,22 @@ void  IniFile::ReadFile()
             // search the section in our section list (if section existed already, new comments
             // are dropped)
             actSection= dynamic_cast<IniFile::Section*>( SearchOrCreateSection( line, comments ) );
-            comments.Clear();
+            comments.Reset();
 
             continue;
         }
 
         // Variable line
-        value.Clear();
+        value.Reset();
         integer idx= line.IndexOfAny<Inclusion::Include>( separatorCharacters );
         if( idx < 0 )
         {
-            name._()._( line );
+            name.Reset( line );
             line.Clear();
         }
         else
         {
-            name._()._( line, 0, idx );
+            name.Reset()._( line, 0, idx );
             line.ConsumeChars( idx );
             value._(line);
         }
@@ -355,15 +350,15 @@ void  IniFile::ReadFile()
         {
             IniFile::Entry* entry= dynamic_cast<IniFile::Entry*>( actSection->GetEntry( name, true ) );
             entry->Values  .clear();
-            entry->Comments._()._( comments );
-            entry->RawValue._()._( value );
+            entry->Comments.Reset( comments );
+            entry->RawValue.Reset( value );
 
-            // if there is just no raw value, we add an empty string to the entries' values
+            // if there is just no raw value, we add an empty string to the entry's values
             if ( value.IsEmpty() )
                 entry->Values.insert( entry->Values.end(), AString() );
         }
 
-        comments.Clear();
+        comments.Reset();
 
     }
     file.close();
@@ -377,9 +372,9 @@ void  IniFile::writeComments( StringWriter& writer, const AString& comments )
 
     // tokenize by NEWLINE character
     Tokenizer tknzr( comments, '\n' );
-    tknzr.Whitespaces= ASTR(" \r\t"); // \n is not a whitespace
+    tknzr.TrimChars= A_CHAR(" \r\t"); // \n is not a whitespace
 
-    while( tknzr.Next(lang::Whitespaces::Keep).IsNotNull() )
+    while( tknzr.Next(Whitespaces::Keep).IsNotNull() )
     {
         if ( !startsWithCommentSymbol( tknzr.Actual ) )
             writer.Write( DefaultCommentPrefix );
@@ -387,7 +382,7 @@ void  IniFile::writeComments( StringWriter& writer, const AString& comments )
         *writer.GetStream() << std::endl;
     }
 
-    tknzr.Whitespaces=  DefaultWhitespaces;
+    tknzr.TrimChars=  DefaultWhitespaces();
 }
 
 //! @cond NO_DOX
@@ -409,17 +404,18 @@ namespace {
 void IniFile::WriteFile()
 {
     // read all variables
-    ALIB_STD_TO_NARROW_TSTRING(FileName,nFileName)
-    std::ofstream outputFileStream ( nFileName.ToCString() );
+    ALIB_STRINGS_TO_NARROW(FileName,nFileName, 1024)
+    std::ofstream outputFileStream ( nFileName );
     if ( !outputFileStream.is_open() )
     {
         int errNo= errno;
-        auto& systemErrorMetaData= *EnumMetaData<system::SystemErrors>::GetSingleton();
+        auto& systemErrorMetaData= EnumMetaData<system::SystemErrors>::GetSingleton();
         systemErrorMetaData.CheckLoad();
-        throw Exception( ALIB_CALLER_NULLED, system::SystemErrors(errNo),
-                         systemErrorMetaData.Value<1>( system::SystemErrors(errNo) ), errNo )
-                  .Add(  ALIB_CALLER_NULLED, config::Exceptions::ErrorWritingFile,
-                         "INI-", FileName                                                       );
+        Exception e( ALIB_CALLER_NULLED, system::SystemErrors(errNo),
+                         systemErrorMetaData.Value<1>( system::SystemErrors(errNo) ), errNo );
+              e.Add( ALIB_CALLER_NULLED, config::Exceptions::ErrorWritingFile,
+                     "INI-", FileName                                                       );
+        throw e;
     }
 
     StringWriter writer;
@@ -443,7 +439,7 @@ void IniFile::WriteFile()
         // write section comments and name
         writeComments( writer, section->Comments );
         if ( section->Name.IsNotEmpty() )
-            writer.Write( String256() << '[' << section->Name << ']' << NewLine );
+            writer.Write( NString256() << '[' << section->Name << ']' << NewLine() );
 
         // variables
         integer maxVarLength= 0;
@@ -482,7 +478,7 @@ void IniFile::WriteFile()
 
                 bool      isFirst=      true;
                 String256 externalizedValue;
-                ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( externalizedValue, ReplaceExternalBuffer )
+                externalizedValue.DbgDisableBufferReplacementWarning();
 
                 //-------- write as single-line ----------
                 if ( !EnumContains( entry->FmtHints, FormatHints::MultLine  ) )
@@ -494,13 +490,13 @@ void IniFile::WriteFile()
                         if ( !isFirst )
                         {
                             ALIB_ASSERT_ERROR( entry->Delim != 0,
-                                               ASTR("No delimiter given for multi-value variable \""),
-                                               entry->Name.ToCString(), ASTR("\".") );
+                                               "No delimiter given for multi-value variable {!Q}.",
+                                               entry->Name )
 
                             if( delimSpaces && FormatSpaceBeforeDelim)
                                 outputFileStream << ' ';
 
-                            writer.Write( String8() << entry->Delim );
+                            writer.Write( NString16() << entry->Delim );
 
                             if( delimSpaces && FormatSpaceAfterDelim)
                                 outputFileStream << ' ';
@@ -508,7 +504,7 @@ void IniFile::WriteFile()
 
                         // externalize value
                         Substring src( value );
-                        externalizedValue._();
+                        externalizedValue.Reset();
                         StringConverter->ExternalizeValue( src, externalizedValue, entry->Delim );
                         writer.Write( externalizedValue );
                         isFirst= false;
@@ -518,7 +514,6 @@ void IniFile::WriteFile()
                 // ---------- write as multi-line ----------
                 else
                 {
-                    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( externalizedValue,  ReplaceExternalBuffer);
                     integer    backSlashPos= 0;
                     integer    lastLineLen=  0;
 
@@ -549,8 +544,8 @@ void IniFile::WriteFile()
                         if ( !isFirst )
                         {
                             ALIB_ASSERT_ERROR( entry->Delim != 0,
-                                               ASTR("No delimiter given for multi-value variable \""),
-                                               entry->Name.ToCString(), ASTR("\".") );
+                                               "No delimiter given for multi-value variable {!Q}.",
+                                               entry->Name );
                             writer.Write( String8() << entry->Delim );
                             lastLineLen++;
 
@@ -566,13 +561,13 @@ void IniFile::WriteFile()
 
                         // externalize value
                         Substring src( value );
-                        externalizedValue._();
+                        externalizedValue.Reset();
                         StringConverter->ExternalizeValue( src, externalizedValue, entry->Delim );
 
                         // if first character is a INI comment char, then escape it
                         character firstChar= externalizedValue.CharAt(0);
                         if( !isFirst && (firstChar == '#' || firstChar == ';' ) )
-                            externalizedValue.InsertAt(ASTR("\\"), 0 );
+                            externalizedValue.InsertAt(A_CHAR("\\"), 0 );
 
                         // if assignment, insert spaces to align assignments
                         if (entry->FormatAttrAlignment.IsNotEmpty() )

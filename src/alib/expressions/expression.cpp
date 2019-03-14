@@ -1,26 +1,24 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#include "alib/expressions/expression.hpp"
-#include "alib/expressions/compiler.hpp"
-#include "alib/expressions/detail/virtualmachine.hpp"
-#include "alib/expressions/detail/ast.hpp"
-#include "alib/expressions/scope.hpp"
-#include "alib/expressions/detail/program.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
+#   include "alib/expressions/expression.hpp"
+#endif
 
-
-using namespace std;
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
 
 namespace aworx { namespace lib { namespace expressions {
 
 
 Expression::Expression( const String& sourceString )
-: name          ( lib::EXPRESSIONS.Get(ASTR("ANON_EXPR_NAME")) )
+: name          ( EXPRESSIONS.GetResource("ANON_EXPR_NAME") )
 , program       ( nullptr )
 , originalString( sourceString )
 {}
@@ -39,11 +37,15 @@ aworx::Box  Expression::ResultType()
 aworx::Box  Expression::Evaluate( Scope& scope )
 {
     ALIB_ASSERT_ERROR( program, "Internal error: Expression without program" )
-    ALIB_DBG( Ticks startTime; );
+    #if ALIB_MODULE_TIME && ALIB_DEBUG
+        Ticks startTime;
+    #endif
 
         Box result= program->Run( scope );
 
-    ALIB_DBG( DbgLastEvaluationTime= startTime.Age(); );
+    #if ALIB_MODULE_TIME && ALIB_DEBUG
+        DbgLastEvaluationTime= startTime.Age();
+    #endif
 
     return result;
 }

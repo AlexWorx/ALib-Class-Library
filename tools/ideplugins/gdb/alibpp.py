@@ -30,7 +30,7 @@
     (as of August 2016 versions). As soon as child values are returned, the 'main' pretty
     printing result is not shown.  It is not very probable that this is a fault of this script,
     because this is also true for official pretty printer scripts of standard c++ container classes
-    when used with these IDEs: The objects main value is just not shown with these IDEs.
+    when used with these IDEs: The objects main value is just not shown with these IđDEs.
 
     Therefore, this script is configurable. Configuration is made by adding global symbols
     to (the debug version) of the inferior (the library or executable to debug). This script
@@ -77,7 +77,7 @@
 
 
   Types supported so far:
-    - String, TString, AString, StringLiteral, Tokenizer
+    - String, CString, AString, Tokenizer
     - Directory
     - Ticks
     - Thread, ThreadLock, ThreadLockNR,
@@ -116,21 +116,17 @@ global cfg_alib_wchar_size
 # ############################ Working with the inferior #############################
 #
 class InferiorByteArray(object):
-    def __init__(self, base, wideChar, size):
-        global cfg_alib_wchar_size
-        if wideChar == True:
-            size*= cfg_alib_wchar_size;
+    def __init__(self, base, width, size):
+        size*= width;
         self.data = gdb.selected_inferior().read_memory(base, size)
-        self.wideChar= wideChar
+        self.width= width
 
     def get(self, offset = 0):
-        global cfg_alib_wchar_size
-        if self.wideChar == True:
-            if cfg_alib_wchar_size == 2:
-                return struct.unpack_from("H", self.data, offset * 2)[0]
-            return     struct.unpack_from("I", self.data, offset * 4)[0]
-
-        return         struct.unpack_from("b", self.data, offset)[0]
+        if self.width == 1:
+            return struct.unpack_from("b", self.data, offset    )[0]
+        if self.width == 2:
+            return struct.unpack_from("H", self.data, offset * 2)[0]
+        return     struct.unpack_from("I", self.data, offset * 4)[0]
 
 
 #
@@ -138,7 +134,15 @@ class InferiorByteArray(object):
 #
 
 #----- Compare two ALib strings  ------
-def areEqualStrings(strObject1, strObject2, wideChar):
+def areEqualStrings(strObject1, strObject2, width):
+    if width == 0:
+        if cfg_alib_character_is_wide:
+            width= -1
+        else:
+            width=  1
+
+    if width == -1:
+        width= cfg_alib_wchar_size
 
     # compare length
     length1=     strObject1["length"]
@@ -158,8 +162,8 @@ def areEqualStrings(strObject1, strObject2, wideChar):
         return 0
 
     # compare contents
-    byteArray1 = InferiorByteArray( straddress1, wideChar, length)
-    byteArray2 = InferiorByteArray( straddress2, wideChar, length)
+    byteArray1 = InferiorByteArray( straddress1, width, length)
+    byteArray2 = InferiorByteArray( straddress2, width, length)
     for i in range(0, length ):
         b1=  byteArray1.get(i)
         b2=  byteArray2.get(i)
@@ -171,7 +175,22 @@ def areEqualStrings(strObject1, strObject2, wideChar):
 
 
 #----- Get the string value of an ALib string  ------
-def getASString(strObject, wideChar):
+# Width: 1, 2 or 4
+#        0: default width
+#       -1: default wide width (either 2 or 4)
+def getASString(strObject):
+    return getASString(strObject, 0)
+
+def getASString(strObject, width):
+    if width == 0:
+        if cfg_alib_character_is_wide:
+            width= -1
+        else:
+            width=  1
+
+    if width == -1:
+        width= cfg_alib_wchar_size
+
     straddress= strObject["buffer"]
     length=     strObject["length"]
 
@@ -190,7 +209,7 @@ def getASString(strObject, wideChar):
     else:
         cut=    False
 
-    byteArray = InferiorByteArray( straddress, wideChar, length )
+    byteArray = InferiorByteArray( straddress, width, length )
     asBuffer= ""
     zeroFound= 0
     for i in range(0, length ):
@@ -265,10 +284,10 @@ def getVerbosityString( value ):
 def getLoggerDescription(value):
     name=       value["Name"]
     typeName=   value["TypeName"]
-    result= getASString( name, False )
+    result= getASString( name, 1 )
 
-    if not areEqualStrings( name, typeName, False ):
-        result+= " (" + getASString( typeName, False ) + ")"
+    if not areEqualStrings( name, typeName, 0 ):
+        result+= " (" + getASString( typeName, 1 ) + ")"
     result+= " [" + str(value["CntLogs"] ) + "]"
 
     return result
@@ -393,33 +412,30 @@ def lookup_pp_alib_and_alox( value  ):
                 type= type[9::]
 
                 #--------------------- char -----------------------
-                if type == "StringBase<char>":
-                    asBuffer= getASString( value, False )
+                if type == "TString<char>":
+                    asBuffer= getASString( value, 1 )
                     result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
 
                     children= [ ("buffer"   , value["buffer"]   ),
                                 ("length"   , value["length"]   )   ];
 
-                elif type == "TStringBase<char>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, False ) + '"'
+                elif type == "TCString<char>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 1 ) + '"'
 
-                elif type == "SubstringBase<char>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, False ) + '"'
-
-                elif type[:23] == "StringLiteralBase<char>":
-                    result= "SLiteral<" + str(value["length"]) + '> "'  + getASString( value, False ) + '"'
+                elif type == "TSubstring<char>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 1 ) + '"'
 
 
-                elif type == "AStringBase<char>":
+                elif type == "TAString<char>":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) + "(Ext)"
                     else:
                         result+= str(capacity)
-                    result+= '] "'  + getASString( value, False ) + '"'
+                    result+= '] "'  + getASString( value, 1 ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TStringBase<char>", value.cast(gdb.lookup_type("aworx::lib::strings::TStringBase<char>") ) )
+                    children= [  ( "aworx::lib::strings::TString<char>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                               ];
                     try:
@@ -427,47 +443,44 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:27] == "PreallocatedStringBase<char":
+                elif type[:27] == "TLocalString<char":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) +"(PA)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, False ) + '"'
+                    result+= '] "'  + getASString( value, 1 ) + '"'
 
-                    children= [  ( "aworx::lib::strings::AStringBase<char>", value.cast(gdb.lookup_type("aworx::lib::strings::AStringBase<char>") ) )
+                    children= [  ( "aworx::lib::strings::TAString<char>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                                  ];
 
-                #--------------------- wchar -----------------------
-                if type == "StringBase<wchar_t>":
-                    asBuffer= getASString( value, True )
+                #--------------------- wchar_t -----------------------
+                if type == "TString<wchar_t>":
+                    asBuffer= getASString( value, -1 )
                     result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
 
                     children= [ ("buffer"   , value["buffer"]   ),
                                 ("length"   , value["length"]   )   ];
 
-                elif type == "TStringBase<wchar_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, True ) + '"'
+                elif type == "TCString<wchar_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, -1 ) + '"'
 
-                elif type == "SubstringBase<wchar_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, True ) + '"'
-
-                elif type[:26] == "StringLiteralBase<wchar_t>":
-                    result= "SLiteral<" + str(value["length"]) + '> "'  + getASString( value, True ) + '"'
+                elif type == "TSubstring<wchar_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, -1 ) + '"'
 
 
-                elif type == "AStringBase<wchar_t>":
+                elif type == "TAString<wchar_t>":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) + "(Ext)"
                     else:
                         result+= str(capacity)
-                    result+= '] "'  + getASString( value, True ) + '"'
+                    result+= '] "'  + getASString( value, -1 ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TStringBase<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TStringBase<wchar_t>") ) )
+                    children= [  ( "aworx::lib::strings::TString<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<wchar_t>") ) )
                                 ,( "capacity" , value["capacity"] )
                               ];
                     try:
@@ -475,24 +488,114 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:30] == "PreallocatedStringBase<wchar_t":
+                elif type[:30] == "TLocalString<wchar_t":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) +"(PA)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, True ) + '"'
+                    result+= '] "'  + getASString( value, -1 ) + '"'
 
-                    children= [  ( "aworx::lib::strings::AStringBase<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::AStringBase<wchar_t>") ) )
+                    children= [  ( "aworx::lib::strings::TAString<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<wchar_t>") ) )
+                                ,( "capacity" , value["capacity"] )
+                                 ];
+
+                #--------------------- char16_t -----------------------
+                if type == "TString<char16_t>":
+                    asBuffer= getASString( value, 2 )
+                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+
+                    children= [ ("buffer"   , value["buffer"]   ),
+                                ("length"   , value["length"]   )   ];
+
+                elif type == "TCString<char16_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 2 ) + '"'
+
+                elif type == "TSubstring<char16_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 2 ) + '"'
+
+
+                elif type == "TAString<char16_t>":
+                    result= "[" + str(value["length"]) +"/"
+                    capacity= value["capacity"]
+                    if capacity < 0:
+                        result+=  str(-capacity) + "(Ext)"
+                    else:
+                        result+= str(capacity)
+                    result+= '] "'  + getASString( value, 2 ) + '"'
+
+                    children= [  ( "aworx::lib::strings::TString<char16_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char16_t>") ) )
+                                ,( "capacity" , value["capacity"] )
+                              ];
+                    try:
+                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
+                    except:
+                        pass
+
+                elif type[:30] == "TLocalString<char16_t":
+                    result= "[" + str(value["length"]) +"/"
+                    capacity= value["capacity"]
+                    if capacity < 0:
+                        result+=  str(-capacity) +"(PA)"
+                    else:
+                        result+= str(capacity)  +"(Replaced!)"
+                    result+= '] "'  + getASString( value, 2 ) + '"'
+
+                    children= [  ( "aworx::lib::strings::TAString<char16_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char16_t>") ) )
+                                ,( "capacity" , value["capacity"] )
+                                 ];
+
+                #--------------------- char32_t -----------------------
+                if type == "TString<char32_t>":
+                    asBuffer= getASString( value, 4 )
+                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+
+                    children= [ ("buffer"   , value["buffer"]   ),
+                                ("length"   , value["length"]   )   ];
+
+                elif type == "TCString<char32_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 4 ) + '"'
+
+                elif type == "TSubstring<char32_t>":
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 4 ) + '"'
+
+
+                elif type == "TAString<char32_t>":
+                    result= "[" + str(value["length"]) +"/"
+                    capacity= value["capacity"]
+                    if capacity < 0:
+                        result+=  str(-capacity) + "(Ext)"
+                    else:
+                        result+= str(capacity)
+                    result+= '] "'  + getASString( value, 4 ) + '"'
+
+                    children= [  ( "aworx::lib::strings::TString<char32_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char32_t>") ) )
+                                ,( "capacity" , value["capacity"] )
+                              ];
+                    try:
+                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
+                    except:
+                        pass
+
+                elif type[:30] == "TLocalString<char32_t":
+                    result= "[" + str(value["length"]) +"/"
+                    capacity= value["capacity"]
+                    if capacity < 0:
+                        result+=  str(-capacity) +"(PA)"
+                    else:
+                        result+= str(capacity)  +"(Replaced!)"
+                    result+= '] "'  + getASString( value, 4 ) + '"'
+
+                    children= [  ( "aworx::lib::strings::TAString<char32_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char32_t>") ) )
                                 ,( "capacity" , value["capacity"] )
                                  ];
 
                 #--------------------- util -----------------------
 
                 elif type == "util::Tokenizer":
-                    result= 'Actual="'  + getASString( value["Actual"], cfg_alib_character_is_wide  ) + \
-                             '" Rest="' + getASString( value["Rest"]  , cfg_alib_character_is_wide  ) + '"' + \
+                    result= 'Actual="'  + getASString( value["Actual"]  ) + \
+                             '" Rest="' + getASString( value["Rest"]    ) + '"' + \
                              " Delim='" + chr(value["delim"]) + "'"
 
 
@@ -502,7 +605,7 @@ def lookup_pp_alib_and_alox( value  ):
                 type= type[8::]
 
                 if type == "Directory":
-                    result= getASString( value["Path"], cfg_alib_character_is_wide )
+                    result= getASString( value["Path"] )
 
             #--------------------------------- Time ---------------------------------
             elif type.startswith( 'time::' ):
@@ -556,120 +659,113 @@ def lookup_pp_alib_and_alox( value  ):
 
 
             #--------------------------------- Threads ---------------------------------
-            elif type.startswith( 'threads::' ):
-                type= type[9::]
-                if type == "ThreadLockNR":
-                    tnrIsAcquired= value["dbgIsAcquired"]
-                    result= "Unlocked" if (tnrIsAcquired == 0) else "Locked"
-                    if value["mutex"] == 0:
-                        result+= " (Unsafe mode!)"
+            elif type == "ThreadLockNR":
+                tnrIsAcquired= value["dbgIsAcquired"]
+                result= "Unlocked" if (tnrIsAcquired == 0) else "Locked"
+                if value["mutex"] == 0:
+                    result+= " (Unsafe mode!)"
 
-                    children= [ ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
-                                ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
-                                ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
+                children= [ ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
+                            ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
+                            ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
 
-                elif type == "ThreadLock":
-                    tnrCntLock= value["cntAcquirements"]
-                    if tnrCntLock == 0:
-                        result= "Unlocked"
+            elif type == "ThreadLock":
+                tnrCntLock= value["cntAcquirements"]
+                if tnrCntLock == 0:
+                    result= "Unlocked"
 
-                    elif tnrCntLock == 1:
-                        result= "Locked"
+                elif tnrCntLock == 1:
+                    result= "Locked"
 
-                    elif tnrCntLock < 0:
-                        result= "Illegal State. cntAcquirements=" + str(tnrCntLock)
+                elif tnrCntLock < 0:
+                    result= "Illegal State. cntAcquirements=" + str(tnrCntLock)
 
-                    else:
-                        result= "Locked (" + str(tnrCntLock) +")"
+                else:
+                    result= "Locked (" + str(tnrCntLock) +")"
 
-                    if value["lockMode"] != 0:
-                        result+= " (Non-Recursive)"
-
-                    if value["mutex"] == 0:
-                        result+= " (Unsafe mode!)"
-                    else:
-                        if tnrCntLock >= 1:
-                            result+=  ", Owner: " + "#" + str(value["owner"]["id"]) + ' "' \
-                                      + getASString( value["owner"]["name"], cfg_alib_character_is_wide ) + '"'
+                if value["mutex"] == 0:
+                    result+= " (Unsafe mode!)"
+                else:
+                    if tnrCntLock >= 1:
+                        result+=  ", Owner: " + "#" + str(value["owner"]["id"]) + ' "' \
+                                  + getASString( value["owner"]["name"] ) + '"'
 
 
-                    children= [ ("lockMode"                , value["lockMode"]                ),
-                                ("cntAcquirements"         , value["cntAcquirements"]         ),
-                                ("owner"                   , value["owner"]                   ),
-                                ("mutex"                   , value["mutex"]                   ),
-                                ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
-                                ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
-                                ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
+                children= [ ("cntAcquirements"         , value["cntAcquirements"]         ),
+                            ("owner"                   , value["owner"]                   ),
+                            ("mutex"                   , value["mutex"]                   ),
+                            ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
+                            ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
+                            ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
 
-                elif type == "Thread":
-                    result =  "#" + str(value["id"]) + ' "' + getASString( value["name"], cfg_alib_character_is_wide )
-                    result+=  '" (Alive/' if (value["isAliveFlag"]   != 0) else '" (Not alive/'
-                    result+=  "User)"    if (value["id"]             >  0) else "System)"
-
-
-        ################################## ALox ##################################
-        elif type.startswith( 'lox::' ):
-            type= type[5:]
+            elif type == "Thread":
+                result =  "#" + str(value["id"]) + ' "' + getASString( value["name"] )
+                result+=  '" (Alive/' if (value["isAliveFlag"]   != 0) else '" (Not alive/'
+                result+=  "User)"    if (value["id"]             >  0) else "System)"
 
 
-            #---------------------------- Verbosity ------------------------------
-            if type == "Verbosity":
-                result= getVerbosityString( value )
-
-            #---------------------------- Loggers ------------------------------
-            elif type == "core::Logger"                 or \
-                 type == "core::textlogger::TextLogger" or \
-                 type == "loggers::ConsoleLogger"       or \
-                 type == "loggers::MemoryLogger"        or \
-                 type == "loggers::AnsiLogger"          or \
-                 type == "loggers::AnsiConsoleLogger":
-
-                result= getLoggerDescription( value )
-
-            #---------------------------- Domain ------------------------------
-            elif type == "core::Domain":
-
-                result= ""
-
-                # get absolute domain path
-                domain= value
-                omitFirstSlash= domain["Parent"] != 0
-                while True:
-                    if omitFirstSlash == False:
-                        result=   "/" + result
-                    omitFirstSlash= False
-
-                    if domain["Name"]["length"] != 0:
-                        result= getASString( domain["Name"], False ) + result
-                    domain= domain["Parent"]
-                    if domain == 0:
-                        break
-
-                result+= "  [" + str(value["CntLogCalls"]) + "]"
-
-                children= [    #("Name"              , value["Name"]              ) ,
-                               ("Parent"            , value["Parent"]            ) ,
-                               ("SubDomains"        , value["SubDomains"]        ) ,
-                               ("Data"              , value["Data"]              ) ,
-                               ("FullPath"          , value["FullPath"]          ) ,
-                               ("CntLogCalls"       , value["CntLogCalls"]       ) ,
-                               ("ConfigurationRead" , value["ConfigurationRead"] )   ]
+            ################################## ALox ##################################
+            elif type.startswith( 'lox::' ):
+                type= type[5:]
 
 
-            #---------------------------- Domain::LoggerData ------------------------------
-            elif type == "core::Domain::LoggerData":
-                result = "<"            + getVerbosityString(   value["LoggerVerbosity"]   )
-                result+= ", "           + getLoggerDescription( value["Logger"]            )
-                result+= ", priority="  + str(                  value["Priority"]          )
-                result+= ">["           + str(                  value["LogCallsPerDomain"] ) + "]"
+                #---------------------------- Verbosity ------------------------------
+                if type == "Verbosity":
+                    result= getVerbosityString( value )
 
-                #children= [ ("Name"              , value["Name"]              ) ,
-                #            ("Parent"            , value["Parent"]            ) ,
-                #            ("SubDomains"        , value["SubDomains"]        ) ,
-                #            ("Data"              , value["Data"]              ) ,
-                #            ("FullPath"          , value["FullPath"]          ) ,
-                #            ("CntLogCalls"       , value["CntLogCalls"]       ) ,
-                #            ("ConfigurationRead" , value["ConfigurationRead"] )   ];
+                #---------------------------- Loggers ------------------------------
+                elif type == "core::Logger"                 or \
+                     type == "core::textlogger::TextLogger" or \
+                     type == "loggers::ConsoleLogger"       or \
+                     type == "loggers::MemoryLogger"        or \
+                     type == "loggers::AnsiLogger"          or \
+                     type == "loggers::AnsiConsoleLogger":
+
+                    result= getLoggerDescription( value )
+
+                #---------------------------- Domain ------------------------------
+                elif type == "core::Domain":
+
+                    # get absolute domain path
+                    result= ""
+                    domain= value
+                    omitFirstSlash= domain["Parent"] != 0
+                    while True:
+                        if omitFirstSlash == False:
+                            result=   "/" + result
+                        omitFirstSlash= False
+
+                        if domain["Name"]["length"] != 0:
+                            result= getASString( domain["Name"], 1 ) + result
+                        domain= domain["Parent"]
+                        if domain == 0:
+                            break
+
+                    result+= "  [" + str(value["CntLogCalls"]) + "]"
+
+                    children= [   #("Name"              , value["Name"]              ) ,
+                                   ("Parent"            , value["Parent"]            ) ,
+                                   ("SubDomains"        , value["SubDomains"]        ) ,
+                                   ("Data"              , value["Data"]              ) ,
+                                   ("FullPath"          , value["FullPath"]          ) ,
+                                   ("CntLogCalls"       , value["CntLogCalls"]       ) ,
+                                   ("ConfigurationRead" , value["ConfigurationRead"] )   ]
+
+
+                #---------------------------- Domain::LoggerData ------------------------------
+                elif type == "core::Domain::LoggerData":
+                    result = "<"            + getVerbosityString(   value["LoggerVerbosity"]   )
+                    result+= ", "           + getLoggerDescription( value["Logger"]            )
+                    result+= ", priority="  + str(                  value["Priority"]          )
+                    result+= ">["           + str(                  value["LogCallsPerDomain"] ) + "]"
+
+                    #children= [ ("Name"              , value["Name"]              ) ,
+                    #            ("Parent"            , value["Parent"]            ) ,
+                    #            ("SubDomains"        , value["SubDomains"]        ) ,
+                    #            ("Data"              , value["Data"]              ) ,
+                    #            ("FullPath"          , value["FullPath"]          ) ,
+                    #            ("CntLogCalls"       , value["CntLogCalls"]       ) ,
+                    #            ("ConfigurationRead" , value["ConfigurationRead"] )   ];
 
 
     except Exception as e:
@@ -710,7 +806,7 @@ def lookup_pp_alib_and_alox( value  ):
 def add_printers(obj):
     "Register ALib/ALox pretty printer lookup methods with."
 
-    print( 'ALib: Registering Pretty Printers for ALib and ALox', True  )
+    print( 'ALib: Registering Pretty Printers for ALib', True  )
     gdb.printing.register_pretty_printer(obj, lookup_pp_alib_and_alox, replace=True)
 
 
@@ -735,7 +831,7 @@ else:
     try:
         import alibpp
     except:
-        # TODO: in  /usr/lib/gcc/x86_64-pc-linux-gnu/5.4.0/libstdc++.so.6.0.21-gdb.py  some code
+        # In  /usr/lib/gcc/x86_64-pc-linux-gnu/5.4.0/libstdc++.so.6.0.21-gdb.py  some code
         # is included that inserts the module path to find the library from the object file name
         # not supported today....
         print ( __file__)

@@ -1,15 +1,19 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
-
+#include "alib/alib_precompile.hpp"
 
 #if !defined(HPP_ALIB_SYSTEM_CONSOLE)
     #include "alib/system/console.hpp"
 #endif
+
+#if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB_)
+#   include <cstdlib>
+#endif
+
 
 #if defined(__GLIBCXX__)
 #   include <sys/ioctl.h>

@@ -1,6 +1,7 @@
 
 html/
 build/_builds_
+build/cmake/moduletests/compilation_output.txt
 docs/pages/generated/
 docs/doxygen/dot
 docs/doxygenDotFixer.cfg

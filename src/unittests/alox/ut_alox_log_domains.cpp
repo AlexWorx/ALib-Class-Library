@@ -2,11 +2,15 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alox.hpp"
-#include "alib/compatibility/std_string.hpp"
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+
+
+#include "alib/compatibility/std_characters.hpp"
 
 #include "alib/alox/loggers/memorylogger.hpp"
 
@@ -23,13 +27,13 @@
 #endif
 
 #define TESTCLASSNAME       CPP_ALox_Log_Domains
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace std;
 using namespace ut_aworx;
 
 using namespace aworx;
-using namespace aworx::lib::lox::core::textlogger;
+using namespace aworx::lib::lox::detail::textlogger;
 
 
 namespace ut_alox {
@@ -46,10 +50,9 @@ void ScopeInfoCacheTest2() { Log_Info("Test Method 2"); }
         lox.GetLogableContainer().Add("");              \
         lox.Entry( d, Verbosity::Info );                \
         lox.Release();                                  \
-        UT_EQ(ASTR(s), ml .MemoryLog);                  \
+        UT_EQ(A_CHAR(s), ml .MemoryLog);                  \
         }
 #endif
-
 
 /** ********************************************************************************************
 * UT_CLASS
@@ -73,11 +76,12 @@ UT_METHOD(Lox_IllegalDomainNames)
 
     Log_AddDebugLogger();
     MemoryLogger ml;
-    ml.MetaInfo->Format._()._("<%D>");
     Log_SetVerbosity(&ml, Verbosity::Verbose );
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, ALox::InternalDomains );
+    ml.MetaInfo->Format.Reset("<%D>");
 
-    Lox& lox=  *lib::ALOX.Log();
+    Lox& lox=  *lib::lox::ALox::Log();
+
     LOG_CHECK( ""        , "</>"              , ml,lox);
     LOG_CHECK( "LOC"     , "</LOC>"           , ml,lox);
     LOG_CHECK( "%"       , "</#>"             , ml,lox);
@@ -119,7 +123,7 @@ UT_METHOD(Lox_DomainsRelative)
     MemoryLogger ml;
 
     Lox_SetVerbosity ( &ml, Verbosity::Verbose );
-    ml.MetaInfo->Format._()._("@%D#");
+    ml.MetaInfo->Format.Reset("@%D#");
     Lox_SetDomain( "/D1/D2/D3", Scope::ThreadOuter );
 
     Lox_Info( "D4"                 , "" ); UT_EQ(  "@/D1/D2/D3/D4#"        , ml.MemoryLog ); ml.MemoryLog._(); ml.AutoSizes.Reset();
@@ -147,11 +151,10 @@ UT_METHOD(Log_DomainSubstitutions)
 
     Log_AddDebugLogger();
     MemoryLogger ml;
-    ml.MetaInfo->Format._()._("<%D>");
     Log_SetVerbosity(&ml, Verbosity::Verbose );
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Info, ALox::InternalDomains );
-    Lox& lox=  *lib::ALOX.Log();
-
+    ml.MetaInfo->Format.Reset("<%D>");
+    Lox& lox=  *lib::lox::ALox::Log();
 
         LOG_CHECK( ""     , "</>"                    , ml,lox);
         LOG_CHECK( "LOC"  , "</LOC>"                 , ml,lox);
@@ -221,10 +224,10 @@ UT_METHOD(Log_DomainSubstitutions)
 
     //Log_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
 
-    // substring rule
+    // sub-string rule
     Log_SetDomainSubstitutionRule( "*B*"         , "X"        );   LOG_CHECK( "ABC"  , "</AXC>"                 , ml,lox);
     Log_SetDomainSubstitutionRule( "*B*"         , ""         );   LOG_CHECK( "ABC"  , "</ABC>"                 , ml,lox);
-    // substring rule
+    // sub-string rule
     Log_SetDomainSubstitutionRule( "*/ABC*"      , "DEF"      );   LOG_CHECK( "ABC"  , "</DEF>"                 , ml,lox);
     Log_SetDomainSubstitutionRule( "*EF*"        , "ZZZ"      );   LOG_CHECK( "ABC"  , "</DZZZ>"                , ml,lox);
     Log_SetDomainSubstitutionRule( "*Z*"         , "EE"       );   LOG_CHECK( "ABC"  , "</DEEEEEE>"             , ml,lox);
@@ -268,8 +271,8 @@ UT_METHOD(Log_DomainSubstitutions_IniFile)
     // write sample config file
     {
         std::ofstream iniFile;
-        ALIB_STD_TO_NARROW_TSTRING(fileName,nFileName)
-        iniFile.open ( nFileName.ToCString() );
+        ALIB_STRINGS_TO_NARROW(fileName,nFileName,1024)
+        iniFile.open ( nFileName );
         iniFile << iniFileContents;
         iniFile.close();
     }
@@ -317,11 +320,11 @@ UT_METHOD(Log_Domain_IniFile)
     // Without priorities
     {
         // create iniFile
-        IniFile iniFile(ASTR("*")); // don't read
+        IniFile iniFile(A_CHAR("*")); // don't read
         Variable var;
-        iniFile.Store( var.Declare( ASTR("ALOX"), ASTR("TESTML_FORMAT")),  ASTR("%Sp") );
-        iniFile.Store( var.Declare( ASTR("ALOX"), ASTR("T_LOX_TESTML_VERBOSITY"),';'),
-                    ASTR("/DOM_VERB  = VerboseXX  ;" // xx is allowed!
+        iniFile.Store( var.Declare( A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT")),  A_CHAR("%Sp") );
+        iniFile.Store( var.Declare( A_CHAR("ALOX"), A_CHAR("T_LOX_TESTML_VERBOSITY"),';'),
+                    A_CHAR("/DOM_VERB  = VerboseXX  ;" // xx is allowed!
                          "/DOM_INFO  = Info       ;"
                          "/DOM_WARN  = WARNING    ;"
                          "/DOM_ERR   = erRor      ;"
@@ -446,3 +449,4 @@ UT_CLASS_END
 } // namespace
 
 
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)

@@ -1,36 +1,19 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CONFIG_INI_FILE)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CONFIG_INI_FILE
-//! @cond NO_DOX
 #define HPP_ALIB_CONFIG_INI_FILE 1
-//! @endcond
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
-    #include "alib/config/inmemoryplugin.hpp"
+#   include "alib/config/inmemoryplugin.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace strings { namespace util {
+namespace aworx { namespace lib { namespace strings { namespace compatibility { namespace std {
 class StringWriter;
-}}}}
+}}}}}
 
 
 namespace aworx { namespace lib { namespace config {
@@ -131,7 +114,7 @@ namespace aworx { namespace lib { namespace config {
                  */
                 Entry( const String& name ) : InMemoryPlugin::Entry( name ) {}
 
-                /// Destructor
+                /** Destructor. */
                 virtual ~Entry()    override
                 {}
 
@@ -185,14 +168,15 @@ namespace aworx { namespace lib { namespace config {
             by invoking #WriteFile. Defaults to false */
         bool                             AutoSave                                           = false;
 
-        /// The standard file extension used for \alib configuration files. Defaults to ".ini"
+        /** The standard file extension used for \alib configuration files.
+         *  Defaults to <em>".ini"</em>. */
         static String                    DefaultFileExtension;
 
         /** The file name. This might include a path or not. Should be set properly before
             the file is read. */
         AString                          FileName;
 
-        /// The file header which will be written out as a comment lines with "# " prefixes
+        /** The file header which will be written out as a comment lines with "# " prefixes */
         AString                          FileComments;
 
         /** Is cleared and filled with faulty line numbers when reading the file. (E.g. when a
@@ -205,9 +189,9 @@ namespace aworx { namespace lib { namespace config {
          * Comments that were read from the file preserve their prefix.
          * If comments including one of the valid prefixes are added to a variable or section
          * 'in code', such prefix is preserved. */
-        String                           DefaultCommentPrefix                           =ASTR("# ");
+        String                           DefaultCommentPrefix                           =A_CHAR("# ");
 
-        /// Denotes if a space should be written before a delimiter.
+        /** Denotes if a space should be written before a delimiter. */
         bool                             FormatSpaceBeforeDelim                             = false;
 
         /** Denotes if a space should be written after a delimiter. (Applies only to single
@@ -308,15 +292,14 @@ namespace aworx { namespace lib { namespace config {
     protected:
 
         /** ****************************************************************************************
-         * Overrides base classes method to create a section of our type.
+         * Overrides base class's method to create a section of our type.
          *
-         * Checks for resource string <c>"INI_CMT_sectionName"</c> in config library singleton
-         * \ref aworx::lib::CONFIG. If found, the comment is added. Therefore, to add a default
-         * comment, in the bootstrap section of the software, such resources may be added to the
-         * resources of library <b>aworx::lib::CONFIG</b>.<br>
-         * The comment string read from the resources is formatted using
-         * \alib{strings::format,SimpleTextBase::AddMarked,SimpleText::AddMarked}.
-         *
+         * Checks for resource string <c>"INI_CMT_sectionName"</c> in module singleton
+         * \alib{config,Config}. If found, the comment is added. Therefore, to add a default
+         * comment, in the bootstrap section of the software, such resources may be added to
+         * field \alib{Module::Resources} of singleton \alib{config,Config}.<br>
+         * The comment string read from the resources is formatted using method
+         * \alib{stringformat,Text::AddMarked} of a text formatting helper.
          *
          * @param sectionName    The name of the section.
          * @return An object of type \ref Section "IniFile::Section".
@@ -330,8 +313,8 @@ namespace aworx { namespace lib { namespace config {
          * @param comments The comment lines for the section.
          ******************************************************************************************/
         ALIB_API
-        void                writeComments( strings::util::StringWriter&   os,
-                                           const AString&                       comments );
+        void                writeComments( strings::compatibility::std::StringWriter&   os,
+                                           const AString&                      comments );
 
 };
 
@@ -341,6 +324,6 @@ namespace aworx { namespace lib { namespace config {
 /// Type alias in namespace #aworx.
 using     IniFile=       aworx::lib::config::IniFile;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALIB_CONFIG_INI_FILE

@@ -1,0 +1,452 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2C2C70DA-BC59-49F0-9C1B-2DB5BB2CD50E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ALibCPPDLL</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>ALib-CPP-DLL</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/../../../src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
+    <TargetName>ALib_$(Platform)_$(Configuration)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/../../../src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
+    <TargetName>ALib_$(Platform)_$(Configuration)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/../../../src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
+    <TargetName>ALib_$(Platform)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(ProjectDir)/../../../src;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\bin_$(Platform)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_builds_\ide.cpp.vstudio\tmp_$(Platform)_$(Configuration)_$(ProjectName)\</IntDir>
+    <TargetName>ALib_$(Platform)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>NotSet</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\alib\alib_precompile.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\alox.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\alox_console_loggers.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\alox_predef.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\detail\textlogger\plaintextlogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\detail\textlogger\textlogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\ansilogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\consolelogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\memorylogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\textfilelogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\vstudiologger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\logtools.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\reportwriter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\variables.hpp" />
+    <ClInclude Include="..\..\..\src\alib\boxing\boxing.hpp" />
+    <ClInclude Include="..\..\..\src\alib\boxing\dbgboxing.hpp" />
+    <ClInclude Include="..\..\..\src\alib\boxing\enum.hpp" />
+    <ClInclude Include="..\..\..\src\alib\boxing\fwds.hpp" />
+    <ClInclude Include="..\..\..\src\alib\characters\characters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\characters\characters_predef.hpp" />
+    <ClInclude Include="..\..\..\src\alib\characters\chararray.hpp" />
+    <ClInclude Include="..\..\..\src\alib\cli\arguments.hpp" />
+    <ClInclude Include="..\..\..\src\alib\cli\cli.hpp" />
+    <ClInclude Include="..\..\..\src\alib\cli\cliapp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\cli\cliutil.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\qt_boxing.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\qt_characters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\qt_strings.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_boxing.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_boxing_functional.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_characters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_strings_functional.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_strings_iostream.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\config.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\configuration.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\inifile.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\inmemoryplugin.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\plugins.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\variable.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\enumarithmetical.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\enumbitwise.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\enumiterators.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\enumvalue.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\compiler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\compilerplugin.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\ast.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\parser.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\parser_impl.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\program.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\spirit.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\detail\virtualmachine.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\expression.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\expressions.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\arithmetics.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\autocast.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\calculus.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\dateandtime.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\elvisoperator.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\math.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\scopestring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\plugins\strings.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\scope.hpp" />
+    <ClInclude Include="..\..\..\src\alib\expressions\util\expressionformatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\alibmodules.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\assert.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\commonenums.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\commonenumsresourced.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\integers.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\module.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\owner.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\plugincontainer.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_compiler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_features.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_modules.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_platform.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_tmp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\predef_tools.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\typedemangler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\typemap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\memory\memoryblocks.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\enummetadata.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\enummetadataspec.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\resourcedtupleloader.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\resources.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\resourcestring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\results\exception.hpp" />
+    <ClInclude Include="..\..\..\src\alib\results\iclonemessageargument.hpp" />
+    <ClInclude Include="..\..\..\src\alib\results\message.hpp" />
+    <ClInclude Include="..\..\..\src\alib\results\report.hpp" />
+    <ClInclude Include="..\..\..\src\alib\results\results.hpp" />
+    <ClInclude Include="..\..\..\src\alib\singletons\singleton.hpp" />
+    <ClInclude Include="..\..\..\src\alib\singletons\singletons_predef.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\formatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\formatterjavastyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\formatterpythonstyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\formatterstdimpl.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\fwds.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\propertyformatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\propertyformatters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\stringformat.hpp" />
+    <ClInclude Include="..\..\..\src\alib\stringformat\text.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\astring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\cstring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\detail\numberconversion.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\fwds.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\localstring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\numberformat.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\string.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\stringnzt.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\substring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\autosizes.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\regexmatcher.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\spaces.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\stringtree.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\stringtuples.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\subsearch.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\token.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\tokenizer.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\util\wildcardmatcher.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\calendar.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\console.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\directory.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\environment.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\processinfo.hpp" />
+    <ClInclude Include="..\..\..\src\alib\system\system.hpp" />
+    <ClInclude Include="..\..\..\src\alib\threads\smartlock.hpp" />
+    <ClInclude Include="..\..\..\src\alib\threads\thread.hpp" />
+    <ClInclude Include="..\..\..\src\alib\threads\threadlock.hpp" />
+    <ClInclude Include="..\..\..\src\alib\threads\threadlocknr.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\datetime.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\stopwatch.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\tickconverter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\ticks.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\time.hpp" />
+    <ClInclude Include="..\..\..\src\alib\time\timepointbase.hpp" />
+    <ClInclude Include="targetver.h" />
+    <ClCompile Include="..\..\..\src\alib\alox\alox.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\domain.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\scopedump.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\scopeinfo.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\scopestore.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\textlogger\plaintextlogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\textlogger\textlogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\log.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\ansilogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\consolelogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\textfilelogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\vstudiologger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\logtools.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\lox.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\lox_getstate.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\reportwriter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\boxing\boxing.cpp" />
+    <ClCompile Include="..\..\..\src\alib\boxing\dbgboxing.cpp" />
+    <ClCompile Include="..\..\..\src\alib\boxing\detail\vtable.cpp" />
+    <ClCompile Include="..\..\..\src\alib\characters\chararray.cpp" />
+    <ClCompile Include="..\..\..\src\alib\cli\arguments.cpp" />
+    <ClCompile Include="..\..\..\src\alib\cli\cli.cpp" />
+    <ClCompile Include="..\..\..\src\alib\cli\cliapp.cpp" />
+    <ClCompile Include="..\..\..\src\alib\cli\cliutil.cpp" />
+    <ClCompile Include="..\..\..\src\alib\compatibility\std_strings_iostream.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\config.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\configuration.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\inifile.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\inmemoryplugin.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\plugins.cpp" />
+    <ClCompile Include="..\..\..\src\alib\config\variable.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\compiler.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\ast.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\parser.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\parser_impl.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\program.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\spirit.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\detail\virtualmachine.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\expression.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\expressions.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\arithmetics.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\autocast.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\calculus.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\dateandtime.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\elvisoperator.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\math.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\plugins\strings.cpp" />
+    <ClCompile Include="..\..\..\src\alib\expressions\util\expressionformatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\alibmodules.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\assert.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\module.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\typedemangler.cpp" />
+    <ClCompile Include="..\..\..\src\alib\memory\memoryblocks.cpp" />
+    <ClCompile Include="..\..\..\src\alib\resources\enummetadata.cpp" />
+    <ClCompile Include="..\..\..\src\alib\resources\resources.cpp" />
+    <ClCompile Include="..\..\..\src\alib\resources\resourcestring.cpp" />
+    <ClCompile Include="..\..\..\src\alib\results\exception.cpp" />
+    <ClCompile Include="..\..\..\src\alib\results\report.cpp" />
+    <ClCompile Include="..\..\..\src\alib\results\results.cpp" />
+    <ClCompile Include="..\..\..\src\alib\singletons\singleton.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\formatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\formatterjavastyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\formatterpythonstyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\formatterstdimpl.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\propertyformatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\stringformat.cpp" />
+    <ClCompile Include="..\..\..\src\alib\stringformat\text.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\appendables.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\astring.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\detail\numberconversion.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\numberformat.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\string.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\substring.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\autosizes.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\regexmatcher.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\spaces.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\subsearch.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\token.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\tokenizer.cpp" />
+    <ClCompile Include="..\..\..\src\alib\strings\util\wildcardmatcher.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\calendar.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\console.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\directory.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\environment.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp" />
+    <ClCompile Include="..\..\..\src\alib\system\system.cpp" />
+    <ClCompile Include="..\..\..\src\alib\threads\smartlock.cpp" />
+    <ClCompile Include="..\..\..\src\alib\threads\thread.cpp" />
+    <ClCompile Include="..\..\..\src\alib\threads\threadlock.cpp" />
+    <ClCompile Include="..\..\..\src\alib\time\time.cpp" />
+    <ClCompile Include="ALib-CPP-DLL.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeader>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level3</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level3</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="stdafx_alib.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\alib\alox\detail\domain.inl" />
+    <None Include="..\..\..\src\alib\alox\detail\logger.inl" />
+    <None Include="..\..\..\src\alib\alox\detail\scopedump.inl" />
+    <None Include="..\..\..\src\alib\alox\detail\scopeinfo.inl" />
+    <None Include="..\..\..\src\alib\alox\detail\scopestore.inl" />
+    <None Include="..\..\..\src\alib\alox\log.inl" />
+    <None Include="..\..\..\src\alib\alox\lox.inl" />
+    <None Include="..\..\..\src\alib\alox\macros.inl" />
+    <None Include="..\..\..\src\alib\boxing\box.inl" />
+    <None Include="..\..\..\src\alib\boxing\boxes.inl" />
+    <None Include="..\..\..\src\alib\boxing\customizations.inl" />
+    <None Include="..\..\..\src\alib\boxing\detail\vtable.inl" />
+    <None Include="..\..\..\src\alib\boxing\functiondefs.inl" />
+    <None Include="..\..\..\src\alib\boxing\functions.inl" />
+    <None Include="..\..\..\src\alib\boxing\placeholder.inl" />
+    <None Include="..\..\..\src\alib\boxing\typetraits.inl" />
+    <None Include="..\..\..\src\alib\strings\appendables.inl" />
+    <None Include="..\..\..\src\alib\strings\chararraytraits.inl" />
+    <None Include="..\..\..\src\alib\system\directory.mm" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

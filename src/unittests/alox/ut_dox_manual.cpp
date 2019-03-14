@@ -2,11 +2,16 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+
+
 #include "alib/alox.hpp"
-#include "alib/compatibility/std_string.hpp"
+#include "alib/compatibility/std_characters.hpp"
 
 #include "alib/alox/loggers/memorylogger.hpp"
 
@@ -15,12 +20,16 @@
 #include <vector>
 
 #define TESTCLASSNAME       CPP_Dox_ReferenceManual
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace std;
 using namespace ut_aworx;
 
 using namespace aworx;
+
+//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
+#include "alib/alox/reportwriter.hpp"
+//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
 
 namespace ut_alox {
 
@@ -81,3 +90,4 @@ UT_CLASS_END
 } // namespace
 
 
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)

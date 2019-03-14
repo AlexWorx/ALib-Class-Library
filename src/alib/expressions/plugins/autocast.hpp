@@ -1,10 +1,9 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST
 
@@ -35,8 +34,8 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *    The expression function returned for (optional) decompilation is \b "Integer()".
  *
  * 5. If one argument is of type \alib{expressions,Types::Boolean}, the other is converted to
- *    boolean using an internal callback function that simply invokes boxing interface
- *    \alib{boxing,IIsTrue}.
+ *    boolean using an internal callback function that simply invokes box-function
+ *    \alib{boxing,FIsTrue}.
  *    The expression function returned for (optional) decompilation is \b "Boolean()".
  **************************************************************************************************/
 struct AutoCast  : public CompilerPlugin
@@ -50,7 +49,7 @@ struct AutoCast  : public CompilerPlugin
     /** ********************************************************************************************
      * Virtual destructor.
      **********************************************************************************************/
-    virtual        ~AutoCast()                                                       override
+    virtual        ~AutoCast()                                                              override
     {}
 
     /** ********************************************************************************************
@@ -60,7 +59,7 @@ struct AutoCast  : public CompilerPlugin
      * @return \c true if an entry was found. \c false otherwise.
      **********************************************************************************************/
     ALIB_API
-    virtual bool    TryCompilation( CIBinaryAutoCast& ciAutoCast )         override;
+    virtual bool    TryCompilation( CIAutoCast& ciAutoCast )                               override;
 };
 
 }}}} // namespace [aworx::lib::expressions::detail]

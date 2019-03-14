@@ -1,30 +1,18 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// include ALox main header first...
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALOX_CONSOLE_LOGGER
 #define HPP_ALOX_CONSOLE_LOGGER 1
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
 #if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
-    #include "alib/alox/core/textlogger/plaintextlogger.hpp"
+    #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGS_UTIL_STRING_IO)
-    #include "alib/strings/util/stringio.hpp"
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+    #include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
 
@@ -44,10 +32,10 @@ namespace loggers {
  * \alox text logger escape sequences (see class \ref aworx::lib::lox::ESC "ESC")
  * are removed and ignored.
  **************************************************************************************************/
-class ConsoleLogger : public core::textlogger::PlainTextLogger
+class ConsoleLogger : public detail::textlogger::PlainTextLogger
 {
     protected:
-        /// The encapsulated output stream.
+        /** The encapsulated output stream. */
         StringWriter      writer;
 
     // #############################################################################################
@@ -79,7 +67,7 @@ class ConsoleLogger : public core::textlogger::PlainTextLogger
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool        notifyLogOp( lib::lang::Phase phase );
+        virtual bool        notifyLogOp( Phase phase );
 
         /** ****************************************************************************************
          * Writes the given region of the given string to the console.
@@ -97,7 +85,7 @@ class ConsoleLogger : public core::textlogger::PlainTextLogger
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
         inline
-        virtual void        notifyMultiLineOp( lib::lang::Phase )    {}
+        virtual void        notifyMultiLineOp( Phase )    {}
 
 }; // class ConsoleLogger
 
@@ -107,7 +95,7 @@ class ConsoleLogger : public core::textlogger::PlainTextLogger
 /// Type alias in namespace #aworx.
 using     ConsoleLogger=           aworx::lib::lox::loggers::ConsoleLogger;
 
-}  // namespace aworx
+}  // namespace [aworx]
 
 #endif // HPP_ALOX_CONSOLE_LOGGER
 

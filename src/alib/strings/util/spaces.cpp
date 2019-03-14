@@ -1,15 +1,15 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
 #include "alib/strings/util/spaces.hpp"
+#include "alib/strings/astring.hpp"
 
-#include <iostream>
-
+#include <ostream>
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -51,6 +51,7 @@ void    Spaces::Write( std::basic_ostream<char>& os, integer qty )
     }
 }
 
+#if ALIB_CHARACTERS_NATIVE_WCHAR
 void    Spaces::Write( std::basic_ostream<wchar_t>& os, integer qty )
 {
     if( wSpaces.Length() < 128 )
@@ -63,7 +64,7 @@ void    Spaces::Write( std::basic_ostream<wchar_t>& os, integer qty )
         qty-= size;
     }
 }
-
+#endif
 
 }}}} // namespace [aworx::lib::strings::util]
 

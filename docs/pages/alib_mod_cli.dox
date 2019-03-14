@@ -1,0 +1,107 @@
+// #################################################################################################
+//  Documentation - ALib C++ Library
+//
+//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_mod_cli   ALib Module CLI - Programmer's Manual
+
+
+\tableofcontents
+
+\attention
+  Unfortunately, this \alibmod is not completed and is more or less in an alpha version state.
+  You might want to wait for a next library release to see this fixed!<br>
+  And the situation is even worse for this Programmer's Manual: <b>It is just not written, yet!</b><br>
+
+\attention
+  ... apart from a few words!
+
+
+
+
+\~Comment ####################################################################################### \~
+# 1. Introduction # {#alib_cli_intro}
+
+This \alibmod supports the processing of command line parameters.
+Such processing is not only useful with "pure CLI commands" but also with software that only
+optionally receive arguments, may it be daemons or GUI applications.
+
+The processing of command line parameters is very much dependent on the field of application and the
+parameter and option "syntax" that needs to be supported.
+Therefore, by definition, helper classes like this can never support each and every use case and
+any unforeseen tweak a user want to implement. (At least we were not able to implement it that
+way.)
+
+Therefore, the software found in this module:
+- Uses "Bauhaus code style" that is often typical for \alib. For example, fields are mostly public
+  and the interface methods allow data modifications between the several steps of their invocation.
+
+- Is incomplete and even partly inconsistent in respect to what can be defined as commands,
+  parameters, etc. and what action can be "automated" with the information provided.
+
+This means, that using the module provides a guideline on how to implement the CLI processing,
+but not a full-featured CLI processor that just needs some custom callback functions.
+Positively spoken: The implementable syntax of the CLI interface is completely open
+and not limited when this module is used.
+
+\~Comment ####################################################################################### \~
+## 1.1 Enum Meta Data # {#alib_cli_intro_enum}
+The classes found in this namespace make a lot of use of
+\alib{resources,T_EnumMetaDataDecl,ALib enum meta data} retrieved from an instance of type
+\alib{resources,Resources}, usually the one found in the singleton of the associated \alib{Module}.
+Therefore, it is a good advice to get familiar with the features provided by module
+\alibmod_resources before using this class.
+
+\~Comment ####################################################################################### \~
+# 2. Defining Commands, Parameters, Options and ExitCodes # {#alib_cli_defines}
+Objects of the structs
+\alib{cli,CommandDecl},
+\alib{cli,ParameterDecl},
+\alib{cli,OptionDecl} and
+\alib{cli,ExitCodeDecl},
+are all defined using \alib{resources,T_EnumMetaDataDecl,resourced ALib enum meta data}.
+The type definition of the meta data for these object types has to strictly follow
+a fixed scheme which is documented with the types.
+Make a custom enumeration defining one of the types, specific macros provided by this module have
+to be used.
+(As suggested in the \alib{resources,T_EnumMetaDataDecl,documentation of enum meta data}, the macros
+in turn use macro \ref ALIB_ENUM_SPECIFICATION_DECL.)
+
+The following table summarizes the types and corresponding macros:
+
+|Object Type               | Macro To Use
+|--------------------------|----------------------------------------------------
+|\alib{cli,CommandDecl}    | \ref ALIB_CLI_COMMANDS   "ALIB_CLI_COMMANDS( TEnum, ResourceModule, ResourceName )"
+|\alib{cli,ParameterDecl}  | \ref ALIB_CLI_PARAMETERS "ALIB_CLI_PARAMETERS( TEnum, ResourceModule, ResourceName )"
+|\alib{cli,OptionDecl}     | \ref ALIB_CLI_OPTIONS    "ALIB_CLI_OPTIONS( TEnum, ResourceModule, ResourceName )"
+|\alib{cli,ExitCodeDecl}   | \ref ALIB_CLI_EXIT_CODES "ALIB_CLI_EXIT_CODES( TEnum, ResourceModule, ResourceName )"
+
+\~Comment ####################################################################################### \~
+# 3. Allowing Other Parts Of The Software To Access CLI Arguments # {#alib_cli_arg_sharing}
+
+This class uses its own copy of the argument list and exposes the original arguments with fields
+\alib{cli::CLIApp,ArgcOriginal},
+\alib{cli::CLIApp,ArgNOriginal} and
+\alib{cli::CLIApp,ArgWOriginal}, so that other parts of the software have full access to the CLI.
+In addition, this class exposes field \alib{cli::CLIApp,OptionArgsIgnored},
+that hold all CLI arguments that start with a hyphen <c>'-'</c> and are not recognized
+by \alib{cli,OptionDecl}. A software might use this shortened list to look for options.
+
+With the use of module \alibmod_config such use of CLI arguments outside of this module already
+occurs: \alib{config,Variable,Configuration variables} can be defined using CLI parameters
+the same as by using environment variables, configuration files or other data sources.
+And such use should still be possible, independent from the CLI interface.
+
+The other way round, arguments may be removed from the internal list held by this class, prior
+to have this class processing the arguments. Note that this is a must for  arguments that do not
+start with a hyphen (and are addressing other software parts), because such arguments would
+lead to "unknown command" errors.
+Such removal has to be done after the invocations of the various \b %Define methods and prior
+to invoking \alib{cli,CLIApp::ReadOptions}.
+
+*/
+
+

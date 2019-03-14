@@ -1,16 +1,18 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM
 #define HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM
 
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
-#   include "virtualmachine.hpp"
+#   include "alib/expressions/detail/virtualmachine.hpp"
+#endif
+
+#ifndef HPP_ALIB_EXPRESSIONS_COMPILER
+#   include "alib/expressions/compiler.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace expressions {
@@ -30,6 +32,9 @@ namespace detail {
 /** ************************************************************************************************
  * This class represents a program that is "run on" the \alib{expressions,detail::VirtualMachine}
  * to evaluate an expression.
+ *
+ * ## Friends ##
+ * class \alib{expressions,detail::VirtualMachine}
  **************************************************************************************************/
 class Program : protected std::vector<VirtualMachine::Command>
 {
@@ -37,7 +42,7 @@ class Program : protected std::vector<VirtualMachine::Command>
     // Public fields
     // #############################################################################################
     public:
-        /// The compiler that created this object.
+        /** The compiler that created this object. */
         Compiler&                   compiler;
 
 
@@ -48,10 +53,12 @@ class Program : protected std::vector<VirtualMachine::Command>
         /// Shortcut.
         using VM= VirtualMachine;
 
-        /// Machine has full access.
-        friend class VirtualMachine;
+        #if !ALIB_DOCUMENTATION_PARSER
+            // Machine has full access.
+            friend class VirtualMachine;
+        #endif
 
-        /// The expression that this program evaluates.
+        /** The expression that this program evaluates. */
         Expression&                 expression;
 
         /**
@@ -66,7 +73,7 @@ class Program : protected std::vector<VirtualMachine::Command>
          */
         std::vector<SPExpression>   ctNestedExpressions;
 
-        /// Counter of the number of optimization made during program assembly.
+        /** Counter of the number of optimization made during program assembly. */
         int                         qtyOptimizations;
 
         /**
@@ -83,10 +90,10 @@ class Program : protected std::vector<VirtualMachine::Command>
             {}
 
 
-            /// The compiler plug-ins providing the native C++ implementations of callback functions.
+            /** The compiler plug-ins providing the native C++ implementations of callback functions. */
             Compiler::Plugins&      plugins;
 
-            /// Used with compilation. Stores the positions of current results types adding new commands.
+            /** Used with compilation. Stores the positions of current results types adding new commands. */
             std::vector<VM::PC>     resultStack;
 
             /**
@@ -97,7 +104,7 @@ class Program : protected std::vector<VirtualMachine::Command>
 
             /**
              * Needed during compilation. Collects information from plug-ins to create meaningful
-             * exceptions.
+             * messages.
              */
             std::vector<AString>    functionsWithNonMatchingArguments;
         };
@@ -225,7 +232,7 @@ class Program : protected std::vector<VirtualMachine::Command>
 
         /** ****************************************************************************************
          * Add a command that invokes a native function that implements an unary operator.
-         * @param op               The operator to to add a command for.
+         * @param op               The operator to add a command for.
          * @param idxInOriginal    The index of the operator in the expression string.
          * @param idxInNormalized  The index of the operator in the normalized expression string.
          ******************************************************************************************/
@@ -234,7 +241,7 @@ class Program : protected std::vector<VirtualMachine::Command>
 
         /** ****************************************************************************************
          * Add a command that invokes a native function that implements a binary operator.
-         * @param op               The operator to to add a command for.
+         * @param op               The operator to add a command for.
          * @param idxInOriginal    The index of the operator in the expression string.
          * @param idxInNormalized  The index of the operator in the normalized expression string.
          ******************************************************************************************/

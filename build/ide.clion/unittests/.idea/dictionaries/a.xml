@@ -8,23 +8,31 @@
       <w>bitflags</w>
       <w>boxable</w>
       <w>brainer</w>
+      <w>constructible</w>
       <w>deallocates</w>
+      <w>declarators</w>
       <w>demangle</w>
       <w>doxed</w>
+      <w>emplacing</w>
       <w>endverbatim</w>
       <w>formattable</w>
       <w>istream</w>
       <w>iteratable</w>
+      <w>omitable</w>
       <w>ored</w>
       <w>ostream</w>
       <w>overrideable</w>
       <w>postfixed</w>
       <w>preallocated</w>
+      <w>roadmaps</w>
+      <w>shortenable</w>
       <w>signedness</w>
       <w>specializable</w>
+      <w>surjective</w>
       <w>toolchains</w>
       <w>tparam</w>
       <w>uinteger</w>
+      <w>unboxes</w>
       <w>unwinded</w>
       <w>useable</w>
       <w>vtable</w>

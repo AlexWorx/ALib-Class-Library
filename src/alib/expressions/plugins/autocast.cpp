@@ -1,31 +1,30 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
-
-#include "alib/alib.hpp"
-#include "alib/strings/substring.hpp"
-
-#include "autocast.hpp"
-#include "scopestring.hpp"
-
-// although this is not derived from calculus, we use its public type mechanics.
-#include "../plugins/calculus.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST)
+#   include "alib/expressions/plugins/autocast.hpp"
+#endif
 
 // we are using method ToString
-#include "../plugins/strings.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
+#   include "alib/expressions/plugins/strings.hpp"
+#endif
 
 // ...and method ToBoolean
-#include "../plugins/arithmetics.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
+#   include "alib/expressions/plugins/arithmetics.hpp"
+#endif
 
 //! @cond NO_DOX
 
 #define ARG0           (*args)
 #define BOL(box)       (box).Unbox<bool     >()
-#define INT(box)       (box).Unbox<boxed_int>()
+#define INT(box)       (box).Unbox<integer>()
 //#define FLT(box)       (box).Unbox<double   >()
 #define FUNC( name,...) Box name( Scope& scope,                                                  \
                                   ArgIterator  args,                                            \
@@ -53,16 +52,16 @@ enum class SortedTypes
 SortedTypes   SortedType( Type type )
 {
     if( type.IsType<bool     >() )      return SortedTypes::Bool;
-    if( type.IsType<boxed_int>() )      return SortedTypes::Integer;
+    if( type.IsType<integer>() )      return SortedTypes::Integer;
     if( type.IsType<double   >() )      return SortedTypes::Float;
     if( type.IsType<String   >() )      return SortedTypes::String;
     return SortedTypes::UNKNOWN;
 }
 
 // conversion integer to float.
-FUNC( castI2F     , return static_cast<double>( INT(ARG0) );  )
-FUNC( castB2F     , return static_cast<double>( BOL(ARG0) );  )
-FUNC( castB2I     , return static_cast<int   >( BOL(ARG0));   )
+FUNC( castI2F     , return static_cast<double >( INT(ARG0) );  )
+FUNC( castB2F     , return static_cast<double >( BOL(ARG0) );  )
+FUNC( castB2I     , return static_cast<integer>( BOL(ARG0));   )
 
 } // anonymous namespace
 
@@ -70,8 +69,12 @@ FUNC( castB2I     , return static_cast<int   >( BOL(ARG0));   )
 // #################################################################################################
 // ### AutoCast - TryCompilation
 // #################################################################################################
-bool AutoCast::TryCompilation( CIBinaryAutoCast& ciAutoCast )
+bool AutoCast::TryCompilation( CIAutoCast& ciAutoCast )
 {
+    // we do not work on unary ops
+    if ( ciAutoCast.ArgsBegin + 1 >= ciAutoCast.ArgsEnd )
+        return false;
+
     // convert the minor type to the major
     SortedTypes t1= SortedType( * ciAutoCast.ArgsBegin    );
     SortedTypes t2= SortedType( *(ciAutoCast.ArgsBegin+1) );
@@ -91,7 +94,7 @@ bool AutoCast::TryCompilation( CIBinaryAutoCast& ciAutoCast )
     if( major == SortedTypes::String )
     {
         upgradeCast             =  CBToString;
-        decompileFunctionCall   =     ASTR("String");
+        decompileFunctionCall   =     A_CHAR("String");
 ALIB_DBG(upgradeCastDBG         = "CBToString"; )
     }
 
@@ -99,7 +102,7 @@ ALIB_DBG(upgradeCastDBG         = "CBToString"; )
     else if( major == SortedTypes::Float && minor == SortedTypes::Integer )
     {
         upgradeCast             =  castI2F;
-        decompileFunctionCall   =  ASTR("Float");
+        decompileFunctionCall   =  A_CHAR("Float");
 ALIB_DBG(upgradeCastDBG         = "castI2F"; )
 
     }
@@ -108,7 +111,7 @@ ALIB_DBG(upgradeCastDBG         = "castI2F"; )
     else if( major == SortedTypes::Float && minor == SortedTypes::Bool    )
     {
         upgradeCast             =  castB2F;
-        decompileFunctionCall   =  ASTR("Float");
+        decompileFunctionCall   =  A_CHAR("Float");
 ALIB_DBG(upgradeCastDBG         = "castB2F"; )
 
     }
@@ -117,7 +120,7 @@ ALIB_DBG(upgradeCastDBG         = "castB2F"; )
     else if( major == SortedTypes::Integer && minor == SortedTypes::Bool  )
     {
         upgradeCast             =  castB2I;
-        decompileFunctionCall   =   ASTR("Integer");
+        decompileFunctionCall   =   A_CHAR("Integer");
 ALIB_DBG(upgradeCastDBG         = "castB2I"; )
     }
 
@@ -125,7 +128,7 @@ ALIB_DBG(upgradeCastDBG         = "castB2I"; )
     else if( major == SortedTypes::Bool )
     {
         upgradeCast             =  ToBoolean;
-        decompileFunctionCall   =   ASTR("Boolean");
+        decompileFunctionCall   =   A_CHAR("Boolean");
 ALIB_DBG(upgradeCastDBG         = "ToBoolean"; )
     }
 
@@ -137,19 +140,19 @@ ALIB_DBG(upgradeCastDBG         = "ToBoolean"; )
     {
         ciAutoCast.Callback                       = upgradeCast;
         ciAutoCast.TypeOrValue                    = *(ciAutoCast.ArgsBegin + 1);
-        ciAutoCast.CastExpressionFunctionNameLhs  = decompileFunctionCall;
-ALIB_DBG(ciAutoCast.DbgCallBackName= upgradeCastDBG; )
+        ciAutoCast.ReverseCastFunctionName     = decompileFunctionCall;
+ALIB_DBG(ciAutoCast.DbgCallbackName= upgradeCastDBG; )
     }
     else
     {
         ciAutoCast.CallbackRhs                    = upgradeCast;
         ciAutoCast.TypeOrValueRhs                 = *(ciAutoCast.ArgsBegin    );
-        ciAutoCast.CastExpressionFunctionNameRhs  = decompileFunctionCall;
-ALIB_DBG(ciAutoCast.DbgCallBackNameRhs= upgradeCastDBG; )
+        ciAutoCast.ReverseCastFunctionNameRhs  = decompileFunctionCall;
+ALIB_DBG(ciAutoCast.DbgCallbackNameRhs= upgradeCastDBG; )
     }
 
-    // If constant values were given, we can we do it right away (compile time optimization)
-         if( ciAutoCast.LhsIsConst && ciAutoCast.Callback != nullptr )
+    // If constant values were given, we can we do it right away (compile-time optimization)
+         if( ciAutoCast.IsConst    && ciAutoCast.Callback != nullptr )
     {
         ciAutoCast.TypeOrValue   = ciAutoCast.Callback( ciAutoCast.CompileTimeScope,
                                                         ciAutoCast.ArgsBegin       ,
@@ -172,4 +175,9 @@ ALIB_DBG(ciAutoCast.DbgCallBackNameRhs= upgradeCastDBG; )
 
 }}}} // namespace [aworx::lib::expressions::detail]
 
+#undef ARG0
+#undef BOL
+#undef INT
+//#undef FLT
+#undef FUNC
 //! @endcond

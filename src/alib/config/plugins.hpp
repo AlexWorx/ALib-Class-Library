@@ -1,25 +1,11 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
-// check for alib.hpp already there but not us
-#if !defined (HPP_ALIB)
-    #error "include \"alib/alib.hpp\" before including this header"
-#endif
-#if defined(HPP_COM_ALIB_TEST_INCLUDES) && defined(HPP_ALIB_CONFIG_PLUGINS)
-    #error "Header already included"
-#endif
-
-// then, set include guard
 #ifndef HPP_ALIB_CONFIG_PLUGINS
-//! @cond NO_DOX
 #define HPP_ALIB_CONFIG_PLUGINS 1
-//! @endcond
-
 
 #if !defined (HPP_ALIB_CONFIG_VARIABLE)
     #include "alib/config/variable.hpp"
@@ -127,7 +113,7 @@ class XTernalizer
  *
  * Category and Variable names are character case insensitive for the plug-ins predefined
  * with \alib.
- * It is recommended to to ignore character case in custom specializations of this class
+ * It is recommended to ignore character case in custom specializations of this class
  * as well.
  **************************************************************************************************/
 class ConfigurationPlugin
@@ -136,7 +122,7 @@ class ConfigurationPlugin
     // internal fields
     // #############################################################################################
     protected:
-        /// The default external string converter
+        /** The default external string converter. */
         XTernalizer             defaultStringConverter;
 
 
@@ -324,17 +310,22 @@ namespace detail
  * string is either empty or continues with an equal sign \c '=', then the variable is recognized
  * (with an empty value or the value after the equal sign).<br>
  * Fields #AllowedMinimumShortCut and #DefaultCategories may also be used in combination.
+ *
+ * ## Friends ##
+ * class \alib{config,detail::nextCLIArg} (Used for implementation of iterator.)
  **************************************************************************************************/
 class CLIArgs : public ConfigurationPlugin
 {
-    /// Friend detail function used for implementation of iterator.
-    friend bool detail::nextCLIArg( CLIArgs&, size_t&, const String&, Variable&);
+    #if !ALIB_DOCUMENTATION_PARSER
+        // Friend detail function used for implementation of iterator.
+        friend bool detail::nextCLIArg( CLIArgs&, size_t&, const String&, Variable&);
+    #endif
 
     protected:
-        size_t      argCount  = 0;        ///< The number of command line arguments
-        void**      argVector = nullptr;  ///< The list of command line arguments
-        bool        wArgs     = false;    ///< Determines if argv is of type '<em>wchar_t **</em>'
-                                          ///< or '<em>char **</em>'
+        size_t        argCount  = 0;        ///< The number of command line arguments
+        const void**  argVector = nullptr;  ///< The list of command line arguments
+        bool          wArgs     = false;    ///< Determines if argv is of type '<em>wchar **</em>'
+                                            ///< or '<em>nchar **</em>'
 
         /**
          * This vector may be set with method #SetArgs(std::vector<String>*). If set, it is used
@@ -372,13 +363,13 @@ class CLIArgs : public ConfigurationPlugin
 
         /** ****************************************************************************************
          * Sets the command line argument list. Needs to be called once after construction.
-         * Should not be invoked directly. Rather use
-         * \ref aworx::lib::config::Configuration::SetCommandLineArgs "Configuration::SetCommandLineArgs".
+         * Should not be invoked directly. Rather use method
+         * \alib{config,Configuration::SetCommandLineArgs}.
          *
          *\note
          *   In standard application scenarios, this method is invoked with corresponding
-         *   \alib{lang,Library,"library initialization"} on singleton
-         *   \ref aworx::lib::ALIB.
+         *   \aworx{lib,Module::Init,module initialization} during
+         *   \ref alib_manual_bootstrapping "library bootstrap".
          *
          * <p>
          *\note On the Windows platform, the Microsoft compiler provides the global variables
@@ -388,11 +379,11 @@ class CLIArgs : public ConfigurationPlugin
          *
          * @param argc          The number of arguments in argv
          * @param argv          The list of command line arguments.
-         * @param areWideChar   If \c true, parameter \p{argv} is of type '*<em>wchar_t **</em>',
-         *                      otherwise of type '<em>char **</em>'.
+         * @param areWideChar   If \c true, parameter \p{argv} is of type <c>wchar_t **</c>',
+         *                      otherwise of type <c>char **</c>.
          *                      Defaults to \c false.
          ******************************************************************************************/
-        void SetArgs( int argc, void** argv= nullptr, bool areWideChar= false )
+        void SetArgs( int argc, const void** argv= nullptr, bool areWideChar= false )
         {
             this->argCount= static_cast<size_t>( argc );
             this->argVector=    argv;
@@ -407,7 +398,8 @@ class CLIArgs : public ConfigurationPlugin
          * of options. In this case, only those arguments should be processed by this class.
          *
          * If this method is invoked (and parameter \p{unrecognizedOptions} is not \c nullptr), then
-         * the arguments that previously had been set with #SetArgs(int,void**,bool) are ignored.
+         * the arguments that previously had been set with overloaded method
+         * #SetArgs(int,const void**,bool) are ignored.
          *
          * @param unrecognizedOptions  A vector of argument strings that were not recognized by a
          *                             CLI argument processor and thus left to this class to
@@ -419,12 +411,12 @@ class CLIArgs : public ConfigurationPlugin
         }
 
          /** ****************************************************************************************
-          * Return the plug-in name, in this case, we read resource variable CfgPlgCLI.
+          * Return the plug-in name, in this case, we read resource variable "CfgPlgCLI".
           * @return The name of the plug-in.
           ******************************************************************************************/
          virtual String         Name()   const
          {
-            return lib::CONFIG.Get( ASTR("CfgPlgCLI") );
+            return CONFIG.GetResource( "CfgPlgCLI" );
          }
 
         /** ****************************************************************************************
@@ -487,7 +479,7 @@ class Environment : public ConfigurationPlugin
           ******************************************************************************************/
          virtual String  Name()   const
          {
-            return lib::CONFIG.Get( ASTR("CfgPlgEnv") );
+            return CONFIG.GetResource( "CfgPlgEnv" );
          }
 
         /** ****************************************************************************************

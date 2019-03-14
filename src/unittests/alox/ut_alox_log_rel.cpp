@@ -2,14 +2,17 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
+#include "unittests/alib_test_selection.hpp"
+#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+
+
 #include "alib/alox.hpp"
 
 #include "alib/alox/loggers/memorylogger.hpp"
-
-
 
 #include <iostream>
 #include <fstream>
@@ -17,7 +20,7 @@
 #include <vector>
 
 #define TESTCLASSNAME       CPP_ALox_Lox_Release
-#include "../aworx_unittests.hpp"
+#include "unittests/aworx_unittests.hpp"
 
 using namespace std;
 using namespace ut_aworx;
@@ -239,8 +242,8 @@ UT_METHOD(Lox_TestAssert)
     Lox lox("ReleaseLox");
     TextLogger*  cl= Lox::CreateConsoleLogger();
 
-    Lox_Prune( String testOK=  ASTR("OK");    )
-    Lox_Prune( String testERR= ASTR("Error"); )
+    Lox_Prune( String testOK=  A_CHAR("OK");    )
+    Lox_Prune( String testERR= A_CHAR("Error"); )
 
     // Test Verbosity setting
     int cntLL= cl->CntLogs;
@@ -294,3 +297,4 @@ UT_CLASS_END
 } // namespace
 
 
+#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)

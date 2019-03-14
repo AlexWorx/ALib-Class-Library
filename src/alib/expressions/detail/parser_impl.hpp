@@ -1,13 +1,31 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-/** @file */ // Hello Doxygen
-
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
 #define HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
+
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#   include "alib/expressions/detail/ast.hpp"
+#endif
+
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
+#   include "alib/expressions/detail/parser.hpp"
+#endif
+
+#if !defined(HPP_ALIB_MEMORY_MEMORYBLOCKS)
+    #include "alib/memory/memoryblocks.hpp"
+#endif
+
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
+    #include "alib/compatibility/std_strings_functional.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_SUBSTRING)
+    #include "alib/strings/substring.hpp"
+#endif
 
 
 #include <bitset>
@@ -33,16 +51,15 @@ namespace detail {
  * \see
  *   Besides this class, a parser based on \c boost::spirit is available as an alternative.
  *   This is documented with appendix manual section
- *   \ref alib_expressions_appendix_boostspirit "A.3 Using Built-In Alternative Parser Based On boost::spirit".
+ *   \ref alib_expressions_appendix_boostspirit "A.5 Using Built-In Alternative Parser Based On boost::spirit".
  **************************************************************************************************/
 class ParserImpl  : public Parser
 {
     protected:
-        /// Types of tokens.
+        /** Types of tokens. */
         enum class Tokens : char
         {
             EOT             = '\0',
-            NONE            = '\1',
             Operator        = 'O' ,
 
             LitString       = 'S' ,
@@ -59,39 +76,39 @@ class ParserImpl  : public Parser
             SubscriptClose  = ']' ,
         };
 
-        /// The actual token type.
+        /** The actual token type. */
         Tokens                      token;
 
-        /// The actual token type.
+        /** The actual token type. */
         ASTLiteral::NFHint          tokLiteralHint;
 
 
-        /// Integer value of token (if applicable).
+        /** Integer value of token (if applicable). */
         integer                     tokInteger;
 
-        /// Float value of token (if applicable).
+        /** Float value of token (if applicable). */
         double                      tokFloat;
 
-        /// String value of token (if applicable).
+        /** String value of token (if applicable). */
         String                      tokString;
 
-        /// The position of the token in #expression.
+        /** The position of the token in #expression. */
         integer                     tokPosition;
 
-        /// The compiler that this parser works for.
+        /** The compiler that this parser works for. */
         Compiler&                   compiler;
 
-        /// Used for scanning literals. Provided to this class with each parse request.
+        /** Used for scanning literals. Provided to this class with each parse request. */
         NumberFormat*               numberFormat;
 
 
-        /// The given expression to parse.
+        /** The given expression to parse. */
         String                      expression;
 
-        /// The rest of #expression.
+        /** The rest of #expression. */
         Substring                   scanner;
 
-        /// Memory for literal strings with converted escape sequences.
+        /** Memory for literal strings with converted escape sequences. */
         MemoryBlocks                internalizedStrings;
 
         /**
@@ -186,14 +203,14 @@ class ParserImpl  : public Parser
 
         /**
          * Tests if the actual token represents a known unary operator.
-         * @return  Returns the binary operator symbol, respectively a nulled string on failure.
+         * @return  Returns the binary operator symbol, respectively a \e nulled string on failure.
          */
         ALIB_API
         String      getUnaryOp();
 
         /**
          * Tests if the actual token represents a known binary operator.
-         * @return  Returns the binary operator symbol, respectively a nulled string on failure.
+         * @return  Returns the binary operator symbol, respectively a \e nulled string on failure.
          */
         ALIB_API
         String      getBinaryOp();

@@ -1,29 +1,42 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/alib_precompile.hpp"
 
-#include "alib/alib.hpp"
-#include "alib/time/timepointbase.hpp"
-#include "alib/strings/format/formatterpythonstyle.hpp"
-#include "alib/strings/boxing/debug.hpp"
-#include "alib/compatibility/std_vector.hpp"
-#include "alib/compatibility/std_string.hpp"
-#include "alib/compatibility/std_iostream.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
+#   include "alib/expressions/compiler.hpp"
+#endif
 
-#include "scope.hpp"
-#include "compiler.hpp"
-#include "alib/expressions/detail/parser.hpp"
-#include "detail/ast.hpp"
-#include "alib/expressions/detail/program.hpp"
-#include "alib/expressions/plugins/elvisoperator.hpp"
-#include "alib/expressions/plugins/autocast.hpp"
-#include "alib/expressions/plugins/arithmetics.hpp"
-#include "alib/expressions/plugins/math.hpp"
-#include "alib/expressions/plugins/strings.hpp"
-#include "alib/expressions/plugins/dateandtime.hpp"
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
+#   include "alib/expressions/detail/parser.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#   include "alib/expressions/detail/ast.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS)
+#   include "alib/expressions/plugins/elvisoperator.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST)
+#   include "alib/expressions/plugins/autocast.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
+#   include "alib/expressions/plugins/arithmetics.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_MATH)
+#   include "alib/expressions/plugins/math.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
+#   include "alib/expressions/plugins/strings.hpp"
+#endif
+#if ALIB_MODULE_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
+#   include "alib/expressions/plugins/dateandtime.hpp"
+#endif
 
 namespace aworx { namespace lib { namespace expressions {
 
@@ -40,7 +53,7 @@ Scope::Scope( SPFormatter& formatter )
 
 void    Scope::Clear()
 {
-    Memory.Clear();
+    Memory.Reset();
     for( auto resource : Resources )
         delete resource;
     Resources.clear();
@@ -56,22 +69,27 @@ void    Scope::Clear()
 // #################################################################################################
 Compiler::Compiler()
 {
+    // switch of thread safeness (not used with this module, as explained in Programmer's Manual)
+#if ALIB_MODULE_THREADS
+    SetSafeness( Safeness::Unsafe );
+#endif
     // create a clone of the default formatter.
-    CfgFormatter.reset( lib::STRINGS.GetDefaultFormatter()->Clone() );
+    CfgFormatter.reset( GetDefaultFormatter()->Clone() );
 
-//! [DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES]
-AddType( nullptr         , "NONE"      );
+DOX_MARKER([DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES])
 AddType( Types::Boolean  , "Boolean"   );
 AddType( Types::Integer  , "Integer"   );
 AddType( Types::Float    , "Float"     );
 AddType( Types::String   , "String"    );
+#if ALIB_MODULE_SYSTEM
 AddType( Types::DateTime , "DateTime" );
 AddType( Types::Duration , "Duration"  );
-//! [DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES]
+#endif
+DOX_MARKER([DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES])
 
     // load nested expression function descriptor
-    LoadResourcedFunctionDescriptors( lib::EXPRESSIONS, ASTR("EF"), &CfgNestedExpressionFunction);
-    CfgNestedExpressionThrowIdentifier= EXPRESSIONS.Get( ASTR("EFT") );
+    Token::LoadResourcedTokens( EXPRESSIONS, "EF", &CfgNestedExpressionFunction ALIB_DBG(,1));
+    CfgNestedExpressionThrowIdentifier= EXPRESSIONS.GetResource( "EFT" );
 }
 
 Compiler::~Compiler()
@@ -91,7 +109,7 @@ void Compiler::SetupDefaults()
     //------------- add default unary ops ----------
     if( EnumContains( CfgCompilation, Compilation::DefaultUnaryOperators ) )
     {
-        auto& metaInfoUnaryOps= *EnumMetaData<expressions::DefaultUnaryOperators>::GetSingleton();
+        auto& metaInfoUnaryOps= EnumMetaData<expressions::DefaultUnaryOperators>::GetSingleton();
 
         for( size_t i= 1; i < 6 ; i++ )
             AddUnaryOperator( std::get<1>(*metaInfoUnaryOps.Get(DefaultUnaryOperators(i))));
@@ -99,7 +117,7 @@ void Compiler::SetupDefaults()
         // default unary op aliases
         if( EnumContains( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
         {
-            auto& metaInfoUnaryOpAliases= *EnumMetaData<expressions::DefaultAlphabeticUnaryOperatorAliases>::GetSingleton();
+            auto& metaInfoUnaryOpAliases= EnumMetaData<expressions::DefaultAlphabeticUnaryOperatorAliases>::GetSingleton();
 
             // Not -> !
             auto mi= metaInfoUnaryOpAliases.Get( DefaultAlphabeticUnaryOperatorAliases::Not );
@@ -111,16 +129,16 @@ void Compiler::SetupDefaults()
     //------------- add default binary ops ----------
     if( EnumContains( CfgCompilation, Compilation::DefaultBinaryOperators ) )
     {
-        auto& metaInfoBinaryOps= *EnumMetaData<expressions::DefaultBinaryOperators>::GetSingleton();
+        auto& metaInfoBinaryOps= EnumMetaData<expressions::DefaultBinaryOperators>::GetSingleton();
 
-        for( size_t i= EnumContains( CfgCompilation, Compilation::AllowSubscriptOperator) ? 1 : 2;
+        for( std::size_t i= EnumContains( CfgCompilation, Compilation::AllowSubscriptOperator) ? 1 : 2;
              i < 22 ; i++ )
         {
             auto metaData= metaInfoBinaryOps.Get(DefaultBinaryOperators(i));
             AddBinaryOperator( std::get<1>(*metaData),
 
                                // patch assign operator
-                               std::get<2>( i != EnumValue( DefaultBinaryOperators::Assign )
+                               std::get<2>( i != static_cast<std::size_t>( EnumValue( DefaultBinaryOperators::Assign ) )
                                             ? *metaData
                                             : EnumContains( CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator )
                                                ? *metaInfoBinaryOps.Get(DefaultBinaryOperators::Equal )
@@ -131,7 +149,7 @@ void Compiler::SetupDefaults()
         // default binary op aliases
         if( EnumContains( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
         {
-            auto& metaInfoUnaryOpAliases= *EnumMetaData<expressions::DefaultAlphabeticBinaryOperatorAliases>::GetSingleton();
+            auto& metaInfoUnaryOpAliases= EnumMetaData<expressions::DefaultAlphabeticBinaryOperatorAliases>::GetSingleton();
             for( int i= 0 ; i < 14 ; ++i )
             {
                 auto mi= metaInfoUnaryOpAliases.Get( DefaultAlphabeticBinaryOperatorAliases(i) );
@@ -171,10 +189,12 @@ void Compiler::SetupDefaults()
                       CompilePriorities::Strings,
                       Responsibility::Transfer );
 
+#if ALIB_MODULE_SYSTEM
     if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::DateAndTime       ) )
         InsertPlugin( new plugins::DateAndTime(*this),
                       CompilePriorities::DateAndTime,
                       Responsibility::Transfer );
+#endif
 }
 
 // #############################################################################################
@@ -199,11 +219,16 @@ SPExpression   Compiler::Compile( const String& expressionString   )
     detail::Program* program = nullptr;
     try
     {
-        ALIB_DBG( Ticks startTime; )
-            ast= parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat );
-        ALIB_DBG( expression->DbgParseTime= startTime.Age(); )
+        #if ALIB_MODULE_TIME && ALIB_DEBUG
+            Ticks startTime;
+        #endif
 
-        ALIB_DBG( startTime= Ticks::Now(); )
+            ast= parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat );
+
+        #if ALIB_MODULE_TIME && ALIB_DEBUG
+            expression->DbgParseTime= startTime.Age();
+            startTime= Ticks::Now();
+        #endif
 
         // optimize on AST level
         ast= ast->Optimize( CfgNormalization );
@@ -217,14 +242,16 @@ SPExpression   Compiler::Compile( const String& expressionString   )
         expression->normalizedString.TrimEnd();
         delete ast;
         program->AssembleFinalize();
-        ALIB_DBG( expression->DbgAssemblyTime= startTime.Age(); )
+        #if ALIB_MODULE_TIME && ALIB_DEBUG
+            expression->DbgAssemblyTime= startTime.Age();
+        #endif
 
         // checks
-        ALIB_ASSERT_ERROR( program->ResultType().IsNotNull(),
-                           "No exception when parsing expression, but result type is nulled!" )
+        ALIB_ASSERT_ERROR( !program->ResultType().IsType<void>(),
+                           "No exception when parsing expression, but result type is void!" )
 
-        ALIB_ASSERT_ERROR( expression->program->ResultType().IsNotNull(),
-                           "No exception when parsing expression, but result type is nulled." )
+        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(),
+                           "No exception when parsing expression, but result type is void." )
     }
     catch( Exception& )
     {
@@ -258,10 +285,10 @@ void      Compiler::getOptimizedExpressionString( Expression* expression )
         delete program;
         delete ast;
     }
-    catch(Exception& e)
+    catch(Exception& )
     {
         delete ast;
-        throw e;
+        throw;
     }
 }
 
@@ -273,7 +300,7 @@ void      Compiler::getOptimizedExpressionString( Expression* expression )
 bool           Compiler::AddNamed( const String& identifier, const String& expressionString )
 {
     String128 key;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( key, ReplaceExternalBuffer )
+    key.DbgDisableBufferReplacementWarning();
     key << identifier;
     if( !EnumContains(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
         key.ToUpper();
@@ -294,7 +321,7 @@ bool           Compiler::AddNamed( const String& identifier, const String& expre
     }
 
     auto compiledExpression= Compile( expressionString );
-    compiledExpression->name= identifier;
+    compiledExpression->name.Reset( identifier );
     ALIB_ASSERT( compiledExpression )
     if( existed )
         it->second= compiledExpression;
@@ -307,7 +334,7 @@ SPExpression   Compiler::GetNamed( const String& identifier )
 {
     // search
     String128 key;
-    ALIB_WARN_ONCE_PER_INSTANCE_DISABLE( key, ReplaceExternalBuffer )
+    key.DbgDisableBufferReplacementWarning();
     key << identifier;
     if( !EnumContains(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
         key.ToUpper();
@@ -325,7 +352,7 @@ SPExpression   Compiler::GetNamed( const String& identifier )
     // Got an expression string! -> Compile
     SPExpression  parsedExpression= Compile( expressionString );
 
-    parsedExpression->name= identifier;
+    parsedExpression->name.Reset( identifier );
 
     SPExpression sharedExpression( parsedExpression );
     namedExpressions.insert( std::make_pair( key, sharedExpression) );
@@ -399,32 +426,46 @@ bool Compiler::getExpressionString( const String& identifier, AString& target )
 // Helpers
 // #################################################################################################
 
-void Compiler::AddType( Type sample, const NString& name )
+void    Compiler::AddType( Type sample, const NString& name )
 {
-    ALIB_ASSERT_ERROR( types.find( sample.GetTypeInfo<0>() ) == types.end(),
+    ALIB_ASSERT_ERROR( types.find( sample.TypeID() ) == types.end(),
                        "Type already registered with compiler"                      );
-    types[ sample.GetTypeInfo<0>() ]= name;
+    types[ sample.TypeID() ]= name;
 }
 
-void Compiler::WriteFunctionSignature( ArgIterator begin, ArgIterator end, AString& target )
+NString Compiler::TypeName(Type box)
 {
-    bool variadic= begin < end && (*(end-1)).IsNull();
+    if( box.IsType<void>() )
+        return "NONE";
+
+    auto entry= types.find( box.TypeID() );
+    ALIB_ASSERT_WARNING( entry != types.end(),
+                         "Custom type {!Q} not registered. Please use Compiler::AddType to do so.",
+                         box.TypeID() )
+    if( entry == types.end() )
+        return "Unknown Type";
+
+    return entry->second;
+}
+
+void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target )
+{
+    bool variadic= qty && (*(boxArray + qty -1)) == nullptr;
     if( variadic )
-        end--;
+        qty--;
 
     target<< '(';
-    bool first= true;
-    while( begin != end )
+    bool isFirst= true;
+    for( size_t i= 0 ; i <  qty ; ++i )
     {
-        if(!first)
+        if(!isFirst)
             target<< ", ";
-        first= false;
-        target << TypeName( *begin );
-        ++begin;
+        isFirst= false;
+        target << '<' << TypeName( **boxArray++ ) << '>';
     }
     if(variadic)
     {
-        if(!first)
+        if(!isFirst)
             target<< ", ";
         target<< "...";
     }
@@ -432,6 +473,18 @@ void Compiler::WriteFunctionSignature( ArgIterator begin, ArgIterator end, AStri
     target<< ')';
 
 }
+
+void Compiler::WriteFunctionSignature( ArgIterator  begin,
+                                       ArgIterator  end,
+                                       AString&     target  )
+{
+    std::vector<Box*> buf;
+    buf.reserve( static_cast<size_t>(end - begin) );
+    while( begin != end )
+        buf.emplace_back( &*begin++ );
+    WriteFunctionSignature( buf.data(), buf.size(), target );
+}
+
 
 
         }}} // namespace [aworx::lib::expressions]

@@ -1,23 +1,23 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-
-#if !defined (HPP_ALIB_THREADS_SMARTLOCK)
-    #include "alib/threads/smartlock.hpp"
-#endif
-#if !defined (HPP_ALIB_TIME_TIMEPOINT)
-    #include "alib/time/timepointbase.hpp"
+#if !defined(HPP_ALIB_THREADS_SMARTLOCK)
+#   include "alib/threads/smartlock.hpp"
 #endif
 
-#include <algorithm>
+#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
+#   include <algorithm>
+#endif
 
 
 namespace aworx { namespace lib { namespace threads {
+
+SmartLock     SmartLock::StdOutputStreams;
 
 int SmartLock::CntAcquirers()
 {
@@ -30,7 +30,6 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
     size_t count;
     ALIB_DBG(
     bool errAlreadyAdded=       true;
-    bool errHasToBeRecursive=   false;
     int  errWasAcquired=        0;        )
     {
         ALIB_LOCK_WITH( lock )
@@ -53,18 +52,11 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
                 // non-anonymous acquirer?
                 if ( firstAcquirer != nullptr )
                 {
-                    if( firstAcquirer->GetMode() == LockMode::Recursive )
-                    {
-                        firstAcquirer->Acquire( ALIB_CALLER_PRUNED);
-                            SetSafeness( Safeness::Safe );
-                            acquirers.emplace_back( newAcquirer );
-                            count++;
-                        firstAcquirer->Release();
-                    }
-                    ALIB_DBG(
-                    else
-                        errHasToBeRecursive= false;         )
-
+                    firstAcquirer->Acquire( ALIB_CALLER_PRUNED);
+                        SetSafeness( Safeness::Safe );
+                        acquirers.emplace_back( newAcquirer );
+                        count++;
+                    firstAcquirer->Release();
                 }
 
                 // critical section: our first acquirer is anonymous. As documented in class,
@@ -89,10 +81,9 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
     }// ALIB_LOCK_WITH
 
 
-    ALIB_ASSERT_ERROR( !errAlreadyAdded,     "Acquirer already registered." );
-    ALIB_ASSERT_ERROR( !errHasToBeRecursive, "Acquirers need to be in recursive mode " );
-    ALIB_ASSERT_ERROR( errWasAcquired!=1,    "Already acquired. Hint: Acquirer[0] must not acquire this before adding itself!" );
-    ALIB_ASSERT_ERROR( errWasAcquired!=2,    "Acquired and acquirer[0] anonymous. Misuse of SmartLock!" );
+    ALIB_ASSERT_ERROR( !errAlreadyAdded , "Acquirer already registered." )
+    ALIB_ASSERT_ERROR( errWasAcquired!=1, "Already acquired. Hint: Acquirer[0] must not acquire this before adding itself!" )
+    ALIB_ASSERT_ERROR( errWasAcquired!=2, "Acquired and acquirer[0] anonymous. Misuse of SmartLock!" )
 
     return static_cast<int>( count );
 }
@@ -140,8 +131,8 @@ int   SmartLock::RemoveAcquirer( ThreadLock* acquirerToRemove )
         count= acquirers.size();
     }
 
-    ALIB_ASSERT_ERROR( !errNotFound,    "Acquirer not found." );
-    ALIB_ASSERT_ERROR( !errWasAcquired, "Acquired on release. Hint: Acquirers must acquire only when acquired themselves!" );
+    ALIB_ASSERT_ERROR( !errNotFound,    "Acquirer not found." )
+    ALIB_ASSERT_ERROR( !errWasAcquired, "Acquired on release. Hint: Acquirers must acquire only when acquired themselves!" )
     return static_cast<int>( count );
 }
 

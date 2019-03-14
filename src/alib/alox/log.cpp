@@ -1,32 +1,29 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox - ALox Logging Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
-
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
+#include "alib/alib_precompile.hpp"
 
 #if !defined (HPP_ALIB_ALOX)
     #include "alib/alox/alox.hpp"
-#endif
-
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
-    #include "alib/alox/core/textlogger/textlogger.hpp"
 #endif
 
 #if !defined (HPP_ALOX_VSTUDIO_LOGGER)
     #include "alib/alox/loggers/vstudiologger.hpp"
 #endif
 
+#if !defined (HPP_ALIB_ALOX_REPORT_WRITER)
+#   include "alib/alox/reportwriter.hpp"
+#endif
+#if !defined (HPP_ALIB_ALOX_VARIABLES)
+#   include "alib/alox/variables.hpp"
+#endif
 
-using namespace std;
 namespace aworx { namespace lib { namespace lox {
 
-using namespace core;
+using namespace detail;
 
 // #################################################################################################
 // Static fields
@@ -47,13 +44,13 @@ using namespace core;
     {
         if ( DebugLogger != nullptr )
         {
-            ALIB_WARNING( ASTR("Log::AddDebugLogger(): called twice.") );
+            ALIB_WARNING( "Log::AddDebugLogger(): called twice." );
             return;
         }
 
         // add a VStudio logger if this a VStudio debug session
         #if defined(_WIN32) && ALIB_DEBUG
-            if( lib::ALIB.IsDebuggerPresent() )
+            if( ALIB.IsDebuggerPresent() )
             {
                 Variable variable( Variables::NO_IDE_LOGGER );
                 if( ALOX.Config->Load( variable ) == Priorities::NONE || ! variable.IsTrue() )
@@ -74,7 +71,7 @@ using namespace core;
         lox->SetVerbosity( DebugLogger, Verbosity::Verbose );
         lox->SetVerbosity( DebugLogger, Verbosity::Warning, ALox::InternalDomains );
 
-        // replace ALibs' ReportWriter by an ALox ReportWriter
+        // replace ALib's ReportWriter by an ALox ReportWriter
         Log::AddALibReportWriter( lox );
 
     }
@@ -85,7 +82,8 @@ using namespace core;
         Log::RemoveALibReportWriter();
 
         // remove debug logger(s)
-        ALIB_ASSERT_WARNING( DebugLogger != nullptr, ASTR("Log::RemoveDebugLogger(): no debug logger to remove.") );
+        ALIB_ASSERT_WARNING( DebugLogger != nullptr,
+                             "Log::RemoveDebugLogger(): no debug logger to remove." );
 
         if ( DebugLogger != nullptr )
         {
@@ -114,11 +112,11 @@ using namespace core;
     void Log::AddALibReportWriter( Lox* lox )
     {
         ALIB_ASSERT_WARNING( DebugReportWriter == nullptr,
-                             ASTR("Log::AddReportWriter(): ALoxReportWriter already created.") );
+                             "Log::AddReportWriter(): ALoxReportWriter already created." );
 
-        // replace ALibs' default ReportWriter (but only this!) by an ALoxReportWriter
-        if ( lib::lang::Report::GetDefault().PeekWriter() == lib::lang::ReportWriterStdIO::GetSingleton()  )
-            lib::lang::Report::GetDefault().PushWriter( DebugReportWriter= new ALoxReportWriter( lox ) );
+        // replace ALib's default ReportWriter (but only this!) by an ALoxReportWriter
+        if ( lib::results::Report::GetDefault().PeekWriter() == &lib::results::ReportWriterStdIO::GetSingleton()  )
+             lib::results::Report::GetDefault().PushWriter( DebugReportWriter= new ALoxReportWriter( lox ) );
     }
 
     void Log::RemoveALibReportWriter()
@@ -126,7 +124,7 @@ using namespace core;
         // replace the report writer
         if ( DebugReportWriter != nullptr )
         {
-            lib::lang::Report::GetDefault().PopWriter( DebugReportWriter );
+            lib::results::Report::GetDefault().PopWriter( DebugReportWriter );
             delete DebugReportWriter;
             DebugReportWriter=  nullptr;
         }

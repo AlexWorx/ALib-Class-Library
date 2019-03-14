@@ -1,88 +1,77 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Library
+//  ALib C++ Library
 //
-//  Copyright 2013-2018 A-Worx GmbH, Germany
+//  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/alib.hpp"
+#include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_CLI_LIB)
-    #include "alib/cli/clilib.hpp"
+#if !defined (HPP_ALIB_CLI_CLIAPP)
+#   include "alib/cli/cliapp.hpp"
 #endif
 
 #if !defined (HPP_ALIB_CLI_CLIUTIL)
-    #include "alib/cli/cliutil.hpp"
+#   include "alib/cli/cliutil.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGS_FORMAT_SIMPLETEXT)
-#   include "alib/strings/format/simpletext.hpp"
+#if !defined (HPP_ALIB_LIB_ALIBMODULES)
+#   include "alib/lib/alibmodules.hpp"
 #endif
-
-#if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-    #include "alib/system/process.hpp"
-#endif
-
-#include <algorithm>
-
-
-using namespace std;
 
 namespace aworx { namespace lib { namespace cli {
-
-
-
-
 
 // #################################################################################################
 // CLIApp Constructor
 // #################################################################################################
 
-CLIApp::CLIApp( Library& resLibrary, int argc, wchar_t *argvW[], char *argvN[] )
-: ResLibrary ( resLibrary )
+void   CLIApp::Init( Module* resModule )
 {
-    ArgcOriginal=   argc;
-    ArgWOriginal=  argvW;
-    ArgNOriginal=  argvN;
+    ResModule   =  resModule;
+    ArgcOriginal=  ALIB.ArgC;
+    ArgWOriginal=  ALIB.ArgVW;
+    ArgNOriginal=  ALIB.ArgVN;
 
-    ArgStrings.reserve( static_cast<size_t>( argc ) );
-    ArgsLeft  .reserve( static_cast<size_t>( argc ) );
+    ArgStrings.reserve( static_cast<size_t>( ArgcOriginal ) );
+    ArgsLeft  .reserve( static_cast<size_t>( ArgcOriginal ) );
 
-#if ALIB_NARROW_STRINGS
-    if( argvN )
+#if ALIB_CHARACTERS_ARE_NARROW
+    if( ArgNOriginal )
     {
-        for ( int i= 1; i < argc ; i++ )
+        for ( int i= 1; i < ArgcOriginal ; i++ )
         {
-            ArgStrings.emplace_back( argvN[i] );
+            ArgStrings.emplace_back( ArgNOriginal[i] );
             ArgsLeft  .emplace_back( i -1      );
         }
     }
     else
     {
         // convert wide to narrow strings
-        convertedArgStrings.reserve( static_cast<size_t>( argc ) );
-        for ( int i= 1; i < argc ; i++ )
+        convertedArgStrings.reserve( static_cast<size_t>( ArgcOriginal ) );
+        for ( int i= 1; i < ArgcOriginal ; i++ )
         {
-            convertedArgStrings.emplace_back( argvW[i]                   );
+            convertedArgStrings.emplace_back( ArgWOriginal[i]                   );
             ArgStrings         .emplace_back( convertedArgStrings.back() );
             ArgsLeft           .emplace_back( i -1                       );
         }
     }
 #else
-    if( argvW )
+    #if ALIB_CHARACTERS_NATIVE_WCHAR // use original strings only if aworx::wchar == wchar_t
+    if( ArgWOriginal )
     {
-        for ( int i= 1; i < argc ; i++ )
+        for ( int i= 1; i < ArgcOriginal ; i++ )
         {
-            ArgStrings.emplace_back( argvW[i] );
-            ArgsLeft  .emplace_back( i -1      );
+            ArgStrings.emplace_back( ArgWOriginal[i] );
+            ArgsLeft  .emplace_back( i - 1           );
         }
     }
     else
+    #endif
     {
-        // convert narrow to wide strings
-        convertedArgStrings.reserve( static_cast<size_t>( argc ) );
-        for ( int i= 1; i < argc ; i++ )
+        // convert narrow to wide strings (or "wrong" wide width to width)
+        convertedArgStrings.reserve( static_cast<size_t>( ArgcOriginal ) );
+        for ( int i= 1; i < ArgcOriginal ; i++ )
         {
-            convertedArgStrings.emplace_back( argvN[i]                  );
+            convertedArgStrings.emplace_back( ArgNOriginal[i]            );
             ArgStrings         .emplace_back( convertedArgStrings.back() );
             ArgsLeft           .emplace_back( i -1                       );
         }
@@ -90,10 +79,6 @@ CLIApp::CLIApp( Library& resLibrary, int argc, wchar_t *argvW[], char *argvN[] )
 #endif
 
 
-}
-
-CLIApp::~CLIApp()
-{
 }
 
 // #################################################################################################
@@ -145,12 +130,12 @@ void CLIApp::ReadOptions()
                 goto SHORTCUT_JUMP;
             }
 
-            auto& instanceList=  OptionsFound[decl.EnumBox];
+            auto& instanceList=  OptionsFound[decl.ID];
 
             // move previous?
             if( decl.MultiIgnored() && instanceList.size() > 0 )
             {
-                OptionsOverwritten[decl.EnumBox].emplace_back( instanceList.back() );
+                OptionsOverwritten[decl.ID].emplace_back( instanceList.back() );
                 instanceList.pop_back();
             }
 
@@ -191,7 +176,7 @@ void CLIApp::ReadNextCommands()
             catch ( Exception& e )
             {
                 e.Add( ALIB_CALLER_NULLED, cli::Exceptions::ParsingCommand,
-                       CLIUtil::GetCommandUsageFormat( CommandDecls[loopDeclNo] ),
+                       CLIUtil::GetCommandUsageFormat( *this, CommandDecls[loopDeclNo] ),
                        CommandDecls[loopDeclNo].HelpTextShort()                    );
                 throw;
             }
@@ -230,7 +215,7 @@ Command* CLIApp::NextCommand()
 String  CLIApp::PopArg()
 {
     if( ArgsLeft.size() == 0)
-        return NullString;
+        return NullString();
 
     String result= ArgStrings[ArgsLeft[0]];
     ArgsLeft.erase( ArgsLeft.begin() );

@@ -1,14 +1,14 @@
 // #################################################################################################
 //  ALox Samples
 //
-//  Copyright 2018 A-Worx GmbH, Germany
+//  Copyright 2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
 
 #include "alib/alox.hpp"
 #include "alib/alox/loggers/memorylogger.hpp"
 #include "alib/alox/loggers/textfilelogger.hpp"
+#include "alib/alox/reportwriter.hpp"
 #include "alib/config/inifile.hpp"
 
 #include <iostream>
@@ -18,7 +18,7 @@ using namespace std;
 using namespace aworx;
 
 // prototypes
-extern String64 autoSizes;
+extern String128 autoSizes;
 void DebugLog();
 void ReleaseLog();
 void PerformanceTest();
@@ -32,7 +32,7 @@ void SampleALibReport();
 int main( int argc, char *argv[] );
 
 // globals
-String64 autoSizes;
+String128 autoSizes;
 
 void DebugLog()
 {
@@ -67,13 +67,14 @@ void ReleaseLog()
     // if makefile did not specify scope info for release logging (which is standard behavior),
     // we set a format string without scope information.
     #if !ALOX_REL_LOG_CI
-        Lox_Prune( releaseLogger->MetaInfo->Format= "[%TC+%TL][%tN]%V[%D]%A1(%#): "; )
+        Lox_Prune( releaseLogger->MetaInfo->Format.Reset( "[%TC+%TL][%tN]%V[%D]%A1(%#): " ); )
     #endif
 
     Lox_SetVerbosity( releaseLogger, Verbosity::Info );
     Lox_Info ( "Hello ALox, this is release logging" );
 
-    ALIB_MESSAGE ( ASTR("And this is an ALib report message. Appears on release lox but only in debug compilation.") );
+    ALIB_MESSAGE ( "And this is an ALib report message. Appears on release lox but only "
+                   "in debug compilation." );
 
 
     // shutdown
@@ -83,7 +84,8 @@ void ReleaseLog()
     Lox_Prune( delete releaseLogger; )
 
     #if !ALOX_REL_LOG
-        cout << "cout: should not have logged something (release logging was disabled, obviously ALOX_REL_LOG_OFF was passed to the compiler)" <<  endl;
+        cout << "cout: should not have logged something (release logging was disabled, obviously "
+                "ALOX_REL_LOG_OFF was passed to the compiler)" <<  endl;
     #endif
     cout <<  endl;
 }
@@ -111,7 +113,7 @@ void PerformanceTest()
 
     int64_t fastest=       (std::numeric_limits<int64_t>::max)();
 
-    #if !ALIB_DEBUG_STRINGS
+    #if !ALIB_STRINGS_DEBUG
         int qtyLines=   100;
         int qtyLoops=   100;
     #else
@@ -119,14 +121,14 @@ void PerformanceTest()
         int qtyLoops=   10;
     #endif
 
-    if ( lib::ALIB.IsDebuggerPresent() )
+    if ( ALIB.IsDebuggerPresent() )
         qtyLoops= 10;
 
 
     for ( int i= 0 ; i < qtyLoops ; i++ )
     {
         #if ALOX_REL_LOG
-            ml.MemoryLog.Clear();
+            ml.MemoryLog.Reset();
         #endif
 
         Ticks tt;
@@ -169,8 +171,8 @@ void PerformanceTestRL()
     // if makefile did not specify scope info for release logging (which is standard behavior),
     // we set a format string without scope information.
     #if !ALOX_REL_LOG_CI
-        Lox_Prune( releaseLogger->MetaInfo->Format= ASTR("[%TC+%TL][%tN]%V[%D]%A1(%#): "); )
-        Lox_Prune( ml.            MetaInfo->Format= ASTR("[%TC+%TL][%tN]%V[%D]%A1(%#): "); )
+        Lox_Prune( releaseLogger->MetaInfo->Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
+        Lox_Prune( ml.            MetaInfo->Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
     #endif
 
 //Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,  ALox::InternalDomains, Config::PriorityOf(Priorities::ProtectedValues) );
@@ -190,20 +192,20 @@ void PerformanceTestRL()
     #else
         int64_t fastest=       std::numeric_limits<int>::max();
     #endif
-    #if !ALIB_DEBUG_STRINGS
+    #if !ALIB_STRINGS_DEBUG
         int qtyLines=   100;
         int qtyLoops=   100;
     #else
         int qtyLines=  100;
         int qtyLoops=   10;
     #endif
-    if ( lib::ALIB.IsDebuggerPresent() )
+    if ( ALIB.IsDebuggerPresent() )
         qtyLoops= 10;
 
     for ( int i= 0 ; i < qtyLoops ; i++ )
     {
         #if ALOX_DBG_LOG || ALOX_REL_LOG
-            ml.MemoryLog.Clear();
+            ml.MemoryLog.Reset();
         #endif
         Ticks tt;
             for ( int l= 0 ; l < qtyLines ; l++ )
@@ -321,28 +323,22 @@ void WCharTest()
 
     Log_SetDomain( "WCHAR", Scope::Method );
 
-    String256 ms;
-    ms.Clear() << "ASCII String as wide: " <<  L"AString";                          Log_Info( ms );
-
-
-
-    ms.Clear() << "Euro sign:            " <<  L"\u20AC";                           Log_Info( ms );
-
-
-    ms.Clear() << "Greek characters:     " <<  L"\u03B1\u03B2\u03B3\u03B4\u03B5";   Log_Info( ms );
+    Log_Info( "ASCII String as wide: ",  L"AString")
+    Log_Info( "Euro sign:            ",  L"\u20AC" );
+    Log_Info( "Greek characters:     ",  L"\u03B1\u03B2\u03B3\u03B4\u03B5" );
 
 
     // from https://msdn.microsoft.com/en-us/library/69ze775t.aspx
-    ms.Clear() << "Smileys:              " <<  L"😉 = \U0001F609 is ;-)";           Log_Info( ms );
-    ms.Clear() << "                      " <<  L"😇 = \U0001F607 is O:-)";          Log_Info( ms );
-    ms.Clear() << "                      " <<  L"😃 = \U0001F603 is :-D";           Log_Info( ms );
-    ms.Clear() << "                      " <<  L"😎 = \U0001F60E is B-)";           Log_Info( ms );
-    ms.Clear() << "                      " <<  L"( ͡° ͜ʖ ͡°) = ( \U00000361\U000000b0 \U0000035c\U00000296 \U00000361\U000000b0)";            Log_Info( ms );
+    Log_Info( "Smileys:              ", L"😉 = \U0001F609 is ;-)"   );
+    Log_Info( "                      ", L"😇 = \U0001F607 is O:-)"  );
+    Log_Info( "                      ", L"😃 = \U0001F603 is :-D"   );
+    Log_Info( "                      ", L"😎 = \U0001F60E is B-)"   );
+    Log_Info( "                      ", L"( ͡° ͜ʖ ͡°) = ( \U00000361\U000000b0 \U0000035c\U00000296\U00000361\U000000b0)" );
 
 
-    Log_Info( String64() << "sizeof wchar: "  << sizeof(wchar_t) );
-    Log_Info( String64() << "Max wchar:    "  << WCHAR_MAX);
-    Log_Info( String64() << "Min wchar:    "  << WCHAR_MIN);
+    Log_Info( "sizeof wchar: ",  sizeof(wchar_t) );
+    Log_Info( "Max wchar:    ",  WCHAR_MAX       );
+    Log_Info( "Min wchar:    ",  WCHAR_MIN       );
 }
 
 void textFileLogger()
@@ -357,15 +353,15 @@ void textFileLogger()
 
     Log_SetDomain( "TEXTFILE_TEST", Scope::Method    );
 
-    Log_Prune( TextFileLogger tfl( ASTR("Test.log.txt") ) );
+    Log_Prune( TextFileLogger tfl( A_CHAR("Test.log.txt") ) );
     Log_SetVerbosity( &tfl, Verbosity::Verbose );
     Log_SetVerbosity( &tfl, Verbosity::Error, ALox::InternalDomains );
 
-    Log_Verbose( "A verbose message (goes to textfile logger as well)" );
-    Log_Info   ( "An info message  (goes to textfile logger as well)" );
-    Log_Warning( "A warning message  (goes to textfile logger as well)" );
-    Log_Error  ( "An error message (goes to textfile logger as well)" );
-    Log_Info   ( "Multi-line part 1...\n....part 2" );
+    Log_Verbose( "A verbose message (goes to textfile logger as well)"  );
+    Log_Info   ( "An info message (goes to textfile logger as well)"    );
+    Log_Warning( "A warning message (goes to textfile logger as well)"  );
+    Log_Error  ( "An error message (goes to textfile logger as well)"   );
+    Log_Info   ( "Multi-line part 1...\n....part 2"                     );
 
     Log_RemoveLogger( &tfl )
 }
@@ -386,25 +382,23 @@ void SampleALibReport()
     // must be done only in debug compiles
     #if ALIB_DEBUG
 
-    lib::lang::Report::GetDefault().PushHaltFlags( false, false );
-
+    lib::results::Report::GetDefault().PushHaltFlags( false, false );
         ALIB_ERROR(   "This is an error report!" );
-        ALIB_WARNING( "And this is a warning!"   );
-        AString test("Four");
-        test.SetLength<false>(10);
+        ALIB_WARNING( "And this is a warning. A next one should follow:"   );
+        AString test("12345");
+        test.GrowBufferAtLeastBy(1);
 
-    lib::lang::Report::GetDefault().PopHaltFlags();
+    lib::results::Report::GetDefault().PopHaltFlags();
 
     #endif
 
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, ALox::InternalDomains );
-    ALIB_MESSAGE( ASTR("This is an ALib Report. Types other than '0' and '1' are user defined.\n"
-                       "Verbosity of ALox::InternalDomains has to be increased to see them when using"
-                       " ALoxReportWriter." ) );
+    ALIB_MESSAGE( "This is an ALib Report. Types other than '0' and '1' are user defined.\n"
+                  "Verbosity of ALox::InternalDomains has to be increased to see them when using "
+                  "ALoxReportWriter."  );
 
-    Log_Info( String256() <<   "Note the domain prefix '" << ALox::InternalDomains << "'. This addresses "
-             << "the tree of internal domains\nof the Lox, which the report writer is just "
-             << "using." );
+    Log_Info( "Note the domain prefix '{}'. This addresses the tree of internal domains\n"
+              "of the Lox, which the report writer is just using.", ALox::InternalDomains  );
 }
 
 
@@ -413,7 +407,7 @@ void ALoxSampleReset()
     #if ALOX_DBG_LOG
         if ( Log::DebugLogger != nullptr )
         {
-            Log::DebugLogger->AutoSizes.Export( autoSizes.Clear() );
+            Log::DebugLogger->AutoSizes.Export( autoSizes.Reset() );
             Log_RemoveDebugLogger();
         }
     #endif
@@ -434,7 +428,7 @@ int main( int argc, char *argv[] )
     #endif
 
     // Partly initialize ALib/ALox, to have configuration and default resources in place
-    lib::ALIB.Init( Library::InitLevels::PrepareConfig );
+    ALIB.Init(  argc, argv, InitLevels::PrepareConfig );
 
 
     // first attach INI file to config system...
@@ -445,16 +439,16 @@ int main( int argc, char *argv[] )
         "##################################################################################################\n"
         "# ALox Samples INI file (created when running ALox Samples)\n"
         "#\n"
-        "# Copyright 2013-2018 A-Worx GmbH, Germany\n"
+        "# Copyright 2013-2019 A-Worx GmbH, Germany\n"
         "# Published under 'Boost Software License' (a free software license, see LICENSE.txt)\n"
         "##################################################################################################\n"
         );
     }
 
-    lib::ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
+    ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
 
     //... and then initialize ALib completely
-    lib::ALIB.Init( argc, argv );
+    ALIB.Init();
 
     Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include );
 
@@ -463,11 +457,11 @@ int main( int argc, char *argv[] )
     // values written in other sample methods and thus the samples would not work any more
     // (because INI file settings overrules settings in the code)
     Variable var;
-    lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("LOG_DEBUG_LOGGER_VERBOSITY")  ),  ASTR("") );
-    lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("RELEASELOX_CONSOLE_VERBOSITY")),  ASTR("") );
-    lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("LOG_MEMORY_VERBOSITY")        ),  ASTR("") );
-    lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("RELEASELOX_MEMORY_VERBOSITY") ),  ASTR("") );
-    lib::ALOX.Config->Store( var.Declare( ASTR("ALOX"), ASTR("LOG_TEXTFILE_VERBOSITY")      ),  ASTR("") );
+    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_DEBUG_LOGGER_VERBOSITY")  ),  A_CHAR("") );
+    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_CONSOLE_VERBOSITY")),  A_CHAR("") );
+    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MEMORY_VERBOSITY")        ),  A_CHAR("") );
+    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MEMORY_VERBOSITY") ),  A_CHAR("") );
+    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_TEXTFILE_VERBOSITY")      ),  A_CHAR("") );
 
     DebugLog();                 ALoxSampleReset();
     ReleaseLog();               ALoxSampleReset();
@@ -480,11 +474,11 @@ int main( int argc, char *argv[] )
     textFileLogger();           ALoxSampleReset();
 
     // cleanup resources to make Valgrind happy
-    lib::ALIB.Config->RemovePlugin( &iniFile );
-    lib::ALIB.Config->FetchFromDefault( iniFile );
+    ALIB.Config->RemovePlugin( &iniFile );
+    ALIB.Config->FetchFromDefault( iniFile );
     iniFile.WriteFile();
 
-    lib::ALIB.TerminationCleanUp();
+    ALIB.TerminationCleanUp();
     cout << "ALox Samples finished" << endl;
     return 0;
 }
