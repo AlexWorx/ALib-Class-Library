@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM
 #define HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM
 
@@ -15,16 +16,24 @@
 #   include "alib/expressions/compiler.hpp"
 #endif
 
+#if !defined (HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_MASTRING)
+#   include "alib/monomem/mastring.hpp"
+#endif
+
 namespace aworx { namespace lib { namespace expressions {
 
 /**
- * This is the detail namespace of #aworx::lib::expressions. Among other things, in this namespace,
- * [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html)
- * is used to implement the parsing of \alib{expressions::Expression} trees.
- *
- * Good care is taken to truly separate code that is using \c boost::spirit and that no
- * \alib public header files include this library, because compile times are increasing
- * tremendously due to the use of excessive TMP.
+ * This is the detail namespace of #aworx::lib::expressions implementing the abstract syntax tree,
+ * the expression parser, the expression program and the virtual machine to execute the program
+ * with expression evaluation.
  */
 namespace detail {
 
@@ -36,7 +45,7 @@ namespace detail {
  * ## Friends ##
  * class \alib{expressions,detail::VirtualMachine}
  **************************************************************************************************/
-class Program : protected std::vector<VirtualMachine::Command>
+class Program
 {
     // #############################################################################################
     // Public fields
@@ -44,6 +53,9 @@ class Program : protected std::vector<VirtualMachine::Command>
     public:
         /** The compiler that created this object. */
         Compiler&                   compiler;
+
+        /** The expression that this program evaluates. */
+        Expression&                 expression;
 
 
     // #############################################################################################
@@ -53,60 +65,94 @@ class Program : protected std::vector<VirtualMachine::Command>
         /// Shortcut.
         using VM= VirtualMachine;
 
-        #if !ALIB_DOCUMENTATION_PARSER
-            // Machine has full access.
-            friend class VirtualMachine;
-        #endif
+        /** The array of commands. */
+        VM::Command*                        commands;
 
-        /** The expression that this program evaluates. */
-        Expression&                 expression;
+        /** The number of commands. */
+        integer                             commandsCount;
 
         /**
-         * Compile-time scope object. Used to allocate constant program object copies.
-         * Also passed to the compiler plug-ins for their use.
+         * List of compile-time identified nested expressions. Using the shared pointers, it is
+         * ensured that the expressions do not get deleted until this program is.
          */
-        Scope*                      ctScope;
-
-        /**
-         * List of compile-time identified nested expressions. Shared pointers are stored here
-         * so that the expressions do not get deleted until this program is.
-         */
-        std::vector<SPExpression>   ctNestedExpressions;
+        std::vector<SPExpression,
+                    StdContMA<SPExpression>>ctNestedExpressions;
 
         /** Counter of the number of optimization made during program assembly. */
-        int                         qtyOptimizations;
+        int                                 qtyOptimizations;
 
         /**
-         * Data needed during compilation.
+         * Data needed during compilation. An instance of this object is allocated
+         * in the temporary compile-time monotonic allocator.
          */
         struct CompileStorage
         {
+            /** The intermediate program listing. Commands are collected here during
+             *  compilation. Only when finalized, the result is copied into the vector that
+             *  the outer class program inherits from, which uses the non-temporary monotonic
+             *  allocator. */
+            std::vector<VirtualMachine::Command*, StdContMA<VirtualMachine::Command*>>
+                                            Assembly;
+
+            /** Used with compilation. Stores the positions of current result types while adding new
+             *  commands. */
+            std::vector<VM::PC,StdContMA<VM::PC>>
+                                            ResultStack;
+
             /**
-             * Constructor.
-             * @param pPlugins Stored in field #plugins.
+             * Compile-time information on conditional operator jump positions.
              */
-            CompileStorage( Compiler::Plugins&  pPlugins )
-            : plugins( pPlugins )
-            {}
+            struct ConditionalInfo
+            {
+                #if !defined(ALIB_DOX)
+                ConditionalInfo( VM::PC q, VM::PC t, int f)
+                : QJumpPos  (q)
+                , TJumpPos  (t)
+                , ConstFlags(f)
+                {}
+                #endif
 
-
-            /** The compiler plug-ins providing the native C++ implementations of callback functions. */
-            Compiler::Plugins&      plugins;
-
-            /** Used with compilation. Stores the positions of current results types adding new commands. */
-            std::vector<VM::PC>     resultStack;
+                VM::PC QJumpPos;     ///< The position of the lhs result.
+                VM::PC TJumpPos;     ///< The position of the jump command between T and F.
+                int    ConstFlags;   ///< Two bits: Bit 1 determines whether Q was constant and
+                                     ///< bit 0 stores the value of Q (if constant)
+            };
 
             /**
-             * Used with compilation. Stores the positions of current results while adding new commands.
+             * Stores the positions of current results while adding new commands.
              * The third value is used for optimizing constant conditionals out.
              */
-            std::stack<std::tuple<VM::PC,VM::PC,int>>   conditionalStack;
+            std::vector<ConditionalInfo, StdContMA<ConditionalInfo>>
+                                            ConditionalStack;
 
             /**
              * Needed during compilation. Collects information from plug-ins to create meaningful
              * messages.
              */
-            std::vector<AString>    functionsWithNonMatchingArguments;
+            List<String>                    FunctionsWithNonMatchingArguments;
+
+            /**
+             * Constructor.<br>
+             * The given allocator is used exclusively during compilation.
+             * Its memory is cleared (respectively reset to a previous state) after the
+             * compilation completed. The program is created in this allocator. Only when
+             * compilation is finished (and after all optimizations have been performed)
+             * it is copied to the compile-time scope's allocator.<br>
+             * (Refers to object \alib{expressions,Compiler::allocator}.)
+             *
+             * @param compileTimeAllocator The allocator to use temporarily during compilation.
+             */
+            CompileStorage( MonoAllocator& compileTimeAllocator )
+            : Assembly                         ( compileTimeAllocator)
+            , ResultStack                      ( compileTimeAllocator)
+            , ConditionalStack                 ( compileTimeAllocator)
+            , FunctionsWithNonMatchingArguments(&compileTimeAllocator)
+            {
+                Assembly        .reserve(30);
+                ResultStack     .reserve(20);
+                ConditionalStack.reserve(5);
+            }
+
         };
 
         /**
@@ -127,28 +173,25 @@ class Program : protected std::vector<VirtualMachine::Command>
          * Prepares the assembly if \p{pCTScope} is given. If it is \c nullptr, then no program is
          * assembled. This option is used for creating normalized expression strings from
          * de-compiled, optimized programs.
-         * @param pCompiler    Stored in field #compiler.
-         * @param pPlugins     Stored in field
-         *                     \alib{expressions::detail::Program,CompileStorage::plugins}.
-         * @param pExpression  Stored in field #expression.
-         * @param pCTScope     Stored in field #ctScope.
-         *                     If \c nullptr, no assembly is performed in subsequent invocations
-         *                     of assemble methods.
+         *
+         * @param pCompiler            Stored in field #compiler.
+         * @param pExpression          Stored in field #expression.
+         * @param compileTimeAllocator A temporary allocator valid until assembly of the program
+         *                             finished.<br>
+         *                             If \c nullptr, no assembly is performed in subsequent
+         *                             invocations of assemble methods. This option is used for
+         *                             the generation of normalized, optimized expression strings.
+         *                             from reversely created ASTs.
          ******************************************************************************************/
-        Program(Compiler&  pCompiler, Compiler::Plugins& pPlugins, Expression& pExpression, Scope* pCTScope)
-        : compiler   ( pCompiler   )
-        , expression ( pExpression )
-        , ctScope    ( pCTScope    )
-        , qtyOptimizations( EnumContains( compiler.CfgCompilation, Compilation::NoOptimization )
-                            ? -1 : 0 )
-        , compileStorage( pCTScope ? new CompileStorage(pPlugins) : nullptr )
-        {}
+        ALIB_API
+        Program( Compiler&       pCompiler           , Expression& pExpression,
+                 MonoAllocator* compileTimeAllocator );
 
 
         /** ****************************************************************************************
          * Destructor.
          ******************************************************************************************/
-                        ~Program();
+        ALIB_API        ~Program();
 
     // #############################################################################################
     // Overrides
@@ -157,6 +200,7 @@ class Program : protected std::vector<VirtualMachine::Command>
          * Returns the result type of the program.
          * @return The program's result type.
          ******************************************************************************************/
+        ALIB_API
         const Box&      ResultType()                                                          const;
 
         /** ****************************************************************************************
@@ -164,9 +208,19 @@ class Program : protected std::vector<VirtualMachine::Command>
          * program encompasses.
          * @return The program's length.
          ******************************************************************************************/
-        inline integer  Length()                                                               const
+        integer         Length()                                                               const
         {
-            return  static_cast<integer>( size() );
+            return  commandsCount;
+        }
+
+        /** ****************************************************************************************
+         * Returns the command at the given program counter \p{pc}.
+         * @param  pc  The program counter of the command to get.
+         * @return A reference to the requested command.
+         ******************************************************************************************/
+        VM::Command&    At( VM::PC pc )
+        {
+            return  commands[pc];
         }
 
         /** ****************************************************************************************
@@ -175,7 +229,7 @@ class Program : protected std::vector<VirtualMachine::Command>
          * @return The number of optimizations or \c -1 if optimizations were not activated during
          *         program assembly.
          ******************************************************************************************/
-        inline int      CountOptimizations()                                                   const
+        int             CountOptimizations()                                                   const
         {
             return qtyOptimizations;
         }
@@ -186,7 +240,7 @@ class Program : protected std::vector<VirtualMachine::Command>
          * @param scope  The evaluation scope.
          * @return The result value.
          ******************************************************************************************/
-        inline Box      Run(Scope& scope)
+        Box             Run(Scope& scope)
         {
             return VirtualMachine::Run(*this, scope);
         }
@@ -211,6 +265,7 @@ class Program : protected std::vector<VirtualMachine::Command>
          * @param idxInNormalized  The index of the operator in the normalized expression
          *                         string.
          ******************************************************************************************/
+        ALIB_API
         void        AssembleConstant( Box& value,
                                       integer idxInOriginal, integer idxInNormalized );
 
@@ -280,41 +335,24 @@ class Program : protected std::vector<VirtualMachine::Command>
         void        AssembleCondFinalize_F( integer idxInOriginal, integer idxInNormalized );
 
 
+
     // #############################################################################################
-    // Internals
+    // Internals used during compilation
     // #############################################################################################
     protected:
-        /** ****************************************************************************************
-         * Returns the command at the given program counter \p{pc}.
-         * @param  pc  The program counter of the command to get.
-         * @return A reference to the requested command.
-         ******************************************************************************************/
-        inline        VM::Command&  At( VM::PC pc )
-        {
-            return  (*this)[ static_cast<size_t>( pc ) ];
-        }
-
-        /** ****************************************************************************************
-         * Returns the command at the given program counter \p{pc}.
-         * @param  pc  The program counter of the command to get.
-         * @return A reference to the requested command.
-         ******************************************************************************************/
-        inline const VM::Command&   AtConst( VM::PC pc )                                       const
-        {
-            return  (*this)[ static_cast<size_t>( pc ) ];
-        }
-
-
-        /** ****************************************************************************************
+        /**
          * Collects \p{qty} types from the result stack and stores them, respectively the constant
-         * values in the stack of #ctScope.
+         * values in field \alib{expressions,Scope::Stack} stack of field
+         * \alib{expressions,Expression::ctScope}.
          * @param  qty The number of types to collect.
          * @return \c true if all arguments collected were constants.
-         ******************************************************************************************/
-        bool                        collectArgs( integer qty );
+         */
+        ALIB_API
+        bool                collectArgs( integer qty );
+
 };
 
-}}}}; // namespace [aworx::lib::expressions::detail]
+}}}} // namespace [aworx::lib::expressions::detail]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM

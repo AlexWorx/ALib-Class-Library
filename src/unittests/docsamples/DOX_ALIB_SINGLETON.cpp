@@ -6,9 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#if ALIB_UT_DOCS
 
 #include "alib/alox.hpp"
+#include "alib/singletons/singleton.hpp"
 
 #include <iostream>
 
@@ -53,7 +54,7 @@ MyClass instance2;
 std::cout << "Another instance of MyClass is: " << std::hex  << &instance2     << std::endl;
 //! [DOX_ALIB_SINGLETON_3]
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 //! [DOX_ALIB_SINGLETON_STRICT_2]
 JustOne& theOne= JustOne::GetSingleton();
 JustOne  theSecond; // Compiler error, not allowed!
@@ -74,7 +75,7 @@ JustOne& theOne= JustOne::GetSingleton();
 } //namespace dox_lang_singleton
 
 
-#endif// !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#endif // ALIB_UT_DOCS
 
 
 

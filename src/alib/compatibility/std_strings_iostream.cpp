@@ -6,41 +6,42 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/compatibility/std_strings_iostream.hpp"
+#if !defined(ALIB_DOX)
+#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#   include "alib/compatibility/std_strings_iostream.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
-
-#if defined(_MSC_VER) && !defined(_ALGORITHM_)
+#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
 #   include <algorithm>
 #endif
 
-#if ALIB_MODULE_STRINGS
-
-namespace aworx {
+#if ALIB_STRINGS
 
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 
-std::ostream& operator<<( std::ostream& stream, const WString& string )
+std::ostream& operator<<( std::ostream& stream, const aworx::WString& string )
 {
-    NString1K conv;
-    integer   maxConv= 1024 / static_cast<integer>(MB_CUR_MAX);
+    aworx::NString1K conv;
+    aworx::integer   maxConv= 1024 / static_cast<aworx::integer>(MB_CUR_MAX);
 
-    integer startIdx= 0;
+    aworx::integer startIdx= 0;
     while( startIdx < string.Length() )
     {
-        integer length= (std::min)( integer(maxConv), string.Length() - startIdx);
+        aworx::integer length= (std::min)( aworx::integer(maxConv), string.Length() - startIdx);
         conv.Reset( string.Substring<false>(startIdx, length) );
         stream.write( conv.Buffer(), conv.Length() );
         startIdx+= length;
-    };
+    }
 
     return stream;
 }
 
-std::wostream& operator<<( std::wostream& stream, const NString& string )
+std::wostream& operator<<( std::wostream& stream, const aworx::NString& string )
 {
-    lib::strings::TLocalString<wchar_t, 256> conv;
+    aworx::lib::strings::TLocalString<wchar_t, 256> conv;
     conv.DbgDisableBufferReplacementWarning();
     conv << string;
     stream.write( conv.Buffer(), conv.Length() );
@@ -48,7 +49,7 @@ std::wostream& operator<<( std::wostream& stream, const NString& string )
 }
 
 template<typename TChar>
-void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>, TChar>::operator()(
+void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISReadLine<TChar>, TChar>::operator()(
          TAString<TChar>&                                  target,
          const compatibility::std::TISReadLine<TChar>&     reader              )
 {
@@ -58,14 +59,14 @@ void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>
 
     if ( param.TargetData == CurrentData::Clear )
         target.Reset();
-    integer origLength= target.Length();
+    aworx::integer origLength= target.Length();
 
     // read loop
     while( !param.IStream->eof() )
     {
         // calc buffer size (if we hit the overall line width)
         // and check if we reached the limit per line
-        integer actReadSize= (std::min)( param.BufferSize,  param.MaxLineWidth - ( target.Length() - origLength) + 1  );
+        aworx::integer actReadSize= (std::min)( param.BufferSize,  param.MaxLineWidth - ( target.Length() - origLength) + 1  );
         if ( actReadSize < 2 )
             return;
 
@@ -85,16 +86,16 @@ void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>
             // be sure to not have a carriage return at the start
             if( *(target.Buffer() + start) == '\r' )
             {
-                target.template Delete<false>( static_cast<integer>(start), 1 );
-                count--;
+                target.template Delete<false>( static_cast<aworx::integer>(start), 1 );
+                --count;
             }
 
             // be sure to not have a carriage return at the end
             start+= count;
             if( *(target.Buffer() + start -1 ) == '\r' )
-                start--;
+                --start;
 
-            target.SetLength( static_cast<integer>(start) );
+            target.SetLength( static_cast<aworx::integer>(start) );
 
             // if we are at the end of the file (without delimiter) we stop now
             if ( param.IStream->eof() )
@@ -129,7 +130,7 @@ void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>
 
         if ( param.IStream->rdstate() == std::iostream::failbit )
         {
-            ALIB_ERROR( "Unknown Error Reading File. Maybe method implemented incomplete?" );
+            ALIB_ERROR( "Unknown Error Reading File. Maybe method implemented incomplete?" )
             break;
         }
 
@@ -139,7 +140,7 @@ void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>
         //...
 
         // This happens if \0 is in the file
-        ALIB_ERROR( "Unknown Error Reading File. Probably not a text file." );
+        ALIB_ERROR( "Unknown Error Reading File. Probably not a text file." )
         break;
     }
 
@@ -148,14 +149,11 @@ void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<TChar>
 
 
 // instantiations of T_Append::operator() for char and wchar_t versions of stream reader class
-template void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<char   >, char   >::operator()( TAString<char   >& target, const compatibility::std::TISReadLine<char   >& reader );
-template void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<wchar_t>, wchar_t>::operator()( TAString<wchar_t>& target, const compatibility::std::TISReadLine<wchar_t>& reader );
+template void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISReadLine<char   >, char   >::operator()( TAString<char   >& target, const compatibility::std::TISReadLine<char   >& reader );
+template void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>, wchar_t>::operator()( TAString<wchar_t>& target, const compatibility::std::TISReadLine<wchar_t>& reader );
 
-#endif  // ALIB_DOCUMENTATION_PARSER
+#endif  // defined(ALIB_DOX)
 
-
-} // namespace [aworx]
-
-#endif // ALIB_MODULE_STRINGS
+#endif // ALIB_STRINGS
 
 

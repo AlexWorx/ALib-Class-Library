@@ -1,12 +1,12 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-// then, set include guard
-#ifndef HPP_ALOX_CORE_SCOPEDUMP
-#define HPP_ALOX_CORE_SCOPEDUMP 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALOX_DETAIL_SCOPEDUMP
+#define HPP_ALOX_DETAIL_SCOPEDUMP 1
 
 #if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
 #   error "ALib sources with ending '.inl' must not be included from outside."
@@ -41,17 +41,20 @@ class ScopeDump
         /** String to identify global keys. */
         const NString                   noKey;
 
-        /** The maximum length of a key. Adjusts (increases) over lifecycle. */
+        /** The maximum length of a key. Adjusts (increases) over life-cycle. */
         integer                         maximumKeyLength;
 
+#if ALIB_THREADS
         /** User-defined threads names. */
         ScopeInfo::ThreadDictionary&    threadDict;
+#endif
 
     // #############################################################################################
     // Public interface
     // #############################################################################################
     public:
 
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Constructor
          * @param threadDictionary User-defined threads names.
@@ -66,16 +69,25 @@ class ScopeDump
         , maximumKeyLength(maxKeyLength)
         , threadDict(threadDictionary)
         {}
+    #else
+        ScopeDump( ALIB_IF_THREADS( ScopeInfo::ThreadDictionary& threadDictionary,)
+                   const NString noKeyHashKey, NAString& target, int maxKeyLength= 10 )
+        : targetBuffer(target)
+        , noKey(noKeyHashKey)
+        , maximumKeyLength(maxKeyLength)
+        ALIB_IF_THREADS(, threadDict(threadDictionary) )
+        {}
+    #endif
 
         /** ****************************************************************************************
-         * Writes hash tables stored in a ScopeStore. Keys are AStrings.
+         * Writes hash tables stored in a ScopeStore. Keys are Strings.
          * Value types currently supported are LogData* and int.
          * @param store The store to use.
          * @return The total number of hash table entries written.
          ******************************************************************************************/
         template<typename T>
         ALIB_API
-        int writeStoreMap( ScopeStore<T>* store );
+        int writeStoreMap( ScopeStore<T, false>* store );
 
 
         /** ****************************************************************************************
@@ -86,7 +98,7 @@ class ScopeDump
          ******************************************************************************************/
         template<typename T>
         ALIB_API
-        int writeStore( ScopeStore<T>* store, int indentSpaces );
+        int writeStore( ScopeStore<T,  true>* store, int indentSpaces );
 
     // #############################################################################################
     // Internals
@@ -100,8 +112,9 @@ class ScopeDump
          ******************************************************************************************/
         template<typename T>
         ALIB_API
-        integer writeStoreMapHelper( std::map<NAString, T>& map, const NString& prefix );
+        integer writeStoreMapHelper( std::map<NString, T>& map, const NString& prefix );
 
+#if ALIB_THREADS
         /** ****************************************************************************************
          * Helper method to write thread information.
          * @param threadID  The thread id.
@@ -109,6 +122,7 @@ class ScopeDump
          ******************************************************************************************/
         ALIB_API
         NAString& storeThreadToScope( ThreadID threadID );
+#endif
 
         /** ****************************************************************************************
          * Helper method to write a StringTree's key as scope information.
@@ -123,10 +137,10 @@ class ScopeDump
 
 //! @cond NO_DOX
 // needed to suppress pedantic warnings with clang
-extern template   int ScopeDump::writeStore   ( ScopeStore<NAString*                >* store, int indentSpaces );
-extern template   int ScopeDump::writeStore   ( ScopeStore<Box*                     >* store, int indentSpaces );
-extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NAString, int>* >* store );
-extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NAString, Box>* >* store );
+extern template   int ScopeDump::writeStore   ( ScopeStore<NString                 , true >* store, int indentSpaces );
+extern template   int ScopeDump::writeStore   ( ScopeStore<PrefixLogable*          , true >* store, int indentSpaces );
+extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NString, int>* , false>* store );
+extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NString, Box>* , false>* store );
 //! @endcond
 
 
@@ -134,4 +148,4 @@ extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NAString, Bo
 
 
 
-#endif // HPP_ALOX_CORE_SCOPEDUMP
+#endif // HPP_ALOX_DETAIL_SCOPEDUMP

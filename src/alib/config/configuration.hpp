@@ -1,14 +1,15 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_config of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_CONFIGURATION
 #define HPP_ALIB_CONFIG_CONFIGURATION 1
 
-#if !defined (HPP_ALIB_ENUMS_ENUM_BITWISE)
-    #include "alib/enums/enumbitwise.hpp"
+#if !defined (HPP_ALIB_ENUMS_BITWISE)
+    #include "alib/enums/bitwise.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CONFIGURATION)
@@ -27,8 +28,8 @@ ALIB_ASSERT_MODULE(CONFIGURATION)
 #if !defined(HPP_ALIB_CONFIG_PLUGINS)
     #include "alib/config/plugins.hpp"
 #endif
-#if !defined(HPP_ALIB_PLUGINCONTAINER)
-    #include "alib/lib/plugincontainer.hpp"
+#if !defined(HPP_ALIB_FS_PLUGINS_PLUGINS)
+    #include "alib/lib/fs_plugins/plugins.hpp"
 #endif
 #if !defined(HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
     #include "alib/config/inmemoryplugin.hpp"
@@ -47,9 +48,6 @@ namespace aworx { namespace lib { namespace config {
  * \ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin",
  * and provides a single user interface to query configuration data
  * from those.
- *
- * The class inherits from
- * \alib{threads,ThreadLock} and interface methods are implemented <em>synchronized</em>.
  *
  * By default, all category and variable names are case insensitive. This is at least true for the
  * default plug-ins delivered with \alib.
@@ -72,7 +70,6 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
     // public fields
     // #############################################################################################
     public:
-
         /**
          * Values considered to indicate "true". Defaults to
          * { "1", "true", "t", "yes", "y", "on", "ok" }.
@@ -91,7 +88,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * Defaults to single character \c '$'. If a string is set, i.e. \c "${", then field
          * #SubstitutionVariableEnd may be set accordingly, i.e. \c "}"
          */
-        String                              SubstitutionVariableStart                   = A_CHAR("$");
+        String                              SubstitutionVariableStart                  = A_CHAR("$");
 
         /**
          * The end of a substitution variables.
@@ -109,6 +106,9 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          */
         CString          SubstitutionVariableDelimiters= A_CHAR(" $@,.;:\"\'+-*/\\§%&()[]{}<>=?'`~#");
 
+        /** A temporary variable to be reused (allocate once pattern). */
+        Variable                            tempVar;
+
     // #############################################################################################
     // Constructor/destructor
     // #############################################################################################
@@ -124,16 +124,9 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          *  \alib{config,Priorities::CLI}               | \alib{config,CLIArgs}
          *  \alib{config,Priorities::DefaultValues}     | \alib{config,InMemoryPlugin}
          *
-         * @param addDefaultPlugins If \c true, the default plugins are added.
-         *                          Defaults to \c true.
+         * @param addPlugins If \b Yes the default plugins are added.
          ******************************************************************************************/
-        ALIB_API            Configuration( bool addDefaultPlugins = true );
-
-        /** ****************************************************************************************
-         * Destructs a configuration plug-in. All ConfigurationPlugin that were assigned
-         * (using #InsertPlugin) will be deleted.
-         ******************************************************************************************/
-        ALIB_API           ~Configuration();
+        ALIB_API        Configuration( CreateDefaults addPlugins );
 
         /** ****************************************************************************************
          * Sets the command line arguments for default plug-in \alib{config,CLIArgs}.
@@ -142,7 +135,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * \note
          *   For the standard configuration objects found in class \alib{Module},
          *   this method is automatically invoked when CLI arguments are passed to one of the
-         *   overloaded methods \alib{Module::Init}.
+         *   overloaded methods \alib{Module::Bootstrap}.
          *
          * <p>
          *
@@ -159,13 +152,12 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          *                the command line arguments).
          *                Defaults to nullptr.
          ******************************************************************************************/
-        inline void         SetCommandLineArgs( int argc  =0, const nchar** argv  =nullptr )
+        void        SetCommandLineArgs( int argc  =0, const nchar** argv  =nullptr )
         {
             if ( argc > 1 )
             {
-                ALIB_LOCK
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" );
+                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" )
                 cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ), false );
             }
         }
@@ -179,13 +171,12 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @param argv    The command line arguments as a zero-terminated list of pointers to
          *                zero-terminated \c wchar_c strings.
          ******************************************************************************************/
-        inline void         SetCommandLineArgs( int argc, const wchar_t **argv )
+        void        SetCommandLineArgs( int argc, const wchar_t **argv )
         {
             if ( argc > 1 )
             {
-                ALIB_LOCK
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" );
+                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" )
                 cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ),  true );
             }
         }
@@ -195,35 +186,48 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
     // #############################################################################################
     public:
 
-
-#if ALIB_DOCUMENTATION_PARSER
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * This method "pre-loads" all variables of the given enum type.
-         * This way, their default value is stored in the default configuration plug-in and
-         * a later invocation of #FetchFromDefault fetches all variables, regardless if a
-         * "run" of the software used the variables or not.
+         * This method loads all variables of the given enum type in case no placeholders
+         * are contained in their name and a default value is given with the declaraition.
          *
-         * @tparam TEnum         Enum type equipped with meta data according to the scheme of
-         *                       configuration variables.
-         * @tparam TEnableIf     Not to be specified. Used by the compiler to select this constructor
-         *                       only for associated custom C++ enum types.
+         * With that they become stored in this configuration's default plug-in and a later
+         * invocation of #FetchFromDefault may be used to move those to a plug-in that persitently
+         * stores them, for example an INI-file.
+         *
+         * The goal of this approach is to have all (most) variables presented in an external
+         * configuration file that is automatically created on a software's first run - regardless
+         * if that first run used the variables or not.
+         *
+         * @tparam TEnum Enumeration type equipped with \ref alib_enums_records "ALib Enum Records"
+         *               of type \alib{config,VariableDecl}.
          ******************************************************************************************/
-        template<typename TEnum, typename TEnableIf=void>
+        template<typename TEnum>
         inline
-        void     PreloadVariables();
-#else
-        template<typename TEnum, typename TEnableIf=
-        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
-        inline
-        void     PreloadVariables()
-        {
-            Variable  var;
-            auto& metaData= lib::resources::EnumMetaData<TEnum>::GetSingleton();
-            metaData.CheckLoad();
-            for( auto& entry : metaData.Table )
-                Load( var.Declare( TEnum( std::get<0>(entry) ) ));
-        }
-#endif
+        void            PreloadVariables();
+        #else
+            template<typename TEnum>
+            ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<VariableDecl>() )
+            PreloadVariables()
+            {
+                for( auto recordIt=  EnumRecords<TEnum>::begin()
+                     ;    recordIt!= EnumRecords<TEnum>::end  ()
+                     ; ++ recordIt                                 )
+                {
+                    VariableDecl decl( recordIt.Enum() );
+                    if(    decl.DefaultValue.IsNotEmpty()
+                        && decl.EnumElementName.IndexOf('%') < 0)
+                    {
+                        tempVar.Declare( recordIt.Enum() );
+                        tempVar.SetConfig  (this);
+                        tempVar.SetPriority( loadImpl( tempVar, false ) );
+
+                        if (  tempVar.Priority()    == Priorities::NONE   )
+                            Store( tempVar, tempVar.DefaultValue() );
+                    }
+                }
+            }
+    #endif
 
         /** ****************************************************************************************
          * This method fetches all values from a plug-in of priority #DefaultValues, which are not
@@ -243,7 +247,8 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @return The number of variables fetched.
          ******************************************************************************************/
         ALIB_API
-        int     FetchFromDefault( ConfigurationPlugin& dest, const String& section= NullString() );
+        int             FetchFromDefault( ConfigurationPlugin&  dest,
+                                          const String&         section= NullString() );
 
 
         /** ****************************************************************************************
@@ -255,13 +260,13 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @return   Returns \c true, if the value represents 'true', \c false if not.
          ******************************************************************************************/
         ALIB_API
-        bool    IsTrue( const String&  value );
+        bool            IsTrue( const String&  value );
 
         /** ****************************************************************************************
          * Receives and optionally creates configuration variable.
          *
          * If the variable was not found and \alib{config,Variable::DefaultValue}
-         * in \p{variable} is set, the method adds the value value to a plug-in of priority
+         * in \p{variable} is set, the method adds the value to a plug-in of priority
          * #DefaultValues, (respectively to the plug-in found at or below #DefaultValues).
          * For the conversion of the value, field
          * \alib{config,ConfigurationPlugin::StringConverter} of field a plug-in of priority
@@ -273,7 +278,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          *          \c 0 if not found.
          ******************************************************************************************/
         ALIB_API
-        Priorities     Load( Variable& variable );
+        Priorities      Load( Variable& variable );
 
         /** ****************************************************************************************
          * Writes the variable into one of the plug-ins registered with this configuration object.
@@ -344,7 +349,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @returns The priority of the configuration plug-in that the value was written to.
          ******************************************************************************************/
         ALIB_API
-        Priorities   Store( Variable& variable, const String& externalizedValue= nullptr );
+        Priorities      Store( Variable& variable, const String& externalizedValue= nullptr );
 
         /** ****************************************************************************************
          * Convenience method that stores the \p{variable} with priority
@@ -366,7 +371,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @returns The result of \alib{config,Configuration::Store}.
          ******************************************************************************************/
         ALIB_API
-        Priorities     StoreDefault( Variable& variable,  const String& externalizedValue= nullptr );
+        Priorities      StoreDefault( Variable& variable,  const String& externalizedValue= nullptr );
 
         /** ****************************************************************************************
          * Convenience method that stores the \p{variable} with priority
@@ -387,7 +392,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @returns The result of \alib{config,Configuration::Store}.
          ******************************************************************************************/
         ALIB_API
-        Priorities     Protect( Variable& variable, const String& externalizedValue= nullptr );
+        Priorities      Protect( Variable& variable, const String& externalizedValue= nullptr );
 
 
         /** ****************************************************************************************
@@ -403,7 +408,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * @returns The result of \alib{config,Variable::Size} after parsing.
          ******************************************************************************************/
         ALIB_API
-        int              LoadFromString( Variable& variable, const String& externalizedValue );
+        integer         LoadFromString( Variable& variable, const String& externalizedValue );
 
 
 
@@ -417,21 +422,25 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
         class Iterator
         {
             public:
-            /** The actual variable loaded with successful call to #Next. */
-            Variable                Actual;
+                /** The actual variable loaded with successful call to #Next. */
+                Variable                Actual;
 
-            /**
-             * Virtual destructor.
-             */
-            virtual                ~Iterator()
-            {}
+                /** Virtual destructor.  */
+                virtual                ~Iterator()
+                {}
 
-            /**
-             * Searches and loads the next variable from the iterated section. On success, the
-             * variable data is stored in #Actual.
-             * @return \c true, if a next variable was found. \c false otherwise.
-             */
-            virtual bool            Next()                                                      = 0;
+                /**
+                 * Searches and loads the next variable from the iterated section. On success, the
+                 * variable data is stored in #Actual.
+                 * @return \c true, if a next variable was found. \c false otherwise.
+                 */
+                virtual bool            Next()                                                  = 0;
+
+                /**
+                 * Resets this iterator to work on a different section of the same configuration.
+                 * @param sectionName  The name of the section to iterate.
+                 */
+                virtual void            ResetToSection( const String& sectionName )             = 0;
         };
 
 
@@ -452,8 +461,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
     // #############################################################################################
     protected:
         /** ****************************************************************************************
-         * Implementation of get method. No locking is performed (has to be done before
-         * invoking this method)
+         * Implementation of method #Load.
          *
          * @param variable    The variable to get.
          * @param substitute  If \c false, automatic variable substitutions are suppressed.
@@ -470,10 +478,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
 
 
 /// Type alias in namespace #aworx.
-using     Configuration=       aworx::lib::config::Configuration;
-
-/// Type alias in namespace #aworx.
-using     Variable= aworx::lib::config::Variable;
+using     Configuration=       lib::config::Configuration;
 
 }  // namespace [aworx]
 

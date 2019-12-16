@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_system of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_PROCESSINFO
 #define HPP_ALIB_SYSTEM_PROCESSINFO 1
 
@@ -51,7 +52,7 @@ class ProcessInfo
     // #############################################################################################
     // Fields under unix like OS
     // #############################################################################################
-    #if defined( __unix__ )  || ALIB_DOCUMENTATION_PARSER
+    #if defined( __unix__ )  || defined(ALIB_DOX)
 
             /** The parent's process id as AString. (Unix like OS / Mac OS only.) */
             uinteger    PPID;
@@ -76,7 +77,7 @@ class ProcessInfo
     // #############################################################################################
     // Fields under Windows OS
     // #############################################################################################
-    #if defined( _WIN32 ) || ALIB_DOCUMENTATION_PARSER
+    #if defined( _WIN32 ) || defined(ALIB_DOX)
         public:
 
              /** For console processes, this is the title displayed in the title bar. (Windows OS only.) */
@@ -164,7 +165,7 @@ class ProcessInfo
 }} // namespace lib::system
 
 /// Type alias in namespace #aworx.
-using     ProcessInfo=       aworx::lib::system::ProcessInfo;
+using     ProcessInfo=       lib::system::ProcessInfo;
 
 }  // namespace [aworx]
 

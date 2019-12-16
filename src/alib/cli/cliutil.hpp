@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_cli of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_CLIUTIL
 #define HPP_ALIB_CLI_CLIUTIL 1
 
@@ -11,8 +12,11 @@
 #   include "alib/cli/cliapp.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
-#   include "alib/stringformat/text.hpp"
+#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
+#   include "alib/text/paragraphs.hpp"
+#endif
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace cli {
@@ -40,16 +44,16 @@ class CLIUtil
      * Searches and if found, retrieves the declaration of the option identified by
      * \p{identString} which, if it contains a single character is compared to the
      * \alib{cli,OptionDecl::IdentifierChar}. Otherwise, matching is done case insensitive and
-     * with respecting \alib{cli,OptionDecl::MinimumParseLen}.
+     * with respecting \alib{cli,OptionDecl::MinimumRecognitionLength}.
      *
      * This method is useful to implement a help command or option, with an optional "topic"
      * parameter.
      *
      * \note
      *   If parsing of arguments should be (or has to be) customized, of-course this method
-     *   can also be used for implementing such custom code. Otherwise, use
-     *   \alib{cli,CLIApp::ReadOptions} to parse and collect options in
-     *   \alib{cli,CLIApp::OptionsFound}.
+     *   can also be used for implementing such custom code. Otherwise, use method
+     *   \alib{cli,CLIApp::ReadOptions}, which parses and collects options in filed
+     *   \alib{cli,CLIApp::Options}.
      *
      * \see Methods #GetCommandDecl, #GetParameterDecl.
      *
@@ -64,7 +68,7 @@ class CLIUtil
     /** ********************************************************************************************
      * Searches and if found, retrieves the declaration of the command identified by
      * \p{identString}. Matching is done case insensitive and with respecting
-     * \alib{cli,CommandDecl::MinimumParseLen}.
+     * \alib{cli,CommandDecl::MinimumRecognitionLength}.
      *
      * This method is useful to implement a help command or option, with an optional "topic"
      * parameter.
@@ -87,7 +91,7 @@ class CLIUtil
     /** ********************************************************************************************
      * Searches and if found, retrieves the declaration of the parameter identified by
      * \p{identString}. Matching is done case insensitive and with respecting
-     * \alib{cli,CommandDecl::MinimumParseLen}.
+     * \alib{cli,CommandDecl::MinimumRecognitionLength}.
      *
      * This method is useful to implement a help command (or option), with an optional "topic"
      * parameter.
@@ -113,14 +117,14 @@ class CLIUtil
 
 
     /** ********************************************************************************************
-     * Translates exceptions thrown by the \alibmod_nolink_cli library to exit codes defined with
+     * Translates exceptions thrown by the \alib_cli_nl library to exit codes defined with
      * \alib{cli,CLIApp::DefineExitCodes}.
      *
      * If the code is not found, this indicates an error in the resource data, as an exit
-     * code corresponding to the \alibmod_nolink_cli exceptions is obviously missing.
-     * In this case, \c -1 is returned. In debug compilations an \alib assertion is raised.
+     * code corresponding to the \alib_cli_nl exceptions is obviously missing.
+     * In this case, \c -1 is returned. With debug builds an \alib assertion is raised.
      *
-     * @param cliApp    The friend object we work on.
+     * @param cliApp     The friend object we work on.
      * @param exception  The cli exception caught.
      * @return The exit code to return to the caller. \c -1, if not found.
      **********************************************************************************************/
@@ -128,10 +132,10 @@ class CLIUtil
     integer       GetExitCode( CLIApp& cliApp, Exception& exception )
     {
         auto element= exception.Type().Get<lib::cli::Exceptions>();
-        for( auto& exitCode : cliApp.ExitCodeDecls )
-            if( exitCode.second.AssociatedCLIException() == element )
-                return exitCode.second.ID.Value();
-        ALIB_ERROR( "No exit code associated with {}.", element );
+        for( auto exitCodeDecl : cliApp.ExitCodeDecls )
+            if( exitCodeDecl.second->AssociatedCLIException() == element )
+                return exitCodeDecl.first.Integral();
+        ALIB_ERROR( "No exit code associated with {}.", element )
         return -1;
     }
 
@@ -158,15 +162,34 @@ class CLIUtil
      *         could be identified.
      **********************************************************************************************/
     static ALIB_API
-    bool GetHelp( CLIApp& cliApp, Command* helpCmd, Option* helpOpt, Text& text );
+    bool GetHelp( CLIApp& cliApp, Command* helpCmd, Option* helpOpt, Paragraphs& text );
 
     /** ********************************************************************************************
-     * Read dry-run options. This utility method accepts options as given with enumeration
-     * \alib{cli,DryRunModes}.
+     * Reads a dry-run options and stores the result in \alib{cli,CLIApp::DryRun}.
      *
-     * If no argument is set in \p{dryOpt}, the next argument is checked to
-     * be an option. If yes, the argument is consumed and stored in \p{dryOpt}.
-     * If no argument is set or successfully peeked, \alib{cli,DryRunModes::Application} is chosen.
+     * Option arguments as defined with records of enumeration \alib{cli,DryRunModes} are
+     * accepted. These records are resourced and default to:
+     *       \snippet "alib/cli/cli.cpp"  DOX_ALIB_CLI_DRYRUN_RESOURCES
+     *
+     * If no argument is set in the given \p{dryOpt}, the next unread CLI-argument is checked
+     * for being parsable as an element of enum \b DryRunModes. If yes, the CLI-argument is
+     * consumed and duly stored in \p{dryOpt}.<br>
+     * In case no argument was set (or successfully peeked), \alib{cli,DryRunModes::Application} is
+     * chosen and stored.
+     *
+     * If one of the modes offered by enumeration \b DryRunModes should not be recognizable,
+     * three ways of implementing this exist:
+     * 1. Do not use this method but implement a custom version. In case that only
+     *    \alib{cli,DryRunModes::Application} should be accepted, instead calling this util method,
+     *    simply set field \alib{cli,CLIApp::DryRun} to this value.
+     * 2. Check for the "forbidden" argument type after the invocation of this method and
+     *    exit your cli app
+     * 3. Modify this module's resource string <b>"CLI/DRM"</b> to not contain the suppressed
+     *    argument's record. (With that, the defaulted argument names can also be modified).
+     *
+     * By modifying the resource string, it is also possible to add custom options. Remeber, that
+     * it is allowed in C++ to have an enum element evaluate to any integral, regardless
+     * whether it is defined in the C++ definition or not.
      *
      * @param cliApp    The application object.
      * @param dryOpt    The option object parsed.
@@ -187,7 +210,7 @@ class CLIUtil
      *         debugging threads :-)
      **************************************************************************************************/
     static ALIB_API
-    AString&     DumpDeclarations( CLIApp& cliApp, Text& text );
+    AString&     DumpDeclarations( CLIApp& cliApp, Paragraphs& text );
 
     /** ********************************************************************************************
      * Write in human readable form, which commands and options have been read from the
@@ -207,13 +230,13 @@ class CLIUtil
      *          (Beware of concurrent debugging threads :-)
      **************************************************************************************************/
     static ALIB_API
-    AString&     DumpParseResults( CLIApp& cliApp, Text& text );
+    AString&     DumpParseResults( CLIApp& cliApp, Paragraphs& text );
 };
 
 }} // namespace lib::system
 
 /// Type alias in namespace #aworx.
-using     CLIUtil=           aworx::lib::cli::CLIUtil;
+using     CLIUtil=           lib::cli::CLIUtil;
 
 
 }  // namespace [aworx]

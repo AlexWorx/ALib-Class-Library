@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
 #   include "alib/expressions/expression.hpp"
 #endif
@@ -14,18 +15,30 @@
 #   include "alib/expressions/detail/program.hpp"
 #endif
 
+#if !defined (HPP_ALIB_EXPRESSIONS_SCOPE)
+#   include "alib/expressions/scope.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
+
+
 namespace aworx { namespace lib { namespace expressions {
 
 
-Expression::Expression( const String& sourceString )
-: name          ( EXPRESSIONS.GetResource("ANON_EXPR_NAME") )
+Expression::Expression( const String& sourceString, Scope* pCTScope )
+: ctScope       ( pCTScope)
+, name          ( nullptr )
 , program       ( nullptr )
-, originalString( sourceString )
-{}
+, originalString( ctScope->Allocator.EmplaceString( sourceString ) )
+{
+    normalizedString.SetBuffer(sourceString.Length());
+}
 
 Expression::~Expression()
 {
-    if(program)     delete program;
+    if(program)
+       delete program;
+    delete ctScope;
+
 }
 
 aworx::Box  Expression::ResultType()
@@ -37,13 +50,13 @@ aworx::Box  Expression::ResultType()
 aworx::Box  Expression::Evaluate( Scope& scope )
 {
     ALIB_ASSERT_ERROR( program, "Internal error: Expression without program" )
-    #if ALIB_MODULE_TIME && ALIB_DEBUG
+    #if ALIB_TIME && ALIB_DEBUG
         Ticks startTime;
     #endif
 
         Box result= program->Run( scope );
 
-    #if ALIB_MODULE_TIME && ALIB_DEBUG
+    #if ALIB_TIME && ALIB_DEBUG
         DbgLastEvaluationTime= startTime.Age();
     #endif
 

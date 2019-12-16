@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS
 
@@ -21,7 +22,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * Usually the operator chooses \c 'A' in the case that \c 'A' can be interpreted as something like
  * not null, not \e nulled or \c true in any means. Otherwise it selects \c 'B'.
- * Due to the type-safe approach of \alibmod_nolink_expressions, the type of \c 'A' and \c 'B'
+ * Due to the type-safe approach of \alib_expressions_nl, the type of \c 'A' and \c 'B'
  * must be equal, or at least an auto-cast has to exist that casts the types to a pair of
  * equal types.
  *

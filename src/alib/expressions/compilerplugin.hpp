@@ -1,10 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN
 #define HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN
 
@@ -20,6 +20,14 @@
 #   include "alib/expressions/compiler.hpp"
 #endif
 
+#if !defined (HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_MASTRING)
+#   include "alib/monomem/mastring.hpp"
+#endif
+
 namespace aworx { namespace lib { namespace expressions {
 
 
@@ -30,7 +38,7 @@ namespace aworx { namespace lib { namespace expressions {
  * expression strings.
  *
  * In depth information on how this class is used is given in the
- * \ref aworx::lib::expressions "User Manual And Tutorial" of module \alibmod_nolink_expressions.
+ * \ref aworx::lib::expressions "User Manual And Tutorial" of module \alib_expressions_nl.
  *
  * The overloaded methods #TryCompilation are not abstract, but have a default implementation
  * that return constant \c false. A plug-in derived from this class needs to override only those
@@ -77,7 +85,7 @@ namespace aworx { namespace lib { namespace expressions {
  *
  * \attention
  *   If constant data is returned, it has to be assured, that the contents of the returned
- *   \b %Box remains valid during the lifecycle of the expression. This is assured for all
+ *   \b %Box remains valid during the life-cycle of the expression. This is assured for all
  *   C++ fundamental types. For custom types it depends on where the constant value is received
  *   from and how boxing is performed.
  *   (By default, custom types bigger as two "words" (2 x 64/32 bits) are boxed as pointers to the
@@ -141,7 +149,7 @@ struct CompilerPlugin
          *
          * If a compiled expression syntax element evaluates to a constant stored in
          * #TypeOrValue it has to be assured that the boxed data is to available during the
-         * lifecycle of the expression.
+         * life-cycle of the expression.
          *
          * To allocate custom compilation data, a custom, derived type, might for example be
          * extended with simple\c std::vector of pointers to the created objects.
@@ -150,6 +158,14 @@ struct CompilerPlugin
          * Any data allocated, is to be deleted in the virtual destructor of the custom scope type.
          */
         Scope&              CompileTimeScope;
+
+        /**
+         * An allocator to be used exclusively during compile-time.
+         * Its memory is cleared (respectively reset to a previous state) after the compilation
+         * completed.<br>
+         * (Refers to object \alib{expressions,Compiler::allocator}.)
+         */
+        MonoAllocator&     CompileTimeAllocator;
 
         /**
          * Input: A start iterator to \ref alib_expressions_prereq_sb "sample boxes"
@@ -190,13 +206,16 @@ struct CompilerPlugin
 
         /**
          * Constructor.
-         * @param scope   The scope usable for allocation of constant values (compile-time
-         *                allocations).
+         * @param scope      The scope usable for allocation of constant values (compile-time
+         *                   allocations). Assigned to field #CompileTimeScope.
+         * @param allocator  Assigned to field #CompileTimeAllocator.
+         *
          */
-        CompilationInfo( Scope& scope )
-        : CompileTimeScope( scope               )
-        , ArgsBegin       ( scope.Stack.begin() )
-        , ArgsEnd         ( scope.Stack.end()   )
+        CompilationInfo( Scope& scope, MonoAllocator& allocator )
+        : CompileTimeScope     ( scope               )
+        , CompileTimeAllocator ( allocator           )
+        , ArgsBegin            ( scope.Stack.begin() )
+        , ArgsEnd              ( scope.Stack.end()   )
         {}
     };
 
@@ -231,23 +250,28 @@ struct CompilerPlugin
          * A plug-in may add names of functions that matched, while the arguments did not.
          * This will be stored in the details of a potential exception, if no other plug-in
          * compiles this function and may be displayed to the end-user.
+         *
+         * To add entries here, convenience method #AddFunctionsWithNonMatchingArguments is
+         * provided.
          */
-        std::vector<AString>&   FunctionsWithNonMatchingArguments;
+        List<String>&           FunctionsWithNonMatchingArguments;
 
         /**
          * Constructor.
-         * @param scope          Passed to parent.
-         * @param name           Stored in #Name.
-         * @param noParentheses  Stored in #NoParentheses.
-         * @param argsAreConst   Passed to #AllArgsAreConst.
-         * @param hints          Stored in #FunctionsWithNonMatchingArguments.
+         * @param scope                 Passed to parent.
+         * @param compileTimeAllocator  Passed to parent.
+         * @param name                  Stored in #Name.
+         * @param noParentheses         Stored in #NoParentheses.
+         * @param argsAreConst          Passed to #AllArgsAreConst.
+         * @param hints                 Stored in #FunctionsWithNonMatchingArguments.
          */
         CIFunction( Scope&                scope,
+                    MonoAllocator&       compileTimeAllocator,
                     AString&              name,
                     bool                  noParentheses,
                     bool                  argsAreConst,
-                    std::vector<AString>& hints        )
-        : CompilationInfo( scope )
+                    List<String>&         hints        )
+        : CompilationInfo(scope, compileTimeAllocator)
         , Name           (name)
         , NoParentheses  (noParentheses)
         , AllArgsAreConst(argsAreConst)
@@ -259,7 +283,7 @@ struct CompilerPlugin
          * Returns the number of arguments given.
          * @return The number of arguments the function call requested.
          */
-        inline size_t QtyArgs()
+        size_t QtyArgs()
         {
             return static_cast<size_t>( ArgsEnd - ArgsBegin );
         }
@@ -269,22 +293,31 @@ struct CompilerPlugin
          * @param no The number of the argument requested.
          * @return A reference to the requested argument.
          */
-        inline Box& Arg( size_t no )
+        Box& Arg( size_t no )
         {
             return *(ArgsBegin + static_cast<ptrdiff_t>( no ) );
         }
 
-
+        /**
+         * Convenience method that adds creates a monotonically allocated copy of the given string
+         * and adds it to list #FunctionsWithNonMatchingArguments.
+         *
+         * @param signature  The function signature to add.
+         */
+        void AddFunctionsWithNonMatchingArguments( const String& signature )
+        {
+            FunctionsWithNonMatchingArguments.EmplaceBack( CompileTimeAllocator.EmplaceString(signature) );
+        }
     };
 
     /** ********************************************************************************************
-     * Info struct for compiling expression an unary operation.
+     * Info struct for compiling an unary operator.
      * This struct is used with method \ref TryCompilation(CIUnaryOp&) to provide information
      * to derived compiler plug-ins, as well as to receive information back.
      **********************************************************************************************/
     struct CIUnaryOp      : public CompilationInfo
     {
-        String&         Operator;   ///< Input/Output: The unary operation.
+        String&         Operator;   ///< Input/Output: The unary operator.
 
         /**
          * Input: Denotes if the argument is a constant value. Operator callbacks that do
@@ -296,20 +329,22 @@ struct CompilerPlugin
 
         /**
          * Constructor.
-         * @param scope Passed to parent.
-         * @param operation  Stored in #Operator.
-         * @param argIsConst Passed to field #ArgIsConst.
+         * @param scope                 Passed to parent.
+         * @param compileTimeAllocator  Passed to parent.
+         * @param op                    Stored in #Operator.
+         * @param argIsConst            Passed to field #ArgIsConst.
          *
          */
-        CIUnaryOp( Scope& scope, String& operation, bool argIsConst )
-        : CompilationInfo( scope      )
-        , Operator       ( operation  )
+        CIUnaryOp( Scope&  scope    , MonoAllocator& compileTimeAllocator,
+                   String& op       , bool            argIsConst )
+        : CompilationInfo( scope, compileTimeAllocator  )
+        , Operator       ( op         )
         , ArgIsConst     ( argIsConst )
         {}
     };
 
     /** ********************************************************************************************
-     * Info struct for compiling expression a binary operation.
+     * Info struct for compiling a binary operator.
      * This struct is used with method \ref TryCompilation(CIBinaryOp&) to provide information
      * to derived compiler plug-ins, as well as to receive information back.
      *
@@ -351,7 +386,7 @@ struct CompilerPlugin
      **********************************************************************************************/
     struct CIBinaryOp     : public CompilationInfo
     {
-        String&         Operator;     ///< Input/Output: The binary operation symbol.
+        String&         Operator;     ///< Input/Output: The binary operator symbol.
 
         /** Input: Denotes if the lhs-argument is a constant value. */
         bool            LhsIsConst;
@@ -365,13 +400,15 @@ struct CompilerPlugin
 
         /**
          * Constructor.
-         * @param scope        Passed to parent.
-         * @param op           Stored in #Operator.
-         * @param lhsIsConst   Stored in #LhsIsConst.
-         * @param rhsIsConst   Stored in #RhsIsConst.
+         * @param scope                 Passed to parent.
+         * @param compileTimeAllocator  Passed to parent.
+         * @param op                    Stored in #Operator.
+         * @param lhsIsConst            Stored in #LhsIsConst.
+         * @param rhsIsConst            Stored in #RhsIsConst.
          */
-        CIBinaryOp( Scope& scope, String& op, bool lhsIsConst, bool rhsIsConst)
-        : CompilationInfo    ( scope      )
+        CIBinaryOp( Scope&  scope, MonoAllocator& compileTimeAllocator,
+                    String& op, bool lhsIsConst, bool rhsIsConst)
+        : CompilationInfo    ( scope, compileTimeAllocator )
         , Operator           ( op         )
         , LhsIsConst         ( lhsIsConst )
         , RhsIsConst         ( rhsIsConst )
@@ -387,7 +424,7 @@ struct CompilerPlugin
      * - A binary operator for a combination of types can not be found.
      * - Two different types for \c T and \c F were given with conditional operator <c>Q ? T : F</c>.
      *
-     * For which the scenarios a cast is needed can be determined with field #Op and also by
+     * For which the scenarios a cast is needed can be determined with field #Operator and also by
      * checking the number of given arguments.
      *
      * Built-in compiler plug-in \alib{expressions::plugins,AutoCast} ignores unary operations.
@@ -424,10 +461,10 @@ struct CompilerPlugin
          * requirement is to cast both given arguments to the same type - otherwise, the
          * conditional operator does not compile!
          */
-        String&             Op;
+        String&             Operator;
 
         /** Input: denotes if the unary argument, respectively the lhs argument of a binary
-            operation, is a constant value. */
+            operator, is a constant value. */
         bool                IsConst;
 
         /** Input: denotes if rhs argument is constant value. */
@@ -477,14 +514,15 @@ struct CompilerPlugin
 
         /**
          * Constructor.
-         * @param scope         Passed to parent.
-         * @param op            Stored in #Op.
-         * @param isConst       Stored in IsConst.
-         * @param rhsIsConst    Stored in RhsIsConst.
+         * @param scope                 Passed to parent.
+         * @param compileTimeAllocator  Passed to parent.
+         * @param op                    Stored in #Operator.
+         * @param isConst               Stored in IsConst.
+         * @param rhsIsConst            Stored in RhsIsConst.
          */
-        CIAutoCast( Scope& scope, String& op, bool isConst, bool rhsIsConst )
-        : CompilationInfo   ( scope       )
-        , Op                ( op          )
+        CIAutoCast( Scope& scope, MonoAllocator& compileTimeAllocator, String& op, bool isConst, bool rhsIsConst )
+        : CompilationInfo   ( scope, compileTimeAllocator )
+        , Operator          ( op          )
         , IsConst           ( isConst     )
         , RhsIsConst        ( rhsIsConst  )
         , CallbackRhs       ( nullptr     )
@@ -555,7 +593,7 @@ struct CompilerPlugin
      * \alib{expressions::CompilerPlugin,CIUnaryOp}.
      *
      * The implementation might allow alias operators. If such alias is found, the used original
-     * operator should be returned in/out parameter \p{operation}.
+     * operator should be returned in/out parameter \p{operator}.
      *
      * Such "corrected" operators will appear in the normalized expression strings returned by
      * \alib{expressions,Expression::GetNormalizedString}, in case flag
@@ -579,12 +617,12 @@ struct CompilerPlugin
      *
      * Alternatively, depending on fields \c %LhsIsConst and \c %RhsIsConst of the given compilation
      * info struct, a constant value might be returned or, as a third alternative, field
-     * \c %NonConstArgIsResult may be set to \c true, if an "identity" operation is detected
+     * \c %NonConstArgIsResult may be set to \c true, if an "identity" operator is detected
      * For details of the input and output parameters of the function, see struct
      * \alib{expressions::CompilerPlugin,CIBinaryOp}.
      *
      * The implementation might allow alias operators. If such alias is found, the used original
-     * operator should be returned in/out parameter \p{operation}.
+     * operator should be returned in/out parameter \p{operator}.
      *
      * Such "corrected" operators will appear in the normalized expression strings returned by
      * \alib{expressions,Expression::GetNormalizedString}, in case flag
@@ -621,7 +659,7 @@ struct CompilerPlugin
 }} // namespace aworx[::lib::expressions]
 
 /// Type alias in namespace #aworx.
-using     CompilerPlugin=    aworx::lib::expressions::CompilerPlugin;
+using     CompilerPlugin=    lib::expressions::CompilerPlugin;
 
 } // namespace [aworx]
 

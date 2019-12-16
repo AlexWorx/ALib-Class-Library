@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
 #   include "alib/system/environment.hpp"
 #endif
@@ -14,7 +15,6 @@
 #   include "alib/strings/localstring.hpp"
 #endif
 
-
 #if defined (__GLIBCXX__)  || defined(__APPLE__)
     #include <unistd.h>
 #elif   defined( _WIN32 )
@@ -22,6 +22,7 @@
 #else
     #pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace system {
 
@@ -42,7 +43,7 @@ bool GetEnvironmentVariable( const CString&  name,
         ALIB_ASSERT_WARNING( sensitivity == Case::Ignore,
            "Windows OS does not support case sensitive environment variables" )
 
-        #if ALIB_CHARACTERS_ARE_NARROW
+        #if !ALIB_CHARACTERS_WIDE
             nchar *env;
             errno_t err = _dupenv_s( &env, nullptr, name );
             if ( err  || env == nullptr )
@@ -65,14 +66,14 @@ bool GetEnvironmentVariable( const CString&  name,
         nchar* env= getenv( name );
         if( env != nullptr )
         {
-            target._( env );
+            target._( NString( env ) );
             return true;
         }
         return false;
 
     #elif defined (__unix__)
 
-        ALIB_STRINGS_TO_NARROW( name, nName, 512 );
+        ALIB_STRINGS_TO_NARROW( name, nName, 512 )
 
         // case sensitive is easy (but not supported under Windows)
         if ( sensitivity == Case::Sensitive )
@@ -100,7 +101,7 @@ bool GetEnvironmentVariable( const CString&  name,
                 return true;
             }
 
-            envv++;
+            ++envv;
         }
 
         return false;

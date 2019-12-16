@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_CSTRING
 #define HPP_ALIB_STRINGS_CSTRING 1
 
@@ -49,7 +50,7 @@ class TCString : public TString<TChar>
         /** ****************************************************************************************
          * Default constructor creating a \ref alib_strings_details_nulled \e "nulled" c-string.
          ******************************************************************************************/
-        constexpr  inline
+        constexpr
         TCString()
         : TString<TChar>()
         {}
@@ -64,17 +65,17 @@ class TCString : public TString<TChar>
          *   zero-terminated.
          *
          *
-         * @param buffer          The buffer to use.
+         * @param pBuffer         The buffer to use.
          * @param contentLength   The length of the content in the given buffer.
          ******************************************************************************************/
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
         constexpr
 #else
         ALIB_CPP14_REL_CONSTEXPR
 #endif
-        inline  explicit
-        TCString( const TChar* buffer, integer contentLength )
-        : TString<TChar>( buffer, contentLength )
+        explicit
+        TCString( const TChar* pBuffer, integer contentLength )
+        : TString<TChar>( pBuffer, contentLength )
         {
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
                               || TString<TChar>::buffer[TString<TChar>::length] == '\0'
@@ -82,7 +83,7 @@ class TCString : public TString<TChar>
         }
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * This templated constructor accepts various different kinds of source data.
          * Unlike this documentation suggests, this constructor is internally implemented by a
@@ -99,7 +100,7 @@ class TCString : public TString<TChar>
          * \see
          *   More information about construction of this type is provided with chapter
          *   \ref alib_strings_cc_construction_cstring of the Programmer's Manual of module
-         *   \alibmod_strings.
+         *   \alib_strings.
          *
          * @tparam TZTCharArray  Type that comprises a zero-terminated character array.
          * @param  src           The source object.
@@ -118,8 +119,8 @@ class TCString : public TString<TChar>
          *
          * \see
          *   More information about casting \alib string types to built-in C++ types or custom
-         *   types is provided with chapter \ref alib_strings_cc_cast_cstring of the programmer's
-         *   manual of module \alibmod_strings.
+         *   types is provided with chapter \ref alib_strings_cc_cast_cstring of the Programmer's
+         *   Manual of module \alib_strings.
          *
          * @tparam TZTCharArray The custom type to implicitly convert this object to.
          * @return A value of custom string type.
@@ -137,8 +138,8 @@ class TCString : public TString<TChar>
          *
          * \see
          *   More information about casting \alib string types to built-in C++ types or custom
-         *   types is provided with chapter \ref alib_strings_cc_cast_cstring of the programmer's
-         *   manual of module \alibmod_strings.
+         *   types is provided with chapter \ref alib_strings_cc_cast_cstring of the Programmer's
+         *   Manual of module \alib_strings.
          *
          * @tparam TZTCharArray The custom type to explicitly convert this object to.
          * @return A value of custom string type.
@@ -281,7 +282,6 @@ class TCString : public TString<TChar>
          * @param   op    The index of the character within this object's buffer.
          * @returns If the character contained at index \p{op}.
          ******************************************************************************************/
-         inline
          TChar    operator[] (integer  op) const
          {
             ALIB_ASSERT_ERROR( op >= 0  && op <= TString<TChar>::length, "Index out of bounds" )
@@ -309,24 +309,23 @@ class TCString : public TString<TChar>
          *   On most platforms, this zero-terminated version should perform slightly faster than
          *   the original method in class \b %String.
          *
-         * @param needles    Set of characters to be taken into account.
-         * @param startIdx   The index to start the search at. If the given value is less than \c 0,
-         *                   it is set to \c 0. If it exceeds the length of the string, the length of
-         *                   the string is returned.
-         *                   Defaults to \c 0.
          * @tparam TCheck    Defaults to \c true which is the normal invocation mode.
          *                   If \c <false\> is added to the method name, no parameter checks are
          *                   performed and the needles must not be empty.
          * @tparam inclusion Denotes whether the search returns the first index that holds a value
          *                   that is included or that is not excluded in the set of needle
          *                   characters.
+         * @param needles    Set of characters to be taken into account.
+         * @param startIdx   The index to start the search at. If the given value is less than \c 0,
+         *                   it is set to \c 0. If it exceeds the length of the string, the length of
+         *                   the string is returned.
+         *                   Defaults to \c 0.
          *
          * @return The index of the first character found which is included, respectively not
          *         included, in the given set of characters. If nothing is found, \c -1 is returned.
          ******************************************************************************************/
         template <Inclusion   inclusion,
                   bool        TCheck= true >
-        inline
         integer  IndexOfAny( const TCString& needles, integer startIdx= 0 )
         const
         {
@@ -395,7 +394,7 @@ class TCString : public TString<TChar>
  **************************************************************************************************/
 template<typename TChar> struct TT_StringConstants
 {
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** @return A \e zero-terminated empty string. */
     constexpr inline static CString<TChar>     EmptyString();
 
@@ -413,48 +412,48 @@ template<typename TChar> struct TT_StringConstants
 };
 
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 template<> struct TT_StringConstants<nchar>
 {
-    ALIB_CPP14_CONSTEXPR static inline NCString  EmptyString()        { return         ""        ; }
+    ALIB_CPP14_CONSTEXPR static NCString  EmptyString()        { return         ""        ; }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static inline NCString  NewLine()            { return         "\r\n"    ; }
+    ALIB_CPP14_CONSTEXPR static NCString  NewLine()            { return         "\r\n"    ; }
   #else
-    ALIB_CPP14_CONSTEXPR static inline NCString  NewLine()            { return         "\n"      ; }
+    ALIB_CPP14_CONSTEXPR static NCString  NewLine()            { return         "\n"      ; }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static inline NCString  DefaultWhitespaces() { return         " \n\r\t" ; }
+    ALIB_CPP14_CONSTEXPR static NCString  DefaultWhitespaces() { return         " \n\r\t" ; }
 };
 
 template<> struct TT_StringConstants<wchar>
 {
-    ALIB_CPP14_CONSTEXPR static inline WCString  EmptyString()        { return A_WCHAR(""       ); }
+    ALIB_CPP14_CONSTEXPR static WCString  EmptyString()        { return A_WCHAR(""       ); }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static inline WCString  NewLine()            { return A_WCHAR("\r\n"   ); }
+    ALIB_CPP14_CONSTEXPR static WCString  NewLine()            { return A_WCHAR("\r\n"   ); }
   #else
-    ALIB_CPP14_CONSTEXPR static inline WCString  NewLine()            { return A_WCHAR("\n"     ); }
+    ALIB_CPP14_CONSTEXPR static WCString  NewLine()            { return A_WCHAR("\n"     ); }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static inline WCString  DefaultWhitespaces() { return A_WCHAR(" \n\r\t"); }
+    ALIB_CPP14_CONSTEXPR static WCString  DefaultWhitespaces() { return A_WCHAR(" \n\r\t"); }
 };
 
 template<> struct TT_StringConstants<xchar>
 {
-    ALIB_CPP14_CONSTEXPR static inline XCString  EmptyString()        { return A_XCHAR(""       ); }
+    ALIB_CPP14_CONSTEXPR static XCString  EmptyString()        { return A_XCHAR(""       ); }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static inline XCString  NewLine()            { return A_XCHAR("\r\n"   ); }
+    ALIB_CPP14_CONSTEXPR static XCString  NewLine()            { return A_XCHAR("\r\n"   ); }
   #else
-    ALIB_CPP14_CONSTEXPR static inline XCString  NewLine()            { return A_XCHAR("\n"     ); }
+    ALIB_CPP14_CONSTEXPR static XCString  NewLine()            { return A_XCHAR("\n"     ); }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static inline XCString  DefaultWhitespaces() { return A_XCHAR(" \n\r\t"); }
+    ALIB_CPP14_CONSTEXPR static XCString  DefaultWhitespaces() { return A_XCHAR(" \n\r\t"); }
 };
 
-#endif  //!ALIB_DOCUMENTATION_PARSER
+#endif  //!defined(ALIB_DOX)
 
 }} // namespace aworx[::lib::strings]
 
@@ -535,7 +534,26 @@ inline ALIB_CPP14_CONSTEXPR WCString            WDefaultWhitespaces()  { return 
 /// @return A zero-terminated string of default whitespace characters.
 inline ALIB_CPP14_CONSTEXPR XCString            XDefaultWhitespaces()  { return lib::strings::TT_StringConstants<xchar    >::DefaultWhitespaces(); }
 
-} // namespace [aworx::lib::strings]
+/// A global instance of a \e nulled zero-terminated string of standard character size.
+ALIB_API extern CString                         EMPTY_STRING;
+
+/// A global instance of a \e nulled zero-terminated string of complementary character size.
+ALIB_API extern ComplementCString               EMPTY_COMPLEMENT_STRING;
+
+/// A global instance of a \e nulled zero-terminated string of strange character size.
+ALIB_API extern StrangeCString                  EMPTY_STRANGE_STRING;
+
+/// A global instance of a \e nulled zero-terminated string of wide character size.
+ALIB_API extern NCString                        EMPTY_N_STRING;
+
+/// A global instance of a \e nulled zero-terminated string of wide character size.
+ALIB_API extern WCString                        EMPTY_W_STRING;
+
+/// A global instance of a \e nulled zero-terminated string of strange character size.
+ALIB_API extern XString                         EMPTY_X_STRING;
+
+
+} // namespace [aworx]
 
 
 #if defined(_MSC_VER)

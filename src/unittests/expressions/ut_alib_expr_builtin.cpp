@@ -6,12 +6,20 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)
+#if ALIB_UT_EXPRESSIONS
 
 #include "alib/alox.hpp"
-#include "unittests/aworx_unittests.hpp"
-#include "alib/alox/logtools.hpp"
+#if ALIB_ALOX
+#   include "alib/alox/logtools.hpp"
+#endif
+
 #include "alib/boxing/dbgboxing.hpp"
+#if ALIB_ALOX
+#   include "alib/system/calendar.hpp"
+#endif
+#if ALIB_SYSTEM
+#   include "alib/system/calendar.hpp"
+#endif
 
 #include "alib/expressions/expression.hpp"
 #include "alib/expressions/detail/parser.hpp"
@@ -29,7 +37,9 @@
 #endif
 #include <math.h>
 
+
 #define TESTCLASSNAME       CPP_ALib_Expr_Builtin
+#include "unittests/aworx_unittests.hpp"
 
 
 using namespace std;
@@ -58,7 +68,7 @@ UT_CLASS()
 // #################################################################################################
 UT_METHOD(Math)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -115,9 +125,10 @@ UT_METHOD(Math)
 // #################################################################################################
 // #### DateTime
 // #################################################################################################
+#if ALIB_SYSTEM
 UT_METHOD(DateTime)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -197,13 +208,15 @@ UT_METHOD(DateTime)
       EXPRESSION( Age(Now)  < milliseconds(1)          , true    , 4);
       EXPRESSION( IsOlderThan(Now, milliseconds(1) )   , false   , 3);
     #endif
+#if !defined(__APPLE__)
     EXPRESSION( IsOlderThan(Now, nanoseconds(0) )    , true    , 3);
     EXPRESSION( now == now                           , false   , 3);
     EXPRESSION( now != now                           , true    , 3);
     EXPRESSION( now <  now                           , true    , 3);
+    EXPRESSION( now >= now                           , false   , 3);
+#endif
     EXPRESSION( now <= now                           , true    , 3);
     EXPRESSION( now >  now                           , false   , 3);
-    EXPRESSION( now >= now                           , false   , 3);
 
     CONSTEXPR( UTCDateTime(2019,1,31,14,5) , CalendarDateTime(2019,1,31,14,5).Get(Timezone::UTC) );
     CONSTEXPR(    DateTime(2019,1,31,14,5) , CalendarDateTime(2019,1,31,14,5).Get() );
@@ -239,8 +252,6 @@ UT_METHOD(DateTime)
     EXPRESSION( UTCToday <= now                          , true  , 3 );
 
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-
     EXPRESSION(    GetMonth(DateTime(2019, 1)) == January
                 && GetMonth(DateTime(2019, 2)) == Feb
                 && GetMonth(DateTime(2019, 3)) == Mar
@@ -254,7 +265,6 @@ UT_METHOD(DateTime)
                 && GetMonth(DateTime(2019,11)) == Novem
                 && GetMonth(DateTime(2019,12)) == Dec             , true, 1 );
 
-//! [DOX_ALIB_EXPR_BOOST_LONG]
     EXPRESSION(    GetDayOfWeek(DateTime(2019, 2, 11)) == Monday
                 && GetDayOfWeek(DateTime(2019, 2, 12)) == Tue
                 && GetDayOfWeek(DateTime(2019, 2, 13)) == Wed
@@ -262,18 +272,16 @@ UT_METHOD(DateTime)
                 && GetDayOfWeek(DateTime(2019, 2, 15)) == fri
                 && GetDayOfWeek(DateTime(2019, 2, 16)) == sat
                 && GetDayOfWeek(DateTime(2019, 2, 17)) == sun    , true , 1);
-//! [DOX_ALIB_EXPR_BOOST_LONG]
-
+}
 #endif
 
-}
 
 // #################################################################################################
 // #### StringMatch
 // #################################################################################################
 UT_METHOD(Strings)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -285,11 +293,8 @@ UT_METHOD(Strings)
     CONSTEXPR( "String" , A_CHAR("String")  );
 
 
-    // our spirit parser can't parse escape sequences in strings
-    #if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-        EXPRESSION( "a" + tab  +"b"   , A_CHAR("a\tb") , 1     );
-        EXPRESSION( "a" + newl +"b"   , String32("a")<< NewLine() << "b" , 1     );
-    #endif
+    EXPRESSION( "a" + tab  +"b"   , A_CHAR("a\tb") , 1     );
+    EXPRESSION( "a" + newl +"b"   , String32("a")<< NewLine() << "b" , 1     );
 
     EXPRESSION( (random ? "nonconst" : "nonconst" ) *  "nonc*"                        , true  , 7     );
     EXPRESSION( (random ? "nonconst" : "nonconst" ) * (random ? "nonc*" : "nonc*" )   , true  , 11    );
@@ -332,10 +337,8 @@ UT_METHOD(Strings)
     CONSTEXPR( "String"[0]    , A_CHAR("S")  );
     CONSTEXPR( "String"[1]    , A_CHAR("t")  );
     CONSTEXPR( "String"[2]    , A_CHAR("r")  );
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
     CONSTEXPR( "String"[-1]   , A_CHAR("")   );
     CONSTEXPR( "String"[10]   , A_CHAR("")   );
-#endif
 
     EXPRESSION( Substring("String", 3    ) , A_CHAR("ing"), 1  );
     EXPRESSION( Substring("String", 3,  2) , A_CHAR("in") , 1  );
@@ -349,11 +352,9 @@ UT_METHOD(Strings)
     EXPRESSION( count("abcabca" , "x"  )     , 0   , 1  );
     EXPRESSION( count("abcabca" , "xx" )     , 0   , 1  );
 
-    #if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-        EXPRESSION( trim     ("  abc\t "  )           , A_CHAR("abc")      , 1  );
-        EXPRESSION( trimStart("  abc\t "  )           , A_CHAR("abc\t ")   , 1  );
-        EXPRESSION( trimEnd ("  abc\t "  )            , A_CHAR("  abc")    , 1  );
-    #endif
+    EXPRESSION( trim     ("  abc\t "  )           , A_CHAR("abc")      , 1  );
+    EXPRESSION( trimStart("  abc\t "  )           , A_CHAR("abc\t ")   , 1  );
+    EXPRESSION( trimEnd ("  abc\t "  )            , A_CHAR("  abc")    , 1  );
 
     EXPRESSION( trim     ("xyzabcxyz", "zxy"  )   , A_CHAR("abc")      , 1  );
     EXPRESSION( trimStart("xyzabcxyz", "zxy"  )   , A_CHAR("abcxyz")   , 1  );
@@ -365,7 +366,7 @@ UT_METHOD(Strings)
     EXPRESSION( WildcardMatch("wildcard", "*LDCA*",   false)   , false     , 1  );
     EXPRESSION( WildcardMatch("wildcard", "*LDCA*",   true )   , true      , 1  );
 
-#if ALIB_FEAT_BOOST_REGEX
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
     EXPRESSION( RegexMatch("regex", "[qrs]+ege*x*"     )   , true      , 1  );
     EXPRESSION( RegexMatch("regex", "[qXs]+ege*x*"     )   , false     , 1  );
     EXPRESSION( RegexMatch("regex", "[qrs]+ege*Y*"     )   , false     , 1  );
@@ -406,30 +407,32 @@ UT_METHOD(Strings)
 // #################################################################################################
 // ### TokenConsistency
 // #################################################################################################
+#if ALIB_SYSTEM
 UT_METHOD(TokenConsistency)
 {
-    UT_INIT();
+    UT_INIT()
 
-    #if ALIB_FEAT_BOOST_REGEX
+    #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
         constexpr int SSZ= 25;
     #else
         constexpr int SSZ= 24;
     #endif
     Token tokens[9+1+58+34+SSZ];
-    Token::LoadResourcedTokens( EXPRESSIONS, "Arithmethics"  ,&tokens[0]             ALIB_DBG(,9) );
-    Token::LoadResourcedTokens( EXPRESSIONS, "Arithmethics2" ,&tokens[9]             ALIB_DBG(,1) );
-    Token::LoadResourcedTokens( EXPRESSIONS, "DateAndTime"   ,&tokens[9+1]           ALIB_DBG(,58) );
-    Token::LoadResourcedTokens( EXPRESSIONS, "Math"          ,&tokens[9+1+58]        ALIB_DBG(,34) );
-    Token::LoadResourcedTokens( EXPRESSIONS, "Strings"       ,&tokens[9+1+58+34]     ALIB_DBG(,SSZ) );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPA"     ,&tokens[0]             ALIB_DBG(,9)   );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPALen"  ,&tokens[9]             ALIB_DBG(,1)   );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPD"     ,&tokens[9+1]           ALIB_DBG(,58)  );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPM"     ,&tokens[9+1+58]        ALIB_DBG(,34)  );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPS"     ,&tokens[9+1+58+34]     ALIB_DBG(,SSZ) );
 
     TestTokenConsistency(ut, tokens, 9+1+58+34+SSZ );
 }
+#endif
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
-}; //namespace
+} //namespace
 
 ALIB_WARNINGS_RESTORE
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)
+#endif // ALIB_UT_EXPRESSIONS

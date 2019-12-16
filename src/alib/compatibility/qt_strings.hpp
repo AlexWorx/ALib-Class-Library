@@ -1,26 +1,25 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//
-//  Legal Notice:
-//    This is an optional extension header to provide compatibility between ALib and
-//    the QT class library.
-//    All information about QT is found under https://www.qt.io
-//    ALib otherwise does not use or rely on QT.
-//    The use of QT is bound to the QT license restrictions.
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ *
+ * <b>Legal Notice:</b>
+ * This is an optional extension header to provide compatibility between \alib and
+ * the QT class library.
+ * All information about QT is found at https://www.qt.io
+ * \alib otherwise does not use or rely on QT.
+ * The use of QT is bound to the QT license restrictions.
+ **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_QT_STRINGS
 #define HPP_ALIB_COMPATIBILITY_QT_STRINGS 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 #if !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
-
-ALIB_ASSERT_MODULE(STRINGS)
 
 
 #if !defined(HPP_ALIB_COMPATIBILITY_QT_CHARACTERS)
@@ -33,7 +32,7 @@ ALIB_ASSERT_MODULE(STRINGS)
 
 namespace aworx { namespace lib { namespace strings {
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 namespace APPENDABLES {
 #endif
 
@@ -50,13 +49,13 @@ template<typename TChar> struct T_Append<QChar, TChar>
      * @param  target The AString to append \p{src} to.
      * @param  src    The source string.
      ******************************************************************************************/
-    inline void operator()( TAString<TChar>& target, const QChar& src )
+    void operator()( TAString<TChar>& target, const QChar& src )
     {
         target._( static_cast<ALIB_QTCHAR>( src.unicode() ) );
     }
 };
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 }  // namespace aworx::lib::strings[::APPENDABLES]
 #endif
 

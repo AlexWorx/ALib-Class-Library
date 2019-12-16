@@ -1,15 +1,15 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_results of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_RESULTS
 #define HPP_ALIB_RESULTS_RESULTS 1
 
-#if !defined(HPP_ALIB_LIB_MODULE)
-#   include "alib/lib/module.hpp"
+#if !defined(HPP_ALIB_FS_MODULES_MODULE)
+#   include "alib/lib/fs_modules/module.hpp"
 #endif
 
 #if !defined(HPP_ALIB_RESULTS_EXCEPTION)
@@ -21,7 +21,7 @@ ALIB_ASSERT_MODULE(RESULTS)
 namespace aworx { namespace lib {  namespace results {
 
 /** ************************************************************************************************
- * Exception codes of namespace \alibmod_results.
+ * Exception codes of namespace \alib_results.
  **************************************************************************************************/
 enum class Exceptions
 {
@@ -42,7 +42,7 @@ class Results : public Module
         /** ****************************************************************************************
          * Constructor.<br>
          * While this is public, it must not be invoked as this is a strict singleton type.
-         * (See notes in \ref alib_manual_bootstrapping_class_modsingletons).
+         * (See notes in \ref alib_manual_bootstrapping_class_module_singletons).
          ******************************************************************************************/
         Results();
 
@@ -50,18 +50,19 @@ class Results : public Module
         /** ****************************************************************************************
          * Initializes this module.
          *
-         * @param level  The initialization level to reach.
+         * @param phase  The initialization phase to perform.
          * @param argc   The number of command line arguments. Defaults to \c 0.
          * @param argv   List of command line arguments if given as single byte character strings.
          * @param wargv  List of command line arguments if given as multi-byte character strings.
          ******************************************************************************************/
-        virtual void        init( InitLevels level,
-                                  int argc, const char** argv, const wchar_t** wargv )     override;
+        virtual void    bootstrap( BootstrapPhases phase,
+                                   int argc, const char** argv, const wchar_t** wargv )    override;
 
         /** ****************************************************************************************
-         * Frees resources of this module.
+         * Terminates this module.
+         * @param phase  The shutdown phase to perform.
          ******************************************************************************************/
-        virtual void        terminationCleanUp()                                           override;
+        virtual void    shutdown( ShutdownPhases phase )                                override;
 
 }; // class Results
 
@@ -74,6 +75,7 @@ extern ALIB_API results::Results RESULTS;
 }} // namespace [aworx::lib]
 
 
-ALIB_EXCEPTIONS( aworx::lib::results::Exceptions, aworx::lib::RESULTS, "Exceptions" )
+ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::results::Exceptions, aworx::lib::results::ERException  )
+ALIB_RESOURCED_IN_MODULE( aworx::lib::results::Exceptions, aworx::lib::RESULTS, "E" )
 
 #endif // HPP_ALIB_RESULTS_RESULTS

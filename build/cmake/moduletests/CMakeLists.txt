@@ -7,7 +7,7 @@
 #  Note:
 #   This project creates a source file for each header file used in the selected alib distribution,
 #   that includes the corresponding header.
-#   Furthermore, ALib CMake feature ALIB_MODULE_SOURCE_COPY_DIR is used, to copy the library
+#   Furthermore, ALib CMake feature ALIB_SOURCE_COPY_TARGET_DIR is used, to copy the library
 #   source files to a temporary directory.
 #   Finally, several batch files exists that invoke this script with various module combinatins,
 #   debug and release compilations, 32-bit compilations and C++ 11 and 14 versions.
@@ -34,7 +34,7 @@
 #    set( ALIB_CMAKE_COTIRE   "On" )
 
 # -------------------------------------------------------------------------------------------------
-# General
+# General                    “
 # -------------------------------------------------------------------------------------------------
 
     project("ALib_ModuleDepsAndHeaderTest")
@@ -54,7 +54,7 @@
     file(MAKE_DIRECTORY                 "/tmp/headertest/alib")
 
     set( ALIB_TEST_HEADERS_DIR          "/tmp/headertest/src"  )
-    set( ALIB_MODULE_SOURCE_COPY_DIR    "/tmp/headertest/alib" )
+    set( ALIB_SOURCE_COPY_TARGET_DIR    "/tmp/headertest/alib" )
 
 
     #---------------------------------       Include ALib       ---------------------------------

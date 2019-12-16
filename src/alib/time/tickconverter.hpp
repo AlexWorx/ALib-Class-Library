@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_time of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKSCONVERTER
 #define HPP_ALIB_TIME_TICKSCONVERTER 1
 
@@ -18,7 +19,7 @@
 namespace aworx { namespace lib { namespace time {
 
 /** ************************************************************************************************
- * As explained in detail in the documentation of module \alibmod_time, a steady time model is
+ * As explained in detail in the documentation of module \alib_time, a steady time model is
  * supported with class \alib{time,Ticks} and a non-steady one representing the system clock with
  * class \alib{time,DateTime}.
  * Only values of the latter type can be converted to human readable (calendar) date and time values.
@@ -52,7 +53,6 @@ class TickConverter
         /** ****************************************************************************************
          * Constructor. Invokes #SyncClocks.
          ******************************************************************************************/
-        inline
         TickConverter()
         {
             SyncClocks();
@@ -88,7 +88,6 @@ class TickConverter
          *
          * @param other  Another converter object to copy the synchronization information from.
          ******************************************************************************************/
-        inline
         void SetAs( const TickConverter& other )
         {
             steadyClockSyncTime= other.steadyClockSyncTime;
@@ -100,7 +99,6 @@ class TickConverter
          * @param ticks The ticks object to convert.
          * @return The date time object.
          ******************************************************************************************/
-        inline
         DateTime  ToDateTime( Ticks ticks )
         {
             DateTime result( Initialization::Suppress );
@@ -113,7 +111,6 @@ class TickConverter
          * @param dateTime The date/time object to convert.
          * @return The date time object.
          ******************************************************************************************/
-        inline
         Ticks  ToTicks( DateTime dateTime )
         {
             Ticks result( Initialization::Suppress );
@@ -127,7 +124,7 @@ class TickConverter
 }} // namespace lib::time
 
 /// Type alias in namespace #aworx.
-using   TickConverter=     aworx::lib::time::TickConverter;
+using   TickConverter=     lib::time::TickConverter;
 
 }  // namespace [aworx]
 

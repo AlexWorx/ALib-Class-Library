@@ -6,14 +6,26 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/regexmatcher.hpp"
-#if ALIB_FEAT_BOOST_REGEX
+#if !defined(ALIB_DOX)
+#if !defined (HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
+#   include "alib/strings/util/regexmatcher.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
+#if ALIB_FEAT_BOOST_REGEX && ALIB_CHARACTERS_WIDE && !ALIB_CHARACTERS_NATIVE_WCHAR
+#   pragma message ( "Warning: Class RegexMatcher will not be available, because ALIB_CHARACTERS_NATIVE_WCHAR is false." )
+#endif
+
+
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+
+#if !defined(ALIB_DOX)
 #include <boost/regex.hpp>
 
 #if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
 #   include <string>
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -51,4 +63,4 @@ bool RegexMatcher::Match( const String& haystack )
 
 }}}} // namespace [aworx::lib::strings::util]
 
-#endif  // ALIB_FEAT_BOOST_REGEX
+#endif  // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)

@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
 
@@ -15,7 +16,7 @@
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
- * This built-in \alib{expressions,CompilerPlugin} of \alibmod_nolink_expressions
+ * This built-in \alib{expressions,CompilerPlugin} of \alib_expressions_nl
  * primarily compiles unary and binary operators for permutations of types
  * \alib{expressions::Types,Boolean}, \alib{expressions::Types,Integer} and
  * \alib{expressions::Types,Float}.
@@ -47,7 +48,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *   are defined:
  *   - With flag \alib{expressions::Compilation,AliasEqualsOperatorWithAssignOperator}:<br>
  *     Operator <c>'=='</c> is aliased with <c>'='</c>.
- *   - With flag \alib{expressions::Compilation,AllowBitwiseBooleanOperations}:<br>
+ *   - With flag \alib{expressions::Compilation,AllowBitwiseBooleanOperators}:<br>
  *     Operators <c>'&&'</c>) and <c>'||'</c> are aliased with operators <c>'&'</c> and <c>'|'</c>.
  *
  *

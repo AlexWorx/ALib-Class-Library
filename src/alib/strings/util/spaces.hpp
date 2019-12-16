@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_SPACES
 #define HPP_ALIB_STRINGS_UTIL_SPACES 1
 
@@ -54,10 +55,9 @@ class Spaces
          * @param minLength The minimum length. Defaults to \c 128.
          * @return A static string filled with spaces.
          ******************************************************************************************/
-        inline
         static String&  Get(integer minLength= 128)
         {
-            #if ALIB_CHARACTERS_ARE_NARROW
+            #if !ALIB_CHARACTERS_WIDE
                 return Spaces::GetN( minLength );
             #else
                 return Spaces::GetW( minLength );
@@ -72,19 +72,19 @@ class Spaces
         ALIB_API
         static void    Write( std::basic_ostream<char >& os, integer qty );
 
-        #if ALIB_CHARACTERS_NATIVE_WCHAR  || ALIB_DOCUMENTATION_PARSER
+        #if ALIB_CHARACTERS_NATIVE_WCHAR  || defined(ALIB_DOX)
             /** ************************************************************************************
              * Write the given number of spaces to the ostream of type \c wchar_t.
-             * \note This method is available only in the if code selection symbol
-             *       \ref ALIB_CHARACTERS_NATIVE_WCHAR evaluates to \c true (\b 1). This is due to
-             *       the fact that otherwise, the internal wide string buffer of spaces
-             *       is either of type \c char16_t or \c char32_t, the one of both that is
-             *       incompatible with output streams of character type \c wchar_t.<br>
-             *       Consequently, this method must not be used (and replaced by a custom
-             *       implementation) in the case that a software should compile successfully
-             *       with one of the symbol
-             *       \ref ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON or
-             *       \ref ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON set.
+             *
+             * ### Availability ###
+             * This method is available only if compiler symbol
+             * \ref ALIB_CHARACTERS_NATIVE_WCHAR evaluates to \c true (\b 1). This is due to
+             * the fact that otherwise, the internal wide string buffer of spaces
+             * is either of type \c char16_t or \c char32_t, the one of both that is
+             * incompatible with output streams of character type \c wchar_t.<br>
+             * Consequently, this method must not be used (and replaced by a custom
+             * implementation) in the case that a software is supposed to compile successfully
+             * with a non-default setting of compiler symbol \ref ALIB_CHARACTERS_SIZEOF_WCHAR.
              *
              * @param os    The output stream to write to.
              * @param qty   The quantity of spaces to write.
@@ -97,7 +97,7 @@ class Spaces
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     Spaces   =   aworx::lib::strings::util::Spaces;
+using     Spaces   =   lib::strings::util::Spaces;
 
 } // namespace aworx
 

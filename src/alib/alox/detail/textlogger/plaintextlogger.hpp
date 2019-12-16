@@ -1,14 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#ifndef HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER
-#define HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER
+#define HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER 1
 
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER)
     #include "alib/alox/detail/textlogger/textlogger.hpp"
 #endif
 
@@ -47,12 +48,11 @@ class PlainTextLogger : public TextLogger
          * Creates a PlainTextLogger
          * @param name     The name of the \e Logger. If empty, it defaults to the type name.
          * @param typeName The type of the \e Logger.
-         * @param usesStdStreams  Denotes whether this logger writes to the
-         *                        <em>standard output streams</em>.
+         * @param pUsesStdStreams  Denotes whether this logger writes to the
+         *                         <em>standard output streams</em>.
          ******************************************************************************************/
-        inline
-        explicit  PlainTextLogger( const NString& name, const NString& typeName, bool usesStdStreams )
-                  : TextLogger( name, typeName, usesStdStreams )
+        explicit  PlainTextLogger( const NString& name, const NString& typeName, bool pUsesStdStreams )
+                  : TextLogger( name, typeName, pUsesStdStreams )
         {}
 
         /** ****************************************************************************************
@@ -128,4 +128,4 @@ class PlainTextLogger : public TextLogger
 
 }}}}}// namespace [aworx::lib::lox::detail::textlogger]
 
-#endif // HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER
+#endif // HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER

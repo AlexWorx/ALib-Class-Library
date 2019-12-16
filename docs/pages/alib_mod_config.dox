@@ -18,7 +18,7 @@
   are not planning to use configuration variables in your own code.
   The reason is that with the knowledge of the principles described here, it is possible to influence
   the behavior of "3rd party code", namely code that uses configuration variables, as for example
-  module \alibmod_alox does.
+  module \alib_alox does.
 
 
 \~Comment ####################################################################################### \~
@@ -42,7 +42,7 @@ In short, the features are:
   (e.g. libraries).
 - In this C++ version of the module, declarations of configuration variables (which defines the
   category and name, the default value, the comment and other fields) can optionally be
-  "externalized" by using a \alib{resources,T_EnumMetaDataDecl,ALib enum meta data}.<br>
+  "externalized" by using a \ref alib_enums_records "ALib Enum Records".<br>
   Of-course, all variables used by \alibmods are resourced and hence can be renamed by users
   of those libraries.
 
@@ -111,10 +111,10 @@ with \alib already:
 - Class \ref aworx::lib::config::CLIArgs "CLIArgs":<br>
   Reads parameter values of the form <c>-[-]CategoryName_VariableName=value</c> from the command line.
 - Class \ref aworx::lib::config::Environment "Environment":<br>
-  Reads system defined [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
+  Reads system defined \https{environment variables,en.wikipedia.org/wiki/Environment_variable}
   of the form <c>CategoryName_VariableName=value</c>.
 - Class \ref aworx::lib::config::IniFile "IniFile":<br>
-  Reads and writes quite standard [INI files](https://en.wikipedia.org/wiki/INI_file).
+  Reads and writes quite standard \https{INI files,en.wikipedia.org/wiki/INI_file}.
 <p>
 
 The proposed priorities to be used when attaching the plug-ins to the \b %Configuration object,
@@ -141,8 +141,8 @@ The only way to set these default values is \e programatically, which means "wit
 The advantages of having such default variables are:
 - Code that checks whether a variable is set can be omitted (there is always a value found).
 - Code that sets default values if no variable is set can be omitted.
-- All default settings can be made in one place (in resources or in a in custom bootstrap section
-  of a process or library)
+- All default settings can be made in one place (in the resource pool or in a in custom bootstrap
+  section of a process or library).
 
 
 \~Comment ####################################################################################### \~
@@ -166,9 +166,9 @@ This way, it is possible to protect values against external modification.
 # 5. Using Class Configuration # {#alib_config_using}
 
 In normal use cases, there is no need to create an instance of class Configuration, as a singleton
-is provided with \alib{Module::Config} for every module.
+is provided with \alib{Module::GetConfig} for every module.
 The command line parameters (optionally) provided with
-\alib{Module::Init} are passed to the command-line plug-in of this singleton. Dependent
+\alib{Module::Bootstrap} are passed to the command-line plug-in of this singleton. Dependent
 libraries will receive the same singleton instance, unless they are explicitly initialized
 prior to initializing the library that builds upon them.
 (For details on this, see chapter \ref alib_manual_bootstrapping "Bootstrapping ALib" of the
@@ -209,14 +209,17 @@ This includes categories, names, comments, value delimiters and default values o
 Class \b %Variable accepts instances of \b %VariableDecl in the constructor as well as in overloaded
 method \ref aworx::lib::config::Variable::Declare "Variable::Declare".
 
-Even better, with this \b C++ version of the library, variable declarations can be provided using
-"externalized" resource strings. For more information see macro \ref ALIB_CONFIG_VARIABLES.
+Moreover, variable declaration values can be defined using "externalized" resource strings.
+For more information on this topic see
+ - Reference documentation of struct \alib{config,VariableDecl}.
+ - Chapters \ref alib_enums_records "4. Enum Records" and especially
+   \ref alib_enums_records_paradigm of the Programmer's Manual of module \alib_enums_nl.
 
 \~Comment ####################################################################################### \~
 # 7. Variable Substitution # {#alib_config_substitution}
 
-Method \ref aworx::lib::config::Configuration::Load  "Configuration::Load" by default substitutes
-references to other configuration variables found in the value of the requested variable.
+Method \alib{config,Configuration::Load} by default substitutes references to other configuration
+variables found in the value of the requested variable.
 
 For example, if two variables are defined as follows:
 

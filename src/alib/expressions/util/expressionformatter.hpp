@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER
 #define HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER
 
@@ -14,8 +15,8 @@
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 
 
-#if !defined (HPP_ALIB_STRINGFORMAT_FORMATTER_STD)
-#   include "alib/stringformat/formatterstdimpl.hpp"
+#if !defined (HPP_ALIB_TEXT_FORMATTER_STD)
+#   include "alib/text/formatterstdimpl.hpp"
 #endif
 
 #if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
@@ -27,23 +28,23 @@ namespace aworx { namespace lib { namespace expressions { namespace util {
 
 
 /** ************************************************************************************************
- * This class allows to use \alibmod_nolink_expressions within format strings used with class
- * \alib{stringformat,Formatter,ALib Formatters}.
+ * This class allows to use \alib_expressions_nl within format strings used with class
+ * \alib{text,Formatter,ALib Formatters}.
  *
- * To understand the concept of this class, please  read the documentation of class
- * \alib{stringformat,PropertyFormatter} \b first, which is almost a 1:1 copy of this class but
+ * To understand the concept of this class, please read the documentation of class
+ * \alib{text,PropertyFormatter} \b first, which is almost a 1:1 copy of this class but
  * uses simple "property callback functions" instead of expressions.
  *
  * \note
  *    This documentation rather documents the differences to \b %PropertyFormatter instead of
  *    repeating what is explained already in the sibling class.
  *
- * This class can be used in the same way as \alib{stringformat,PropertyFormatter}. However,
+ * This class can be used in the same way as \alib{text,PropertyFormatter}. However,
  * instead of the provision of a table of type
- * \alib{stringformat,PropertyFormatter::TCallbackTable}, this class expects an expression
+ * \alib{text,PropertyFormatter::TCallbackTable}, this class expects an expression
  * compiler in the constructor.
  *
- * With that, simple expressions comprised of just a single identifier term can be used in the
+ * With that, simple expressions comprised of just a single identifier term can be used in
  * exactly the same way as demonstrated with \b PropertyFormatter. For example, format string:
  *
  *      "{@name} is aged {@age} and his/her hobby is {@hobby}"
@@ -62,7 +63,7 @@ namespace aworx { namespace lib { namespace expressions { namespace util {
  *      "The surface is: {@{width * height}}"
  *
  * \note The outer curly brackets denote the placeholder of the format string when formatter
- *       \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle} is used.<br>
+ *       \alib{text,FormatterPythonStyle,FormatterPythonStyle} is used.<br>
  *       The ’@’-character together with the inner curly brackets denote the expression.
  *       As shown above, if the expression string contains only one single word containing only
  *       alphabetical characters, the inner curly braces can be omitted.
@@ -73,7 +74,7 @@ namespace aworx { namespace lib { namespace expressions { namespace util {
  * <p>
 \~Comment ####################################################################################### \~
  * # Reference Documentation #
- * @throws aworx::lib::stringformat::Exceptions::UnknownPropertyInFormatString
+ * @throws aworx::lib::text::Exceptions::UnknownPropertyInFormatString
  **************************************************************************************************/
 class ExpressionFormatter
 {
@@ -93,9 +94,6 @@ class ExpressionFormatter
         /** The expressions functions to receive the format data. */
         std::vector<SPExpression>   expressions;
 
-        /** The boxed results of the expressions (reused container) */
-        Boxes                       results;
-
     public:
 
         /** ****************************************************************************************
@@ -105,7 +103,7 @@ class ExpressionFormatter
          * @param customFormatString  The format string as described in the class documentation.
          * @param compiler            The expression compiler.
          * @param formatter           The formatter to use. Defaults to \c nullptr which selects
-         *                            \alib{stringformat,Stringformat::GetDefaultFormatter,default formatter}.
+         *                            \alib{text,Formatter::GetDefault,default formatter}.
          * @param ESCCharacter        The prefix used to search expressions in \p{customFormatString}.
          *                            Defaults to <c>'@'</c>.
          * @param ESCOpeningBracket   The opening bracket to enclose expressions with.
@@ -115,7 +113,7 @@ class ExpressionFormatter
          * @param ESCClosingBracket   The closing bracket to enclose expressions with.
          *                            Defaults to <c>'}'</c>.
          *
-         * @throws aworx::lib::stringformat::Exceptions::UnknownPropertyInFormatString
+         * @throws aworx::lib::text::Exceptions::UnknownPropertyInFormatString.
          ******************************************************************************************/
         ALIB_API
         ExpressionFormatter( const String   customFormatString,
@@ -141,7 +139,7 @@ class ExpressionFormatter
 }}} // namespace aworx[::lib::expressions::util]
 
 /// Type alias in namespace #aworx.
-using ExpressionFormatter  =    aworx::lib::expressions::util::ExpressionFormatter;
+using ExpressionFormatter  =    lib::expressions::util::ExpressionFormatter;
 
 }  // namespace [aworx]
 

@@ -1,11 +1,12 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#ifndef HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER
-#define HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER
+#define HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER 1
 
 #if !defined (HPP_ALIB_ALOX)
     #include "alib/alox/alox.hpp"
@@ -14,8 +15,8 @@
 // #################################################################################################
 // includes
 // #################################################################################################
-#if !defined (HPP_ALOX_CORE_LOGGER)
-    #include "alib/alox/detail/logger.hpp"
+#if !defined (HPP_ALOX_DETAIL_LOGGER)
+#   include "alib/alox/detail/logger.hpp"
 #endif
 
 #if !defined (HPP_ALIB_SYSTEM_CALENDAR)
@@ -26,12 +27,12 @@
     #include "alib/time/tickconverter.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_FORMATTER_JAVASTYLE)
-    #include "alib/stringformat/formatterjavastyle.hpp"
+#if !defined (HPP_ALIB_TEXT_FORMATTER_JAVASTYLE)
+    #include "alib/text/formatterjavastyle.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_FORMATTER_PYTHONSTYLE)
-    #include "alib/stringformat/formatterpythonstyle.hpp"
+#if !defined (HPP_ALIB_TEXT_FORMATTER_PYTHONSTYLE)
+    #include "alib/text/formatterpythonstyle.hpp"
 #endif
 
 // #################################################################################################
@@ -86,33 +87,45 @@ class ObjectConverter
  *
  * This implementation uses
  * two specialisations of class
- * \alib{stringformat,Formatter} to format the given logables to a textual
+ * \alib{text,Formatter} to format the given logables to a textual
  * representation. The formatters (and their sequence!) are:
  *
- * 1. \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle}
- * 2. \alib{stringformat,FormatterJavaStyle,FormatterJavaStyle}
+ * 1. \alib{text,FormatterPythonStyle,FormatterPythonStyle}
+ * 2. \alib{text,FormatterJavaStyle,FormatterJavaStyle}
  *
  * This way, standard text logging supports format strings in Python style as well as in Java style.
  **************************************************************************************************/
 class StandardConverter : public ObjectConverter
 {
     public:
-        /** Formatters to "convert" logables to strings. A concatenated pair of formatters of types
-         * \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle} and
-         * \alib{stringformat,FormatterJavaStyle,FormatterJavaStyle} are added in the
-         * constructor of this class. */
-        SPFormatter                         Formatters;
+        /**
+         * A list of formatters used to "convert" logables to strings.
+         * By default, each entry contains a concatenated pair of formatters of types
+         * \alib{text,FormatterPythonStyle,FormatterPythonStyle} and
+         * \alib{text,FormatterJavaStyle,FormatterJavaStyle} are added in the
+         * constructor of this class.
+         *
+         * A vector of formatter is needed to support recursive log calls.
+         * If recursion occurs during logging (aka the conversion of a logable triggers another
+         * logging operation), necessary formatters are created on the fly, respectively re-used
+         * from previous recursions.
+         * Their settings are cloned to those of the main formatters
+         * using \alib{text,Formatter::CloneSettings}.
+         *
+         * The formatters created internally are set to
+         * \alib{threads,ThreadLock::SetSafeness,unsafe locking mode} (locking is switched-off).
+         * This is a small optimization and allowed due to the fact that class \b Lox is already
+         * thread-safe.
+         *
+         * To use different formatters, it is recommended to implement a different converter
+         * type, instead of "patching" the linked and recursive formatters found in this vector.
+         */
+        std::vector<Formatter*>             Formatters;
+
 
     protected:
         /** A counter to detect recursive calls. */
-        int                                 cntRecursion;
-
-        /**
-         * Formatters used with recursive calls log calls. If recursion occurs, the formatters
-         * are created, respectively re-used from last time and their settings are reset to
-         * those of the main formatters.
-         */
-        std::vector<Formatter*>             recursionFormatters;
+        int                                 cntRecursionx;
 
     public:
 
@@ -139,7 +152,7 @@ class StandardConverter : public ObjectConverter
 
         /** ****************************************************************************************
          * Checks if the first formatter in #Formatters is of type
-         * \alib{stringformat,FormatterPythonStyle}. If so, its \b AutoSizes member is returned.
+         * \alib{text,FormatterPythonStyle}. If so, its \b AutoSizes member is returned.
          * If not, the method returns \c nullptr.
          * @return The auto sizes object of the main formatter.
          ******************************************************************************************/
@@ -207,8 +220,8 @@ class MetaInfo
          * \code "%Sp/%SF(%SL):%A5%SM() %A5[%TC +%TL][%tN]%V[%D]%A1(%#): " \endcode
          *
          * If debug logging as well as release logging has scope information disabled
-         * (see \ref ALOX_DBG_LOG_CI_OFF and \ref ALOX_REL_LOG_CI_ON ), then it defaults to:
-         * \code "[%TC +%TL][%tN]%V[%D]%A1(%#): " \endcode
+         * (see \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI), then it defaults to:
+         * <c>"[%TC +%TL][%tN]%V[%D]%A1(%#): "</c>
          *
          * \note
          *   The use of <c>%%TD</c> and <c>%%TT</c> may become problematic and ambiguous if the
@@ -294,8 +307,8 @@ class MetaInfo
          * The maximum time elapsed. Used to determine the width of the output when writing
          * the elapsed time.
          *
-         * This field will be read from the
-         * configuration variable [ALOX_LOGGERNAME_MAX_ELAPSED_TIME](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
+         * This field will be read from the configuration variable
+         * \https{ALOX_LOGGERNAME_MAX_ELAPSED_TIME,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
          * when the \b %TextLogger that this object belongs to is attached to a \b %Lox
          * and written back on removal.
          */
@@ -439,9 +452,11 @@ class TextLogger : public Logger
             \alib{threads,SmartLock::StdOutputStreams} is acquired on logging. */
         bool                    usesStdStreams;
 
-        /** Used to avoid to repeatedly register with \alib <em>standard output stream</em> lockers
+        #if ALIB_THREADS
+        /** Used to avoid repeated registration with \alib <em>standard output stream</em> lockers
             when attached to multiple instances of class \b Lox.   */
         int                     stdStreamLockRegistrationCounter                                 =0;
+        #endif
 
         /**
          * A list of pairs of strings. Within each log message, the first string of a pair is
@@ -503,10 +518,9 @@ class TextLogger : public Logger
          * The other way round, it is also possible to preset set minimum values for tabs and field
          * sizes and hence avoid the columns growing during the lifetime of the Logger.
          *
-         * This field will be read from the
-         * configuration variable [ALOX_LOGGERNAME_AUTO_SIZES](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
-         * when the \b %TextLogger that we belong to is attached to a \b %Lox and written back
-         * on removal.
+         * This field will be read from configuration variable
+         * \https{ALOX_LOGGERNAME_AUTO_SIZES,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
+         * when this \b %TextLogger is attached to a \b %Lox and written back on removal.
          */
         lib::strings::util::AutoSizes   AutoSizes;
 
@@ -609,18 +623,18 @@ class TextLogger : public Logger
          * - \b ALox::REPLACEMENTS
          *
          * Configuration variables are
-         * [documented here](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html).
+         * \https{documented here,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}.
          *
          * Furthermore, invokes grand-parent's method \alib{threads,SmartLock::AddAcquirer},
          * respectively \alib{threads,SmartLock::RemoveAcquirer} and in addition,
          * if field #usesStdStreams is set, registers with
          * \alib{threads,SmartLock::StdOutputStreams}.
          *
-         * @param lox The \b %Lox to acknowledge insertion or removal
-         * @param op  The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
+         * @param lox     The \b %Lox to acknowledge insertion or removal
+         * @param op      The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
          ******************************************************************************************/
         ALIB_API
-        virtual void AcknowledgeLox( Lox& lox, ContainerOp op= ContainerOp ::Insert)       override;
+        virtual void AcknowledgeLox( LoxImpl* lox, ContainerOp op )                        override;
 
 
     // #############################################################################################
@@ -643,11 +657,11 @@ class TextLogger : public Logger
          * @param lineNumber The line number of a multi-line message, starting with 0.
          *                   For single line messages this is -1.
          ******************************************************************************************/
-        virtual void logText(  detail::Domain&      domain,
-                               Verbosity          verbosity,
-                               AString&           msg,
-                               detail::ScopeInfo&   scope,
-                               int                lineNumber)                                    =0;
+        virtual void logText(  detail::Domain&     domain,
+                               Verbosity           verbosity,
+                               AString&            msg,
+                               detail::ScopeInfo&  scope,
+                               int                 lineNumber )                                    =0;
 
         /** ****************************************************************************************
          * Abstract method to be implemented by descendants. This message is called only when
@@ -722,11 +736,12 @@ class TextLogger : public Logger
 }}}}// namespace aworx[::lib::lox::detail::textlogger]
 
 /// Type alias in namespace #aworx.
-using     TextLogger=       aworx::lib::lox::detail::textlogger::TextLogger;
+using     TextLogger=       lib::lox::detail::textlogger::TextLogger;
 
 }  // namespace [aworx]
 
-ALIB_ENUM_PARSABLE( aworx::TextLogger::LightColorUsage )
-ALIB_RESOURCED_IN_MODULE(aworx::TextLogger::LightColorUsage, aworx::lib::ALOX, "LightColorUsage" )
+ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::detail::textlogger::TextLogger::LightColorUsage,
+                               aworx::lib::enums::ERSerializable )
 
-#endif // HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER
+
+#endif // HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER

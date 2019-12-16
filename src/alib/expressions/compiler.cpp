@@ -6,10 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
 #   include "alib/expressions/compiler.hpp"
 #endif
-
 #if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
 #   include "alib/expressions/detail/parser.hpp"
 #endif
@@ -34,9 +34,10 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
 #   include "alib/expressions/plugins/strings.hpp"
 #endif
-#if ALIB_MODULE_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
+#if ALIB_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
 #   include "alib/expressions/plugins/dateandtime.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace expressions {
 
@@ -46,21 +47,42 @@ using namespace detail;
 // Scope constructor, Clear() (avoid an own compilation unit for now)
 // #################################################################################################
 Scope::Scope( SPFormatter& formatter )
-: CTScope  (nullptr   )
-, Memory   (256       )
-, Formatter(formatter )
-{}
-
-void    Scope::Clear()
+: Allocator        (  4 * 1024  )
+, CTScope          (  nullptr   )
+, NestedExpressions(  Allocator )
+, Resources        (  Allocator )
+, NamedResources   ( &Allocator )
+, Formatter        (  formatter )
 {
-    Memory.Reset();
-    for( auto resource : Resources )
+    #if ALIB_DEBUG_MONOMEM
+        Allocator.LogDomain= "MA/EXPR/SCP";
+    #endif
+}
+
+void    Scope::Reset()
+{
+    Stack.clear();
+    auto nestedExpressionsSize= NestedExpressions.size();
+    auto         ResourcesSize=         Resources.size();
+    auto    NamedResourcesSize=    NamedResources.Size();
+
+
+    for( auto* resource : Resources )
         delete resource;
-    Resources.clear();
 
     for( auto resource : NamedResources )
         delete resource.second;
-    NamedResources.clear();
+
+    NamedResources.Reset();
+
+    Allocator.Reset();
+    new (&NestedExpressions) std::vector<Expression*, StdContMA<Expression*>>( StdContMA<Expression*>(Allocator) );
+    new (&Resources        ) std::vector<Expression*, StdContMA<Expression*>>( StdContMA<Expression*>(Allocator) );
+
+    // reserve storage of previous size for the next run.
+    NestedExpressions.reserve(nestedExpressionsSize);
+            Resources.reserve(        ResourcesSize);
+       NamedResources.Reserve(   NamedResourcesSize);
 }
 
 
@@ -68,24 +90,43 @@ void    Scope::Clear()
 // Constructor & Setup
 // #################################################################################################
 Compiler::Compiler()
+: allocator                      ( 4 * 1024   )
+, typeMap                        ( &allocator, 2.0, 5.0) // we don't care about speed here, just for log output
+, namedExpressions               ( &allocator )
+, UnaryOperators                 ( &allocator )
+, AlphabeticUnaryOperatorAliases ( &allocator )
+, AlphabeticBinaryOperatorAliases( &allocator )
+, BinaryOperators                ( &allocator )
 {
-    // switch of thread safeness (not used with this module, as explained in Programmer's Manual)
-#if ALIB_MODULE_THREADS
-    SetSafeness( Safeness::Unsafe );
-#endif
-    // create a clone of the default formatter.
-    CfgFormatter.reset( GetDefaultFormatter()->Clone() );
+    #if ALIB_DEBUG_MONOMEM
+        allocator.LogDomain= "MA/EXPR/CMPLR";
+    #endif
 
-DOX_MARKER([DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES])
-AddType( Types::Boolean  , "Boolean"   );
-AddType( Types::Integer  , "Integer"   );
-AddType( Types::Float    , "Float"     );
-AddType( Types::String   , "String"    );
-#if ALIB_MODULE_SYSTEM
-AddType( Types::DateTime , "DateTime" );
-AddType( Types::Duration , "Duration"  );
-#endif
-DOX_MARKER([DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES])
+    // create a clone of the default formatter.
+    CfgFormatter.reset( Formatter::GetDefault()->Clone() );
+
+    // register compiler types
+    ALIB_CPP14_CONSTEXPR std::pair<Box&,NString> typeKeys[]=
+    {
+       { Types::Void     , "T_VOID"  },
+       { Types::Boolean  , "T_BOOL"  },
+       { Types::Integer  , "T_INT"   },
+       { Types::Float    , "T_FLOAT" },
+       { Types::String   , "T_STR"   },
+     ALIB_IF_SYSTEM(
+       { Types::DateTime , "T_DATE"  },
+       { Types::Duration , "T_DUR"   }, )
+    };
+
+    size_t idx= sizeof( typeKeys ) / sizeof( std::pair<Box&, NString> );
+    do
+    {
+        --idx;
+        auto& name= EXPRESSIONS.GetResource( typeKeys[idx].second  );
+        ALIB_STRINGS_TO_NARROW( name, nameNarrow, 128 )
+        AddType( typeKeys[idx].first,  nameNarrow );
+    }
+    while( idx != 0 );
 
     // load nested expression function descriptor
     Token::LoadResourcedTokens( EXPRESSIONS, "EF", &CfgNestedExpressionFunction ALIB_DBG(,1));
@@ -94,107 +135,105 @@ DOX_MARKER([DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES])
 
 Compiler::~Compiler()
 {
-    namedExpressions.clear();
-    if (parser)
-        delete parser;
+    ALIB_ASSERT_ERROR( CfgFormatter.get()->CountAcquirements() == 0,
+                       "The formatter of this compiler was not released properly" )
 }
 
 Scope* Compiler::getCompileTimeScope()
 {
-    return new Scope( CfgFormatter );
+    auto* result= new Scope( CfgFormatter );
+    #if ALIB_DEBUG_MONOMEM
+        result->Allocator.LogDomain= "MA/EXPR/CTSCP";
+    #endif
+    return result;
 }
 
 void Compiler::SetupDefaults()
 {
     //------------- add default unary ops ----------
-    if( EnumContains( CfgCompilation, Compilation::DefaultUnaryOperators ) )
+    if( HasBits( CfgCompilation, Compilation::DefaultUnaryOperators ) )
     {
-        auto& metaInfoUnaryOps= EnumMetaData<expressions::DefaultUnaryOperators>::GetSingleton();
-
-        for( size_t i= 1; i < 6 ; i++ )
-            AddUnaryOperator( std::get<1>(*metaInfoUnaryOps.Get(DefaultUnaryOperators(i))));
+        auto enumRecordIt= EnumRecords<DefaultUnaryOperators>::begin();
+        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultUnaryOperators::NONE,
+                           "Expected none-operator as first enum record" )
+        while( ++enumRecordIt != EnumRecords<DefaultUnaryOperators>::end() )
+            AddUnaryOperator( enumRecordIt->EnumElementName );
 
         // default unary op aliases
-        if( EnumContains( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
+        if( HasBits( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
         {
-            auto& metaInfoUnaryOpAliases= EnumMetaData<expressions::DefaultAlphabeticUnaryOperatorAliases>::GetSingleton();
-
             // Not -> !
-            auto mi= metaInfoUnaryOpAliases.Get( DefaultAlphabeticUnaryOperatorAliases::Not );
-            if( std::get<1>( *mi ).IsNotEmpty() )
-                AlphabeticUnaryOperatorAliases [std::get<1>( *mi )]= std::get<2>( *mi );
+            auto& record= enums::GetRecord( DefaultAlphabeticUnaryOperatorAliases::Not );
+            if( record.Symbol.IsNotEmpty() )
+                AlphabeticUnaryOperatorAliases.EmplaceOrAssign( record.Symbol,
+                                                                record.Replacement );
         }
     }
 
     //------------- add default binary ops ----------
-    if( EnumContains( CfgCompilation, Compilation::DefaultBinaryOperators ) )
+    if( HasBits( CfgCompilation, Compilation::DefaultBinaryOperators ) )
     {
-        auto& metaInfoBinaryOps= EnumMetaData<expressions::DefaultBinaryOperators>::GetSingleton();
-
-        for( std::size_t i= EnumContains( CfgCompilation, Compilation::AllowSubscriptOperator) ? 1 : 2;
-             i < 22 ; i++ )
+        auto enumRecordIt= EnumRecords<DefaultBinaryOperators>::begin();
+        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultBinaryOperators::NONE,
+                           "Expected none-operator as first enum record" )
+        while( ++enumRecordIt != EnumRecords<DefaultBinaryOperators>::end() )
         {
-            auto metaData= metaInfoBinaryOps.Get(DefaultBinaryOperators(i));
-            AddBinaryOperator( std::get<1>(*metaData),
+            // get symbol
+            if( enumRecordIt->Symbol.Equals( A_CHAR( "[]") )
+                && !HasBits( CfgCompilation, Compilation::AllowSubscriptOperator) )
+                continue;
 
-                               // patch assign operator
-                               std::get<2>( i != static_cast<std::size_t>( EnumValue( DefaultBinaryOperators::Assign ) )
-                                            ? *metaData
-                                            : EnumContains( CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator )
-                                               ? *metaInfoBinaryOps.Get(DefaultBinaryOperators::Equal )
-                                               : *metaInfoBinaryOps.Get(DefaultBinaryOperators::Assign)  )
-                              );
+            // use equal operator's precedence for assign operator, if aliased.
+            auto precedence = ( enumRecordIt.Enum() == DefaultBinaryOperators::Assign
+                                 && HasBits(CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator) )
+                               ? enums::GetRecord(DefaultBinaryOperators::Equal).Precedence
+                               : enumRecordIt->Precedence;
+
+            AddBinaryOperator( enumRecordIt->Symbol, precedence );
         }
 
         // default binary op aliases
-        if( EnumContains( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
-        {
-            auto& metaInfoUnaryOpAliases= EnumMetaData<expressions::DefaultAlphabeticBinaryOperatorAliases>::GetSingleton();
-            for( int i= 0 ; i < 14 ; ++i )
-            {
-                auto mi= metaInfoUnaryOpAliases.Get( DefaultAlphabeticBinaryOperatorAliases(i) );
-                if( std::get<1>( *mi ).IsNotEmpty() )
-                    AlphabeticBinaryOperatorAliases [std::get<1>( *mi )]= std::get<2>( *mi );
-            }
+        if( HasBits( CfgCompilation, Compilation::DefaultAlphabeticOperatorAliases ) )
+            for( auto& enumEntry : EnumRecords<DefaultAlphabeticBinaryOperatorAliases>() )
+                AlphabeticBinaryOperatorAliases.EmplaceOrAssign( enumEntry.Symbol,
+                                                                 enumEntry.Replacement );
         }
-    }
 
 
     //------------- add default plug-ins ----------
     CfgNormalizationDisallowed.emplace_back( "--" );
     CfgNormalizationDisallowed.emplace_back( "++" );
 
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::ElvisOperator     ) )
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::ElvisOperator     ) )
         InsertPlugin( new plugins::ElvisOperator(*this),
                       CompilePriorities::ElvisOperator,
                       Responsibility::Transfer );
 
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::AutoCast          ) )
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::AutoCast          ) )
         InsertPlugin( new plugins::AutoCast(*this),
                       CompilePriorities::AutoCast,
                       Responsibility::Transfer );
 
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::Arithmetics       ) )
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Arithmetics       ) )
         InsertPlugin( new plugins::Arithmetics(*this),
                       CompilePriorities::Arithmetics,
                       Responsibility::Transfer );
 
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::Math              ) )
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Math              ) )
         InsertPlugin( new plugins::Math(*this),
                       CompilePriorities::Math,
                       Responsibility::Transfer );
 
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::Strings           ) )
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Strings           ) )
         InsertPlugin( new plugins::Strings(*this),
                       CompilePriorities::Strings,
                       Responsibility::Transfer );
 
-#if ALIB_MODULE_SYSTEM
-    if( EnumContains( CfgBuiltInPlugins, BuiltInPlugins::DateAndTime       ) )
+ALIB_IF_SYSTEM(
+    if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::DateAndTime       ) )
         InsertPlugin( new plugins::DateAndTime(*this),
                       CompilePriorities::DateAndTime,
-                      Responsibility::Transfer );
-#endif
+                      Responsibility::Transfer );                              )
 }
 
 // #############################################################################################
@@ -203,29 +242,37 @@ void Compiler::SetupDefaults()
 SPExpression   Compiler::Compile( const String& expressionString   )
 {
     // checks
-    ALIB_ASSERT_ERROR( HasPlugins(), "No plug-ins attached. Invoke SetupDefaults() on compiler instance." );
-    ALIB_ASSERT_ERROR( expressionString.IsNotNull(), "Nulled expression string." );
+    ALIB_ASSERT_ERROR( HasPlugins(), "No plug-ins attached. Invoke SetupDefaults() on compiler instance." )
+    ALIB_ASSERT_ERROR( expressionString.IsNotNull(), "Nulled expression string." )
     if( expressionString.IsEmpty() )
         throw Exception( ALIB_CALLER, Exceptions::EmptyExpressionString );
 
 
-    Expression* expression=  new Expression( expressionString );
+    Expression* expression=  new Expression( expressionString, getCompileTimeScope() );
 
-    // parse
-    if (!parser)
+    // parser
+    if (parser == nullptr)
         parser= Parser::Create( *this );
 
     AST*                 ast = nullptr;
-    detail::Program* program = nullptr;
+
+    // prevent cleaning memory with recursive compilation (may happen with nested expressions)
+    static integer recursionCounter= 0;
+    MonoAllocator::Snapshot startOfCompilation;
+    if( recursionCounter++ == 0 )
+        startOfCompilation= allocator.TakeSnapshot();
+
     try
     {
-        #if ALIB_MODULE_TIME && ALIB_DEBUG
+        #if ALIB_TIME && ALIB_DEBUG
             Ticks startTime;
         #endif
 
-            ast= parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat );
 
-        #if ALIB_MODULE_TIME && ALIB_DEBUG
+        // parse
+        ast= parser->Parse( expressionString, &CfgFormatter->DefaultNumberFormat, &allocator );
+
+        #if ALIB_TIME && ALIB_DEBUG
             expression->DbgParseTime= startTime.Age();
             startTime= Ticks::Now();
         #endif
@@ -234,20 +281,22 @@ SPExpression   Compiler::Compile( const String& expressionString   )
         ast= ast->Optimize( CfgNormalization );
 
         // create program
-        program            = new detail::Program( *this, plugins,  *expression, getCompileTimeScope());
-        expression->program= program;
+        expression->program= new detail::Program( *this, *expression, &allocator );
 
         // assemble
-        ast->Assemble( *program, expression->normalizedString );
+        ast->Assemble( *expression->program, allocator, expression->normalizedString );
         expression->normalizedString.TrimEnd();
-        delete ast;
-        program->AssembleFinalize();
-        #if ALIB_MODULE_TIME && ALIB_DEBUG
+
+        expression->program->AssembleFinalize();
+        #if ALIB_TIME && ALIB_DEBUG
             expression->DbgAssemblyTime= startTime.Age();
         #endif
 
+        if(--recursionCounter == 0)
+            allocator.Reset( startOfCompilation );
+
         // checks
-        ALIB_ASSERT_ERROR( !program->ResultType().IsType<void>(),
+        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(),
                            "No exception when parsing expression, but result type is void!" )
 
         ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(),
@@ -255,18 +304,16 @@ SPExpression   Compiler::Compile( const String& expressionString   )
     }
     catch( Exception& )
     {
-        if( program && !expression->program )
-            delete program;
-        delete ast;
         delete expression;
+        if(--recursionCounter == 0)
+            allocator.Reset( startOfCompilation );
         throw;
     }
     catch( std::exception& )
     {
-        if( program && !expression->program )
-            delete program;
-        delete ast;
         delete expression;
+        if(--recursionCounter == 0)
+            allocator.Reset( startOfCompilation );
         throw;
     }
     return SPExpression(expression);
@@ -275,21 +322,21 @@ SPExpression   Compiler::Compile( const String& expressionString   )
 void      Compiler::getOptimizedExpressionString( Expression* expression )
 {
     detail::AST* ast= nullptr;
-
+    auto startOfDecompilation= allocator.TakeSnapshot();
     try
     {
-        ast = detail::VirtualMachine::Decompile( *dynamic_cast<Program*>(expression->program) );
-        detail::Program* program= new detail::Program( *this, plugins,  *expression, nullptr );
-        ast->Assemble( *program, expression->optimizedString );
+        ast = detail::VirtualMachine::Decompile( *dynamic_cast<Program*>(expression->program), allocator );
+        detail::Program* program= allocator.Emplace<detail::Program>( *this, *expression, nullptr );
+        ast->Assemble( *program, allocator, expression->optimizedString );
         program->AssembleFinalize();
-        delete program;
-        delete ast;
+        monomem::Destruct(program);
     }
     catch(Exception& )
     {
-        delete ast;
+        allocator.Reset( startOfDecompilation );
         throw;
     }
+    allocator.Reset( startOfDecompilation );
 }
 
 
@@ -297,16 +344,15 @@ void      Compiler::getOptimizedExpressionString( Expression* expression )
 // Manage named expressions
 // #############################################################################################
 
-bool           Compiler::AddNamed( const String& identifier, const String& expressionString )
+bool           Compiler::AddNamed( const String& name, const String& expressionString )
 {
     String128 key;
     key.DbgDisableBufferReplacementWarning();
-    key << identifier;
-    if( !EnumContains(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
+    key << name;
+    if( !HasBits(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
         key.ToUpper();
 
-
-    auto it=        namedExpressions.find( key );
+    auto it=        namedExpressions.Find( key );
     bool existed=   it != namedExpressions.end();
 
     // removal requested?
@@ -314,73 +360,72 @@ bool           Compiler::AddNamed( const String& identifier, const String& expre
     {
         if ( existed )
         {
-            namedExpressions.erase( it );
+            namedExpressions.Erase( it );
             return true;
         }
         return false;
     }
 
     auto compiledExpression= Compile( expressionString );
-    compiledExpression->name.Reset( identifier );
+    compiledExpression->name= compiledExpression->ctScope->Allocator.EmplaceString( name );
     ALIB_ASSERT( compiledExpression )
     if( existed )
-        it->second= compiledExpression;
+        it.Mapped()= compiledExpression;
     else
-        namedExpressions.emplace( key, compiledExpression );
+        namedExpressions.EmplaceUnique( key, compiledExpression );
     return existed;
 }
 
-SPExpression   Compiler::GetNamed( const String& identifier )
+SPExpression   Compiler::GetNamed( const String& name )
 {
     // search
     String128 key;
     key.DbgDisableBufferReplacementWarning();
-    key << identifier;
-    if( !EnumContains(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
+    key << name;
+    if( !HasBits(CfgCompilation, Compilation::CaseSensitiveNamedExpressions ) )
         key.ToUpper();
 
-    auto it= namedExpressions.find( key );
+    auto it= namedExpressions.Find( key );
     if( it != namedExpressions.end() )
-        return it->second;
+        return it.Mapped();
 
     // not found! -> use protected, virtual method to get the string from somewhere
     AString expressionString;
-    if (!getExpressionString( identifier, expressionString ) )
-        throw Exception( ALIB_CALLER_NULLED, Exceptions::NamedExpressionNotFound,
-                         identifier );
+    if (!getExpressionString( name, expressionString ) )
+        throw Exception( ALIB_CALLER_NULLED, Exceptions::NamedExpressionNotFound, name );
 
     // Got an expression string! -> Compile
     SPExpression  parsedExpression= Compile( expressionString );
 
-    parsedExpression->name.Reset( identifier );
+    parsedExpression->name= parsedExpression->ctScope->Allocator.EmplaceString( name );
 
     SPExpression sharedExpression( parsedExpression );
-    namedExpressions.insert( std::make_pair( key, sharedExpression) );
+    namedExpressions.EmplaceUnique( key, sharedExpression );
 
     return sharedExpression;
 }
 
-#if ALIB_MODULE_CONFIGURATION
+#if ALIB_CONFIGURATION
 int Compiler::StoreLoadedExpressions( Priorities slot )
 {
     int count= 0;
     for( auto& entry : VariablesLoaded )
         if( std::get<0>( entry ) == slot )
         {
-            count++;
+            ++count;
             var.Declare( std::get<1>( entry ), std::get<2>( entry ) );
-            var.Priority= slot;
+            var.SetPriority( slot );
             var.Add( GetNamed( std::get<3>( entry ))->GetNormalizedString() );
             Config->Store( var );
         }
 
     return count;
 }
-#endif // ALIB_MODULE_CONFIGURATION
+#endif // ALIB_CONFIGURATION
 
 bool Compiler::getExpressionString( const String& identifier, AString& target )
 {
-    #if ALIB_MODULE_CONFIGURATION
+    #if ALIB_CONFIGURATION
 
         if( Config == nullptr )
             return false;
@@ -391,7 +436,7 @@ bool Compiler::getExpressionString( const String& identifier, AString& target )
             if(  Config->Load( var.Declare( category, identifier ) ) != Priorities::NONE )
             {
                 target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority, category, identifier, identifier );
+                VariablesLoaded.emplace_back( var.Priority(), category, identifier, identifier );
                 return true;
             }
         }
@@ -406,7 +451,7 @@ bool Compiler::getExpressionString( const String& identifier, AString& target )
             if(  Config->Load( var.Declare( category, name ) ) != Priorities::NONE )
             {
                 target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority, category, name, identifier );
+                VariablesLoaded.emplace_back( var.Priority(), category, name, identifier );
                 return true;
             }
             underscorePos=  identifier.IndexOf( '_', underscorePos + 1 );
@@ -418,7 +463,7 @@ bool Compiler::getExpressionString( const String& identifier, AString& target )
         (void) identifier;
         (void) target;
         return false;
-    #endif // ALIB_MODULE_CONFIGURATION
+    #endif // ALIB_CONFIGURATION
 }
 
 
@@ -428,9 +473,10 @@ bool Compiler::getExpressionString( const String& identifier, AString& target )
 
 void    Compiler::AddType( Type sample, const NString& name )
 {
-    ALIB_ASSERT_ERROR( types.find( sample.TypeID() ) == types.end(),
-                       "Type already registered with compiler"                      );
-    types[ sample.TypeID() ]= name;
+    ALIB_DBG( auto it= )
+    typeMap.EmplaceIfNotExistent( &sample.TypeID(), name );
+    ALIB_ASSERT_ERROR( it.second  == true, // is insert
+                       "Type already registered with compiler."  )
 }
 
 NString Compiler::TypeName(Type box)
@@ -438,21 +484,21 @@ NString Compiler::TypeName(Type box)
     if( box.IsType<void>() )
         return "NONE";
 
-    auto entry= types.find( box.TypeID() );
-    ALIB_ASSERT_WARNING( entry != types.end(),
+    auto entry= typeMap.Find( &box.TypeID() );
+    ALIB_ASSERT_WARNING( entry != typeMap.end(),
                          "Custom type {!Q} not registered. Please use Compiler::AddType to do so.",
                          box.TypeID() )
-    if( entry == types.end() )
+    if( entry == typeMap.end() )
         return "Unknown Type";
 
-    return entry->second;
+    return entry.Mapped();
 }
 
 void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target )
 {
     bool variadic= qty && (*(boxArray + qty -1)) == nullptr;
     if( variadic )
-        qty--;
+        --qty;
 
     target<< '(';
     bool isFirst= true;
@@ -487,5 +533,5 @@ void Compiler::WriteFunctionSignature( ArgIterator  begin,
 
 
 
-        }}} // namespace [aworx::lib::expressions]
+}}} // namespace [aworx::lib::expressions]
 

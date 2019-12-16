@@ -7,7 +7,8 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#if ALIB_UT_DOCS
+
 
 // Preparations to fake std::cout, main(), etc.
 #include <sstream>
@@ -48,7 +49,7 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamEC;    } 
 #include "alib/results/exception.hpp"
 
 // ALib module initialization (has to be done in main())
-#include "alib/lib/alibmodules.hpp"
+#include "alib/distribution.hpp"
 
 // std::cout
 #include <iostream>
@@ -60,7 +61,7 @@ using namespace aworx;
 int main( int argc, const char **argv )
 {
     // 0. Initialize ALib (this has to be done once at bootstrap with any software using ALib)
-    aworx::ALIB.Init(argc, argv);
+    aworx::ALIB.Bootstrap(argc, argv);
     aworx::ALIB.CheckDistribution();
 
     // 1. Create a defaulted expression compiler. This adds all built-in stuff, like number
@@ -80,10 +81,10 @@ int main( int argc, const char **argv )
     {
         cout << "An exception occurred compiling the expression. Details follow:" << endl
              << e  << endl;
-        return static_cast<int>( e.Type().Value() );
+        return static_cast<int>( e.Type().Integral() );
     }
 
-    // 2. We need an evaluation "scope"
+    // 3. We need an evaluation "scope"
     //    (later we will use a custom type here, that allows custom identifiers, functions and
     //    operators to access application data)
     lib::expressions::Scope scope(compiler.CfgFormatter);
@@ -99,7 +100,7 @@ int main( int argc, const char **argv )
     cout << "Result:     " << result                            << endl;
 
     // 6. Terminate library
-    aworx::ALIB.TerminationCleanUp();
+    aworx::ALIB.Shutdown();
 
     return 0;
 }
@@ -121,7 +122,7 @@ int dox_calculator_sample( int argc, const char **argv )
     {
         cout << "An exception occurred compiling the expression. Details follow:" << endl
              << e << endl;
-        return static_cast<int>( e.Type().Value() );
+        return static_cast<int>( e.Type().Integral() );
     }
     lib::expressions::Scope scope(compiler.CfgFormatter);
     Box result= expression->Evaluate( scope );
@@ -200,7 +201,7 @@ void invokeNormalizedAndOptimized( AWorxUnitTesting& ut, const character* expres
 
 UT_METHOD( Calculator )
 {
-    UT_INIT();
+    UT_INIT()
 
     try{
 
@@ -221,17 +222,15 @@ UT_METHOD( Calculator )
     }
     catch(Exception& e)
     {
-        UT_PRINT( "An ALib exception occurred during test run." );
-        UT_PRINT( e );
-        UT_PRINT( "Stopping..." );
-        UT_TRUE(false);
+        UT_PRINT( "An ALib exception occurred during test run." )
+        UT_PRINT( e )
+        UT_PRINT( "Stopping..." )
+        UT_TRUE(false)
     }
 }
 
-
-
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif //!defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#endif //  ALIB_UT_DOCS

@@ -6,17 +6,32 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_ALOX)
-#   include "alib/alox/alox.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_ALOX)
+#      include "alib/alox/alox.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_LIB_COMMONENUMS_RESOURCED)
-#   include "alib/lib/commonenumsresourced.hpp"
-#endif
+#   if !defined(HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_ALOX_VARIABLES)
-    #include "alib/alox/variables.hpp"
-#endif
+#   if !defined(HPP_ALOX_DETAIL_SCOPEINFO)
+#      define HPP_ALIB_LOX_PROPPERINCLUDE
+#          include "alib/alox/detail/scopeinfo.inl"
+#      undef HPP_ALIB_LOX_PROPPERINCLUDE
+#   endif
+
+#   if !defined(HPP_ALIB_FS_COMMONENUMS)
+#       include "alib/lib/fs_commonenums/commonenums.hpp"
+#   endif
+
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+#   if !defined(HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#      include "alib/strings/util/tokenizer.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 // conditional expression is constant (which is a great thing for the compiler by the way ;-)
@@ -25,7 +40,7 @@
     #pragma warning( disable : 4127 )
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace detail   {
+namespace aworx { namespace lib { namespace lox { namespace detail {
 
 // #################################################################################################
 // Static
@@ -36,28 +51,35 @@ int                                         ScopeInfo::DefaultCacheSize         
 
 bool                                        ScopeInfo::GlobalSPTRsReadFromConfig       = false;
 
-ScopeInfo::ScopeInfo( const NString& pName )
-: loxName( pName )
+ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& tempVar )
+#if ALIB_THREADS
+: threadDictionary( allocator )
+,
+#else
+:
+#endif
+ scopes          ( *allocator )
 {
-    loxName.ToUpper();
+    loxName= allocator->EmplaceString( pName );
+    characters::CharArray<nchar>::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
     ALIB_ASSERT_ERROR( !loxName.Equals( "GLOBAL" ), "Name \"GLOBAL\" not allowed for Lox instances" )
-    cache= new SourceFile[static_cast<size_t>(cacheSize= DefaultCacheSize)];
+    cache= allocator->EmplaceArray<SourceFile>( cacheSize= DefaultCacheSize );
+
     lastSourceFile= &cache[0];
 
-    threadDictionary[Thread::GetMain()->GetId()]= "PROCESS";
+    ALIB_IF_THREADS( threadDictionary.EmplaceUnique(Thread::GetMain()->GetId(), "PROCESS" ); )
 
     // read trim rules from config
     // do 2 times, 0== local list, 1== global list
     std::vector<SourcePathTrimRule>* trimInfoList;
-    for( int trimInfoNo= 0; trimInfoNo < 2 ; trimInfoNo++ )
+    for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
     {
         // check if done... or set list
-        Variable variable;
         if ( trimInfoNo == 0 )
         {
             trimInfoList= &LocalSPTRs;
             ALIB_STRINGS_FROM_NARROW(loxName,sLoxName, 1024)
-            variable.Declare( Variables::SPTR_LOX, sLoxName );
+            tempVar.Declare( Variables::SPTR_LOX, sLoxName );
         }
         else
         {
@@ -66,18 +88,18 @@ ScopeInfo::ScopeInfo( const NString& pName )
             GlobalSPTRsReadFromConfig= true;
 
             trimInfoList= &GlobalSPTRs;
-            variable.Declare( Variables::SPTR_GLOBAL );
+            tempVar.Declare( Variables::SPTR_GLOBAL );
         }
-        ALOX.Config->Load( variable );
+        ALOX.GetConfig().Load( tempVar );
 
-        if( variable.Priority != Priorities::NONE  )
+        if( tempVar.Priority() != Priorities::NONE  )
         {
-            for( int ruleNo= 0; ruleNo < variable.Size(); ruleNo++ )
+            for( int ruleNo= 0; ruleNo < tempVar.Size(); ++ruleNo )
             {
-                Tokenizer ruleTknzr( variable.GetString( ruleNo ), ',' );
+                Tokenizer ruleTknzr( tempVar.GetString( ruleNo ), ',' );
                 trimInfoList->emplace_back();
                 SourcePathTrimRule& rule=trimInfoList->back();
-                rule.Priority=  variable.Priority;
+                rule.Priority=  tempVar.Priority();
 
                 ruleTknzr.Next();
                 if( ( rule.IsPrefix= !ruleTknzr.Actual.StartsWith( A_CHAR("*") ) ) == false )
@@ -97,9 +119,9 @@ ScopeInfo::ScopeInfo( const NString& pName )
                 else
                     rule.Path.SearchAndReplace( '/' , '\\' );
 
-                ruleTknzr.Next().ConsumeEnumOrBool( rule.IncludeString, Inclusion::Exclude, Inclusion::Include );
+                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.IncludeString, Inclusion::Exclude, Inclusion::Include );
                 ruleTknzr.Next().ConsumeInt( rule.TrimOffset );
-                ruleTknzr.Next().ConsumeEnumOrBool( rule.Sensitivity, Case::Ignore, Case::Sensitive );
+                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, Case::Ignore, Case::Sensitive );
 
                 rule.TrimReplacement.Reset( ruleTknzr.Next() );
             }
@@ -107,19 +129,12 @@ ScopeInfo::ScopeInfo( const NString& pName )
     }
 }
 
-ScopeInfo::~ScopeInfo()
+void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCString& methodName
+                      ALIB_IF_THREADS(, Thread* pThread ) )
 {
-    delete[] cache;
-}
-
-
-void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCString& methodName,
-                      Thread* pThread )
-{
-    //scopes.push( std::forward<Scope>(Scope()) );
-    actScopeDepth++;
+    ++actScopeDepth;
     ALIB_ASSERT( actScopeDepth < 8)
-    if( scopes.size() == static_cast<size_t>( actScopeDepth ) )
+    if( scopes.size() == static_cast<size_t>(actScopeDepth) )
         scopes.emplace_back();
     Scope& s= scopes[static_cast<size_t>(actScopeDepth)];
 
@@ -129,8 +144,9 @@ void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCSt
     s.origMethod=   methodName;
     s.sourceFile=   lastSourceFile;
 
+    ALIB_IF_THREADS(
     this->thread=   pThread;
-    threadName=     nullptr;
+    threadName=     nullptr; )
 
     // if different file than before, search file in cache
     if ( s.sourceFile->origFile.Buffer() != sourceFileName.Buffer() )
@@ -139,7 +155,7 @@ void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCSt
         uint64_t  oldestTime= ++cacheRun;
 
         s.sourceFile= nullptr;
-        for( int i= 0; i< cacheSize; i++ )
+        for( int i= 0; i< cacheSize; ++i )
         {
             if ( cache[i].origFile.Buffer() == sourceFileName.Buffer() )
             {
@@ -177,7 +193,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
                                         Priorities          priority )
 {
     // clear cache to have lazy variables reset with the next invocation
-    for ( int i= 0; i< cacheSize; i++ )
+    for ( int i= 0; i< cacheSize; ++i )
         cache[i].Clear();
 
     // clear command
@@ -201,9 +217,9 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
     // insert sorted by priority
     auto it= trimInfoList->begin();
     while( it != trimInfoList->end() && priority < it->Priority  )
-        it++;
+        ++it;
 
-    it= trimInfoList->insert(it, SourcePathTrimRule() );
+    it= trimInfoList->emplace(it);
     SourcePathTrimRule& rule= *it;
     rule.Priority= priority;
 
@@ -248,7 +264,7 @@ void ScopeInfo::trimPath()
 
 
     // do 2 times, 0== local list, 1== global list
-    for( int trimInfoNo= 0; trimInfoNo < 2 ; trimInfoNo++ )
+    for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
     {
         // choose local or global list
         std::vector<SourcePathTrimRule>* trimInfoList=
@@ -270,7 +286,7 @@ void ScopeInfo::trimPath()
             if ( idx >= 0 )
             {
                 integer startIdx= idx + ( ti.IncludeString == Inclusion::Include ? ti.Path.Length() : 0 ) + ti.TrimOffset;
-                actual->trimmedPath=        actual->trimmedPath.Substring<false>( startIdx, actual->trimmedPath.Length() - startIdx );
+                actual->trimmedPath=        actual->trimmedPath.Substring( startIdx, actual->trimmedPath.Length() - startIdx );
                 actual->trimmedPathPrefix=  ti.TrimReplacement;
 
                 trimmed= true;
@@ -298,10 +314,11 @@ void ScopeInfo::trimPath()
         integer i= 0;
         integer maxIdx= currentDir.Length();
         if ( maxIdx > actual->trimmedPath.Length() )
-            maxIdx= actual->trimmedPath.Length();
+             maxIdx=  actual->trimmedPath.Length();
 
-        while (  i < maxIdx &&  tolower( currentDir[i] ) == tolower( actual->trimmedPath[i] )  )
-            i++;
+        while (  i < maxIdx &&    characters::CharArray<character>::ToUpper( currentDir[i] )
+                               == characters::CharArray<character>::ToUpper( static_cast<character>(actual->trimmedPath[i]) )  )
+            ++i;
 
         if ( i > 1 )
         {

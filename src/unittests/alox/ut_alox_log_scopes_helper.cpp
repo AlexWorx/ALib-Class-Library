@@ -7,7 +7,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#if ALIB_UT_ALOX
 
 
 #include "alib/alox.hpp"
@@ -20,7 +20,7 @@ namespace ut_alox
 {
 // used with unit test Log_ScopeInfoCacheTest
 void ScopeInfoCacheTest5();
-void ScopeInfoCacheTest5() { Log_Info("Test Method 5"); }
+void ScopeInfoCacheTest5() { Log_Info("Test Method 5") }
 
 #if ALOX_DBG_LOG
 
@@ -29,7 +29,7 @@ void ScopeInfoCacheTest5() { Log_Info("Test Method 5"); }
     {
         Log_SetDomain( "HFILE",     Scope::Filename  )
         Log_SetDomain( "HMETHOD",   Scope::Method      )
-        Log_Info("");
+        Log_Info("")
     }
 
 #endif
@@ -42,7 +42,7 @@ void ScopeInfoCacheTest5() { Log_Info("Test Method 5"); }
         #define LOX_LOX lox
         Lox_SetDomain( "HFILE",     Scope::Filename  )
         Lox_SetDomain( "HMETHOD",   Scope::Method      )
-        Lox_Info("");
+        Lox_Info("")
         #undef LOX_LOX
     }
 
@@ -51,4 +51,4 @@ void ScopeInfoCacheTest5() { Log_Info("Test Method 5"); }
 } // namespace
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#endif // ALIB_UT_ALOX

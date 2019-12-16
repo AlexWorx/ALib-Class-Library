@@ -6,13 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#if ALIB_UT_STRINGS
 
 
 #include "alib/alox.hpp"
 #include "alib/strings/util/tokenizer.hpp"
 #include "alib/strings/numberformat.hpp"
 #include "alib/compatibility/std_characters.hpp"
+#if ALIB_TIME
+#   include "alib/time/datetime.hpp"
+#endif
+#if ALIB_SYSTEM
+#   include "alib/system/calendar.hpp"
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -37,9 +43,9 @@ namespace tstn
 
         public:
             constexpr MyString() {}
-            inline     bool             IsNulled   () const { return false; }
+                       bool             IsNulled   () const { return false; }
             constexpr  const character* GetMyBuffer() const { return                                                       theString;   }
-            inline     integer          GetMyLength() const { return lib::characters::CharArray<aworx::character>::Length( theString ); }
+                       integer          GetMyLength() const { return lib::characters::CharArray<aworx::character>::Length( theString ); }
     };
 
 }
@@ -52,10 +58,11 @@ namespace characters {
     ALIB_CHARACTER_ARRAY_IMPL_LENGTH( tstn::MyString, character, return static_cast<integer>( src.GetMyLength() ); )
 }
 
+#if ALIB_SYSTEM
 namespace strings {
     template<> struct T_Append<aworx::lib::time::DateTime, character>
     {
-        inline void operator()( AString& target, const aworx::lib::time::DateTime& ticks )
+        void operator()( AString& target, const aworx::lib::time::DateTime& ticks )
         {
             system::CalendarDateTime calendarTime;
             calendarTime.Set( ticks, Timezone::UTC );
@@ -63,7 +70,10 @@ namespace strings {
         }
     };
 
-}}} // namespace [aworx::lib::strings]
+}
+#endif
+
+}} // namespace [aworx::lib]
 
 
 
@@ -77,46 +87,46 @@ UT_CLASS()
 
 void testParam            ( AWorxUnitTesting& ut, const character* exp, const String& as )
 {
-    #if ALIB_STRINGS_DEBUG
-        ALIB_STRING_DBG_CHK(&as);
+    #if ALIB_DEBUG_STRINGS
+        ALIB_STRING_DBG_CHK(&as)
     #endif
     String32 asTemp;
     asTemp._(as);
-    UT_EQ( exp, String(asTemp)  );
-    UT_TRUE( as.Equals(exp) );
+    UT_EQ( exp, String(asTemp)  )
+    UT_TRUE( as.Equals(exp) )
 }
 
 void testParamTerminatable( AWorxUnitTesting& ut, const character* exp, const CString& as )
 {
-    #if ALIB_STRINGS_DEBUG
-        ALIB_STRING_DBG_CHK(&as);
+    #if ALIB_DEBUG_STRINGS
+        ALIB_STRING_DBG_CHK(&as)
     #endif
     String32 asTemp;
     asTemp._(as);
-    UT_EQ( exp, String(asTemp)  );
-    UT_TRUE( as.Equals(exp) );
+    UT_EQ( exp, String(asTemp)  )
+    UT_TRUE( as.Equals(exp) )
 }
 
 void testParamLocalString( AWorxUnitTesting& ut, const character* exp, const String64& as )
 {
-    #if ALIB_STRINGS_DEBUG
-        ALIB_STRING_DBG_CHK(&as);
+    #if ALIB_DEBUG_STRINGS
+        ALIB_STRING_DBG_CHK(&as)
     #endif
     String32 asTemp;
     asTemp._(as);
-    UT_EQ( exp, String(asTemp)  );
-    UT_TRUE( as.Equals(exp) );
+    UT_EQ( exp, String(asTemp)  )
+    UT_TRUE( as.Equals(exp) )
 }
 
 void testParamSubstring( AWorxUnitTesting& ut, const character* exp, const Substring& as )
 {
-    #if ALIB_STRINGS_DEBUG
-        ALIB_STRING_DBG_CHK(&as);
+    #if ALIB_DEBUG_STRINGS
+        ALIB_STRING_DBG_CHK(&as)
     #endif
     String32 asTemp;
     asTemp._(as);
-    UT_EQ( exp, String(asTemp)  );
-    UT_TRUE( as.Equals(exp) );
+    UT_EQ( exp, String(asTemp)  )
+    UT_TRUE( as.Equals(exp) )
 }
 
 
@@ -125,7 +135,7 @@ void testParamSubstring( AWorxUnitTesting& ut, const character* exp, const Subst
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( ConstructorsExplicit )
 {
-    UT_INIT();
+    UT_INIT()
 
     // before we begin...
     static_assert( std::is_nothrow_move_constructible<String>                 ::value, "String has to be move constructable with no assertions");
@@ -291,7 +301,7 @@ UT_METHOD( ConstructorsExplicit )
 
 UT_METHOD( ConstructorsImplicit )
 {
-    UT_INIT();
+    UT_INIT()
 
    const character*             testConstCharP= A_CHAR("TEST");
    character*                   testCharP=      const_cast<character*>( testConstCharP );
@@ -391,12 +401,12 @@ UT_METHOD( ConstructorsImplicit )
         // The following implicit constructor takes wrong length, as constructor for char arrays.
         // This is still what is wanted, because implicit construction with character arrays is
         // needed for C++ literals.
-        UT_PRINT( "One error should follow: " );
+        UT_PRINT( "One error should follow: " )
         CString ts=  CString( charArray );
         UT_EQ( 3, ts.Length())
 
         Substring fromCharArray= String(charArray).Substring( 0, 2 );
-        UT_PRINT( "One error should follow: " );
+        UT_PRINT( "One error should follow: " )
         ts= CString( fromCharArray );
 
         lib::results::Report::GetDefault().PopHaltFlags();
@@ -408,7 +418,7 @@ UT_METHOD( ConstructorsImplicit )
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( Assignment )
 {
-    UT_INIT();
+    UT_INIT()
 
 
           character                     testAChar=            '@';
@@ -684,7 +694,7 @@ UT_METHOD( Assignment )
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( AppendAndAppendOperator )
 {
-    UT_INIT();
+    UT_INIT()
 
     const character*                    testConstACharP= A_CHAR("TEST");
     character*                          testACharP=       const_cast<character*>( testConstACharP );
@@ -713,16 +723,18 @@ UT_METHOD( AppendAndAppendOperator )
     // { vector<int> x; AString as; as._ (x);}
     // { char c   ='a';             String as(c);}
 
+#if ALIB_SYSTEM
     CalendarDateTime calendar;
-    calendar.Day=     1;
-    calendar.Month=   4;
-    calendar.Year=    2011;
-    calendar.Hour=    16;
-    calendar.Minute=  00;
-    calendar.Second=  01;
-    DateTime       testTicks(calendar.Get(Timezone::UTC));
-    const DateTime testConstTicks  ( testTicks );
+                     calendar.Day=     1;
+                     calendar.Month=   4;
+                     calendar.Year=    2011;
+                     calendar.Hour=    16;
+                     calendar.Minute=  00;
+                     calendar.Second=  01;
+    DateTime         testTicks(calendar.Get(Timezone::UTC));
+    const DateTime   testConstTicks  ( testTicks );
     const character* ticksResult= A_CHAR("2011-04-01 16:00");
+#endif
 
     // AString
     { AString as; as <<  A_CHAR("TEST")               ; testParam( ut, testConstACharP, as) ; }
@@ -738,7 +750,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as; as <<  testLocalString              ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testStdString                ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testMyString                 ; testParam( ut, myStringBuf    , as) ; }
-    { AString as; as <<  testTicks                    ; testParam( ut, ticksResult ,    as) ; }
+ALIB_IF_SYSTEM(
+    { AString as; as <<  testTicks                    ; testParam( ut, ticksResult ,    as) ; } )
 
     { AString as; as <<  testConstStringLiteral       ; testParam( ut, A_CHAR("1")    , as) ; }
     { AString as; as <<  testConstString              ; testParam( ut, testConstACharP, as) ; }
@@ -748,7 +761,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as; as <<  testConstLocalString         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testConstStdString           ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testConstMyString            ; testParam( ut, myStringBuf    , as) ; }
-    { AString as; as <<  testConstTicks               ; testParam( ut, ticksResult,     as) ; }
+ALIB_IF_SYSTEM(
+    { AString as; as <<  testConstTicks               ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as; as._( A_CHAR("TEST")      )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testConstACharP     )         ; testParam( ut, testConstACharP, as) ; }
@@ -763,7 +777,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as; as._( testLocalString     )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testStdString       )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testMyString        )         ; testParam( ut, myStringBuf    , as) ; }
-    { AString as; as._( testTicks           )         ; testParam( ut, ticksResult,     as) ; }
+ALIB_IF_SYSTEM(
+    { AString as; as._( testTicks           )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as; as._( testConstStringLiteral  )     ; testParam( ut, A_CHAR("1")    , as) ; }
     { AString as; as._( testConstString     )         ; testParam( ut, testConstACharP, as) ; }
@@ -773,7 +788,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as; as._( testConstLocalString        ) ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testConstStdString  )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testConstMyString   )         ; testParam( ut, myStringBuf    , as) ; }
-    { AString as; as._( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; }
+ALIB_IF_SYSTEM(
+    { AString as; as._( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as          ; as._<false>( A_CHAR("TEST")       )        ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testConstACharP      )        ; testParam( ut, testConstACharP, as) ; }
@@ -788,7 +804,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as          ; as._<false>( testLocalString     )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testStdString       )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testMyString        )         ; testParam( ut, myStringBuf    , as) ; }
-    { AString as          ; as._<false>( testTicks           )         ; testParam( ut, ticksResult,     as) ; }
+ALIB_IF_SYSTEM(
+    { AString as          ; as._<false>( testTicks           )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as          ; as._<false>( testConstStringLiteral  )     ; testParam( ut, A_CHAR("1")    , as) ; }
     { AString as          ; as._<false>( testConstString     )         ; testParam( ut, testConstACharP, as) ; }
@@ -798,7 +815,8 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as          ; as._<false>( testConstLocalString)         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testConstStdString  )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testConstMyString   )         ; testParam( ut, myStringBuf    , as) ; }
-    { AString as          ; as._<false>( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; }
+ALIB_IF_SYSTEM(
+    { AString as          ; as._<false>( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; } )
 
     // LocalString
     { String64    as      ; as <<  A_CHAR("TEST")                      ; testParam( ut, testConstACharP, as) ; }
@@ -854,10 +872,10 @@ UT_METHOD( AppendAndAppendOperator )
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( MoveConstructors )
 {
-    UT_INIT();
+    UT_INIT()
 
     lib::results::Report::GetDefault().PushHaltFlags( false, false );
-    UT_PRINT( "One or more buffer warnings should follow" );
+    UT_PRINT( "One or more buffer warnings should follow" )
 
 
     // this test is more for debug stepping to check if the right constructors are used
@@ -888,7 +906,7 @@ UT_METHOD( MoveConstructors )
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( ConstructBack )
 {
-    UT_INIT();
+    UT_INIT()
 
     // String / std::string
     {
@@ -958,7 +976,7 @@ UT_METHOD( ConstructBack )
                                                    UT_TRUE( xAString     == std_xstring           )
     }
 
-#if ALIB_CPP17
+#if ALIB_CPPVER >= 17
 
     // String / std::string_view
     {
@@ -1037,12 +1055,12 @@ UT_METHOD( ConstructBack )
                                                    UT_TRUE( xAString         == std_xstring_view           )
     }
 
-#endif  //ALIB_CPP17
+#endif  //ALIB_CPPVER >= 17
 }
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#endif // ALIB_UT_STRINGS

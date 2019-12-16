@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_characters of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARARRAY
 #define HPP_ALIB_CHARACTERS_CHARARRAY 1
 
@@ -12,8 +13,8 @@
 #   include "alib/characters/characters.hpp"
 #endif
 
-#if !defined (HPP_ALIB_LIB_COMMONENUMS)
-#   include "alib/lib/commonenums.hpp"
+#if !defined (HPP_ALIB_FS_COMMONENUMS_DEFS)
+#   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
 #endif
 
 #if !defined (_GLIBCXX_NUMERIC_LIMITS) && !defined(_LIMITS_)
@@ -53,31 +54,31 @@ struct CharArray
     /** ********************************************************************************************
      * Compares two characters of arbitrary types.
      *
+     * @tparam sensitivity Letter case sensitivity of the comparison.
+     * @tparam TRhs        The type of the right hand side letter to compare.
      * @param  lhs         The left-hand side character to compare of class template
      *                     type \p{TChar}.
      * @param  rhs         The right-hand side character to compare of method template
      *                     type \p{TCharRhs} .
-     * @tparam  sensitivity Letter case sensitivity of the comparison.
-     * @tparam TRhs        The type of the right hand side letter to compare.
      * @return \c true if the given characters are equal, \c false otherwise.
      **********************************************************************************************/
     template<Case sensitivity, typename TRhs >
-    static inline
+    static
     bool Equal( TChar lhs, TRhs rhs )
     {
         ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         using TLhs= TChar;
         bool sensitive=  (sensitivity == Case::Sensitive);
 
-        if ALIB_CPP17_CONSTEXPR ( sizeof(TLhs) == sizeof(TRhs) )
+             if ALIB_CONSTEXPR_IF ( sizeof(TLhs) == sizeof(TRhs) )
             return  sensitive ?                             lhs  ==                            rhs
                               :  ToUpper(                   lhs) ==  ToUpper(                  rhs);
 
-        if ALIB_CPP17_CONSTEXPR ( sizeof(TLhs) < sizeof(TRhs) )
+        else if ALIB_CONSTEXPR_IF ( sizeof(TLhs) < sizeof(TRhs) )
             return  sensitive ?           static_cast<TRhs>(lhs)  ==                           rhs
                               :  ToUpper( static_cast<TRhs>(lhs)) == ToUpper(                  rhs);
 
-        if ALIB_CPP17_CONSTEXPR ( sizeof(TLhs) > sizeof(TRhs) )
+        else if ALIB_CONSTEXPR_IF ( sizeof(TLhs) > sizeof(TRhs) )
             return  sensitive ?                             lhs   ==         static_cast<TLhs>(rhs)
                               :  ToUpper(                   lhs ) == ToUpper(static_cast<TLhs>(rhs));
         ALIB_WARNINGS_RESTORE
@@ -93,7 +94,7 @@ struct CharArray
      *
      * @return The length of the string.
      **********************************************************************************************/
-    static inline
+    static
     integer     Length( const TChar* cstring )
     {
         return static_cast<integer>( std::char_traits<TChar>::length(cstring) );
@@ -109,7 +110,7 @@ struct CharArray
      * @param length  The length to copy.
      * @param dest    Pointer to the destination array.
      **********************************************************************************************/
-    static inline
+    static
     void        Copy( const TChar* src, integer length, TChar* dest )
     {
         std::char_traits<TChar>::copy( dest, src, static_cast<size_t>(length) );
@@ -125,7 +126,7 @@ struct CharArray
      * @param length  The length to copy.
      * @param dest    Pointer to the destination array, optionally within source.
      **********************************************************************************************/
-    static inline
+    static
     void        Move( const TChar* src, integer length, TChar* dest )
     {
         std::char_traits<TChar>::move( dest, src, static_cast<size_t>(length) );
@@ -151,6 +152,15 @@ struct CharArray
     TChar       ToUpper( TChar c );
 
     /** ********************************************************************************************
+     * Converts a character sequence to upper case.
+     *
+     * @param src     Pointer to the character array.
+     * @param length  The of the string length to convert.
+     **********************************************************************************************/
+    static
+    void        ToUpper( TChar* src, integer length );
+
+    /** ********************************************************************************************
      * Converts a character to lower case.
      *
      * @param c    The character to convert
@@ -158,6 +168,15 @@ struct CharArray
      **********************************************************************************************/
     static
     TChar       ToLower( TChar c );
+
+    /** ********************************************************************************************
+     * Converts a character sequence to lower case.
+     *
+     * @param src     Pointer to the character array.
+     * @param length  The of the string length to convert.
+     **********************************************************************************************/
+    static
+    void        ToLower( TChar* src, integer length );
 
     /** ********************************************************************************************
      * Searches the character. Returns a pointer to the location of \p{needle} in \p{haystack},
@@ -173,7 +192,7 @@ struct CharArray
      * @return The pointer to the first occurrence of \p{needle} respectively \c nullptr if
      *         not found.
      **********************************************************************************************/
-    static inline
+    static
     const TChar* Search( const TChar* haystack, integer haystackLength, TChar needle )
     {
         return std::char_traits<TChar>::find( haystack, static_cast<size_t>(haystackLength), needle );
@@ -328,7 +347,7 @@ struct CharArray
      *
      * @return  \c true if the string arrays have identical contents, \c false otherwise.
      **********************************************************************************************/
-    static inline
+    static
     bool Equal( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
     {
         return  ::memcmp( lhs, rhs, static_cast<size_t>(cmpLength) * sizeof(TChar) ) == 0;
@@ -347,7 +366,7 @@ struct CharArray
      *          \c 0 if lhs and rhs are equal.
      *          Positive value if lhs appears after rhs in lexicographical order.
      **********************************************************************************************/
-    static inline
+    static
     int Compare( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
     {
         return std::char_traits<TChar>::compare( lhs, rhs, static_cast<size_t>(cmpLength) );
@@ -387,6 +406,26 @@ template<> inline nchar   CharArray<nchar>::ToUpper(nchar c)
 template<> inline nchar   CharArray<nchar>::ToLower(nchar c)
 {
     return static_cast<nchar>( tolower(c) );
+}
+
+template<> inline void    CharArray<nchar>::ToUpper(nchar* src, integer length)
+{
+    nchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<nchar>::ToUpper( *src );
+        ++src;
+    }
+}
+
+template<> inline void    CharArray<nchar>::ToLower(nchar* src, integer length)
+{
+    nchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<nchar>::ToLower( *src );
+        ++src;
+    }
 }
 
 template<> inline int     CharArray<nchar>::CompareIgnoreCase( const nchar* lhs,  const nchar* rhs, integer cmpLength  )
@@ -434,6 +473,25 @@ template<> inline wchar   CharArray<wchar>::ToLower(wchar c)
     return static_cast<wchar>(towlower(static_cast<wint_t>(c)));
 }
 
+template<> inline void    CharArray<wchar>::ToUpper(wchar* src, integer length)
+{
+    wchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<wchar>::ToUpper( *src );
+        ++src;
+    }
+}
+
+template<> inline void    CharArray<wchar>::ToLower(wchar* src, integer length)
+{
+    wchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<wchar>::ToLower( *src );
+        ++src;
+    }
+}
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> inline void    CharArray<wchar>::Fill( wchar* dest, integer length, wchar c )
@@ -493,6 +551,25 @@ template<> inline xchar     CharArray<xchar>::ToLower(xchar c)
     return static_cast<xchar>(towlower(static_cast<wint_t>(c)));
 }
 
+template<> inline void    CharArray<xchar>::ToUpper(xchar* src, integer length)
+{
+    xchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<xchar>::ToUpper( *src );
+        ++src;
+    }
+}
+
+template<> inline void    CharArray<xchar>::ToLower(xchar* src, integer length)
+{
+    xchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  CharArray<xchar>::ToLower( *src );
+        ++src;
+    }
+}
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> ALIB_API void    CharArray<xchar>::Fill( xchar* dest, integer length, xchar c );
 template<> ALIB_API int     CharArray<xchar>::CompareIgnoreCase   ( const xchar* lhs,  const xchar* rhs, integer cmpLength  );

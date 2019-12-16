@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
 #define HPP_ALIB_EXPRESSIONS_EXPRESSION
 
@@ -11,11 +12,11 @@
 #   include "alib/expressions/expressions.hpp"
 #endif
 
-#if ALIB_MODULE_TIME && ALIB_DEBUG && !defined (HPP_ALIB_TIME_TICKS)
+#if ALIB_TIME && ALIB_DEBUG && !defined (HPP_ALIB_TIME_TICKS)
 #  include "alib/time/ticks.hpp"
 #endif
 
-#if !defined (_GLIBCXX_MEMORY) && !defined(_MEMORY_)
+#if !defined (_GLIBCXX_MONOMEM) && !defined(_MONOMEM_)
 #   include <memory>
 #endif
 
@@ -24,10 +25,10 @@ namespace aworx { namespace lib { namespace expressions {
 // forwards
 class  Compiler;
 struct Scope;
-namespace detail{ class Program; }
+namespace detail{ class Program; class VirtualMachine; }
 
 /** ************************************************************************************************
- * This is a central class of library module \alibmod_nolink_expressions representing compiled,
+ * This is a central class of library module \alib_expressions_nl representing compiled,
  * evaluatable expressions.
  *
  * The constructor is protected. Expressions are created using method
@@ -44,23 +45,32 @@ namespace detail{ class Program; }
  **************************************************************************************************/
 class Expression
 {
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
         // The compiler builds this this type which by design does not expose a constructor.
         friend class Compiler;
 
         // The program that evaluates us.
         friend class detail::Program;
+
+        // The program that evaluates us.
+        friend class detail::VirtualMachine;
     #endif
 
     protected:
+        /**
+         * Compile-time scope object. Used to allocate constant program object copies.
+         * Also passed to the compiler plug-ins for their use.
+         */
+        Scope*              ctScope;
+
         /** The name of the expression (if named, otherwise resourced, usually "ANONYMOUS" ). */
-        AString             name;
+        String              name;
 
         /** The compiled expression program. */
         detail::Program*    program;
 
         /** The original source string of the expression. */
-        AString             originalString;
+        String              originalString;
 
         /** The normalized string as a result of compilation. */
         AString             normalizedString;
@@ -69,25 +79,25 @@ class Expression
         AString             optimizedString;
 
     public:
-    #if ALIB_MODULE_TIME && ALIB_DEBUG
+    #if ALIB_TIME && ALIB_DEBUG
         /**
          * Provides the time needed to parse the expression into an abstract syntax tree.
          *
-         * Note: This field is available only in debug compilations of the library.
+         * Note: This field is available only with debug builds of the library.
          */
         Ticks::Duration     DbgParseTime;
 
         /**
          * Provides the time needed to parse the expression into an abstract syntax tree.
          *
-         * Note: This field is available only in debug compilations of the library.
+         * Note: This field is available only with debug builds of the library.
          */
         Ticks::Duration     DbgAssemblyTime;
 
         /**
          * Provides the time needed for the last evaluation of the expression.
          *
-         * Note: This field is available only in debug compilations of the library.
+         * Note: This field is available only with debug builds of the library.
          */
         Ticks::Duration     DbgLastEvaluationTime;
 
@@ -95,11 +105,12 @@ class Expression
 
     protected:
         /** ****************************************************************************************
-         * Protected constructor to disallow creation. Expressions are created using
-         * \alib{expressions,Compiler::Compile}.
+         * Protected constructor to disallow creation.
+         * Expressions are created using \alib{expressions,Compiler::Compile}.
          * @param sourceString The original string that was parsed.
+         * @param pCTScope     The compile-time scope.
          ******************************************************************************************/
-        ALIB_API            Expression( const String& sourceString );
+        ALIB_API            Expression( const String& sourceString, Scope* pCTScope );
 
     public:
         /** ****************************************************************************************
@@ -113,15 +124,18 @@ class Expression
          * expressions get compiled and the compiler supports retrieval of expression strings by
          * name from some custom location (or built-in \alib configuration mechanics).
          *
-         * Otherwise, the name is is \b "ANONYMOUS", which is a resourced string of key
+         * Otherwise, the name is \b "ANONYMOUS", which is a resourced string of key
          * \c "ANON_EXPR_NAME".
          *
          * @return The expression's name.
          ******************************************************************************************/
         ALIB_API String     Name()
         {
+            if( name.IsNull() )
+                name= EXPRESSIONS.GetResource("ANON_EXPR_NAME");
             return name;
         }
+
         /** ****************************************************************************************
          * Evaluates the expression by executing the compiled \p{program}.
          *
@@ -132,7 +146,7 @@ class Expression
         /** ****************************************************************************************
          * Evaluates the expression by executing the compiled \p{program}.
          *
-         * In debug compilations of this library, \alib assertions may be raised.
+         * With debug builds of this library, \alib assertions may be raised.
          * Usually this indicates that a native callback function returned a value of erroneous
          * type, which usually are caused by erroneous compiler plug-ins, respectively the native
          * callback functions that those provide.
@@ -150,7 +164,7 @@ class Expression
          *
          * @return The original expression string.
          ******************************************************************************************/
-        inline String       GetOriginalString()     const
+        String              GetOriginalString()     const
         {
             return originalString;
         }
@@ -176,7 +190,7 @@ class Expression
          *
          * @return The normalized expression string.
          ******************************************************************************************/
-        inline String       GetNormalizedString()    const
+        String              GetNormalizedString()    const
         {
             return normalizedString;
         }
@@ -208,7 +222,7 @@ class Expression
          *
          * @return The result of this evaluation of this expression node.
          ******************************************************************************************/
-        inline detail::Program* GetProgram()
+        detail::Program*    GetProgram()
         {
             return program;
         }
@@ -218,7 +232,7 @@ class Expression
 /**
  * As expressions are usually named and cached to enable nested expressions, but also shared
  * as root expressions, and often encapsulated in more or less volatile custom objects, this shared
- * pointer type is used to pass expression trees around. This manages their lifecycle
+ * pointer type is used to pass expression trees around. This manages their life-cycle
  * automatically.
  */
 using SPExpression=    std::shared_ptr<Expression>;
@@ -226,13 +240,13 @@ using SPExpression=    std::shared_ptr<Expression>;
 }} // namespace aworx[::lib::expressions]
 
 /// Type alias in namespace #aworx.
-using     SPExpression=    aworx::lib::expressions::SPExpression;
+using     SPExpression=    lib::expressions::SPExpression;
 
 }// namespace [aworx]
 
 
 namespace aworx { namespace lib { namespace strings {
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 namespace APPENDABLES {
 #endif
     /** ********************************************************************************************
@@ -248,12 +262,12 @@ namespace APPENDABLES {
          * @param target The \b AString that method \b Append was invoked on.
          * @param src    The expression to append.
          */
-        inline void operator()( AString& target, const expressions::Expression& src )
+        void operator()( AString& target, const expressions::Expression& src )
         {
            target << src.GetNormalizedString();
         }
     };
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 }
 #endif
 }}}

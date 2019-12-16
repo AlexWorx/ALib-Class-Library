@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_results of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_REPORT
 #define HPP_ALIB_RESULTS_REPORT 1
 
@@ -11,42 +12,17 @@
 #   include "alib/results/message.hpp"
 #endif
 
+#if !defined(_GLIBCXX_STACK) && !defined(_STACK_)
+    #include <stack>
+#endif
+
+
 namespace aworx { namespace lib {
 
-// #################################################################################################
 // forward declarations
-// #################################################################################################
-#if ALIB_MODULE_THREADS
-    namespace threads { class ThreadLock; }
-#endif
+ALIB_IF_THREADS( namespace threads { class ThreadLock; } )
 
-// #################################################################################################
-// Redefine ALIB Debug macros
-// #################################################################################################
-#if ALIB_DEBUG && !ALIB_DOCUMENTATION_PARSER
-
-    #undef ALIB_ERROR
-    #undef ALIB_WARNING
-    #undef ALIB_MESSAGE
-    #undef ALIB_ASSERT
-    #undef ALIB_ASSERT_ERROR
-    #undef ALIB_ASSERT_WARNING
-    #undef ALIB_ASSERT_MESSAGE
-
-    #define ALIB_ERROR(   ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , __VA_ARGS__      );  }
-    #define ALIB_WARNING( ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Warning, __VA_ARGS__      );  }
-    #define ALIB_MESSAGE( ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Message, __VA_ARGS__      );  }
-
-    #define ALIB_ASSERT( cond )              { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , "Internal Error" ); } }
-    #define ALIB_ASSERT_ERROR( cond, ... )   { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , __VA_ARGS__      ); } }
-    #define ALIB_ASSERT_WARNING( cond, ... ) { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Warning, __VA_ARGS__      ); } }
-    #define ALIB_ASSERT_MESSAGE( cond, ... ) { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Message, __VA_ARGS__      ); } }
-
-#endif
-
-namespace results {
-
-class ReportWriter;
+namespace results {                  class ReportWriter;
 
 
 
@@ -71,7 +47,7 @@ class ReportWriter;
  * \ref aworx::lib::results::Report::DoReport "DoReport" will check the flags provided with
  * \ref aworx::lib::results::Report::PushHaltFlags "PushHaltFlags" for message types \c 0 (errors)
  * and \c 1 (warnings), and may invoke \e assert(). Such assertions are effective
- * only in the debug compilation of the library/executable. Custom \e 'ReportWriters' might
+ * only in the debug builds of the library/executable. Custom \e 'ReportWriters' might
  * take action (e.g. for security reasons) and e.g. terminate the application also in
  * release compilations.
  *
@@ -86,20 +62,24 @@ class ReportWriter;
  * - #ALIB_ASSERT_WARNING
  *
  * In fact, these macros exist in <b>%ALib Modules</b> as well, but with the inclusion of
- * header <b>"alib/results/report.hpp"</b>, these macros become redefined to use
+ * header \alibheader{results/report.hpp}, these macros become redefined to use
  * this class.
  *
- * For convenience, in debug compilations of the library, these macros provide the file name,
+ * For convenience, with debug builds of the library, these macros provide the file name,
  * line number and method name of the invocation source, which can be used by more sophisticated
  * versions of currently attached \alib{results,ReportWriter}.
  *
  * \note
  *  For debug output statements, it is advised to rather use the
- *  [ALox Logging Library](http://alexworx.github.io/ALox-Logging-Library/index.html) instead
- *  of \alib reports and corresponding macros.
+ *  \https{ALox Logging Library,alexworx.github.io/ALox-Logging-Library/index.html}
+ *  instead of \alib reports and corresponding macros.
  **************************************************************************************************/
 class Report
 {
+    #if !defined(ALIB_DOX)
+        friend class Results;
+    #endif
+
     public:
        /**
         * Types of reports
@@ -131,9 +111,9 @@ class Report
          */
         bool                            recursionBlocker                                    = false;
 
-        #if ALIB_MODULE_THREADS
+        #if ALIB_THREADS
         /** A Lock to protect against multithreaded calls. */
-        threads::ThreadLock*            lock;
+        threads::ThreadLock             lock;
         #endif
 
         /**
@@ -166,13 +146,6 @@ class Report
                 defaultReport= new Report();
             return *defaultReport;
         }
-
-        /** ****************************************************************************************
-         * Deletes static / global resources.
-         ******************************************************************************************/
-        ALIB_API
-        static
-        void TerminationCleanUp();
 
         /** ****************************************************************************************
          * Reports the given message to the current
@@ -288,8 +261,8 @@ class ReportWriter
 /** ************************************************************************************************
  * The standard \b %ReportWriter writing the message to \c std::cout and \c std::cerr.
  * The global formatter singleton is used is used to process the objects in the report message.
- * This is by default of type \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle}.
- * See method * \alib{stringformat,Stringformat::GetDefaultFormatter} for more information.
+ * This is by default of type \alib{text,FormatterPythonStyle,FormatterPythonStyle}.
+ * See method * \alib{text,Formatter::GetDefault} for more information.
  *
  * ## Friends ##
  * class \alib{singletons,Singleton,Singleton<ReportWriterStdIO>}
@@ -297,9 +270,10 @@ class ReportWriter
  **************************************************************************************************/
 class ReportWriterStdIO : public ReportWriter, public Singleton<ReportWriterStdIO>
 {
-    #if !ALIB_DOCUMENTATION_PARSER
-    friend class singletons::Singleton<ReportWriterStdIO>;
-    friend class Report;
+    #if !defined(ALIB_DOX)
+        friend class singletons::Singleton<ReportWriterStdIO>;
+        friend class Report;
+        friend class Results;
     #endif
 
     /**
@@ -332,5 +306,30 @@ class ReportWriterStdIO : public ReportWriter, public Singleton<ReportWriterStdI
 
 
 }}} // namespace [aworx::lib::results]
+
+// #################################################################################################
+// Redefine ALIB Debug macros
+// #################################################################################################
+#if ALIB_DEBUG && !defined(ALIB_DOX)
+
+    #undef ALIB_ERROR
+    #undef ALIB_WARNING
+    #undef ALIB_MESSAGE
+    #undef ALIB_ASSERT
+    #undef ALIB_ASSERT_ERROR
+    #undef ALIB_ASSERT_WARNING
+    #undef ALIB_ASSERT_MESSAGE
+
+    #define ALIB_ERROR(   ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , __VA_ARGS__      );  }
+    #define ALIB_WARNING( ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Warning, __VA_ARGS__      );  }
+    #define ALIB_MESSAGE( ... )              {                aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Message, __VA_ARGS__      );  }
+
+    #define ALIB_ASSERT( cond )              { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , "Internal Error" ); } }
+    #define ALIB_ASSERT_ERROR( cond, ... )   { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Error  , __VA_ARGS__      ); } }
+    #define ALIB_ASSERT_WARNING( cond, ... ) { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Warning, __VA_ARGS__      ); } }
+    #define ALIB_ASSERT_MESSAGE( cond, ... ) { if (!(cond)) { aworx::lib::results::Report::GetDefault().DoReport( ALIB_CALLER_PRUNED, aworx::lib::results::Report::Types::Message, __VA_ARGS__      ); } }
+
+#endif
+
 
 #endif // HPP_ALIB_RESULTS_REPORT

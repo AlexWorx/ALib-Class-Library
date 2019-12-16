@@ -6,12 +6,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/wildcardmatcher.hpp"
+#if !defined(ALIB_DOX)
+#if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
+#   include "alib/strings/util/wildcardmatcher.hpp"
+#endif
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-
 #   include "alib/strings/substring.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -45,7 +48,7 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
         // ?
         int qtyQ= 0;
         while( parser.ConsumeChar('?') )
-            qtyQ++;
+            ++qtyQ;
 
         if( qtyQ )
         {
@@ -74,7 +77,7 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
         // strings
         integer idx= 1;
         while ( idx < parser.Length() && parser[idx] != '*' && parser[idx] != '?'  )
-            idx++;
+            ++idx;
 
         commands.emplace_back( STRING, TString<TChar>(parser.Buffer(), idx ) );
         parser.ConsumeChars( idx );

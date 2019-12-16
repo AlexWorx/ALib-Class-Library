@@ -17,7 +17,7 @@
     cmake_minimum_required( VERSION 3.3.0 )
 
     ### uncomment to force cotire on clean cmake built
-    #set( ALIB_CMAKE_COTIRE   "On" )
+    # set( ALIB_CMAKE_COTIRE   "On" )
 
 # -------------------------------------------------------------------------------------------------
 # General
@@ -31,14 +31,13 @@
 ## include ALib base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    #list( APPEND ALIB_COMPILATION_SYMBOLS   "ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON"    )
+    #list( APPEND CMAKE_CXX_FLAGS   "-std=c++11"    )
+    #list( APPEND CMAKE_CXX_FLAGS   "-std=c++14"    )
+    #list( APPEND CMAKE_CXX_FLAGS   "-std=c++17"    )
 
-    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11" )
-    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_14" )
-    list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_17" )
-    #list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_20" )
+    #set( ALIB_CMAKE_VERBOSE  "On" ) # uncomment for more information
+
     include( ../../../build/cmake/ALib.cmake )
-
 
 # --------------------------------------------------------------------------------------------------
 # set variables
@@ -88,7 +87,6 @@
             include_directories("${gtest_SOURCE_DIR}/include"
                                 "${gmock_SOURCE_DIR}/include")
         endif()
-
 
     endif()
 
@@ -142,8 +140,10 @@
       endif()
     endif()
 
-    target_link_libraries      ( ALib_UT    ${ALIB_EXTERNAL_LIBS}
-                                            stdc++fs                                    )
+    if( NOT APPLE )
+        target_link_libraries      ( ALib_UT    ${ALIB_EXTERNAL_LIBS}
+                                                stdc++fs                            )
+    endif()
 
     if( ${ALIB_UT_USE_STATIC_LIB} )
         if( ${ALIB_CMAKE_COTIRE} )
@@ -160,7 +160,7 @@
     endif()
 
     if ( ${ALIB_GTEST} )
-        target_compile_definitions( ALib_UT PRIVATE  "ALIB_GTEST_ON"                    )
+        target_compile_definitions( ALib_UT PRIVATE  "ALIB_GTEST"                       )
         target_include_directories( ALib_UT PRIVATE   ${gtest_source_dir}/include       )
         target_link_libraries     ( ALib_UT gtest                                       )
     endif()

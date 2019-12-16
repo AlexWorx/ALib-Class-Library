@@ -6,74 +6,126 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_RESULTS_EXCEPTION)
-#include "alib/results/exception.hpp"
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_RESULTS_EXCEPTION)
+#      include "alib/results/exception.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#      include "alib/strings/util/tokenizer.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESULTS_RESULTS)
+#      include "alib/results/results.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_TEXT_FORMATTER_STD)
+#      include "alib/text/formatterstdimpl.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
+#      include "alib/text/paragraphs.hpp"
+#   endif
+
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_FORMATTER_STD)
-#   include "alib/stringformat/formatterstdimpl.hpp"
-#endif
+#   if !defined (HPP_ALIB_RESULTS_EXCEPTION)
+#      include "alib/results/exception.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
-#   include "alib/stringformat/text.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESULTS_EXCEPTION)
-#   include "alib/results/exception.hpp"
-#endif
-
-DOX_MARKER([DOX_ALIB_ENUM_META_DATA_SPECIFCATION_impl])
-#if !defined (HPP_ALIB_RESOURCE_TUPLE_LOADER)
-#   include "alib/resources/resourcedtupleloader.hpp"
-#endif
-
-ALIB_ENUM_SPECIFICATION_IMPL( aworx::lib::results::Exception )
-DOX_MARKER([DOX_ALIB_ENUM_META_DATA_SPECIFCATION_impl])
+#   if !defined (HPP_ALIB_ENUMS_RECORDPARSER)
+#      include "alib/enums/recordparser.hpp"
+#   endif
+#   if !defined (HPP_ALIB_ENUMS_DETAIL_ENUMRECORDMAP)
+#      include "alib/enums/detail/enumrecordmap.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace results {
 
-void Exception::construct()
+void ERException::Parse()
 {
-    MemoryBlocks* memory= MemoryBlocks::Create( 512 );
-    instance=  memory->Alloc<This>();
-    instance->memory    = memory;
-    instance->firstEntry= nullptr;
+    enums::EnumRecordParser::Get( ERSerializable::EnumElementName       );
+                                  ERSerializable::MinimumRecognitionLength= 0;
+    enums::EnumRecordParser::Get( DescriptionOrItsResourceName   , true );
 }
 
-Message* Exception::allocMessage()
+Message* Exception::allocMessageLink()
 {
     // find pointer to the last entry pointer;
-    MessageEntry** tail= &instance->firstEntry;
+    detail::ExceptionEntry** tail= &Self();
     while(*tail != nullptr)
         tail= &(*tail)->next;
 
-    *tail= instance->memory->Alloc<MessageEntry>();
+    *tail= Allocator().Alloc<detail::ExceptionEntry>();
     (*tail)->next= nullptr;
 
 
-    return & (*tail)->message;
+    return &(*tail)->message;
 }
 
-Exception::~Exception()
+void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool* pool, const NString& category )
 {
-    if( instance )
-    {
-        auto* entry= instance->firstEntry;
-        while( entry )
-        {
-            entry->message.~Message();
-            entry= entry->next;
-        }
+    message->CloneArguments();
 
-        // as the memory object was allocated "in itself", we just need to clear it.
-        instance->memory->~MemoryBlocks();
-        instance= nullptr;
+    if( hasRecord )
+    {
+        #if ALIB_DEBUG
+        {
+            auto* tryRecord= message->Type.TryRecord<ERException>();
+            if( tryRecord == nullptr )
+            {
+                std::vector<std::pair<integer,const void*>> recordList;
+                for( auto& record : lib::enums::detail::getInternalRecordMap() )
+                    if( record.first.RTTI == message->Type.TypeID() )
+                        recordList.push_back( std::pair<integer,const void*>(record.first.Element, record.second) );
+                if( recordList.size() == 0)
+                {
+                    ALIB_ERROR( "No enum records defined for exception enumeration type {!Q<>}.",
+                                message->Type.TypeID() )
+                }
+                else
+                {
+                    std::sort( recordList.begin(), recordList.end(),
+                    [] (std::pair<integer,const void*>& a, std::pair<integer,const void*>& b )
+                       {
+                           return a.first < b.first;
+                       });
+                    AString recordListDump;
+                    auto formatter= Formatter::AcquireDefault( ALIB_CALLER_PRUNED );
+                    formatter->Format( recordListDump,
+                                       "Enum Recode record {} not found for exception enumeration type {}.\\n"
+                                       "The following records have been found, however:\\n",
+                                       message->Type.Integral(),
+                                       message->Type.TypeID()     );
+
+                    for( auto& pair : recordList )
+                        formatter->Format( recordListDump, "  {:2}: {}\\n",
+                                           pair.first,
+                                           reinterpret_cast<const ERException*>( pair.second )->EnumElementName );
+                    formatter->Release();
+                    ALIB_ERROR( recordListDump )
+                }
+            }
+        }
+        #endif
+        const auto& enumRecord= message->Type.GetRecord<ERException>();
+        if( pool == nullptr )
+            message->emplace( message->begin(),
+                              enumRecord.DescriptionOrItsResourceName );
+        else
+            message->emplace( message->begin(),
+                              pool->Get( category,
+                                         enumRecord.DescriptionOrItsResourceName
+                                              ALIB_DBG(, true)                         )  );
     }
 }
 
+
 Message&   Exception::Back() const
 {
-    auto* result= instance->firstEntry;
+    auto* result= Self();
     while( result->next != nullptr )
         result= result->next;
 
@@ -83,11 +135,11 @@ Message&   Exception::Back() const
 int   Exception::Size() const
 {
     int result= 1;
-    auto* entry= instance->firstEntry;
+    auto* entry= Self();
     while( entry->next != nullptr )
     {
         entry= entry->next;
-        result++;
+        ++result;
     }
 
     return result;
@@ -95,41 +147,50 @@ int   Exception::Size() const
 
 const Enum&   Exception::Type() const
 {
-    auto* entry= instance->firstEntry;
-    Enum& result= entry->message.Type;
+    auto* entry= Self();
+    Enum* result= &entry->message.Type;
     while( (entry= entry->next) != nullptr )
-        if( entry->message.Type.Value() >= 0 )
-            result= entry->message.Type;
+        if( entry->message.Type.Integral() >= 0 )
+            result= &entry->message.Type;
 
-    return result;
+    return *result;
 }
 
 
 
-void   Exception::Format( AString& target ) const
+void   Exception::Format( AString& target )     const
 {
-    Text text(target);
+    Paragraphs text(target);
     Tokenizer tknzr;
     tknzr.TrimChars= A_CHAR( "\r" );
-    String256 buf;
+    String1K buf;
     buf.DbgDisableBufferReplacementWarning();
-    SPFormatter formatter= GetDefaultFormatter();
-
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
     size_t entryNo= 1;
-    for ( auto entry= begin(); entry != end(); entry++ )
+    for ( auto entry= begin(); entry != end(); ++entry )
     {
-        text.Add( A_CHAR("E{}: <{}>"), entryNo, entry->Type );
+        text.Add( A_CHAR("{}{}: {!Q<>}"), (entry->Type.Integral() >= 0 ? 'E' : 'I'), entryNo, entry->Type );
         text.PushIndent( A_CHAR("    ") );
-        formatter->FormatArgs( buf.Reset(), entry->Args );
+        try
+        {
+            formatter->FormatArgs( buf.Reset(), *entry );
+        }
+        catch( Exception& e )
+        {
+            buf <<  lib::RESULTS.GetResource("ExcFmtExc");
+            e.Format( buf );
+        }
         tknzr.Set( buf, '\n' );
         while( tknzr.HasNext() )
             text.Add( tknzr.Next()  );
 
         text.PopIndent();
-        entryNo++;
+        ++entryNo;
     }
+
+    formatter->Release();
 }
 
-
-
 }}} // namespace [aworx::lib::results]
+
+

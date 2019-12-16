@@ -4,7 +4,9 @@
 #  Copyright 2015-2019 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
-#  Note: ALib.cmake will include this file automatically.
+#  Note:
+#    This CMake file is included by "ALib.cmake" automatically and is not intended for manual
+#    inclusion. Its contents was separated into a separated cmake file solely for clarity.
 # #################################################################################################
 
 # -------------------------------------------------------------------------------------------------
@@ -320,7 +322,6 @@ FUNCTION (ALibDumpCMakeStatus)
 
     # the compiler flags for compiling C++ sources
     MESSAGE( STATUS "  CMAKE_CXX_FLAGS:                   " ${CMAKE_CXX_FLAGS} )
-
 
     # Choose the type of build.  Example: SET(CMAKE_BUILD_TYPE Debug)
     MESSAGE( STATUS "  CMAKE_BUILD_TYPE:                  " ${CMAKE_BUILD_TYPE} )

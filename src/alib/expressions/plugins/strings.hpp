@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS
 
@@ -16,7 +17,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
 
 
 /** ************************************************************************************************
- * This built-in \alib{expressions,CompilerPlugin} of \alibmod_nolink_expressions
+ * This built-in \alib{expressions,CompilerPlugin} of \alib_expressions_nl
  * compiles identifiers, functions and operators with character string type operands or return
  * types.
  *
@@ -60,14 +61,14 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * String  | \b TrimStart     | trims    | String, String          | Trims the string at the start by removing the whitespace characters listed in the second string.
  * String  | \b TrimEnd       | trime    | String                  | Trims the string at the end by removing the following whitespace characters: <c>' '</c>, <c>'\\n'</c>, <c>'\\r'</c> and <c>'\\t'</c>.
  * String  | \b TrimEnd       | trime    | String, String          | Trims the string at the end by removing the whitespace characters listed in the second string.
- * Integer | \b Integer       | int      | String                  | Parses an integer value from the string. Allows decimal, hexadecimal, octal and binary formats. Literal prefixes default to <c>'0x'</c>, <c>'0o'</c> and <c>'0b'</c>, which can be changed by configuring object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * Float   | \b Float         | float    | String                  | Parses a floating point value from the string. Allows scientific format and change of decimal point character by configuring object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * String  | \b Hexadecimal   | hex      | Integer                 | Converts an integer value to a hexadecimal string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Hexadecimal   | hex      | Integer, Integer        | Converts an integer value to a hexadecimal string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Octal         | oct      | Integer                 | Converts an integer value to a binary string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Octal         | oct      | Integer, Integer        | Converts an integer value to a binary string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Binary        | bin      | Integer                 | Converts an integer value to an octal string representation. Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
- * String  | \b Binary        | bin      | Integer, Integer        | Converts an integer value to an octal string representation of the given output width (2nd argument). Format options are available with object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * Integer | \b Integer       | int      | String                  | Parses an integral value from the string. Allows decimal, hexadecimal, octal and binary formats. Literal prefixes default to <c>'0x'</c>, <c>'0o'</c> and <c>'0b'</c>, which can be changed by configuring object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * Float   | \b Float         | float    | String                  | Parses a floating point value from the string. Allows scientific format and change of decimal point character by configuring object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * String  | \b Hexadecimal   | hex      | Integer                 | Converts an integral value to a hexadecimal string representation. Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Hexadecimal   | hex      | Integer, Integer        | Converts an integral value to a hexadecimal string representation of the given output width (2nd argument). Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Octal         | oct      | Integer                 | Converts an integral value to a binary string representation. Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Octal         | oct      | Integer, Integer        | Converts an integral value to a binary string representation of the given output width (2nd argument). Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Binary        | bin      | Integer                 | Converts an integral value to an octal string representation. Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
+ * String  | \b Binary        | bin      | Integer, Integer        | Converts an integral value to an octal string representation of the given output width (2nd argument). Format options are available with object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}. The literal prefix (e.g. \c "0x") is not written.
  * String  | \b Format        | format   | String, ...             | Formats the given variadic parameters according to the given format string. See notes below, for further information.
  * Boolean | \b WildCardMatch | wcm      | String, String          | Matches a string against a wildcard pattern. See notes below, for further information.
  * Boolean | \b RegExMatch    | rem      | String, String          | Matches a string against a regex pattern. See notes below, for further information.
@@ -86,11 +87,11 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * | Return Type | Lhs Type | Operator   | Rhs Type | Description
  * |-------------|----------|------------|----------|--------------------
- * |String       | String   |<b>+</b>  | Integer  | Concatenates an integral value to a string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | String   |<b>+</b>  | Float    | Concatenates a floating point value to a string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | String   |<b>+</b>  | Integer  | Concatenates an integral value to a string. The number conversion is performed using object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | String   |<b>+</b>  | Float    | Concatenates a floating point value to a string. The number conversion is performed using object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
  * |String       | String   |<b>+</b>  | \<any\>  | Converts a boxed value of arbitrary type to a string and appends the result to another string. The conversion of the boxed value is performed by invoking box-function \alib{boxing,FAppend}.
- * |String       | Integer  |<b>+</b>  | String   | Converts an integral value to a string and concatenates another string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
- * |String       | Float    |<b>+</b>  | String   | Converts a floating point value to a string and concatenates another string. The number conversion is performed using object \alib{stringformat::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | Integer  |<b>+</b>  | String   | Converts an integral value to a string and concatenates another string. The number conversion is performed using object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
+ * |String       | Float    |<b>+</b>  | String   | Converts a floating point value to a string and concatenates another string. The number conversion is performed using object \alib{text::Formatter,DefaultNumberFormat} of field \alib{expressions,Scope::Formatter}.
  * |String       | \<any\>  |<b>+</b>  | String   | Converts a boxed value of arbitrary type to a string and appends another string. The conversion of the boxed value is performed by invoking box-function \alib{boxing,FAppend}.
  * |String       | String   |<b>+</b>  | String   | Concatenates two strings.
  * |Boolean      | String   |<b><</b>  | String   | Compares two strings using method \alib{strings,TString::CompareTo,String::CompareTo}.
@@ -124,7 +125,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * Details of this are explained in chapters
  * \ref alib_boxing_bijective "3. Non-Bijective Type Relationships" and
  * \ref alib_boxing_strings   "10. Boxing Character Strings" of the
- * \ref alib_mod_boxing "Programmer's Manual" of module \alibmod_nolink_boxing.
+ * \ref alib_mod_boxing "Programmer's Manual" of module \alib_boxing_nl.
  *
  *
  * ### Determine A String's Length ###
@@ -137,8 +138,8 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * Unary operator \alib{expressions::DefaultUnaryOperators,BoolNot} (<c>'!'</c>)  may be used to check if a
  * string is not empty. The operator returns \c true  if the string is empty and \c false otherwise.<br>
  *
- * Consequently, to test for non-empty strings, <c>'!!'</c> may be written. The outer not
- * operation is then a not operator on the boolean result of the inner.<br>
+ * Consequently, to test for non-empty strings, <c>'!!'</c> may be written. The outer
+ * <em>not-</em>operator is then a <em>not-</em>operator on the boolean result of the inner.<br>
  * Alternatively, binary operators (see below) against an emtpy string can be used:
  *
  *         myIndentifier == ""
@@ -174,7 +175,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * the following rules apply:
  *
  * - Types \alib{expressions::Types,Integer} and \alib{expressions::Types,Float} are converted
- *   to string types using object \alib{stringformat::Formatter,DefaultNumberFormat} of
+ *   to string types using object \alib{text::Formatter,DefaultNumberFormat} of
  *   field \alib{expressions,Scope::Formatter}.
  *   With this, detailed options for the number output format is available.
  *   Even more options are available when using expression function \b %Format instead of
@@ -183,7 +184,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * <p>
  * - Any other type is converted to a string representation by using box-function
  *   \alib{boxing,FAppend}. For information on how to implement this for custom
- *   types, consult the documentation of module \alibmod_boxing.
+ *   types, consult the documentation of module \alib_boxing.
  *   The following provides a quick sample snippet, taken from the unit tests:
  *
  *   1. The custom type:
@@ -194,14 +195,14 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *      \snippet "ut_alib_expr.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_2
  *
  *   3. In the bootstrap section of an application, an implementation of the templated interface
- *      function has be registered with \alibmod_nolink_boxing:
+ *      function has be registered with \alib_boxing_nl:
  *      \snippet "ut_alib_expr.cpp"    DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_3
  *
  *   With this short setup code, objects of type \e MyType, which might be returned by custom
  *   identifiers, can be added to strings in expressions!
  *
  * <p>
- * - With type \alib{expressions::Types,Boolean}, the \alib{resources,Resources,resourced}
+ * - With type \alib{expressions::Types,Boolean}, the \alib{resources,ResourcePool,resourced}
  *   string values generally used with box-function \alib{boxing,FAppend} defined for
  *   C++ type \c bool are used.
  *   These string resources default to \b "true" and \b "false". While resources can be customized,
@@ -224,20 +225,20 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * third operator of type \b %Boolean, which if \c true is given performs a case insensitive
  * search without performing string conversions.
  *
- * \anchor cpp_alib_expressions_Strings_Formatting
+ * \anchor alib_expressions_Strings_Formatting
  * ### Formatting: ###
  * Function <b>Format(String, ...)</b> offers full featured string formatting in expressions.
- * Being based on classes of underlying module \alibmod_strings, there is a choice between
- * \alib{stringformat,FormatterPythonStyle,python style} or
- * \alib{stringformat,FormatterJavaStyle,Java/printf style} format strings. It is even possible
+ * Being based on classes of underlying module \alib_strings, there is a choice between
+ * \alib{text,FormatterPythonStyle,python style} or
+ * \alib{text,FormatterJavaStyle,Java/printf style} format strings. It is even possible
  * to allow both formats, of-course not within the same string, but within different
  * evaluations of the same expression!
  *
  * Please consult the documentation of classes
- * - \alib{stringformat,Formatter},
- * - \alib{stringformat,Formatter},
- * - \alib{stringformat,FormatterPythonStyle,FormatterPythonStyle} and
- * - \alib{stringformat,FormatterJavaStyle,FormatterJavaStyle} for details.
+ * - \alib{text,Formatter},
+ * - \alib{text,Formatter},
+ * - \alib{text,FormatterPythonStyle,FormatterPythonStyle} and
+ * - \alib{text,FormatterJavaStyle,FormatterJavaStyle} for details.
  *
  *
  * ### Wildcard Match: ###
@@ -271,14 +272,14 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * string that is searched, the second (right-hand side) argument is the pattern string to be matched.
  *
  * The regular expression syntax is compatible with
- * [Perl Regular Expressions](http://perldoc.perl.org/perlretut.html).
- * The feature is implemented with using [boost::regex library](http://www.boost.org).
+ * \https{Perl Regular Expressions,perldoc.perl.org/perlretut.html}.
+ * The feature is implemented with using \https{boost::regex library,www.boost.org}.
  *
  * \attention
  *   The regular expression features of \alib and therefore of this compiler plug-in, are only
- *   available with the definition of code selection symbol \ref ALIB_FEAT_BOOST_REGEX,
- *   which is controlled by using compiler symbols #ALIB_FEAT_BOOST_REGEX_ON and
- *   #ALIB_FEAT_BOOST_REGEX_OFF (the default).
+ *   available with the definition of compiler symbol \ref ALIB_FEAT_BOOST_REGEX
+ *   and if either \ref ALIB_CHARACTERS_WIDE is \c false or \ref ALIB_CHARACTERS_NATIVE_WCHAR
+ *   equals \c true.
  *
  \~Comment ####################################################################################### \~
  * # Reference Documentation #
@@ -300,7 +301,7 @@ struct Strings   : public plugins::Calculus
     /** ********************************************************************************************
      * Overwrites the implementation of class \b %Calculus. While this is usually not needed,
      * this class uses this for wildcard and regular expression matching functions.
-     * These functions implement a special behaviour in respect to allocate "matcher" classes
+     * These functions implement a special behavior in respect to allocate "matcher" classes
      * at compile-time in the case that the pattern string is constant (which usually is).
      * Parent helper class \alib{expressions::plugins,Calculus} does provide mechanics for such
      * rather complicated special actions.
@@ -316,7 +317,7 @@ struct Strings   : public plugins::Calculus
     /** ********************************************************************************************
      * Overwrites the implementation of class \b %Calculus. While this is usually not needed,
      * this class uses this to fetch arbitrary boxed types for certain operations, because
-     * the interface mechanics of module \alibmod_boxing allows us to convert any custom type
+     * the interface mechanics of module \alib_boxing allows us to convert any custom type
      * to a string.
      *
      * Of-course, the original method is called alternatively.
@@ -343,7 +344,7 @@ struct Strings   : public plugins::Calculus
  *
  * @param scope The scope.
  * @param args  The single argument.
- * @return A boxed \alib{expressions,plugins::ScopeString}.
+ * @return A boxed \alib{monomem::TMAString}.
  **************************************************************************************************/
 ALIB_API
 Box CBToString( Scope& scope, ArgIterator  args, ArgIterator );
@@ -361,7 +362,7 @@ Box CBToString( Scope& scope, ArgIterator  args, ArgIterator );
  *
  * @param scope The scope.
  * @param args  The single argument.
- * @return A boxed \alib{expressions,plugins::ScopeString}.
+ * @return A boxed \alib{monomem::TMAString}.
  **************************************************************************************************/
 ALIB_API
 Box CBFormat( Scope& scope, ArgIterator  args, ArgIterator );

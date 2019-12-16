@@ -18,16 +18,15 @@
     ### uncomment to force cotire on clean cmake built
     # set( ALIB_CMAKE_COTIRE  "On" )
 
-    #list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_11" )
+    # list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_11" )
 
 
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
 
-    project("ALib.Strings.Sample")
-
     cmake_minimum_required( VERSION 3.3.0 )
+    project("ALib.Strings.Sample")
 
 
 ## -------------------------------------------------------------------------------------------------
@@ -35,7 +34,7 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_MODULES             "STRINGS"     )
+    list( APPEND  ALIB_DISTRIBUTION             "STRINGS"     )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )

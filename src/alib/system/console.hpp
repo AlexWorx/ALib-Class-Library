@@ -1,24 +1,21 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_system of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_CONSOLE
 #define HPP_ALIB_SYSTEM_CONSOLE 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(SYSTEM)
 
-#if !defined(HPP_ALIB_LIB_PREDEF_COMPILER)
-#   include "alib/lib/predef_compiler.hpp"
-#endif
-
-#if !defined(HPP_ALIB_LIB_PREDEF_PLATFORM)
-#   include "alib/lib/predef_platform.hpp"
+#if !defined(HPP_ALIB_PLATFORMS) && !defined(ALIB_DOX)
+#   include "alib/lib/platforms.hpp"
 #endif
 
 
@@ -50,7 +47,7 @@ class Console
 }} // namespace lib::system
 
 /// Type alias in namespace #aworx.
-using     Console=       aworx::lib::system::Console;
+using     Console=       lib::system::Console;
 
 }  // namespace [aworx]
 

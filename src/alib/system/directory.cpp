@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
 #   include "alib/system/directory.hpp"
 #endif
@@ -33,6 +34,7 @@
 #endif
 
 #include <fstream>
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace system {
@@ -107,10 +109,7 @@ void Directory::Change( SpecialFolder special )
                 if ( Path.IsEmpty() )
                 {
                     struct passwd* pwd = getpwuid(getuid());
-                    if (pwd)
-                        Path= NString( pwd->pw_dir );
-                    else
-                        Path._( "~/" );
+                    Path.Reset( pwd ? NString( pwd->pw_dir ) :  "~/" );
                 }
 
 
@@ -166,7 +165,7 @@ void Directory::Change( SpecialFolder special )
                     if ( evaluatedTempDir.IsEmpty() )
                     {
                         if ( Directory::Exists( A_CHAR("/tmp") ) )
-                            evaluatedTempDir= A_CHAR("/tmp");
+                            evaluatedTempDir.Reset( A_CHAR("/tmp") );
                     }
 
 
@@ -215,7 +214,7 @@ void Directory::Change( SpecialFolder special )
                     const NString reasonMsg=  "(The default folder \"/private/var/tmp\" could not be found.)";
 
                     if ( Directory::Exists( A_CHAR("/private/var/tmp") ) )
-                        evaluatedVarTempDir= A_CHAR("/private/var/tmp");
+                        evaluatedVarTempDir.Reset( A_CHAR("/private/var/tmp") );
 
                 #elif defined(_WIN32)
                     const NString reasonMsg=  "(Environment variables TMP and TEMP either not set or not containing valid paths.)";
@@ -345,7 +344,7 @@ bool Directory::Exists( const CString& path )               // static
 
     #elif defined(_WIN32)
 
-        #if ALIB_CHARACTERS_ARE_NARROW
+        #if !ALIB_CHARACTERS_WIDE
             DWORD dwAttrib = GetFileAttributesA( path );
         #else
             DWORD dwAttrib = GetFileAttributesW( path );
@@ -371,7 +370,7 @@ SystemErrors Directory::Create( const CString& path )       // static
         return SystemErrors(errCode);
 
     #elif defined(_WIN32)
-        #if ALIB_CHARACTERS_ARE_NARROW
+        #if !ALIB_CHARACTERS_WIDE
             BOOL result= CreateDirectoryA( path, NULL );
         #else
             BOOL result= CreateDirectoryW( path, NULL );

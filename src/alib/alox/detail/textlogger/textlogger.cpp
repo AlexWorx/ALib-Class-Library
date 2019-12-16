@@ -6,16 +6,30 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
-    #include "alib/alox/detail/textlogger/textlogger.hpp"
-#endif
-#if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-    #include "alib/system/processinfo.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER)
+       #include "alib/alox/detail/textlogger/textlogger.hpp"
+#   endif
+#   define HPP_ALIB_LOX_PROPPERINCLUDE
+#      if !defined (HPP_ALOX_DETAIL_DOMAIN)
+#          include "alib/alox/detail/domain.inl"
+#      endif
+#      if !defined (HPP_ALOX_DETAIL_SCOPEINFO)
+#          include "alib/alox/detail/scopeinfo.inl"
+#      endif
+#   undef HPP_ALIB_LOX_PROPPERINCLUDE
 
-#if !defined (HPP_ALIB_ALOX_VARIABLES)
-    #include "alib/alox/variables.hpp"
-#endif
+#   if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
+       #include "alib/system/processinfo.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 // For code compatibility with ALox Java/C++
 // We have to use underscore as the start of the name and for this have to disable a compiler
@@ -39,70 +53,75 @@ namespace aworx { namespace lib { namespace lox { namespace detail { namespace t
 // #################################################################################################
 StandardConverter::StandardConverter()
 {
-    Formatters      .reset( new FormatterPythonStyle() );
-    Formatters->Next.reset( new FormatterJavaStyle()   );
-    Formatters->SetSafeness( Safeness::Unsafe );
-    Formatters->Next->SetSafeness( Safeness::Unsafe );
-    Formatters->Acquire( ALIB_CALLER_PRUNED );
-    cntRecursion= 0;
+    auto* firstLevelFormatter= new FormatterPythonStyle();
+    firstLevelFormatter->Next.reset( new FormatterJavaStyle()   );
+    #if ALIB_THREADS
+        firstLevelFormatter->SetSafeness( Safeness::Unsafe );
+        firstLevelFormatter->Next->SetSafeness( Safeness::Unsafe );
+        firstLevelFormatter->Acquire( ALIB_CALLER_PRUNED );
+    #endif
+
+    Formatters.emplace_back( firstLevelFormatter );
+    cntRecursionx= -1;
 }
 
 StandardConverter::~StandardConverter()
 {
-    ALIB_ASSERT_ERROR( cntRecursion == 0,
+    ALIB_ASSERT_ERROR( cntRecursionx == -1,
         "ALox object converter recursion counter > 0.\n"
         "Note: This error indicates, that a previous format operation (log statement) contained\n"
         "      corrupt format values, which caused the formatter to behave undefined, including\n"
         "      the corruption of the execution stack of ALox logging."                             )
-    for( auto* elem : recursionFormatters )
+    for( auto* elem : Formatters )
     {
-        elem->Release();
+        ALIB_IF_THREADS( elem->Release(); )
         delete elem;
     }
-    Formatters->Release();
-
 }
 
 void StandardConverter::ConvertObjects( AString& target, Boxes& logables  )
 {
-    cntRecursion++;
-    ALIB_ASSERT_WARNING( cntRecursion < 5, "Logging recursion depth >= 5" )
+    ++cntRecursionx;
 
-    // get a formatter. We use a clone per recursion depth!
-    Formatter* formatter;
-    if( cntRecursion == 1 )
-        formatter= Formatters.get();
-    else
-    {
-        // did we have this depth already? If not, create a new set of formatters formatter
-        size_t recFormatNo= static_cast<size_t>( cntRecursion - 1 );
-        if( recursionFormatters.size() <= recFormatNo )
+        ALIB_ASSERT_WARNING( cntRecursionx < 5, "Logging recursion depth >= 5" )
+
+        // get a formatter. We use a clone per recursion depth!
+        // So, did we have this depth already? If not, create a new set of formatters formatter
+        if( static_cast<size_t>( cntRecursionx ) >= Formatters.size()  )
         {
-            // create pair of recursion formatters
-            formatter= new FormatterPythonStyle();
-            formatter->Next.reset( new FormatterJavaStyle() );
+            // create a pair of recursion formatters
+            Formatter* recursionFormatter= new FormatterPythonStyle();
+            recursionFormatter->Next.reset( new FormatterJavaStyle() );
 
-            formatter      ->SetSafeness( Safeness::Unsafe );
-            formatter->Next->SetSafeness( Safeness::Unsafe );
-            formatter->Acquire( ALIB_CALLER_PRUNED );
+            #if ALIB_THREADS
+                recursionFormatter      ->SetSafeness( Safeness::Unsafe );
+                recursionFormatter->Next->SetSafeness( Safeness::Unsafe );
+                recursionFormatter->Acquire( ALIB_CALLER_PRUNED );
+            #endif
 
-            recursionFormatters.emplace_back( formatter );
+            recursionFormatter->CloneSettings( *Formatters[0] );
+
+            Formatters.emplace_back( recursionFormatter );
         }
-        else
-            formatter= recursionFormatters[recFormatNo];
 
-        // clone the settings from default formatter set
-        formatter->CloneSettings( *Formatters.get() );
-    }
+        Formatter* formatter= Formatters[static_cast<size_t>( cntRecursionx )];
 
-    formatter->FormatArgs( target, logables );
+        try
+        {
+            formatter->FormatArgs( target, logables );
+        }
+        catch(Exception& e )
+        {
+            target << ALOX.GetResource("TLFmtExc");
+            e.Format( target );
+        }
 
-    cntRecursion--;
+    --cntRecursionx;
 }
 
 AutoSizes* StandardConverter::GetAutoSizes()
 {
-    FormatterPythonStyle* fmtPS= dynamic_cast<FormatterPythonStyle*>( Formatters.get() );
+    FormatterPythonStyle* fmtPS= dynamic_cast<FormatterPythonStyle*>( Formatters[0] );
     if (fmtPS != nullptr )
         return &fmtPS->Sizes;
     return nullptr;
@@ -110,11 +129,8 @@ AutoSizes* StandardConverter::GetAutoSizes()
 
 void StandardConverter::ResetAutoSizes()
 {
-    FormatterPythonStyle* fmtPS= dynamic_cast<FormatterPythonStyle*>( Formatters.get() );
-    if (fmtPS != nullptr )
-        fmtPS->Sizes.Reset();
-
-    for( auto* elem : recursionFormatters )
+    FormatterPythonStyle* fmtPS;
+    for( auto* elem : Formatters )
         if ( (fmtPS= dynamic_cast<FormatterPythonStyle*>( elem )) != nullptr )
             fmtPS->Sizes.Reset();
 }
@@ -311,12 +327,22 @@ void MetaInfo::processVariable( TextLogger&        logger,
 
             if ( c2 == 'N' )        // %tN: thread name
             {
-                const String& threadName= scope.GetThreadNameAndID(nullptr);
+                #if ALIB_THREADS
+                    const String& threadName= scope.GetThreadNameAndID(nullptr);
+                #else
+                    String msg( A_CHAR("SINGLE_THREADED") );
+                    const String& threadName= msg;
+                #endif
                 dest._NC( Format::Field( threadName, logger.AutoSizes.Next( AutoSizes::Types::Field, threadName.Length(), 0 ), Alignment::Center ) );
             }
             else if ( c2 == 'I' )   // %tI: thread ID
             {
-                String32 threadID; threadID._( scope.GetThreadID() );
+                String32 threadID;
+                #if ALIB_THREADS
+                    threadID._( scope.GetThreadID() );
+                #else
+                    threadID << "-1";
+                #endif
                 dest._NC( Format::Field( threadID,   logger.AutoSizes.Next( AutoSizes::Types::Field, threadID  .Length(), 0 ), Alignment::Center ) );
             }
             else
@@ -362,7 +388,6 @@ void MetaInfo::processVariable( TextLogger&        logger,
         }
 
         case '#':
-
             dest._NC( aworx::Format( logger.CntLogs, LogNumberMinDigits ) );
             return;
 
@@ -386,7 +411,7 @@ void MetaInfo::processVariable( TextLogger&        logger,
 
         default:
             ALIB_ASSERT_WARNING( FormatWarningOnce,
-                        "Unknown format character '{}' (only one warning)",
+                        "Unknown format character {!Q'} (only one warning)",
                         *( variable.Buffer() -1 ) )
             ALIB_DBG( FormatWarningOnce= true; )
             return;
@@ -566,8 +591,12 @@ TextLogger::~TextLogger()
     ALIB_ASSERT( msgBuf.IsEmpty() )
 }
 
-void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
+void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 {
+    ALIB_IFN_THREADS( (void) lox; )
+
+    Variable cfgVar;
+
     // ---------------  insert ------------------
     if( op == ContainerOp::Insert )
     {
@@ -577,20 +606,22 @@ void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
         // register with ALIB lockers (if not done yet)
         if ( usesStdStreams )
         {
-            int registrationCounter;
-            {
-                ALIB_LOCK_WITH( lock )
-                registrationCounter= this->stdStreamLockRegistrationCounter++;
-            }
-            if ( registrationCounter == 0 )
-                 SmartLock::StdOutputStreams.AddAcquirer( this );
+            #if ALIB_THREADS
+                int registrationCounter;
+                {
+                    ALIB_LOCK_WITH( lock )
+                    registrationCounter= stdStreamLockRegistrationCounter++;
+                }
+                if ( registrationCounter == 0 )
+                     SmartLock::StdOutputStreams.AddAcquirer( this );
+            #endif
         }
 
         // Variable AUTO_SIZES: use last session's values
-        Variable variable( Variables::AUTO_SIZES, GetName() );
-        if ( ALOX.Config->Load( variable ) != Priorities::NONE )
+        cfgVar.Declare( Variables::AUTO_SIZES, GetName() );
+        if ( ALOX.GetConfig().Load( cfgVar ) != Priorities::NONE )
         {
-            Substring importMI= variable.GetString();
+            Substring importMI= cfgVar.GetString();
             Substring importLog;
             integer sepPos= importMI.IndexOf(';');
             if( sepPos >= 0 )
@@ -606,12 +637,12 @@ void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
 
 
         // Variable MAX_ELAPSED_TIME: use last session's values
-        variable.Declare( Variables::MAX_ELAPSED_TIME, GetName());
-        if ( ALOX.Config->Load( variable ) != Priorities::NONE )
+        cfgVar.Declare( Variables::MAX_ELAPSED_TIME, GetName());
+        if ( ALOX.GetConfig().Load( cfgVar ) != Priorities::NONE )
         {
-            int maxInSecs= static_cast<int>( variable.GetInteger() );
+            int maxInSecs= static_cast<int>( cfgVar.GetInteger() );
             Substring attrValue;
-            if ( variable.GetAttribute( A_CHAR("limit"), attrValue ) )
+            if ( cfgVar.GetAttribute( A_CHAR( "limit"), attrValue ) )
             {
                 integer maxMax;
                 attrValue.ConsumeInt( maxMax );
@@ -624,132 +655,133 @@ void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
 
         // Variable  <name>_FORMAT / <typeName>_FORMAT:
         VariableDecl variableDecl( Variables::FORMAT );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue().IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
                              "Default value of variable FORMAT should be kept null" )
 
-        if(    ALOX.Config->Load( variable.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
-            && ALOX.Config->Load( variable.Declare( variableDecl, GetTypeName() ) ) == Priorities::NONE )
+        if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
+            && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() ) ) == Priorities::NONE )
         {
             // no variable created, yet. Let's create a 'personal' one on our name
-            variable.Declare( Variables::FORMAT, GetName() );
-            variable.Add( MetaInfo->Format            );
-            variable.Add( MetaInfo->VerbosityError    );
-            variable.Add( MetaInfo->VerbosityWarning  );
-            variable.Add( MetaInfo->VerbosityInfo     );
-            variable.Add( MetaInfo->VerbosityVerbose  );
-            variable.Add( FmtMsgSuffix                );
-            ALOX.Config->Store( variable );
+            cfgVar.Declare( Variables::FORMAT, GetName() );
+            cfgVar.Add( MetaInfo->Format            );
+            cfgVar.Add( MetaInfo->VerbosityError    );
+            cfgVar.Add( MetaInfo->VerbosityWarning  );
+            cfgVar.Add( MetaInfo->VerbosityInfo     );
+            cfgVar.Add( MetaInfo->VerbosityVerbose  );
+            cfgVar.Add( FmtMsgSuffix                );
+            ALOX.GetConfig().Store( cfgVar );
         }
         else
         {
-                                       MetaInfo->Format          .Reset( variable.GetString(0) );
-            if( variable.Size() >= 2 ) MetaInfo->VerbosityError  .Reset( variable.GetString(1) );
-            if( variable.Size() >= 3 ) MetaInfo->VerbosityWarning.Reset( variable.GetString(2) );
-            if( variable.Size() >= 4 ) MetaInfo->VerbosityInfo   .Reset( variable.GetString(3) );
-            if( variable.Size() >= 5 ) MetaInfo->VerbosityVerbose.Reset( variable.GetString(4) );
-            if( variable.Size() >= 6 ) FmtMsgSuffix              .Reset( variable.GetString(5) );
+                                      MetaInfo->Format          .Reset( cfgVar.GetString( 0) );
+            if( cfgVar.Size() >= 2 ) MetaInfo->VerbosityError  .Reset( cfgVar.GetString( 1) );
+            if( cfgVar.Size() >= 3 ) MetaInfo->VerbosityWarning.Reset( cfgVar.GetString( 2) );
+            if( cfgVar.Size() >= 4 ) MetaInfo->VerbosityInfo   .Reset( cfgVar.GetString( 3) );
+            if( cfgVar.Size() >= 5 ) MetaInfo->VerbosityVerbose.Reset( cfgVar.GetString( 4) );
+            if( cfgVar.Size() >= 6 ) FmtMsgSuffix              .Reset( cfgVar.GetString( 5) );
         }
 
         // Variable  <name>_FORMAT_DATE_TIME / <typeName>_FORMAT_DATE_TIME:
         variableDecl= VariableDecl( Variables::FORMAT_DATE_TIME );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue().IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
                              "Default value of variable FORMAT_DATE_TIME should be kept null" )
-        if(    ALOX.Config->Load( variable.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
-            && ALOX.Config->Load( variable.Declare( variableDecl, GetTypeName() ) ) == Priorities::NONE )
+        if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
+            && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() ) ) == Priorities::NONE )
         {
             // no variable created, yet. Let's create a 'personal' one on our name
-            variable.Declare( Variables::FORMAT_DATE_TIME, GetName() );
-            variable.Add( MetaInfo->DateFormat        );
-            variable.Add( MetaInfo->TimeOfDayFormat   );
-            variable.Add( MetaInfo->TimeElapsedDays   );
-            ALOX.Config->Store( variable );
+            cfgVar.Declare( Variables::FORMAT_DATE_TIME, GetName() );
+            cfgVar.Add( MetaInfo->DateFormat        );
+            cfgVar.Add( MetaInfo->TimeOfDayFormat   );
+            cfgVar.Add( MetaInfo->TimeElapsedDays   );
+            ALOX.GetConfig().Store( cfgVar );
         }
         else
         {
-                                       MetaInfo->DateFormat      .Reset( variable.GetString(0) );
-            if( variable.Size() >= 2 ) MetaInfo->TimeOfDayFormat .Reset( variable.GetString(1) );
-            if( variable.Size() >= 3 ) MetaInfo->TimeElapsedDays .Reset( variable.GetString(2) );
+                                      MetaInfo->DateFormat      .Reset( cfgVar.GetString( 0) );
+            if( cfgVar.Size() >= 2 ) MetaInfo->TimeOfDayFormat .Reset( cfgVar.GetString( 1) );
+            if( cfgVar.Size() >= 3 ) MetaInfo->TimeElapsedDays .Reset( cfgVar.GetString( 2) );
         }
 
         // Variable  <name>FORMAT_TIME_DIFF / <typeName>FORMAT_TIME_DIFF:
         variableDecl= VariableDecl( Variables::FORMAT_TIME_DIFF );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue().IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
                              "Default value of variable FORMAT_TIME_DIFF should be kept null" )
-        if(    ALOX.Config->Load( variable.Declare( variableDecl, GetName()     )) == Priorities::NONE
-            && ALOX.Config->Load( variable.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
+        if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
+            && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
         {
             // no variable created, yet. Let's create a 'personal' one on our name
-            variable.Declare( Variables::FORMAT_TIME_DIFF, GetName() );
-            variable.Add( MetaInfo->TimeDiffMinimum);
-            variable.Add( MetaInfo->TimeDiffNone   );
-            variable.Add( MetaInfo->TimeDiffNanos  );
-            variable.Add( MetaInfo->TimeDiffMicros );
-            variable.Add( MetaInfo->TimeDiffMillis );
-            variable.Add( MetaInfo->TimeDiffSecs   );
-            variable.Add( MetaInfo->TimeDiffMins   );
-            variable.Add( MetaInfo->TimeDiffHours  );
-            variable.Add( MetaInfo->TimeDiffDays   );
-            ALOX.Config->Store( variable );
+            cfgVar.Declare( Variables::FORMAT_TIME_DIFF, GetName() );
+            cfgVar.Add( MetaInfo->TimeDiffMinimum);
+            cfgVar.Add( MetaInfo->TimeDiffNone   );
+            cfgVar.Add( MetaInfo->TimeDiffNanos  );
+            cfgVar.Add( MetaInfo->TimeDiffMicros );
+            cfgVar.Add( MetaInfo->TimeDiffMillis );
+            cfgVar.Add( MetaInfo->TimeDiffSecs   );
+            cfgVar.Add( MetaInfo->TimeDiffMins   );
+            cfgVar.Add( MetaInfo->TimeDiffHours  );
+            cfgVar.Add( MetaInfo->TimeDiffDays   );
+            ALOX.GetConfig().Store( cfgVar );
         }
         else
         {
-                                       MetaInfo->TimeDiffMinimum=        variable.GetInteger   (0)  ;
-            if( variable.Size() >= 2 ) MetaInfo->TimeDiffNone   .Reset( variable.GetString(1) );
-            if( variable.Size() >= 3 ) MetaInfo->TimeDiffNanos  .Reset( variable.GetString(2) );
-            if( variable.Size() >= 4 ) MetaInfo->TimeDiffMicros .Reset( variable.GetString(3) );
-            if( variable.Size() >= 5 ) MetaInfo->TimeDiffMillis .Reset( variable.GetString(4) );
-            if( variable.Size() >= 6 ) MetaInfo->TimeDiffSecs   .Reset( variable.GetString(5) );
-            if( variable.Size() >= 7 ) MetaInfo->TimeDiffMins   .Reset( variable.GetString(6) );
-            if( variable.Size() >= 8 ) MetaInfo->TimeDiffHours  .Reset( variable.GetString(7) );
-            if( variable.Size() >= 9 ) MetaInfo->TimeDiffDays   .Reset( variable.GetString(8) );
+                                      MetaInfo->TimeDiffMinimum=        cfgVar.GetInteger   ( 0)  ;
+            if( cfgVar.Size() >= 2 ) MetaInfo->TimeDiffNone   .Reset( cfgVar.GetString( 1) );
+            if( cfgVar.Size() >= 3 ) MetaInfo->TimeDiffNanos  .Reset( cfgVar.GetString( 2) );
+            if( cfgVar.Size() >= 4 ) MetaInfo->TimeDiffMicros .Reset( cfgVar.GetString( 3) );
+            if( cfgVar.Size() >= 5 ) MetaInfo->TimeDiffMillis .Reset( cfgVar.GetString( 4) );
+            if( cfgVar.Size() >= 6 ) MetaInfo->TimeDiffSecs   .Reset( cfgVar.GetString( 5) );
+            if( cfgVar.Size() >= 7 ) MetaInfo->TimeDiffMins   .Reset( cfgVar.GetString( 6) );
+            if( cfgVar.Size() >= 8 ) MetaInfo->TimeDiffHours  .Reset( cfgVar.GetString( 7) );
+            if( cfgVar.Size() >= 9 ) MetaInfo->TimeDiffDays   .Reset( cfgVar.GetString( 8) );
         }
 
         // Variable  <name>FORMAT_MULTILINE / <typeName>FORMAT_MULTILINE:
         variableDecl= VariableDecl( Variables::FORMAT_MULTILINE );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue().IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
                              "Default value of variable FORMAT_MULTILINE should be kept null" )
-        if(    ALOX.Config->Load( variable.Declare( variableDecl, GetName()     )) == Priorities::NONE
-            && ALOX.Config->Load( variable.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
+        if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
+            && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
         {
             // no variable created, yet. Let's create a 'personal' one on our name
-            variable.Declare( Variables::FORMAT_MULTILINE, GetName() );
-            variable.Add( MultiLineMsgMode );
-            variable.Add( FmtMultiLineMsgHeadline   );
-            variable.Add( FmtMultiLinePrefix  );
-            variable.Add( FmtMultiLineSuffix );
-            ALOX.Config->Store( variable );
+            cfgVar.Declare( Variables::FORMAT_MULTILINE, GetName() );
+            cfgVar.Add( MultiLineMsgMode );
+            cfgVar.Add( FmtMultiLineMsgHeadline   );
+            cfgVar.Add( FmtMultiLinePrefix  );
+            cfgVar.Add( FmtMultiLineSuffix );
+            ALOX.GetConfig().Store( cfgVar );
         }
         else
         {
-                                       MultiLineMsgMode= static_cast<int>( variable.GetInteger(0) )  ;
-            if( variable.Size() >= 2 ) FmtMultiLineMsgHeadline.Reset( variable.GetString(1) );
-            if( variable.Size() >= 3 ) FmtMultiLinePrefix     .Reset( variable.GetString(2) );
-            if( variable.Size() >= 4 ) FmtMultiLineSuffix     .Reset( variable.GetString(3) );
-            if( variable.Size() >= 5 ) { if (variable.GetString(4).Equals<Case::Ignore>( A_CHAR("nulled") ) )
+                                      MultiLineMsgMode= static_cast<int>( cfgVar.GetInteger( 0) )  ;
+            if( cfgVar.Size() >= 2 ) FmtMultiLineMsgHeadline.Reset( cfgVar.GetString( 1) );
+            if( cfgVar.Size() >= 3 ) FmtMultiLinePrefix     .Reset( cfgVar.GetString( 2) );
+            if( cfgVar.Size() >= 4 ) FmtMultiLineSuffix     .Reset( cfgVar.GetString( 3) );
+            if( cfgVar.Size() >= 5 ) { if (cfgVar.GetString( 4).Equals<Case::Ignore>( A_CHAR( "nulled") ) )
                                             MultiLineDelimiter.SetNull();
                                          else
-                                            MultiLineDelimiter.Reset( variable.GetString(4) );
+                                            MultiLineDelimiter.Reset( cfgVar.GetString( 4) );
                                        }
-            if( variable.Size() >= 6 ) MultiLineDelimiterRepl .Reset( variable.GetString(5) );
+            if( cfgVar.Size() >= 6 ) MultiLineDelimiterRepl .Reset( cfgVar.GetString( 5) );
         }
 
         // Variable  <name>FORMAT_REPLACEMENTS / <typeName>FORMAT_REPLACEMENTS:
         variableDecl= VariableDecl( Variables::REPLACEMENTS );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue().IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
                              "Default value of variable REPLACEMENTS should be kept null" )
-        if(    ALOX.Config->Load( variable.Declare( variableDecl, GetName()     )) == Priorities::NONE
-            || ALOX.Config->Load( variable.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
+        if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
+            || ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
         {
-            for( int i= 0; i + 1< variable.Size() ; i+= 2 )
+            for( int i= 0; i + 1 < cfgVar.Size() ; i+= 2 )
             {
-                String searchString=  variable.GetString(i    );
-                String replaceString= variable.GetString(i + 1);
+                String searchString=  cfgVar.GetString( i    );
+                String replaceString= cfgVar.GetString( i + 1);
                 SetReplacement( searchString, replaceString );
             }
         }
 
         // register the lox' lock with us (being a smartlock)
-        Logger::AddAcquirer( &lox.Lock );
+        ALIB_IF_THREADS( SmartLock::AddAcquirer( &LI::getLock(lox) ); )
+
         return;
     }
 
@@ -758,19 +790,21 @@ void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
     // de-register with ALIB lockers (if not done yet)
     if ( usesStdStreams )
     {
-        int registrationCounter;
-        {
-            ALIB_LOCK_WITH( lock )
-            registrationCounter= --this->stdStreamLockRegistrationCounter;
-        }
+        #if ALIB_THREADS
+            int registrationCounter;
+            {
+                ALIB_LOCK_WITH( lock )
+                registrationCounter= --this->stdStreamLockRegistrationCounter;
+            }
 
-        if ( registrationCounter == 0 )
-            SmartLock::StdOutputStreams.RemoveAcquirer( this );
+            if ( registrationCounter == 0 )
+                SmartLock::StdOutputStreams.RemoveAcquirer( this );
+        #endif
     }
 
     // export auto sizes to configuration
-    Variable variable( Variables::AUTO_SIZES, Name );
-    AString& exportString= variable.Add();
+    cfgVar.Declare( Variables::AUTO_SIZES, Name );
+    String256 exportString; exportString.DbgDisableBufferReplacementWarning();
     AutoSizes.Export( exportString );
     strings::util::AutoSizes* autoSizesLog= Converter->GetAutoSizes();
     if( autoSizesLog != nullptr )
@@ -778,19 +812,22 @@ void   TextLogger::AcknowledgeLox(  Lox& lox, ContainerOp op )
         exportString._( ';' );
         autoSizesLog->Export( exportString );
     }
-    ALOX.Config->Store( variable );
+    cfgVar.Add( exportString );
+    ALOX.GetConfig().Store( cfgVar );
 
 
     // export "max elapsed time" to configuration
-    variable.Declare( Variables::MAX_ELAPSED_TIME, Name );
-    AString& destVal=  ALOX.Config->Load( variable ) != Priorities::NONE  ?   variable.GetString()
-                                                                          :   variable.Add();
-    destVal.Reset( MetaInfo->MaxElapsedTime.InAbsoluteSeconds() );
+    String128 destVal( MetaInfo->MaxElapsedTime.InAbsoluteSeconds() );
+    cfgVar.Declare( Variables::MAX_ELAPSED_TIME, Name );
+    if( ALOX.GetConfig().Load( cfgVar ) != Priorities::NONE )
+        cfgVar.ReplaceValue(0, destVal);
+    else
+        cfgVar.Add(destVal);
 
-    ALOX.Config->Store( variable );
+    ALOX.GetConfig().Store( cfgVar );
 
     // de-register the lox' lock from us (being a smartlock)
-    RemoveAcquirer( &lox.Lock );
+    ALIB_IF_THREADS( SmartLock::RemoveAcquirer( &LI::getLock(lox) ); )
 }
 
 
@@ -802,7 +839,7 @@ void TextLogger::SetReplacement( const String& searched, const String& replaceme
         {
             if ( replacement.IsNotNull() )
             {
-                it++;
+                ++it;
                 (*it).Reset( replacement );
                 return;
             }
@@ -855,9 +892,9 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
     {
         // log empty msg and quit
         logBuf._NC( FmtMsgSuffix );
-        if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);
+        ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
             logText( domain, verbosity, logBuf, scope, -1 );
-        if (usesStdStreams) SmartLock::StdOutputStreams.Release();
+        ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Release();                   )
         return;
     }
 
@@ -889,10 +926,10 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
         }
         logBuf._NC( FmtMsgSuffix );
 
-        // now do the logging by calling our derived classe's logText
-        if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);
+        // now do the logging by calling our derived class's logText
+        ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
             logText( domain, verbosity, logBuf, scope, -1 );
-        if (usesStdStreams) SmartLock::StdOutputStreams.Release();
+        ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Release();                   )
 
         // stop here
         msgBuf.ShortenTo( msgBufStartLength );
@@ -922,7 +959,7 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
             {
                 if( msgBuf.CharAt<false>(actEnd - 1) == '\r' )
                 {
-                    actEnd--;
+                    --actEnd;
                     delimLen= 2;
                 }
             }
@@ -942,9 +979,9 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
                 logBuf._NC( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
                 logBuf._NC( FmtMsgSuffix );
 
-                if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);
+                ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);)
                     logText( domain, verbosity, logBuf, scope, -1 );
-                if (usesStdStreams) SmartLock::StdOutputStreams.Release();
+                ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Release();                  )
 
                 // stop here
                 msgBuf.ShortenTo( msgBufStartLength );
@@ -960,7 +997,7 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
         // signal start of multi line log
         if ( lineNo == 0 )
         {
-            if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);
+            ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
             notifyMultiLineOp( Phase::Begin );
         }
 
@@ -1005,14 +1042,14 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
         logText( domain, verbosity, logBuf, scope, lineNo );
 
         // next
-        lineNo++;
+        ++lineNo;
     }
 
     // signal end of multi line log
     if ( lineNo > 0 )
     {
         notifyMultiLineOp( Phase::End );
-        if (usesStdStreams) SmartLock::StdOutputStreams.Release();
+        ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Release(); )
     }
 
     msgBuf.ShortenTo( msgBufStartLength );

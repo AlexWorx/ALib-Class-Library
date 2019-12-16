@@ -7,13 +7,18 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#if ALIB_UT_DOCS
 
 #include "alib/alox.hpp"
-#include "unittests/aworx_unittests.hpp"
 
-#define TESTCLASSNAME       CPP_ALib_Dox_Expr_Tutorial
-
+// Fix the method name of logging (needed for unity builds)
+ALIB_WARNINGS_IGNORE_UNUSED_MACRO
+#undef  ALIB_CALLER
+#if defined( __GNUC__ )
+#   define ALIB_CALLER    __FILE__, __LINE__, __func__
+#else
+#   define ALIB_CALLER    __FILE__, __LINE__, __FUNCTION__
+#endif
 
 // Preparations to fake std::cout, main(), etc.
 #include <sstream>
@@ -45,17 +50,18 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamN;    } }
     #pragma warning( disable:4100 ) // unreferenced formal parameter
 #endif
 
+#include "alib/monomem/mastring.hpp"
 #include "alib/expressions/compiler.hpp"
 #include "alib/expressions/scope.hpp"
 #include "alib/expressions/compilerplugin.hpp"
 #include "alib/expressions/plugins/strings.hpp"
 #include "alib/expressions/plugins/calculus.hpp"
-#include "alib/expressions/plugins/scopestring.hpp"
 #include "alib/expressions/detail/program.hpp"
 #include "alib/expressions/detail/virtualmachine.hpp"
 #include "alib/compatibility/std_characters.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/stringformat/text.hpp"
+#include "alib/text/paragraphs.hpp"
+#include "alib/time/datetime.hpp"
 #include <sys/stat.h>
 
 using namespace std;
@@ -298,14 +304,15 @@ struct FFScope : public ExpressionScope
 //! [DOX_ALIB_EXPR_TUT_FF_PluginCallback]
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    // Create a copy of the string using the scope string allocator. This is done with utility
-    // class ScopeString, which, when returned, right away is boxed as a usual string,
+    // Create a copy of the string using the scope string allocator. This is done by using
+    // class MAString, which, when returned, right away is boxed as a usual string,
     // aka char[]. Therefore, no intermediate string objects to be stored, neither the
     // std::string returned by "generic_u8string", nor the string.
     // Note, that this must be done within the call, because the object returned by
     // generic_u8string() will be instantly deleted and thus the buffer thrown away.
-    return ScopeString( scope, 0,
-                        dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string()   );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 //! [DOX_ALIB_EXPR_TUT_FF_PluginCallback]
 
@@ -372,7 +379,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step5
+} // namespace step5
 //! [DOX_ALIB_EXPR_TUT_FF_PluginSkeleton2]
 
 //###################################### STEP 6:  Calculus  ########################################
@@ -386,7 +393,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 //! [DOX_ALIB_EXPR_TUT_FF_PluginCalculus]
@@ -436,7 +445,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step6
+} // namespace step6
 
 //############################### STEP 7: Adding Identifiers  ######################################
 namespace step7 {
@@ -449,7 +458,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0   );
 }
 
 //! [DOX_ALIB_EXPR_TUT_FF_MoreIdentifiers]
@@ -485,15 +496,15 @@ namespace
 //! [DOX_ALIB_EXPR_TUT_FF_MoreIdentifiersConstants]
 namespace
 {
-    Box constOwnRead  = static_cast<integer>( EnumValue( fs::perms::owner_read  ) );
-    Box constOwnWrite = static_cast<integer>( EnumValue( fs::perms::owner_write ) );
-    Box constOwnExec  = static_cast<integer>( EnumValue( fs::perms::owner_exec  ) );
-    Box constGrpRead  = static_cast<integer>( EnumValue( fs::perms::group_read  ) );
-    Box constGrpWrite = static_cast<integer>( EnumValue( fs::perms::group_write ) );
-    Box constGrpExec  = static_cast<integer>( EnumValue( fs::perms::group_exec  ) );
-    Box constOthRead  = static_cast<integer>( EnumValue( fs::perms::others_read ) );
-    Box constOthWrite = static_cast<integer>( EnumValue( fs::perms::others_write) );
-    Box constOthExec  = static_cast<integer>( EnumValue( fs::perms::others_exec ) );
+    Box constOwnRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_read  ) );
+    Box constOwnWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_write ) );
+    Box constOwnExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_exec  ) );
+    Box constGrpRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::group_read  ) );
+    Box constGrpWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::group_write ) );
+    Box constGrpExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::group_exec  ) );
+    Box constOthRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::others_read ) );
+    Box constOthWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::others_write) );
+    Box constOthExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::others_exec ) );
 }
 //! [DOX_ALIB_EXPR_TUT_FF_MoreIdentifiersConstants]
 
@@ -557,7 +568,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step7
+} // namespace step7
 
 //############################### STEP 8: Adding Functions  ######################################
 namespace step8 {
@@ -569,7 +580,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -612,15 +625,15 @@ Box gigaBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEn
 }
 //! [DOX_ALIB_EXPR_TUT_FF_Functions]
 
-Box constOwnRead  = static_cast<integer>( EnumValue( fs::perms::owner_read  ) );
-Box constOwnWrite = static_cast<integer>( EnumValue( fs::perms::owner_write ) );
-Box constOwnExec  = static_cast<integer>( EnumValue( fs::perms::owner_exec  ) );
-Box constGrpRead  = static_cast<integer>( EnumValue( fs::perms::group_read  ) );
-Box constGrpWrite = static_cast<integer>( EnumValue( fs::perms::group_write ) );
-Box constGrpExec  = static_cast<integer>( EnumValue( fs::perms::group_exec  ) );
-Box constOthRead  = static_cast<integer>( EnumValue( fs::perms::others_read ) );
-Box constOthWrite = static_cast<integer>( EnumValue( fs::perms::others_write) );
-Box constOthExec  = static_cast<integer>( EnumValue( fs::perms::others_exec ) );
+Box constOwnRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_read  ) );
+Box constOwnWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_write ) );
+Box constOwnExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::owner_exec  ) );
+Box constGrpRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::group_read  ) );
+Box constGrpWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::group_write ) );
+Box constGrpExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::group_exec  ) );
+Box constOthRead  = static_cast<integer>( UnderlyingIntegral( fs::perms::others_read ) );
+Box constOthWrite = static_cast<integer>( UnderlyingIntegral( fs::perms::others_write) );
+Box constOthExec  = static_cast<integer>( UnderlyingIntegral( fs::perms::others_exec ) );
 
 
 //! [DOX_ALIB_EXPR_TUT_FF_FunctionSignature]
@@ -689,7 +702,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step8
+} // namespace step8
 
 //############################### STEP 9: adding custom types  ######################################
 namespace step9 {
@@ -701,7 +714,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -764,15 +779,15 @@ struct FFCompilerPlugin : public plugins::Calculus
     {
         // Initializations of constant values. This now must not be done with their definition
         // anymore, because now type "fs::perms" is boxed instead of type "integer"
-        constOwnRead  = EnumValue( fs::perms::owner_read  );
-        constOwnWrite = EnumValue( fs::perms::owner_write );
-        constOwnExec  = EnumValue( fs::perms::owner_exec  );
-        constGrpRead  = EnumValue( fs::perms::group_read  );
-        constGrpWrite = EnumValue( fs::perms::group_write );
-        constGrpExec  = EnumValue( fs::perms::group_exec  );
-        constOthRead  = EnumValue( fs::perms::others_read );
-        constOthWrite = EnumValue( fs::perms::others_write);
-        constOthExec  = EnumValue( fs::perms::others_exec );
+        constOwnRead  = UnderlyingIntegral( fs::perms::owner_read  );
+        constOwnWrite = UnderlyingIntegral( fs::perms::owner_write );
+        constOwnExec  = UnderlyingIntegral( fs::perms::owner_exec  );
+        constGrpRead  = UnderlyingIntegral( fs::perms::group_read  );
+        constGrpWrite = UnderlyingIntegral( fs::perms::group_write );
+        constGrpExec  = UnderlyingIntegral( fs::perms::group_exec  );
+        constOthRead  = UnderlyingIntegral( fs::perms::others_read );
+        constOthWrite = UnderlyingIntegral( fs::perms::others_write);
+        constOthExec  = UnderlyingIntegral( fs::perms::others_exec );
 
         // A sample box for the new type "fs::perm"
         TypePermission = fs::perms::owner_read;   // ...could be any other enum element as well!
@@ -833,7 +848,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step9
+} // namespace step9
 
 
 //############################### STEP 10: Announcing custom types ##################################
@@ -846,7 +861,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -895,7 +912,7 @@ Box constGrpExec  ;
 Box constOthRead  ;
 Box constOthWrite ;
 Box constOthExec  ;
-                  ;
+
 Box TypePermission;
 
 struct FFCompilerPlugin : public plugins::Calculus
@@ -973,7 +990,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step10
+} // namespace step10
 
 //############################### STEP 11: custom operators ##################################
 namespace step11 {
@@ -985,7 +1002,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1062,11 +1081,11 @@ Box constGrpExec  ;
 Box constOthRead  ;
 Box constOthWrite ;
 Box constOthExec  ;
-                  ;
+
 Box TypePermission;
 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeOperatorTable]
-aworx::lib::expressions::plugins::Calculus::BinaryOpTableEntry  binaryOpTable[] =
+aworx::lib::expressions::plugins::Calculus::OperatorTableEntry  binaryOpTable[] =
 {
     { A_CHAR("&") , TypePermission, TypePermission, CALCULUS_CALLBACK( opPermAnd ), TypePermission , Calculus::CTI },
     { A_CHAR("|") , TypePermission, TypePermission, CALCULUS_CALLBACK( opPermOr  ), TypePermission , Calculus::CTI },
@@ -1122,7 +1141,7 @@ struct FFCompilerPlugin : public plugins::Calculus
         };
 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeFeedTable]
-AddBinaryOps( binaryOpTable );
+AddOperators( binaryOpTable );
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeFeedTable]
     }
 };
@@ -1152,7 +1171,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step11
+} // namespace step11
 
 //############################### STEP 12: auto cast ##################################
 namespace step12 {
@@ -1164,7 +1183,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1275,7 +1296,7 @@ virtual bool TryCompilation( CIAutoCast& ciAutoCast )    override
     // we don't cast for conditional operator "Q ? T : F"
     // Note: It is usually a good practice to also cast for this operator.
     //       This code is just a sample to demonstrate how to omit casting for certain operator(s).
-    if( ciAutoCast.Op.Equals( A_CHAR("Q?T:F") ) )
+    if( ciAutoCast.Operator.Equals( A_CHAR("Q?T:F") ) )
         return false;
 
     bool result= false;
@@ -1349,7 +1370,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step12
+} // namespace step12
 
 
 //############################### STEP 13: auto cast with calculus ##################################
@@ -1362,7 +1383,9 @@ struct FFScope : public ExpressionScope
 
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return ScopeString( scope, 0, dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string() );
+    return MAString( scope.Allocator,
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      0 );
 }
 
 Box isFolder( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1492,7 +1515,7 @@ struct FileFilter
         return expression->Evaluate( scope ).Unbox<bool>();
     }
 };
-}; // namespace step13
+} // namespace step13
 
 
 } // anonymous namespace
@@ -1504,6 +1527,9 @@ ALIB_WARNINGS_RESTORE
 // #################################################################################################
 // #### Unit test executing tutorial code
 // #################################################################################################
+
+#define TESTCLASSNAME       CPP_ALib_Dox_Expr_Tutorial
+#include "unittests/aworx_unittests.hpp"
 
 namespace ut_aworx {
 
@@ -1543,21 +1569,19 @@ UT_CLASS()
 
 UT_METHOD( FileSystemIntro )
 {
-    UT_INIT();
+    UT_INIT()
     {
-        #if defined( _WIN32 )
-const char* sourceDir= "../../../../src/alib/expressions/";
+//! [DOX_ALIB_EXPR_TUT_FF_1]
+// search source path from current
+auto sourceDir = fs::current_path().parent_path();
+while( ! fs::exists( fs::path( sourceDir ) += "/src/alib/expressions" ) )
+    sourceDir= sourceDir.parent_path();
+sourceDir+= "/src/alib/expressions";
 
+// list files
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     cout << directoryEntry.path().filename().generic_u8string() << endl;
-        #else
 //! [DOX_ALIB_EXPR_TUT_FF_1]
-const char* sourceDir= "../../../../../src/alib/expressions/";
-
-for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
-    cout << directoryEntry.path().filename().generic_u8string() << endl;
-//! [DOX_ALIB_EXPR_TUT_FF_1]
-        #endif
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_INTRO-1.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
@@ -1647,22 +1671,22 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     step6::FileFilter filter61(A_CHAR("name * \"compiler.hpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter61.Includes( directoryEntry ) )
-            cnt++;
-    UT_EQ(1, cnt);
+            ++cnt;
+    UT_EQ(1, cnt)
 
     cnt= 0;
     step6::FileFilter filter62(A_CHAR("name * \"*.cpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter62.Includes( directoryEntry ) )
-            cnt++;
-    UT_EQ(3, cnt);
+            ++cnt;
+    UT_EQ(3, cnt)
 
     cnt= 0;
     step6::FileFilter filter63(A_CHAR("name * \"*.hpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter63.Includes( directoryEntry ) )
-            cnt++;
-    UT_EQ(5, cnt);
+            ++cnt;
+    UT_EQ(5, cnt)
 
     //---------------- samples after more  functionality was added ------------------
     cout << "--- Filter Expression {IsDirectory}: ---" << endl;
@@ -1812,7 +1836,7 @@ Format("Result: {}", GetDayOfWeek( today + Years(42) ) * int( remainder( PI * ex
 // #################################################################################################
 UT_METHOD( Operators )
 {
-    UT_INIT();
+    UT_INIT()
 
     testOutputStreamN.str("");
 
@@ -1876,7 +1900,6 @@ cout << expression->Evaluate( scope )  << endl;
     }
 
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
     //----------------- Verbal --------------------
     {
 Compiler compiler;
@@ -1894,7 +1917,6 @@ GetYear(Today) == 2017 && GetDayOfWeek(Today) != Monday
 //! [DOX_ALIB_EXPR_OPS_verbal_2]
 , false, 9 )
     }
-#endif
 } // test method operators
 
 
@@ -1904,7 +1926,7 @@ GetYear(Today) == 2017 && GetDayOfWeek(Today) != Monday
 // #################################################################################################
 UT_METHOD( Nested )
 {
-    UT_INIT();
+    UT_INIT()
 
     testOutputStreamN.str("");
     try
@@ -2193,7 +2215,7 @@ void printProgram( AWorxUnitTesting& ut, const String& expressionString, const N
 
 UT_METHOD( VMListings )
 {
-    UT_INIT();
+    UT_INIT()
 
     printProgram( ut, A_CHAR("42"),                                               "DOX_ALIB_EXPR_VM_-1.txt", false  );
     printProgram( ut, A_CHAR("42 * 2"),                                           "DOX_ALIB_EXPR_VM_-2.txt", false  );
@@ -2208,8 +2230,10 @@ UT_METHOD( VMListings )
 #endif
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif //!defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+ALIB_WARNINGS_RESTORE
+
+#endif //  ALIB_UT_DOCS

@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_system of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_CALENDAR
 #define HPP_ALIB_SYSTEM_CALENDAR 1
 
@@ -49,9 +50,9 @@ namespace aworx { namespace lib { namespace system {
  *
  * <p>
  * \note
- *   This class is part of module \alibmod_system. While it is a pure utility class for type
- *   \alib{time,DateTime} found in module \alibmod_time, the class was located in module \b %System
- *   to keep module \b %Time lean and free from dependencies to modules \alibmod_stringformat and
+ *   This class is part of module \alib_system. While it is a pure utility class for type
+ *   \alib{time,DateTime} found in module \alib_time, the class was located in module \b %System
+ *   to keep module \b %Time lean and free from dependencies to modules \alib_text and
  *   all its sub-dependencies.
  **************************************************************************************************/
 class CalendarDateTime
@@ -87,7 +88,6 @@ class CalendarDateTime
      *             initialized.
      *             Defaults to \c Initialization::Perform.
      **********************************************************************************************/
-    inline
     CalendarDateTime(Initialization init= Initialization::Perform)
     {
         if(init == Initialization::Perform )
@@ -100,7 +100,6 @@ class CalendarDateTime
      * @param timezone  Denotes if the time that is calculated should be local or UTC.
      *                  Defaults to \c TimeZone::Local.
      **********************************************************************************************/
-    inline
     CalendarDateTime( const DateTime& timeStamp, Timezone timezone =Timezone::Local )
     {
         Set( timeStamp, timezone );
@@ -116,7 +115,6 @@ class CalendarDateTime
      * @param second      The second of the calendar time.
      * @param millisecond The millisecond of the calendar time.
      **********************************************************************************************/
-    inline
     CalendarDateTime( int year   , int month= 1 , int day= 1,
                       int hour= 0, int minute= 0, int second= 0, int millisecond= 0 )
     : Year        ( year       )
@@ -204,10 +202,10 @@ class CalendarDateTime
  * \alib{time,TimePointBase::Duration,Ticks::Duration} is supported.
  *
  * \note
- *   This class is part of module \alibmod_system. While it is a pure utility class for types
- *   \alib{time,DateTime} and \alib{time,Ticks} found in module \alibmod_time, the class was located
- *   in module \b %System to keep module \b %Time lean and free from dependencies to modules
- *   \alibmod_stringformat and all its sub-dependencies.
+ *   This class is part of module \alib_system. While it is a pure utility class for types
+ *   \alib{time,DateTime} and \alib{time,Ticks} found in module \alib_time, the class was located
+ *   in module \b %System to keep module \b %Time lean and free from dependencies to module
+ *   \alib_text and all its sub-dependencies.
  **************************************************************************************************/
 class CalendarDuration
 {
@@ -239,7 +237,7 @@ class CalendarDuration
      *             initialized.
      *             Defaults to \c Initialization::Perform.
      **********************************************************************************************/
-    inline                      CalendarDuration(Initialization init= Initialization::Perform)
+                                CalendarDuration(Initialization init= Initialization::Perform)
     {
         if(init == Initialization::Perform )
             Clear();
@@ -250,7 +248,7 @@ class CalendarDuration
      * Invokes #FromNanoSeconds.
      * @param nanos The duration to use for setting the public fields.
      **********************************************************************************************/
-    inline                      CalendarDuration( int64_t nanos )
+                                 CalendarDuration( int64_t nanos )
     {
         FromNanoSeconds( nanos );
     }
@@ -260,7 +258,7 @@ class CalendarDuration
      * Invokes #FromDuration.
      * @param duration The duration to use for setting the public fields.
      **********************************************************************************************/
-    inline                      CalendarDuration( DateTime::Duration duration )
+                                 CalendarDuration( DateTime::Duration duration )
     {
         FromDuration( duration );
     }
@@ -270,7 +268,7 @@ class CalendarDuration
      * Invokes #FromDuration.
      * @param duration The duration to use for setting the public fields.
      **********************************************************************************************/
-    inline                      CalendarDuration( Ticks::Duration  duration )
+                                 CalendarDuration( Ticks::Duration  duration )
     {
         FromDuration( duration );
     }
@@ -281,7 +279,7 @@ class CalendarDuration
      * parameter.
      * @param duration The duration to use for setting the public fields.
      **********************************************************************************************/
-    inline void                 FromDuration( DateTime::Duration duration )
+    void                        FromDuration( DateTime::Duration duration )
     {
         FromNanoSeconds( duration.InNanoseconds() );
     }
@@ -292,7 +290,7 @@ class CalendarDuration
      * parameter.
      * @param duration The duration to use for setting the public fields.
      **********************************************************************************************/
-    inline void                 FromDuration( Ticks::Duration duration )
+    void                        FromDuration( Ticks::Duration duration )
     {
         FromNanoSeconds( duration.InNanoseconds() );
     }
@@ -302,7 +300,7 @@ class CalendarDuration
      * class \b %DateTime.
      * @returns The duration represented by the public fields of this class.
      **********************************************************************************************/
-    inline  DateTime::Duration  ToDateTimeDuration()
+    DateTime::Duration          ToDateTimeDuration()
     {
         return DateTime::Duration::FromNanoseconds( ToNanoSeconds() );
     }
@@ -312,7 +310,7 @@ class CalendarDuration
      * class \b %Ticks.
      * @returns The duration represented by the public fields of this class.
      **********************************************************************************************/
-    inline  Ticks::Duration     ToTicksDuration()
+    Ticks::Duration             ToTicksDuration()
     {
         return Ticks::Duration::FromNanoseconds( ToNanoSeconds() );
     }
@@ -336,13 +334,91 @@ class CalendarDuration
     ALIB_API void               Clear();
 };
 
-}} // namespace [aworx::lib::system]
+
+} namespace strings {
+
+
+#if defined(ALIB_DOX)
+namespace APPENDABLES { // Documentation fake namespace
+#endif
+/** Specialization of functor \alib{strings,T_Append} for type
+ *  \alib{time,TimePointBase::Duration,DateTime::Duration}.
+ *  \note
+ *    This specialization is available only if module \alib_text is included in the
+ *    \alibdist and a using source file includes header \alibheader{text/text.hpp}.
+ */
+template<typename TChar> struct T_Append<time::DateTime::Duration ,TChar>
+{
+    /** ********************************************************************************************
+     * Appends a human readable string representation of objects of templated inner type
+     * \alib{time,TimePointBase::Duration} of type \alib{time,DateTime}.
+     *
+     * \see
+     *   For details of the conversion, see
+     *   \ref anchor_T_Append_TimePointBase_Duration "documentation of sibling method"
+     *   for type \b %Ticks, which shares this method's implementation.
+     *
+     *
+     * @param target    The \b AString that \b Append was invoked on.
+     * @param duration  The duration to append.
+     **********************************************************************************************/
+    ALIB_API void operator()( TAString<TChar>& target,  const time::DateTime::Duration duration );
+};
+
+/** Specialization of functor \alib{strings,T_Append} for type
+ *  \alib{time,TimePointBase::Duration,Ticks::Duration}.
+ *  \note
+ *    This specialization is available only if module \alib_text is included in the
+ *    \alibdist and a using source file includes header \alibheader{text/text.hpp}.
+ */
+template<typename TChar> struct T_Append<time::Ticks::Duration ,TChar>
+{
+    /** ********************************************************************************************
+     * \anchor anchor_T_Append_TimePointBase_Duration
+     * Appends a human readable string representation of objects of templated inner type
+     * \alib{time,TimePointBase::Duration} of type \alib{time,Ticks}.
+     *
+     * Depending on the length of the duration, a different human readable time unit or combination
+     * of it is used. The following rules are checked from top to bottom:
+     * - If zero, resource string \b "TS_ZERO" is written.
+     * - If negative, a minus sign <c>'-'</c> is written and the value is negated.
+     * - If greater than 10 days, writes the number of days as floating point number.
+     * - If between 1 and 10 days, writes the integral number of days and the additional hours as
+     *   floating point number.
+     * - If greater than an hour, writes the integral number of hours and integral minutes.
+     * - If greater than a minute, writes the integral number of minutes and integral seconds.
+     * - If greater than a second, writes the number of seconds as floating point number.
+     * - If greater than a millisecond, writes the number of milliseconds as floating point number.
+     * - If greater than a microsecond, writes the number of microseconds as floating point number.
+     * - If greater than a nanosecond, writes the number of nanoseconds as floating point number.
+     *
+     * All floating point numbers are written with two digits fractional precision.<br>
+     * The unit symbols are read from the \ref alib_mod_resources "resources" of module class
+     * \alib{text,Text}. The list is given with resource name <b>UNITS</b>.
+     *
+     *
+     * @param target    The \b AString that \b Append was invoked on.
+     * @param duration  The duration to append.
+     **********************************************************************************************/
+    void operator()( TAString<TChar>& target,  const time::Ticks::Duration duration );
+};
+
+extern template ALIB_API void T_Append<time::Ticks::Duration, nchar>::operator()( TAString<nchar>&, const time::Ticks::Duration );
+extern template ALIB_API void T_Append<time::Ticks::Duration, wchar>::operator()( TAString<wchar>&, const time::Ticks::Duration );
+extern template ALIB_API void T_Append<time::Ticks::Duration, xchar>::operator()( TAString<xchar>&, const time::Ticks::Duration );
+
+#if defined(ALIB_DOX)
+} // APPENDABLES documentation fake namespace
+#endif
+
+
+}} // namespace aworx[::lib::strings]
 
 /// Type alias in namespace #aworx.
-using     CalendarDateTime  =    aworx::lib::system::CalendarDateTime;
+using     CalendarDateTime  =    lib::system::CalendarDateTime;
 
 /// Type alias in namespace #aworx.
-using     CalendarDuration  =    aworx::lib::system::CalendarDuration;
+using     CalendarDuration  =    lib::system::CalendarDuration;
 
 }  // namespace [aworx]
 

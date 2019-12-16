@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_time of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_DATETIME
 #define HPP_ALIB_TIME_DATETIME 1
 
@@ -29,7 +30,7 @@ namespace aworx { namespace lib { namespace time {
  * To construct an object of this type using calendrical date an time values, helper class
  * \alib{system,CalendarDateTime} with its constructor
  * \alib{system::CalendarDateTime,CalendarDateTime(int\,int\,int\,int\,int\,int\,int)} is available
- * if module \alibmod_system is included in the \alibdist.
+ * if module \alib_system is included in the \alibdist.
  * A typical construction with this helper could look like this:
  *
  *      DateTime myDate= CalendarDateTime(2019,1,31,14,5).Get( Timezone::UTC );
@@ -54,7 +55,6 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
          *
          * @return Seconds in the epoch.
          ******************************************************************************************/
-        inline
         time_t      InEpochSeconds()    const
         {
             return std::chrono::system_clock::to_time_t( stamp );
@@ -68,7 +68,7 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
          * @param epochSeconds The milliseconds in the epoch to convert.
          * @return A time stamp object
          ******************************************************************************************/
-        inline  static
+        static
         DateTime    FromEpochSeconds ( time_t epochSeconds )
         {
             return DateTime( std::chrono::system_clock::from_time_t( epochSeconds ) );
@@ -164,11 +164,11 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 }} // namespace lib::time
 
 /// Type alias in namespace #aworx.
-using     DateTime=                aworx::lib::time::DateTime;
+using     DateTime=                lib::time::DateTime;
 
 }  // namespace [aworx]
 
-#if ALIB_MODULE_BOXING
+#if ALIB_BOXING
     #if !defined(HPP_ALIB_BOXING_BOXING)
     #   include "alib/boxing/boxing.hpp"
     #endif

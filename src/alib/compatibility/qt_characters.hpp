@@ -1,21 +1,22 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//
-//  Legal Notice:
-//    This is an optional extension header to provide compatibility between ALib and
-//    the QT class library.
-//    All information about QT is found under https://www.qt.io
-//    ALib otherwise does not use or rely on QT.
-//    The use of QT is bound to the QT license restrictions.
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ *
+ * <b>Legal Notice:</b>
+ * This is an optional extension header to provide compatibility between ALib and
+ * the QT class library.
+ * All information about QT is found at https://www.qt.io
+ * ALib otherwise does not use or rely on QT.
+ * The use of QT is bound to the QT license restrictions.
+ **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_QT_CHARACTERS
 #define HPP_ALIB_COMPATIBILITY_QT_CHARACTERS 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CHARACTERS)
@@ -40,7 +41,6 @@ ALIB_ASSERT_MODULE(CHARACTERS)
     #pragma clang diagnostic pop
 #endif
 
-
 #if defined(HPP_ALIB_BOXING_BOXING)
 #   error "Wrong inclusion order. Header 'alib/compatibility/qt_characters.hpp' has to be included before headers of module ALib Boxing."
 #endif
@@ -51,13 +51,14 @@ ALIB_ASSERT_MODULE(CHARACTERS)
 
 namespace aworx { namespace lib { namespace characters {
 
-// We are faking all template specializations of namespace strings for doxygen into namespace
+// Faking all template specializations of namespace strings for doxygen into namespace
 // strings::custom to keep the documentation of namespace string clean!
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 namespace compatibility {
 /**
  * Specializations of type traits structs \alib{characters,T_CharArray} and
- * \alib{characters,T_ZTCharArray} for types found in the [QT Class Library](https://www.qt.io).
+ * \alib{characters,T_ZTCharArray} for types found in the
+ * \https{QT Class Library,www.qt.io}.
  */
 namespace qt {} }
 
@@ -69,87 +70,87 @@ namespace qt {} }
 // QStringView
 template<> struct  T_CharArray<QStringView, ALIB_QTCHAR>
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const ALIB_QTCHAR*            Buffer   (QStringView const & src)                   { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
-    static inline integer                       Length   (QStringView const & src)                   { return      static_cast<integer      >(src.size()); }
-    static inline QStringView                   Construct(const ALIB_QTCHAR* array, integer length ) { return QStringView( array, static_cast<qsizetype>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const ALIB_QTCHAR*            Buffer   (QStringView const & src)                   { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
+    static integer                       Length   (QStringView const & src)                   { return      static_cast<integer      >(src.size()); }
+    static QStringView                   Construct(const ALIB_QTCHAR* array, integer length ) { return QStringView( array, static_cast<qsizetype>(length) ); }
 };
 
 template<> struct  T_ZTCharArray<QStringView, ALIB_QTCHAR>
 {
-    static        constexpr AccessType          Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const ALIB_QTCHAR*            Buffer   (QStringView const & src)                   { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
-    static inline integer                       Length   (QStringView const & src)                   { return      static_cast<integer           >(src.size()); }
-    static inline QStringView                   Construct(const ALIB_QTCHAR* array, integer length ) { return QStringView( array, static_cast<qsizetype>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const ALIB_QTCHAR*            Buffer   (QStringView const & src)                   { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
+    static integer                       Length   (QStringView const & src)                   { return      static_cast<integer           >(src.size()); }
+    static QStringView                   Construct(const ALIB_QTCHAR* array, integer length ) { return QStringView( array, static_cast<qsizetype>(length) ); }
 };
 
 // QString
 template<> struct  T_CharArray<QString, ALIB_QTCHAR >
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const ALIB_QTCHAR*                 Buffer   (QString const & src)                  { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
-    static inline integer                       Length   (QString const & src)                       { return      static_cast<integer           >(src.size()); }
-    static inline QString                       Construct(const ALIB_QTCHAR* array, integer length ) { return QString( reinterpret_cast<const QChar*>(array), static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const ALIB_QTCHAR*            Buffer   (QString const & src)                       { return reinterpret_cast<const ALIB_QTCHAR*>(src.data()); }
+    static integer                       Length   (QString const & src)                       { return      static_cast<integer           >(src.size()); }
+    static QString                       Construct(const ALIB_QTCHAR* array, integer length ) { return QString( reinterpret_cast<const QChar*>(array), static_cast<int>(length) ); }
 };
 
 template<> struct  T_ZTCharArray<QString, ALIB_QTCHAR>
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const ALIB_QTCHAR*                 Buffer   (QString const & src)                  { return reinterpret_cast<const ALIB_QTCHAR*>(src.utf16()); }
-    static inline integer                       Length   (QString const & src)                       { return      static_cast<integer           >(src.size() ); }
-    static inline QString                       Construct(const ALIB_QTCHAR* array, integer length ) { return QString( reinterpret_cast<const QChar*>(array), static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const ALIB_QTCHAR*            Buffer   (QString const & src)                       { return reinterpret_cast<const ALIB_QTCHAR*>(src.utf16()); }
+    static integer                       Length   (QString const & src)                       { return      static_cast<integer           >(src.size() ); }
+    static QString                       Construct(const ALIB_QTCHAR* array, integer length ) { return QString( reinterpret_cast<const QChar*>(array), static_cast<int>(length) ); }
 };
 
 // QLatin1String
 template<> struct  T_CharArray<QLatin1String, nchar>
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const nchar*                  Buffer   (QLatin1String const & src)            { return                                 src.data();  }
-    static inline integer                       Length   (QLatin1String const & src)            { return      static_cast<integer      >(src.size()); }
-    static inline QLatin1String                 Construct(const nchar* array, integer length )  { return QLatin1String( array, static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const nchar*                  Buffer   (QLatin1String const & src)            { return                                 src.data();  }
+    static integer                       Length   (QLatin1String const & src)            { return      static_cast<integer      >(src.size()); }
+    static QLatin1String                 Construct(const nchar* array, integer length )  { return QLatin1String( array, static_cast<int>(length) ); }
 };
 
 template<> struct  T_ZTCharArray<QLatin1String, nchar>
 {
-    static        constexpr AccessType          Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const nchar*                  Buffer   (QLatin1String const & src)            { return reinterpret_cast<const nchar*>(src.data()); }
-    static inline integer                       Length   (QLatin1String const & src)            { return      static_cast<integer     >(src.size()); }
-    static inline QLatin1String                 Construct(const nchar* array, integer length )  { return QLatin1String( array, static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const nchar*                  Buffer   (QLatin1String const & src)            { return reinterpret_cast<const nchar*>(src.data()); }
+    static integer                       Length   (QLatin1String const & src)            { return      static_cast<integer     >(src.size()); }
+    static QLatin1String                 Construct(const nchar* array, integer length )  { return QLatin1String( array, static_cast<int>(length) ); }
 };
 
 // QByteArray
 template<> struct  T_CharArray<QByteArray, nchar>
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const nchar*                  Buffer   (QByteArray const & src)               { return                                 src.data();  }
-    static inline integer                       Length   (QByteArray const & src)               { return      static_cast<integer      >(src.size()); }
-    static inline QByteArray                    Construct(const nchar* array, integer length )  { return QByteArray( array, static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const nchar*                  Buffer   (QByteArray const & src)               { return                                 src.data();  }
+    static integer                       Length   (QByteArray const & src)               { return      static_cast<integer      >(src.size()); }
+    static QByteArray                    Construct(const nchar* array, integer length )  { return QByteArray( array, static_cast<int>(length) ); }
 };
 
 template<> struct  T_ZTCharArray<QByteArray, nchar>
 {
-    static        constexpr AccessType          Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const nchar*                  Buffer   (QByteArray const & src)               { return reinterpret_cast<const nchar*>(src.data()); }
-    static inline integer                       Length   (QByteArray const & src)               { return      static_cast<integer      >(src.size()); }
-    static inline QByteArray                    Construct(const nchar* array, integer length )  { return QByteArray( array, static_cast<int>(length) ); }
+    static constexpr AccessType          Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const nchar*                  Buffer   (QByteArray const & src)               { return reinterpret_cast<const nchar*>(src.data()); }
+    static integer                       Length   (QByteArray const & src)               { return      static_cast<integer      >(src.size()); }
+    static QByteArray                    Construct(const nchar* array, integer length )  { return QByteArray( array, static_cast<int>(length) ); }
 };
 
 // QVector<uint>
 template<> struct  T_CharArray<QVector<uint>, ALIB_QTCHAR_4>
 {
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const ALIB_QTCHAR_4*          Buffer   (QVector<uint> const & src)                  { return reinterpret_cast<const ALIB_QTCHAR_4*>(src.data()); }
-    static inline integer                       Length   (QVector<uint> const & src)                  { return      static_cast<integer      >(src.size()); }
-    static inline QVector<uint>                 Construct(const ALIB_QTCHAR_4* array, integer length )
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const ALIB_QTCHAR_4*          Buffer   (QVector<uint> const & src)                  { return reinterpret_cast<const ALIB_QTCHAR_4*>(src.data()); }
+    static integer                       Length   (QVector<uint> const & src)                  { return      static_cast<integer      >(src.size()); }
+    static QVector<uint>                 Construct(const ALIB_QTCHAR_4* array, integer length )
     {
         QVector<uint> result;
         result.reserve( static_cast<int>(length) );
@@ -162,11 +163,11 @@ template<> struct  T_CharArray<QVector<uint>, ALIB_QTCHAR_4>
 
 template<> struct  T_ZTCharArray<QVector<uint>, ALIB_QTCHAR_4>
 {
-    static        constexpr AccessType          Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const ALIB_QTCHAR_4*          Buffer   (QVector<uint> const & src)                  { return reinterpret_cast<const ALIB_QTCHAR_4*>(src.data()); }
-    static inline integer                       Length   (QVector<uint> const & src)                  { return      static_cast<integer             >(src.size() ); }
-    static inline QVector<uint>                 Construct(const ALIB_QTCHAR_4* array, integer length )
+    static constexpr AccessType          Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const ALIB_QTCHAR_4*          Buffer   (QVector<uint> const & src)                  { return reinterpret_cast<const ALIB_QTCHAR_4*>(src.data()); }
+    static integer                       Length   (QVector<uint> const & src)                  { return      static_cast<integer             >(src.size() ); }
+    static QVector<uint>                 Construct(const ALIB_QTCHAR_4* array, integer length )
     {
         QVector<uint> result;
         result.reserve( static_cast<int>(length) );
@@ -177,7 +178,7 @@ template<> struct  T_ZTCharArray<QVector<uint>, ALIB_QTCHAR_4>
     }
 };
 
-#endif  //ALIB_DOCUMENTATION_PARSER
+#endif  //ALIB_DOX
 
 }}}  // namespace [aworx::lib::characters]
 

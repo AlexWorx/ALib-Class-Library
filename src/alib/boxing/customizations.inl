@@ -1,16 +1,20 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#if !defined(HPP_ALIB_BOXING_PROPPERINCLUDE)
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_boxing of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALIB_BOXING_CUSTOMIZATIONS
+#define HPP_ALIB_BOXING_CUSTOMIZATIONS 1
+
+#if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
 
 // #########  Switch off documentation parser for (almost) the whole header #####
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 // #################################################################################################
 // void*, Boxes*, Box[]
@@ -64,14 +68,14 @@ ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( bool, bool )
 // #################################################################################################
 // Integrals
 // #################################################################################################
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+
     ALIB_BOXING_VTABLE_DECLARE(  integer,  vt_integer  )
     ALIB_BOXING_VTABLE_DECLARE( uinteger, vt_uinteger  )
 
 
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   integer ,  integer )
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  uinteger , uinteger )
-
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
 
     ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR(    int8_t,  integer )
     ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR(   uint8_t, uinteger )
@@ -86,65 +90,63 @@ ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( bool, bool )
   #endif
 
 
-//--------- documentation sample of Programmer's Manual --------
-//#define ALIB_DOX_TEST_DOXED_VERSION // un-comment for testing documentation sample
-#if !defined(ALIB_DOX_TEST_DOXED_VERSION)
-
-ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR( int16_t, integer )
-
-#else
 DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
 namespace aworx { namespace lib { namespace boxing {
-template<> struct T_Boxer<int16_t>
-{
-    using              Mapping=    TMappedTo<integer>;
 
-    static inline void Write( Placeholder& target, const int16_t value )
+template<>  struct T_Boxer<int16_t>
+{
+    using  Mapping=    TMappedTo<integer>;
+
+    static constexpr
+    Placeholder  Write(  int16_t const & value )
     {
-        target.Write( static_cast<integer>( value ) );
+        return Placeholder( static_cast<integer>( value ) );
     }
 
-    static void        Read( const Placeholder& src);
+    static void  Read( const Placeholder& src); // no implementation given, never called
 };
+
 }}}
 DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
-#endif
+
 //--------- documentation sample of Programmer's Manual --------
 
-#else  // ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-
-    ALIB_BOXING_VTABLE_DECLARE(     int8_t )
-    ALIB_BOXING_VTABLE_DECLARE(    uint8_t )
-    ALIB_BOXING_VTABLE_DECLARE(    int16_t )
-    ALIB_BOXING_VTABLE_DECLARE(   uint16_t )
-    ALIB_BOXING_VTABLE_DECLARE(   intGap_t )
-    ALIB_BOXING_VTABLE_DECLARE(  uintGap_t )
+#else  // ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    ALIB_BOXING_VTABLE_DECLARE(     int8_t ,      vt_int8_t )
+    ALIB_BOXING_VTABLE_DECLARE(    uint8_t ,     vt_uint8_t )
+    ALIB_BOXING_VTABLE_DECLARE(    int16_t ,     vt_int16_t )
+    ALIB_BOXING_VTABLE_DECLARE(   uint16_t ,    vt_uint16_t )
+    ALIB_BOXING_VTABLE_DECLARE(    int32_t ,     vt_int32_t )
+    ALIB_BOXING_VTABLE_DECLARE(   uint32_t ,    vt_uint32_t )
+    ALIB_BOXING_VTABLE_DECLARE(   intGap_t ,    vt_intGap_t )
+    ALIB_BOXING_VTABLE_DECLARE(  uintGap_t ,   vt_uintGap_t )
   #if ALIB_SIZEOF_INTEGER == 8
-    ALIB_BOXING_VTABLE_DECLARE(    int32_t )
-    ALIB_BOXING_VTABLE_DECLARE(   uint32_t )
+    ALIB_BOXING_VTABLE_DECLARE(    int64_t ,     vt_int64_t )
+    ALIB_BOXING_VTABLE_DECLARE(   uint64_t ,    vt_uint64_t )
   #endif
 
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(    int8_t,     int8_t)
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   uint8_t,    uint8_t)
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   int16_t,    int16_t)
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  uint16_t,   uint16_t)
+    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   int32_t,    int32_t)
+    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  uint32_t,   uint32_t)
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  intGap_t,   intGap_t)
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( uintGap_t,  uintGap_t)
 
   #if ALIB_SIZEOF_INTEGER == 8
-    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   int32_t,    int32_t)
-    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  uint32_t,   uint32_t)
+    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(   int64_t,    int64_t)
+    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(  uint64_t,   uint64_t)
   #endif
 
-#endif // ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#endif // ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 
 
 
 // #################################################################################################
 // Floating point
 // #################################################################################################
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-
+#if !ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR(  float    ,  double      )
 #else
     ALIB_BOXING_VTABLE_DECLARE(      float, vt_float       )
@@ -164,7 +166,7 @@ DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
 // Characters
 // #################################################################################################
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
     ALIB_BOXING_VTABLE_DECLARE( wchar, vt_wchar )
 
     ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR( nchar    , wchar    )
@@ -209,7 +211,7 @@ ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char16_t  , vt_arr_char16_t)
 ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char32_t  , vt_arr_char32_t)
 
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 namespace aworx { namespace lib { namespace boxing  {
 /**
  * This type-traits struct by default inherits \c std::false_type. If specialized for
@@ -219,14 +221,14 @@ namespace aworx { namespace lib { namespace boxing  {
  *
  * \see
  *   See manual chapter \ref alib_boxing_strings "10. Boxing Character Strings" of the
- *   Programmer's Manual of module \alibmod_nolink_boxing.
+ *   Programmer's Manual of module \alib_boxing_nl.
  *
  * @tparam TCharArray The type that \alib{characters,T_CharArray} is specialized for but still no
  *                    character array boxing should be performed.
  */
 template<typename TCharArray>      struct T_SuppressCharArrayBoxing    :    std::false_type      {};
 }}}
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 namespace aworx { namespace lib { namespace boxing  {
 
 
@@ -281,5 +283,6 @@ ALIBTMP_BOXER_WITHOUT_UNBOXING(xchar)  ALIBTMP_BOXER_WITH_UNBOXING(   xchar)
 
 }}}
 
-#endif //ALIB_DOCUMENTATION_PARSER
+#endif //ALIB_DOX
 
+#endif // HPP_ALIB_BOXING_CUSTOMIZATIONS

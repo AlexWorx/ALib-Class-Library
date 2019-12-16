@@ -6,30 +6,39 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALOX_WINDOWS_CONSOLE_LOGGER)
+#if !defined(ALIB_DOX)
+#if  !defined (HPP_ALOX_WINDOWS_CONSOLE_LOGGER)
 #   include "alib/alox/loggers/windowsconsolelogger.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 #if defined( _WIN32 )
 
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-#if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
-    #include "alib/strings/util/spaces.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#      include "alib/strings/util/tokenizer.hpp"
+#   endif
+#   if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
+#      include "alib/strings/util/spaces.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_ALOX_VARIABLES)
-    #include "alib/alox/variables.hpp"
-#endif
-
-#if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
-    #include <iostream>
-#endif
-#if !defined (_STRING_H) && !defined(_INC_STRING)
-    #include <string.h>
-#endif
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+#   if !defined(HPP_ALIB_RESULTS_REPORT)
+#      include "alib/results/report.hpp"
+#   endif
+#   if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
+#      include <iostream>
+#   endif
+#   if !defined (_STRING_H) && !defined(_INC_STRING)
+#      include <string.h>
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace lox {
@@ -85,15 +94,15 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
     // evaluate environment variable "ALOX_CONSOLE_LIGHT_COLORS"
     UseLightColors= LightColorUsage::Auto;
     Variable variable( Variables::CONSOLE_LIGHT_COLORS );
-    if ( ALOX.Config->Load( variable ) != Priorities::NONE && variable.Size() > 0)
+    if ( ALOX.GetConfig().Load( variable ) != Priorities::NONE && variable.Size() > 0)
     {
         Substring p= variable.GetString();
         if(p.Trim().IsNotEmpty())
         {
-            if( !p.ConsumeEnum<LightColorUsage>( UseLightColors ) )
+            if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
             {
-                ALIB_WARNING( "Unknown value specified in variable: {} = '{}'.",
-                              variable.Fullname, variable.GetString() );
+                ALIB_WARNING( "Unknown value specified in variable: {} = {!Q'}.",
+                              variable.Fullname(), variable.GetString() )
             }
         }
     }
@@ -114,7 +123,7 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
     MetaInfo->VerbosityVerbose         = ESC::GRAY;
 
     // evaluate config variable CODE_PAGE
-    if ( ALOX.Config->Load( variable.Declare( Variables::CODEPAGE ) ) > 0 )
+    if ( ALOX.GetConfig().Load( variable.Declare( Variables::CODEPAGE ) ) > 0 )
         CodePage= (UINT) variable.GetInteger();
 }
 
@@ -155,7 +164,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
     {
         if ( msgParts.Next( Whitespaces::Keep ).IsNotEmpty() )
         {
-            #if ALIB_CHARACTERS_ARE_NARROW
+            #if !ALIB_CHARACTERS_WIDE
                 WriteConsoleA( H, actual.Buffer(), (DWORD) actual.Length(), &ignore, NULL );
             #else
                 WriteConsoleW( H, actual.Buffer(), (DWORD) actual.Length(), &ignore, NULL );
@@ -227,7 +236,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                 {
                     integer nextQty= qtySpaces < spaces.Length() ? qtySpaces
                                                                  : spaces.Length();
-                    #if ALIB_CHARACTERS_ARE_NARROW
+                    #if !ALIB_CHARACTERS_WIDE
                         WriteConsoleA( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );
                     #else
                         WriteConsoleW( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );

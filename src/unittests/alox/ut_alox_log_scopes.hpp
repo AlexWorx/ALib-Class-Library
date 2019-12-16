@@ -1,16 +1,16 @@
-// #################################################################################################
-//  Unit Tests - ALox Logging Library
-//  (Unit Tests to create tutorial sample code and output)
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of the unit tests of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #if ALOX_DBG_LOG
 
     void Log_ScopeDomains_HPPHelper();
     void Log_ScopeDomains_HPPHelper()
     {
-        Log_Info("");
+        Log_Info("")
     }
 
 #endif
@@ -21,7 +21,7 @@
     void Lox_ScopeDomains_HPPHelper(Lox& lox)
     {
         #define LOX_LOX lox
-        Lox_Info("");
+        Lox_Info("")
         #undef LOX_LOX
     }
 #endif

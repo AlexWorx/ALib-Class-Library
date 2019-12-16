@@ -9,6 +9,8 @@
 #include "alib/alox/loggers/memorylogger.hpp"
 #include "alib/alox/loggers/textfilelogger.hpp"
 #include "alib/alox/reportwriter.hpp"
+#include "alib/alox/aloxmodule.hpp"
+#include "alib/lib/fs_modules/distribution.hpp"
 #include "alib/config/inifile.hpp"
 
 #include <iostream>
@@ -17,7 +19,7 @@
 using namespace std;
 using namespace aworx;
 
-// prototypes
+// local prototypes
 extern String128 autoSizes;
 void DebugLog();
 void ReleaseLog();
@@ -38,7 +40,7 @@ void DebugLog()
 {
     cout << "cout: Do some debug logging:" <<  endl;
 
-    Log_Info("Hello ALox, this is debug logging" );
+    Log_Info("Hello ALox, this is debug logging" )
 
 
     #if !ALOX_DBG_LOG
@@ -59,7 +61,7 @@ void ReleaseLog()
     // let the system choose an appropriate console logger
     Lox_Prune( TextLogger* releaseLogger= Lox::CreateConsoleLogger(); )
 
-    // In debug compilations, we still install a report writer.
+    // With debug builds, we still install a report writer.
     Log_Prune( Log::AddALibReportWriter( &LOX_LOX ); )
     Log_Prune( Lox_SetVerbosity( releaseLogger, Verbosity::Verbose, ALoxReportWriter::LogDomain() ); )
     Log_Prune( Lox_SetPrefix( "ALib Report: ", ALoxReportWriter::LogDomain() ); )
@@ -70,22 +72,22 @@ void ReleaseLog()
         Lox_Prune( releaseLogger->MetaInfo->Format.Reset( "[%TC+%TL][%tN]%V[%D]%A1(%#): " ); )
     #endif
 
-    Lox_SetVerbosity( releaseLogger, Verbosity::Info );
-    Lox_Info ( "Hello ALox, this is release logging" );
+    Lox_SetVerbosity( releaseLogger, Verbosity::Info )
+    Lox_Info ( "Hello ALox, this is release logging" )
 
     ALIB_MESSAGE ( "And this is an ALib report message. Appears on release lox but only "
-                   "in debug compilation." );
+                   "with debug builds." )
 
 
     // shutdown
-    Log_Prune( Log::RemoveALibReportWriter() );  // in debug compilation only
+    Log_Prune( Log::RemoveALibReportWriter() );  // with debug builds only
 
-    Lox_RemoveLogger( releaseLogger );
+    Lox_RemoveLogger( releaseLogger )
     Lox_Prune( delete releaseLogger; )
 
     #if !ALOX_REL_LOG
         cout << "cout: should not have logged something (release logging was disabled, obviously "
-                "ALOX_REL_LOG_OFF was passed to the compiler)" <<  endl;
+                "ALOX_REL_LOG=0 was passed to the compiler)" <<  endl;
     #endif
     cout <<  endl;
 }
@@ -96,7 +98,7 @@ void ReleaseLog()
 // #################################################################################################
 void PerformanceTest()
 {
-    Log_AddDebugLogger();
+    Log_AddDebugLogger()
     Lox_Prune( MemoryLogger ml( nullptr, true, false); )
 
     // to align all samples nicely, we are manually adding the autosizes from the config.
@@ -104,16 +106,16 @@ void PerformanceTest()
     // use this till the end
     Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
 
-                                    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priorities::ProtectedValues   );
-    Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priorities::ProtectedValues   ) );
-                                    Log_SetVerbosity( &ml,              Verbosity::Verbose, "/MEM", Priorities::ProtectedValues   );
+                                    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priorities::ProtectedValues   )
+    Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priorities::ProtectedValues   ) )
+                                    Log_SetVerbosity( &ml,              Verbosity::Verbose, "/MEM", Priorities::ProtectedValues   )
 
-    Log_Info( "Logging simple info lines" );
+    Log_Info( "Logging simple info lines" )
 
 
     int64_t fastest=       (std::numeric_limits<int64_t>::max)();
 
-    #if !ALIB_STRINGS_DEBUG
+    #if !ALIB_DEBUG_STRINGS
         int qtyLines=   100;
         int qtyLoops=   100;
     #else
@@ -125,16 +127,16 @@ void PerformanceTest()
         qtyLoops= 10;
 
 
-    for ( int i= 0 ; i < qtyLoops ; i++ )
+    for ( int i= 0 ; i < qtyLoops ; ++i )
     {
         #if ALOX_REL_LOG
             ml.MemoryLog.Reset();
         #endif
 
         Ticks tt;
-            for ( int l= 0 ; l < qtyLines ; l++ )
+            for ( int l= 0 ; l < qtyLines ; ++l )
             {
-                Log_Info ( "/MEM", "Test Line ", l  );
+                Log_Info ( "/MEM", "Test Line ", l  )
                 Log_Prune( if( i== 0 && l == 0) Log_Info( "/CON", "Sample Output:\\n{}", ml.MemoryLog ); )
             }
         auto t= tt.Age();
@@ -143,7 +145,7 @@ void PerformanceTest()
         if ( fastest > recent  )
         {
             fastest= recent;
-            Log_Info( "/CON", "Pass {:03} is new fastest: {:4} micros per {} logs.", i, fastest,  qtyLines );
+            Log_Info( "/CON", "Pass {:03} is new fastest: {:4} micros per {} logs.", i, fastest,  qtyLines )
         }
     }
 
@@ -151,10 +153,10 @@ void PerformanceTest()
     Log_Prune( int    logsPerSecond= static_cast<int>( 1000000.0 / microsPerLog);                    )
 
     Log_Info( "/CON", ESC::MAGENTA, "  Fastest debug logging: {} micros per log (resp. {:,} logs per second) ",
-               microsPerLog, logsPerSecond );
+               microsPerLog, logsPerSecond )
 
 
-    Log_RemoveLogger( &ml );
+    Log_RemoveLogger( &ml )
 }
 
 // #################################################################################################
@@ -175,24 +177,24 @@ void PerformanceTestRL()
         Lox_Prune( ml.            MetaInfo->Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
     #endif
 
-//Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,  ALox::InternalDomains, Config::PriorityOf(Priorities::ProtectedValues) );
-    Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,   "/CON", Priorities::ProtectedValues );
-    Lox_SetVerbosity( releaseLogger, Verbosity::Off,       "/MEM", Priorities::ProtectedValues );
-    Lox_SetVerbosity( &ml,           Verbosity::Verbose,   "/MEM", Priorities::ProtectedValues );
+//Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,  Lox::InternalDomains, Config::PriorityOf(Priorities::ProtectedValues) );
+    Lox_SetVerbosity( releaseLogger, Verbosity::Off,       "/"   , Priorities::ProtectedValues )
+    Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,   "/CON", Priorities::ProtectedValues )
+    Lox_SetVerbosity( &ml,           Verbosity::Verbose,   "/"   , Priorities::ProtectedValues )
 
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
     Lox_Prune(     releaseLogger->AutoSizes.Import( Substring(autoSizes) );                           )
 
-    Lox_Info( "/CON", "Logging simple info lines (release logging)" );
+    Lox_Info( "/CON", "Logging simple info lines (release logging)" )
 
     #if defined( _MSC_VER )
         int64_t fastest=       MAXINT;
     #else
         int64_t fastest=       std::numeric_limits<int>::max();
     #endif
-    #if !ALIB_STRINGS_DEBUG
+    #if !ALIB_DEBUG_STRINGS
         int qtyLines=   100;
         int qtyLoops=   100;
     #else
@@ -202,17 +204,16 @@ void PerformanceTestRL()
     if ( ALIB.IsDebuggerPresent() )
         qtyLoops= 10;
 
-    for ( int i= 0 ; i < qtyLoops ; i++ )
+    for ( int i= 0 ; i < qtyLoops ; ++i )
     {
         #if ALOX_DBG_LOG || ALOX_REL_LOG
             ml.MemoryLog.Reset();
         #endif
         Ticks tt;
-            for ( int l= 0 ; l < qtyLines ; l++ )
+            for ( int l= 0 ; l < qtyLines ; ++l )
             {
-                Lox_Info ( "/MEM", "Test Line ", l  );
+                Lox_Info ( "Test Line ", l  )
                 Lox_Prune( if( i== 0 && l == 0) Lox_Info( "/CON", "Sample Output:\\n{}", ml.MemoryLog ); )
-
             }
         auto t= tt.Age();
         auto recent= t.InAbsoluteMicroseconds();
@@ -220,19 +221,19 @@ void PerformanceTestRL()
         if ( fastest > recent  )
         {
             fastest= recent;
-            Log_Info( "/CON", "Pass {:03} is new fastest: {:4} micros per {} logs.", i, fastest,  qtyLines );
+            Lox_Info( "/CON", "Pass {:03} is new fastest: {:4} micros per {} logs.", i, fastest,  qtyLines )
 
         }
     }
 
-    Log_Prune( double microsPerLog=  static_cast<double>( fastest ) / qtyLines; )
-    Log_Prune( int    logsPerSecond= static_cast<int   >( 1000000.0 / microsPerLog );              )
-    Log_Info( "/CON", ESC::MAGENTA, "  Fastest release logging: {} micros per log (resp. {:,} logs per second) ",
-               microsPerLog, logsPerSecond );
+    Lox_Prune( double microsPerLog=  static_cast<double>( fastest ) / qtyLines; )
+    Lox_Prune( int    logsPerSecond= static_cast<int   >( 1000000.0 / microsPerLog );              )
+    Lox_Info( "/CON", ESC::MAGENTA, "  Fastest release logging: {} micros per log (resp. {:,} logs per second) ",
+               microsPerLog, logsPerSecond )
 
 
-    Lox_RemoveLogger( &ml );
-    Lox_RemoveLogger( releaseLogger );
+    Lox_RemoveLogger( &ml )
+    Lox_RemoveLogger( releaseLogger )
     Lox_Prune( delete releaseLogger; )
 }
 
@@ -240,11 +241,11 @@ void Formatting()
 {
     cout << "cout: Use the predefined formatters:" <<  endl;
 
-    Log_Info("Python-Style Format: {}, {:08.3}, *{:^12}*", "Hello", 12.3456789, "Centered" );
-    Log_Info("Java-Style Format:   %s, %08.3f, *%^12s*"  , "Hello", 12.3456789, "Centered" );
+    Log_Info("Python-Style Format: {}, {:08.3}, *{:^12}*", "Hello", 12.3456789, "Centered" )
+    Log_Info("Java-Style Format:   %s, %08.3f, *%^12s*"  , "Hello", 12.3456789, "Centered" )
 
-    Log_Info("We can mix styles: {}-Style", "Python", " and %s-Style in one log statement", "Java" );
-    Log_Info("But mixing must not be done within one format string: {} %s", "Right", "Wrong" );
+    Log_Info("We can mix styles: {}-Style", "Python", " and %s-Style in one log statement", "Java" )
+    Log_Info("But mixing must not be done within one format string: {} %s", "Right", "Wrong" )
 
 
     cout <<  endl;
@@ -252,7 +253,7 @@ void Formatting()
 
 void LogColors()
 {
-    Log_AddDebugLogger();
+    Log_AddDebugLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
@@ -261,11 +262,11 @@ void LogColors()
     cout << "cout: Colorful logging:" <<  endl;
 
 
-    Log_Info(    "Let us do some color test. First, lets see if different verbosities have different colors:" );
-    Log_Warning( "Is this line colored (verbosity warning)?" );
-    Log_Error(   "Is this line colored differently (verbosity error)?" );
-    Log_Verbose( "Is this line colored differently (verbosity verbose)?" );
-    Log_Info(    "Color table:");
+    Log_Info(    "Let us do some color test. First, lets see if different verbosities have different colors:" )
+    Log_Warning( "Is this line colored (verbosity warning)?" )
+    Log_Error(   "Is this line colored differently (verbosity error)?" )
+    Log_Verbose( "Is this line colored differently (verbosity verbose)?" )
+    Log_Info(    "Color table:")
     Log_Info( String256() << "FG Colors:  "
                           << ">>>" << ESC::RED     << "RED"        << ESC::FG_RESET << "<<<"
                           << ">>>" << ESC::GREEN   << "GREEN"      << ESC::FG_RESET << "<<<"
@@ -275,7 +276,7 @@ void LogColors()
                           << ">>>" << ESC::YELLOW  << "YELLOW"     << ESC::FG_RESET << "<<<"
                           << ">>>" << ESC::GRAY    << "GRAY"       << ESC::FG_RESET << "<<<"
                           << ">>>" << ESC::WHITE   << "WHITE"      << ESC::FG_RESET << "<<<"
-                          << ">>>" << ESC::BLACK   << "BLACK"      << ESC::FG_RESET << "<<<"   );
+                          << ">>>" << ESC::BLACK   << "BLACK"      << ESC::FG_RESET << "<<<"   )
 
     Log_Info( String256() << "BG Colors:  "
                           << ">>>" << ESC::BG_RED     << "RED"        << ESC::BG_RESET << "<<<"
@@ -286,7 +287,7 @@ void LogColors()
                           << ">>>" << ESC::BG_YELLOW  << "YELLOW"     << ESC::BG_RESET << "<<<"
                           << ">>>" << ESC::BG_GRAY    << "GRAY"       << ESC::BG_RESET << "<<<"
                           << ">>>" << ESC::BG_WHITE   << "WHITE"      << ESC::BG_RESET << "<<<"
-                          << ">>>" << ESC::BG_BLACK   << "BLACK"      << ESC::BG_RESET << "<<<"  );
+                          << ">>>" << ESC::BG_BLACK   << "BLACK"      << ESC::BG_RESET << "<<<"  )
 
     Log_Info( String256() << "FG/BG same: "
                           << ">>>" << ESC::RED     << ESC::BG_RED     << "RED"        << ESC::RESET << "<<<"
@@ -297,13 +298,13 @@ void LogColors()
                           << ">>>" << ESC::YELLOW  << ESC::BG_YELLOW  << "YELLOW"     << ESC::RESET << "<<<"
                           << ">>>" << ESC::GRAY    << ESC::BG_GRAY    << "GRAY"       << ESC::RESET << "<<<"
                           << ">>>" << ESC::WHITE   << ESC::BG_WHITE   << "WHITE"      << ESC::RESET << "<<<"
-                          << ">>>" << ESC::BLACK   << ESC::BG_BLACK   << "BLACK"      << ESC::RESET << "<<<" );
+                          << ">>>" << ESC::BLACK   << ESC::BG_BLACK   << "BLACK"      << ESC::RESET << "<<<" )
 
     Log_Info( String256() << "Styles: "
                           << ">>>" << ESC::BOLD     << "Bold"          << ESC::STYLE_RESET << "<<<"
                           << ">>>" << ESC::ITALICS  << "Italics"       << ESC::STYLE_RESET << "<<<"
                           << ">>>" << ESC::BOLD
-                          << ">>>" << ESC::ITALICS  << "Bold/Italics"  << ESC::STYLE_RESET << "<<<  Styles do not work in Windows consoles" );
+                          << ">>>" << ESC::ITALICS  << "Bold/Italics"  << ESC::STYLE_RESET << "<<<  Styles do not work in Windows consoles" )
 
 
     #if !ALOX_DBG_LOG
@@ -315,60 +316,60 @@ void LogColors()
 
 void WCharTest()
 {
-    Log_AddDebugLogger();
+    Log_AddDebugLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
     Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
 
-    Log_SetDomain( "WCHAR", Scope::Method );
+    Log_SetDomain( "WCHAR", Scope::Method )
 
     Log_Info( "ASCII String as wide: ",  L"AString")
-    Log_Info( "Euro sign:            ",  L"\u20AC" );
-    Log_Info( "Greek characters:     ",  L"\u03B1\u03B2\u03B3\u03B4\u03B5" );
+    Log_Info( "Euro sign:            ",  L"\u20AC" )
+    Log_Info( "Greek characters:     ",  L"\u03B1\u03B2\u03B3\u03B4\u03B5" )
 
 
     // from https://msdn.microsoft.com/en-us/library/69ze775t.aspx
-    Log_Info( "Smileys:              ", L"😉 = \U0001F609 is ;-)"   );
-    Log_Info( "                      ", L"😇 = \U0001F607 is O:-)"  );
-    Log_Info( "                      ", L"😃 = \U0001F603 is :-D"   );
-    Log_Info( "                      ", L"😎 = \U0001F60E is B-)"   );
-    Log_Info( "                      ", L"( ͡° ͜ʖ ͡°) = ( \U00000361\U000000b0 \U0000035c\U00000296\U00000361\U000000b0)" );
+    Log_Info( "Smileys:              ", L"😉 = \U0001F609 is ;-)"   )
+    Log_Info( "                      ", L"😇 = \U0001F607 is O:-)"  )
+    Log_Info( "                      ", L"😃 = \U0001F603 is :-D"   )
+    Log_Info( "                      ", L"😎 = \U0001F60E is B-)"   )
+    Log_Info( "                      ", L"( ͡° ͜ʖ ͡°) = ( \U00000361\U000000b0 \U0000035c\U00000296\U00000361\U000000b0)" )
 
 
-    Log_Info( "sizeof wchar: ",  sizeof(wchar_t) );
-    Log_Info( "Max wchar:    ",  WCHAR_MAX       );
-    Log_Info( "Min wchar:    ",  WCHAR_MIN       );
+    Log_Info( "sizeof wchar: ",  sizeof(wchar_t) )
+    Log_Info( "Max wchar:    ",  WCHAR_MAX       )
+    Log_Info( "Min wchar:    ",  WCHAR_MIN       )
 }
 
 void textFileLogger()
 {
-    Log_AddDebugLogger();
+    Log_AddDebugLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
     Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
 
-    Log_Info( "Creating a text file logger with file 'Test.log.txt'" );
+    Log_Info( "Creating a text file logger with file 'Test.log.txt'" )
 
-    Log_SetDomain( "TEXTFILE_TEST", Scope::Method    );
+    Log_SetDomain( "TEXTFILE_TEST", Scope::Method    )
 
     Log_Prune( TextFileLogger tfl( A_CHAR("Test.log.txt") ) );
-    Log_SetVerbosity( &tfl, Verbosity::Verbose );
-    Log_SetVerbosity( &tfl, Verbosity::Error, ALox::InternalDomains );
+    Log_SetVerbosity( &tfl, Verbosity::Verbose )
+    Log_SetVerbosity( &tfl, Verbosity::Error, Lox::InternalDomains )
 
-    Log_Verbose( "A verbose message (goes to textfile logger as well)"  );
-    Log_Info   ( "An info message (goes to textfile logger as well)"    );
-    Log_Warning( "A warning message (goes to textfile logger as well)"  );
-    Log_Error  ( "An error message (goes to textfile logger as well)"   );
-    Log_Info   ( "Multi-line part 1...\n....part 2"                     );
+    Log_Verbose( "A verbose message (goes to textfile logger as well)"  )
+    Log_Info   ( "An info message (goes to textfile logger as well)"    )
+    Log_Warning( "A warning message (goes to textfile logger as well)"  )
+    Log_Error  ( "An error message (goes to textfile logger as well)"   )
+    Log_Info   ( "Multi-line part 1...\n....part 2"                     )
 
     Log_RemoveLogger( &tfl )
 }
 
 void SampleALibReport()
 {
-    Log_AddDebugLogger();
+    Log_AddDebugLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
@@ -376,15 +377,15 @@ void SampleALibReport()
 
     Log_Info( "Sample: ALib Report Writer\n"
               "Method \"Log::AddDebugLogger()\" by default creates a replacement for the\n"
-              "standard ALib report writer. If this is a debug compilation, let's have a try and\n"
-              "create an 3 Messages:"  );
+              "standard ALib report writer. If this is a debug build, let's have a try and\n"
+              "create an 3 Messages:"  )
 
     // must be done only in debug compiles
     #if ALIB_DEBUG
 
     lib::results::Report::GetDefault().PushHaltFlags( false, false );
-        ALIB_ERROR(   "This is an error report!" );
-        ALIB_WARNING( "And this is a warning. A next one should follow:"   );
+        ALIB_ERROR(   "This is an error report!" )
+        ALIB_WARNING( "And this is a warning. A next one should follow:"   )
         AString test("12345");
         test.GrowBufferAtLeastBy(1);
 
@@ -392,13 +393,13 @@ void SampleALibReport()
 
     #endif
 
-    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, ALox::InternalDomains );
+    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
     ALIB_MESSAGE( "This is an ALib Report. Types other than '0' and '1' are user defined.\n"
-                  "Verbosity of ALox::InternalDomains has to be increased to see them when using "
-                  "ALoxReportWriter."  );
+                  "Verbosity of Lox::InternalDomains has to be increased to see them when using "
+                  "ALoxReportWriter."  )
 
-    Log_Info( "Note the domain prefix '{}'. This addresses the tree of internal domains\n"
-              "of the Lox, which the report writer is just using.", ALox::InternalDomains  );
+    Log_Info( "Note the domain prefix {!Q'}. This addresses the tree of internal domains\n"
+              "of the Lox, which the report writer is just using.", Lox::InternalDomains  )
 }
 
 
@@ -408,12 +409,12 @@ void ALoxSampleReset()
         if ( Log::DebugLogger != nullptr )
         {
             Log::DebugLogger->AutoSizes.Export( autoSizes.Reset() );
-            Log_RemoveDebugLogger();
+            Log_RemoveDebugLogger()
         }
     #endif
 
     Log_Prune( LOG_LOX.Reset(); )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include )
 }
 
 
@@ -427,8 +428,8 @@ int main( int argc, char *argv[] )
         #pragma message ("Info: MS Compiler (not a warning, just for an information)")
     #endif
 
-    // Partly initialize ALib/ALox, to have configuration and default resources in place
-    ALIB.Init(  argc, argv, InitLevels::PrepareConfig );
+    // Partly initialize ALib/ALox, to have configuration and default resource pool in place
+    ALIB.Bootstrap(  argc, argv, BootstrapPhases::PrepareConfig );
 
 
     // first attach INI file to config system...
@@ -445,23 +446,23 @@ int main( int argc, char *argv[] )
         );
     }
 
-    ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
+    ALIB.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
     //... and then initialize ALib completely
-    ALIB.Init();
+    ALIB.Bootstrap();
 
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include );
+    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include )
 
     // Suppress setting "writeback" for verbosities. We need to do this as this main()
     // method invokes a list of independent samples. Those would now read from the INI file wrong
     // values written in other sample methods and thus the samples would not work any more
     // (because INI file settings overrules settings in the code)
     Variable var;
-    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_DEBUG_LOGGER_VERBOSITY")  ),  A_CHAR("") );
-    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_CONSOLE_VERBOSITY")),  A_CHAR("") );
-    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MEMORY_VERBOSITY")        ),  A_CHAR("") );
-    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MEMORY_VERBOSITY") ),  A_CHAR("") );
-    lib::ALOX.Config->Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_TEXTFILE_VERBOSITY")      ),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_DEBUG_LOGGER_VERBOSITY=")  ),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_CONSOLE_VERBOSITY=")),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MONOMEM_VERBOSITY=")       ),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MONOMEM_VERBOSITY=")),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_TEXTFILE_VERBOSITY=")      ),  A_CHAR("") );
 
     DebugLog();                 ALoxSampleReset();
     ReleaseLog();               ALoxSampleReset();
@@ -474,11 +475,11 @@ int main( int argc, char *argv[] )
     textFileLogger();           ALoxSampleReset();
 
     // cleanup resources to make Valgrind happy
-    ALIB.Config->RemovePlugin( &iniFile );
-    ALIB.Config->FetchFromDefault( iniFile );
+    ALIB.GetConfig().RemovePlugin( &iniFile );
+    ALIB.GetConfig().FetchFromDefault( iniFile );
     iniFile.WriteFile();
 
-    ALIB.TerminationCleanUp();
+    ALIB.Shutdown();
     cout << "ALox Samples finished" << endl;
     return 0;
 }

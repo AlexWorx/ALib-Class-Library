@@ -6,18 +6,21 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
 #   include "alib/expressions/plugins/dateandtime.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
-//! @cond NO_DOX
-#if ALIB_MODULE_SYSTEM
+#if ALIB_SYSTEM
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_SYSTEM_CALENDAR)
 #   include "alib/system/calendar.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
-
+//! @cond NO_DOX
 
 #define ARG0           (*args)
 #define ARG1           (*(args+1))
@@ -30,10 +33,10 @@
                                   ArgIterator  end    )                                         \
                                   { (void) scope; (void) args; (void) end; __VA_ARGS__ }
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-#   define TOINT(arg) static_cast<integer>(arg)
-#else
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 #   define TOINT(arg)                      arg
+#else
+#   define TOINT(arg) static_cast<integer>(arg)
 #endif
 
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
@@ -234,7 +237,7 @@ FUNC( smeqDUR    , return  DUR(ARG0)  <= DUR(ARG1);   )
 // #################################################################################################
 // ### Duration
 // #################################################################################################
-Calculus::BinaryOpTableEntry  binaryOpTableDateTime[] =
+Calculus::OperatorTableEntry  binaryOpTableDateTime[] =
 {
     { A_CHAR("+") , Types::DateTime , Types::Duration , CALCULUS_CALLBACK( add_DTDUR ), Types::DateTime ,Calculus::CTI },
     { A_CHAR("+") , Types::Duration , Types::DateTime , CALCULUS_CALLBACK( add_DURDT ), Types::DateTime ,Calculus::CTI },
@@ -264,19 +267,19 @@ Calculus::BinaryOpTableEntry  binaryOpTableDateTime[] =
     { A_CHAR("<="), Types::Duration , Types::Duration , CALCULUS_CALLBACK( smeqDUR   ), Types::Boolean  ,Calculus::CTI },
 };
 
-}; // anonymous namespace
+} // anonymous namespace
 
 
 // #################################################################################################
 // ### DateAndTime - Constructor. Creates the hash map
 // #################################################################################################
-void  DateAndTime::Init()
+void  DateAndTime::Bootstrap()
 {
 DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
 // register ToLiteral interface for class DateTime::Duration with boxing
-boxing::Register<FToLiteral, lib::boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
+boxing::BootstrapRegister<FToLiteral, lib::boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
 DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
-boxing::Register<FToLiteral, lib::boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
+boxing::BootstrapRegister<FToLiteral, lib::boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
 }
 
 DateAndTime::DateAndTime( Compiler& compiler )
@@ -285,7 +288,7 @@ DateAndTime::DateAndTime( Compiler& compiler )
     // load identifier/function names from resources
     constexpr int tableSize= 58;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "DateAndTime", functionNames
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPD", functionNames
                                 ALIB_DBG(,tableSize)                                     );
     Token* descriptor= functionNames;
 
@@ -360,12 +363,12 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
     };
 
     // binary operators
-    AddBinaryOps( binaryOpTableDateTime );
+    AddOperators( binaryOpTableDateTime );
 
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize  )
-};
+}
 
 
 }}}} // namespace [aworx::lib::expressions::detail]
@@ -379,6 +382,6 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
 #undef BIN_MAP_ENTRY
 #undef BIN_ALIAS_ENTRY
 
-#endif // ALIB_MODULE_SYSTEM
+#endif // ALIB_SYSTEM
 
 //! @endcond

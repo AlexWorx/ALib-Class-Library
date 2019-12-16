@@ -6,12 +6,23 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/token.hpp"
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
+#      include "alib/strings/util/token.hpp"
+#   endif
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES && !defined(HPP_ALIB_LIB_COMMONENUMS_RESOURCED)
-#   include "alib/lib/commonenumsresourced.hpp"
-    ALIB_ENUM_IS_BITWISE( aworx::lib::strings::util::Token::Formats )
-#endif
+#   if ALIB_ENUMS
+#      if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#         include "alib/enums/serialization.hpp"
+#      endif
+#      if !defined(HPP_ALIB_FS_COMMONENUMS)
+#           include "alib/lib/fs_commonenums/commonenums.hpp"
+#      endif
+
+       ALIB_ENUMS_MAKE_BITWISE( aworx::lib::strings::util::Token::Formats )
+
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 // Windows.h might bring in max/min macros
@@ -19,7 +30,6 @@
     #undef max
     #undef min
 #endif
-
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -50,7 +60,7 @@ Token::Token( const String& pName, Case sensitivity,
     format= Formats( int8_t(format) | int8_t(ignoreCase) );
 }
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES
+#if ALIB_ENUMS
 void Token::Define( const String& definition, character separator )
 {
     minLengths[0]=  0;
@@ -65,11 +75,11 @@ void Token::Define( const String& definition, character separator )
         return;
 
     Case letterCase= Case::Sensitive;
-    size_t qtyMinLenghts= 0;
+    size_t qtyMinLengths= 0;
     if(parser.IsNotEmpty() )
     {
         // letter case sensitivity
-        if( !parser.ConsumeEnum( letterCase ) )
+        if( !enums::Parse( parser, letterCase ) )
         {
             format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingSensitivity) );
             return;
@@ -78,7 +88,7 @@ void Token::Define( const String& definition, character separator )
         // list of minimum length values
         while(parser.ConsumeChar( separator ) )
         {
-            if( qtyMinLenghts >= 7 )
+            if( qtyMinLengths >= 7 )
             {
                 format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::TooManyMinLengthsGiven) );
                 return;
@@ -90,13 +100,13 @@ void Token::Define( const String& definition, character separator )
                 return;
             }
 
-            parser.ConsumeDecDigits( minLengths[qtyMinLenghts++] );
+            parser.ConsumeDecDigits( minLengths[qtyMinLengths++] );
         }
     }
-    if( qtyMinLenghts == 0 )
+    if( qtyMinLengths == 0 )
         minLengths[0]= static_cast<int8_t>( name.Length() );
-    if( qtyMinLenghts> 0 && qtyMinLenghts < 7 )
-        minLengths[qtyMinLenghts]= -1;
+    if( qtyMinLengths > 0 && qtyMinLengths < 7 )
+        minLengths[qtyMinLengths]= -1;
 
     #if ALIB_DEBUG
         if( parser.IsNotEmpty() )
@@ -123,7 +133,7 @@ void    Token::detectFormat()
     // detect number of min length values
     int qtyMinLength= 1;
     while( qtyMinLength < 7 && minLengths[qtyMinLength] >= 0 )
-        qtyMinLength++;
+        ++qtyMinLength;
 
     // just one length given? Keep format "normal"
     format= Formats::Normal;
@@ -137,14 +147,14 @@ void    Token::detectFormat()
         for( integer idx=  1; idx < name.Length() ; ++idx )
         {
             character c= name[idx];
-                 if( c == '_' )      qtyUnderscores++;
-            else if( c == '-' )      qtyHyphens++;
+                 if( c == '_' )      ++qtyUnderscores;
+            else if( c == '-' )      ++qtyHyphens;
             else if( isalpha(c) )
             {
                 if( islower(c) )
                     hasLowerCases= true;
                 else
-                    qtyUpperCases++;
+                    ++qtyUpperCases;
             }
             else
                 hasLowerCases= true;
@@ -215,7 +225,7 @@ void    Token::detectFormat()
             integer charIdx      = 1;
             while( charIdx < name.Length() )
             {
-                segmentLength++;
+                ++segmentLength;
                 character c= name.CharAt( charIdx++ );
                 bool segmentEnd=     c == '\0'
                                   || (format == Formats::SnakeCase && c == '_' )
@@ -231,7 +241,7 @@ void    Token::detectFormat()
                     }
 
                     segmentLength=  (format == Formats::CamelCase ? 1 : 0);
-                    segmentNo++;
+                    ++segmentNo;
                 }
             }
 
@@ -273,13 +283,15 @@ bool    Token::Match( const String& needle )
     while( hIdx < name.Length() )
     {
         // read current haystack and needle
-        segLen++;
+        ++segLen;
         character h= name  .CharAt( hIdx++ );
-        character n= needle.CharAt( nIdx  ++ );
+        character n= needle.CharAt( nIdx++ );
 
         same= sensitivity == Case::Ignore
-              ? toupper(h) == toupper(n)
-              :         h  ==         n;
+              ?     characters::CharArray<character>::ToUpper(h)
+                 == characters::CharArray<character>::ToUpper(n)
+              :                                               h
+                 ==                                           n;
 
         // special CamelCase treatment
         if( isCamel )
@@ -294,20 +306,20 @@ bool    Token::Match( const String& needle )
                 if( segLen == 1 && rollbackLen > 0)
                 {
                     nIdx-= 2;
-                    rollbackLen--;
-                    hIdx--;
-                    segLen--;
+                    --rollbackLen;
+                    --hIdx;
+                    --segLen;
                     continue;
                 }
 
-                nIdx--;
+                --nIdx;
             }
 
             if( segLen == 1)
                 rollbackLen= 0;
 
             else if( same && isSegOK )
-                rollbackLen++;
+                ++rollbackLen;
         }
 
         // end of haystack segment?
@@ -350,13 +362,13 @@ bool    Token::Match( const String& needle )
                 h= name.CharAt( hIdx++ );
 
             if( isCamel )
-                hIdx--;
+                --hIdx;
         }
 
         // start new segment
         if( !same || isSegEnd )
         {
-            segNo++;
+            ++segNo;
             segLen= 0;
             segMinLen    = segNo < 7 ? minLengths[segNo] : -2;
 
@@ -369,84 +381,121 @@ bool    Token::Match( const String& needle )
     return same && isSegOK && (nIdx == needle.Length());
 }
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES && !ALIB_DOCUMENTATION_PARSER
+#if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(ALIB_DOX)
 
-void Token::LoadResourcedTokens( Module& module, const NString& resourceName,
-                                 Token *token,
-                                 ALIB_DBG(int dbgSizeVerifier, )
-                                 character outerSeparator,
-                                 character innerSeparator                      )
+void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
+                                  const NString&        resourceCategory,
+                                  const NString&        resourceName,
+                                  strings::util::Token* token,
+                      ALIB_DBG(   int                   dbgSizeVerifier, )
+                                  character             outerSeparator,
+                                  character             innerSeparator        )
 {
     ALIB_DBG( int tableSize= 0; )
-    Substring parser= module.GetResource( resourceName );
-    while( parser.IsNotEmpty() )
+    int resourceNo= -1; // disble number parsing
+
+    Substring parser= resourcePool.Get( resourceCategory, resourceName ALIB_DBG(, false ) );
+    if( parser.IsNull() )
+        resourceNo= 0; // enable number parsing
+
+    for( ;; )
     {
-        String actValue= parser.ConsumeToken( outerSeparator );
-        token->Define( actValue, innerSeparator );
+        if (resourceNo >= 0)
+            parser= resourcePool.Get( resourceCategory, NString256() << resourceName << resourceNo++
+                                      ALIB_DBG(, false ) );
 
-        #if ALIB_DEBUG
-            NCString errorMessage;
-            switch( token->DbgGetError() )
-            {
-                case Token::DbgDefinitionError::OK:
-                    break;
-                case Token::DbgDefinitionError::EmptyName:
-                    errorMessage= "No token name found.";
-                    break;
-                case Token::DbgDefinitionError::ErrorReadingSensitivity:
-                    errorMessage= "Sensitivity value not found.";
-                    break;
-                case Token::DbgDefinitionError::ErrorReadingMinLengths:
-                    errorMessage= "Error parsing the list of minimum lengths.";
-                    break;
-                case Token::DbgDefinitionError::TooManyMinLengthsGiven:
-                    errorMessage= " A maximum of 7 minimum length values was exceeded.";
-                    break;
-                case Token::DbgDefinitionError::InconsistentMinLengths:
-                    errorMessage= "The number of given minimum length values is greater than 1 "
-                                  "but does not match the number of segments in the identifier.";
-                    break;
-                case Token::DbgDefinitionError::NoCaseSchemeFound:
-                    errorMessage= "More than one minimum length value was given but no "
-                                  "segmentation scheme could be detected." ;
-                    break;
-                case Token::DbgDefinitionError::MinLenExceedsSegmentLength:
-                    errorMessage= "A minimum length is specified to be higher than the token "
-                                  "name, respectively the according segment name.";
-                    break;
-                case Token::DbgDefinitionError::DefinitionStringNotConsumed:
-                    errorMessage= "The definition string was not completely consumed.";
-                    break;
-                case Token::DbgDefinitionError::ZeroMinLengthAndNotLastCamelHump:
-                    errorMessage= "Zero minimum length provided for segment which is not the last\\n"
-                                  "of a camel case token.";
-                    break;
-            }
+        ALIB_ASSERT_ERROR( resourceNo != 1 || parser.IsNotNull(),  NString256() <<
+                           "Resource string(s) \"" << resourceCategory
+                           << "/" << resourceName  << "(nn)\"  not found when parsing token."  )
 
-            if( errorMessage.IsNotEmpty() )
-            {
-                ALIB_ERROR( errorMessage, NString512() <<
-                    "\n(While reading token table.)\n"
-                    "    Resource category (module name):  \"" <<  module.ResourceCategory << "\"\n"
-                    "    Resource name:                    \"" <<  resourceName            << "\"\n"
-                    "    Token value parsed:               \"" <<  actValue                << "\""  )
+        if( parser.IsEmpty() )
+            break;
+
+        while( parser.IsNotEmpty() )
+        {
+            String actValue= parser.ConsumeToken( outerSeparator );
+            token->Define( actValue, innerSeparator );
+
+            #if ALIB_DEBUG
+                NCString errorMessage;
+                switch( token->DbgGetError() )
+                {
+                    case Token::DbgDefinitionError::OK:
+                        break;
+                    case Token::DbgDefinitionError::EmptyName:
+                        errorMessage= "No token name found.";
+                        break;
+                    case Token::DbgDefinitionError::ErrorReadingSensitivity:
+                        errorMessage= "Sensitivity value not found.";
+                        break;
+                    case Token::DbgDefinitionError::ErrorReadingMinLengths:
+                        errorMessage= "Error parsing the list of minimum lengths.";
+                        break;
+                    case Token::DbgDefinitionError::TooManyMinLengthsGiven:
+                        errorMessage= " A maximum of 7 minimum length values was exceeded.";
+                        break;
+                    case Token::DbgDefinitionError::InconsistentMinLengths:
+                        errorMessage= "The number of given minimum length values is greater than 1 "
+                                      "but does not match the number of segments in the identifier.";
+                        break;
+                    case Token::DbgDefinitionError::NoCaseSchemeFound:
+                        errorMessage= "More than one minimum length value was given but no "
+                                      "segmentation scheme could be detected." ;
+                        break;
+                    case Token::DbgDefinitionError::MinLenExceedsSegmentLength:
+                        errorMessage= "A minimum length is specified to be higher than the token "
+                                      "name, respectively the according segment name.";
+                        break;
+                    case Token::DbgDefinitionError::DefinitionStringNotConsumed:
+                        errorMessage= "The definition string was not completely consumed.";
+                        break;
+                    case Token::DbgDefinitionError::ZeroMinLengthAndNotLastCamelHump:
+                        errorMessage= "Zero minimum length provided for segment which is not the last\\n"
+                                      "of a camel case token.";
+                        break;
+                }
+
+                if( errorMessage.IsNotEmpty() )
+                {
+                    ALIB_ERROR( errorMessage, NString512() <<
+                        "\n(While reading token table.)\n"
+                        "    Resource category (module name):  \"" <<  resourceCategory << "\"\n"
+                        "    Resource name:                    \"" <<  resourceName     << "\"\n"
+                        "    Token value parsed:               \"" <<  actValue         << "\""  )
+                }
+
+            #endif
 
 
-            }
-
-        #endif
-
-
-        token++;
-        ALIB_DBG( tableSize++; )
+            ++token;
+            ALIB_DBG( tableSize++; )
+        }
     }
+
+    // check if there are more coming (a gap in numbered definition)
+    #if ALIB_DEBUG
+    if( resourceNo > 1 )
+        for( int i= 0 ; i < 35 ; ++i )
+        {
+            if( resourcePool.Get( resourceCategory, NString256() << resourceName << (resourceNo + i)
+                                  ALIB_DBG(, false ) ).IsNotNull() )
+            {
+                ALIB_ERROR( NString128()
+                   << "Detected a \"gap\" in numbering of resource strings while parsing "
+                      "resource token table: "
+                      "From index " << resourceNo - 1 << " to " << resourceNo + i - 1 << ".\n"
+                      "Resource category/name: " << resourceCategory << '/' << resourceName << "." )
+            }
+        }
+    #endif
+
 
     ALIB_ASSERT_ERROR( dbgSizeVerifier == tableSize, NString512() <<
         "Size mismatch in resourced token table:\\n"
-        "    Resource category (module name):  \"" << module.ResourceCategory   << "\"\n"
-        "    Resource name:                    \"" << resourceName              << "\"\n"
-        "    Resourced table size:             ["  << tableSize                 << "]\\n"
-        "    Expecteded table size:            ["  << dbgSizeVerifier           << "]"     )
+        "    Resource category (module name):  \"" << resourceCategory   << "\"\n"
+        "    Resource name:                    \"" << resourceName       << "\"\n"
+        "    Resourced table size:             ["  << tableSize          << "]\\n"
+        "    Expected table size:              ["  << dbgSizeVerifier    << "]"     )
 
 }
 #endif

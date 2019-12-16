@@ -22,7 +22,7 @@ The situation is even a little worse, because in C++:
 - The language keywords for narrow and wide characters do not specify a distinct size but are
   platform and compiler dependent.
 - C++ string literals are zero-terminated arrays (which for
-  [good reasons](http://queue.acm.org/detail.cfm?id=2010365) can be considered to be a legacy design
+  \https{good reasons,queue.acm.org/detail.cfm?id=2010365} can be considered to be a legacy design
   mistake).
 - C++ standard library type \c std::string always allocates memory and copies assign data.
   "Lightweight" string class \c std::string_view was only introduced with C++ 17 - too late for
@@ -35,16 +35,16 @@ string library increases the problem of adding complexity to this very basic and
 domain.
 
 Yes, a C++ developer lives in a string hell! And therefore, a main design goal of module
-\alibmod_nolink_strings  is to mitigate the problems.
+\alib_strings_nl  is to mitigate the problems.
 
 \~Comment ####################################################################################### \~
 ## 1.1 Library Design Goals ## {#alib_strings_intro_goals}
 
-The design goals of module \alibmod_nolink_strings are:
+The design goals of module \alib_strings_nl are:
 
 <b>1. Mitigate the "C++ string problem":</b>
 \par
-  The most important design goal behind module \alibmod_nolink_strings, is to have the string
+  The most important design goal behind module \alib_strings_nl, is to have the string
   classes introduced be as <b>open and interchangeable</b> as possible with just any other
   string type, may this be legacy zero-terminated arrays, the standard library types or just any
   3rd-party typed that "smells like a string".<br>
@@ -60,7 +60,7 @@ The design goals of module \alibmod_nolink_strings are:
 \par
    The width of characters used with \alib strings should be transparent. Only within special code
    sections, character widths should be needed to be explicitly chosen. As one result, user
-   code should be free of preprocessor macros (code selection) while still compiling on any platform
+   code should be free of preprocessor directives (code selection) while still compiling on any platform
    that defaults to any character width.
 
 <b>3. Abandon the use of zero-terminated strings:</b>
@@ -81,7 +81,7 @@ The design goals of module \alibmod_nolink_strings are:
    that a modern character string API usually offers.
    This final goal was reached with the evolution of the library. Furthermore, in addition to what is
    provided here, other modules of \aliblong even extend such functionality, for example
-   modules \alibmod_stringformat or \alibmod_resources.
+   modules \alib_text or \alib_resources.
 
 
 \~Comment ####################################################################################### \~
@@ -105,23 +105,23 @@ interpret or manipulate the array data. Hence, the arrays are seen as the founda
 that is used by strings.
 
 With this conceptual distinction, it became possible to separate the definition of type traits
-to separate module \alibmod_characters. While this module \alibmod_nolink_strings builds on
-\alibmod_nolink_characters, there is no dependency in the other direction: module \alibmod_nolink_characters
-does not "know" about module \alibmod_nolink_strings.
+to separate module \alib_characters. While this module \alib_strings_nl builds on
+\alib_characters_nl, there is no dependency in the other direction: module \alib_characters_nl
+does not "know" about module \alib_strings_nl.
 
 For a thorough understanding of all aspects, reading the
 \ref alib_mod_characters "Programmer's Manual Of ALib Module Characters" before the manual you
 are currently reading, is of-course helpful. But for a normal, straight forward use of the string
 classes, this is not needed.
 Therefore, the advice for the reader is to continue reading this manual about strings, and only
-start investigating into module \alibmod_characters, when noted in later chapters.
+start investigating into module \alib_characters, when noted in later chapters.
 
-This brief summary of what module \alibmod_nolink_characters offers may suffice for the time being:
+This brief summary of what module \alib_characters_nl offers may suffice for the time being:
 1. Character Types:
    - As the width of wide character type \c wchar_t is compiler dependent, type \alib{characters,wchar}
      is introduced.
      This may be equivalent to \c wchar_t but may also be one of \c char16_t or \c char32_t.
-     With type \b wchar, the responsibility of what a wide character is is removed from the compiler
+     With type \b wchar, the responsibility of what a wide character is removed from the compiler
      and given to \alib (and its platform defaults and compilation options).
    - The "other" wide character type, which has different width than \c wchar_t is aliased
      by type \alib{characters,xchar}.
@@ -171,19 +171,18 @@ On GNU/Linux, such settings are made with function \c setlocale.
 
 \attention
   Therefore, it has to be assured that the process's locale settings are "UTF-8" compatible.
-  If not, \alib may not function properly. In debug compilations, runtime warnings or assertions
+  If not, \alib may not function properly. With debug builds, runtime warnings or assertions
   might be raised. In release compilations, mixing strings of different character width might lead
-  to undefined behaviour.
+  to undefined behavior.
 
 This should not be seen to be a huge restriction, because there are no good reasons for any modern
 software to use any other character encoding than UTF.
-When \alib is \ref alib_manual_bootstrapping "properly bootstrapped", method
-\aworx{lib,ALibModules::init} invokes method \c setlocale properly. However, environment variables
-or \alib variable \aworx{lib,Variables,LOCALE} has to be properly set to a UTF-8 encoding.
+However, environment variables (or \alib variable \aworx{lib,Variables,LOCALE} in a configuration
+source) has to be set to a UTF-8 encoding.
 
 
 \~Comment ####################################################################################### \~
-## 2. ALib String Classes # {#alib_strings_classes}
+# 2. ALib String Classes # {#alib_strings_classes}
 
 This module provides five different string classes:
 - \b String
@@ -399,7 +398,7 @@ To recap:
 \~Comment ####################################################################################### \~
 ### 3.1.1 String Construction ### {#alib_strings_cc_construction_string}
 
-This module makes use of the "character array traits" defined with dependency module \alibmod_characters.
+This module makes use of the "character array traits" defined with dependency module \alib_characters.
 For the use of the string classes, a developer does not need to know all details of these traits and
 it is sufficient to understand what is said in the introductory chapter \ref alib_strings_intro_characters
 of this manual.
@@ -511,7 +510,7 @@ The previous chapter talked about how the different \alib string types are const
 This chapter now discusses the opposite: the string types implement C++ cast operators that allow to
 construct values of arbitrary string types from those.
 
-Again, the cast is performed using the type traits defined with dependency module \alibmod_characters.
+Again, the cast is performed using the type traits defined with dependency module \alib_characters.
 This time, the value of field \alib{characters::T_CharArray,Construction} of specializations
 of \alib{characters,T_CharArray} respectively \alib{characters,T_ZTCharArray} are tested.
 Possible values are given with enumeration \alib{characters,ConstructionType}. With that
@@ -572,10 +571,10 @@ allows auto-casts based on the type traits provided by \alib.
 
 \~Comment ####################################################################################### \~
 ## 3.3 Built-In Conversions ## {#alib_strings_cc_builtin}
-This module \alibmod_nolink_strings is not "responsible" to define the built-in conversion rules
+This module \alib_strings_nl is not "responsible" to define the built-in conversion rules
 for C++ and 3rd-party types, because in-fact these rules are defined already with the
 specializations of the TMP structs \b T_CharArray and \b T_ZTCharArray given in dependency module
-\alibmod_characters.
+\alib_characters.
 
 While these specializations are described in the corresponding Programmer's Manual section
 \ref alib_characters_builtintraits "4. Built-In Character Array Traits" of that module,
@@ -665,7 +664,7 @@ libraries that expect different strings.
   mitigate the problem of necessary string conversions if different character widths are involved.
 
 With the previous descriptions it has been mentioned that the documentation of dependency module
-\alibmod_characters is not required to be read if \alib string types are to be just used.
+\alib_characters is not required to be read if \alib string types are to be just used.
 
 To adopt custom string types to become "compatible" with \alib strings all that has to be done
 is to specialize type-traits struct \b T_CharArray and, in the case that a type represents zero-terminated
@@ -789,7 +788,7 @@ In the previous chapters of this manual it was explained how the lightweight \al
 \c String, \c CString and \c Substring are constructable using values of C++ types which are
 equipped with "character array traits". Those traits are nothing else but meta information about
 these types which is provided by corresponding specializations of templated structs \b T_CharArray
-and \b T_ZTCharArray. The character array type traits are introduced with module \alibmod_characters.
+and \b T_ZTCharArray. The character array type traits are introduced with module \alib_characters.
 
 Some high level object-oriented programming languages offer a root class which provides a common
 interface for just any derived type and such interface may contain a method that creates a
@@ -852,7 +851,7 @@ grouped into four areas:
 <b>1. Fundamental C++ Types:</b><br>
 Specializations for all fundamental C++ types like \b int, \b double, etc. are provided.
 No special header file has to be included for this. The specialization is available with the
-inclusion of header file \ref alib/strings/astring.hpp.
+inclusion of header file \alibheader{strings/astring.hpp}.
 
 
 <b>2. Class Format And Its Inner Types:</b><br>
@@ -870,7 +869,7 @@ As a quick example, the use of \alib{strings,TFormat::Field,Format::Field} shoul
 The code above which produces the following output:
 \snippet "DOX_ALIB_APPEND_FIELD.txt"     OUTPUT
 
-Class \b Format is included implicitly with the inclusion of header file \ref alib/strings/astring.hpp.
+Class \b Format is included implicitly with the inclusion of header file \alibheader{strings/astring.hpp}.
 
 <b>3. Other ALib Types:</b><br>
 For various types found in other \alibmods, specializations of \b T_Append are provided.
@@ -975,7 +974,7 @@ Class \alib{strings,TLocalString,LocalString}, which is discussed in the next se
 of this feature and provides the possibility to have local (stack based) allocations of strings.
 
 \~Comment ####################################################################################### \~
-## 5.4. Class LocalString ## {#alib_strings_assembly_localstring}
+## 5.4 Class LocalString ## {#alib_strings_assembly_localstring}
 
 Template class \alib{strings,TLocalString,LocalString<TChar\, TCapacity>}, derived from class \b %AString
 uses an internal character array of a length specified by template parameter \p{TCapacity}
@@ -994,7 +993,7 @@ Although the internal buffer size is fixed at compile-time and hence can not be 
 of the class must not fear '<em>buffer overflows</em>'. If the internal buffer capacity
 is exceeded, a new buffer from the <em>free memory</em> (aka '\e heap') will be allocated.
 
-In debug compilations of \alib, parent class \alib{strings,TAString,AString} provides a
+With debug builds of \alib, parent class \alib{strings,TAString,AString} provides a
 \alib{strings,TAString::DbgDisableBufferReplacementWarning,warning mechanism} that allows the
 easy detection of such (probably unwanted) replacements of the local buffer.
 There are two scenarios how this mechanism might be used during development:
@@ -1056,17 +1055,19 @@ local strings of frequently uses sizes:
 # 6. Other Aspects Of ALib String Types # {#alib_strings_details}
 
 \~Comment ####################################################################################### \~
-## 6.1. Nulled Strings ## {#alib_strings_details_nulled}
+## 6.1 Nulled Strings ## {#alib_strings_details_nulled}
 
 \~Comment ####################################################################################### \~
 ### 6.1.1 Nulled Vs. Empty Strings ### {#alib_strings_details_nulled_vsempty}
 
 An important aspect of the family of string types provided by this module and library, is concept of
-'nullable' strings.
+<em>"nullable"</em>  strings.
 An object of base class \b String is \e nulled, when constructed:
-- with no value (parameterless constructor),
 - with keyword <em>nullptr</em>, or
 - with a likewise \e nulled object of character array type.
+
+\note
+  The default constructor is \e defaulted and leaves a <b>String</b>'s members undefined!
 
 An existing string can be set to \e nulled state, by assigning keyword \c nullptr or another
 nulled object of character array type.<br>
@@ -1145,7 +1146,7 @@ Such API design paradigm is used frequently across various \alibmods.
 
 On the other hand, when string values are used as input data, some caution has to be taken to
 assure that method invocations on a given input string is even allowed. Some methods may
-produce undefined behaviour when invoked on \e nulled string objects.
+produce undefined behavior when invoked on \e nulled string objects.
 
 To maximize code performance, explicit tests for \e nulled strings should be avoided if not
 necessary, which sometimes can be an obligation to the programmer that uses the string types.
@@ -1237,11 +1238,11 @@ method versions if not met.
 This approach and the concept of \e invariants go along very well:
 If an invariant is \c false, the algorithm is considered wrong and the code asserts.<br>
 In release compilations, invoking non-checking method versions with a breach of a corresponding
-\e invariant leads to undefined behaviour (probably a process crash).
+\e invariant leads to undefined behavior (probably a process crash).
 
 
 \note
-  In the [C# and Java versions](http://alexworx.github.io/ALox-Logging-Library/index.html)
+  In the \https{C# and Java versions,alexworx.github.io/ALox-Logging-Library/index.html}
   of \alib, where such template methods are not available, still some non-checking methods are
   provided, but less than in the C++ implementation.
   In these languages, some methods exist twice with the same method base name and the
@@ -1253,7 +1254,7 @@ In release compilations, invoking non-checking method versions with a breach of 
 
 \~Comment ####################################################################################### \~
 ### 6.3.1 NullString() ### {#alib_strings_details_constants_nullstring}
-With the inclusion of header file <c>alib/strings/string.hpp</c>, the following <c>inline constexpr</c>
+With the inclusion of header file \alibheader{strings/string.hpp}, the following <c>inline constexpr</c>
 methods are defined in namespace #aworx:
 - \aworx{NullString},
 - \aworx{NullComplementString},
@@ -1271,7 +1272,7 @@ respects:
         String  myString= NullString;
 
 ### 6.3.2 CString Constants ### {#alib_strings_details_constants_cstrings}
-With the inclusion of header file <c>alib/strings/cstring.hpp</c>, templated struct
+With the inclusion of header file \alibheader{strings/cstring.hpp}, templated struct
 \alib{strings,TT_StringConstants} is defined, which provides methods for a few frequently used
 string constants, including an empty zero-terminated string.
 
@@ -1297,7 +1298,7 @@ the use of the C++ keyword is made only with C++ language version 14 or higher.
 
 
 \~Comment ####################################################################################### \~
-## 6.4. Debugging Strings ## {#alib_strings_details_debugging}
+## 6.4 Debugging Strings ## {#alib_strings_details_debugging}
 
 In some situations additional debug checking is helpful when working with \alib strings.
 Among such situations are:
@@ -1310,15 +1311,15 @@ Among such situations are:
 
 - Provision of external data buffers to class \b %AString.
 
-In these and similar situations, it may be helpful to use compiler symbol
-\ref ALIB_STRINGS_DEBUG_ON. This symbol enables internal consistency checks with almost any method
+In these and similar situations, it may be helpful to define preprocessor symbol
+\ref ALIB_DEBUG_STRINGS. This symbol enables internal consistency checks with almost any method
 invoked on string types. By default this feature is disabled, as it consumes quite a lot of run-time
 performance. When string debugging is enabled, macro \ref ALIB_STRING_DBG_CHK can be used to check
 the consistency of \alib string classes.
 
 With string debugging, the string buffer allocated by class \b %AString is extended by 32 characters,
 16 characters at the front and 16 characters at the end. A "magic" number is written in this
-padding memory and accidental (illegal) write operations accross the borders of the allocated
+padding memory and accidental (illegal) write operations across the borders of the allocated
 space is detected.
 
 Therefore, code that:
@@ -1328,16 +1329,16 @@ Therefore, code that:
 has to allocate the buffer passed accordingly. This means, the buffer has to be
 32 characters larger than specified and the starting address of the heap allocation has to be
 16 characters before what parameter \p{extBuffer} points to.<br>
-Such external buffer allocation should therefore be conditionally implemented using code selection symbol
-\ref ALIB_STRINGS_DEBUG.
+Such external buffer allocation should therefore be conditionally implemented using code selection
+symbol \ref ALIB_DEBUG_STRINGS.
 
 Further details of the built-in debug mechanisms are not documented.
 Please refer to the source code of the \alib string classes, especially by investigating to code
-locations that use selection symbol \ref ALIB_STRINGS_DEBUG.
+locations that use selection symbol \ref ALIB_DEBUG_STRINGS.
 
 
 \~Comment ####################################################################################### \~
-## 6.5. Signed String Length ## {#alib_strings_details_signedlength}
+## 6.5 Signed String Length ## {#alib_strings_details_signedlength}
 The string types introduced with this module are using type \alib{integer} to store the a
 string's length. This is a signed type - in contrast to what the C++ standard library suggests by
 using type \c size_t for the length of type \c std::string!
@@ -1363,11 +1364,14 @@ This way, no additional boolean value is needed, which of-course reduces the mem
 
 
 \~Comment ####################################################################################### \~
-# 7. Character Widths And String Literals # {#alib_strings_width}
+# 7. Strings And Character Widths # {#alib_strings_width}
+
+\~Comment ####################################################################################### \~
+## 7.1 String Literals ## {#alib_strings_width_literals}
 
 As elaborated in the introductory chapter \ref alib_strings_intro_characters, in respect to
 character type definitions and character array traits, this module completely relies
-on module \alibmod_nolink_characters. While all string classes are templated, the character types
+on module \alib_characters_nl. While all string classes are templated, the character types
 that are used by the template instantiations are all defined in this underlying module.
 
 The alias types for each string class (defined in namespace #aworx) enumerate all possible types
@@ -1375,29 +1379,62 @@ by adding a prefix character or word, for example \aworx{NString}, \aworx{WStrin
 \aworx{ComplementString}. The aliases without any prefix, like \aworx{String}, \aworx{Substring}
 or \aworx{AString} use the width of the generic and "agnostic" type \alib{characters,character}.
 
-Now, when using string literals, the following code is incorrect:
+Now, when using string literals, the following code is not platform agnostic::
 
         String myString= "Hello World";
 
-While it might compile on some platforms or with the right compilation symbols for \alib in place,
+While it might compile on some platforms or with the right compiler symbols for \alib in place,
 in the case that type \b character is a wide type, a compilation error is generated. Therefore,
 all non-narrow string literals need to be given by using a corresponding macro. The set of macros
-are also provided with the underlying module \alibmod_nolink_characters. The "agnostic" macro
+are also provided with the underlying module \alib_characters_nl. The "agnostic" macro
 needed in the sample above is simply \ref A_CHAR "A_CHAR":
 
         String myString= A_CHAR( "Hello World" );
 
 As long as only strings of standard width are used, all that is needed to know is that each
-and every C++ string literal needs to be enclosed in this macro.<br>
-For information about the other macros related to other character types, please consult chapter
-\ref alib_characters_prepro_literals of the \ref alib_mod_characters "Programmer's Manual" of
-module \alibmod_nolink_characters.
-For information about how to change the default character width, see complete chapter
-\ref alib_characters_prepro "3. Type Selection And Character Literals".
+and every C++ string literal needs to be enclosed in this macro.
 
-To really grasp all aspects of \alib characters and strings, of-course the complete programmer's
-manuals should be reviewed. This might be a good point in time to do this.
+Further macros that define string literals of specific width are given with
+- \ref A_CCHAR,
+- \ref A_SCHAR,
+- \ref A_NCHAR,
+- \ref A_WCHAR and
+- \ref A_XCHAR.
 
+\see
+- For more information on the macros, please consult chapter \ref alib_characters_prepro_literals of the
+  \ref alib_mod_characters "Programmer's Manual" of module \alib_characters_nl.
+- For information about how to change the default character width, see complete chapter
+  \ref alib_characters_prepro "3. Type Selection And Character Literals".
+- To really grasp all aspects of \alib characters and strings, of-course both Programmer's
+ Manuals should be reviewed. This might be a good point in time to do this.
+
+\~Comment ####################################################################################### \~
+## 7.2 Platform Independent Conversion ## {#alib_strings_width_pfi_conversion}
+Sometimes a code unit expects a string of a defined width and has to handle strings of logical
+types, or vice versa. For example, if an interface method accepts standard string type, while
+internally narrow strings are used.
+
+In such situations, the straight forward approach to this could be to use code selector
+symbol \ref ALIB_CHARACTERS_WIDE and provide two different code versions.
+
+To avoid this, the following macros are provided:
+
+- \ref ALIB_STRINGS_TO_NARROW
+- \ref ALIB_STRINGS_TO_NARROW_ARG
+- \ref ALIB_STRINGS_TO_WIDE
+- \ref ALIB_STRINGS_TO_WIDE_ARG
+- \ref ALIB_STRINGS_FROM_NARROW
+- \ref ALIB_STRINGS_FROM_NARROW_ARG
+- \ref ALIB_STRINGS_FROM_WIDE
+- \ref ALIB_STRINGS_FROM_WIDE_ARG
+
+In principal the macros define a new identifier, which in the case that a conversion is needed,
+uses a local string where the source string is appended, while in the case that the character widths
+are equal, a simple reference to the given type is created. The latter will be optimized out
+by a C++ compiler and thus, no performance penalty occurs.
+
+For details, consult the reference documentation of the macros.
 
 \~Comment ####################################################################################### \~
 # 8. String Utility Classes # {#alib_strings_util}
@@ -1423,12 +1460,12 @@ to format a list of variadic arguments along the lines of a format string that f
 \b C library.
 
 \alib offers mechanics to define and process variadic argument lists in a type-safe fashion
-with its module \alibmod_boxing. Now, to keep module \alibmod_nolink_strings independent from module
-\alibmod_nolink_boxing, formatting features as described above have been placed in a separated
-module, namely \alibmod_stringformat. With that, a powerful implementation of formatting tools,
+with its module \alib_boxing. Now, to keep module \alib_strings_nl independent from module
+\alib_boxing_nl, formatting features as described above have been placed in a separated
+module, namely \alib_text. With that, a powerful implementation of formatting tools,
 is provided. These are even supporting different standards of a format string's placeholder syntax,
-namely \alib{stringformat,FormatterJavaStyle,printf and Java style} as well as
-\alib{stringformat,FormatterPythonStyle,Python style}.
+namely \alib{text,FormatterJavaStyle,printf and Java style} as well as
+\alib{text,FormatterPythonStyle,Python style}.
 
 */
 

@@ -6,9 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined(HPP_ALOX_CONSOLE_LOGGER)
 #   include "alib/alox/loggers/consolelogger.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 using namespace aworx;

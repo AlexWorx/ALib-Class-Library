@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_time of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKS
 #define HPP_ALIB_TIME_TICKS 1
 
@@ -49,11 +50,11 @@ class Ticks : public TimePointBase<std::chrono::steady_clock, Ticks>
 }} // namespace lib::time
 
 /// Type alias in namespace #aworx.
-using     Ticks   =                aworx::lib::time::Ticks;
+using     Ticks   =                lib::time::Ticks;
 
 }  // namespace [aworx]
 
-#if ALIB_MODULE_BOXING
+#if ALIB_BOXING
     #if !defined(HPP_ALIB_BOXING_BOXING)
     #   include "alib/boxing/boxing.hpp"
     #endif

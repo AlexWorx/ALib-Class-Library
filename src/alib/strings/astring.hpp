@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_ASTRING
 #define HPP_ALIB_STRINGS_ASTRING 1
 
@@ -26,12 +27,12 @@ namespace aworx { namespace lib { namespace strings {
 template<typename TChar>  class TAString;
 
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 // Used to create an error message if a type can not be appended to an AString
-template<typename T, typename TChar, typename If= void> struct T_ToString_not_specialized_for_type
+template<typename T, typename TChar, typename If= void> struct T_Append_not_specialized_for_type
 : std::false_type {};
 
-template<typename T, typename TChar  >                  struct T_ToString_not_specialized_for_type
+template<typename T, typename TChar  >                  struct T_Append_not_specialized_for_type
 <T,TChar,typename std::enable_if<
  std::is_same<decltype(std::declval<TAString<TChar>>().append(std::declval<const T&>()) ),
               bool>::value>::type>
@@ -71,7 +72,7 @@ template<typename T, typename TChar  >                  struct T_ToString_not_sp
  *
  * \see
  *   For details consult chapter \ref alib_strings_assembly_ttostring of the Programmer's Manual
- *   of module \alibmod_strings.
+ *   of module \alib_strings.
  *
  * \see
  *   The documentation of built-in specializations for \alib types are collected in
@@ -89,7 +90,7 @@ template< typename TAppendable,
           typename TEnableIf  = void >
 struct T_Append
 {
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** ********************************************************************************************
      * This operator is invoked on a temporary object of this type by
      * \alib{strings,TAString::Append(const TAppendable&),AString::Append}, when an object of type
@@ -118,7 +119,7 @@ struct T_Append
  * ************************************************************************************************/
 template<typename T, typename TChar, typename TEnableIf= void>  struct  TT_IsAppendable : public std::false_type  {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 template<typename T, typename TChar>                            struct  TT_IsAppendable<T, TChar,
 ATMP_VOID_IF( ATMP_EQ(void, decltype( std::declval<T_Append<T, TChar>>()( std::declval<TAString<TChar> &>(),
                                                                           std::declval<T const         &>() ) ) ) )
@@ -172,7 +173,7 @@ namespace aworx { namespace lib { namespace strings                             
 {                                                                                                  \
     template<> struct       T_Append<TYPE,aworx::character>                                        \
     {                                                                                              \
-       inline void operator()( TAString<aworx::character>& target, const TYPE& src ){ IMPL}        \
+       void operator()( TAString<aworx::character>& target, const TYPE& src ){ IMPL}               \
     };                                                                                             \
 }}}                                                                                                \
 
@@ -181,7 +182,7 @@ namespace aworx { namespace lib { namespace strings                             
 {                                                                                                  \
     template<> struct       T_Append<TYPE,aworx::nchar>                                            \
     {                                                                                              \
-       inline void operator()( TAString<aworx::nchar>& target, const TYPE& src ){ IMPL}            \
+       void operator()( TAString<aworx::nchar>& target, const TYPE& src ){ IMPL}                   \
     };                                                                                             \
 }}}                                                                                                \
 
@@ -190,19 +191,9 @@ namespace aworx { namespace lib { namespace strings                             
 {                                                                                                  \
     template<> struct       T_Append<TYPE,aworx::wchar>                                            \
     {                                                                                              \
-       inline void operator()( TAString<aworx::wchar>& target, const TYPE& src ){ IMPL}            \
+       void operator()( TAString<aworx::wchar>& target, const TYPE& src ){ IMPL}                   \
     };                                                                                             \
 }}}                                                                                                \
-
-
-// #################################################################################################
-// ####################     Include ALib Boxing if in distribution      ############################
-// #################################################################################################
-}}}
-#if ALIB_MODULE_BOXING && !defined(HPP_ALIB_BOXING_BOXING)
-#   include "alib/boxing/boxing.hpp"
-#endif
-namespace aworx { namespace lib { namespace strings {
 
 
 /** ************************************************************************************************
@@ -226,7 +217,7 @@ namespace aworx { namespace lib { namespace strings {
  *   Set with overloaded method #SetBuffer(TChar*, integer, integer, Responsibility).
  *   External buffers are not managed by this class. However, if their capacity is exceeded, they
  *   will automatically become replaced by an internal buffer.
- *   Such replacement by default produces a \ref ALIB_WARNING "ALib warning" in debug compilations.
+ *   Such replacement by default produces a \ref ALIB_WARNING "ALib warning" with debug builds.
  *   In situations that buffer replacement is accepted, warnings can be disabled with method
  *   #DbgDisableBufferReplacementWarning.
  *
@@ -245,7 +236,7 @@ namespace aworx { namespace lib { namespace strings {
  * \c std::vector. This includes a copy and move constructor as well as a copy assignment operator.
  * Nevertheless, this class is not guaranteed to perform well when used with container types
  * and such use should be avoided if possible.<br>
- * Outside of containters, the automatic C++ copy and move semantics should be avoided.
+ * Outside of containers, the automatic C++ copy and move construction semantics should be avoided.
  * For example, the move constructor, grabs the buffer of a given movable \b %AString, as long
  * as this given object does not use an external buffer. If it does, the contents of the
  * movable object is copied like in the copy constructor.
@@ -278,8 +269,8 @@ namespace aworx { namespace lib { namespace strings {
  * on mutable objects, while method #VBuffer is declared \c const.
  *
  * In addition to this, a bunch of methods allow the modification of single characters.
- * #operator[] is returning a reference to a character in contrast to the same operator defined
- * in class \b %String, which returns just the character value.
+ * #operator[] is extended by a non-const version that returns a reference to a character instead
+ * of just the character value.
  *
  * \anchor  alib_namespace_strings_astring_appendto
  * <b>Appending Objects to AStrings:</b><br>
@@ -318,19 +309,19 @@ class TAString : public TString<TChar>
     /** ############################################################################################
      * @name Debug Methods/Types
      ##@{ ########################################################################################*/
-        #if ALIB_STRINGS_DEBUG
+        #if ALIB_DEBUG_STRINGS
             protected:
                 /**
                  * Used to check if previous grow request was exactly what is now the length.<br>
-                 * This field is available only if code selection symbol \ref ALIB_STRINGS_DEBUG
+                 * This field is available only if code selection symbol \ref ALIB_DEBUG_STRINGS
                  * is set.
                  */
                 integer         debugLastAllocRequest                                            =0;
 
                 /**
                  * Checks this object's state. This method is internally invoked with almost
-                 * every other method of this class, but only if compilation symbol
-                 * \ref ALIB_STRINGS_DEBUG is \c true.<br>
+                 * every other method of this class, but only if compiler symbol
+                 * \ref ALIB_DEBUG_STRINGS is \c true.<br>
                  * Invocations to this method should be performed using macro
                  * \ref ALIB_STRING_DBG_CHK.<br>
                  *
@@ -390,11 +381,10 @@ class TAString : public TString<TChar>
          * @param extBufferSize   The capacity of the given buffer.
          ******************************************************************************************/
         constexpr
-        inline
         explicit TAString( TChar* extBuffer, integer extBufferSize )
         : TString<TChar>( extBuffer, 0 )
         , capacity  (- (extBufferSize - 1))
-        #if ALIB_STRINGS_DEBUG
+        #if ALIB_DEBUG_STRINGS
         ,debugLastAllocRequest(extBufferSize-1)
         #endif
         {}
@@ -404,14 +394,13 @@ class TAString : public TString<TChar>
      ##@{ ########################################################################################*/
     public:
         /** ****************************************************************************************
-         *   Constructs an empty, \e nulled \b %AString (does not allocate a buffer).
+         * Constructs an empty, \e nulled \b %AString (does not allocate a buffer).
          ******************************************************************************************/
         explicit
         constexpr
-        inline
         TAString()
-        : TString<TChar>()
-        , capacity  (0)
+        : TString<TChar>(nullptr, 0)
+        , capacity      (0)
         {}
 
         /** ****************************************************************************************
@@ -419,11 +408,11 @@ class TAString : public TString<TChar>
          * @param copy The object to copy.
          ******************************************************************************************/
         explicit
-        inline
         TAString( const TAString& copy)
-        : TString<TChar>()
-        , capacity  (0)
+        : TString<TChar>(nullptr, 0)
+        , capacity      (0)
         {
+            ALIB_DBG( dbgWarnWhenExternalBufferIsReplaced= copy.dbgWarnWhenExternalBufferIsReplaced; )
             Append( copy );
         }
 
@@ -433,33 +422,38 @@ class TAString : public TString<TChar>
          * for details.
          * @param move The object to move.
          ******************************************************************************************/
-        inline
-        TAString(TAString&& move) noexcept
-        : TString<TChar>()
+        TAString(TAString&& move)                                                           noexcept
         {
             // given move object has external buffer: we have to copy
             if ( !move.HasInternalBuffer() )
             {
-                capacity=   0;
+                TString<TChar>::buffer= nullptr;
+                TString<TChar>::length= 0;
+                              capacity= 0;
+                ALIB_DBG( dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced; )
                 Append( move );
                 return;
             }
 
             // copy values
-            TString<TChar>::buffer=         move.buffer;
-            TString<TChar>::length=         move.length;
-                               capacity=       move.capacity;
+            TString<TChar>::buffer=   move.buffer;
+            TString<TChar>::length=   move.length;
+                          capacity=   move.capacity;
 
             // clean moved object (buffer does not need to be nulled)
-            move.capacity=
-            move.length=     0;
+            move.capacity=  0;
 
             // in debug mode, more copying and more destructor prevention is needed
-            #if ALIB_STRINGS_DEBUG
-                debugLastAllocRequest=              move.debugLastAllocRequest;
+            #if ALIB_DEBUG
+                dbgWarnWhenExternalBufferIsReplaced= move.dbgWarnWhenExternalBufferIsReplaced;
+                #if ALIB_DEBUG_STRINGS
+                debugLastAllocRequest=               move.debugLastAllocRequest;
                 move.buffer=  nullptr;
+                move.length=  0;
+                #endif
             #endif
         }
+
 
         /** ****************************************************************************************
          * Constructs the object and uses #Append to create a string representation of the given
@@ -470,48 +464,13 @@ class TAString : public TString<TChar>
          * @param  src          The source object to append to this string.
          ******************************************************************************************/
         template <class TAppendable>
-        inline
         explicit
         TAString (const  TAppendable& src )
-        : TString<TChar>()
-        , capacity  (0)
+        : TString<TChar>(nullptr, 0)
+        , capacity      (0)
         {
             Append( src );
         }
-
-#if ALIB_MODULE_STRINGFORMAT
-        /** ****************************************************************************************
-         * Constructor that accepts a format string and variadic template arguments collected
-         * in an object of type \alib{boxing,Boxes}.<br>
-         * This constructor invokes #FormatArgs which performs a format operation according to the
-         * given parameters.
-         *
-         * \note
-         *   There is \b no variant of this constructor available that takes a format string and
-         *   a variadic template parameter list which creates the \b %Boxes object expected by
-         *   this method implicitly. Such constructor would lead to ambiguities with other
-         *   overloaded constructors. Therefore, the Boxes object expected here has to be explicitly
-         *   created with the call (or before).<br>
-         *   A sample invocation of this constructor looks like this:
-         *
-         *          AString myString( "Hello {}: The answer is {}", Boxes("world", 6 * 7) );
-         *
-         * @param  args         The list of boxed arguments replacing the placeholders in
-         *                      \p{formatString}.
-         *
-         * \par Module Dependencies
-         *    This constructor is only available if module \alibmod_stringformat is included in the
-         *    \alibdist.
-         ******************************************************************************************/
-        inline
-        TAString( const Boxes& args )
-        : TString<TChar>()
-        , capacity  (0)
-        {
-            FormatArgs( args );
-        }
-
-#endif
 
         /** ****************************************************************************************
          * Destructs an \b %AString object. An internally allocated buffer will be deleted.
@@ -521,13 +480,13 @@ class TAString : public TString<TChar>
             ALIB_STRING_DBG_CHK(this)
             if ( HasInternalBuffer() )
                 std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
-                                                  #if ALIB_STRINGS_DEBUG
+                                                  #if ALIB_DEBUG_STRINGS
                                                                             - 16
                                                   #endif
                                                                                                )) );
         }
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * \b Implicit cast operator to objects of type \p{TCharArray}.<br>
          * This operator is available for all custom types that have an accordingly specialized
@@ -603,11 +562,11 @@ class TAString : public TString<TChar>
             return  characters::T_ZTCharArray<T,TChar>::Construct( TString<TChar>::buffer, TString<TChar>::length );
         }
 
-    #endif // ALIB_DOCUMENTATION_PARSER
+    #endif // defined(ALIB_DOX)
 
 
         /** ****************************************************************************************
-         * The C++ assign operator (<c>ClassT& operator=(const ClassT &)</c>).
+         * Copy assign operator.
          * If the given other \b AString is \e nulled, this object becomes \e nulled. Otherwise,
          * this string is cleared and the given other string is appended.
          *
@@ -619,7 +578,6 @@ class TAString : public TString<TChar>
          * @param  copy  The object to copy the contents from.
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString& operator= (const TAString&  copy)
         {
             if ( copy.IsNull() )
@@ -684,7 +642,7 @@ class TAString : public TString<TChar>
          * - If a \c nullptr is provided still, the current buffer is released.
          * - If provided buffer is not nullptr, its size provided with parameter \p{extBufferSize}
          *   has to be at least \c 1 for providing the space for a termination character.
-         * - After the operation, #Capacity will report \p{extBufferSize} \c -1.
+         * - After the operation, #Capacity will report \p{extBufferSize} <c>- 1</c>.
          * - Optional parameter \p{responsibility} can be used to pass the responsibility for the
          *   deletion of the buffer to this object.
          * - The length of the content provided with parameter \p{extLength} must not exceed
@@ -697,7 +655,7 @@ class TAString : public TString<TChar>
          * and \c std::free. The latter two are also used on external buffers that are provided
          * with this method if parameter \p{responsibility} is given as \b Responsibility::Transfer,
          * because in this case such externally created buffer is considered an internal one.
-         * Consequently, it has to be assured that the given memory chunk is "compatible" with these
+         * Consequently, it has to be assured that the given chunk of memory is "compatible" with these
          * methods.
 
          *
@@ -724,10 +682,9 @@ class TAString : public TString<TChar>
          *
          * @param spaceNeeded  The desired growth of the length of the string represented by this.
          ******************************************************************************************/
-        inline
         void     EnsureRemainingCapacity( integer spaceNeeded )
         {
-            #if ALIB_STRINGS_DEBUG
+            #if ALIB_DEBUG_STRINGS
                 ALIB_ASSERT_ERROR( TString<TChar>::length <= debugLastAllocRequest,
                                    "Previous allocation request was too short"       )
             #endif
@@ -735,7 +692,7 @@ class TAString : public TString<TChar>
             if ( Capacity() < TString<TChar>::length + spaceNeeded )
                 GrowBufferAtLeastBy( spaceNeeded );
 
-            #if ALIB_STRINGS_DEBUG
+            #if ALIB_DEBUG_STRINGS
                 debugLastAllocRequest= TString<TChar>::length + spaceNeeded;
             #endif
         }
@@ -755,7 +712,6 @@ class TAString : public TString<TChar>
          *
          * @return The size of the allocated buffer.
          ******************************************************************************************/
-        inline
         integer Capacity()                                                                     const
         {
             return  capacity >= 0   ?  capacity
@@ -776,7 +732,6 @@ class TAString : public TString<TChar>
          * @return \c true if the buffer is internally allocated and will be deleted with the
          *         deletion of this object. False otherwise.
          ******************************************************************************************/
-        inline
         bool HasInternalBuffer()                                                               const
         {
             return  capacity > 0;
@@ -785,7 +740,6 @@ class TAString : public TString<TChar>
         /** ****************************************************************************************
          * Invokes \ref SetBuffer "SetBuffer(0)".
          ******************************************************************************************/
-        inline
         void           SetNull()
         {
             SetBuffer( 0 );
@@ -806,7 +760,6 @@ class TAString : public TString<TChar>
          *
          * @return The pointer to the zero-terminated character buffer.
          ******************************************************************************************/
-        inline
         const TChar* Terminate()                                                               const
         {
             if ( TString<TChar>::vbuffer )
@@ -827,7 +780,6 @@ class TAString : public TString<TChar>
          *
          * @return The internal buffer array.
          ******************************************************************************************/
-        inline
         TChar*          VBuffer()                                                              const
         {
             return TString<TChar>::vbuffer;
@@ -852,12 +804,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param c       The character to write.
          ******************************************************************************************/
         template<bool TCheck =true>
-        inline
         void        SetCharAt( integer idx, TChar c )
         {
             ALIB_ASSERT_ERROR( c != '\0' || idx==TString<TChar>::length,
                                "Can't write character '\0'"                )
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if(    (idx >= 0  && idx <  TString<TChar>::length )
                     || ( c =='\0' && idx == TString<TChar>::length ) )
@@ -883,12 +834,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param idx The index of the character within this object's buffer.
          * @returns If the character contained (or, if lvalue the one to set).
          ******************************************************************************************/
-        inline
-        TChar&    operator[] (integer  idx)
+        TChar&      operator[] (integer  idx)
         {
             ALIB_ASSERT_ERROR( idx >= 0  && idx < TString<TChar>::length , "Index out of bounds" )
             return TString<TChar>::vbuffer[idx];
         }
+
+        using TString<TChar>::operator[];
 
         /** ****************************************************************************************
          * Sets a new length for this string.
@@ -905,7 +857,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param newLength  The new length of the \b %AString. Must be between 0 and
          *                   #Capacity.
          ******************************************************************************************/
-        inline
         void    SetLength( integer newLength )
         {
             ALIB_ASSERT_ERROR( newLength >= 0         , "Negative AString length requested" )
@@ -933,7 +884,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param newLength  The new length of this \b %AString. Must be between 0 and the current
          *                   length.
          ******************************************************************************************/
-        inline
         void    ShortenTo( integer newLength )
         {
             ALIB_ASSERT_ERROR( newLength >= 0, "Negative AString length requested" )
@@ -943,7 +893,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         }
 
 
-
     /** ############################################################################################
      * @name Appending Strings
      ##@{ ########################################################################################*/
@@ -951,18 +900,18 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         /** ****************************************************************************************
          * Appends an incompatible character array.
          *
-         * @param  src         A pointer to the start of the array to append.
-         * @param  srcLength   The length of the string.
          * @tparam TCharSrc    The character type of the given array.
          * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
          *                     If \c \<false\>, no nullptr check is done on parameter \p{src}.
          *                     Also, this object would not loose a \e nulled state when the given
          *                     cstring portion is empty.
+         * @param  src         A pointer to the start of the array to append.
+         * @param  srcLength   The length of the string.
          *
          * @return    \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true, typename TCharSrc >
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
         TAString&
 #else
         typename std::enable_if<   characters::TT_IsChar<TCharSrc>::value
@@ -974,12 +923,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         /** ****************************************************************************************
          * Appends an array of the same character type.
          *
-         * @param  src         A pointer to the start of the array to append.
-         * @param  srcLength   The length of the string.
          * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
          *                     If \c \<false\>, no nullptr check is done on parameter \p{src}.
          *                     Also, this object would not loose a \e nulled state when the given
          *                     cstring portion is empty.
+         * @param  src         A pointer to the start of the array to append.
+         * @param  srcLength   The length of the string.
          *
          * @return    \c *this to allow concatenated calls.
          ******************************************************************************************/
@@ -989,7 +938,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if (!src)
                     return *this;
@@ -1034,10 +983,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString& Append( const TString<TChar>& src, integer regionStart, integer regionLength =MAX_LEN )
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( src.IsNull() )
                     return *this;
@@ -1077,7 +1025,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString& _( const TString<TChar>& src, integer regionStart, integer regionLength =MAX_LEN )
         {
             return Append( src, regionStart, regionLength );
@@ -1088,7 +1035,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * \ref aworx::NewLine "NewLine".
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString&          NewLine()
         {
             return _<false>( TT_StringConstants<TChar>::NewLine() );
@@ -1102,12 +1048,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         //##########################################################################################
         // Private overloaded "append" methods selected with std::enable_if
         //##########################################################################################
-        #if !ALIB_DOCUMENTATION_PARSER
+        #if !defined(ALIB_DOX)
 
 
         private:
           template<typename TC, typename TV, typename If>
-          friend struct T_ToString_not_specialized_for_type;
+          friend struct T_Append_not_specialized_for_type;
 
 
         // nullptr
@@ -1180,7 +1126,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
         // single character same type
         template<bool TCheck= true>
-        inline bool   append(TChar src )
+        bool   append(TChar src )
         {
             if ( TCheck && src == 0 )
                 return false;
@@ -1201,7 +1147,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             using TOtherChar= ATMP_RCVR(T);
 
             // same type?
-            if ALIB_CPP17_CONSTEXPR ( ATMP_EQ( TChar, TOtherChar) )
+            if ALIB_CONSTEXPR_IF ( ATMP_EQ( TChar, TOtherChar) )
             {
                 EnsureRemainingCapacity( 1 );
                 TString<TChar>::vbuffer[ TString<TChar>::length++ ]= static_cast<TChar>( src );
@@ -1209,7 +1155,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             // AString<nchar>?
-            if ALIB_CPP17_CONSTEXPR ( ATMP_EQ( TChar, nchar) )
+            else if ALIB_CONSTEXPR_IF ( ATMP_EQ( TChar, nchar) )
             {
                 wchar wc=  static_cast<wchar>( src );
                 int mbLength;
@@ -1283,12 +1229,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true, typename TAppendable>
-        inline
         TAString& Append(const TAppendable& src )
         {
-            static_assert( T_ToString_not_specialized_for_type<TAppendable,TChar>::value,
-                   "See Programmer's Manual/ALib Module Strings for information about how to "
-                   "specialize T_Append for custom types to mitigate this error. "
+            static_assert( T_Append_not_specialized_for_type<TAppendable,TChar>::value,
+                   "See Programmer's manual of ALib Module Strings for information about "
+                   "how to specialize T_Append for custom types to mitigate this error. "
                    "More compiler errors might follow." );
             append<TCheck>( src );
             return *this;
@@ -1307,7 +1252,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return   \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true, class TAppendable >
-        inline
         TAString& _(const  TAppendable& src )
         {
             return Append<TCheck>( src );
@@ -1321,7 +1265,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <class TAppendable>
-        inline
         TAString& operator<< (const  TAppendable& src )
         {
             return Append<true>(src);
@@ -1336,7 +1279,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Sets the length of this string to zero. A \e nulled object remains \e nulled.
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString&    Reset()
         {
             ALIB_STRING_DBG_CHK(this)
@@ -1355,7 +1297,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true, typename TAppendable>
-        inline
         TAString& Reset(const TAppendable& src )
         {
             ALIB_STRING_DBG_CHK(this)
@@ -1371,7 +1312,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Provided for compatibility with C# and Java versions of \alib.
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString&    _()
         {
             ALIB_STRING_DBG_CHK(this)
@@ -1393,12 +1333,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString&   InsertAt( const TString<TChar>& src, integer pos )
         {
             ALIB_STRING_DBG_CHK(this)
             integer srcLength= src.Length();
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( srcLength == 0 || pos < 0 || pos > TString<TChar>::length )
                     return *this;
@@ -1431,10 +1370,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString&   InsertChars( TChar c, integer qty )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( qty <= 0 )
                     return *this;
@@ -1464,10 +1402,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString&   InsertChars( TChar c, integer qty, integer pos )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( qty <= 0 || pos < 0 ||  pos > TString<TChar>::length )
                     return *this;
@@ -1514,14 +1451,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true >
-        inline
         TAString&    Delete( integer regionStart, integer regionLength =MAX_LEN )
         {
             ALIB_STRING_DBG_CHK(this)
 
             integer regionEnd;
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1569,12 +1505,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true >
-        inline
         TAString&                 DeleteStart( integer regionLength )
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( regionLength <= 0 )
                 {
@@ -1609,12 +1544,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true >
-        inline
         TAString&                DeleteEnd( integer regionLength  )
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( regionLength > 0 )
                 {
@@ -1675,7 +1609,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                    Defaults to \ref DefaultWhitespaces.
          * @return  \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString& TrimStart( const TCString<TChar>& trimChars
                                                     = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
@@ -1700,7 +1633,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                    Defaults to \ref DefaultWhitespaces.
          * @return  \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TAString& TrimEnd( const TCString<TChar>& trimChars
                                                     = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
@@ -1730,11 +1662,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString&   ReplaceSubstring( const TString<TChar>& src, integer regionStart, integer regionLength )
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 TString<TChar>::AdjustRegion( regionStart, regionLength );
             }
@@ -1784,10 +1715,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString&   ReplaceRegion( TChar c, integer regionStart, integer regionLength )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1851,10 +1781,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString& ToUpper( integer regionStart= 0, integer regionLength =MAX_LEN )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1870,14 +1799,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 #endif
             }
 
-            // convert
-            TChar* buf= TString<TChar>::vbuffer + regionStart;
-            TChar* end= buf     + regionLength;
-            while( buf != end )
-            {
-                *buf=  static_cast<TChar>(toupper( *buf ));
-                buf++;
-            }
+            characters::CharArray<TChar>::ToUpper( TString<TChar>::vbuffer + regionStart, regionLength );
             return *this;
         }
 
@@ -1891,10 +1813,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TAString& ToLower( integer regionStart= 0, integer regionLength =MAX_LEN )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1910,136 +1831,58 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 #endif
             }
 
-            // convert
-            TChar* buf= TString<TChar>::vbuffer + regionStart;
-            TChar* end= buf     + regionLength;
-            while( buf != end )
-            {
-                *buf=  static_cast<TChar>(tolower( *buf ));
-                buf++;
-            }
+            characters::CharArray<TChar>::ToLower( TString<TChar>::vbuffer + regionStart, regionLength );
             return *this;
         }
 
 ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
-#if ALIB_MODULE_STRINGFORMAT
-    /** ############################################################################################
-     * @name Format
-     ##@{ ########################################################################################*/
-
-        /** ****************************************************************************************
-         * Uses the \alib{stringformat,Stringformat::GetDefaultFormatter,default formatter} to
-         * format the given \p{args}. Usually, the first argument provided constitutes a
-         * <em>format string</em>.
-         *
-         * The accepted syntax of the <em>format string</em> depends on the type of the default
-         * formatter (and the type(s) of optionally
-         * \alib{stringformat,Formatter::Next,concatenated formatters}).
-         *
-         * This string is \e not cleared before the format operation.
-         *
-         * \note
-         *   This convenience method is only implemented for template type \c TChar being
-         *   #aworx::character, because only for this standard character type a
-         *   \alib{stringformat,Stringformat::GetDefaultFormatter,default formatter} is available.
-         *
-         * \see
-         *   To perform the creation of the vector of boxes (parameter \p{args}) on the fly, an
-         *   alternative version of this method, accepting variadic parameters is given.
-         *
-         * @param args            The list of boxed arguments replacing the placeholders in
-         *                        \p{formatString}.
-         *
-         * @return \c *this to allow concatenated calls.
-         *
-         * \par Module Dependencies
-         *    This method is only available if module \alibmod_stringformat is included in the
-         *    \alibdist.
-         ******************************************************************************************/
-        ALIB_API
-        TAString&  FormatArgs( const Boxes& args );
-
-        /** ****************************************************************************************
-         * Variadic inlined template method that accepts a list of arguments.<br>
-         * This method fetches the variadic arguments and then invokes #FormatArgs
-         * which performs the format operation.
-         *
-         * \note
-         *   This convenience method is only implemented for template type \c TChar being
-         *   #aworx::character, because only for this standard character type a
-         *   \alib{stringformat,Stringformat::GetDefaultFormatter,default formatter} is available.
-         *
-         * @param  args         The list of boxed arguments replacing the placeholders in
-         *                      \p{formatString}.
-         * @tparam Args         Variadic template type list.
-         *
-         * @return \c *this to allow concatenated calls.
-         *
-         * #### Module Dependencies ####
-         *    This method is only available if module \alibmod_stringformat is included in the
-         *    \alibdist.
-         ******************************************************************************************/
-        template <typename... Args>
-        inline
-        TAString&  Format( const Args&... args )
-        {
-            return FormatArgs( Boxes (std::forward<Args>( args )...) );
-        }
-
-    #if !ALIB_DOCUMENTATION_PARSER
-        template <typename... Args>
-        inline
-        TAString&  Format( Args&&... args )
-        {
-            return FormatArgs( Boxes (std::forward<Args>( args )...) );
-        }
-
-    #endif
-#endif
-
     /** ############################################################################################
      * @name std::iterator
      ##@{ ########################################################################################*/
     public:
+        using TString<TChar>::begin;
+        using TString<TChar>::end;
+        using TString<TChar>::rbegin;
+        using TString<TChar>::rend;
+
         /**
          * A \c std::iterator type, implementing the standard library concept of
-         * [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator).
+         * \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
          * While parent class \b %String provides a constant iterator only, this class exposes
          * an iterator that allows the modification of the character an iterator references.
          */
-        using Iterator= typename TString<TChar>::template TRandomAccessIterator<TChar*, TChar&>;
+        using Iterator= typename TString<TChar>::template TRandomAccessIterator<TChar>;
 
-        /**
-         * Returns an iterator pointing to the first character of this string.
-         * @return The start of this string.
-         */
-        Iterator begin()
-        {
-            return Iterator( VBuffer() );
-        }
+        /** Same as #Iterator, but working from the end to the start of the string. */
+        using ReverseIterator  = std::reverse_iterator<Iterator>;
 
-        /**
-         * Returns an iterator pointing to the first character behind this string.
-         * @return The end of this string.
-         */
-        Iterator end()
-        {
-            return Iterator( VBuffer() + TString<TChar>::length );
-        }
+        /** Returns an iterator pointing to a constant character at the start of this string.
+         *  @return The start of this string.                                         */
+        Iterator          begin()                   { return Iterator(  TString<TChar>::vbuffer ); }
+
+        /** Returns an iterator pointing behind this string.
+         *  @return The end of this string.                                           */
+        Iterator          end()                     { return Iterator(  TString<TChar>::vbuffer
+                                                                      + TString<TChar>::length  ); }
+
+        /** Returns a reverse iterator pointing to a constant character at the end of this string.
+         *  @return The last character of this string.                                        */
+        ReverseIterator  rbegin()                         { return ReverseIterator( end()   );     }
+
+        /** Returns a reverse iterator pointing before the start of this string.
+         *  @return The character before this string.                        */
+        ReverseIterator  rend()                           { return ReverseIterator( begin() );     }
 
 }; // class TAString
 
 //! @cond NO_DOX
 
 
-// #################################################################################################
-// AString implementations (default character type only)
-// #################################################################################################
-#if ALIB_MODULE_STRINGFORMAT
-// format constructor
-template<>  ALIB_API                      TAString<character>::TAString( const lib::boxing::Boxes& );
-template<>  ALIB_API TAString<character>& TAString<character>::FormatArgs( const Boxes& args );
+#if ALIB_DEBUG_STRINGS
+extern template       ALIB_API void             TAString<nchar>::dbgCheck            () const;
+extern template       ALIB_API void             TAString<wchar>::dbgCheck            () const;
+extern template       ALIB_API void             TAString<xchar>::dbgCheck            () const;
 #endif
 
 // #################################################################################################
@@ -2111,8 +1954,6 @@ template<> template<> ALIB_API TAString<xchar>& TAString<xchar>::Append<false,wc
 #endif
 
 
-#define HPP_ALIB_ASTRING_PROPPERINCLUDE
-#   include "alib/strings/appendables.inl"
-#undef HPP_ALIB_ASTRING_PROPPERINCLUDE
+#include "alib/strings/appendables.inl"
 
 #endif // HPP_ALIB_STRINGS_ASTRING

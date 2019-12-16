@@ -1,19 +1,18 @@
-﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALOX_LOG
 #define HPP_ALOX_LOG 1
 
-#if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
+#if !defined(HPP_ALIB_ALOX)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-
 namespace aworx { namespace lib { namespace lox {
-
 
 // forward declarations
 class Lox;
@@ -28,9 +27,18 @@ namespace detail
 
 class ALoxReportWriter;
 
+// The debug lox singleton
+#if ALOX_DBG_LOG && !defined(ALIB_DOX)
+
+    extern ALIB_API Lox*     theDebugLox;  // will be created in ALox::bootstrap
+
+#endif
+
+
+
 /** ************************************************************************************************
  * Holds static objects used for standard debug logging and provides an interface to
- * create such objects. If compiler symbol #ALOX_DBG_LOG_OFF is set, this class will be empty.
+ * create such objects. If compiler symbol #ALOX_DBG_LOG is set to \c 0, this class will be empty.
  *
  * \note:
  *   In C# and Java, this class is the interface class for debug logging which gets pruned,
@@ -62,7 +70,17 @@ class Log
     // #############################################################################################
     // Interface
     // #############################################################################################
-        public:
+    public:
+        /** ****************************************************************************************
+         * Returns the default singleton of class \b %Lox used for debug logging.
+         * @return The debug-logging Lox of \alox
+         ******************************************************************************************/
+        static ALIB_FORCE_INLINE
+        Lox*     Get()
+        {
+            return theDebugLox;
+        }
+
 
         /** ****************************************************************************************
          * This method creates an adequate/default debug logger.
@@ -84,7 +102,8 @@ class Log
          * - If under windows, a Visual Studio debug session is running, adds a
          *   \ref aworx::lib::lox::loggers::VStudioLogger "VStudioLogger"
          *   in addition to the standard console logger. This can be suppressed using
-         *   configuration variable [ALOX_NO_IDE_LOGGER](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html).
+         *   configuration variable
+         *   \https{ALOX_NO_IDE_LOGGER,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}.
          *
          * The name of the \e Logger created is \c "DEBUG_LOGGER". It will be registered with
          * the standard \b %Lox used for debug-logging, by setting \e Verbosities
@@ -116,7 +135,7 @@ class Log
          * \ref aworx::lib::lox::ALoxReportWriter "ALoxReportWriter".
          *
          * \note
-         * This method is effective only in debug compilations. Usually it is invoked indirectly by
+         * This method is effective only with debug builds. Usually it is invoked indirectly by
          * using method #AddDebugLogger. Applications that do not use that method (e.g. because
          * they are using release logging exclusively), should invoke this method on bootstrap
          * providing their (release) lox.
@@ -142,7 +161,7 @@ class Log
 }} // namespace aworx[::lib::lox]
 
 /// Type alias in namespace #aworx.
-using     Log=           aworx::lib::lox::Log;
+using     Log=           lib::lox::Log;
 
 }  // namespace [aworx]
 

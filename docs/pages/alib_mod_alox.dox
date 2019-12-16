@@ -16,10 +16,10 @@ All three language incarnations share <b>a joint website</b> that explains all a
 Here are some links into this external site:
 
 
-- [ALox Logging Library Homepage](http://alexworx.github.io/ALox-Logging-Library/index.html)
-- [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/manual.html)
-- [ALox C++ Subpage](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_mainpage.html)
-- [ALox C++ Tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html)
+- \https{ALox Logging Library Homepage,alexworx.github.io/ALox-Logging-Library/index.html}
+- \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}
+- \https{ALox C++ Subpage,alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_mainpage.html}
+- \https{ALox C++ Tutorial,alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html}
 
 \attention
   Please do not be confused: The previous links refer to a different project and site, which has a

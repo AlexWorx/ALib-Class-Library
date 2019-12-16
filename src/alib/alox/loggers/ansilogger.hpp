@@ -1,13 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALOX_ANSI_LOGGER
 #define HPP_ALOX_ANSI_LOGGER 1
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_TEXTLOGGER)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER)
     #include "alib/alox/detail/textlogger/textlogger.hpp"
 #endif
 
@@ -35,7 +37,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * are the same (they then still differ). However, the right setting for this is dependent on
  * the color scheme of the final output device (window). To manipulate the right setting, see field
  * #UseLightColors and also configuration variable
- * [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html).
+ * \https{ALOX_CONSOLE_LIGHT_COLORS,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}.
  *
  * In the constructor, a default format string and some other definitions in member
  * \ref MetaInfo get set to include color settings.
@@ -197,7 +199,8 @@ class AnsiLogger : public aworx::lib::lox::detail::textlogger::TextLogger
          * - If \ref LightColorUsage "LightColorUsage::ForegroundDark", background colors will be
          *   light colors and foreground colors dark ones.
          *
-         * The configuration variable [ALOX_CONSOLE_LIGHT_COLORS](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
+         * The configuration variable
+         * \https{ALOX_CONSOLE_LIGHT_COLORS,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
          * allows to externally modify this flag. It is read once within the constructor .
          */
         LightColorUsage         UseLightColors;
@@ -314,10 +317,10 @@ class AnsiConsoleLogger : public AnsiLogger
 }}}// namespace aworx[::lib::lox::loggers]
 
 /// Type alias in namespace #aworx.
-using     AnsiLogger=           aworx::lib::lox::loggers::AnsiLogger;
+using     AnsiLogger=           lib::lox::loggers::AnsiLogger;
 
 /// Type alias in namespace #aworx.
-using     AnsiConsoleLogger=    aworx::lib::lox::loggers::AnsiConsoleLogger;
+using     AnsiConsoleLogger=    lib::lox::loggers::AnsiConsoleLogger;
 
 }  // namespace [aworx]
 

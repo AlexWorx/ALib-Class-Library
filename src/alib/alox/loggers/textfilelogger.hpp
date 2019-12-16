@@ -1,13 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALOX_TEXT_FILE_LOGGER
 #define HPP_ALOX_TEXT_FILE_LOGGER 1
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
@@ -57,7 +59,6 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
          * @param fileName    The filename (potentially including a path) of the output log file.
          * @param loggerName  The name of the \e Logger. Defaults to "TEXTFILE".
          ******************************************************************************************/
-        inline
         explicit            TextFileLogger( const aworx::String& fileName,
                                             const aworx::NString& loggerName    =nullptr )
         : PlainTextLogger( loggerName, "TEXTFILE", false )
@@ -73,7 +74,6 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
         /** ****************************************************************************************
          * Destructs a TextFileLogger
          ******************************************************************************************/
-        inline
         virtual            ~TextFileLogger()
         {
              ALIB_ASSERT_ERROR( writer.GetStream() == nullptr, "ostream not deleted" )
@@ -133,7 +133,7 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
 }}}// namespace aworx[::lib::lox::loggers]
 
 /// Type alias in namespace #aworx.
-using     TextFileLogger=           aworx::lib::lox::loggers::TextFileLogger;
+using     TextFileLogger=           lib::lox::loggers::TextFileLogger;
 
 }  // namespace [aworx]
 

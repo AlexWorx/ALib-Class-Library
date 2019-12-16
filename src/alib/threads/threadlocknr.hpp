@@ -1,24 +1,21 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_threads of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCKNR
 #define HPP_ALIB_THREADS_THREADLOCKNR 1
 
-#if !defined (HPP_ALIB_OWNER)
-    #include "alib/lib/owner.hpp"
+#if !defined (HPP_ALIB_FS_OWNER_OWNER)
+    #include "alib/lib/fs_owner/owner.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(THREADS)
 
 #if !defined (_GLIBCXX_MUTEX) && !defined(_MUTEX_)
     #include <mutex>
-#endif
-
-#if !defined(HPP_ALIB_STRINGS_CSTRING)
-#   include "alib/strings/cstring.hpp"
 #endif
 
 // #################################################################################################
@@ -46,7 +43,7 @@ namespace aworx { namespace lib { namespace threads {
  *
  * This class does not allow repeated calls to method #Acquire without prior invocations of
  * #Release. Repeated acquisitions cause undefined behavior.
- * In debug compilations, an assertion is raised when #Acquire is invoked while the lock is already
+ * With debug builds, an assertion is raised when #Acquire is invoked while the lock is already
  * acquired.
  *
  * Due to this limitation, the class performs several times faster than sibling class
@@ -64,14 +61,15 @@ class ThreadLockNR
         Safeness                    safeness;
 
         #if ALIB_DEBUG
-            /** Debug information on acquirement location. */
-            NCString                acquirementSourcefile                                  =nullptr;
+            /** Location of acquirement. (Available only in debug-builds.). */
+            NCString                DbgOwnerFile                                           =nullptr;
 
-            /** Debug information on acquirement location. */
-            int                     acquirementLineNumber;
+            /** Location of acquirement. (Available only in debug-builds.). */
+            int                     DbgOwnerLine;
 
-            /** Debug information on acquirement location. */
-            NCString                acquirementMethodName                                  =nullptr;
+            /** Location of acquirement. (Available only in debug-builds.). */
+            NCString                DbgOwnerFunc                                           =nullptr;
+
 
             /** Counter of (forbidden!) recursive acquirements. Available only in debug
              *  compilations. */
@@ -103,24 +101,20 @@ class ThreadLockNR
          *
          *          sample.Acquire( ALIB_CALLER_PRUNED );
          *
-         * @param file  Caller information. Available only in debug compilations.
-         * @param line  Caller information. Available only in debug compilations.
-         * @param func  Caller information. Available only in debug compilations.
+         * @param dbgFile  Caller information. Available only with debug builds.
+         * @param dbgLine  Caller information. Available only with debug builds.
+         * @param dbgFunc  Caller information. Available only with debug builds.
          ******************************************************************************************/
          #if ALIB_DEBUG
-            void  Acquire( const NCString& file, int line, const NCString& func )
+            void  Acquire( const NCString& dbgFile, int dbgLine, const NCString& dbgFunc )
             {
-                acquirementSourcefile= file;
-                acquirementLineNumber= line;
-                acquirementMethodName= func;
-
+                DbgOwnerFile= dbgFile;
+                DbgOwnerLine= dbgLine;
+                DbgOwnerFunc= dbgFunc;
          #else
             void  Acquire()
             {
          #endif
-
-                ALIB_ASSERT_ERROR( !dbgIsAcquired,
-                   "Must not be recursively acquired. Use class ThreadLock if recursion is needed" )
 
                 if ( safeness == Safeness::Safe )
                     mutex.lock();
@@ -131,14 +125,14 @@ class ThreadLockNR
         /** ****************************************************************************************
          * Releases ownership of this object.
          * If this method is invoked on an object that is not acquired, in debug-compilations an
-         * assertion is raised. In release compilations, this leads to undefined behaviour.
+         * assertion is raised. In release compilations, this leads to undefined behavior.
          ******************************************************************************************/
         void Release()
         {
             ALIB_ASSERT_ERROR( dbgIsAcquired,  "Release without prior acquisition" )
-                if ( safeness == Safeness::Safe )
-                    mutex.unlock();
             ALIB_DBG( dbgIsAcquired= false; )
+            if ( safeness == Safeness::Safe )
+                mutex.unlock();
         }
 
         /** ****************************************************************************************
@@ -174,7 +168,7 @@ class ThreadLockNR
 }} // namespace aworx[::lib::threads]
 
 /// Type alias in namespace #aworx.
-using     ThreadLockNR= aworx::lib::threads::ThreadLockNR;
+using     ThreadLockNR= lib::threads::ThreadLockNR;
 
 }  // namespace [aworx]
 

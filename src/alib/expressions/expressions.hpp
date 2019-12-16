@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONS
 #define HPP_ALIB_EXPRESSIONS_EXPRESSIONS 1
 
@@ -14,24 +15,17 @@
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 
 
-#if defined(ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER)
-#   error "Code selector symbol ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER must not be set from outside. Use postfix '_ON' or '_OFF' for compiler symbols."
-#endif
-
-#if defined(ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON) && defined(ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_OFF)
-#   error "Compiler symbols ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON and ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_OFF are both set (contradiction)."
-#endif
-
-#if defined(ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON)
-    #define ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER 1
-#else
-    #define ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER 0
-#endif
-
 #if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
     #include "alib/compatibility/std_boxing_functional.hpp"
 #endif
 
+#if !defined(HPP_ALIB_FS_MODULES_MODULE)
+#   include "alib/lib/fs_modules/module.hpp"
+#endif
+
+#if !defined(HPP_ALIB_ENUMS_ENUM_B)
+#   include "alib/enums/bitwise.hpp"
+#endif
 
 namespace aworx { namespace lib { namespace expressions {
 
@@ -39,11 +33,11 @@ struct Scope;
 
 
 /** ************************************************************************************************
- * Exceptions thrown by module \alibmod_nolink_expressions.
+ * Exceptions thrown by module \alib_expressions_nl.
  *
  * \note
- *   This enum \ref ALIB_EXCEPTIONS "is equipped with" meta information according to
- *   class \alib{results,Exception}.
+ *   This enum type is associated with \ref alib_enums_records "ALib Enum Records" according to
+ *   the specification documented with class \alib{results,Exception}.
  **************************************************************************************************/
 enum class Exceptions
 {
@@ -262,7 +256,7 @@ enum class CompilePriorities
 
 /** ************************************************************************************************
  * This struct holds static \ref alib_expressions_prereq_sb "sample values" for
- * the built-in supported types of module \alibmod_nolink_expressions.
+ * the built-in supported types of module \alib_expressions_nl.
  *
  * These boxes are mainly used by built-in compiler plug-ins to denote the corresponding type.
  * Customized plug-ins are proposed to use these boxes to denote internal types as well and
@@ -277,6 +271,9 @@ enum class CompilePriorities
  **************************************************************************************************/
 struct Types
 {
+    /** Sample <em>type-box</em> for C++ type <c>void</c>. */
+    static ALIB_API Box Void;
+
     /** Sample <em>type-box</em> for C++ type <c>bool</c>. */
     static ALIB_API Box Boolean;
 
@@ -287,11 +284,11 @@ struct Types
     static ALIB_API Box Float;
 
     /** Sample <em>type-box</em> for string types. While internally, \alib class
-     *  \alib{strings,TString,String} is used, due to the magic of module \alibmod_boxing, almost any custom
-     *  string type is compatible, including of-course \c std::string.*/
+     *  \alib{strings,TString,String} is used, due to the magic of module \alib_boxing, almost
+     *  any custom string type is compatible, including of-course \c std::string.                 */
     static ALIB_API Box String;
 
-#if ALIB_MODULE_SYSTEM
+#if ALIB_SYSTEM
     /** Sample <em>type-box</em> for date and time values of type \alib{time,DateTime}). */
     static ALIB_API Box DateTime;
 
@@ -320,33 +317,33 @@ struct Types
  **************************************************************************************************/
 struct Signatures
 {
-    static ALIB_API Box*  Var [1]; ///< Function accepts variadic arguments.
-    static ALIB_API Box*  B   [1]; ///< Function accepts one boolean argument.
-    static ALIB_API Box*  BB  [2]; ///< Function accepts two boolean arguments.
-    static ALIB_API Box*  I   [1]; ///< Function accepts one integral argument.
-    static ALIB_API Box*  II  [2]; ///< Function accepts two integral arguments.
-    static ALIB_API Box*  IVar[2]; ///< Function accepts one integral argument, followed by variadic arguments.
-    static ALIB_API Box*  F   [1]; ///< Function accepts one floating point argument.
-    static ALIB_API Box*  FF  [2]; ///< Function accepts two floating point arguments.
-    static ALIB_API Box*  S   [1]; ///< Function accepts one string argument.
-    static ALIB_API Box*  SVar[2]; ///< Function accepts one string argument, followed by variadic arguments.
-    static ALIB_API Box*  SS  [2]; ///< Function accepts two string arguments.
-    static ALIB_API Box*  SI  [2]; ///< Function accepts one string argument, followed by an integral argument.
-    static ALIB_API Box*  SSB [3]; ///< Function accepts two string arguments, followed by a boolean argument.
-    static ALIB_API Box*  SSI [3]; ///< Function accepts two string arguments, followed by an integral argument.
-    static ALIB_API Box*  SII [3]; ///< Function accepts one string argument, followed by two integral arguments.
-    static ALIB_API Box*  SSS [3]; ///< Function accepts three string arguments.
-#if ALIB_MODULE_SYSTEM
-    static ALIB_API Box*  D   [1]; ///< Function accepts a \alib{time,DateTime} argument.
-    static ALIB_API Box*  Dur [1]; ///< Function accepts a \alib{time,TimePointBase::Duration,Duration} argument.
-    static ALIB_API Box*  DDur[2]; ///< Function accepts a \alib{time,DateTime} argument, followed by a \alib{time,TimePointBase::Duration,Duration}.
+    static ALIB_API Box*  Var [1];  ///< Function accepts variadic arguments.
+    static ALIB_API Box*  B   [1];  ///< Function accepts one boolean argument.
+    static ALIB_API Box*  BB  [2];  ///< Function accepts two boolean arguments.
+    static ALIB_API Box*  I   [1];  ///< Function accepts one integral argument.
+    static ALIB_API Box*  II  [2];  ///< Function accepts two integral arguments.
+    static ALIB_API Box*  IVar[2];  ///< Function accepts one integral argument, followed by variadic arguments.
+    static ALIB_API Box*  F   [1];  ///< Function accepts one floating point argument.
+    static ALIB_API Box*  FF  [2];  ///< Function accepts two floating point arguments.
+    static ALIB_API Box*  S   [1];  ///< Function accepts one string argument.
+    static ALIB_API Box*  SVar[2];  ///< Function accepts one string argument, followed by variadic arguments.
+    static ALIB_API Box*  SS  [2];  ///< Function accepts two string arguments.
+    static ALIB_API Box*  SI  [2];  ///< Function accepts one string argument, followed by an integral argument.
+    static ALIB_API Box*  SSB [3];  ///< Function accepts two string arguments, followed by a boolean argument.
+    static ALIB_API Box*  SSI [3];  ///< Function accepts two string arguments, followed by an integral argument.
+    static ALIB_API Box*  SII [3];  ///< Function accepts one string argument, followed by two integral arguments.
+    static ALIB_API Box*  SSS [3];  ///< Function accepts three string arguments.
+#if ALIB_SYSTEM
+    static ALIB_API Box*  D   [1];  ///< Function accepts a \alib{time,DateTime} argument.
+    static ALIB_API Box*  Dur [1];  ///< Function accepts a \alib{time,TimePointBase::Duration,Duration} argument.
+    static ALIB_API Box*  DDur[2];  ///< Function accepts a \alib{time,DateTime} argument, followed by a \alib{time,TimePointBase::Duration,Duration}.
 #endif
 };
 
 
 /** ************************************************************************************************
  * This enumeration lists the built-in unary operators.
- * The associated \alib{resources,T_EnumMetaDataDecl,enum meta data} provides the operator symbols.
+ * The associated \ref alib_enums_records "ALib Enum Records" provides the operator symbols.
  **************************************************************************************************/
 enum class DefaultUnaryOperators
 {
@@ -365,8 +362,8 @@ enum class DefaultUnaryOperators
 
 /** ************************************************************************************************
  * This enumeration lists the built-in binary operators.
- * The associated \alib{resources,T_EnumMetaDataDecl,enum meta data} provides the operator symbols,
- * as well as the precedence value of the operator.
+ * The associated \ref alib_enums_records "ALib Enum RecordS" of type
+ * \alib{expressions,ERBinaryOperator} provides an operator's symbol an its precedence.
  **************************************************************************************************/
 enum class DefaultBinaryOperators
 {
@@ -380,8 +377,8 @@ enum class DefaultBinaryOperators
     Add             ,  ///< Arithmetic addition (<c>'+'</c>). Precedence \c 800.
     Subtract        ,  ///< Arithmetic subtraction (<c>'-'</c>). Precedence \c 800.
 
-    ShiftLeft       ,  ///< Bitwise shifting of integer values (<c>'<<'</c>). Precedence \c 700.
-    ShiftRight      ,  ///< Bitwise shifting of integer values (<c>'>>'</c>). Precedence \c 700.
+    ShiftLeft       ,  ///< Bitwise shifting of integral values (<c>'<<'</c>). Precedence \c 700.
+    ShiftRight      ,  ///< Bitwise shifting of integral values (<c>'>>'</c>). Precedence \c 700.
 
     Smaller         ,  ///< Smaller operator (<c>'<'</c>). Precedence \c 600.
     SmallerOrEqual  ,  ///< Smaller or equal operator (<c>'<='</c>). Precedence \c 600.
@@ -391,9 +388,9 @@ enum class DefaultBinaryOperators
     Equal           ,  ///< Equal operator (<c>'=='</c>). Precedence \c 500.
     NotEqual        ,  ///< Not equal operator (<c>'!='</c>). Precedence \c 500.
 
-    BitAnd          ,  ///< Binary and (<c>'&'</c>). "and"s all bits of two integer values. Precedence \c 470.
-    BitXOr          ,  ///< Binary xor (<c>'^'</c>). "xor"s all bits of two integer values. Precedence \c 460.
-    BitOr           ,  ///< Binary or  (<c>'|'</c>). "or"s all bits of two integer values. Precedence \c 450.
+    BitAnd          ,  ///< Binary and (<c>'&'</c>). "and"s all bits of two integral values. Precedence \c 470.
+    BitXOr          ,  ///< Binary xor (<c>'^'</c>). "xor"s all bits of two integral values. Precedence \c 460.
+    BitOr           ,  ///< Binary or  (<c>'|'</c>). "or"s all bits of two integral values. Precedence \c 450.
     BoolAnd         ,  ///< Boolean and (<c>'&&'</c>). Result is boolean. Precedence \c 440.
     BoolOr          ,  ///< Boolean or (<c>'||'</c>). Result is boolean. Precedence \c 430.
 
@@ -411,9 +408,45 @@ enum class DefaultBinaryOperators
 };
 
 /** ************************************************************************************************
+ * \ref alib_enums_records "ALib Enum Record" associated with enumeration
+ * \alib{expressions,DefaultBinaryOperators}.
+ **************************************************************************************************/
+struct ERBinaryOperator
+{
+    /** The parable symbol of an operator. */
+    String      Symbol;
+
+    /** The precedence of an operator in respect to other binary operators. */
+    int         Precedence;
+
+    /**
+     * Required default constructor leaving the record undefined.
+     * (Requirement is documented with\alib{enums::EnumRecordPrototype}.)
+     */
+    ERBinaryOperator()                                                          noexcept  = default;
+
+    /**
+     * Required initializing constructor.
+     * (Requirement is documented with\alib{enums::EnumRecordPrototype}.)
+     *
+     * @param symbol      The parsable operator symbol.
+     * @param precedence  The operator's precedence.
+     */
+    ERBinaryOperator( const String& symbol, int precedence )
+    : Symbol    (symbol)
+    , Precedence(precedence)
+    {}
+
+    /** Implementation of \alib{enums,EnumRecordPrototype::Parse}.  */
+    ALIB_API
+    void Parse();
+};
+
+
+/** ************************************************************************************************
  * This enumeration lists the built-in verbal alias names for unary operators.
  *
- * The associated \alib{resources,T_EnumMetaDataDecl,enum meta data} provides the operator verbs
+ * The associated \ref alib_enums_records "ALib Enum Records" provides the operator verbs
  * as well as the replacement operator.
  *
  * Flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} controls if method
@@ -427,7 +460,7 @@ enum class DefaultAlphabeticUnaryOperatorAliases
 /** ************************************************************************************************
  * This enumeration lists the built-in verbal alias names for binary operators.
  *
- * The associated \alib{resources,T_EnumMetaDataDecl,enum meta data} provides the operator verbs
+ * The associated \ref alib_enums_records "ALib Enum Records" provides the operator verbs
  * as well as the replacement operator.
  *
  * Flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} controls if method
@@ -451,6 +484,41 @@ enum class DefaultAlphabeticBinaryOperatorAliases
     NotEqual        ,  ///< Verbal alias \c "Not_equals" to operator <c>'!='</c>.
 };
 
+/** ************************************************************************************************
+ * \ref alib_enums_records "ALib Enum Record" associated with enumeration
+ * \alib{expressions,DefaultBinaryOperators}.
+ **************************************************************************************************/
+struct EROperatorAlias
+{
+    /** The parsable symbol of an alias operator. */
+    String      Symbol;
+
+    /** The replacement operator symbol. */
+    String      Replacement;
+
+    /**
+     * Required default constructor leaving the record undefined.
+     * (Requirement is documented with\alib{enums::EnumRecordPrototype}.)
+     */
+    EROperatorAlias()                                                           noexcept  = default;
+
+    /**
+     * Required initializing constructor.
+     * (Requirement is documented with\alib{enums::EnumRecordPrototype}.)
+     *
+     * @param symbol      The parsable operator symbol.
+     * @param replacement The symbol of the aliased operator.
+     */
+    EROperatorAlias( const String& symbol, const String& replacement )
+    : Symbol     (symbol)
+    , Replacement(replacement)
+    {}
+
+    /** Implementation of \alib{enums,EnumRecordPrototype::Parse}.  */
+    ALIB_API
+    void Parse();
+};
+
 
 
 /** ************************************************************************************************
@@ -463,8 +531,8 @@ enum class Compilation
      * If this flag is set, all unary operators given in \alib{expressions,DefaultUnaryOperators}
      * are defined with method \alib{expressions,Compiler::SetupDefaults}.
      *
-     * Note that the enumeration class is equipped with
-     * \alib{resources,T_EnumMetaDataDecl,resourced enum meta data}, which might be changed as an
+     * Note that the enumeration class is equipped with resourced
+     * \ref alib_enums_records "ALib Enum Records", which might be changed as an
      * alternative to clearing this flag and provide own definitions.
      *
      * This flag is set by default.
@@ -475,8 +543,8 @@ enum class Compilation
      * If this flag is set, all binary operators given in \alib{expressions,DefaultBinaryOperators}
      * are defined with method \alib{expressions,Compiler::SetupDefaults}.
      *
-     * Note that the enumeration class is equipped with
-     * \alib{resources,T_EnumMetaDataDecl,resourced enum meta data}, which might be changed as an
+     * Note that the enumeration class is equipped with resourced
+     * \ref alib_enums_records "ALib Enum Records", which might be changed as an
      * alternative to clearing this flag and provide own definitions.
      *
      * This flag is set by default.
@@ -489,8 +557,8 @@ enum class Compilation
      * \alib{expressions,DefaultAlphabeticBinaryOperatorAliases}
      * are defined with method \alib{expressions,Compiler::SetupDefaults}.
      *
-     * Note that both enumeration classes are equipped with
-     * \alib{resources,T_EnumMetaDataDecl,resourced enum meta data}, which might be changed as an
+     * Note that both enumeration classes are equipped with resourced
+     * \ref alib_enums_records "ALib Enum Records", which might be changed as an
      * alternative to clearing this flag and provide own definitions.
      *
      * This flag is set by default.
@@ -550,8 +618,7 @@ enum class Compilation
     AliasEqualsOperatorWithAssignOperator               = (1 <<  6),
 
     /**
-     * Used with constructor of compiler plug-in
-     * \alib{expressions,plugins::Arithmetics}.
+     * Used with constructor of compiler plug-in \alib{expressions,plugins::Arithmetics}.
      * (If it is activated in \alib{expressions,Compiler::CfgBuiltInPlugins} or "manually" added.)
      *
      * Denotes if the unary bitwise operator <c>~</c> and binary bitwise operators
@@ -559,7 +626,7 @@ enum class Compilation
      * If set to \c false, the use of the bitwise operators with boolean arguments, throws
      * a compilation exception, unless the bitwise operators are compiled by a custom plug-in.
      */
-    AllowBitwiseBooleanOperations                       = (1 <<  7),
+     AllowBitwiseBooleanOperators                       = (1 <<  7),
 
 
     /**
@@ -662,24 +729,6 @@ enum class Compilation
     NoOptimization                                      = (1 << 20),
 
 
-    #if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-        /**
-         * If set, instead of the built-in hand-crafted parser, an alternative parser implementation
-         * based on
-         * [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html)
-         * is used.
-         *
-         * This flag is available only with compilations that specify preprocessor macro
-         * \ref ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER. In this case the flag is on by default.
-         *
-         * \note The flag is tested only once with the first compilation of an expression by an
-         *       expression compiler instance. Subsequent compilations with the same compiler
-         *       object will re-use the parser created once.
-         *
-         */
-        UseSpiritParser                                 = (1 << 21),
-    #endif
-
     /**
      * Default value. Evaluates to:<br>
      * <c> DefaultUnaryOperators                            + </c><br>
@@ -687,7 +736,7 @@ enum class Compilation
      * <c> DefaultAlphabeticOperatorAliases                 + </c><br>
      * <c> AlphabeticOperatorsIgnoreCase                    + </c><br>
      * <c> AliasEqualsOperatorWithAssignOperator            + </c><br>
-     * <c> AllowBitwiseBooleanOperations                    + </c><br>
+     * <c> AllowBitwiseBooleanOperators                     + </c><br>
      * <c> AllowSubscriptOperator                           + </c><br>
      * <c> AllowOmittingParenthesesOfParameterlessFunctions + </c><br>
      * <c> AllowEmptyParenthesesForIdentifierFunctions      + </c><br>
@@ -699,15 +748,12 @@ enum class Compilation
               + DefaultAlphabeticOperatorAliases
               + AlphabeticOperatorsIgnoreCase
               + AliasEqualsOperatorWithAssignOperator
-              + AllowBitwiseBooleanOperations
+              + AllowBitwiseBooleanOperators
               + AllowSubscriptOperator
               + AllowOmittingParenthesesOfParameterlessFunctions
               + AllowEmptyParenthesesForIdentifierFunctions
               + AllowCompileTimeNestedExpressions
               + AllowIdentifiersForNestedExpressions
-    #if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-              + UseSpiritParser
-    #endif
 };
 
 /** ************************************************************************************************
@@ -814,7 +860,7 @@ enum class Normalization : uint64_t
 
     /**
      * If this flag is set, normalization inserts redundant brackets to the argument of an
-     * unary operation, if that argument is an unary operation itself.
+     * unary operator, if that argument is an unary operator itself.
      *
      * This flag is superseded by \b %RedundantUnaryOpBrackets.<br>
      * This flag is \e not set with \b %DEFAULT.
@@ -995,7 +1041,7 @@ enum class Normalization : uint64_t
      *
      * Note that scientific format can be forced for all floating point number output by setting
      * flag \alib{strings,TNumberFormat::ForceScientific,NumberFormat::ForceScientific} of member
-     * member \alib{stringformat,Formatter::DefaultNumberFormat} which in turn is found
+     * member \alib{text,Formatter::DefaultNumberFormat} which in turn is found
      * in member \alib{expressions,Compiler::CfgFormatter}. Such setting would supersede
      * this flag.
      *
@@ -1167,7 +1213,7 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
  * has to be registered with boxes containing values of \b TimePointBase::Duration.<br>
  * Registrations of box-functions have to be done in the
  * the \ref alib_manual_bootstrapping "bootstrapp" code of the library. In this case it is done
- * in static method \alib{expressions,plugins::DateAndTime::Init}.
+ * in static method \alib{expressions,plugins::DateAndTime::Bootstrap}.
  * The function name that is used for the implementation is \b %FToLiteral_Duration. Here is
  * the line of code that registers the function with the boxed type:
  *
@@ -1195,7 +1241,7 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
  *  \snippet "DOX_ALIB_EXPRESSIONS_TUT_WONO-102.txt"     OUTPUT
  *
  * \note
- *   When integrating module \alibmod_nolink_expressions into a software, a decision has to be
+ *   When integrating module \alib_expressions_nl into a software, a decision has to be
  *   taken: "Should optimized expression strings be presented to the end-user?"<br>
  *
  * \note
@@ -1234,7 +1280,7 @@ struct FToLiteral
 
 
 /** ************************************************************************************************
- * The module class for module \alibmod_nolink_expressions.
+ * The module class for module \alib_expressions_nl.
  *
  * This is a strict singleton class. The only instance found with namespace variable
  * \ref aworx::lib::EXPRESSIONS.
@@ -1245,7 +1291,7 @@ class Expressions  : public Module
         /** ****************************************************************************************
          * Constructor.<br>
          * While this is public, it must not be invoked as this is a strict singleton type.
-         * (See notes in \ref alib_manual_bootstrapping_class_modsingletons).
+         * (See notes in \ref alib_manual_bootstrapping_class_module_singletons).
          ******************************************************************************************/
         Expressions();
 
@@ -1253,20 +1299,20 @@ class Expressions  : public Module
         /** ****************************************************************************************
          * Initializes this module and namespace.
          *
-         * @param level  The initialization level to reach.
+         * @param phase  The initialization phase to perform.
          * @param argc   The number of command line arguments. Defaults to \c 0.
          * @param argv   List of command line arguments if given as single byte character strings.
          * @param wargv  List of command line arguments if given as multi-byte character strings.
          ******************************************************************************************/
-        ALIB_API virtual
-        void      init( InitLevels level,
-                        int argc, const char** argv, const wchar_t** wargv )               override;
+        virtual void    bootstrap( BootstrapPhases phase,
+                                   int argc, const char** argv, const wchar_t** wargv )    override;
 
         /** ****************************************************************************************
-         * Frees resources of the this module and namespace.
+         * Terminates this module. (Nothing to do.)
+         * @param phase  The shutdown phase to perform.
          ******************************************************************************************/
-        ALIB_API virtual
-        void      terminationCleanUp()                                                     override;
+        virtual void    shutdown( ShutdownPhases phase )                                 override
+        { (void) phase; }
 
 }; // class Expressions
 
@@ -1277,18 +1323,21 @@ extern ALIB_API expressions::Expressions EXPRESSIONS;
 
 }} // namespace [aworx::lib]
 
-ALIB_BOXING_VTABLE_DECLARE( aworx::lib::expressions::Exceptions, vt_expressions_exceptions )
+ALIB_BOXING_VTABLE_DECLARE(  aworx::lib::expressions::Exceptions, vt_expressions_exceptions )
 
-ALIB_ENUM_IS_ARITHMETICAL ( aworx::lib::expressions::CompilePriorities )
+ALIB_ENUMS_MAKE_ARITHMETICAL( aworx::lib::expressions::CompilePriorities )
+ALIB_ENUMS_MAKE_BITWISE(      aworx::lib::expressions::Compilation   )
+ALIB_ENUMS_MAKE_BITWISE(      aworx::lib::expressions::Normalization )
 
-ALIB_ENUM_NAMED           ( aworx::lib::expressions::DefaultUnaryOperators  )
-ALIB_ENUM_META_DATA       ( aworx::lib::expressions::DefaultBinaryOperators, String, int )
+ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultUnaryOperators , ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultBinaryOperators,
+                             aworx::lib::expressions::ERBinaryOperator                        )
+ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultAlphabeticUnaryOperatorAliases ,
+                             aworx::lib::expressions::EROperatorAlias                         )
+ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultAlphabeticBinaryOperatorAliases,
+                             aworx::lib::expressions::EROperatorAlias                         )
 
-ALIB_ENUM_META_DATA       ( aworx::lib::expressions::DefaultAlphabeticUnaryOperatorAliases , String, String )
-ALIB_ENUM_META_DATA       ( aworx::lib::expressions::DefaultAlphabeticBinaryOperatorAliases, String, String )
-
-ALIB_EXCEPTIONS           ( aworx::lib::expressions::Exceptions, aworx::lib::EXPRESSIONS, "Exceptions" )
-ALIB_ENUM_IS_BITWISE      ( aworx::lib::expressions::Compilation   )
-ALIB_ENUM_IS_BITWISE      ( aworx::lib::expressions::Normalization )
+ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::Exceptions, aworx::lib::results::ERException )
+ALIB_RESOURCED_IN_MODULE(    aworx::lib::expressions::Exceptions, aworx::lib::EXPRESSIONS, "E" )
 
 #endif // HPP_ALIB_EXPRESSIONS_EXPRESSIONS

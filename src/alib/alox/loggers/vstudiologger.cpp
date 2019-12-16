@@ -6,15 +6,20 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALOX_VSTUDIO_LOGGER)
 #   include "alib/alox/loggers/vstudiologger.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 #if defined(_WIN32) && ALIB_DEBUG
 
-#if !defined (HPP_ALIB_STRINGS_UTIL_STRINGTREE)
-#   include "alib/strings/util/stringtree.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
+#      include "alib/lib/fs_modules/distribution.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
+
 
 #if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
     #include <iostream>
@@ -22,7 +27,6 @@
 #if !defined (_STRING_H) && !defined(_INC_STRING)
     #include <string.h>
 #endif
-
 
 using namespace aworx;
 using namespace aworx::lib::lox;

@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined(HPP_ALIB_SYSTEM_CONSOLE)
     #include "alib/system/console.hpp"
 #endif
@@ -13,7 +14,6 @@
 #if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB_)
 #   include <cstdlib>
 #endif
-
 
 #if defined(__GLIBCXX__)
 #   include <sys/ioctl.h>
@@ -25,6 +25,7 @@
 #else
 #   pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace system {

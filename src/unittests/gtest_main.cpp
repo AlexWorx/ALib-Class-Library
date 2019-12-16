@@ -6,6 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "alib/alox.hpp"
+#include "alib/lib/fs_modules/distribution.hpp"
+#include "alib/compatibility/std_boxing.hpp"
+
+#if ALIB_DEBUG_MONOMEM
+#   include "alib/singletons/dbgsingletons.hpp"
+#   include "alib/monomem/hashtable.hpp"
+#endif
 
 #if defined(__clang__)
     #pragma clang diagnostic push
@@ -24,17 +31,29 @@
 #endif
 
 
-#include "unittests/aworx_unittests.hpp"
-
-
 using namespace std;
 using namespace aworx;
 
 int main( int argc, char **argv )
 {
     ::testing::InitGoogleTest( &argc, argv);
-    aworx::ALIB.Init( argc, argv );
+    aworx::ALIB.Bootstrap( argc, argv, BootstrapPhases::PrepareConfig );
+    aworx::lib::boxing::compatibility::std::BootstrapStdStringBoxing();
+    aworx::ALIB.Bootstrap();
     aworx::ALIB.CheckDistribution();
+
+    std::cout << "Unit Tests compiled with : ";
+        #if defined( _MSC_VER )
+            std::cout << "MSC/"     << ALIB_CPPVER;
+        #elif defined(__clang__)
+            std::cout << "Clang/"   << ALIB_CPPVER;
+        #elif defined(__GNUC__)
+            std::cout << "GNU/"     << ALIB_CPPVER;
+        #elif
+            std::cout << "Unknown/" << ALIB_CPPVER;
+        #endif
+    std::cout << std::endl;
+
 
     //aworx::lib::results::Report::GetDefault().HaltOnWarning= true;
 
@@ -58,15 +77,17 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.SubstringSearch";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.Token*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Custom*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_util_StringTree*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatter";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatters";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Stringformat.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Text.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Enums.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Memory*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Memory.List*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Memory_StringTree*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Threads*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Threads.ThreadSimple";
@@ -137,10 +158,41 @@ int main( int argc, char **argv )
 
     auto result= RUN_ALL_TESTS();
 
-    ALIB.TerminationCleanUp();
+    #if ALIB_DEBUG_RESOURCES
+        cout << std::endl;
+        cout << "---------------- Resource Pool Dump ----------------" << endl;
+            auto resourceList= ALIB.GetResourcePool().DbgGetList();
+            cout <<  ResourcePool::DbgDump( resourceList ) << endl;
+        cout << "---------------- Resource Pool Dump (end) ----------" << endl;
+    #endif
+
+    #if ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG_MONOMEM
+        cout << endl;
+        cout << "---------------- Mapped Singletons ----------------" << endl;
+            AString singletonList;
+            aworx::lib::singletons::DbgGetSingletons(singletonList);
+            cout << singletonList << endl;
+            AString hashTableStats=
+                    aworx::lib::monomem::DbgDumpDistribution( aworx::lib::singletons::DbgGetSingletons(), true );
+            cout << hashTableStats << endl;
+
+        cout << "---------------- Mapped Singetons (end) ----------" << endl;
+    #endif
+
+
+    ALIB.Shutdown();
+
+    #if ALIB_DEBUG && !ALIB_THREADS
+        cerr << "\nNote: To generate the documentation samples, symbol ALIB_THREADS has to be given." << endl;
+    #endif
+    #if ALIB_DEBUG && !ALIB_DEBUG_BOXING
+        cerr << "\nNote: To generate the documentation samples, symbol ALIB_DEBUG_BOXING has to be given." << endl;
+    #endif
+    #if ALIB_CPPVER < 17
+        cerr << "\nNote: To generate the documentation samples, symbol CPP 17 or higher has to be used for compilation." << endl;
+    #endif
 
     return result;
 }
-
 
 

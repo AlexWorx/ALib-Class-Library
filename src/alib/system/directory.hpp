@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_system of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_DIRECTORY
 #define HPP_ALIB_SYSTEM_DIRECTORY 1
 
@@ -139,7 +140,7 @@ class Directory
          * Constructs an object representing one of the known special directories.
          * @param special  The special directory to initialize this instance to.
          ******************************************************************************************/
-        inline                  Directory( SpecialFolder special )
+                                Directory( SpecialFolder special )
         {
             Change( special );
         }
@@ -149,7 +150,7 @@ class Directory
          * @param path  The initial path. If this is a relative path, it relates to the processes
          *              current directory.
          ******************************************************************************************/
-        inline                  Directory( const String& path )
+                                Directory( const String& path )
         {
             Path._( '/' );
             Change( path );
@@ -193,21 +194,23 @@ class Directory
          *  @param target The target AString to store the directory. Will be cleared in any case
          *  @return \c true on success, \c false on failure.
          ******************************************************************************************/
-        ALIB_API static  bool           CurrentDirectory( AString& target );
+        ALIB_API
+        static  bool           CurrentDirectory( AString& target );
 
         /** ****************************************************************************************
          *  Tests if the given (absolute or relative) path represents a directory in the file system.
          *  @param path     Zero-terminated string defining the path to test.
          *  @return \c true if a directory was found.
          ******************************************************************************************/
-        ALIB_API static  bool           Exists( const CString&   path );
+        ALIB_API
+        static  bool           Exists( const CString&   path );
 
         /** ****************************************************************************************
          * Overloaded version of #Change(const CString&) accepting a non-zero-terminated string.
          * @param    path  The relative or absolute path to change to.
          * @returns \c true if the change was successful, \c false otherwise.
          ******************************************************************************************/
-        inline   static  bool           Exists( const StringNZT& path )
+        static  bool           Exists( const StringNZT& path )
         {
             return Exists( String256(path) );
         }
@@ -217,32 +220,30 @@ class Directory
          *  @param path     Zero-terminated string defining the path to test.
          *  @return A value of enum type \alib{system,SystemErrors}.
          ******************************************************************************************/
-        ALIB_API static SystemErrors    Create( const CString& path );
+        ALIB_API
+        static SystemErrors    Create( const CString& path );
 }; //class Directory
 
 }} // namespace lib::system
 
 /// Type alias in namespace #aworx.
-using     Directory=       aworx::lib::system::Directory;
+using     Directory=       lib::system::Directory;
 
 /**
  * The standard path separator character. Defaults to '\\' on Windows OS, '/' else.
  * Note: Available only with including "alib/system/directory.hpp"
  */
 constexpr nchar    DirectorySeparator
-#if ALIB_DOCUMENTATION_PARSER
-    ;
+#if !defined(ALIB_DOX)
+               #if defined( _WIN32 )
+                                       = '\\';
+               #else
+                                       = '/';
+               #endif
 #else
-    =
-                                                                    #if defined( _WIN32 )
-                                                                        '\\';
-                                                                    #else
-                                                                        '/';
-                                                                    #endif
+    ;
 #endif
 }  // namespace [aworx]
 
-
-ALIB_ENUM_PARSABLE( aworx::Directory::SpecialFolder )
-ALIB_RESOURCED_IN_MODULE(aworx::Directory::SpecialFolder, aworx::lib::SYSTEM, "SpecialFolder" )
+ALIB_ENUMS_ASSIGN_RECORD( aworx::Directory::SpecialFolder, aworx::lib::enums::ERSerializable )
 #endif // HPP_ALIB_SYSTEM_DIRECTORY

@@ -1,14 +1,17 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.<br>
+ * With the inclusion of this header compatibility features between \alib and the C++ standard
+ * library are provided.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL
 #define HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -17,17 +20,13 @@ ALIB_ASSERT_MODULE(BOXING)
 #   include "alib/boxing/enum.hpp"
 #endif
 
-#if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
-    #include <unordered_map>
-#endif
-
 
 // #################################################################################################
 // #################################################################################################
 // #### std::hash, std::equal_to, std::is_less for classes Box and Enum
 // #################################################################################################
 // #################################################################################################
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
     namespace aworx { namespace lib { namespace boxing { namespace compatibility { namespace std {
 #else
     namespace std {
@@ -37,7 +36,7 @@ ALIB_ASSERT_MODULE(BOXING)
  * Specialization of functor <c>std::hash</c> for type \alib{boxing,Box}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -48,7 +47,6 @@ template<> struct hash<aworx::lib::boxing::Box>
      * @param src The box object to hash.
      * @return The hash code.
      */
-    inline
     size_t operator()(const aworx::lib::boxing::Box& src) const
     {
         return src.Hashcode();
@@ -60,7 +58,7 @@ template<> struct hash<aworx::lib::boxing::Box>
  * Specialization of functor <c>std::equal_to</c> for type \alib{boxing,Box}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -72,7 +70,6 @@ template<> struct equal_to<aworx::lib::boxing::Box>
      * @param rhs The right-hand side box.
      * @return The result of the comparison.
      */
-    inline
     bool operator()(const aworx::lib::boxing::Box& lhs,
                     const aworx::lib::boxing::Box& rhs  ) const
     {
@@ -88,7 +85,7 @@ template<> struct equal_to<aworx::lib::boxing::Box>
  * \p{rhs}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -100,7 +97,6 @@ template<> struct less<aworx::lib::boxing::Box>
      * @param rhs The right-hand side box.
      * @return The result of the comparison.
      */
-    inline
     bool operator()(const aworx::lib::boxing::Box& lhs,
                     const aworx::lib::boxing::Box& rhs) const
     {
@@ -113,7 +109,7 @@ template<> struct less<aworx::lib::boxing::Box>
  * Specialization of functor <c>std::hash</c> for type \alib{boxing,Enum}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -134,7 +130,7 @@ template<> struct hash<aworx::lib::boxing::Enum>
  * Specialization of functor <c>std::equal_to</c> for type \alib{boxing,Enum}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -157,7 +153,7 @@ template<> struct equal_to<aworx::lib::boxing::Enum>
  * Specialization of functor <c>std::less</c> for type \alib{boxing,Enum}.
  *
  * This specialization is provided with the inclusion of header file
- * <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
+ * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
  * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
@@ -169,7 +165,6 @@ template<> struct less<aworx::lib::boxing::Enum>
      * @param rhs The right-hand side \b Enum.
      * @return The result of the comparison.
      */
-    inline
     bool operator()(const aworx::lib::boxing::Enum& lhs,
                     const aworx::lib::boxing::Enum& rhs) const
     {
@@ -178,33 +173,12 @@ template<> struct less<aworx::lib::boxing::Enum>
 
 };
 
-#if ALIB_DOCUMENTATION_PARSER
+
+#if defined(ALIB_DOX)
 }}}}} // namespace [aworx::lib::boxing::compatibility::std]
 #else
-} // namespace std
+} // namespace [std]
 #endif
 
-
-
-namespace aworx {
-
-/**
- * Simple type definition for a <c>std::unordered_map</c> using a \alib{boxing,Box} as the key type.
- * Note that the corresponding specialization of structs <c>std::hash</c> and <c>std::equal_to</c>
- * are provided, hence other container types of namespace \c std that need such specialization
- * may be used likewise.
- *
- * This type definition, as well as the functors are provided with the inclusion of header
- * file <c>alib/compatibility/std_boxing_functional.hpp</c>.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the true
- * definition is located in namespace <c>aworx</c>.
- *
- * @tparam TValue The value type of the map.
- * @tparam TChar  The character type of the key string. Defaults to #aworx::character.
- */
-template<typename TValue, typename TChar= aworx::character>
-using UnorderedBoxMap = std::unordered_map< aworx::lib::boxing::Box, TValue >;
-
-} // namespace [aworx]
 
 #endif // HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL

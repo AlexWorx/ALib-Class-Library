@@ -1,10 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
 
@@ -12,15 +12,11 @@
 #   include "alib/expressions/compilerplugin.hpp"
 #endif
 
-#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
-    #include "alib/compatibility/std_strings_functional.hpp"
-#endif
-
 
 namespace aworx { namespace lib { namespace expressions {
 
 /**
- * This inner namespace of module \alibmod_nolink_expressions contains the implementations
+ * This inner namespace of module \alib_expressions_nl contains the implementations
  * of built-in compiler plug-ins.
  *
  * In addition, helper class \b %Calculus is defined here, which is the foundation for most of
@@ -42,7 +38,6 @@ namespace plugins {
 #define CALCULUS_SIGNATURE(BoxPointerArray)  BoxPointerArray, std::extent<decltype(BoxPointerArray)>::value
 
 
-
 /** ************************************************************************************************
  * ## 1. Introduction ##
  * This struct specializes \b %CompilerPlugin and provides generic approaches and implementation
@@ -52,8 +47,9 @@ namespace plugins {
  *
  * The class implements virtual, overloaded methods
  * - \alib{expressions::CompilerPlugin,TryCompilation(CIFunction&)},
- * - \alib{expressions::CompilerPlugin,TryCompilation(CIUnaryOp&)} and
- * - \alib{expressions::CompilerPlugin,TryCompilation(CIBinaryOp&)}.
+ * - \alib{expressions::CompilerPlugin,TryCompilation(CIUnaryOp&)},
+ * - \alib{expressions::CompilerPlugin,TryCompilation(CIBinaryOp&)}  and
+ * - \alib{expressions::CompilerPlugin,TryCompilation(CIAutoCast&)}.
  *
  * For each <em>AST</em> node type to compile, this class holds a vector or a hash map to store
  * all information needed for compilation.
@@ -89,11 +85,11 @@ namespace plugins {
  * output parameter of the native function.
  *
  * When implementing a custom plug-in, it may be helpful to have a look at the source code of
- * the built-in plug-ins provided with module \alibmod_expressions.
+ * the built-in plug-ins provided with module \alib_expressions.
  * You will see that these implementations are quite straight forward and use some 'handy' local
  * preprocessor macros that may be copied and used for custom implementations.
  *
- * ## 3. Specifics For Identifiers and Functions ##
+ * ## 3. Implementing Identifiers and Functions ##
  * While parent class \b %CompilerPlugin does not make any direct distinction between functions
  * that are always returning a constant value and those that don't, this class does.
  * Arguably such functions are always parameterless, hence identifiers. Samples for such constants
@@ -121,7 +117,7 @@ namespace plugins {
  *   of likewise arbitrary type may be followed. It is also allowed to add just that one \e nulled
  *   \b %Box to the signature vector, which leads to functions that accept just any number of any
  *   type of argument, including zero arguments.
- * - In debug compilations, besides the callback function pointer, the C++ name of the callback
+ * - With debug builds, besides the callback function pointer, the C++ name of the callback
  *   function is to be provided. For this, macro \ref CALCULUS_CALLBACK is defined.
  *   The macro creates a stringified version of the given function pointer, separated by a comma.
  * - Flag \alib{expressions::plugins::Calculus,FunctionEntry::IsCTInvokable} is a boolean value
@@ -136,124 +132,89 @@ namespace plugins {
  *   In contrast to this, custom functions, especially even parameterless identifiers usually are
  *   dependent on scope information and thus often can not be evaluated at compile-time.
  *
- * ## 4. Specifics For Unary Operators ##
+ * ## 4. Implementing Operators ##
  *
- * The compilation of \alib{expressions,DefaultUnaryOperators,unary operators} is supported by populating nested
- * hash map #UnaryOpMap. Because feeding a nested hash-map is a rather complicated process that
- * can not easily be done using static table data, several helpers are provided:
- * - #AddUnaryOp<br>
- *   This function adds compilation information for a single unary operator to #UnaryOpMap.
+ * ### 4.1 Unary And Binary Operators ###
+ * Apart from some specialities for binary operators documented in the next section, this class
+ * treats unary and binary the same.
+ * Wherever a second operator argument's type is requested, in case of unary operators static
+ * type specifier \alib{expressions,Types::Void} is to be given.
  *
- * - #UnaryOpTableEntry<br>
- *   This is a type definition that allows to define tables with compilation information on unary
+ * The compilation of unary and binary operators is supported by populating hash map #Operators.
+ * For feeding the map with entries, the following convenience types and methods are provided:
+ * - #AddOperator<br>
+ *   This function adds compilation information for a single operator to field #Operators.
+ *
+ * - #OperatorTableEntry<br>
+ *   This is a type definition that allows to define tables with compilation information on
  *   operators. It is recommended to create such tables as \c constexpr data in an anonymous
  *   namespace of the compilation unit.
  *
- * - #AddUnaryOps<br>
+ * - #AddOperators<br>
  *   This is a pair of overloaded functions. One of them is templated and just used to deduce
  *   the length of the given table of static data. This table is then fed as a pointer, together
- *   with the table size to the second method, which in turn feeds the table entries into
- *   #UnaryOpMap.
+ *   with the table's size to the second method, which in turn feeds the table entries into
+ *   field #Operators.
  *
- * In other words: Method #AddUnaryOp feeds one single operator to the nested hash-map, while
- * #AddUnaryOps feeds static "bulk" data to it. For details of the functions and types, consult
- * the corresponding documentation.
+ * In other words: Method #AddOperator defines a single operator, while #AddOperators defines
+ * "bulk" data on operators which is defined in a static table.
+ * For details of the functions and types, consult the corresponding documentation.
  *
  * As documented in user manual section
  * \ref alib_expressions_operators_aliases "9.4 Type-Specific Operator Aliases",
- * module \alibmod_nolink_expressions supports the use of alias
- * operators. For unary operators, this is reflected by this class with:
+ * module \alib_expressions_nl supports the use of alias operators.
+ * This is reflected by this class with:
  *
- * - #UnaryOpAliases<br>
- *   A nested hash map that collects information about unary operator aliases.
+ * - #OperatorAliases<br>
+ *   A hash map that collects information about unary and binary operator aliases.
  *
- * - #AddUnaryOpAlias<br>
- *   This function adds information about an unary operator alias to #UnaryOpAliases.
+ * - #AddOperatorAlias<br>
+ *   This function adds information about an operator alias to field #OperatorAliases.
  *
- * - #UnaryOpAliasTableEntry
- *   A type definition that allows to define tables with information about unary operator aliases.
+ * - #OperatorAliasTableEntry
+ *   A type definition that allows to define tables with information about operator aliases.
  *   It is recommended to create such tables as \c constexpr data in an anonymous
  *   namespace of the compilation unit.
  *
- * - AddUnaryOpAliases<br>
+ * - AddOperatorAliases<br>
  *   This is a pair of overloaded functions. One of them is templated and just used to deduce
  *   the length of the given table of static data. This table is then fed as a pointer, together
  *   with the table size to the second method, which in turn feeds the table entries into
- *   #UnaryOpAliases.
+ *   field #OperatorAliases.
  *
  *
- * ## 5. Specifics For Binary Operators ##
+ * ### 4.2 Specifics For Binary Operators ###
  *
- * The compilation of binary operators is supported by populating nested hash map #BinaryOpMap.
- * Because feeding a nested hash-map is a rather complicated process that
- * can not easily be done using static table data, several helper methods are provided:
- * - #AddBinaryOp<br>
- *   This function adds compilation information for a single binary operator to #BinaryOpMap.
+ * #### Aliasing '==' With '=': ####
+ *  With the use of this class it is \e not necessary to define alias <c>'='</c> for binary
+ *  operator <c>'=='</c>, because this alias replacement is internally always made for any
+ *  combination of argument types, when compilation flag
+ *  \alib{expressions,Compilation::AliasEqualsOperatorWithAssignOperator} is set  in field
+ *  \alib{expressions,Compiler::CfgCompilation}.
  *
- * - #BinaryOpTableEntry<br>
- *   This is a type definition that allows to define tables with compilation information on binary
- *   operators. It is recommended to create such tables as \c constexpr data in an anonymous
- *   namespace of the compilation unit.
+ * #### Aliasing Bitwise Boolean Operators: ####
+ *  In contrast to the above, compilation flag \alib{expressions,Compilation::AllowBitwiseBooleanOperators}
+ *  affects only built-in type \e boolean - just as the flag's name suggests.
+ *  The flag is therefore tested only in derived plug-in \alib{expressions,plugins::Arithmetics}.
+ *  In other words: to allow for example operator <c>'&'</c> to be used as an alias for operator
+ *  <c>'&&'</c> defined on custom types, this has to be explicitly added as a set alias definitions
+ *  for each combination of types in question.
  *
- * - #AddBinaryOps<br>
- *   This is a pair of overloaded functions. One of them is templated and just used to deduce
- *   the length of the given table of static data. This table is then fed as a pointer, together
- *   with the table size to the second method, which in turn feeds the table entries into
- *   #BinaryOpMap.
+ * #### Support For Compile-Time Optimization: ####
+ * For binary operators, this class provides a mechanism to provide information on possible
+ * compile-time optimizations.
+ * Samples of possible binary operator optimizations are given in documentation of struct
+ * \alib{expressions,CompilerPlugin::CIBinaryOp}.
  *
- * In other words: Method #AddBinaryOp feeds one single operator to the nested hash-map, while
- * #AddBinaryOps feeds static "bulk" data to it. For details of the functions and types, consult
- * the corresponding documentation.
+ * The following fields and methods are provided:
  *
- * As documented in user manual section
- * \ref alib_expressions_operators_aliases "9.4 Type-Specific Operator Aliases",
- * module \alibmod_nolink_expressions supports the use of alias
- * operators. For binary operators, this is reflected by this class with:
- *
- * - #BinaryOpAliases<br>
- *   A nested hash map that collects information about binary operator aliases.
- *
- * - #AddBinaryOpAlias<br>
- *   This function adds information about a binary operator alias to #BinaryOpAliases.
- *
- * - #BinaryOpAliasTableEntry<br>
- *   A type definition that allows to define tables with information about binary operator aliases.
- *   It is recommended to create such tables as \c constexpr data in an anonymous
- *   namespace of the compilation unit.
- *
- * - #AddBinaryOpAliases<br>
- *   This is a pair of overloaded functions. One of them is templated and just used to deduce
- *   the length of the given table of static data. This table is then fed as a pointer, together
- *   with the table size to the second method, which in turn feeds the table entries into
- *   #BinaryOpAliases.
- *
- * \note
- *   It is \e not necessary to define an alias operator <c>'='</c> for operator <c>'=='</c>, when
- *   using this class, because this alias replacement is internally always made by this class, if
- *   compilation flag \alib{expressions,Compilation::AliasEqualsOperatorWithAssignOperator} is set
- *   in field \alib{expressions,Compiler::CfgCompilation}.
- *
- * \note
- *   In contrast to this, compilation flag \alib{expressions,Compilation::AllowBitwiseBooleanOperations}
- *   affects only built-in type \e boolean - just as the flag's name suggests.
- *   The flag is tested only in derived plug-in \alib{expressions,plugins::Arithmetics}.
- *   In other words: to allow for example operator <c>'&'</c> to be used as an alias for operator
- *   <c>'&&'</c> defined on custom types, this has to be explicitly added as an alias definition.
- *
- * Finally, for binary operators, this type provides a mechanism to provide information on
- * compile-time optimizations. The following fields and methods are provided:
- *
- * - #BinaryOpConstLHSOptimizations<br>
- *   A nested hash-map that collects information about possible optimizations of binary operations
- *   when the left-hand side operator is a specific constant value.
- *
- * - #BinaryOpConstRHSOptimizations<br>
- *   A nested hash-map that collects information about possible optimizations of binary operations
- *   when the right-hand side operator is a specific constant value.
+ * - #BinaryOperatorOptimizations<br>
+ *   A hash-map that collects information about possible optimizations of binary operators
+ *   when either of the operands are a specific constant value.
  *
  * - #BinaryOpOptimizationsTableEntry<br>
- *   A type definition that allows to define tables with information about binary operator
- *   optimizations..
+ *   A type definition that allows to feed tables (arrays of this type) with information about
+ *   binary operator optimizations.
  *   It is recommended to create such tables as \c constexpr data in an anonymous
  *   namespace of the compilation unit.
  *
@@ -261,11 +222,7 @@ namespace plugins {
  *   A pair of overloaded functions. One of them is templated and just used to deduce
  *   the length of the given table of static data. This table is then fed as a pointer, together
  *   with the table size to the second method, which in turn feeds the table entries into
- *   either #BinaryOpConstLHSOptimizations or #BinaryOpConstRHSOptimizations.
- *
- * Samples of binary operator optimizations are given in documentation of struct
- * \alib{expressions,CompilerPlugin::CIBinaryOp}, which is filled with the optimization
- * information given by the use of above listed helpers.
+ *   hash map #BinaryOperatorOptimizations.
  *
  * # Reference Documentation #
  **************************************************************************************************/
@@ -303,6 +260,11 @@ struct Calculus   : public CompilerPlugin
      */
     static constexpr CTInvokable  ETI  = false;
 
+    /**
+     * This class uses monotonic allocation, which is well supported by the common way how this
+     * type is used.
+     */
+    MonoAllocator          allocator;
 
     /** ********************************************************************************************
      * Constructor.
@@ -311,7 +273,15 @@ struct Calculus   : public CompilerPlugin
      **********************************************************************************************/
                     Calculus( const NString& name, Compiler& compiler )
     : CompilerPlugin( name, compiler )
-    {}
+    , allocator                  ( 4 * 1024 )
+    , Operators                  ( &allocator )
+    , OperatorAliases            ( &allocator )
+    , BinaryOperatorOptimizations( &allocator )
+    {
+        #if ALIB_DEBUG_MONOMEM
+            allocator.LogDomain= "MA/EXPR/CLCLS";
+        #endif
+    }
 
     /** ********************************************************************************************
      * Virtual destructor.
@@ -378,7 +348,7 @@ struct Calculus   : public CompilerPlugin
 
         #if ALIB_DEBUG
             /**
-             * The C++ name of the callback function (only available in debug compilations of the
+             * The C++ name of the callback function (only available with debug builds of the
              * library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
              * together with field #Callback. The macro selects to prune the name string
              * in release compilations. */
@@ -425,250 +395,101 @@ struct Calculus   : public CompilerPlugin
     ALIB_API
     virtual bool    TryCompilation( CIFunction& ciFunction )                              override;
 
+    // #############################################################################################
+    // Operators
+    // #############################################################################################
+    protected:
 
-    // #############################################################################################
-    // Unary operators
-    // #############################################################################################
+        /** Key type for operator hash maps #Operators and OperatorAliases. */
+        struct OperatorKey
+        {
+            const String           op;          ///< A string defining the operator.
+            const std::type_info&  lhs;         ///< Left-hand side type.
+            const std::type_info&  rhs;         ///< Right-hand side type. For unary operators
+                                                ///< equals to <c>typeid(void)</c>.
+
+            /** Hash functor for operator hash map. */
+            struct Hash
+            {
+                /** Calculates a hash code for objects of type \b OperatorKey.
+                 *  @param src The node to hash.
+                 *  @return The hash code.                                      */
+                std::size_t operator()(const OperatorKey& src)                                 const
+                {
+                    return      src.op.Hashcode()
+                             +  4026031ul * src.lhs.hash_code()
+                             +  8175383ul * src.rhs.hash_code();
+                }
+
+            };
+
+            /** Equality functor for operator hash map. */
+            struct EqualTo
+            {
+                /** Compares two objects of type \b OperatorKey.
+                 *  @param left  The left-hand side object.
+                 *  @param right The left-hand side object.
+                 *  @return The result of the comparison.                      */
+                bool        operator()(const OperatorKey& left, const OperatorKey& right )     const
+                {
+                    return     left.op       == right.op
+                            && left.lhs      == right.lhs
+                            && left.rhs      == right.rhs;
+                }
+            };
+        };
+
+
+    public:
+
     /**
-     * Nested hash map assigning combinations of unary operators and argument type to a tuple of an
-     * evaluation function and a return type.
+     * Hash map assigning combinations of (unary and binary) operators and its argument types to a
+     * tuple providing information about a callback function.
      *
-     * A third member of type #CTInvokable is to be set to \c true, if the
-     * callback function is allowed to be invoked on the \alib{expressions,Scope} object used
-     * at compile-time.
+     * The tuple stored, contains the function pointer and the functions's return type.
+     * A third member of type #CTInvokable indicates whether the callback function is allowed to be
+     * invoked on the \alib{expressions,Scope} object used at compile-time.
      * This scope object is of the same (eventually custom) type as the one for evaluation, however
      * the evaluation-specific data is not set. In other words, the third tuple member denotes
-     * if during program compilation, constant input values might be evaluated right away.
+     * if during program compilation the function might be invoked when the operator's argumeent(s)
+     * are constant.
      *
-     * A fourth tuple member of type \alib{strings,TString,String} is available only in debug compilations
+     * A fourth tuple member of type \alib{strings,TString,String} is available only with debug builds
      * and receives the name of the callback function.
      *
      * \note
-     *   This nested map, the same as #UnaryOpAliases, #BinaryOpMap and #BinaryOpAliases
-     *   is to be filled using corresponding \e add-methods.
-     *   Usually this is done in the constructor of derived classes.
+     *   This map, similar to map #OperatorAliases is best to be filled using corresponding
+     *   \e add-methods #AddOperator and #AddOperators.<br>
+     *   Usually this is done once in the constructor of derived classes.
      */
-    UnorderedStringMap <TypeMap<std::tuple<CallbackDecl, Box, CTInvokable
-                                                               #if ALIB_DEBUG
-                                                                      , const char*
-                                                               #endif
-                                                                                    >>>  UnaryOpMap;
+    HashMap<OperatorKey,
+            std::tuple<CallbackDecl, Box, CTInvokable  ALIB_DBG( , const char* ) >,
+            OperatorKey::Hash,
+            OperatorKey::EqualTo> Operators;
 
     /**
-     * Nested hash map assigning combinations of alias versions of unary operators and their
-     * the argument type to the original operator.
+     * Hash map assigning combinations of alias versions of operators and their argument types to
+     * the original operator.
      *
      * \note
-     *   This nested map, the same as #UnaryOpMap, #BinaryOpMap and #BinaryOpAliases
-     *   is to be filled using corresponding \e add-methods.
-     *   Usually this is done in the constructor of derived classes.
+     *   This map, similar to map #Operators is best to be filled using corresponding
+     *   \e add-methods #AddOperatorAlias and #AddOperatorAliases.<br>
+     *   Usually this is done once in the constructor of derived classes.
      */
-    UnorderedStringMap<TypeMap<String>>                                              UnaryOpAliases;
+    HashMap<OperatorKey,
+            String,
+            OperatorKey::Hash,
+            OperatorKey::EqualTo> OperatorAliases;
+
 
     /**
-     * Entry of arrays used with methods #AddUnaryOps to perform bulk-loading of compile definition
-     * data into #UnaryOpMap.
-     * The tuple elements are:<br>
-     * - The operator to compile.
-     * - The argument type of the unary operation.
-     * - The callback function. Set to \c nullptr if operator evaluates always constant.
-     * - The C++ name of the callback function. (This tuple element is only available in debug
-     *   compilations of the library.)
-     * - The result type sample box, respectively, if \b callback is \c nullptr, the constant result
-     *   value.
-     * - Flag to denote if the callback function allows compile-time invocation and thus on constant
-     *   input the program can be optimized. This is true e.g. for arithmetic functions, but usually
-     *   not for custom operators that rely on scope objects available only at evaluation time.
-     */
-    using UnaryOpTableEntry= const std::tuple<String, Type, CallbackDecl,
-                                                                           #if ALIB_DEBUG
-                                                                        const char*,
-                                                                           #endif
-                                                                                Type, CTInvokable>;
-
-   /**
-    * Entry of arrays used with methods #AddUnaryOpAliases to perform bulk-loading of operator
-    * alias definition data into #UnaryOpAliases.
-    * The tuple elements are:
-    * - The alias operator.
-    * - The argument type of the unary operation.
-    * - The operator that gets aliased.
-    */
-    using UnaryOpAliasTableEntry= const std::tuple<String, Type, String>;
-
-    #if ALIB_DOCUMENTATION_PARSER
-    /** ********************************************************************************************
-     * Adds an unary operator's callback function and return type to the compilation map
-     * #UnaryOpMap.
-     * \see Consider using #AddUnaryOps, a variant of this method that allows effective
-     *      bulk loading.
-     *
-     * @param op              The operator.
-     * @param argType         The argument type that the operator is defined for.
-     * @param callback        The callback function to execute.
-     * @param dbgCallbackName The name of the C++ name of the callback function.
-     *                        \note This parameter is available only in debug version of the
-     *                        library.
-     * @param cti             See #CTInvokable for the meaning of this flag.
-     * @param resultType      The result type of the callback function.
-     **********************************************************************************************/
-    void AddUnaryOp     ( const String& op, Type argType, CallbackTypes::Unary callback,
-                          #if ALIB_DEBUG
-                            const char* dbgCallbackName,
-                          #endif
-                          Type resultType,
-                          CTInvokable  cti     );
-
-    #else // clang would complain about the doxing parameter dbgCallbackName
-    void AddUnaryOp     ( const String& op, Type argType, CallbackDecl callback,
-                          #if ALIB_DEBUG
-                            const char* dbgCallbackName,
-                          #endif
-                          Type resultType,
-                          CTInvokable  cti
-                          );
-    #endif
-
-    /** ********************************************************************************************
-     * Templated helper method. Deduces the array size of the given table and passes it
-     * to \ref AddUnaryOps(UnaryOpTableEntry* table, size_t length).
-     *
-     * @param  table     The table containing operator compilation information.
-     * @tparam TCapacity Implicitly deferred size of the array provided.
-     **********************************************************************************************/
-    template<size_t TCapacity>
-    inline
-    void AddUnaryOps    ( UnaryOpTableEntry (&table) [TCapacity]  )
-    {
-        AddUnaryOps( &table[0], TCapacity );
-    }
-
-    /** ********************************************************************************************
-     * Loads all entries of the given table into nested map #UnaryOpMap.
-     *
-     * Note, that usually, the given table is a constexpr array located in an anonymous namespace
-     * of a compilation unit.<br>
-     * It can be passed as a reference to templated helper method, which defers the length of the
-     * table implicitly.
-     *
-     * \note
-     *   It is slightly more performant and causes less memory fragmentation, if the given table is
-     *   sorted by the operator (first) column.
-     *
-     * @param  table     The table containing operator compilation information.
-     * @param  length    The table containing operator compilation information.
-     **********************************************************************************************/
-    void AddUnaryOps    ( UnaryOpTableEntry* table, size_t length );
-
-    /** ********************************************************************************************
-     * Adds an alias operator to nested hash table #UnaryOpAliases.
-     * \see Consider using #AddUnaryOpAliases, a variant of this method that allows effective
-     *      bulk loading.
-     *
-     * @param alias    The alias for operator \p{op}.
-     * @param argType  The argument type that the operator is defined for.
-     * @param op       The operator aliased by \p{alias}.
-     **********************************************************************************************/
-    void AddUnaryOpAlias  ( const String& alias, Type argType, const String& op );
-
-    /** ********************************************************************************************
-     * Templated helper method. Deduces the array size of the given table and passes it
-     * to \ref AddUnaryOpAliases(UnaryOpAliasTableEntry* table, size_t length).
-     * @param  table     The table containing operator compilation information.
-     * @tparam TCapacity Implicitly deferred size of the array provided.
-     **********************************************************************************************/
-    template<size_t TCapacity>
-    inline
-    void AddUnaryOpAliases( UnaryOpAliasTableEntry (&table) [TCapacity]  )
-    {
-        AddUnaryOpAliases( &table[0], TCapacity );
-    }
-
-    /** ********************************************************************************************
-     * Loads all entries of the given table into nested map #UnaryOpAliases.
-     *
-     * Note, that usually, the given table is a constexpr array located in an anonymous namespace
-     * of a compilation unit.<br>
-     * It can be passed as a reference to templated helper method, which defers the length of the
-     * table implicitly.
-     *
-     * \note
-     *   It is slightly more performant and causes less memory fragmentation, if the given table is
-     *   sorted by the operator (first) column.
-     *
-     * @param  table     The table containing operator compilation information.
-     * @param  length    The table containing operator compilation information.
-     **********************************************************************************************/
-    void AddUnaryOpAliases( UnaryOpAliasTableEntry* table, size_t length );
-
-    /** ********************************************************************************************
-     * Searches in #UnaryOpMap for an entry matching the combination of
-     * \alib{expressions,CIUnaryOp::Operator} and the argument type of operand found with iterator
-     * \alib{expressions,CompilationInfo::ArgsBegin}.
-     * If found, the corresponding callback function and result type are added the \p{CIUnaryOp}.
-     *
-     * Before the search, it is checked whether the given operation is an alias for another
-     * operator. Operator aliases might be defined by filling map #UnaryOpAliases in the constructor
-     * of the derived types.
-     * The corrected operator is to be returned in in/out parameter
-     * \alib{expressions,CIUnaryOp::Operator}.
-     *
-     * @param[out]    ciUnaryOp    The compilation result.
-     * @return \c true if an entry was found in #UnaryOpMap and a corresponding command was added to
-     *         \p{CIUnaryOp}. \c false otherwise.
-     **********************************************************************************************/
-    ALIB_API
-    virtual bool    TryCompilation( CIUnaryOp&    ciUnaryOp  )                          override;
-
-
-
-    // #############################################################################################
-    // Binary operators
-    // #############################################################################################
-    /**
-     * Nested hash map assigning combinations of binary operators and its argument types to a
-     * tuple of n callback function and its return type.
-     *
-     * A third member of type #CTInvokable is to be set to \c true, if the
-     * callback function is allowed to be invoked on the \alib{expressions,Scope} object used at
-     * compile-time.
-     * This scope object is of the same (eventually custom) type as the one for evaluation, however
-     * the evaluation-specific data is not set. In other words, the third tuple member denotes
-     * if during program compilation, constant input values might be evaluated right away.
-     *
-     * A fourth tuple member of type \alib{strings,TString,String} is available only in debug compilations
-     * and receives the name of the callback function.
-     *
-     *
-     * \note
-     *   This nested map, the same as #BinaryOpAliases, #UnaryOpMap and #UnaryOpAliases
-     *   is to be filled using corresponding \e add-methods.
-     *   Usually this is done in the constructor of derived classes.
-     */
-    UnorderedStringMap<TypeMap<TypeMap<std::tuple<CallbackDecl, Box, CTInvokable
-                                                                #if ALIB_DEBUG
-                                                                             , const char*
-                                                                #endif
-                                                                                   >>>> BinaryOpMap;
-
-    /**
-     * Nested hash map assigning combinations of alias versions of binary operators and their
-     * the argument types to the original operator.
-     *
-     * \note
-     *   This nested map, the same as #BinaryOpMap, #UnaryOpMap and #UnaryOpAliases
-     *   is to be filled using corresponding \e add-methods.
-     *   Usually this is done in the constructor of derived classes.
-     */
-    UnorderedStringMap <TypeMap<TypeMap<String>>>                                   BinaryOpAliases;
-
-    /**
-     * Entry of arrays used with methods #AddBinaryOps to perform bulk-loading of compile definition
-     * data into #BinaryOpMap.
+     * Entry of input tables (arrays) used with methods #AddOperators to perform bulk-loading of
+     * compile definition data into map #Operators.<br>
      * The tuple elements are:
      * - The operator to compile.
-     * - The left-hand side type of the binary operation.
-     * - The right-hand side type of the binary operation.
+     * - The type of the first argument of the operator.
+     * - The type of the right-hand side argument of the operator.
+     *   For unary operators, value \alib{expressions,Types::Void} is to be provided.
      * - The callback function. Set to \c nullptr if operator evaluates constant.
      * - The C++ name of the callback function. (This tuple element is only available in debug
      *   compilations of the library.)
@@ -678,70 +499,39 @@ struct Calculus   : public CompilerPlugin
      *   input the program can be optimized. This is true e.g. for arithmetic functions, but usually
      *   not for custom operators that rely on scope objects available only at evaluation time.
      */
-    using BinaryOpTableEntry=      const std::tuple<String, Type, Type, CallbackDecl,
-                                                #if ALIB_DEBUG
-                                                   const char*,
-                                                #endif
-                                                                Type, CTInvokable>;
+    using OperatorTableEntry=      const std::tuple< String, Type, Type,
+                                                     CallbackDecl,
+                                                     ALIB_DBG(const char* ,)
+                                                     Type, CTInvokable>;
 
    /**
-    * Entry of arrays used with methods  T
-    * \alib{expressions::plugins::Calculus,AddBinaryOpAliases,AddBinaryOpAliases}
-    *  to perform bulk-loading of operator
-    * alias definition data into #BinaryOpAliases.
+    * Entry of input tables (arrays) used with method #AddOperatorAliases to perform bulk-loading
+    * of operator alias definition data into map #OperatorAliases.<br>
     * The tuple elements are:
     * - The alias operator.
-    * - The left-hand side type of the binary operation.
-    * - The right-hand side type of the binary operation.
+    * - The type of first argument of the operator.
+    * - The type of the right-hand side argument of the operator.
+    *   For unary operators, value \alib{expressions,Types::Void} is to be provided.
     * - The operator that gets aliased.
     */
-    using BinaryOpAliasTableEntry= const std::tuple<String, Type, Type, String>;
-
-    /**
-     * Nested hash map assigning combinations of binary operators and left-hand side operator
-     * constants to optimization information.
-     *
-     * This map is to be filled with #AddBinaryOpOptimizations, which is usually done in the.
-     * constructor of derived classes.
-     */
-    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>          BinaryOpConstLHSOptimizations;
-
-    /**
-     * Nested hash map assigning combinations of binary operators and right-hand side operator
-     * constants to optimization information.
-     *
-     * This map is to be filled with #AddBinaryOpOptimizations, which is usually done in the.
-     * constructor of derived classes.
-     */
-    UnorderedStringMap<TypeMap<UnorderedBoxMap<Box>>>          BinaryOpConstRHSOptimizations;
-
-
-    /**
-     * Entry of arrays used with methods #AddBinaryOpOptimizations to perform bulk-loading of
-     * optimization data for maps #BinaryOpConstLHSOptimizations and #BinaryOpConstRHSOptimizations.
-     * The tuple elements are:
-     * - The alias operator.
-     * - The type of the non-constant argument.
-     * - The type and value of the constant argument.
-     * - Either, a constant result value that replaces the binary operation
-     *   (as in <c> x || true</c>) or a \e nulled box, which indicates that the result equals the
-     *   non-constant argument (as in <c>x && true</c>).
-     */
-    using BinaryOpOptimizationsTableEntry=   const std::tuple<String,Type, const Box&, const Box&>;
+    using OperatorAliasTableEntry= const std::tuple<String, Type, Type, String>;
 
 
 
-
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** ********************************************************************************************
-     * Adds a binary operator's callback function and return type to the compilation map
-     * #BinaryOpMap.
-     * \see Consider using #AddBinaryOps, a variant of this method that allows effective
-     *      bulk loading.
+     * Adds an entry to the operator definition map #Operators.
+     *
+     * \see
+     *    If multiple operators are to be defined, consider the use of #AddOperators, which is a
+     *    variant of this method that allows effective bulk loading.
      *
      * @param op              The operator.
-     * @param lhsType         The left-hand side argument type that the operator is defined for.
-     * @param rhsType         The right-hand side argument type that the operator is defined for.
+     * @param lhsType         The type of the first argument that the operator is defined for.
+     * @param rhsType         The type of the right-hand side argument that the operator is defined
+     *                        for.
+     *                        For unary operators, value \alib{expressions,Types::Void} is to be
+     *                        provided.
      * @param callback        The callback function to execute.
      * @param dbgCallbackName The name of the C++ name of the callback function.
      *                        \note This parameter is available only in debug version of the
@@ -749,122 +539,79 @@ struct Calculus   : public CompilerPlugin
      * @param cti             See #CTInvokable for the meaning of this flag.
      * @param resultType      The result type of the callback function.
      **********************************************************************************************/
-    void AddBinaryOp     ( const String& op, Type lhsType, Type rhsType, CallbackTypes::Binary callback,
-                           #if ALIB_DEBUG
-                             const char* dbgCallbackName,
-                           #endif
+    void AddOperator     ( const String& op, Type lhsType, Type rhsType, CallbackDecl callback,
+                       #if ALIB_DEBUG
+                           const char*   dbgCallbackName,
+                       #endif
                            Type resultType,
-                           CTInvokable  cti     );
-    #else // clang would complain about the doxing parameter dbgCallbackName
+                           CTInvokable   cti     );
+    #else // clang would complain about the doxing of parameter dbgCallbackName
     ALIB_API
-    void AddBinaryOp     ( const String& op, Type lhsType, Type rhsType, CallbackDecl callback,
-                           #if ALIB_DEBUG
-                             const char* dbgCallbackName,
-                           #endif
+    void AddOperator     ( const String& op, Type lhsType, Type rhsType, CallbackDecl callback,
+                       #if ALIB_DEBUG
+                           const char*   dbgCallbackName,
+                       #endif
                            Type resultType,
-                           CTInvokable  cti     );
+                           CTInvokable   cti     );
     #endif
 
 
     /** ********************************************************************************************
      * Templated helper method. Deduces the array size of the given table and passes it
-     * to \ref AddBinaryOps(BinaryOpTableEntry* table, size_t length).
-     * @param  table     The table containing operator compilation information.
+     * to \ref AddOperators(OperatorTableEntry* table, size_t length).
+     *
      * @tparam TCapacity Implicitly deferred size of the array provided.
+     * @param  table     The table containing operator compilation information.
      **********************************************************************************************/
     template<size_t TCapacity>
-    inline
-    void AddBinaryOps    ( BinaryOpTableEntry (&table) [TCapacity]  )
+    void AddOperators    ( OperatorTableEntry (&table) [TCapacity]  )
     {
-        AddBinaryOps( &table[0], TCapacity );
+        AddOperators( &table[0], TCapacity );
     }
 
     /** ********************************************************************************************
-     * Loads all entries of the given table into nested map #BinaryOpMap.
+     * Loads all entries of the given table into hash map #Operators.
      *
      * Note, that usually, the given table is a constexpr array located in an anonymous namespace
      * of a compilation unit.<br>
      * It can be passed as a reference to templated helper method, which defers the length of the
      * table implicitly.
      *
-     * \note
-     *   It is slightly more performant and causes less memory fragmentation, if the given table is
-     *   sorted by the operator column (first)  and as a second order by the \p{lhsType}
-     *   column (second).
-     *
      * @param  table     The table containing operator compilation information.
      * @param  length    The table containing operator compilation information.
      **********************************************************************************************/
     ALIB_API
-    void AddBinaryOps    ( BinaryOpTableEntry* table, size_t length );
+    void AddOperators    ( OperatorTableEntry* table, size_t length );
 
     /** ********************************************************************************************
-     * Adds an alias operator to nested hash table #BinaryOpAliases.
-     * \see Consider using #AddBinaryOpAliases, a variant of this method that allows effective
-     *      bulk loading.
+     * Adds an alias operator to hash table #OperatorAliases.
+     *
+     * \see
+     *    If multiple alias operators are to be defined, consider the use of #AddOperatorAliases,
+     *    which is a variant of this method that allows effective bulk loading.
      *
      * @param alias    The alias for operator \p{op}.
      * @param lhsType  The left-hand side argument type that the operator is defined for.
      * @param rhsType  The right-hand side argument type that the operator is defined for.
      * @param op       The operator aliased by \p{alias}.
      **********************************************************************************************/
-    void AddBinaryOpAlias  ( const String& alias, Type lhsType, Type rhsType, const String& op );
+    void AddOperatorAlias  ( const String& alias, Type lhsType, Type rhsType, const String& op );
 
     /** ********************************************************************************************
      * Templated helper method. Deduces the array size of the given table and passes it
-     * to \ref AddBinaryOpAliases(BinaryOpAliasTableEntry* table, size_t length).
-     * @param  table     The table containing operator compilation information.
+     * to \ref AddOperatorAliases(OperatorAliasTableEntry* table, size_t length).
+     *
      * @tparam TCapacity Implicitly deferred size of the array provided.
+     * @param  table     The table containing operator compilation information.
      **********************************************************************************************/
     template<size_t TCapacity>
-    inline
-    void AddBinaryOpAliases( BinaryOpAliasTableEntry (&table) [TCapacity]  )
+    void AddOperatorAliases( OperatorAliasTableEntry (&table) [TCapacity]  )
     {
-        AddBinaryOpAliases( &table[0], TCapacity );
+        AddOperatorAliases( &table[0], TCapacity );
     }
 
     /** ********************************************************************************************
-     * Loads all entries of the given table into nested map #BinaryOpAliases.
-     *
-     * Note, that usually, the given table is a constexpr array located in an anonymous namespace
-     * of a compilation unit.<br>
-     * It can be passed as a reference to templated helper method, which defers the length of the
-     * table implicitly.
-     *
-     * \note
-     *   It is slightly more performant and causes less memory fragmentation, if the given table is
-     *   sorted by the operator column (first)  and as a second order by the \p{lhsType}
-     *   column (second).
-     *
-     * @param  table     The table containing operator compilation information.
-     * @param  length    The table containing operator compilation information.
-     **********************************************************************************************/
-    void AddBinaryOpAliases( BinaryOpAliasTableEntry* table, size_t length );
-
-
-    /** ********************************************************************************************
-     * Templated helper method. Deduces the array size of the given table and passes it
-     * to \ref AddBinaryOpOptimizations(BinaryOpOptimizationsTableEntry*, size_t, bool).
-     * @param  table     The table containing operator compilation information.
-     * @param  lhsOrRhs  If \c false, the entries passed go into table
-     *                   #BinaryOpConstLHSOptimizations which provides information about
-     *                   optimizations if the lhs-operand is constant.
-     *                   If \c true, table #BinaryOpConstRHSOptimizations is chosen, which provides
-     *                   information about optimizations if the rhs-operand is constant.
-     *
-     * @tparam TCapacity Implicitly deferred size of the array provided.
-     **********************************************************************************************/
-    template<size_t TCapacity>
-    inline
-    void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry (&table) [TCapacity],
-                                   bool lhsOrRhs )
-    {
-        AddBinaryOpOptimizations( &table[0], TCapacity, lhsOrRhs );
-    }
-
-    /** ********************************************************************************************
-     * Loads all entries of the given table into nested map #BinaryOpConstLHSOptimizations
-     * respectively BinaryOpConstRHSOptimizations.
+     * Loads all entries of the given table into hash map #OperatorAliases.
      *
      * Note, that usually, the given table is a constexpr array located in an anonymous namespace
      * of a compilation unit.<br>
@@ -873,36 +620,156 @@ struct Calculus   : public CompilerPlugin
      *
      * @param  table     The table containing operator compilation information.
      * @param  length    The table containing operator compilation information.
-     * @param  lhsOrRhs  If \c false, the entries passed go into table
-     *                   #BinaryOpConstLHSOptimizations which provides information about
-     *                   optimizations if the lhs-operand is constant.
-     *                   If \c true, table #BinaryOpConstRHSOptimizations is chosen, which provides
-     *                   information about optimizations if the rhs-operand is constant.
+     **********************************************************************************************/
+    void AddOperatorAliases( OperatorAliasTableEntry* table, size_t length );
+
+
+    // #############################################################################################
+    // Binary operator optimizations
+    // #############################################################################################
+    protected:
+
+        /** Key type for operator hash maps #Operators and OperatorAliases. */
+        struct BinOpOptKey
+        {
+            const String           op;        ///< The operator to optimize.
+            Side                   constSide; ///< Denotes a left- or right-hand side optimization.
+            const Box              constVal;  ///< The type and value of the constant argument.
+            const std::type_info&  other;     ///< The type of the non-constant argument.
+
+            /** Hash functor for operator hash map. */
+            struct Hash
+            {
+                /** Calculates a hash code for objects of type \b OperatorKey.
+                 *  @param src The node to hash.
+                 *  @return The hash code.                                      */
+                std::size_t operator()(const BinOpOptKey& src)                                 const
+                {
+                    return  (   std::hash<String>()(src.op)
+                              +  6949ul * std::hash<Box>()(src.constVal)
+                              + 14033ul * src.other.hash_code()
+                            ) ^ ( src.constSide == Side::Left ? static_cast<size_t>( 0)
+                                                              : static_cast<size_t>(-1) );
+                }
+            };
+
+            /** Equality functor for operator hash map. */
+            struct EqualTo
+            {
+                /** Compares two objects of type \b OperatorKey.
+                 *  @param lhs The left-hand side object.
+                 *  @param rhs The left-hand side object.
+                 *  @return The result of the comparison.                      */
+                bool        operator()(const BinOpOptKey& lhs, const BinOpOptKey& rhs )        const
+                {
+                    return     lhs.op       == rhs.op
+                            && lhs.constSide== rhs.constSide
+                            && lhs.constVal == rhs.constVal
+                            && lhs.other    == rhs.other;
+                }
+            };
+        };
+
+    public:
+    /**
+     * Hash map storing optimization information for binary operators where either argument is
+     * constant.<br>
+     * This map may be filled with #AddBinaryOpOptimizations, which is usually done in the.
+     * constructor of derived classes.
+     *
+     * The stored element of type \b Box may contain either, a constant result value that replaces
+     * the binary operator (as in <c> x || true</c>) or be a \e nulled box, which indicates that
+     * the result equals the non-constant argument (as in <c>x && true</c>).
+     */
+    HashMap <BinOpOptKey, Box,
+             BinOpOptKey::Hash,
+             BinOpOptKey::EqualTo>                              BinaryOperatorOptimizations;
+
+    /**
+     * Entry of arrays used with methods #AddBinaryOpOptimizations to perform bulk-loading of
+     * optimization data to hash map #BinaryOperatorOptimizations.<br>
+     * The tuple element's meanings are:
+     * - The operator to optimize.
+     * - Denotes if an optimization applies if the left-hand side or right-hand side argument
+     *   is constant.
+     * - The type and value of the constant argument.
+     * - The type of the non-constant argument.
+     * - Either, a constant result value that replaces the binary operator
+     *   (as in <c> x || true</c>) or a \e nulled box, which indicates that the result equals the
+     *   non-constant argument (as in <c>x && true</c>).
+     */
+    using BinaryOpOptimizationsTableEntry= const std::tuple<String, Side, Type, const Box&, const Box&>;
+
+
+    /** ********************************************************************************************
+     * Templated helper method. Deduces the array size of the given table and passes it
+     * to \ref AddBinaryOpOptimizations(BinaryOpOptimizationsTableEntry*, size_t).
+     *
+     * @tparam TCapacity Implicitly deferred size of the array provided.
+     * @param  table     The table containing operator compilation information.
+     **********************************************************************************************/
+    template<size_t TCapacity>
+    void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry (&table) [TCapacity] )
+    {
+        AddBinaryOpOptimizations( &table[0], TCapacity );
+    }
+
+    /** ********************************************************************************************
+     * Loads all entries of the given table into hash map #BinaryOperatorOptimizations.
+     *
+     * Note, that usually, the given table is a constexpr array located in an anonymous namespace
+     * of a compilation unit.<br>
+     * It can be passed as a reference to templated helper method, which defers the length of the
+     * table implicitly.
+     *
+     * @param  table     The table containing operator compilation information.
+     * @param  length    The table containing operator compilation information.
      **********************************************************************************************/
     ALIB_API
-    void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length,
-                                   bool lhsOrRhs );
+    void AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length );
 
     /** ********************************************************************************************
-     * Searches in #BinaryOpMap for an entry matching the combination of
+     * Searches in #Operators for an entry matching the combination of
+     * \alib{expressions,CIUnaryOp::Operator} and the argument type of operand found with iterator
+     * \alib{expressions,CompilationInfo::ArgsBegin}.
+     * (The second argument type of the key of the hash map #Operators is set to
+     * \alib{expressions,Types::Void}).
+     * If found, the corresponding callback function and result type are added the \p{CIUnaryOp}.
+     *
+     * Before the search, it is checked whether the given operator is an alias for another
+     * operator. Operator aliases might be defined by filling map #OperatorAliases in the
+     * constructor of the derived types.
+     * If so, the corrected operator is returned with in/out parameter
+     * \alib{expressions,CIUnaryOp::Operator}.
+     *
+     * @param[out]    ciUnaryOp    The compilation result.
+     * @return \c true if an entry was found in #Operators and a corresponding command was added to
+     *         \p{ciUnaryOp}. \c false otherwise.
+     **********************************************************************************************/
+    ALIB_API
+    virtual bool    TryCompilation( CIUnaryOp& ciUnaryOp )                                 override;
+
+
+    /** ********************************************************************************************
+     * Searches in #Operators for an entry matching the combination of
      * \alib{expressions,CIBinaryOp::Operator} and the argument types of operands found with
      * argument iterators
      * \alib{expressions,CompilationInfo::ArgsBegin} and
      * \alib{expressions,CompilationInfo::ArgsEnd}.
      * If found, the corresponding callback function and result type are added the \p{CIBinaryOp}.
      *
-     * Before the search, it is checked whether the given operation is an alias for another
-     * operator. Operator aliases might be defined by filling map #BinaryOpAliases in the
+     * Before the search, it is checked whether the given operator is an alias for another
+     * operator. Operator aliases might be defined by filling map #OperatorAliases in the
      * constructor of the derived types.
-     * The corrected operator is to be returned in in/out parameter
+     * If so, the corrected operator is returned with in/out parameter
      * \alib{expressions,CIBinaryOp::Operator}.
      *
      * @param[in,out]  ciBinaryOp  The compilation info struct.
-     * @return \c true if an entry was found in #BinaryOpMap and a corresponding command was added
-     *         to \p{CIBinaryOp}. \c false otherwise.
+     * @return \c true if an entry was found in #Operators and a corresponding command was added
+     *         to \p{ciBinaryOp}. \c false otherwise.
      **********************************************************************************************/
     ALIB_API
-    virtual bool    TryCompilation( CIBinaryOp&  ciBinaryOp      )                         override;
+    virtual bool    TryCompilation( CIBinaryOp& ciBinaryOp )                               override;
 
 
     // #############################################################################################
@@ -946,7 +813,7 @@ struct Calculus   : public CompilerPlugin
 
         #if ALIB_DEBUG
             /**
-             * The C++ name of the callback function (only available in debug compilations of the
+             * The C++ name of the callback function (only available with debug builds of the
              * library. Use preprocessor macro \ref CALCULUS_CALLBACK to provide this field
              * together with field #Callback. The macro selects to prune the name string
              * in release compilations.
@@ -994,7 +861,7 @@ struct Calculus   : public CompilerPlugin
 
     /** ********************************************************************************************
      * Searches in #AutoCasts for an entry matching the combination of
-     * \alib{expressions,CIBinaryOp::Operator} and the type(s) that might be auto-casted.
+     * \alib{expressions,CIAutoCast::Operator} and the type(s) that might be auto-casted.
      *
      * An entry in #AutoCasts might also be defined to work on just all operators.
      *
@@ -1004,11 +871,15 @@ struct Calculus   : public CompilerPlugin
      * \alib{expression::Calculus,AutoCastEntry::ReverseCastFunctionName} have to be provided.
      *
      * \note
-     *   This method of this helper class is not applicable (what means that a custom
-     *   version has to be implemented) if one of the following items apply to a use case:
+     *   This method of this helper class is not applicable if one of the following conditions apply
+     *   to a use case:
      *   - Different auto-casts are to be applied for the first and second arguments of binary
      *     operators.
      *   - The custom auto-cast method is not compile-time invokable.
+     *
+     * \note
+     *   In this case, a custom implementation of this method has to be provided to fetch
+     *   these cases. The custom method might then invoke this base implementation.
      *
      * @param[in,out]  autoCast  The compilation info struct.
      * @return \c true if a matching entry was found in #AutoCasts and a corresponding command
@@ -1023,7 +894,7 @@ struct Calculus   : public CompilerPlugin
 }}} // namespace aworx[::lib::expressions::plugin]
 
 /// Type alias in namespace #aworx.
-using     Calculus=    aworx::lib::expressions::plugins::Calculus;
+using     Calculus=    lib::expressions::plugins::Calculus;
 
 } // namespace [aworx]
 

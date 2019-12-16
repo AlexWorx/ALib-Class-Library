@@ -6,7 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#if ALIB_UT_DOCS
 
 #include "alib/alox.hpp"
 
@@ -71,14 +71,14 @@ void documentationSampleTokenizer(AWorxUnitTesting& ut)
 
 UT_METHOD( DOX_ALIB_TOKEN )
 {
-    UT_INIT();
+    UT_INIT()
 
     UT_PRINT("*** Documentation Sample +**")
     documentationSampleTokenizer( ut );
 }
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif //!defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#endif //  ALIB_UT_DOCS

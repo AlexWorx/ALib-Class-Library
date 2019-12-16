@@ -6,7 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_STRING)
 #   include "alib/strings/string.hpp"
 #endif
@@ -18,29 +18,28 @@
 #if ALIB_DEBUG && defined( _WIN32 ) && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
 #   include "alib/strings/localstring.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
+
+using namespace aworx::lib::characters;
 
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
  * This is the reference documentation of sub-namespace \b strings of the \aliblink which
- * holds types of library module \alibmod_nolink_strings.
+ * holds types of library module \alib_strings_nl.
  *
  * Extensive documentation for this module is provided with
  * \ref alib_mod_strings "ALib Module Strings - Programmer's Manual".
  **************************************************************************************************/
 namespace strings {
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 
 // #################################################################################################
 // dbgCheck()
 // #################################################################################################
-#if ALIB_STRINGS_DEBUG
-
-#if !ALIB_DEBUG
-    #pragma message "Compiler symbol ALIB_STRINGS_DEBUG_ON set, while ALIB_DEBUG is off. Is this really wanted?"
-#endif
+#if ALIB_DEBUG_STRINGS
 
 namespace {
     bool astringCheckReported= false;
@@ -53,14 +52,13 @@ void TString<TChar>::dbgCheck() const
     if ( !astringCheckReported )
     {
         astringCheckReported= true;
-        ALIB_MESSAGE( "ALIB_STRINGS_DEBUG is ON! To switch off, "
-                      "unset compilation symbol ALIB_STRINGS_DEBUG_ON."  );
+        ALIB_MESSAGE( "ALIB_DEBUG_STRINGS is enabled")
     }
 
     ALIB_ASSERT_ERROR( length == 0 ||  buffer != nullptr,
-                       "Nulled string has a length of ", length );
+                       "Nulled string has a length of ", length )
 
-    for (integer i= length -1 ; i >= 0 ; i--)
+    for (integer i= length -1 ; i >= 0 ; --i)
         if ( buffer[i] == '\0' )
         {
             ALIB_ERROR( "Found termination character '\\0' in buffer. Index=", i )
@@ -86,14 +84,14 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer s
     const TChar* nBuf=    needle.Buffer();
     const TChar* nBufEnd= nBuf + nLen;
 
-    while ( buf <= bufEnd )
+    while ( buf < bufEnd )
     {
         const TChar* b=  buf;
         const TChar* n= nBuf;
-        while ( characters::CharArray<TChar>::template Equal<TSensitivity>(*b++, *n++ ) )
+        while ( CharArray<TChar>::template Equal<TSensitivity>(*b++, *n++ ) )
             if( n == nBufEnd )
                 return buf  - buffer;
-        buf++;
+        ++buf;
     }
     return -1;
 }
@@ -104,11 +102,11 @@ integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer 
     int openCnt= 1;
     while( idx < length )
     {
-        if( buffer[idx] == opener )   openCnt++;
+        if( buffer[idx] == opener )   ++openCnt;
         if( buffer[idx] == closer )
             if( --openCnt == 0 )
                 break;
-        idx++;
+        ++idx;
     }
 
     return openCnt == 0 ? idx : -openCnt;
@@ -364,9 +362,7 @@ integer  TString<xchar>::WStringLength()  const
     {
         const char32_t uc = static_cast<char32_t>( *src++ );
         if ((uc - 0xd800) >= 2048) // not surrogate
-        {
-            result++;
-        }
+            ++result;
         else
         {
             ALIB_ASSERT_ERROR(    src < srcEnd                                                   // has one more?
@@ -374,8 +370,8 @@ integer  TString<xchar>::WStringLength()  const
                                && ((static_cast<char32_t>( *src++ )  & 0xfffffc00) == 0xdc00),   // is high?
                                "Error decoding UTF16" )
 
-            result++;
-            src++;
+            ++result;
+            ++src;
         }
     }
 
@@ -390,9 +386,7 @@ integer  TString<xchar>::WStringLength()  const
                             "Illegal unicode 32 bit codepoint"       )
 
         if( uc < 0x10000 )
-        {
-            result++;
-        }
+            ++result;
         else
         {
             uc-= 0x10000;
@@ -405,28 +399,91 @@ integer  TString<xchar>::WStringLength()  const
     return result;
 }
 
-template integer  TString<xchar>::indexOfString<Case::Sensitive>(const TString<xchar>&, integer)  const;
-template integer  TString<xchar>::indexOfString<Case::Ignore   >(const TString<xchar>&, integer)  const;
-template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer, integer  idx )      const;
-template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                           ) const;
-template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*, integer* ) const;
-template uint64_t TString<xchar>::ParseDec      ( integer, TNumberFormat<xchar>*, integer* ) const;
-template uint64_t TString<xchar>::ParseBin      ( integer, TNumberFormat<xchar>*, integer* ) const;
-template uint64_t TString<xchar>::ParseHex      ( integer, TNumberFormat<xchar>*, integer* ) const;
-template uint64_t TString<xchar>::ParseOct      ( integer, TNumberFormat<xchar>*, integer* ) const;
-template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*, integer* ) const;
+template integer  TString<xchar>::indexOfString<Case::Sensitive>(const TString<xchar>&, integer) const;
+template integer  TString<xchar>::indexOfString<Case::Ignore   >(const TString<xchar>&, integer) const;
+template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer, integer  idx  ) const;
+template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                            ) const;
+template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template uint64_t TString<xchar>::ParseDec      ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template uint64_t TString<xchar>::ParseBin      ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template uint64_t TString<xchar>::ParseHex      ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template uint64_t TString<xchar>::ParseOct      ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*, integer*     ) const;
 
+// #################################################################################################
+// Hashcode
+// #################################################################################################
+template<typename TChar>
+std::size_t TString<TChar>::Hashcode()                                                         const
+{
+    #if ALIB_CPPVER < 17
+        std::size_t result=
+        #if ALIB_SIZEOF_INTEGER == 4
+                                      2364114217ul;
+        #else
+                            4611686018427387847ull;
+        #endif
+
+        for (aworx::integer i = 0; i < length; ++i)
+        {
+            result^= static_cast<std::size_t>( buffer[i] ) * 33;
+            result^= (result << 21 );
+            result^= (result >> 11);
+        }
+        return result;
+    #else
+        return std::hash<std::basic_string_view<TChar>>()(
+               std::basic_string_view<TChar>( Buffer(), static_cast<size_t>( Length() ) ) );
+    #endif
+}
+
+
+template std::size_t TString<nchar>::Hashcode          () const;
+template std::size_t TString<wchar>::Hashcode          () const;
+template std::size_t TString<xchar>::Hashcode          () const;
+
+template<typename TChar>
+std::size_t TString<TChar>::HashcodeIgnoreCase()                                               const
+{
+    std::size_t result= 68460391ul * ( static_cast<size_t>(length) + 1 );
+
+    for (aworx::integer i = 0; i != length; ++i)
+        result = 199ul*result + static_cast<std::size_t>( CharArray<TChar>::ToUpper( buffer[i] ) );
+
+    return result;
+}
+template std::size_t TString<nchar>::HashcodeIgnoreCase() const;
+template std::size_t TString<wchar>::HashcodeIgnoreCase() const;
+template std::size_t TString<xchar>::HashcodeIgnoreCase() const;
 
 // #################################################################################################
 // debug methods
 // #################################################################################################
-#if ALIB_STRINGS_DEBUG
+#if ALIB_DEBUG_STRINGS
 template   void TString<nchar>::dbgCheck() const;
 template   void TString<wchar>::dbgCheck() const;
 template   void TString<xchar>::dbgCheck() const;
 #endif
 
 
-#endif // ALIB_DOCUMENTATION_PARSER
+#endif // defined(ALIB_DOX)
 
-}}}// namespace [aworx::lib::strings]
+}}// namespace aworx[::lib::strings]
+
+// #################################################################################################
+// String constants
+// #################################################################################################
+String              NULL_STRING             = nullptr;
+ComplementString    NULL_COMPLEMENT_STRING  = nullptr;
+StrangeString       NULL_STRANGE_STRING     = nullptr;
+NString             NULL_N_STRING           = nullptr;
+WString             NULL_W_STRING           = nullptr;
+XString             NULL_X_STRING           = nullptr;
+CString             EMPTY_STRING            =  A_CHAR ("");
+ComplementCString   EMPTY_COMPLEMENT_STRING = A_CCHAR ("");
+StrangeCString      EMPTY_STRANGE_STRING    = A_SCHAR ("");
+NCString            EMPTY_N_STRING          = A_NCHAR ("");
+WCString            EMPTY_W_STRING          = A_WCHAR ("");
+XString             EMPTY_X_STRING          = A_XCHAR ("");
+
+}// namespace [aworx]

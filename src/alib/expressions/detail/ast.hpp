@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_AST
 #define HPP_ALIB_EXPRESSIONS_DETAIL_AST
 
@@ -13,13 +14,18 @@
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 
+#if !defined (HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
+#endif
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
 
 class Program;
 
 /**
- * Base class for nodes of abstract syntax trees of module \alibmod_expressions.
+ * Base class for nodes of abstract syntax trees of module \alib_expressions.
+ * Note that AST objects (and their data) are allocated in a \alib{monomem,MonoAllocator} and
+ * hence have empty destructors.
  */
 struct AST
 {
@@ -54,15 +60,16 @@ struct AST
     {}
 
     /** Virtual destructor. */
-    virtual ~AST()
-    {}
+    virtual ~AST() {}
 
     /**
      * Recursively compiles nested nodes and invokes one of the add-methods of program for itself.
-     * @param program         The program to be compiled.
+     * @param program   The program to be compiled.
+     * @param allocator An allocator usable for temporary objects.
+     *                  Its memory is invalid after the compilation process.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                             = 0;
+    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized )  = 0;
 
     /**
      * Recursively walks through the tree and performs optimizations, dependent on given flags.
@@ -97,34 +104,17 @@ struct ASTLiteral       : public AST
 
     Box         Value;         ///< The value of the literal.
     NFHint      Format;        ///< The value of the literal.
-    AString     stringValue;   ///< Used with string literals as string copy buffer.
 
     /**
      * Constructs a string literal.
-     * @param value    The value of the literal. Will be copied to #stringValue, which then is
-     *                 itself placed in #Value.
+     * @param string   The value of the literal.
      * @param position The index of this AST in the expression string.
      */
-    ASTLiteral( const String& value, integer position )
+    ASTLiteral( const String& string, integer position )
     : AST(Types::Literal, position)
+    , Value( string )
     , Format(NFHint::NONE)
     {
-        stringValue << value;
-        Value= stringValue;
-    }
-
-    /**
-     * Constructs a string literal from a movable \b %AString.
-     * @param value    The value of the literal. Will be moved to #stringValue, which then is
-     *                 itself placed in #Value.
-     * @param position The index of this AST in the expression string.
-     */
-    ASTLiteral( AString&& value, integer position )
-    : AST(Types::Literal, position)
-    , Format(NFHint::NONE)
-    , stringValue(value)
-    {
-        Value= stringValue;
     }
 
     /**
@@ -156,9 +146,11 @@ struct ASTLiteral       : public AST
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program&  program    , MonoAllocator& allocator,
+                           AString & normalized                                )           override;
 
     /**
      * Implements abstract method.
@@ -174,7 +166,7 @@ struct ASTLiteral       : public AST
  */
 struct ASTIdentifier    : public AST
 {
-    AString     Name;   ///< The name of the identifier as parsed from the expression string.
+    String     Name;   ///< The name of the identifier as parsed from the expression string.
 
     /**
      * Constructor providing all fields.
@@ -190,9 +182,11 @@ struct ASTIdentifier    : public AST
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program&  program    , MonoAllocator& allocator,
+                           AString & normalized                                )           override;
 
     /**
      * Implements abstract method.
@@ -207,32 +201,36 @@ struct ASTIdentifier    : public AST
  */
 struct ASTFunction      : public AST
 {
-    AString                            Name;      ///< Enum element denoting the operator.
-    std::vector<AST*>                  Arguments; ///< The argument nodes.
+    String           Name;      ///< The function name as parsed.
+    List<AST*>       Arguments; ///< The argument nodes.
 
     /**
      * Constructor providing name, but not arguments, yet.
-     * @param name      The name of the function
-     * @param position  The index of this AST in the expression string.
+     * @param name       The name of the function
+     * @param position   The index of this AST in the expression string.
+     * @param pAllocator Allocator used to clone the given \p{name} and for storing arguments.
      */
     explicit
-    ASTFunction(const String name, integer position )
+    ASTFunction(const String name, integer position, MonoAllocator &pAllocator )
     : AST(Types::Function, position)
-    , Name(name)
+    , Name     ( pAllocator.EmplaceString(name) )
+    , Arguments(&pAllocator )
     {}
 
     /**
      * Virtual destructor.
      */
-    ALIB_API virtual
-    ~ASTFunction()                                                                         override;
+    virtual ~ASTFunction()                                                                  override
+    {}
 
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program&  program    , MonoAllocator& allocator,
+                           AString & normalized                                )           override;
 
     /**
      * Implements abstract method.
@@ -266,15 +264,16 @@ struct ASTUnaryOp       : public AST
     /**
      * Virtual destructor.
      */
-    ALIB_API virtual
-    ~ASTUnaryOp()                                                                          override;
+    virtual ~ASTUnaryOp()                                                                   override
+    {}
 
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) override;
 
     /**
      * Implements abstract method.
@@ -308,15 +307,16 @@ struct ASTBinaryOp      : public AST
     /**
      * Virtual destructor.
      */
-    ALIB_API virtual
-    ~ASTBinaryOp()                                                                         override;
+    virtual ~ASTBinaryOp()                                                                  override
+    {}
 
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) override;
 
     /**
      * Implements abstract method.
@@ -354,15 +354,16 @@ struct ASTConditional     : public AST
     /**
      * Virtual destructor.
      */
-    ALIB_API virtual
-    ~ASTConditional()                                                                      override;
+    virtual ~ASTConditional()                                                               override
+    {}
 
     /**
      * Implements abstract method.
      * @param program         The program to be compiled.
+     * @param allocator       An allocator usable for temporary objects.
      * @param[out] normalized The normalized string, built during recursive compilation of the AST.
      */
-    virtual void Assemble( Program& program, AString & normalized )                    override;
+    virtual void Assemble( Program& program, MonoAllocator& allocator, AString & normalized ) override;
 
     /**
      * Implements abstract method.
@@ -372,7 +373,7 @@ struct ASTConditional     : public AST
     virtual AST* Optimize( Normalization normalization )                                   override;
 };
 
-}}}}; // namespace [aworx::lib::expressions::detail]
+}}}} // namespace [aworx::lib::expressions::detail]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_AST

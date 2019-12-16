@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_MATH
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_MATH
 
@@ -45,7 +46,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * Float      | \b max        | Float, Float    | Returns the greater of two floating point numbers.
  * Float      | \b min        | Integer,Integer | Returns the smaller of two integer numbers.
  * Float      | \b min        | Float, Float    | Returns the smaller of two floating point numbers.
- * Float      | \b remainder  | Float,Float     | Computes the remainder of the floating point division operation of the first argument by the second argument.
+ * Float      | \b remainder  | Float,Float     | Computes the remainder of the floating point division of the first argument by the second argument.
  * Float      | \b random     | Float           | Returns a random number in the range [0.0 ... 1.0[. Note uses \c std::rand. No seeding is performed. Invoke \c std::srand prior to using this function for the first time, if numbers should change between different runs of the software.
  * Float      | \b sin        | Float           | Computes sine.
  * Float      | \b asin       | Float           | Computes cosine.

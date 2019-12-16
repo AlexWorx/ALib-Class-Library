@@ -6,12 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS) || defined(ALIB_UT_EXPRESSIONS)
+#if ALIB_UT_STRINGS || ALIB_UT_EXPRESSIONS
+
+#if defined(QT_CORE_LIB) // needed here for unity builds to be included before boxing (!)
+#   include "alib/compatibility/qt_characters.hpp"
+#endif
 
 #include "alib/alox.hpp"
 
-#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
-    #include "alib/stringformat/text.hpp"
+#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
+    #include "alib/text/paragraphs.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
@@ -61,7 +65,7 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
             if( segmentLength < segMinLen )
                 abbreviation << c;
 
-            segmentLength++;
+            ++segmentLength;
 
             // segment end?
             if(     cIdx!=0
@@ -71,12 +75,12 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
                       || (format == Token::Formats::CamelCase && isalpha(c) && isupper(c) ) ) )
             {
                 if( format == Token::Formats::CamelCase )
-                    cIdx--;
+                    --cIdx;
 
                 if( c=='_' || c=='-' )
                     abbreviation << c;
 
-                segmentNo++;
+                ++segmentNo;
                 segmentLength= 0;
                 segMinLen    = segmentNo < 7 ? lhs.GetMinLength(segmentNo) : 1000;
                 continue;
@@ -94,8 +98,8 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
                 if( !rhs.Match( abbreviation ) )
                 {
                     UT_PRINT( "  Internal error: token does not match against its abbreviation {!AW} of token {!Q}",
-                              String256("\"")._(abbreviation)._('"'), rhs.GetRawName() );
-                    UT_TRUE(false);
+                              String256("\"")._(abbreviation)._('"'), rhs.GetRawName() )
+                    UT_TRUE(false)
                 }
                 continue;
             }
@@ -103,7 +107,7 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
             if( rhs.Match( abbreviation ) )
             {
                 UT_PRINT( "  Warning: Abbreviation {!AW!Q} of token {!AW!Q} matches against token {!AW!Q}",
-                          abbreviation, name, rhs.GetRawName() );
+                          abbreviation, name, rhs.GetRawName() )
             }
 
         }
@@ -114,4 +118,6 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
 
 } //namespace
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#include "unittests/aworx_unittests_end.hpp"
+
+#endif // ALIB_UT_STRINGS

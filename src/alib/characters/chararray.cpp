@@ -6,18 +6,22 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/characters/chararray.hpp"
-
-#if !defined(HPP_ALIB_LIB_ASSERT)
-#   include "alib/lib/assert.hpp"
+#if !defined(ALIB_DOX)
+#if !defined(HPP_ALIB_CHARACTERS_CHARARRAY)
+#   include "alib/characters/chararray.hpp"
 #endif
+
+#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
+#   include "alib/lib/fs_debug/assert.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib {
 
 /**
  * This is the reference documentation of sub-namespace \b characters of the \aliblink which
- * holds types of library module \alibmod_characters.
+ * holds types of library module \alib_characters.
  *
  * Extensive documentation for this module is provided with
  * \ref alib_mod_characters "ALib Module Characters - Programmer's Manual".
@@ -40,7 +44,7 @@ integer CharArray<TChar>::IndexOfAnyIncluded( const TChar* haystack,  integer  l
         for( integer i= 0; i < needlesLength ; ++i )
             if( *(needles + i) == *s )
                 return s - haystack;
-        s++;
+        ++s;
     }
 
     return -1;
@@ -84,7 +88,7 @@ integer CharArray<TChar>::LastIndexOfAnyInclude( const TChar* haystack,  integer
             if( *(needles + i) == *s )
                 return s - haystack;
 
-        s--;
+        --s;
     }
     return -1;
 }
@@ -109,7 +113,7 @@ integer CharArray<TChar>::LastIndexOfAnyExclude( const TChar* haystack,  integer
                 return s - haystack;
         }
 
-        s--;
+        --s;
     }
     return -1;
 }
@@ -129,14 +133,15 @@ integer CharArray<TChar>::IndexOfFirstDifference( const TChar* haystack,  intege
         while(    idx != haystackLength
                && idx != needleLength
                && haystack[idx] == needle[idx] )
-            idx++;
+            ++idx;
     }
     else
     {
         while(    idx != haystackLength
                && idx != needleLength
-               && toupper( haystack[idx] ) == toupper( needle[idx] ) )
-            idx++;
+               &&      ToUpper( haystack[idx] )
+                    == ToUpper( needle[idx] ) )
+            ++idx;
     }
     return idx;
 }
@@ -184,9 +189,9 @@ template<> integer CharArray<wchar>::IndexOfAnyIncludedZT( const wchar* haystack
         {
             if (*h == *n )
                 return h - haystack;
-            n++;
+            ++n;
         }
-        h++;
+        ++h;
     }
     return -1;
 }
@@ -201,11 +206,11 @@ template<> integer CharArray<wchar>::IndexOfAnyExcludedZT( const wchar* haystack
         {
             if (*h == *n )
                 break;
-            n++;
+            ++n;
         }
         if(!*n)
             return h - haystack;
-        h++;
+        ++h;
     }
     return -1;
 }
@@ -256,9 +261,9 @@ template<> integer CharArray<xchar>::IndexOfAnyIncludedZT( const xchar* haystack
         {
             if (*h == *n )
                 return h - haystack;
-            n++;
+            ++n;
         }
-        h++;
+        ++h;
     }
     return -1;
 }
@@ -273,11 +278,11 @@ template<> integer CharArray<xchar>::IndexOfAnyExcludedZT( const xchar* haystack
         {
             if (*h == *n )
                 break;
-            n++;
+            ++n;
         }
         if(!*n)
             return h - haystack;
-        h++;
+        ++h;
     }
     return -1;
 }
@@ -321,7 +326,7 @@ template<> int    CharArray<xchar>::Compare( const xchar* str1,  const xchar* st
 //
 // define further global symbols which are detected by the pretty printer python script for gdb
 //
-#if  !ALIB_CHARACTERS_ARE_NARROW
+#if ALIB_CHARACTERS_WIDE
     extern int ALIB_PRETTY_PRINTERS_DEFAULT_CHAR_IS_WIDE;
            int ALIB_PRETTY_PRINTERS_DEFAULT_CHAR_IS_WIDE;
 #endif

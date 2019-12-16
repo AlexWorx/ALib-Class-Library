@@ -1,351 +1,650 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_resources of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_RESOURCES_RESOURCES
 #define HPP_ALIB_RESOURCES_RESOURCES 1
 
-
-#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
-    #include "alib/compatibility/std_strings_functional.hpp"
+#if !defined (HPP_ALIB_STRINGS_STRING)
+#   include "alib/strings/string.hpp"
 #endif
 
-#if !defined (HPP_ALIB_MEMORY_MEMORYBLOCKS)
-#   include "alib/memory/memoryblocks.hpp"
+#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#   include "alib/strings/localstring.hpp"
 #endif
 
-#if !defined (_GLIBCXX_MAP) && !defined(_MAP_)
-#   include <map>
+
+#if !defined(ALIB_RESOURCES_OMIT_DEFAULTS)
+#   define   ALIB_RESOURCES_OMIT_DEFAULTS   0
 #endif
 
-namespace aworx  { namespace lib {
-
-#if ALIB_MODULE_THREADS
-        namespace threads { class ThreadLock;          }
+#if !defined(ALIB_DEBUG_RESOURCES)
+#   define   ALIB_DEBUG_RESOURCES           0
+#elif !ALIB_DEBUG && ALIB_DEBUG_RESOURCES
+#   undef    ALIB_DEBUG_RESOURCES
+#   define   ALIB_DEBUG_RESOURCES           0
+#   pragma message "Symbol ALIB_DEBUG_RESOURCES set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
 #endif
 
-#if ALIB_MODULE_CONFIGURATION
-        namespace config  { class Configuration;       }
-        namespace config  { class ConfigurationPlugin; }
-        namespace config  { class Variable;            }
+#if ALIB_DEBUG_RESOURCES && !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+#  include <vector>
 #endif
 
-namespace resources {
 
+
+namespace aworx  { namespace lib { namespace resources {
 
 /** ************************************************************************************************
- * This class provides string based resources in a two-level, nested hash map. The outer map
- * uses a category string key, while the inner uses another string key denoting the resource
- * string name and hashing the resource string.<br>
+ * This purely abstract class provides an interface to store and retrieve "resourced" string data
+ * which are organized in a two-level key hierarchy named <em>"resource category"</em>
+ * and <em>"resource name"</em>. The latter are of narrow string type.
  *
- * In addition to this simple hashing, with \alib module \ref ALIB_MODULE_CONFIGURATION in place,
- * when loading resources, those are tried to be read from field #Config with priority.
- * With the prioritization mechanics of class \alib{config,Configuration} itself, this
- * allows for example to have language translations of resources in place, which - if only sparsely
- * defined - automatically fallback through the different configuration plug-ins and finally get
- * loaded from this classes internal simple nested hash map.
+ * \see
+ *  Please consult the \ref alib_mod_resources "Programmer's Manual" of module \alib_resources
+ *  for detailed documentation on when and how this interface is used.
  *
- * This class is usually used with class \alib{Module}, which also creates and distributes
- * instances of this class to dependent libraries. In other words, normally instances of this class
- * are never to be created by custom code.
+ * \see
+ *  Two built-in implementations of this pure abstract interface are provided with
+ *  \alib{resources,LocalResourcePool} and \alib{resources,ConfigResourcePool}.
+ *  Please consult their reference documentation for further details.
  *
- * The documentation of class \alib{Module} explains how a using software gets control over
- * - the assignment of either the same or different instances of this class to different C++
- *   libraries
- * - the initialization phases which allow to add custom resource "sources" on bootstrap.
- *
- * Due to the use of this class throughout \alib itself, almost all built-in names of
- * \alib{config,Variable,configuration variables},
- * \alib{resources,T_EnumMetaDataDecl,enum meta data},
- * \alib{results,Exception,exception messages},
- * and so forth can be changed and customized.
- *
- * The simplest way to change names is by changing the values programatically (hard-coded) in
- * the bootstrap section of a software.<br>
- * A more advanced approach ist to use class \alib{config,IniFile}, load a resource file and
- * add this to field \alib{resources,Resources::Config} as plug-in. Due to the "fallthrough" mechanism
- * two things are possible:
- * - An INI-file may be only "sparsely" filled. Only the values that are to be overwritten need
- *   to be set. For others, the default values apply.
- * - More than one INI-file may be attached (with different priorities). This allows even to
- *   sort the supported languages by their preference.
- *
- * A fresh and complete INI-file that contains all default values can be created using method
- * #FetchDefaults. Typically, a software would provide a special command line parameter to
- * let a user export the resources once to an INI-file. The user then might choose to edit
- * the file and copy it to a certain folder (and name scheme) that the application uses to search
- * for (or a different command line parameter allows to use the file).
- * If found, these files would be attached to the instance of this class with the next run of the
- * software.
- *
- * The most advanced way to manage resources, is to write a custom configuration plug-in, to load
- * resources from a place that the main software uses by default.
- * Of-course, alternatively, such external sources might be used directly to fill the defaults -
- * and this way leave field #Config untouched. There is a great freedom of choice.
  **************************************************************************************************/
-class Resources
+class ResourcePool
 {
-    // #############################################################################################
-    // internal fields
-    // #############################################################################################
-    protected:
-    #if ALIB_MODULE_THREADS
-        /**
-         * Lock used to perform thread-safe access to resources.
-         * \note
-         *   Instead of deriving this class from \b %ThreadLock, we use a pointer field here.
-         *   This is to enable forward declaration of the type and include
-         *   \alib resources features at an early stage of compilation.
-         */
-        threads::ThreadLock*                                         lock;
-    #endif
-
-        /**
-         * Two nested \c std::unordered_map objects to store static hard-coded default resources.
-         * The outer map object assigns the inner map to the resource category.
-         * The inner map object assigns resource names to the data.
-         */
-        UnorderedStringMap<UnorderedStringMap<String,nchar>, nchar>  defaults;
-
-        /**
-         * Two nested \c std::unordered_map objects to store copies of resources found in #Config.
-         * On the initial read of a variable, the value is copied using #cache and
-         * inserted here.
-         *
-         * The outer map object assigns the inner map to the resource category.
-         * The inner map object assigns resource names to the data.
-         *
-         * This map is searched first (before #Config and #defaults).
-         */
-        UnorderedStringMap<UnorderedStringMap<String, nchar>, nchar>  cachedVariables;
-
-        /**
-         * Block-allocator to store copies of resources (and category/name strings).
-         *
-         * Used with #AddCopy and also all resources that are loaded from #Config get
-         * cached.
-         *
-         */
-        MemoryBlocks                                    cache;
-
-
-
-    #if ALIB_MODULE_CONFIGURATION
-        /**  An only locally used object. Declared as field member to be reusable (performance
-         *   optimization preferred against memory consumption). */
-        config::Variable*           variable                                              = nullptr;
-    #endif
-
-    // #############################################################################################
-    // public fields
-    // #############################################################################################
     public:
-    #if ALIB_MODULE_CONFIGURATION
-        /**  The configuration object for custom resource data.<br>
-         *   This field is only available with \ref ALIB_MODULE_CONFIGURATION set.  */
-        config::Configuration*      Config                                                = nullptr;
-    #endif
+
+    /** Virtual destructor. */
+    virtual ~ResourcePool()
+    {}
 
 
-
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
-    public:
-    /** Constructor. Creates a configuration object pointed to by #Config without plug-ins. */
-    Resources();
-
-    /** Destructor. Deletes the configuration object created in the constructor. */
-    ~Resources();
-
-
-    // #############################################################################################
-    // Resource Interface
-    // #############################################################################################
-
-#if ALIB_DOCUMENTATION_PARSER
     /** ********************************************************************************************
-     * Stores static, default resource data (in field #defaults).
-     * This method is usually invoked by classes derived from
-     * \alib{Module} in initialization code of phase \alib{Module::InitLevels::PrepareResources}.
+     * Used to store a resource string.
+     *
+     * In the context of \alibmods, which usually are the only areas where instances of this
+     * type are available (used), this method must only invoked during the process of
+     * \ref alib_manual_bootstrapping "bootstrapping" \alib (and corresponding custom modules).
      *
      * \attention
-     *   All three string parameters must be kept available through the life-time of this class,
-     *   as no copy is created. This condition is naturally met by C++ string literals which
-     *   are usually passed. If a software uses custom resource mechanics to already
-     *   populate the default values with otherwise resourced strings, and those are not surviving
-     *   in memory, method #AddCopy is to be used instead.
-     *
-     * @param category   Category string of the resource.
-     * @param name       Name string of the resource
-     * @param data       String data
-     * @param dbgAssert  This parameter is available only in debug mode. If \c true, an assertion
-     *                   is raised if the resource was added before.
-     ********************************************************************************************~*/
-    ALIB_API
-    void Add( const NString& category, const NString& name, const String& data, bool dbgAssert );
-#else
-    ALIB_API
-    void Add( const NString& category, const NString& name, const String& data ALIB_DBG(, bool dbgAssert ) );
-#endif
-
-    /** ********************************************************************************************
-     * Copies and stores default resource data (in field #defaults).
-     * Creates copies of the data passed. Parameter \c category is only copied if the category
-     * does not exist, yet. Parameter name usually is copied. It is not, if the resource variable
-     * existed before. Unlike #Add, in debug compilations no \alib assertion is raised, if the
-     * entry is overwritten.
-     *
-     * The use cases for this method, in contrast to using methods #Add and #AddBulk are:
-     * - Add resources that are not string literals but local objects or other string data
-     *   with a limited lifecycle.
-     * - Replace resources that contain formatter string, with formatted data. For example
-     *   application name strings, which at bootstrap get formatted with the actual version
-     *   number of the software.
-     *
-     * \attention
-     *   The string copies will not be freed unless this object is deleted. This means, resources
-     *   must not be replaced on a regular basis during run-time.
-     *
-     * @param category          Category string of the resource.
-     * @param name              Name string of the resource
-     * @param data              String data
-     ********************************************************************************************~*/
-    ALIB_API
-    void AddCopy( const NString& category, const NString& name, const String& data );
-
-    /** ********************************************************************************************
-     * Stores static, default resource data (in field #defaults).
-     * This method is usually invoked by classes derived from
-     * \alib{Module} in initialization code of phase \alib{Module::InitLevels::PrepareResources}.
-     *
-     * The variadic arguments must be of type <b>const nchar*</b> and consists of pairs
-     * of resource name and values.<br>
-     * <b>The list has to be finished with a final \c nullptr argument!</b>
+     *   The life-cycle of the given string's buffers, have to survive this resource instance.
+     *   Usually the strings passed here are constant C++ string literals, residing an the data
+     *   segment of an executable
      *
      * \note
-     *   The use of variadic C-style arguments in general is \b not recommended.
+     *   Usually, method #Bootstrap should be preferred, which asserts in debug-compilations,
+     *   if a resource already existed. The use of this method is for special cases, for example
+     *   to replace (patch) resources of dependent modules.
+     *
+     * @param category   Category string of the resource to add.
+     * @param name       Name string of the resource.
+     * @param data       The resource data.
+     * @return \c true if the resource did exist and was replaced, \c false if it was an insertion.
+     **********************************************************************************************/
+    virtual
+    bool BootstrapAddOrReplace(const NString& category, const NString& name, const String& data)= 0;
+
+    /** ********************************************************************************************
+     * Simple inline method that invokes virtual method #BootstrapAddOrReplace.
+     * In debug-compilations, it is asserted that a resource with the given key did not exist
+     * already.
+     *
+     * The use of this method is preferred over a direct invocation of #BootstrapAddOrReplace.
+     *
+     * @param category   Category string of the resource to add.
+     * @param name       Name string of the resource.
+     * @param data       The resource data.
+     **********************************************************************************************/
+    inline
+    void Bootstrap( const NString& category, const NString& name, const String& data )
+    {
+        #if ALIB_DEBUG
+            bool result=
+        #endif
+            BootstrapAddOrReplace(category, name, data);
+
+        ALIB_ASSERT_ERROR( result, "Doubly defined resource \""   , NString64(name    ),
+                                   "\" in category: "             , NString64(category)     )
+    }
+
+    /** ********************************************************************************************
+     * Same as #Bootstrap but accepts an array of name/value pairs to be filled into
+     * the given parameter \p{category}.
+     *
+     * \attention
+     *   <b>The given list has to be finished with a final \c nullptr argument for the next
+     *   name!</b>
+     *
+     * In the context of \alibmods, which usually are the only areas where instances of this
+     * type are available (used), this method must only invoked during the process of
+     * \ref alib_manual_bootstrapping "bootstrapping" \alib (and corresponding custom modules).
+     *
+     * \attention
+     *   The life-cycle of the given string's buffers, have to survive this resource instance.
+     *   Usually the strings passed here are constant C++ string literals, residing an the data
+     *   segment of an executable
+
+     * \note
+     *   The use of variadic C-style arguments <c>"..."</c> in general is \b not recommended
+     *   to be used.
      *   We still do it here, because this method is usually used with implementations
-     *   of \alib{Module::init} to load static default values.
+     *   of \alib{Module::bootstrap} to load static default values.
      *   This approach saves a lot of otherwise needed single invocations (reduces code size) and
-     *   allows a clean code for the init methods.
-     *
-     * \attention
-     *   All string parameters must be kept available through the life-time of this class,
-     *   as no copy is created as documented with method #Add.
-     *   To create copies, use #AddCopy.
+     *   allows a clean code for the init methods.<br>
+     *   For technical reasons, parameter \p{category } is declared as type <c>const nchar*</c>.
      *
      *
-     * @param category    Category string of the resource. For technical reasons, this has to be
-     *                    of type <c>const nchar*</c>.
-     * @param ...         A list of pairs of <b>const nchar*</b> and <b>const wchar*</b>
-     *                    keys and data.
-     ********************************************************************************************~*/
-    ALIB_API
-    void AddBulk( const nchar* category, ... );
+     * @param category  The category of the resources given.
+     * @param ...       A list of pairs of <b>const nchar*</b> and <b>const character*</b>
+     *                  keys and data, including a terminating \c nullptr value.
+     **********************************************************************************************/
+    virtual
+    void BootstrapBulk( const nchar* category, ... )                                              = 0;
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
     /** ********************************************************************************************
-     * Returns a resource. First, field #Config is searched (which features a prioritized
-     * search in different plug-ins) and if not found, the #defaults hash map is searched.
-     * On failure, a \e nulled string is returned.
+     * Returns a resource.
+     * On failure (resource not found), a \e nulled string is returned.
      *
      * \note
-     *   Usually resources are associated with \alib{Module} objects and should be loaded
-     *   using its methods \aworx{lib,Module::TryResource,TryResource} and \aworx{lib,Module::Get,Get}.
-     *   If used directly, a preprocessor switch has to be set about providing parameter
-     *   \p{dbgAssert}.
+     *   Usually resource pools are associated with \alib{Module} objects and resources should be
+     *   loaded using its "shortcut methods" \aworx{lib,Module::TryResource,TryResource}
+     *   and \aworx{lib,Module::Get,Get}.
+     *   If used directly, argument \p{dbgAssert} has to be enclosed in macro \ref ALIB_DBG
+     *   (including the separting comma).
      *
      * @param category   Category string of the resource.
      * @param name       Name string of the resource
      * @param dbgAssert  This parameter is available only in debug mode. If \c true, an assertion
      *                   is raised if the resource was not found.
      * @return The resource string, respectively a \e nulled string on failure.
-     ********************************************************************************************~*/
-    NALIB_API
-    String Get( const NString& category, const NString& name, bool dbgAssert   );
+     **********************************************************************************************/
+    virtual
+    const String&   Get( const NString& category, const NString& name, bool dbgAssert )                  = 0;
 #else
-    ALIB_API
-    String Get( const NString& category, const NString& name  ALIB_DBG(, bool dbgAssert)    );
+    virtual
+    const String&   Get( const NString& category, const NString& name  ALIB_DBG(, bool dbgAssert) )      = 0;
 #endif
 
+#if defined(ALIB_DOX)
+    /** ********************************************************************************************
+     * Convenience inlined method that accepts parameter name as \alib{characters,character}
+     * instead of \alib{characters,nchar} based string type. The rationale for this is that often,
+     * resource name keys are read from other resourced strings and need conversion if used.
+     * This avoids external conversion prior to invoking this method.
+     *
+     * This method is available only when \alib is compiled with type \alib{characters,character}
+     * not being equivalent to \alib{characters,nchar}.
+     *
+     * After string conversion simply returns result of virtual method
+     * #Get(const NString&, const NString&, bool).
+     *
+     * @param category   Category string of the resource.
+     * @param name       Name string of the resource
+     * @param dbgAssert  This parameter is available only in debug mode. If \c true, an assertion
+     *                   is raised if the resource was not found.
+     * @return The resource string, respectively a \e nulled string on failure.
+     **********************************************************************************************/
+    const String&   Get( const NString& category, const String& name, bool dbgAssert   );
+#else
+    #if ALIB_CHARACTERS_WIDE
+        const String&   Get( const NString& category, const String& name  ALIB_DBG(, bool dbgAssert )  )
+        {
+            NString128 nName( name );
+            return Get( category, nName  ALIB_DBG(, dbgAssert ) );
+        }
+    #endif
+#endif
 
-    // #############################################################################################
-    // Other interface methods
-    // #############################################################################################
-    #if ALIB_MODULE_CONFIGURATION
+    #if ALIB_DEBUG_RESOURCES
         /** ****************************************************************************************
-         * This method fetches all values from the internal hash map which are not present in the
-         * given configuration plug-in \p{dest} and stores them there.
-         * This is useful to collect all static resource values of a library, generated in
-         * initialization phase \alib{Module::InitLevels::PrepareResources}
-         * and store them in a user's configuration file.
-         * Such file can then be added to the configuration (field #Config) in the next run of the
-         * software and then values get read from there instead of from the internal hash map.
+         * Returns a vector of tuples for each resourced element. Each tuple contains:
+         * 0. The category name
+         * 1. The resource name
+         * 2. The resource value
+         * 3. The number of requests for the resource performed by a using data.
          *
-         * @param dest  The destination plug-in.
-         * @return The number of variables fetched.
+         * While being useful to generaly inspect the resources, a high number of requests
+         * might indicate a performance penality for a using software. Such can usually be
+         * mitigated in a very simple fashion by "caching" a resource string in a local
+         * or global/static string variable.
+         *
+         * ### Availability ###
+         * Available only if compiler symbol \ref ALIB_DEBUG_RESOURCES is set.
+         * \attention
+         *   This method is implemented only with the default pool instance of type
+         *   \alib{resources,LocalResourcePool} is used. Otherwise, an \alib warning is raised and
+         *   an empty vector is returned.
+         *
+         * \see
+         *   Methods #DbgGetCategories and #DbgDump.
+         *
+         * @return The externalized resource string.
          ******************************************************************************************/
         ALIB_API
-        int     FetchDefaults( config::ConfigurationPlugin& dest );
+        virtual
+        std::vector<std::tuple<NString, NString, String, integer>>
+        DbgGetList();
+
+        /** ****************************************************************************************
+         * Implements abstract method \alib{resources,ResourcePool::DbgGetCategories}.
+         *
+         * ### Availability ###
+         * Available only if compiler symbol \ref ALIB_DEBUG_RESOURCES is set.
+         * \attention
+         *   This method is implemented only with the default pool instance of type
+         *   \alib{resources,LocalResourcePool} is used. Otherwise, an \alib warning is raised and
+         *   an empty vector is returned.
+         *
+         * \see
+         *   Methods #DbgGetList and #DbgDump.
+         *
+         * @return The externalized resource string.
+         ******************************************************************************************/
+        ALIB_API
+        virtual
+        std::vector<std::pair<NString, integer>>
+        DbgGetCategories();
+
+        #if ALIB_TEXT
+            /** ************************************************************************************
+             * Writes the list of resources obtainable with #DbgGetList to an \b %AString.
+             *
+             * ### Availability ###
+             * Available only if compiler symbol \ref ALIB_DEBUG_RESOURCES is set and furthermore
+             * if \alib_text is included in the \alibdist.
+             *
+             * \see
+             *   Methods #DbgGetList and #DbgGetCategories.
+             *
+             * @param list       The list of resources, obtained with #DbgGetList.
+             * @param catFilter  Comma-separated list of names of categories to print.
+             *                   Defaults to nulled string, which includes all caegories.
+             * @param format     The format of a line.
+             *                   Defaults to <b>"({3:}) {1}={2!TAB20!ESC<!Q}\\n"</b>.
+             * @return The dump of all resources.
+             **************************************************************************************/
+            ALIB_API
+            static
+            AString DbgDump( std::vector<std::tuple<NString, NString, String, integer>>& list,
+                             const NString& catFilter = nullptr,
+                             const String&  format    = A_CHAR("({3:}) {1}={2!TAB20!ESC<!Q}\\n") );
+        #endif
+    #endif
+}; // class ResourcePool
+
+/** ************************************************************************************************
+ * Simple TMP struct that associates resource information to given type \p{T} .
+ *
+ * Extends <c>std::false_type</c> by default to indicate that it is not specialized for a specific
+ * type. Specializations need to extend <c>std::true_type</c> instead.
+ *
+ * \see
+ *  - Helper macros \ref ALIB_RESOURCED and ALIB_RESOURCED_IN_MODULE that specialize this struct.
+ *  - Helper type \alib{resources,ResourcedType}.
+ *  - Manual chapter \ref alib_resources_t_resourced "5. Indirect Resource Access" of the
+ *    Programmer's Manual of this module.
+ *
+ * @tparam T   The type to define resource information for.
+ **************************************************************************************************/
+template<typename T>
+struct T_Resourced : public std::false_type
+{
+    /**
+     *  Returns a pointer to the resource pool associated with \p{T}.
+     *  @return The resource pool of \p{T}.
+     */
+    static constexpr  ResourcePool* Pool()     { return nullptr;       }
+
+    /**
+     *  Returns a resource category associated with \p{T}.
+     *  @return The resource category.
+     */
+    static constexpr  NString       Category() { return NullNString(); }
+
+    /**
+     *  Returns a resource name associated with \p{T}.
+     *  @return The resource category.
+     */
+    static constexpr  NString       Name()     { return NullNString(); }
+};
+
+/** ************************************************************************************************
+ * Static helper struct used to access resources of types that dispose about a specialization of
+ * type-traits struct \alib{resources,T_Resourced}.
+ *
+ * @see
+ *  - Type-traits struct \alib{resources,T_Resourced}
+ *  - Manual chapter \ref alib_resources_t_resourced_resourced of the Programmer's Manual of this
+ *    module.
+ *
+ * @tparam T  A type equipped with resource information by a specialization of
+ *            \alib{resources,T_Resourced}.
+ **************************************************************************************************/
+template<typename T>
+struct ResourcedType
+{
+    #if defined(ALIB_DOX)
+    /**
+     * Static methodthat receives a resource string for a type which has a specialization
+     * of \alib{resources,T_Resourced} defined.
+     *
+     * @tparam TEnableIf   Not to be specified. Used by the compiler to select the availability
+     *                     of this method.
+     * @return The externalized resource string.
+     */
+    template<typename TEnableIf= T>
+    static inline
+    const String&   Get();
+    #else
+    template<typename TEnableIf= T>
+    static
+    ATMP_T_IF( const String&, T_Resourced<TEnableIf>::value )
+    Get()
+    {
+        return T_Resourced<T>::Pool()->Get( T_Resourced<T>::Category(),
+                                            T_Resourced<T>::Name    ()    ALIB_DBG(, true) );
+    }
     #endif
 
 
-}; // class Resources
+    #if defined(ALIB_DOX)
+    /**
+     * Variant of parameterless version  \alib{resources::ResourcedType,Get(),Get} that ignores the
+     * resource name given for a type with \alib{resources,T_Resourced}, but instead uses the given
+     * name.
+     *
+     * @tparam TEnableIf   Not to be specified. Used by the compiler to select the availability
+     *                     of this method.
+     * @param name         The resource name to use, given as string of narrow character width.
+     * @param dbgAssert    This parameter is available only in debug mode. If \c true, an assertion
+     *                     is raised if the resource was not found.
+     * @return The externalized resource string.
+     */
+    template<typename TEnableIf= T>
+    static inline
+    const String&   Get( const NString& name, bool dbgAssert );
+    #else
+    template<typename TEnableIf= T>
+    static
+    ATMP_T_IF( const String&, T_Resourced<TEnableIf>::value )
+    Get( const NString& name    ALIB_DBG(, bool dbgAssert) )
+    {
+        return T_Resourced<T>::Pool()->Get( T_Resourced<T>::Category(), name  ALIB_DBG(, dbgAssert) );
+    }
+    #endif
 
 
-/** ************************************************************************************************
- * Simple TMP struct that provides information to a access resourced data for a type that this
- * struct is specialized for.
+    #if ALIB_CHARACTERS_WIDE && defined(ALIB_DOX)
+    /**
+     * Variant of method \alib{resources::ResourcedType,Get(const NString&, bool)} that
+     * accepts a character string of standard character width instead of a narrow type.
+     *
+     * ### Availability ###
+     * Available only if \ref ALIB_CHARACTERS_WIDE evaluates to \c true.
+     *
+     * @tparam TEnableIf  Not to be specified. Used by the compiler to select the availability
+     *                    of this method.
+     * @param name        The resource name to use, given as string of standard character width.
+     * @param dbgAssert   This parameter is available only in debug mode. If \c true, an assertion
+     *                    is raised if the resource was not found.
+     * @return The externalized resource string.
+     */
+    template<typename TEnableIf= T>
+    static inline
+    const String&   Get( const String& name, bool dbgAssert );
+    #endif
+    #if ALIB_CHARACTERS_WIDE && !defined(ALIB_DOX)
+    template<typename TEnableIf= T>
+    static
+    ATMP_T_IF( const String&, T_Resourced<TEnableIf>::value )
+    Get( const String& resourceName    ALIB_DBG(, bool dbgAssert) )
+    {
+        return T_Resourced<T>::Pool()->Get( T_Resourced<T>::Category(),
+                                            resourceName     ALIB_DBG(, dbgAssert) );
+    }
+    #endif
+
+    /**
+     * Together with sibling method #TypeNamePostfix, this method may be used to receive the
+     * first portion of a type's human readable name.
+     *
+     * The method tries to standardize resourcing names of C++ types along with the resource string
+     * that is defined with type-traits struct \alib{resources,T_Resourced} for a type.
+     *
+     * The prefix is tried to be retrieved by extending the resource name returned by method
+     * \alib{resources,T_Resourced::Name} by character <c>'<'</c>.
+     *
+     * \alib uses this method internally, for example with specializations
+     * \alib{strings::APPENDABLES,T_Append<TEnum\,TChar>,T_Append<TEnum\,TChar>}
+     * \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}
+     * used to write element names of enum types.
+     *
+     * If either \alib{resources,T_Resourced} is \e not specialized for \p{TEnum}, or a resource
+     * named \"\p{name}<b>\></b>\" is not found, an empty string is returned.<br>
+     *
+     * @return The prefix string.
+     */
+    static
+    const String&       TypeNamePrefix()
+    {
+        if ALIB_CONSTEXPR_IF( T_Resourced<T>::value )
+        {
+            NString256 resourceName( T_Resourced<T>::Name() );
+                       resourceName << "<";
+            auto& pf= T_Resourced<T>::Pool()->Get( T_Resourced<T>::Category(), resourceName
+                                                    ALIB_DBG(, false) );
+            if( pf.IsNotNull() )
+                return pf;
+        }
+
+        return EMPTY_STRING;
+    }
+
+    /**
+     * Same as #TypeNamePrefix but for the postfix string of a types name. Consequently, extends the
+     * resource string's name searched by character character <c>'>'</c>.
+     *
+     * @return The postfix string.
+     */
+    static
+    const String&       TypeNamePostfix()
+    {
+        if ALIB_CONSTEXPR_IF( T_Resourced<T>::value )
+        {
+            NString256 resourceName( T_Resourced<T>::Name() );
+                       resourceName << ">";
+            auto& pf= T_Resourced<T>::Pool()->Get( T_Resourced<T>::Category(), resourceName
+                                                    ALIB_DBG(, false) );
+            if( pf.IsNotNull() )
+                return pf;
+        }
+
+        return EMPTY_STRING;
+    }
+
+}; // struct  ResourcedType
+
+/**
+ * Utility type that may be used to store resourcing information.
  *
- * To specialize this struct, macro \ref ALIB_RESOURCES_DEFINE is defined. However, in most
- * cases, resources for a type are stored in the dedicated resource object found in the singleton
- * \alib{Module} of that \alibmod that provides the type in question. To specialize this struct
- * for those types, macro \ref ALIB_RESOURCED_IN_MODULE is provided.
- *
- * This struct is for example used with \alib{resources,T_EnumMetaDataDecl,ALib enum meta data}.
- *
- * @tparam TResourced    The type to define resource information for.
- **************************************************************************************************/
-template<typename TResourced>
-struct T_Resourced
+ * Besides constructor #ResourceInfo(ResourcePool*, NString, NString) and corresponding #Set method,
+ * templated alternatives exist, which are applicable if \alib{resources,T_Resourced}
+ * is specialized for the template type.
+ */
+struct ResourceInfo
 {
-    /**
-     *  Receives a pointer to the resources.
-     *  @return The resources of \p{TResourced}.
-     */
-    inline static constexpr  Resources*    Resource() { return nullptr;       }
+    /** The resource pool. */
+    resources::ResourcePool* Pool;
+
+    /** The resource category within #Pool. */
+    NString                  Category;
+
+    /** The resource category within #Pool. */
+    NString                  Name;
+
+    /** Defaulted constructor leaving the fields uninitialized.  */
+    ResourceInfo()                                                              noexcept  = default;
 
     /**
-     * Receives the resource name associated with type \p{TResourced}.
-     * @return The resource name of \p{TResourced}.
+     * Constructor setting the fields of this object as given.
+     *
+     * @param pool      The resource pool.
+     * @param category  The resource category.
+     * @param name      The resource name.
      */
-    inline static constexpr  NString       Category() { return NullNString(); }
+    template<typename T>
+    ResourceInfo( resources::ResourcePool* pool, NString category, NString name )
+    : Pool    (pool    )
+    , Category(category)
+    , Name    (name    )
+    {}
 
     /**
-     * Receives the resource name associated with type \p{TResourced}.
-     * @return The resource name of \p{TResourced}.
+     * Templated constructor which sets the fields of this object according to the values provided
+     * with a specialization of \alib{resources,T_Resourced} for type \p{T}.
+     *
+     * @tparam T     Type that disposes about a specialization of \b T_Resourced. Deduced by the
+     *               compiler
+     * @param sample A sample instance of type \p{T}. Exclusively used to have the compiler
+     *               deduce type \p{T} (otherwise ignored).
      */
-    inline static constexpr  NString       Name()     { return NullNString(); }
-};
+    template<typename T>
+    ResourceInfo(const T& sample)
+    {
+        Set( sample );
+    }
 
-}}} // namespace [aworx::lib::resources]
+    /**
+     * Sets the fields of this object as given.
+     *
+     * @param pool     The resource pool.
+     * @param category The resource category.
+     * @param name     The resource name.
+     */
+    void    Set( resources::ResourcePool* pool, NString category, NString name )
+    {
+        Pool =  pool;
+        Category  =  category;
+        Name      =  name;
+    }
+
+    #if defined(ALIB_DOX)
+    /**
+     * Sets the fields of this object according to the values provided with a specialization of
+     * \alib{resources,T_Resourced} for type \p{T}.
+     *
+     * @tparam T     Type that disposes about a specialization of \b T_Resourced. Deduced by the
+     *               compiler
+     * @param sample A sample instance of type \p{T}. Exclusively used to have the compiler
+     *               deduce type \p{T} (otherwise ignored).
+     */
+    template<typename T>
+    void    Set(const T& sample)
+    #else
+    template<typename T>
+    ATMP_VOID_IF( T_Resourced<T>::value )
+    Set(const T& )
+    {
+        Pool    =  T_Resourced<T>::Pool();
+        Category=  T_Resourced<T>::Category();
+        Name    =  T_Resourced<T>::Name();
+    }
+    #endif
+
+    /**
+     * Receives the resource string according to this info object.
+     *
+     * @return The externalized resource string.
+     */
+    inline
+    const String&   Get()
+    {
+        return Pool->Get( Category, Name    ALIB_DBG(, true) );
+    }
+
+
+    #if defined(ALIB_DOX)
+    /**
+     * Variant of parameterless version #Get()  that ignores field #Name and instead uses given
+     * argument \p{name} .
+     *
+     * @param name       The resource name to use, given as string of narrow character width.
+     * @param dbgAssert  This parameter is available only in debug mode. If \c true, an assertion
+     *                   is raised if the resource was not found.
+     * @return The externalized resource string.
+     */
+    inline
+    const String&   Get( const NString& name, bool dbgAssert );
+    #else
+    const String&   Get( const NString& name  ALIB_DBG(, bool dbgAssert) )
+    {
+        return Pool->Get( Category, name    ALIB_DBG(, dbgAssert) );
+    }
+    #endif
+
+
+    #if ALIB_CHARACTERS_WIDE && defined(ALIB_DOX)
+        /**
+         * Variant of mehtod  Get(const NString&, bool) that accepts a character string of standard
+         * character width instead of a narrow type.
+         *
+         * ### Availability ###
+         * Available only if \ref ALIB_CHARACTERS_WIDE evaluates to \c true.
+         *
+         * @param name        The resource name to use, given as string of standard character width.
+         * @param dbgAssert   This parameter is available only in debug mode. If \c true, an assertion
+         *                    is raised if the resource was not found.
+         * @return The externalized resource string.
+         */
+        inline
+        const String&   Get( const String& name, bool dbgAssert );
+    #endif
+    #if ALIB_CHARACTERS_WIDE && !defined(ALIB_DOX)
+        const String&   Get( const String& name  ALIB_DBG(, bool dbgAssert) )
+        {
+            return Pool->Get( Category, name   ALIB_DBG(, dbgAssert) );
+        }
+    #endif
+}; // ResourceInfo
+
+
+}} // namespace aworx[::lib::resources]
+
+/// Type alias in namespace #aworx.
+using     ResourcePool=     lib::resources::ResourcePool;
+
+/// Type alias in namespace #aworx.
+template<typename T>
+using   T_Resourced=        lib::resources::T_Resourced<T>;
+
+/// Type alias in namespace #aworx.
+template<typename T>
+using     ResourcedType=    lib::resources::ResourcedType<T>;
+
+/// Type alias in namespace #aworx.
+using     ResourceInfo=     lib::resources::ResourceInfo;
+
+}  // namespace [aworx]
 
 // #################################################################################################
 // T_Resourced Macro
 // #################################################################################################
-#define  ALIB_RESOURCES_DEFINE( TResourced, Resources, ResourceCategory, ResourceName )            \
+#define  ALIB_RESOURCED( T, ResPool, ResCategory, ResName )                                        \
 namespace aworx { namespace lib { namespace resources {                                            \
-template<> struct T_Resourced<TResourced>                                                          \
+template<> struct T_Resourced<T>  : public std::true_type                                          \
 {                                                                                                  \
-    inline static            Resources*   Resource()    { return Resources;        }               \
-    inline static constexpr  NString      Category()    { return ResourceCategory; }               \
-    inline static constexpr  NString      Name()        { return ResourceName;     }               \
+    static            ResourcePool* Pool()        { return  ResPool;     }                         \
+    static constexpr  NString       Category()    { return  ResCategory; }                         \
+    static constexpr  NString       Name()        { return  ResName;     }                         \
 };}}}
 
-
+#if ALIB_FILESET_MODULES
+#   define ALIB_RESOURCED_IN_MODULE( T, Module, ResName )                                          \
+        ALIB_RESOURCED( T, &Module.GetResourcePool(), Module.ResourceCategory, ResName  )
+#endif
 
 
 #endif // HPP_ALIB_RESOURCES_RESOURCES

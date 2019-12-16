@@ -7,7 +7,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#if ALIB_UT_ALOX
 
 
 #include "alib/alox.hpp"
@@ -16,23 +16,32 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <vector>
+
+using namespace std;
+using namespace aworx;
+
+
+// Fix the method name of logging (needed for unity builds)
+#undef  ALIB_CALLER
+#if defined( __GNUC__ )
+#   define ALIB_CALLER    __FILE__, __LINE__, __func__
+#else
+#   define ALIB_CALLER    __FILE__, __LINE__, __FUNCTION__
+#endif
+
+namespace ut_alox {
+// used with unit test Log_ScopeInfoCacheTest
+void ScopeInfoCacheTest3();
+void ScopeInfoCacheTest3() { Log_Info("Test Method 3") }
+
+}
 
 #define TESTCLASSNAME       CPP_ALox_Lox_Release
 #include "unittests/aworx_unittests.hpp"
 
-using namespace std;
 using namespace ut_aworx;
 
-using namespace aworx;
-
 namespace ut_alox {
-
-// used with unit test Log_ScopeInfoCacheTest
-void ScopeInfoCacheTest3();
-void ScopeInfoCacheTest3() { Log_Info("Test Method 3"); }
-
 
 #if ALOX_REL_LOG
 
@@ -42,10 +51,6 @@ void ScopeInfoCacheTest3() { Log_Info("Test Method 3"); }
 * UT_CLASS
 **********************************************************************************************/
 
-// with GTEST macros it all gets wild. Fix the method name
-#undef  ALIB_CALLER
-#define ALIB_CALLER     __FILE__, __LINE__, UT_GET_TEST_NAME
-
 UT_CLASS()
 
 /** ********************************************************************************************
@@ -53,79 +58,79 @@ UT_CLASS()
  **********************************************************************************************/
 UT_METHOD(Lox_TestVerbositySetting)
 {
-    UT_INIT();
+    UT_INIT()
 
     Lox lox("ReleaseLox");
     TextLogger*  cl= Lox::CreateConsoleLogger();
 
-    Lox_SetDomain( "TLLS_DF", Scope::Method );
+    Lox_SetDomain( "TLLS_DF", Scope::Method )
 
     // Test Verbosity setting
-    int  logLinesBefore= cl->CntLogs;
+    integer  logLinesBefore= cl->CntLogs;
 
-    Lox_SetVerbosity( cl, Verbosity::Verbose );
-    Lox_Verbose  (         "This Verbose line should be logged" );
-    Lox_Info     (         "This Info    line should be logged" );
-    Lox_Warning  (         "This WARN    line should be logged" );
-    Lox_Error    (         "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Verbose )
+    Lox_Verbose  (         "This Verbose line should be logged" )
+    Lox_Info     (         "This Info    line should be logged" )
+    Lox_Warning  (         "This WARN    line should be logged" )
+    Lox_Error    (         "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Info );
-    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     (         "This Info    line should be logged" );
-    Lox_Warning  (         "This Warning line should be logged" );
-    Lox_Error    (         "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Info )
+    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     (         "This Info    line should be logged" )
+    Lox_Warning  (         "This Warning line should be logged" )
+    Lox_Error    (         "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Warning );
-    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  (         "This Warning line should be logged" );
-    Lox_Error    (         "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Warning )
+    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  (         "This Warning line should be logged" )
+    Lox_Error    (         "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Error );
-    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Error    (         "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Error )
+    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Error    (         "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Off );
-    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Error    (         "This Error   line should NOT be logged. !!!!!Test Error!!!!!" );
+    Lox_SetVerbosity( cl, Verbosity::Off )
+    Lox_Verbose  (         "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     (         "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  (         "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Error    (         "This Error   line should NOT be logged. !!!!!Test Error!!!!!" )
 
-    Lox_SetVerbosity( cl, Verbosity::Verbose, "/TLLS" );
-    Lox_Verbose  ( "/TLLS", "This Verbose line should be logged" );
-    Lox_Info     ( "/TLLS", "This Info    line should be logged" );
-    Lox_Warning  ( "/TLLS", "This WARN    line should be logged" );
-    Lox_Error    ( "/TLLS", "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Verbose, "/TLLS" )
+    Lox_Verbose  ( "/TLLS", "This Verbose line should be logged" )
+    Lox_Info     ( "/TLLS", "This Info    line should be logged" )
+    Lox_Warning  ( "/TLLS", "This WARN    line should be logged" )
+    Lox_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Info, "/TLLS" );
-    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     ( "/TLLS", "This Info    line should be logged" );
-    Lox_Warning  ( "/TLLS", "This Warning line should be logged" );
-    Lox_Error    ( "/TLLS", "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Info, "/TLLS" )
+    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     ( "/TLLS", "This Info    line should be logged" )
+    Lox_Warning  ( "/TLLS", "This Warning line should be logged" )
+    Lox_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Warning, "/TLLS" );
-    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  ( "/TLLS", "This Warning line should be logged" );
-    Lox_Error    ( "/TLLS", "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Warning, "/TLLS" )
+    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  ( "/TLLS", "This Warning line should be logged" )
+    Lox_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Error, "/TLLS" );
-    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Error    ( "/TLLS", "This Error   line should be logged" );
+    Lox_SetVerbosity( cl, Verbosity::Error, "/TLLS" )
+    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Error    ( "/TLLS", "This Error   line should be logged" )
 
-    Lox_SetVerbosity( cl, Verbosity::Off, "/TLLS" );
-    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" );
-    Lox_Error    ( "/TLLS", "This Error   line should NOT be logged. !!!!!Test Error!!!!!" );
+    Lox_SetVerbosity( cl, Verbosity::Off, "/TLLS" )
+    Lox_Verbose  ( "/TLLS", "This Verbose line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Info     ( "/TLLS", "This Info    line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Warning  ( "/TLLS", "This Warning line should NOT be logged. !!!!!Test Error!!!!!" )
+    Lox_Error    ( "/TLLS", "This Error   line should NOT be logged. !!!!!Test Error!!!!!" )
 
-    UT_EQ( 20, cl->CntLogs - logLinesBefore );
+    UT_EQ( 20, cl->CntLogs - logLinesBefore )
 
-    Lox_RemoveLogger( cl );
+    Lox_RemoveLogger( cl )
     delete cl;
 }
 
@@ -135,7 +140,7 @@ UT_METHOD(Lox_TestVerbositySetting)
 #if ALOX_REL_LOG_CI
     UT_METHOD(Lox_TestScopeDomain)
     {
-        UT_INIT();
+        UT_INIT()
         int  cntLL;
         MemoryLogger ml;
         Lox lox("ReleaseLox");
@@ -158,7 +163,7 @@ UT_METHOD(Lox_TestVerbositySetting)
         cntLL= cl->CntLogs;    Lox_Error      ( testOK  );    UT_EQ( 1, cl->CntLogs - cntLL );
 
         // test sub domains
-        Lox_SetVerbosity( cl, Verbosity::Verbose, ALox::InternalDomains );
+        Lox_SetVerbosity( cl, Verbosity::Verbose, Lox::InternalDomains );
 
         // Lox_LogState ( "/TEST",      Verbosity::Info, "Dumping Log Configuration:" );
 
@@ -237,7 +242,7 @@ UT_METHOD(Lox_TestVerbositySetting)
  **********************************************************************************************/
 UT_METHOD(Lox_TestAssert)
 {
-    UT_INIT();
+    UT_INIT()
 
     Lox lox("ReleaseLox");
     TextLogger*  cl= Lox::CreateConsoleLogger();
@@ -246,20 +251,20 @@ UT_METHOD(Lox_TestAssert)
     Lox_Prune( String testERR= A_CHAR("Error"); )
 
     // Test Verbosity setting
-    int cntLL= cl->CntLogs;
-    Lox_SetVerbosity( cl, Verbosity::Info, "/" );
+    integer cntLL= cl->CntLogs;
+    Lox_SetVerbosity( cl, Verbosity::Info, "/" )
 
-    cntLL= cl->CntLogs;    Lox_Assert( true,  "/ASSERT",                  testERR ); UT_EQ( 0,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_Assert( false, "/ASSERT",                  testOK  ); UT_EQ( 1,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_Assert( true,                              testERR ); UT_EQ( 0,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_Assert( false,                             testOK  ); UT_EQ( 1,  cl->CntLogs - cntLL );
+    cntLL= cl->CntLogs;    Lox_Assert( true,  "/ASSERT",                  testERR ) UT_EQ( 0,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_Assert( false, "/ASSERT",                  testOK  ) UT_EQ( 1,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_Assert( true,                              testERR ) UT_EQ( 0,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_Assert( false,                             testOK  ) UT_EQ( 1,  cl->CntLogs - cntLL )
 
-    cntLL= cl->CntLogs;    Lox_If(     true,  "/ASSERT", Verbosity::Info, testOK  ); UT_EQ( 1,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_If(     false, "/ASSERT", Verbosity::Info, testERR ); UT_EQ( 0,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_If(     true,             Verbosity::Info, testOK  ); UT_EQ( 1,  cl->CntLogs - cntLL );
-    cntLL= cl->CntLogs;    Lox_If(     false,            Verbosity::Info, testERR ); UT_EQ( 0,  cl->CntLogs - cntLL );
+    cntLL= cl->CntLogs;    Lox_If(     true,  "/ASSERT", Verbosity::Info, testOK  ) UT_EQ( 1,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_If(     false, "/ASSERT", Verbosity::Info, testERR ) UT_EQ( 0,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_If(     true,             Verbosity::Info, testOK  ) UT_EQ( 1,  cl->CntLogs - cntLL )
+    cntLL= cl->CntLogs;    Lox_If(     false,            Verbosity::Info, testERR ) UT_EQ( 0,  cl->CntLogs - cntLL )
 
-    Lox_RemoveLogger( cl );
+    Lox_RemoveLogger( cl )
     delete cl;
 }
 
@@ -269,32 +274,32 @@ UT_METHOD(Lox_TestAssert)
  **********************************************************************************************/
 UT_METHOD(Lox_ChangeStartTime)
 {
-    UT_INIT();
+    UT_INIT()
 
     Lox lox("ReleaseLox");
     TextLogger*  cl= Lox::CreateConsoleLogger();
 
-    Lox_SetVerbosity( cl, Verbosity::Verbose, "/S-TIME" );
+    Lox_SetVerbosity( cl, Verbosity::Verbose, "/S-TIME" )
 
-    Lox_Info ( "/S-TIME", "This is the first log with normal start time" );
+    Lox_Info ( "/S-TIME", "This is the first log with normal start time" )
 
     Ticks newTime;
     newTime-= Ticks::Duration::FromMinutes(20);
 
     Lox_SetStartTime( newTime, cl->GetName() )
-    Lox_Info ( "/S-TIME", "Starttime set to 20 minutes ago" );
+    Lox_Info ( "/S-TIME", "Starttime set to 20 minutes ago" )
     Lox_SetStartTime( Ticks(),  cl->GetName() )
-    Lox_Info ( "/S-TIME", "Starttime set to 'now'" );
+    Lox_Info ( "/S-TIME", "Starttime set to 'now'" )
 
-    Lox_RemoveLogger( cl );
+    Lox_RemoveLogger( cl )
     delete cl;
 }
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 #endif // ALOX_REL_LOG
 
 } // namespace
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#endif // ALIB_UT_ALOX

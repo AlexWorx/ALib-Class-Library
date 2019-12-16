@@ -24,7 +24,7 @@ debuggers of different IDEs.
 ## 1.1 ALox for C++: Pretty Printers for GNU Debugger (gdb) ## {#alibtools_debug_helpers_gdb}
 
 GNU debugger supports python scripts that allow the display of complex data types with so called
-[pretty printers](https://sourceware.org/gdb/onlinedocs/gdb/Pretty-Printing-API.html#Pretty-Printing-API).
+\https{pretty printers,sourceware.org/gdb/onlinedocs/gdb/Pretty-Printing-API.html#Pretty-Printing-API}.
 ALox provides such script for its common classes and for classes of the underlying library ALib.
 
 The script is found in the ALox source folder under
@@ -43,10 +43,10 @@ Be sure to read the remarks on the top of the script!
 ## 1.2 ALox for C++: Debug Helper Python Script for QT Creator ## {#alibtools_debug_helpers_qtcreator}
 
 IDE
-[QT Creator](http://www.qt.io/developers) supports what is called
-[Debug Helpers](http://doc.qt.io/qtcreator/creator-debugging-helpers.html).
+\https{QT Creator,www.qt.io/developers} supports what is called
+\https{Debug Helpers,doc.qt.io/qtcreator/creator-debugging-helpers.html}.
 Those are 3rd party scripts written in
-[Python](https://www.python.org) language which enable to modify the display
+\https{Python,www.python.org} language which enable to modify the display
 of structured C++ types in <em>QT Creator</em>'s the debug panels.
 
 ALox provides such script for its common classes and for classes of the underlying library ALib.
@@ -57,7 +57,7 @@ The script is found in the ALox source folder under
 
 
 Please refer to what is said at the top of the script and to the
-[documentation](http://doc.qt.io/qtcreator/creator-debugging-helpers.html) of
+\https{documentation,doc.qt.io/qtcreator/creator-debugging-helpers.html} of
 <em>QT Creator</em> to learn how to make the script available for QT Creator.
 
 \attention
@@ -122,8 +122,8 @@ seeing the string contents directly is often enough.
 \~Comment ####################################################################################### \~
 # 2. Valgrind Error Suppression # {#alibtools_valgrind}
 Previous versions of the library provided a
-[.supp file](http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress)
-for the analyzer tool [Valgrind](http://valgrind.org/).
+\http{.supp file,valgrind.org/docs/manual/manual-core.html#manual-core.suppress}
+for the analyzer tool \http{Valgrind,valgrind.org/}.
 
 This is not available anymore. Instead, code selection symbol \ref ALIB_AVOID_ANALYZER_WARNINGS
 is available. This symbol changes some details of the implementation of library types, which
@@ -136,7 +136,7 @@ no leaks :-).
 \~Comment ####################################################################################### \~
 # 3. Doxygen Dot-File Fixer # {#alibtools_DoxygenGraphTemplateInstanceRemover}
 The C++ Version of ALox provides a small tool for patching the diagrams of the
-[Doxygen](http://www.stack.nl/~dimitri/doxygen) documentation of ALib/ALox.
+\https{Doxygen,www.stack.nl/~dimitri/doxygen} documentation of ALib/ALox.
 The cmake project is found in the ALox source folder under:
 
     tools/DoxygenGraphTemplateInstanceRemover
@@ -147,7 +147,7 @@ the release version into the
     docs/
 
 folder. There, when available, the tool is used by doxygen as a replacement to the
-[Graphviz dot tool](http://graphviz.org). The tool patches the dot file that is to be processed
+\https{Graphviz dot tool,graphviz.org}. The tool patches the dot file that is to be processed
 and then invokes the original software.<br>
 This tool is only needed, if the HTML documentation (which you are currently reading) is to
 be 'compiled' from scratch.

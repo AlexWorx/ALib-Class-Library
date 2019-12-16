@@ -7,7 +7,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#if ALIB_UT_ALOX
 
 
 #include "alib/alox.hpp"
@@ -26,7 +26,7 @@ namespace ut_alox
     {
         Log_SetDomain( "H2FILE",     Scope::Filename  )
         Log_SetDomain( "H2METHOD",   Scope::Method      )
-        Log_Info("");
+        Log_Info("")
     }
 
 #endif
@@ -39,7 +39,7 @@ namespace ut_alox
         #define LOX_LOX lox
         Lox_SetDomain( "H2FILE",     Scope::Filename  )
         Lox_SetDomain( "H2METHOD",   Scope::Method      )
-        Lox_Info("");
+        Lox_Info("")
         #undef LOX_LOX
     }
 
@@ -48,4 +48,4 @@ namespace ut_alox
 } // namespace
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#endif // ALIB_UT_ALOX

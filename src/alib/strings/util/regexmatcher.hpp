@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_REGEXMATCHER
 #define HPP_ALIB_STRINGS_UTIL_REGEXMATCHER 1
 
@@ -12,23 +13,24 @@
 #endif
 
 
-#if ALIB_FEAT_BOOST_REGEX
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
 /** ************************************************************************************************
- * This utility class wraps [boost::regex library](http://www.boost.org) and interfaces
- * \alibmod_strings with it.
+ * This utility class wraps \https{boost::regex library,www.boost.org} and interfaces
+ * \alib_strings with it.
  *
- * The availability of the class is dependent on code selection symbol \ref ALIB_FEAT_BOOST_REGEX,
- * which is controlled by using compiler symbols #ALIB_FEAT_BOOST_REGEX_ON and
- * #ALIB_FEAT_BOOST_REGEX_OFF (the default).
+ * The availability of the class is dependent on compiler symbol \ref ALIB_FEAT_BOOST_REGEX
+ * which has to be \c true, and in parallel either \ref ALIB_CHARACTERS_WIDE is \c false or
+ * \ref ALIB_CHARACTERS_NATIVE_WCHAR equals \c true.
  *
  * Method #Compile accepts the pattern string and compiles it to \b boost::regex.
  * Subsequent invocations of #Match will then use the compiled regular expression for testing
  * a given string.
  *
  * The syntax of the regular expressions is compatible to
- * [Perl Regular Expressions](http://perldoc.perl.org/perlretut.html).
+ * \https{Perl Regular Expressions,perldoc.perl.org/perlretut.html}.
  *
  * \note
  *   This a most very basic wrapper that supports a just the <b>bare minimum of the features</b>
@@ -55,7 +57,6 @@ class RegexMatcher
          *                      Defaults to \b NullString() to allow parameterless construction,
          *                      with later invocation of #Compile.
          ******************************************************************************************/
-        inline
         RegexMatcher( const String& pattern= NullString()  )
         {
             Compile( pattern );
@@ -91,9 +92,9 @@ class RegexMatcher
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     RegexMatcher=     aworx::lib::strings::util::RegexMatcher;
+using     RegexMatcher=     lib::strings::util::RegexMatcher;
 
 }  // namespace [aworx]
 
-#endif // ALIB_FEAT_BOOST_REGEX
+#endif // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
 #endif // HPP_ALIB_STRINGS_UTIL_REGEXMATCHER

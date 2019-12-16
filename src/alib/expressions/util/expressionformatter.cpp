@@ -6,12 +6,18 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER)
-    #include "alib/expressions/util/expressionformatter.hpp"
-#endif
-#if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-    #include "alib/expressions/compiler.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER)
+#      include "alib/expressions/util/expressionformatter.hpp"
+#   endif
+#   if !defined(HPP_ALIB_TEXT_TEXT)
+#      include "alib/text/text.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
+#       include "alib/expressions/compiler.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace expressions { namespace util {
 
@@ -27,7 +33,7 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
 , formatString        ( customFormatString )
 {
     if(!formatter.get())
-        stdFormatter= GetDefaultFormatter();
+        stdFormatter= Formatter::GetDefault();
 
     integer parsePos= 0;
     while(parsePos < formatString.Length() )
@@ -45,7 +51,7 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
             if( formatString[endPos] == ESCCharacter )
             {
                 formatString.Delete( endPos, 1 );
-                parsePos++;
+                ++parsePos;
                 continue;
             }
 
@@ -54,12 +60,12 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
             {
                 endPos= formatString.IndexOfSegmentEnd( ESCOpeningBracket, ESCClosingBracket, endPos + 1 );
                 expressionString= formatString.Substring( parsePos + 2, endPos - parsePos - 2 );
-                endPos++;
+                ++endPos;
             }
             else
             {
                 while( endPos < formatString.Length()  && isalpha( formatString[endPos] ) )
-                    endPos++;
+                    ++endPos;
                 expressionString= formatString.Substring( parsePos + 1, endPos - parsePos - 1 );
             }
         }
@@ -82,7 +88,7 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
                                        + (    endPos < formatString.Length()
                                            && formatString[endPos] == ESCCharacter ? 1 : 0 )  );
 
-        parsePos++;
+        ++parsePos;
     }
 }
 
@@ -90,7 +96,7 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
 void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope )
 {
     // evaluate expressions and collect boxes
-    results.reserve( expressions.size() + 1 );
+    auto& results= stdFormatter->Acquire(ALIB_CALLER_PRUNED);
     results.Add( formatString );
 
     try
@@ -100,24 +106,25 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     }
     catch( Exception& e)
     {
-         e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
-                expressions.size() + 1, originalFormatString );
-         throw;
+        stdFormatter->Release();
+        e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
+               expressions.size() + 1, originalFormatString );
+        throw;
     }
 
-    // invoke ALib default formatter
     try
     {
-        stdFormatter->FormatArgs( target, results );
+        stdFormatter->FormatArgs( target );
     }
     catch(Exception& e)
     {
-        e.Add( ALIB_CALLER_NULLED, stringformat::Exceptions::ErrorInResultingFormatString,
+        stdFormatter->Release();
+        e.Add( ALIB_CALLER_NULLED, text::Exceptions::ErrorInResultingFormatString,
                originalFormatString );
         throw;
     }
 
-    results.clear();
+    stdFormatter->Release();
 }
 
 

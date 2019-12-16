@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="tests.alox">
-      <UniqueIdentifier>{c9dae3c9-33d1-4ee1-a88f-8490de9c3baa}</UniqueIdentifier>
-    </Filter>
     <Filter Include="tests.alib">
       <UniqueIdentifier>{49aa8898-6cee-4544-8138-d73215dd4eea}</UniqueIdentifier>
     </Filter>
@@ -31,11 +28,17 @@
     <ClInclude Include="..\..\..\src\unittests\aworx_unittests.hpp">
       <Filter>tests.alib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\unittests\alox\ut_alox_log_scopes.hpp">
+      <Filter>tests.alib\alox</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\unittests\expressions\ut_alib_expr_testfunc.hpp">
       <Filter>tests.alib\expressions</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\unittests\alox\ut_alox_log_scopes.hpp">
-      <Filter>tests.alib\alox</Filter>
+    <ClInclude Include="..\..\..\src\unittests\alib_test_selection.hpp">
+      <Filter>tests.alib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\unittests\aworx_unittests_end.hpp">
+      <Filter>tests.alib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -66,41 +69,11 @@
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_SINGLETON.cpp">
       <Filter>tests.alib\docsamples</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_STRINGFORMAT.cpp">
-      <Filter>tests.alib\docsamples</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_STRINGS.cpp">
       <Filter>tests.alib\docsamples</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr.cpp">
-      <Filter>tests.alib\expressions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr_builtin.cpp">
-      <Filter>tests.alib\expressions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr_testfunc.cpp">
-      <Filter>tests.alib\expressions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util_token_consistency.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_astring.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_custom.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_format.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_substring.cpp">
-      <Filter>tests.alib\strings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util.cpp">
-      <Filter>tests.alib\strings</Filter>
+    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_TEXT.cpp">
+      <Filter>tests.alib\docsamples</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\unittests\alox\ut_dox_tutorial_minimum.cpp">
       <Filter>tests.alib\alox</Filter>
@@ -131,6 +104,66 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\unittests\alox\ut_dox_tutorial.cpp">
       <Filter>tests.alib\alox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util_token_consistency.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_astring.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_custom.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_format.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_substring.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util.cpp">
+      <Filter>tests.alib\strings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr.cpp">
+      <Filter>tests.alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr_builtin.cpp">
+      <Filter>tests.alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr_testfunc.cpp">
+      <Filter>tests.alib\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_time.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_boxing.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_compatiblity_qt.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_compatiblity_std.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_config.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_monomem.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_monomem_stringtree.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_resources.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_system.cpp">
+      <Filter>tests.alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_threads.cpp">
+      <Filter>tests.alib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

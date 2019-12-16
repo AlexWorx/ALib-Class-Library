@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_SUBSTRING
 #define HPP_ALIB_STRINGS_SUBSTRING 1
 
@@ -13,21 +14,6 @@
 
 #if !defined (HPP_ALIB_STRINGS_ATRING)
 #   include "alib/strings/astring.hpp"
-#endif
-
-#if ALIB_MODULE_RESOURCES
-#   if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA)
-#      include "alib/resources/enummetadata.hpp"
-#   endif
-#   if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA_SPECIFICATION)
-#      include "alib/resources/enummetadataspec.hpp"
-#   endif
-#endif
-
-#if ALIB_MODULE_ENUMS
-#   if !defined(HPP_ALIB_ENUMS_ENUM_BITWISE)
-#      include "alib/enums/enumbitwise.hpp"
-#   endif
 #endif
 
 
@@ -62,7 +48,7 @@ template<typename TChar>
 class TSubstring : public TString<TChar>
 {
     public:
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
         // Import parent constructors
         // Due to a doxygen bug in 1.8.14, we must not tell doxygen that we import overloaded methods.
         using TString<TChar>::TString;
@@ -71,7 +57,6 @@ class TSubstring : public TString<TChar>
         /** ****************************************************************************************
          * Default constructor creating a \ref alib_strings_details_nulled \e "nulled" sub-string.
          ******************************************************************************************/
-        inline
         TSubstring()
         : TString<TChar>()
         {}
@@ -80,7 +65,6 @@ class TSubstring : public TString<TChar>
          * Constructor using a string reference.
          * @param src   The source string.
          ******************************************************************************************/
-        inline
         TSubstring( const TString<TChar>& src )
         : TString<TChar>(src)
         {}
@@ -89,7 +73,6 @@ class TSubstring : public TString<TChar>
          * Sets this object to zero length.
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TSubstring&  Clear()
         {
             TString<TChar>::length=  0;
@@ -103,7 +86,6 @@ class TSubstring : public TString<TChar>
          *                     Defaults to  \ref aworx::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TSubstring&  TrimStart( const TCString<TChar>& whiteSpaces
                                                     = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
@@ -126,7 +108,6 @@ class TSubstring : public TString<TChar>
          *                     Defaults to  \ref aworx::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TSubstring&  TrimEnd( const TCString<TChar>& whiteSpaces
                                                     = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
@@ -147,7 +128,6 @@ class TSubstring : public TString<TChar>
          *                     Defaults to  \ref aworx::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
-        inline
         TSubstring&  Trim( const TCString<TChar>& whiteSpaces
                                                     = TT_StringConstants<TChar>::DefaultWhitespaces() )
         {
@@ -171,12 +151,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template < bool        TCheck            = true,
                    Whitespaces TTrimBeforeConsume= Whitespaces::Keep  >
-        inline
         TChar       ConsumeChar()
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
-                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+                if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
@@ -184,11 +163,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "NC: empty string" )
-                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+                if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
             }
 
-            TString<TChar>::length--;
+            --TString<TChar>::length;
             return *TString<TChar>::buffer++;
         }
 
@@ -196,29 +175,29 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Checks if this object starts with the given character \p{consumable}. If it does, this
          * character is cut from this object.
          *
-         * @param  consumable         The consumable character.
-         *
          * @tparam TSensitivity       The sensitivity of the comparison.
          *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
-         *                           consume operation. Defaults to \b Whitespaces::Keep.
+         *                            consume operation. Defaults to \b Whitespaces::Keep.
+         * @param  consumable         The consumable character.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
         template< Case        TSensitivity=       Case::Sensitive,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
-        inline
         bool        ConsumeChar( TChar   consumable )
 
         {
             if ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
-            if (    ( TSensitivity == Case::Sensitive &&         TString<TChar>::CharAtStart()  !=         consumable  )
-                 || ( TSensitivity == Case::Ignore    && toupper(TString<TChar>::CharAtStart()) != toupper(consumable) ) )
+            if (    ( TSensitivity == Case::Sensitive &&    TString<TChar>::CharAtStart()  !=   consumable  )
+                 || ( TSensitivity == Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtStart())
+                                                         != characters::CharArray<TChar>::ToUpper(consumable) ) )
                 return false;
-            TString<TChar>::buffer++;
-            TString<TChar>::length--;
+
+            ++TString<TChar>::buffer;
+            --TString<TChar>::length;
             return true;
         }
 
@@ -226,26 +205,26 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Checks if this object ends with the given character \p{consumable}. If it does, this
          * character is cut from the end of object.
          *
-         * @param consumable          The consumable character.
          * @tparam TSensitivity       The sensitivity of the comparison.
          *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
+         * @param  consumable         The consumable character.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
         template< Case        TSensitivity=       Case::Sensitive,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
-        inline
-        bool        ConsumeCharFromEnd( nchar  consumable )
+        bool        ConsumeCharFromEnd( TChar  consumable )
         {
             if ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
             if (    ( TSensitivity == Case::Sensitive &&         TString<TChar>::CharAtEnd()  !=         consumable  )
-                 || ( TSensitivity == Case::Ignore    && toupper(TString<TChar>::CharAtEnd()) != toupper(consumable) ) )
+                 || ( TSensitivity == Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtEnd())
+                                                         != characters::CharArray<TChar>::ToUpper(consumable) ) )
                 return false;
-            TString<TChar>::length--;
+            --TString<TChar>::length;
             return true;
         }
 
@@ -263,13 +242,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template <bool TCheck= true,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
-        inline
         TChar     ConsumeCharFromEnd()
         {
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
@@ -300,10 +278,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -346,10 +323,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -387,42 +363,112 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                 If \c \<false\> is added to the method name, no parameter check is
          *                 performed.
          *
+         * @tparam TTargetData    If \c CurrentData::Keep, \b %AString \p{target} is not cleared
+         *                        before the result is written. Defaults to \c CurrentData::Clear.
          * @param regionLength    The length of the region at the start to delete.
          * @param target          A target \b %AString that receives the portion that
          *                        is cut from this object.
          * @param separatorWidth  This width is added to what is cut from this string, while
          *                        \p{target} still receives the portion defined by \p{regionLength}.
          *                        Defaults to 0.
-         * @tparam TTargetData    If \c CurrentData::Keep, \b %AString \p{target} is not cleared
-         *                        before the result is written. Defaults to \c CurrentData::Clear.
          *
          * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool         TCheck           = true,
                   CurrentData  TTargetData      = CurrentData::Clear>
-        inline
-        integer ConsumeChars( integer              regionLength,
+        integer ConsumeChars( integer           regionLength,
                               TAString<TChar>&  target,
-                              integer              separatorWidth   =0         )
+                              integer           separatorWidth   =0         )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTargetData == CurrentData::Clear  )
+            if ALIB_CONSTEXPR_IF ( TTargetData == CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
-                if ( separatorWidth < 0 )                        separatorWidth= 0;
-                if ( regionLength   < 0 )                        return  TString<TChar>::length;
-                if ( regionLength   > TString<TChar>::length - separatorWidth )  regionLength= TString<TChar>::length - separatorWidth;
-                if ( regionLength   < 0 )                        return  TString<TChar>::length;
+                if ( separatorWidth < 0 )
+                    separatorWidth= 0;
+
+                if ( regionLength   < 0 )
+                    return  TString<TChar>::length;
+
+                if ( regionLength   > TString<TChar>::length - separatorWidth )
+                {
+                    regionLength= TString<TChar>::length - separatorWidth;
+                    if ( regionLength   < 0 )
+                        return  TString<TChar>::length;
+                }
+
             }
             else
             {
-                ALIB_ASSERT_ERROR( separatorWidth >=0 , "NC: separator width negative"  )
-                ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= TString<TChar>::length,
+                ALIB_ASSERT_ERROR( separatorWidth  >= 0,
+                                   "NC: separator width negative"  )
+                ALIB_ASSERT_ERROR(    regionLength >= 0
+                                   && regionLength + separatorWidth <= TString<TChar>::length,
                                    "NC: regionLength out of bounds"             )
             }
 
             target.template _<false>( *this, 0, regionLength );
+
+            regionLength+= separatorWidth;
+            TString<TChar>::buffer+= regionLength ;
+            TString<TChar>::length-= regionLength;
+            return TString<TChar>::length;
+        }
+
+        /** ****************************************************************************************
+         * Cuts the given number of characters from the beginning of the Substring and optionally
+         * places the portion that was cut in parameter \p{target}.<br>
+         * Parameter \p{regionLength} is checked to be between 0 and length. If negative, nothing
+         * is cut and \p{target} is set empty, respectively left untouched depending on
+         * \p{TTargetData}.
+         *
+         * If \p{regionLength} is greater than this  object's length, all contents is 'moved'
+         * to \p{target}.
+         *
+         * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
+         *                 If \c \<false\> is added to the method name, no parameter check is
+         *                 performed.
+         *
+         * @param regionLength    The length of the region at the start to delete.
+         * @param target          A target \b %String that receives the portion that
+         *                        is cut from this object.
+         * @param separatorWidth  This width is added to what is cut from this string, while
+         *                        \p{target} still receives the portion defined by \p{regionLength}.
+         *                        Defaults to 0.
+         *
+         * @return The new length of the sub-string.
+         ******************************************************************************************/
+        template <bool TCheck = true>
+        integer ConsumeChars( integer           regionLength,
+                              TString<TChar>&  target,
+                              integer          separatorWidth   =0         )
+        {
+            if ALIB_CONSTEXPR_IF ( TCheck )
+            {
+                if ( separatorWidth < 0 )
+                    separatorWidth= 0;
+
+                if ( regionLength   < 0 )
+                    return  TString<TChar>::length;
+
+                if ( regionLength   > TString<TChar>::length - separatorWidth )
+                {
+                    regionLength= TString<TChar>::length - separatorWidth;
+                    if ( regionLength   < 0 )
+                        return  TString<TChar>::length;
+                }
+            }
+            else
+            {
+                ALIB_ASSERT_ERROR( separatorWidth  >= 0,
+                                   "NC: separator width negative"  )
+                ALIB_ASSERT_ERROR(    regionLength >= 0
+                                   && regionLength + separatorWidth <= TString<TChar>::length,
+                                   "NC: regionLength out of bounds"             )
+            }
+
+            target= String( TString<TChar>::buffer, regionLength );
 
             regionLength+= separatorWidth;
             TString<TChar>::buffer+= regionLength ;
@@ -438,9 +484,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * If \p{regionLength} is greater than this object's length, all contents is 'moved'
          * to \p{target}.
          *
-         * @tparam TCheck  Defaults to \c true which is the normal invocation mode.
-         *                 If \c \<false\> is added to the method name, no parameter check is
-         *                 performed.
+         * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
+         *                        If \c \<false\> is added to the method name, no parameter check is
+         *                        performed.
+         * @tparam TTargetData    If \c CurrentData::Keep, the parameter \p{target} is not cleared
+         *                        before the result is written. Defaults to \c CurrentData::Clear.
          *
          * @param regionLength    The length of the region at the start to delete.
          * @param target          A target \b %AString that receives the portion that
@@ -448,22 +496,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param separatorWidth  This width is added to what is cut from this string, while
          *                        \p{target} still receives the portion defined by \p{regionLength}.
          *                        Defaults to 0.
-         * @tparam TTargetData    If \c CurrentData::Keep, the parameter \p{target} is not cleared
-         *                        before the result is written. Defaults to \c CurrentData::Clear.
          *
          * @return The new length of the sub-string.
          ******************************************************************************************/
         template <bool            TCheck           = true,
                   CurrentData     TTargetData      = CurrentData::Clear>
-        inline
         integer ConsumeCharsFromEnd( integer             regionLength,
                                      AString&            target,
                                      integer             separatorWidth   =0      )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTargetData == CurrentData::Clear  )
+            if ALIB_CONSTEXPR_IF ( TTargetData == CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( separatorWidth < 0 )                        separatorWidth= 0;
                 if ( regionLength   < 0 )                        return  TString<TChar>::length;
@@ -494,19 +539,18 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return The token consumed.
          ******************************************************************************************/
-        inline
         TString<TChar>  ConsumeToken( TChar separator= ',' )
         {
             ALIB_ASSERT_ERROR( TString<TChar>::IsNotNull() , "ConsumeToken on nulled Substring" )
-            integer separatorPos= TString<TChar>::IndexOfOrLength( separator );
-            TString<TChar> result= TString<TChar>( TString<TChar>::buffer, separatorPos );
+            integer        separatorPos= TString<TChar>::IndexOfOrLength( separator );
+            TString<TChar> result      = TString<TChar>( TString<TChar>::buffer, separatorPos );
 
             TString<TChar>::buffer+= separatorPos;
             TString<TChar>::length-= separatorPos;
             if( TString<TChar>::length > 0 )
             {
-                TString<TChar>::buffer++;
-                TString<TChar>::length--;
+                ++TString<TChar>::buffer;
+                --TString<TChar>::length;
             }
             return result;
         }
@@ -515,20 +559,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Checks if this object starts with the given string \p{consumable}. If it does, this
          * string is cut from this object.
          *
-         * @param  consumable         The consumable string.
          * @tparam TSensitivity       The sensitivity of the comparison.
          *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
+         * @param  consumable         The consumable string.
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
         template< Case        TSensitivity=       Case::Sensitive,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
-        inline
         bool        ConsumeString( const TString<TChar>&     consumable  )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
             if ( !TString<TChar>::template StartsWith<true,TSensitivity>( consumable ) )
@@ -543,20 +586,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Checks if this object ends with the given string \p{consumable}. If it does, this
          * string is cut from the end of object.
          *
-         * @param  consumable         The consumable string
          * @tparam TSensitivity       The sensitivity of the comparison.
          *                            Defaults to \b Case::Sensitive.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                           consume operation. Defaults to \b Whitespaces::Keep.
+         * @param  consumable         The consumable string
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
         template< Case        TSensitivity=       Case::Sensitive,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
-        inline
         bool        ConsumeStringFromEnd( const TString<TChar>&  consumable )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
             if ( !TString<TChar>::template EndsWith<true,TSensitivity>( consumable ) )
@@ -570,19 +612,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * sub-string. If the minimum characters could not be found, nothing is consumed, otherwise,
          * the method consumes as much as possible.<br>
          *
-         * This method is useful read "tokens" from a string that may be abbreviated. Internally,
-         * this method is used by method #ConsumeEnum.
+         * This method is useful read "tokens" from a string that may be abbreviated.
+         * Within \alib this method is for example used with
+         * \ref alib_enums_records_details_serialization "deserialization of enumeration elements".
          *
-         *
-         * @param  consumable         The consumable string.
-         * @param  minChars           The minimum amount of characters to consume. If \c 0 or
-         *                            negative, the length of \p{consumable} is chosen.
-         *                            Optional and defaults to \c 1.
          * @tparam TSensitivity       The sensitivity of the comparison.
          *                            Defaults to \b Case::Ignore.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            first character consume operation.
          *                            Defaults to \b Whitespaces::Keep.
+         * @param  consumable         The consumable string.
+         * @param  minChars           The minimum amount of characters to consume. If \c 0 or
+         *                            negative, the length of \p{consumable} is chosen.
+         *                            Optional and defaults to \c 1.
          * @return The amount of characters consumed.
          ******************************************************************************************/
         template< Case        TSensitivity=       Case::Ignore,
@@ -590,7 +632,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         integer    ConsumePartOf(  const TString<TChar>&     consumable,
                                    int                          minChars           = 1 )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
             if ( minChars <= 0 )
                 minChars= static_cast<int>( consumable.Length() );
@@ -612,17 +654,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * \c '<' and \c '>', then repeated start characters are counted and consumption only ends
          * when a corresponding amount of end characters has been found.
          *
-         * @param  startChar  The start character of the field to consume.
-         * @param  endChar    The end character of the field to consume.
          * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
          *                            consume operation. Defaults to \b Whitespaces::Keep.
+         * @param  startChar  The start character of the field to consume.
+         * @param  endChar    The end character of the field to consume.
          * @return The string consumed. \b NullString on error (start/end character not found)
          ******************************************************************************************/
         template< Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
-        inline
         TString<TChar>  ConsumeField( TChar startChar, TChar endChar  )
         {
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
             integer endIdx;
@@ -637,221 +678,41 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             return result;
         }
 
-    #if ALIB_MODULE_RESOURCES
-        /** ****************************************************************************************
-         * Consumes an element of a C++ enum which is equipped with "\alib enum meta data".
-         * For more information consult
-         * \ref anchor_T_EnumMetaDataDecl_read_enum "T_EnumMetaDataDecl documentation".
-         *
-         * \note
-         *   This method is applicable to \alib{enums,T_EnumIsBitwise,bitwise enums} as well.
-         *   However, only one element name is parsed.
-         *   To parse multiple elements (ored to one enum value), use method #ConsumeEnumBitwise.
-         *
-         * @param[out] result         The result enum element given as reference.
-         * @tparam TEnum              The enumeration type.
-         * @tparam TSensitivity       The sensitivity of the comparison.
-         *                            Defaults to \b Case::Sensitive.
-         * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
-         *                            consume operation.<br>
-         *                            Defaults to \b Whitespaces::Trim.
-         * @tparam TEnableIf          Internal. Do \b not specify!<br>
-         *                            (Defaults to \c std::enable_if type, to enable the compiler to
-         *                            select this method only for types that have specialized member
-         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
-         *                            evaluating to a value different to \c 0.
-         * @return \c true if an enum element was read, \c false otherwise.
-         *
-         * \par Module Dependencies
-         *   This method is only available if \alibmod_resources is included in the \alibdist.
-         ******************************************************************************************/
-        template<typename    TEnum,
-                 Case        TSensitivity        = Case::Ignore,
-                 Whitespaces TTrimBeforeConsume  = Whitespaces::Trim,
-        typename TEnableIf= ATMP_VOID_IF( resources::T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex!= 0)>
-        bool    ConsumeEnum(  TEnum&  result )
-        {
-            auto& enumMetaData= EnumMetaData<TEnum>::GetSingleton();
-            enumMetaData.CheckLoad();
-
-            if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
-                TrimStart();
-
-            for( auto& entry : enumMetaData.Table )
-            {
-                if ( ConsumePartOf<TSensitivity>( EnumReadWriteInfo<TEnum>::Name( entry ),
-                                                  std::get<T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex>( entry )
-                                                 )  > 0 )
-                {
-                    result= enumMetaData.Enum( entry );
-                    return true;
-                }
-            }
-            return false;
-        }
-
-#if ALIB_MODULE_ENUMS
-        /** ****************************************************************************************
-         * Repeatedly invokes #ConsumeEnum until \p{delim} is not found. The enum element values
-         * are or'ed in \p{result}.
-         *
-         * \note
-         *   This method is applicable to \alib{enums,T_EnumIsBitwise,bitwise enums} only.
-         *
-         *
-         * @param[out] result         The result enum element given as reference.
-         * @tparam TSensitivity       The sensitivity of the comparison.
-         *                            Defaults to \b Case::Ignore.
-         * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before and
-         *                            after each consume operation.<br>
-         *                            Defaults to \b Whitespaces::Trim.
-         * @tparam delimiter          The delimiter character of the enum elements.<br>
-         *                            Defaults to <c>','</c>.
-         * @tparam keepLastDelim      If \c true , the delimiter will be kept in this sub-string, if
-         *                            after the delimiter no further enum element was found.
-         *                            If \c false, the delimiter will be kept.<br>
-         *                            Defaults to \c true.
-         * @tparam TEnum              The enumeration type.
-         * @tparam TEnableIf          Internal. Do \b not specify!<br>
-         *                            (Defaults to \c std::enable_if type, to enable the compiler to
-         *                            select this operator only for types that have specialized
-         *                            \alib{enums,T_EnumIsBitwise} and also specialized member
-         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
-         *                            evaluating to a value different to \c 0.)
-         * @return \c true if an enum element was read, \c false otherwise.
-         *
-         * \par Module Dependencies
-         *   This method is only available if module \alibmod_enums is included in the \alibdist.
-         ******************************************************************************************/
-        template<typename    TEnum,
-                 Case        TSensitivity       = Case::Ignore,
-                 Whitespaces TTrimBeforeConsume = Whitespaces::Trim,
-                 TChar       delimiter          = ',',
-                 bool        keepLastDelim      = true,
-                 typename TEnableIf= ATMP_VOID_IF(   T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex
-                                                     !=  0
-                                                  && T_EnumIsBitwise<TEnum>::value)>
-        bool    ConsumeEnumBitwise( TEnum&  result )
-        {
-            bool mResult= false;
-            result= TEnum(0);
-            TSubstring restoreBeforeDelim;
-            if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
-                restoreBeforeDelim= *this;
-            for(;;)
-            {
-                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
-                    TrimStart();
-                TEnum actEnum;
-                if ( !ConsumeEnum<TEnum, TSensitivity, TTrimBeforeConsume>( actEnum ) )
-                {
-                    if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
-                        *this= restoreBeforeDelim;
-                    return mResult;
-                }
-                result|=  actEnum;
-                mResult=  true;
-                if ALIB_CPP17_CONSTEXPR ( TTrimBeforeConsume == Whitespaces::Trim )
-                    TrimStart();
-                if ALIB_CPP17_CONSTEXPR ( keepLastDelim )
-                    restoreBeforeDelim=  *this;
-                if( !ConsumeChar<TSensitivity, TTrimBeforeConsume>( delimiter ) )
-                    return mResult;
-
-            }
-        }
-#endif
-
-        /** ****************************************************************************************
-         * Convenience method that first uses #ConsumeEnum to try and read an element of a C++
-         * enum. If this is not successful, an enum of type \alib{Bool} is tried to be read.
-         * If this is successful, depending on the value read, the \p{TEnum} values given
-         * as parameters \p{falseValue} and \p{trueValue} are assigned.
-         * Otherwise false is returned.
-         *
-         * For more information consult
-         * \ref anchor_T_EnumMetaDataDecl_read_enum "T_EnumMetaDataDecl documentation".
-         *
-         * \note
-         *   This method is applicable to bitwise enums as well. However, only one element name is
-         *   parsed. To parse multiple elements (ored to one enum value), use method
-         *   #ConsumeEnumBitwise.
-         *
-         *
-         * @param[out] result         The result enum element given as reference.
-         * @tparam TEnum              The enumeration type.
-         * @param  trueValue          The \p{TEnum} value to use in case of \c Bool::True was read.
-         * @param  falseValue         The \p{TEnum} value to use in case of \c Bool::False was read.
-         * @tparam TTrimBeforeConsume Determines if the string should be (left-) trimmed before the
-         *                            consume operation. Passed to #ConsumeEnum.<br>
-         *                            Defaults to \b Whitespaces::Trim.
-         * @tparam TSensitivity       The sensitivity of the comparison.
-         *                            Defaults to \b Case::Ignore.
-         * @tparam TEnableIf          Internal. Do \b not specify!<br>
-         *                            (Defaults to \c std::enable_if type, to enable the compiler to
-         *                            select this method only for types that have specialized member
-         *                            \alib{resources,T_EnumMetaDataDeclReadWrite::MinParseLengthIndex}
-         *                            evaluating to a value different to \c 0.
-         * @return \c true if an element of \p{TEnum} or \alib{Bool} could be read,
-         *         \c false otherwise.
-         ******************************************************************************************/
-        template<typename    TEnum,
-                 Case        TSensitivity       = Case::Ignore,
-                 Whitespaces TTrimBeforeConsume = Whitespaces::Trim,
-        typename TEnableIf= ATMP_VOID_IF(T_EnumMetaDataDeclReadWrite<TEnum>::MinParseLengthIndex != 0) >
-        bool    ConsumeEnumOrBool(  TEnum&            result,
-                                    TEnum             falseValue,
-                                    TEnum             trueValue         )
-        {
-            // first try to read a TEnum
-            if( ConsumeEnum<TEnum, TSensitivity, TTrimBeforeConsume>( result ) )
-                return true;
-
-            // if failed, read boolean
-            Bool boolEnum;
-            if( ConsumeEnum<Bool,  TSensitivity, TTrimBeforeConsume>( boolEnum ) )
-            {
-                result= boolEnum == Bool::True ? trueValue : falseValue;
-                return true;
-            }
-
-            // failed
-            return false;
-        }
-    #endif
 
 ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 
-                /** ****************************************************************************************
+        #if defined(ALIB_DOX)
+        /** ****************************************************************************************
          * Consumes all characters \c '0' to \c '9' at the start of this object and stores the
          * value they represent in \p{result}.<br>
          * Unlike methods #ConsumeInt or #ConsumeDec, this method does not consume (accept)
          * sign-, whitespace- or group-characters.
          *
-         * @param [out] result    A reference to the result value.
-         * @tparam    TInteger    The output type.
+         * @tparam TIntegral      The output type.
          *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
+         * @param [out] result    A reference to the result value.
          *
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type>
+        template<typename TIntegral>
         inline
-        bool     ConsumeDecDigits( TInteger& result )
+        bool   ConsumeDecDigits( TIntegral& result );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ConsumeDecDigits( TIntegral& result )
         {
             uint64_t resultImpl;
             bool    returnValue= consumeDecDigitsImpl( resultImpl );
-            result= static_cast<TInteger>( resultImpl );
+            result= static_cast<TIntegral>( resultImpl );
             return  returnValue;
         }
+        #endif
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * Consumes an integer value in decimal, binary, hexadecimal or octal format from the
+         * Consumes an integral value in decimal, binary, hexadecimal or octal format from the
          * string.
          *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
@@ -861,28 +722,28 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * For more information on number conversion, see class
          * \alib{strings,TNumberFormat,NumberFormat}.
          *
+         * @tparam TIntegral      The output type.
+         *                        Must be statically castable from \b uint64_t.
          * @param [out] result    A reference to the result value.
          * @param  numberFormat   The number format to use. Defaults to \c nullptr.
-         * @tparam TInteger       The output type.
-         *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type
-                >
+        template<typename TIntegral>
         inline
-        bool   ConsumeInt( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
+        bool ConsumeInt( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool, std::is_integral<TIntegral>::value )
+        ConsumeInt( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             int64_t resultImpl;
             bool    returnValue= consumeIntImpl( resultImpl, numberFormat );
-            result= static_cast<TInteger>( resultImpl );
+            result= static_cast<TIntegral>( resultImpl );
             return  returnValue;
         }
+        #endif
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Consumes an unsigned integer in standard decimal format from the start of this %AString.
          *
@@ -891,34 +752,34 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * which is configured to not using (not allowing) grouping characters.
          *
          * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail.
-         * For reading signed integer values, see methods #ConsumeInt, for floating point numbers
+         * For reading signed integral values, see methods #ConsumeInt, for floating point numbers
          * #ConsumeFloat.
          *
          * For more information on number conversion, see class
          * \alib{strings,TNumberFormat,NumberFormat}.
          *
+         * @tparam TIntegral      The output type.
+         *                        Must be statically castable from \b uint64_t.
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
-         * @tparam TInteger       The output type.
-         *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type
-                >
+        template<typename TIntegral>
         inline
-        bool   ConsumeDec( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
+        bool   ConsumeDec( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ConsumeDec( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeDecImpl( resultImpl, numberFormat );
-            result=  static_cast<TInteger>( resultImpl );
+            result=  static_cast<TIntegral>( resultImpl );
             return   returnValue;
         }
+        #endif
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Consumes an unsigned integer in binary format from the start of this string.
          *
@@ -931,27 +792,26 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
-         * @tparam    TInteger    The output type.
+         * @tparam TIntegral      The output type.
          *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
-         *
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type
-                >
+        template<typename TIntegral>
         inline
-        bool   ConsumeBin( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
+        bool   ConsumeBin( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool,  std::is_integral<TIntegral>::value)
+        ConsumeBin( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeBinImpl( resultImpl, numberFormat );
-            result=  static_cast<TInteger>( resultImpl );
+            result=  static_cast<TIntegral>( resultImpl );
             return   returnValue;
         }
+        #endif
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Consumes an unsigned integer in hexadecimal format from the start of this string.
          *
@@ -962,29 +822,29 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * For more information on number conversion, see class
          * \alib{strings,TNumberFormat,NumberFormat}.
          *
+         * @tparam TIntegral      The output type.
+         *                        Must be statically castable from \b uint64_t.
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
-         * @tparam    TInteger    The output type.
-         *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
          *
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type
-                >
+        template<typename TIntegral>
         inline
-        bool   ConsumeHex( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
+        bool   ConsumeHex( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ConsumeHex( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeHexImpl( resultImpl, numberFormat );
-            result=  static_cast<TInteger>( resultImpl );
+            result=  static_cast<TIntegral>( resultImpl );
             return   returnValue;
         }
+        #endif
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Consumes an unsigned integer in octal format from the start of this string.
          *
@@ -995,28 +855,27 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * For more information on number conversion, see class
          * \alib{strings,TNumberFormat,NumberFormat}.
          *
+         * @tparam TIntegral      The output type.
+         *                        Must be statically castable from \b uint64_t.
          * @param [out] result    A reference to the result value.
          * @param numberFormat    The number format to use. Defaults to \c nullptr.
-         * @tparam    TInteger    The output type.
-         *                        Must be statically castable from \b uint64_t.
-         * @tparam TEnableIf      Internal. Do \b not specify!<br>
-         *                        (Defaults to \c std::enable_if type, to enable the compiler to
-         *                        select this method only for integer types.
          *
          * @return  \c true if a number was found and consumed, \c false otherwise.
          ******************************************************************************************/
-        template<typename TInteger,
-                 typename TEnableIf= typename std::enable_if<    std::is_integral<TInteger>::value
-                                                            >::type
-                >
+        template<typename TIntegral>
         inline
-        bool   ConsumeOct( TInteger& result, TNumberFormat<TChar>* numberFormat= nullptr )
+        bool   ConsumeOct( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
+        #else
+        template<typename TIntegral>
+        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ConsumeOct( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
             bool     returnValue= consumeOctImpl( resultImpl, numberFormat );
-            result=  static_cast<TInteger>( resultImpl );
+            result=  static_cast<TIntegral>( resultImpl );
             return   returnValue;
         }
+        #endif
 
         /** ****************************************************************************************
          * Consumes a floating point number from the start of this string.
@@ -1061,12 +920,11 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TSubstring& Split( integer position, TSubstring& target, integer separatorWidth =0,
                            bool trim= false )
 
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 TString<TChar>::AdjustRegion( position, separatorWidth );
             }

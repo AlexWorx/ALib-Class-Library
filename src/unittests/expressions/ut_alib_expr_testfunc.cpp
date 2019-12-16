@@ -6,13 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)  ||  defined(ALIB_UT_DOCS)
+#if ALIB_UT_EXPRESSIONS ||  ALIB_UT_DOCS
 
 #include "alib/alox.hpp"
-#include "alib/alox/logtools.hpp"
+#if ALIB_ALOX
+#   include "alib/alox/logtools.hpp"
+#endif
+
 #include "alib/boxing/dbgboxing.hpp"
 
-#ifndef HPP_ALIB_EXPRESSIONS_COMPILER
+#if ALIB_EXPRESSIONS && !defined(HPP_ALIB_EXPRESSIONS_COMPILER)
 #   include "alib/expressions/compiler.hpp"
 #endif
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
@@ -23,9 +26,16 @@
 #   include "alib/expressions/plugins/arithmetics.hpp"
 #endif
 
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
 #   include "alib/expressions/detail/program.hpp"
+#endif
+#ifndef HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
 #   include "alib/expressions/detail/virtualmachine.hpp"
+#endif
 
+#if ALIB_TIME && !defined(HPP_ALIB_TIME_TICKS)
+#   include "alib/time/ticks.hpp"
+#endif
 
 #include <math.h>
 
@@ -49,6 +59,22 @@ namespace ut_aworx {
 // ### Test method used by the test below, with two macros. One for expressions understood by
 // ### C++, one for those that are not compatible.
 // #################################################################################################
+#if !ALIB_ALOX
+extern    AString exceptOutput;
+          AString exceptOutput;
+#endif
+void log_exception( AWorxUnitTesting& ut, Exception& e )
+{
+    #if ALIB_ALOX
+        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+    #else
+        (void) ut;
+        e.Format( exceptOutput.Reset() );
+        std::cout << exceptOutput << endl;
+    #endif
+
+}
+
 void    testNormalizaton( const NCString& file, int line, const NCString& func,
                           AWorxUnitTesting&     ut,
                           Compiler&             compiler,
@@ -60,20 +86,19 @@ void    testNormalizaton( const NCString& file, int line, const NCString& func,
     SPExpression   expression;
 
     //---------------------- Compile -------------------
-    Ticks time;
     try
     {
         expression= compiler.Compile( expressionString );
     }
     catch( Exception& e )
     {
-        ALIB_ASSERT( !expression );
+        ALIB_ASSERT( !expression )
         ut.Print (file, line, aworx::Verbosity::Info,
                   "------ Exception thrown when testing normalization -------\\n"
                   "      Expression:  {{{}}}\\n"
                   "Exception:",
                   expressionString      );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            log_exception( ut, e  );
             return;
     }
 
@@ -106,33 +131,33 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     SPExpression   expression;
 
     // fix integral and float types
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+    #if ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
         if( !expected.IsType< integer>() && expected.IsSignedIntegral  () ) expected= expected.UnboxSignedIntegral();
         if( !expected.IsType<uinteger>() && expected.IsUnsignedIntegral() ) expected= expected.UnboxUnsignedIntegral();
     #endif
 
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
         if( expected.IsType<float>() )          expected= expected.UnboxFloatingPoint();
     #endif
 
     //---------------------- Compile -------------------
-    Ticks time;
+    ALIB_IF_TIME( Ticks time; )
     try
     {
         expression= compiler.Compile( expressionString );
     }
     catch( Exception& e )
     {
-        ALIB_ASSERT( !expression );
+        ALIB_ASSERT( !expression )
         if( expected == e.Type().CastToBox() )
         {
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
             ut.Print (file, line, aworx::Verbosity::Info,
                   "Expression compilation threw exception as expected:\\n"
                   "      Expression:  {{{}}}\\n"
                   "Exception:",
                   expressionString      );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            log_exception( ut, e  );
             return expression;
         }
 
@@ -145,8 +170,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                   " Expected exception:  {}"     ,
                   expressionString               ,
                   expected.Unbox<expressions::Exceptions>()        );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -155,16 +180,17 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                   "Expression compilation threw UNEXPECTED exception:\\n"
                   " Expression:  {{{}}}",
                   expressionString        );
-        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+        log_exception( ut, e  );
         assert(!ut.AssertOnFailure);
     }
-    auto compileTime= time.Age();
-    ALIB_ASSERT( expression );
+
+    ALIB_IF_TIME( auto compileTime= time.Age(); )
+    ALIB_ASSERT( expression )
 
     //---------------------- Evaluate -------------------
     Box result(0);
-    time= Ticks::Now();
+    ALIB_IF_TIME( time= Ticks::Now(); )
     try
     {
         result= expression->Evaluate( scope );
@@ -179,8 +205,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                   "  Normalized: {{{}}}",
                   expressionString,
                   expression->GetNormalizedString()             );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             return expression;
         }
 
@@ -195,8 +221,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                   expressionString,
                   expression->GetNormalizedString(),
                   expected                                    );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -207,11 +233,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                   "  Normalized: {{{}}}"  ,
                   expressionString,
                   expression->GetNormalizedString()             );
-        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+        log_exception( ut, e  );
         assert(!ut.AssertOnFailure);
     }
-    auto evalTime= time.Age();
+
+    ALIB_IF_TIME( auto evalTime= time.Age(); )
 
     //---------------- check result type -------------------
     if( !expected.IsType<void>() )
@@ -223,8 +250,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       "Error in expression result type:\\n"
                       "             Expression: {{{}}}\\n"
                       "             Normalized: {{{}}}\\n"
-                      "   Expected result type: <{}> (value: {})\\n"
-                      "            Result type: <{}>  (value: {})",
+                      "   Expected result type: {!Q<>} (value: {})\\n"
+                      "            Result type: {!Q<>}  (value: {})",
                       expressionString,
                       expression->GetNormalizedString(),
                       compiler.TypeName(expected), expected,
@@ -254,9 +281,10 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     }
 
     //---------------- check parsing normalized -------------------
+    ALIB_IF_TIME(
     Ticks::Duration recompileTime;
     Ticks::Duration recompiledEvalTime;
-    time= Ticks::Now();
+    time= Ticks::Now();                 )
     {
         SPExpression recompiled;
         try
@@ -265,7 +293,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ALIB_ASSERT( !recompiled );
+            ALIB_ASSERT( !recompiled )
             ut.Print (file, line, aworx::Verbosity::Info,
                       "--------- Error --------\\n"
                       "Recompiling normalized (!!!) threw exception:\\n"
@@ -273,14 +301,14 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       "  Failed normalization: {{{}}}",
                       expressionString,
                       expression->GetNormalizedString()          );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
-        recompileTime= time.Age();
+        ALIB_IF_TIME( recompileTime= time.Age(); )
         Box result2(0);
 
-        time= Ticks::Now();
+        ALIB_IF_TIME( time= Ticks::Now(); )
         try
         {
             result2= recompiled->Evaluate( scope );
@@ -296,11 +324,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       expressionString,
                       expression->GetNormalizedString(),
                       recompiled->GetNormalizedString()             );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-           LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
-        recompiledEvalTime= time.Age();
+        ALIB_IF_TIME( recompiledEvalTime= time.Age(); )
 
         //---------------- check recompiled result type -------------------
         if( !expected.IsType<void>() )
@@ -365,7 +393,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ALIB_ASSERT( !optimized );
+            ALIB_ASSERT( !optimized )
             ut.Print (file, line, aworx::Verbosity::Info,
                       "--------- Error --------\\n"
                       "Recompiling OPTIMIZED normalized (!!!) threw exception:\\n"
@@ -375,8 +403,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       expressionString,
                       expression->GetNormalizedString(),
                       expression->GetOptimizedString()          );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -396,8 +424,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       expressionString,
                       expression->GetNormalizedString(),
                       optimized->GetNormalizedString()             );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -511,7 +539,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             compiler.CfgCompilation-= Compilation::NoOptimization;
-            ALIB_ASSERT( !expressionCompiledWitoutOptimizations );
+            ALIB_ASSERT( !expressionCompiledWitoutOptimizations )
             ut.Print (file, line, aworx::Verbosity::Info,
                       "--------- Error --------\\n"
                       "Compiling with \"NoOptimization\" threw exception:\\n"
@@ -519,8 +547,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       "  Normalized (used): {{{}}}",
                       expressionString,
                       expression->GetNormalizedString()          );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
         compiler.CfgCompilation-= Compilation::NoOptimization;
@@ -543,8 +571,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       expressionString,
                       expression->GetNormalizedString(),
                       expressionCompiledWitoutOptimizations->GetNormalizedString()             );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -604,7 +632,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             compiler.CfgCompilation-= Compilation::NoOptimization;
-            ALIB_ASSERT( !expressionCompiledWitoutOptimizationsDecompiled );
+            ALIB_ASSERT( !expressionCompiledWitoutOptimizationsDecompiled )
             ut.Print (file, line, aworx::Verbosity::Info,
                       "--------- Error --------\\n"
                       "Compiling \"decompiled-non-optimized\" (!) threw exception:\\n"
@@ -613,8 +641,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       " Non-Optimized Decompiled (used): {{{}}}",
                       expressionString,
                       expression->GetNormalizedString()          );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -633,8 +661,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
                       expressionString,
                       expression->GetNormalizedString(),
                       expressionCompiledWitoutOptimizationsDecompiled->GetNormalizedString()             );
-            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-            LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+            Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+            log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
 
@@ -696,8 +724,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
               expression->GetOptimizedString(),
               result,
               "CT:",
-              compileTime,  recompileTime,
-              evalTime,     recompiledEvalTime,
+              #if ALIB_TIME
+                  compileTime,  recompileTime,
+                  evalTime,     recompiledEvalTime,
+              #else
+                  -1, -1, -1, -1,
+              #endif
               optimizedPLen, nonOptimizedLen,
               expression->GetProgram()->CountOptimizations()
             );
@@ -718,6 +750,14 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     (void) func;
 
     SPExpression   expression;
+#if !ALIB_ALOX
+    (void) file;
+    (void) line;
+    (void) func;
+    (void) ut;
+    (void) compiler;
+    (void) expressionString;
+#else
 
     //---------------------- Compile -------------------
     try
@@ -730,11 +770,11 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
                   "Cant print program. Exception compiling expression:\\n"
                   " Expression:  {{{}}}",
                   expressionString        );
-        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
+        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+        log_exception( ut, e  );
         assert(!ut.AssertOnFailure);
     }
-    ALIB_ASSERT( expression );
+    ALIB_ASSERT( expression )
 
     ut.Print (file, line, aworx::Verbosity::Info, "Expression Listing:" );
 
@@ -748,14 +788,15 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     ut.Print (file, line, aworx::Verbosity::Info, listing );
     ut.utl->MultiLineMsgMode  = oldMultiLineMsgMode;
     ut.utl->FmtMultiLinePrefix= oldFmtMultiLinePrefix;
+#endif
 
     return expression;
 }
 #endif
 
 
-}; //namespace
+} //namespace
 
 ALIB_WARNINGS_RESTORE
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)
+#endif // ALIB_UT_EXPRESSIONS

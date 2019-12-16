@@ -7,7 +7,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#if ALIB_UT_DOCS
 
 
 
@@ -18,9 +18,9 @@ void HelloALox();
 
 void HelloALox()
 {
-    Log_Info ( "Hello ALox!" );
+    Log_Info ( "Hello ALox!" )
 }
 //! [Tut_Minimum_Hello]
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#endif // ALIB_UT_ALOX

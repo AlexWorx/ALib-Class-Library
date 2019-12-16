@@ -1,13 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#ifndef HPP_ALOX_MEMORY_LOGGER
-#define HPP_ALOX_MEMORY_LOGGER 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+#ifndef HPP_ALOX_MONOMEM_LOGGER
+#define HPP_ALOX_MONOMEM_LOGGER 1
+
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
@@ -15,7 +17,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
 
 /** ************************************************************************************************
  *  A logger that logs all messages to an in-memory buffer of type AString. The name of the \e Logger
- *  defaults to "MEMORY".
+ *  defaults to "MONOMEM".
  **************************************************************************************************/
 class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 {
@@ -48,7 +50,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
     public:
         /** ****************************************************************************************
          * Creates a MemoryLogger with the given name.
-         * @param name              (Optional) The name of the \e Logger. Defaults to "MEMORY".
+         * @param name              (Optional) The name of the \e Logger. Defaults to "MONOMEM".
          * @param pruneESCSequences (Optional) Sets the member \ref PruneESCSequences.
          *                          Defaults to \c true.
          * @param useWStringLengthForTabAdjustments (Optional) Sets the member
@@ -58,7 +60,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
         explicit        MemoryLogger( const NString& name                   = nullptr,
                                       bool pruneESCSequences                = true,
                                       bool useWStringLengthForTabAdjustments= true )
-                        : PlainTextLogger( name, "MEMORY", false )
+                        : PlainTextLogger( name, "MONOMEM", false )
                         {
                             MemoryLog.SetBuffer( 8092 );
                             PruneESCSequences                = pruneESCSequences;
@@ -115,9 +117,9 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 }}}// namespace aworx[::lib::lox::loggers]
 
 /// Type alias in namespace #aworx.
-using     MemoryLogger=           aworx::lib::lox::loggers::MemoryLogger;
+using     MemoryLogger=           lib::lox::loggers::MemoryLogger;
 
 }  // namespace [aworx]
 
-#endif // HPP_ALOX_MEMORY_LOGGER
+#endif // HPP_ALOX_MONOMEM_LOGGER
 

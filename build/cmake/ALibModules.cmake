@@ -6,15 +6,15 @@
 #
 #  Notes:
 #    This script resolves dependencies between ALib modules and lists selected plus necessary
-#    modules in variable ALIB_MODULES.
-#    This CMake file is inlcuded by "ALib.cmake" automatically and is not intended for manual
-#    inclusion. Its contents was separated into a separated cmake file soley for clearity.
+#    modules in variable ALIB_DISTRIBUTION.
+#    This CMake file is included by "ALib.cmake" automatically and is not intended for manual
+#    inclusion. Its contents was separated into a separated cmake file solely for clarity.
 # #################################################################################################
 
 SET( ALIB_FILESETS "" )
 
 # check for unknown module name
-foreach (modName ${ALIB_MODULES})
+foreach (modName ${ALIB_DISTRIBUTION})
     if(      NOT ( ${modName} STREQUAL "ALL"            )
         AND  NOT ( ${modName} STREQUAL "ALOX"           )
         AND  NOT ( ${modName} STREQUAL "EXPRESSIONS"    )
@@ -22,7 +22,7 @@ foreach (modName ${ALIB_MODULES})
         AND  NOT ( ${modName} STREQUAL "CLI"            )
         AND  NOT ( ${modName} STREQUAL "SYSTEM"         )
         AND  NOT ( ${modName} STREQUAL "RESULTS"       )
-        AND  NOT ( ${modName} STREQUAL "STRINGFORMAT"   )
+        AND  NOT ( ${modName} STREQUAL "TEXT"   )
         AND  NOT ( ${modName} STREQUAL "RESOURCES"      )
         AND  NOT ( ${modName} STREQUAL "THREADS"        )
         AND  NOT ( ${modName} STREQUAL "STRINGS"        )
@@ -31,146 +31,145 @@ foreach (modName ${ALIB_MODULES})
         AND  NOT ( ${modName} STREQUAL "CHARACTERS"     )
         AND  NOT ( ${modName} STREQUAL "ENUMS"          )
         AND  NOT ( ${modName} STREQUAL "SINGLETONS"     )
-        AND  NOT ( ${modName} STREQUAL "MEMORY"         )
+        AND  NOT ( ${modName} STREQUAL "MONOMEM"         )
 
       )
         MESSAGE( FATAL_ERROR "ALib: Unknown module name \"${modName}\" given!")
+        return()
     endif()
 endforeach()
 
 # if nothing is given, ALL is chosen
-if( NOT ALIB_MODULES )
-    MESSAGE( "ALib: No module specified with list variable \"ALIB_MODULES\". Setting default \"ALL\".")
-    list( APPEND ALIB_MODULES "ALL" )
+if( NOT ALIB_DISTRIBUTION )
+    MESSAGE( "ALib: No module specified with list variable \"ALIB_DISTRIBUTION\". Setting default \"ALL\".")
+    list( APPEND ALIB_DISTRIBUTION "ALL" )
 endif()
 
 # resolve module dependencies
-list( FIND   ALIB_MODULES  "ALL"            idx )
+list( FIND   ALIB_DISTRIBUTION  "ALL"            idx )
 if( NOT idx LESS 0 )
-    LIST( REMOVE_AT ALIB_MODULES  ${idx}        )
-    list( APPEND  ALIB_MODULES  "ALOX"          )
-    list( APPEND  ALIB_MODULES  "EXPRESSIONS"   )
-    list( APPEND  ALIB_MODULES  "CLI"           )
+    LIST( REMOVE_AT ALIB_DISTRIBUTION  ${idx}        )
+    list( APPEND  ALIB_DISTRIBUTION  "ALOX"          )
+    list( APPEND  ALIB_DISTRIBUTION  "EXPRESSIONS"   )
+    list( APPEND  ALIB_DISTRIBUTION  "CLI"           )
+    list( APPEND  ALIB_DISTRIBUTION  "THREADS"       )
 endif()
 
 #### full modules ####
-list( FIND   ALIB_MODULES  "ALOX"           idx )
+list( FIND   ALIB_DISTRIBUTION  "ALOX"           idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "CONFIGURATION" )
-    list( APPEND  ALIB_MODULES  "THREADS"       )
+    list( APPEND  ALIB_DISTRIBUTION  "CONFIGURATION" )
 endif()
 
-list( FIND   ALIB_MODULES  "EXPRESSIONS"    idx )
+list( FIND   ALIB_DISTRIBUTION  "EXPRESSIONS"    idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "RESULTS"       )
+    list( APPEND  ALIB_DISTRIBUTION  "RESULTS"       )
     list( APPEND  ALIB_FILESETS "PLUGINS"       )
 endif()
 
-list( FIND   ALIB_MODULES  "CONFIGURATION"  idx )
+list( FIND   ALIB_DISTRIBUTION  "CONFIGURATION"  idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "SYSTEM"        )
+    list( APPEND  ALIB_DISTRIBUTION  "SYSTEM"        )
     list( APPEND  ALIB_FILESETS "PLUGINS"       )
 endif()
 
-list( FIND   ALIB_MODULES  "SYSTEM"         idx )
+list( FIND   ALIB_DISTRIBUTION  "SYSTEM"         idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "RESULTS"      )
-    list( APPEND  ALIB_MODULES  "TIME"          )
+    list( APPEND  ALIB_DISTRIBUTION  "RESULTS"      )
+    list( APPEND  ALIB_DISTRIBUTION  "TIME"          )
 endif()
 
-list( FIND   ALIB_MODULES  "CLI"            idx )
+list( FIND   ALIB_DISTRIBUTION  "CLI"            idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "RESULTS"      )
+    list( APPEND  ALIB_DISTRIBUTION  "RESULTS"      )
 endif()
 
-list( FIND    ALIB_MODULES "RESULTS"        idx )
+list( FIND    ALIB_DISTRIBUTION "RESULTS"        idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "STRINGFORMAT"  )
+    list( APPEND  ALIB_DISTRIBUTION  "TEXT"  )
 endif()
 
-list( FIND    ALIB_MODULES "STRINGFORMAT" idx   )
+list( FIND    ALIB_DISTRIBUTION "TEXT" idx   )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "RESULTS"      )
-    list( APPEND  ALIB_MODULES  "STRINGS"       )
-    list( APPEND  ALIB_MODULES  "BOXING"        )
-    list( APPEND  ALIB_MODULES  "RESOURCES"     )
-    list( APPEND  ALIB_MODULES  "ENUMS"         )
+    list( APPEND  ALIB_DISTRIBUTION  "RESULTS"      )
+    list( APPEND  ALIB_DISTRIBUTION  "STRINGS"       )
+    list( APPEND  ALIB_DISTRIBUTION  "BOXING"        )
+    list( APPEND  ALIB_DISTRIBUTION  "RESOURCES"     )
+    list( APPEND  ALIB_DISTRIBUTION  "ENUMS"         )
     list( APPEND  ALIB_FILESETS "MODULES"       )
     list( APPEND  ALIB_FILESETS "OWNER"         )
 endif()
 
 #### micro modules ####
-list( FIND    ALIB_MODULES "RESOURCES"      idx )
+list( FIND    ALIB_DISTRIBUTION "RESOURCES"      idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "STRINGS"       )
-    list( APPEND  ALIB_MODULES  "MEMORY"        )
-    list( APPEND  ALIB_MODULES  "SINGLETONS"    )
+    list( APPEND  ALIB_DISTRIBUTION  "STRINGS"       )
+    list( APPEND  ALIB_DISTRIBUTION  "MONOMEM"        )
+    list( APPEND  ALIB_DISTRIBUTION  "SINGLETONS"    )
 endif()
 
-list( FIND    ALIB_MODULES "THREADS"        idx )
+list( FIND    ALIB_DISTRIBUTION "THREADS"        idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "STRINGS"       )
-    list( APPEND  ALIB_MODULES  "TIME"          )
+    list( APPEND  ALIB_DISTRIBUTION  "STRINGS"       )
     list( APPEND  ALIB_FILESETS "OWNER"         )
 endif()
 
-list( FIND    ALIB_MODULES "STRINGS"        idx )
+list( FIND    ALIB_DISTRIBUTION "STRINGS"        idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "CHARACTERS"    )
+    list( APPEND  ALIB_DISTRIBUTION  "CHARACTERS"    )
     list( APPEND  ALIB_FILESETS "COMMON_ENUMS"  )
 endif()
 
-list( FIND    ALIB_MODULES "BOXING"         idx )
+list( FIND    ALIB_DISTRIBUTION "BOXING"         idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_MODULES  "SINGLETONS"    )
-    list( APPEND  ALIB_MODULES  "CHARACTERS"    )
+    list( APPEND  ALIB_DISTRIBUTION  "SINGLETONS"    )
+    list( APPEND  ALIB_DISTRIBUTION  "CHARACTERS"    )
+    list( APPEND  ALIB_FILESETS "LISTS"         )
 endif()
 
 
-list( FIND    ALIB_MODULES "CHARACTERS"     idx )
+list( FIND    ALIB_DISTRIBUTION "CHARACTERS"     idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_FILESETS "PREDEF_PF"     )
-    list( APPEND  ALIB_FILESETS "PREDEF_TMP"    )
-    list( APPEND  ALIB_FILESETS "DEBUG"         )
-    list( APPEND  ALIB_FILESETS "INTEGERS"      )
-    list( APPEND  ALIB_FILESETS "COMMON_ENUMS"  )
+    list( APPEND  ALIB_FILESETS "DEBUG"              )
+    list( APPEND  ALIB_FILESETS "INTEGERS"           )
+    list( APPEND  ALIB_FILESETS "COMMON_ENUMS"       )
+endif()
+
+list( FIND    ALIB_DISTRIBUTION "ENUMS"          idx )
+if( NOT idx LESS 0 )
+    list( APPEND  ALIB_DISTRIBUTION  "SINGLETONS"    )
 endif()
 
 
-list( FIND    ALIB_MODULES "SINGLETONS"     idx )
+list( FIND    ALIB_DISTRIBUTION "SINGLETONS"     idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_FILESETS "TYPEMAP"       )
+    list( APPEND  ALIB_FILESETS "DEBUG"              )
+    list( APPEND  ALIB_FILESETS "INTEGERS"           )
 endif()
 
 
-list( FIND    ALIB_MODULES "MEMORY"         idx )
+list( FIND    ALIB_DISTRIBUTION "MONOMEM"        idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_FILESETS "PREDEF_PF"     )
-    list( APPEND  ALIB_FILESETS "DEBUG"         )
-    list( APPEND  ALIB_FILESETS "INTEGERS"      )
+    list( APPEND  ALIB_FILESETS "DEBUG"              )
+    list( APPEND  ALIB_FILESETS "INTEGERS"           )
+    list( APPEND  ALIB_FILESETS "COMMON_ENUMS"       )
+    list( APPEND  ALIB_FILESETS "LISTS"              )
 endif()
 
 
-list( FIND    ALIB_MODULES "TIME"     idx )
+list( FIND    ALIB_DISTRIBUTION "TIME"           idx )
 if( NOT idx LESS 0 )
-    list( APPEND  ALIB_FILESETS "INTEGERS"      )
-    list( APPEND  ALIB_FILESETS "COMMON_ENUMS"  )
+    list( APPEND  ALIB_FILESETS "INTEGERS"           )
+    list( APPEND  ALIB_FILESETS "COMMON_ENUMS"       )
 endif()
-
-list( FIND    ALIB_MODULES "ENUMS"   idx )
-if( NOT idx LESS 0 )
-    list( APPEND  ALIB_FILESETS "PREDEF_TMP"    )
-endif()
-
-
 
 
 ### clean and sort module list
-LIST( REMOVE_DUPLICATES  ALIB_MODULES )
-LIST( SORT               ALIB_MODULES )
+LIST( REMOVE_DUPLICATES  ALIB_DISTRIBUTION )
+LIST( SORT               ALIB_DISTRIBUTION )
 
 SET( maxModules 16 )
-list( LENGTH   ALIB_MODULES    length)
+list( LENGTH   ALIB_DISTRIBUTION    length)
 if( length GREATER ${maxModules} )
     message( FATAL_ERROR "More ALib modules (${length}) than the known ${maxModules}. Script is inconsistent!" )
 endif()

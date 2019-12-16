@@ -6,12 +6,28 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_ALOX)
-#   include "alib/alox/alox.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_ALOX)
+#      include "alib/alox/alox.hpp"
+#   endif
 
-using namespace aworx;
-using namespace aworx::lib::lox::detail;
+#   define HPP_ALIB_LOX_PROPPERINCLUDE
+#      if !defined (HPP_ALOX_DETAIL_DOMAIN)
+#          include "alib/alox/detail/domain.inl"
+#      endif
+#   undef HPP_ALIB_LOX_PROPPERINCLUDE
+
+#   if !defined (HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
+
+
+namespace aworx { namespace lib { namespace lox { namespace detail {
 
 // #################################################################################################
 // static fields
@@ -21,41 +37,54 @@ using namespace aworx::lib::lox::detail;
 // Constructor/Destructor
 // #################################################################################################
 
-Domain::Domain( Domain* parent, const NString& name )
-: SubDomains()
-, Data()
+Domain::Domain( MonoAllocator* allocator, const NString& name )
+: SubDomains    ( allocator )
+, Data          (*allocator )
+, PrefixLogables( allocator )
 {
-    Name.DbgDisableBufferReplacementWarning();
-
     // store parameters
-    this->Parent=   parent;
-    Name=           name;
+    Parent=   nullptr;
+    Name  =   allocator->EmplaceString( name );
 
-    SubDomains.reserve(3);
-    Data      .reserve( parent == nullptr ? static_cast<size_t>( 2 ) :  parent->Data.size() );
+    Data      .reserve( static_cast<size_t>( 2 ) );
+
+    // The full of the root domain equals the name
+    nchar* fullPath= allocator->AllocArray<nchar>( name.Length() + 1 );
+    name.CopyTo( fullPath );
+    fullPath[name.Length()]= '/';
+    FullPath= NString( fullPath, name.Length() + 1 );
+}
+
+
+Domain::Domain( Domain* parent, const NString& name )
+: SubDomains    ( &parent->Data.get_allocator().allocator )
+, Data          (  parent->Data.get_allocator().allocator )
+, PrefixLogables( &parent->Data.get_allocator().allocator )
+{
+    // store parameters
+    Parent=   parent;
+    Name=     Data.get_allocator().allocator.EmplaceString( name );
 
     // if we have a parent, we inherit all logger's verbosities
     if( parent != nullptr )
-    {
         Data= parent->Data;
-    }
 
     // assemble the full path once
     const Domain* dom= this;
+    NString1K fullPath;
     do
     {
         if ( dom != this || dom->Parent == nullptr )
-            FullPath.InsertAt( "/"      , 0 );
-        FullPath.InsertAt( dom->Name, 0 );
+            fullPath.InsertAt( "/"      , 0 );
+        fullPath.InsertAt( dom->Name, 0 );
         dom= dom->Parent;
     }
     while( dom != nullptr );
+    FullPath= Data.get_allocator().allocator.EmplaceString( fullPath );
 }
 
 Domain::~Domain()
 {
-    for ( Domain* sub : SubDomains )
-        delete sub;
     for ( auto& it : PrefixLogables )
         delete  it.first;
 }
@@ -102,7 +131,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     ALIB_ASSERT_ERROR( endSubName != 0, "Internal Error" )
 
     // find end of actual domain name and save rest
-    NSubstring restOfDomainPath;
+    NSubstring restOfDomainPath= nullptr;
     if ( endSubName > 0 )
         domainPath.Split<false>( endSubName, restOfDomainPath, 1 );
 
@@ -117,26 +146,25 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     else if( domainPath.Equals( ".." ) )
         subDomain= Parent != nullptr ? Parent : this;
 
-
     // search in sub-domain
     else
     {
-        std::vector<Domain*>::iterator subDomainIt;
+        List<Domain>::Iterator subDomainIt;
         bool fixedOnce= false;
         for(;;)
         {
             subDomainIt=  SubDomains.begin();
             while ( subDomainIt != SubDomains.end() )
             {
-                int comparison= (*subDomainIt)->Name.CompareTo<false, Case::Sensitive>( domainPath );
+                int comparison= (*subDomainIt).Name.CompareTo<false, Case::Sensitive>( domainPath );
 
                 if( comparison >= 0 )
                 {
                     if ( comparison == 0 )
-                        subDomain=    *subDomainIt;
+                        subDomain=    &(*subDomainIt);
                     break;
                 }
-                subDomainIt++;
+                ++subDomainIt;
             }
 
             // domain found?
@@ -173,10 +201,10 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
                 return nullptr;
 
             *wasCreated= true;
-            subDomainIt= SubDomains.insert( subDomainIt, subDomain= new Domain( this,  domainPath) );
-            maxCreate--;
+            subDomainIt= SubDomains.Emplace( subDomainIt, this,  domainPath );
+            --maxCreate;
             if ( maxCreate == 0 )
-                return *subDomainIt;
+                return &(*subDomainIt);
             break;
         }
     }
@@ -187,6 +215,34 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
             : subDomain;
 }
 
+Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priorities priority )
+{
+    LoggerData& ld= Data[static_cast<size_t>(loggerNo)];
+    if( priority >= ld.Priority )
+    {
+        ld.Priority=        priority;
+        ld.LoggerVerbosity= verbosity;
+
+        for( Domain& subDomain : SubDomains )
+            subDomain.SetVerbosity( loggerNo, verbosity, priority );
+    }
+    return ld.LoggerVerbosity;
+}
+
+void  Domain::addLoggerRecursive( Logger* logger)
+{
+    Data.emplace_back( LoggerData( logger ) );
+    for( Domain& subDomain : SubDomains )
+        subDomain.addLoggerRecursive( logger );
+}
+
+void  Domain::removeLoggerRecursive( int loggerNo )
+{
+    Data.erase( Data.begin() + loggerNo );
+    for( Domain& subDomain : SubDomains )
+        subDomain.removeLoggerRecursive( loggerNo );
+}
+
 void Domain::ToString( NAString& tAString )
 {
     tAString << FullPath;
@@ -194,7 +250,7 @@ void Domain::ToString( NAString& tAString )
 
     // get verbosities
     tAString._(" { ");
-        for( size_t i= 0; i < Data.size() ; i++ )
+        for( size_t i= 0; i < Data.size() ; ++i )
         {
             LoggerData& ld= Data[i];
             tAString._(i!=0 ? ", " : "" )
@@ -207,5 +263,6 @@ void Domain::ToString( NAString& tAString )
 }
 
 
+}}}}// namespace [aworx::lib::lox::detail]
 
 

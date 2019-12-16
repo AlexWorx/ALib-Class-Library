@@ -6,13 +6,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
 #   include "alib/expressions/plugins/arithmetics.hpp"
 #endif
 
 #include <math.h>
+#endif // !defined(ALIB_DOX)
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 #define ARG0           (*args)
 #define ARG1           (*(args+1))
 #define BOL(box)       (box).Unbox<bool     >()
@@ -23,12 +25,11 @@
                                   ArgIterator  end    )                                         \
                                   { (void) scope; (void) args; (void) end; __VA_ARGS__ }
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-#   define TOINT(arg) static_cast<integer>(arg)
-#else
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 #   define TOINT(arg)                      arg
+#else
+#   define TOINT(arg) static_cast<integer>(arg)
 #endif
-
 
 
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
@@ -80,21 +81,6 @@ FUNC( bitNot   , return  ~INT(ARG0);                            )
 FUNC( boolNot_B, return  !BOL(ARG0);                            )
 FUNC( boolNot_I, return   INT(ARG0) == static_cast<integer>(0); )
 FUNC( boolNot_F, return   FLT(ARG0) == 0.0;                     )
-
-constexpr Calculus::UnaryOpTableEntry  unaryTable[] =
-{
-    { A_CHAR("+"), Types::Integer, CALCULUS_CALLBACK(       pos ), Types::Integer  , Calculus::CTI },
-    { A_CHAR("+"), Types::Float  , CALCULUS_CALLBACK(       pos ), Types::Float    , Calculus::CTI },
-    { A_CHAR("+"), Types::Boolean, CALCULUS_CALLBACK(     pos_B ), Types::Integer  , Calculus::CTI },
-    { A_CHAR("-"), Types::Integer, CALCULUS_CALLBACK(     neg_I ), Types::Integer  , Calculus::CTI },
-    { A_CHAR("-"), Types::Float  , CALCULUS_CALLBACK(     neg_F ), Types::Float    , Calculus::CTI },
-    { A_CHAR("-"), Types::Boolean, CALCULUS_CALLBACK(     neg_B ), Types::Integer  , Calculus::CTI },
-    { A_CHAR("!"), Types::Boolean, CALCULUS_CALLBACK( boolNot_B ), Types::Boolean  , Calculus::CTI },
-    { A_CHAR("!"), Types::Integer, CALCULUS_CALLBACK( boolNot_I ), Types::Boolean  , Calculus::CTI },
-    { A_CHAR("!"), Types::Float  , CALCULUS_CALLBACK( boolNot_F ), Types::Boolean  , Calculus::CTI },
-    { A_CHAR("~"), Types::Integer, CALCULUS_CALLBACK(    bitNot ), Types::Integer  , Calculus::CTI },
-};
-
 
 
 // #################################################################################################
@@ -241,8 +227,21 @@ FUNC(  boolOr_FF, return  FLT(ARG0) != 0.0      ||  FLT(ARG1) != 0.0 ; )
     #pragma warning( pop )
 #endif
 
-Calculus::BinaryOpTableEntry  binaryOpTable[] =
+Calculus::OperatorTableEntry  OperatorTable[] =
 {
+    // unary operators
+    { A_CHAR("+"), Types::Integer  , Types::Void    , CALCULUS_CALLBACK(      pos ), Types::Integer, Calculus::CTI },
+    { A_CHAR("+"), Types::Float    , Types::Void    , CALCULUS_CALLBACK(      pos ), Types::Float  , Calculus::CTI },
+    { A_CHAR("+"), Types::Boolean  , Types::Void    , CALCULUS_CALLBACK(    pos_B ), Types::Integer, Calculus::CTI },
+    { A_CHAR("-"), Types::Integer  , Types::Void    , CALCULUS_CALLBACK(    neg_I ), Types::Integer, Calculus::CTI },
+    { A_CHAR("-"), Types::Float    , Types::Void    , CALCULUS_CALLBACK(    neg_F ), Types::Float  , Calculus::CTI },
+    { A_CHAR("-"), Types::Boolean  , Types::Void    , CALCULUS_CALLBACK(    neg_B ), Types::Integer, Calculus::CTI },
+    { A_CHAR("!"), Types::Boolean  , Types::Void    , CALCULUS_CALLBACK(boolNot_B ), Types::Boolean, Calculus::CTI },
+    { A_CHAR("!"), Types::Integer  , Types::Void    , CALCULUS_CALLBACK(boolNot_I ), Types::Boolean, Calculus::CTI },
+    { A_CHAR("!"), Types::Float    , Types::Void    , CALCULUS_CALLBACK(boolNot_F ), Types::Boolean, Calculus::CTI },
+    { A_CHAR("~"), Types::Integer  , Types::Void    , CALCULUS_CALLBACK(   bitNot ), Types::Integer, Calculus::CTI },
+
+    // binary operators
     { A_CHAR("*" ), Types::Boolean , Types::Boolean , CALCULUS_CALLBACK(  mul_BB  ), Types::Integer, Calculus::CTI },
     { A_CHAR("*" ), Types::Boolean , Types::Integer , CALCULUS_CALLBACK(  mul_BI  ), Types::Integer, Calculus::CTI },
     { A_CHAR("*" ), Types::Boolean , Types::Float   , CALCULUS_CALLBACK(  mul_BF  ), Types::Float  , Calculus::CTI },
@@ -365,7 +364,7 @@ Calculus::BinaryOpTableEntry  binaryOpTable[] =
     { A_CHAR("||"), Types::Float   , Types::Float   , CALCULUS_CALLBACK( boolOr_FF), Types::Boolean, Calculus::CTI },
 };
 
-Calculus::BinaryOpAliasTableEntry  bitwiseOpsAliasBooleanOps[] =
+Calculus::OperatorAliasTableEntry  bitwiseOpsAliasBooleanOps[] =
 {
     { A_CHAR("&"), Types::Boolean, Types::Boolean ,A_CHAR("&&") },
     { A_CHAR("&"), Types::Boolean, Types::Integer ,A_CHAR("&&") },
@@ -379,36 +378,49 @@ Calculus::BinaryOpAliasTableEntry  bitwiseOpsAliasBooleanOps[] =
     { A_CHAR("|"), Types::Float  , Types::Boolean ,A_CHAR("||") },
 };
 
-// optimization table with works with the same constant being on both sides, e.g.
-//   a * 0 == 0 * a, however
-//   a / 1 == a      must be used only on rhs!
-Calculus::BinaryOpOptimizationsTableEntry  bothSides[] =
+Calculus::BinaryOpOptimizationsTableEntry  binaryOperatorOptimizations[] =
 {
-    { A_CHAR("||"), Types::Boolean, bool_true , bool_true  },
-    { A_CHAR("||"), Types::Boolean, bool_false, identity   },
-    { A_CHAR("&&"), Types::Boolean, bool_true , identity   },
-    { A_CHAR("&&"), Types::Boolean, bool_false, bool_false },
+    // optimizations with LEFT side constant value
+    { A_CHAR("||"), Side::Left , bool_true , Types::Boolean,    bool_true  },
+    { A_CHAR("||"), Side::Left , bool_false, Types::Boolean,    identity   },
+    { A_CHAR("&&"), Side::Left , bool_true , Types::Boolean,    identity   },
+    { A_CHAR("&&"), Side::Left , bool_false, Types::Boolean,    bool_false },
 
-    { A_CHAR("+") , Types::Integer, int_0     , identity   },
-    { A_CHAR("+") , Types::Float  , float_0   , identity   },
-    { A_CHAR("-") , Types::Integer, int_0     , identity   },
-    { A_CHAR("-") , Types::Float  , float_0   , identity   },
+    { A_CHAR("+") , Side::Left , int_0     , Types::Integer,    identity   },
+    { A_CHAR("+") , Side::Left , float_0   , Types::Float  ,    identity   },
+    { A_CHAR("-") , Side::Left , int_0     , Types::Integer,    identity   },
+    { A_CHAR("-") , Side::Left , float_0   , Types::Float  ,    identity   },
 
-    { A_CHAR("*") , Types::Integer, int_0     , int_0      },
-    { A_CHAR("*") , Types::Integer, int_1     , identity   },
-    { A_CHAR("*") , Types::Float  , float_0   , float_0    },
-    { A_CHAR("*") , Types::Float  , float_1   , identity   },
-};
+    { A_CHAR("*") , Side::Left , int_0     , Types::Integer,    int_0      },
+    { A_CHAR("*") , Side::Left , int_1     , Types::Integer,    identity   },
+    { A_CHAR("*") , Side::Left , float_0   , Types::Float  ,    float_0    },
+    { A_CHAR("*") , Side::Left , float_1   , Types::Float  ,    identity   },
 
-Calculus::BinaryOpOptimizationsTableEntry  rhsSide[] =
-{
-    { A_CHAR("/") , Types::Integer,    int_1  , identity   },
-    { A_CHAR("/") , Types::Float  ,    int_1  , identity   },
-    { A_CHAR("/") , Types::Float  ,  float_1  , identity   },
 
-    { A_CHAR("%") , Types::Integer,    int_1  , identity   },
-    { A_CHAR("%") , Types::Float  ,    int_1  , identity   },
-    { A_CHAR("%") , Types::Float  ,  float_1  , identity   },
+    // optimizations with RIGHT side constant value (repeat from above)
+    { A_CHAR("||"), Side::Right, bool_true , Types::Boolean,    bool_true  },
+    { A_CHAR("||"), Side::Right, bool_false, Types::Boolean,    identity   },
+    { A_CHAR("&&"), Side::Right, bool_true , Types::Boolean,    identity   },
+    { A_CHAR("&&"), Side::Right, bool_false, Types::Boolean,    bool_false },
+
+    { A_CHAR("+") , Side::Right, int_0     , Types::Integer,    identity   },
+    { A_CHAR("+") , Side::Right, float_0   , Types::Float  ,    identity   },
+    { A_CHAR("-") , Side::Right, int_0     , Types::Integer,    identity   },
+    { A_CHAR("-") , Side::Right, float_0   , Types::Float  ,    identity   },
+
+    { A_CHAR("*") , Side::Right, int_0     , Types::Integer,    int_0      },
+    { A_CHAR("*") , Side::Right, int_1     , Types::Integer,    identity   },
+    { A_CHAR("*") , Side::Right, float_0   , Types::Float  ,    float_0    },
+    { A_CHAR("*") , Side::Right, float_1   , Types::Float  ,    identity   },
+
+    // further optimizations with RIGHT side constant value (not available for left-side)
+    { A_CHAR("/") , Side::Right,    int_1  , Types::Integer,    identity   },
+    { A_CHAR("/") , Side::Right,    int_1  , Types::Float  ,    identity   },
+    { A_CHAR("/") , Side::Right,  float_1  , Types::Float  ,    identity   },
+
+    { A_CHAR("%") , Side::Right,    int_1  , Types::Integer,    identity   },
+    { A_CHAR("%") , Side::Right,    int_1  , Types::Float  ,    identity   },
+    { A_CHAR("%") , Side::Right,  float_1  , Types::Float  ,    identity   },
 };
 
 
@@ -423,7 +435,7 @@ Arithmetics::Arithmetics( Compiler& compiler )
 {
     constexpr int tableSize= 9;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "Arithmethics", functionNames
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPA", functionNames
                                 ALIB_DBG(,tableSize)                                        );
     Token* descriptor= functionNames;
     ConstantIdentifiers=
@@ -449,24 +461,20 @@ Arithmetics::Arithmetics( Compiler& compiler )
     };
 
 
-    AddUnaryOps ( unaryTable    );
-    AddBinaryOps( binaryOpTable );
+    AddOperators( OperatorTable );
 
-    if( EnumContains(compiler.CfgCompilation, Compilation::AllowBitwiseBooleanOperations ) )
+    if( HasBits(compiler.CfgCompilation, Compilation::AllowBitwiseBooleanOperators ) )
     {
-        AddUnaryOpAlias( A_CHAR("~"), Types::Boolean, A_CHAR("!") );
-        AddBinaryOpAliases( bitwiseOpsAliasBooleanOps );
+        AddOperatorAliases( bitwiseOpsAliasBooleanOps );
+        AddOperatorAlias  ( A_CHAR("~"), Types::Boolean, Types::Void, A_CHAR("!") );
     }
 
-
-    AddBinaryOpOptimizations( bothSides, false );
-    AddBinaryOpOptimizations( bothSides, true );
-    AddBinaryOpOptimizations( rhsSide  , true );
+    AddBinaryOpOptimizations( binaryOperatorOptimizations);
 
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize)
-};
+}
 
 bool Arithmetics::TryCompilation( CIFunction& ciFunction )
 {
@@ -477,7 +485,8 @@ bool Arithmetics::TryCompilation( CIFunction& ciFunction )
     {
         constexpr int tableSize= 1;
         Token functionNames[tableSize];
-        Token::LoadResourcedTokens( EXPRESSIONS, "Arithmethics2", functionNames
+
+        Token::LoadResourcedTokens( EXPRESSIONS, "CPALen", functionNames
                                     ALIB_DBG(,tableSize)                                        );
 
         if( functionNames[0].Match( ciFunction.Name ) )
@@ -485,7 +494,7 @@ bool Arithmetics::TryCompilation( CIFunction& ciFunction )
             ciFunction.Name.Reset( functionNames[0] );
 ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
 
-            // for constants, the callback might b invoked right away (optimizing cal out)
+            // for constants, the callback might b invoked right away (optimizing call out)
             if( ciFunction.AllArgsAreConst )
             {
                 ciFunction.TypeOrValue      = ciFunction.ArgsBegin->UnboxLength();
@@ -502,8 +511,6 @@ ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
     return false;
 }
 
-
-
 }}}} // namespace [aworx::lib::expressions::detail]
 
 #undef BOL
@@ -516,4 +523,4 @@ ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
 #undef BIN_ALIAS_ENTRY
 
 
-#endif //ALIB_DOCUMENTATION_PARSER
+#endif //ALIB_DOX

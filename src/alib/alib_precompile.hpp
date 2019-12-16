@@ -1,27 +1,24 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//
-//  Precompiled Header for ALib.
-//  Each ALib source file (compilation unit) includes this header first. However, it
-//  the load of module dependent include headers, is not performed if compilation symbol
-//  "ALIB_PRECOMPILED_HEADER_DISABLED" is passed with the compiler invocation.
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ *
+ * Precompiled Header for ALib.
+ * Each ALib <c>.cpp</c> compilation unit includes this header before doing anything else.
+ *
+ * Compiler symbol \ref ALIB_PRECOMPILED_HEADER may be used to \e enable this header.
+ * While still included, the header itself will not include anything if this variable is not
+ * defined or equals \c 0.<br>
+ * As of today, with GNU and clang compilers, compilation seems more efficient if this header is
+ * disabled.
+ **************************************************************************************************/
+#include "alib/lib/modules.hpp"
 
+#if defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER && !defined(ALIB_DOX)
 
-#if !defined(ALIB_PRECOMPILED_HEADER_DISABLED)
-
-#   include "alib/lib/predef_modules.hpp"
-
-#if ALIB_MODULE_SINGLETONS
-#   define  ALIB_TEMP_HDRNAME "alib/singletons/singleton.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#endif
-
-#if ALIB_MODULE_CHARACTERS
+#if ALIB_CHARACTERS
 #   define  ALIB_TEMP_HDRNAME "alib/characters/chararray.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
@@ -37,16 +34,19 @@
 #   endif
 #endif
 
-#if ALIB_MODULE_THREADS
-#   define  ALIB_TEMP_HDRNAME "alib/threads/thread.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#   define  ALIB_TEMP_HDRNAME "alib/threads/smartlock.hpp"
+#if ALIB_SINGLETONS
+#   define  ALIB_TEMP_HDRNAME "alib/singletons/singleton.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_TIME
+#if ALIB_THREADS
+#   define  ALIB_TEMP_HDRNAME "alib/threads/threadlock.hpp"
+#   include ALIB_TEMP_HDRNAME
+#   undef   ALIB_TEMP_HDRNAME
+#endif
+
+#if ALIB_TIME
 #   define  ALIB_TEMP_HDRNAME "alib/time/datetime.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
@@ -55,19 +55,13 @@
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_MEMORY
-#   define  ALIB_TEMP_HDRNAME "alib/memory/memoryblocks.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#endif
-
-#if ALIB_MODULE_BOXING
+#if ALIB_BOXING
 #   define  ALIB_TEMP_HDRNAME "alib/boxing/boxing.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
 #   define  ALIB_TEMP_HDRNAME "alib/strings/astring.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
@@ -79,39 +73,37 @@
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_RESOURCES
+#if ALIB_ENUMS
+#   define  ALIB_TEMP_HDRNAME "alib/enums/records.hpp"
+#   include ALIB_TEMP_HDRNAME
+#   undef   ALIB_TEMP_HDRNAME
+#endif
+
+#if ALIB_RESOURCES
 #   define  ALIB_TEMP_HDRNAME "alib/resources/resources.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
-#   define  ALIB_TEMP_HDRNAME "alib/resources/enummetadata.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#   define  ALIB_TEMP_HDRNAME "alib/resources/enummetadataspec.hpp"
+#endif
+
+#if ALIB_TEXT
+#   define  ALIB_TEMP_HDRNAME "alib/text/formatter.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_STRINGFORMAT
-#   define  ALIB_TEMP_HDRNAME "alib/stringformat/formatterpythonstyle.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#   define  ALIB_TEMP_HDRNAME "alib/stringformat/text.hpp"
-#   include ALIB_TEMP_HDRNAME
-#   undef   ALIB_TEMP_HDRNAME
-#endif
-
-#if ALIB_MODULE_RESULTS
+#if ALIB_RESULTS
 #   define  ALIB_TEMP_HDRNAME "alib/results/exception.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_MODULE_ALOX
+#if ALIB_ALOX
 #   define  ALIB_TEMP_HDRNAME "alib/alox.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#endif  //defined( ALIB_PRECOMPILED_HEADER_DISABLED)
+#endif  // defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
+
 
 

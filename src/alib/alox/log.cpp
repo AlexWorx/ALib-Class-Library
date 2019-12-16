@@ -6,20 +6,27 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_ALOX)
-    #include "alib/alox/alox.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_ALOX)
+       #include "alib/alox/alox.hpp"
+#   endif
 
-#if !defined (HPP_ALOX_VSTUDIO_LOGGER)
-    #include "alib/alox/loggers/vstudiologger.hpp"
-#endif
+#   if !defined (HPP_ALOX_VSTUDIO_LOGGER)
+       #include "alib/alox/loggers/vstudiologger.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_ALOX_REPORT_WRITER)
-#   include "alib/alox/reportwriter.hpp"
-#endif
-#if !defined (HPP_ALIB_ALOX_VARIABLES)
-#   include "alib/alox/variables.hpp"
-#endif
+#   if !defined (HPP_ALIB_ALOX_REPORT_WRITER)
+#      include "alib/alox/reportwriter.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
+
+#   if defined(_WIN32) && ALIB_DEBUG && !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
+#      include "alib/lib/fs_modules/distribution.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace lox {
 
@@ -42,24 +49,32 @@ using namespace detail;
 
     void Log::AddDebugLogger( Lox* lox )
     {
+        static bool recursion= false;
+        if( recursion )
+            return;
+        recursion= true;
+
+        // block recursion caused by log operations in this code
         if ( DebugLogger != nullptr )
         {
-            ALIB_WARNING( "Log::AddDebugLogger(): called twice." );
+            ALIB_WARNING(  "Log::AddDebugLogger(): called twice." )
+            recursion= false;
             return;
         }
+        DebugLogger= reinterpret_cast<decltype(DebugLogger)>(-1);
 
         // add a VStudio logger if this a VStudio debug session
         #if defined(_WIN32) && ALIB_DEBUG
             if( ALIB.IsDebuggerPresent() )
             {
                 Variable variable( Variables::NO_IDE_LOGGER );
-                if( ALOX.Config->Load( variable ) == Priorities::NONE || ! variable.IsTrue() )
+                if( ALOX.GetConfig().Load( variable ) == Priorities::NONE || ! variable.IsTrue() )
                 {
                     IDELogger= new VStudioLogger("IDE_LOGGER");
 
                     // add logger
                     lox->SetVerbosity( IDELogger, Verbosity::Verbose, "/"  );
-                    lox->SetVerbosity( IDELogger, Verbosity::Warning, ALox::InternalDomains );
+                    lox->SetVerbosity( IDELogger, Verbosity::Warning, Lox::InternalDomains );
                 }
            }
         #endif
@@ -69,11 +84,12 @@ using namespace detail;
 
         // add logger
         lox->SetVerbosity( DebugLogger, Verbosity::Verbose );
-        lox->SetVerbosity( DebugLogger, Verbosity::Warning, ALox::InternalDomains );
+        lox->SetVerbosity( DebugLogger, Verbosity::Warning, Lox::InternalDomains );
 
         // replace ALib's ReportWriter by an ALox ReportWriter
         Log::AddALibReportWriter( lox );
 
+        recursion= false;
     }
 
     void Log::RemoveDebugLogger( Lox* lox )
@@ -83,7 +99,7 @@ using namespace detail;
 
         // remove debug logger(s)
         ALIB_ASSERT_WARNING( DebugLogger != nullptr,
-                             "Log::RemoveDebugLogger(): no debug logger to remove." );
+                             "Log::RemoveDebugLogger(): no debug logger to remove." )
 
         if ( DebugLogger != nullptr )
         {
@@ -112,7 +128,7 @@ using namespace detail;
     void Log::AddALibReportWriter( Lox* lox )
     {
         ALIB_ASSERT_WARNING( DebugReportWriter == nullptr,
-                             "Log::AddReportWriter(): ALoxReportWriter already created." );
+                             "Log::AddReportWriter(): ALoxReportWriter already created." )
 
         // replace ALib's default ReportWriter (but only this!) by an ALoxReportWriter
         if ( lib::results::Report::GetDefault().PeekWriter() == &lib::results::ReportWriterStdIO::GetSingleton()  )

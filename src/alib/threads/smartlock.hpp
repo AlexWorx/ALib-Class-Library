@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_threads of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_SMARTLOCK
 #define HPP_ALIB_THREADS_SMARTLOCK 1
 
@@ -64,11 +65,11 @@ class SmartLock : public ThreadLock
         /** ****************************************************************************************
          * Constructs a SmartLock. Parent ThreadLock is initialized to Unsafe mode.
          ******************************************************************************************/
-        SmartLock(): ThreadLock( Safeness::Unsafe )
+        SmartLock() : ThreadLock( Safeness::Unsafe )
         {}
 
         /** ****************************************************************************************
-         * Overwriting ThreadLock::Acquire. In debug compilations, asserts that at least one
+         * Overwriting ThreadLock::Acquire. With debug builds, asserts that at least one
          * acquirer is set.
          *
          * \note
@@ -78,16 +79,15 @@ class SmartLock : public ThreadLock
          *
          *          sample.Acquire( ALIB_CALLER_PRUNED );
          *
-         * @param file  Caller information. Available only in debug compilations.
-         * @param line  Caller information. Available only in debug compilations.
-         * @param func  Caller information. Available only in debug compilations.
+         * @param dbgFile  Caller information. Available only with debug builds.
+         * @param dbgLine  Caller information. Available only with debug builds.
+         * @param dbgFunc  Caller information. Available only with debug builds.
          ******************************************************************************************/
-        inline
         #if ALIB_DEBUG
-            void  Acquire( const NCString& file, int line, const NCString& func )
+            void  Acquire( const NCString& dbgFile, int dbgLine, const NCString& dbgFunc )
             {
                 ALIB_ASSERT_ERROR( acquirers.size() > 0, "Must not be acquired without acquirers." )
-                ThreadLock::Acquire(file,line,func);
+                ThreadLock::Acquire(dbgFile, dbgLine, dbgFunc);
             }
         #else
             void  Acquire()
@@ -163,7 +163,7 @@ class SmartLock : public ThreadLock
          *   but it is for fast, buffered output streams.
          * <p>
          * \note
-         *   Logging module \alibmod_alox, which is built on \alib, will register whenever a \e Logger
+         *   Logging module \alib_alox, which is built on \alib, will register whenever a \e Logger
          *   is used that writes to the standard output stream. Hence, applications that in
          *   parallel use, e.g. 'std::cout', should register at bootstrap and \e acquire this
          *   instance prior to writing. This way, log output and other application output is
@@ -179,7 +179,7 @@ class SmartLock : public ThreadLock
 }} // namespace aworx[::lib::threads]
 
 /// Type alias in namespace #aworx.
-using       SmartLock=  aworx::lib::threads::SmartLock;
+using       SmartLock=  lib::threads::SmartLock;
 
 }  // namespace [aworx]
 

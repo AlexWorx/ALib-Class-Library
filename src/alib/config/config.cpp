@@ -6,37 +6,28 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_CONFIG_CONFIG)
-#   include "alib/config/config.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_CONFIG_CONFIG)
+#      include "alib/config/config.hpp"
+#   endif
+#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
+#      include "alib/lib/fs_modules/distribution.hpp"
+#   endif
+#   if !defined (HPP_ALIB_SYSTEM_SYSTEM)
+#      include "alib/system/system.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
+#      include "alib/resources/resources.hpp"
+#   endif
+#   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
+#      include "alib/enums/recordbootstrap.hpp"
+#   endif
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
-#if !defined (HPP_ALIB_RESOURCE_TUPLE_LOADER)
-#   include "alib/resources/resourcedtupleloader.hpp"
-#endif
 
-#if !defined (HPP_ALIB_LIB_ALIBMODULES)
-#    include "alib/lib/alibmodules.hpp"
-#endif
-
-#if !defined (HPP_ALIB_SYSTEM_SYSTEM)
-#    include "alib/system/system.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#    include "alib/resources/resources.hpp"
-#endif
-
-
-
-//! @cond NO_DOX
-// we do not use macro ALIB_ENUM_SPECIFICATION_IMPL( aworx::lib::config::VariableDecl )
-// because we need to provide a different delimiter
-void aworx::lib::resources::T_EnumMetaDataSpecification<aworx::lib::config::VariableDecl>
-                          ::LoadTable(void* t, Resources& r, const NString& c, const NString& n )
-{
-    ResourcedTupleLoader::LoadTable( *reinterpret_cast< std::vector<TTuple>*>(t), r, c, n, '|' );
-}
-//! @endcond
 
 ALIB_BOXING_VTABLE_DEFINE( aworx::lib::config::Priorities, vt_config_priorities )
 ALIB_BOXING_VTABLE_DEFINE( aworx::lib::config::Exceptions, vt_config_exceptions )
@@ -50,95 +41,83 @@ Config CONFIG;
 
 namespace config  {
 
-// anonymous method used to load meta data of enum Priorities
-//! @cond NO_DOX
-namespace {  void loadPriorityEnum()
-{
-    auto& prioritiesEnum= EnumMetaData<Priorities>::GetSingleton();
-    prioritiesEnum.Table.clear();
-    prioritiesEnum.Map.clear();
-
-    resources::ResourcedTupleLoader::LoadTable( prioritiesEnum.Table,
-                                                *CONFIG.Resources,
-                                                 CONFIG.ResourceCategory,
-                                                "Priorities" );
-    prioritiesEnum.CheckMap(true);
-}} // anonymous namespace
-//! @endcond
 
 
 Config::Config()
-: Module( ALIB_VERSION, ALIB_REVISION, "ALIB_CONFIG" )
+: Module( ALIB_VERSION, ALIB_REVISION, "CFG" )
 {
     ALIB_ASSERT_ERROR( this == &CONFIG,
         "Instances of class Config must not be created. Use singleton aworx::lib::CONFIG" )
-
-    Dependencies.emplace_back( &lib::SYSTEM );
 }
 
 
-void Config::init( InitLevels level, int, const char**, const wchar_t** )
+void Config::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
 {
-    if( level == InitLevels::PrepareResources )
+    if( phase == BootstrapPhases::PrepareResources )
     {
         ALIB.CheckDistribution();
 
-        ALIB_BOXING_VTABLE_REGISTER( vt_config_priorities )
-        ALIB_BOXING_VTABLE_REGISTER( vt_config_exceptions )
-        ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( config::Exceptions     )
-        ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::config::Priorities )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_priorities )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_exceptions )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( config::Exceptions     )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::config::Priorities )
 
 
-        Resources->AddBulk( ResourceCategory,
+#if !ALIB_RESOURCES_OMIT_DEFAULTS
+        resourcePool->BootstrapBulk( ResourceCategory,
 
-        "ExceptionsPrefix" , A_CHAR("config::"),
-        "ExceptionsPostfix", A_CHAR(""        ),
-        "Exceptions"       , A_CHAR("0"  ","    "OK"                ","  ""     ","
-                                        "1"  ","    "ErrorOpeningFile"  ","  "EOF"  ","
-                                        "2"  ","    "ErrorWritingFile"  ","  "EWF"       ),
+            "E<", A_CHAR("config::"),
+            "E" , A_CHAR("0"  ","    "OK"                ","  ""     ","
+                         "1"  ","    "ErrorOpeningFile"  ","  "EOF"  ","
+                         "2"  ","    "ErrorWritingFile"  ","  "EWF"       ),
 
-         "EOF", A_CHAR("Can't open {}file '{}' for reading.") ,
-         "EWF", A_CHAR("Can't open {}file '{}' for writing.") ,
-
-
-     "Priorities",
-     A_CHAR("0"     ","   "NONE"                   ",1"      ","
-          "500"     ","   "AutoDetected"           ",1"      ","
-          "10000"   ","   "DefaultValues"          ",1"      ","
-          "20000"   ","   "Standard"               ",1"      ","
-          "30000"   ","   "Environment"            ",1"      ","
-          "40000"   ","   "CLI"                    ",1"      ","
-          "-1"      ","   "ProtectedValues"        ",1"           ),
+             "EOF", A_CHAR("Can't open {}file {!Q'} for reading.") ,
+             "EWF", A_CHAR("Can't open {}file {!Q'} for writing.") ,
 
 
-        // names of the configuration plug-ins added to configuration in default construction.
-        "CfgPlgDef"  , A_CHAR("Internal Default Variables") ,
-        "CfgPlgPro"  , A_CHAR("Protected Variables")        ,
-        "CfgPlgEnv"  , A_CHAR("Environment Variables")      ,
-        "CfgPlgCLI"  , A_CHAR("Command Line Arguments")     ,
+         "Priorities",
+           A_CHAR(     "0"   ","   "NONE"              ",1,"
+                     "500"   ","   "AutoDetected"      ",1,"
+                   "10000"   ","   "DefaultValues"     ",1,"
+                   "20000"   ","   "Standard"          ",1,"
+                   "30000"   ","   "Environment"       ",1,"
+                   "40000"   ","   "CLI"               ",1,"
+                     "max"   ","   "ProtectedValues"   ",1"      ),
 
-        // end of AddBulk()
+
+            // names of the configuration plug-ins added to configuration in default construction.
+            "CfgPlgDef"  , A_CHAR("Internal Default Variables") ,
+            "CfgPlgPro"  , A_CHAR("Protected Variables")        ,
+            "CfgPlgEnv"  , A_CHAR("Environment Variables")      ,
+            "CfgPlgCLI"  , A_CHAR("Command Line Arguments")     ,
+
+        // end of BootstrapBulk()
         nullptr );
+#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
 
 
         // load plugin slots resources already now, so that plug-ins may be added to resource
-        // object. It will be reloaded in next phase. Hence, a very special treatment here.
-        loadPriorityEnum();
+        EnumRecords<Priorities>::Bootstrap( *this, "Priorities" );
     }
 
-    else if( level == InitLevels::PrepareConfig )
+    else if( phase == BootstrapPhases::PrepareConfig )
     {
-        // reload resources of enumeration "Priority", in case it was changed after resource phase
-        loadPriorityEnum();
+        EnumRecords<Exceptions>::Bootstrap();
     }
 
 
 }
 
-void Config::terminationCleanUp()
-{
-}
 
+
+// #################################################################################################
+// Implementation of parsing methods of built-in record types.
+// #################################################################################################
+void ERPriorities::Parse()
+{
+    enums::EnumRecordParser::Get( ERSerializable::EnumElementName  );
+    enums::EnumRecordParser::Get( Priority                  , true );
+}
 }}} // namespace [aworx::lib::config]
 
 

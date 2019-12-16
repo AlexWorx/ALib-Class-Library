@@ -5,6 +5,8 @@ build/cmake/moduletests/compilation_output.txt
 docs/pages/generated/
 docs/doxygen/dot
 docs/doxygenDotFixer.cfg
+docs/doxygen/doxyfile.ini
+
 .private
 *.zip
 *.userprefs

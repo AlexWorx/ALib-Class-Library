@@ -6,14 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALOX_TEXT_FILE_LOGGER)
 #   include "alib/alox/loggers/textfilelogger.hpp"
 #endif
 
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
+#endif
 
 #if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
 #   include <fstream>
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 using namespace aworx;
@@ -26,7 +31,7 @@ void TextFileLogger::openFile()
 
     if ( !os->is_open() )
     {
-        ALIB_WARNING( "Could not open file: {!Q}.", FileName);
+        ALIB_WARNING( "Could not open file: {!Q}.", FileName)
         delete os;  os= nullptr;
         hasIoError= true;
         return;
@@ -37,7 +42,7 @@ void TextFileLogger::openFile()
 
 void TextFileLogger::closeFile()
 {
-    ALIB_ASSERT( writer.GetStream() != nullptr );
+    ALIB_ASSERT( writer.GetStream() != nullptr )
     auto* os= dynamic_cast<std::ofstream*>(writer.GetStream());
 
     os->close();

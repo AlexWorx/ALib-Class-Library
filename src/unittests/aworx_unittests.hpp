@@ -1,42 +1,53 @@
-// #################################################################################################
-//  ut_aworx - AWorx Unit Test Support using ALib and ALox
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//
-//  Defines some preprocessor macros and classes so that GTest and MSVC Unit Tests can live in
-//  the same cpp file.
-//  Relies on ALox logging library, which in turn relies on ALib. Hence, ALib's unit
-//  tests can only be compiled if ALox library is present.
-//
-//  Before including this header, the prepro variable "TESTCLASSNAME" has to be defined.
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of the unit tests of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ *
+ * Defines some preprocessor macros and classes so that GTest and MSVC Unit Tests can live in
+ * the same cpp file.
+ * Relies on ALox logging library, which in turn relies on \alib. Hence, \alib's unit
+ * tests can only be compiled if ALox library is present.
+ *
+ * Before including this header, the prepro variable "TESTCLASSNAME" has to be defined.
+ **************************************************************************************************/
+#ifndef HPP_AWORX_UNIT_TESTS
+#define HPP_AWORX_UNIT_TESTS 1
 
-// include ALox main header first...
 #if !defined (HPP_ALOX)
 #   include "alib/alox.hpp"
 #endif
 
-// then, set include guard
-#ifndef HPP_AWORX_UNIT_TESTS
-#define HPP_AWORX_UNIT_TESTS 1
 
-#include "alib/alox/logtools.hpp"
-
-#if !defined(HPP_ALIB_SYSTEM_DIRECTORY)
-#   include "alib/system/directory.hpp"
+#if ALIB_ALOX
+#   if !defined (HPP_ALOX_LOGTOOLS)
+#       include "alib/alox/logtools.hpp"
+#   endif
+#   if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER)
+#       include "alib/alox/detail/textlogger/textlogger.hpp"
+#   endif
+#else
+    namespace aworx{  enum class Verbosity { Verbose, Info, Warning, Error, Off }; }
+    #include "alib/strings/util/tokenizer.hpp"
+    #include "alib/strings/util/spaces.hpp"
 #endif
+
+#if ALIB_SYSTEM
+#   if !defined(HPP_ALIB_SYSTEM_DIRECTORY)
+#       include "alib/system/directory.hpp"
+#   endif
+#else
+    namespace aworx{  constexpr character DirectorySeparator = '/'; }
+#endif
+
+#include "alib/strings/localstring.hpp"
+#include "alib/results/report.hpp"
 
 #include <iostream>
 #include <fstream>
 
-#if defined(ALIB_GTEST)
-    #error "Code selector symbol ALIB_GTEST must not be set from outside. Use postfix '_ON' or '_OFF' for compiler symbols."
-#endif
-
-#if defined(ALIB_GTEST_ON)
-    #define ALIB_GTEST 1
-#else
+#if !defined(ALIB_GTEST)
     #define ALIB_GTEST 0
 #endif
 
@@ -81,7 +92,7 @@
     #include <iomanip>
 
 
-    // nothing (almost) in it in GTest: every test is is own class
+    // nothing (almost) in it in GTest: every test is own class
     #if defined(__clang__)
         #define  UT_CLASS(name)           _Pragma("clang diagnostic push")                                       \
                                           _Pragma("clang diagnostic ignored \"-Wzero-as-null-pointer-constant\"")
@@ -94,7 +105,17 @@
 
     #define  UT_METHOD_Z(m, sm, sc)       GTEST_TEST(TESTCLASSNAME, m)
 
-    #define  UT_GET_TEST_NAME             aworx::NCString(::testing::UnitTest::GetInstance()->current_test_info()->name() )
+
+    #define UT_INIT(...)        aworx::NAString utSC (__FILE__);                                       \
+                                {                                                                      \
+                                    aworx::integer idx= utSC.LastIndexOf( aworx::DirectorySeparator ); \
+                                    utSC.DeleteStart( idx + 1 );                                       \
+                                    idx= utSC.LastIndexOf( '.' );                                      \
+                                    if( idx > 0 )                                                      \
+                                        utSC.Delete( idx );                                            \
+                                }                                                                      \
+                                AWorxUnitTesting ut( ::testing::UnitTest::GetInstance()->current_test_info()->name() );             \
+                                UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
 
 // ************ Macros using Microsoft Visual Studio UnitTestFramework ************
 #elif defined(_WIN32)
@@ -115,8 +136,16 @@
                                           END_TEST_METHOD_ATTRIBUTE()                        \
                                           TEST_METHOD(m)
 
-
-    #define  UT_GET_TEST_NAME             aworxTestName
+    #define UT_INIT(...)        aworx::NAString utSC (__FILE__);                                       \
+                                {                                                                      \
+                                    aworx::integer idx= utSC.LastIndexOf( aworx::DirectorySeparator ); \
+                                    utSC.DeleteStart( idx + 1 );                                       \
+                                    idx= utSC.LastIndexOf( '.' );                                      \
+                                    if( idx > 0 )                                                      \
+                                        utSC.Delete( idx );                                            \
+                                }                                                                      \
+                                AWorxUnitTesting ut( aworxTestName );                                  \
+                                UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
 
 #else
     #pragma message ("Unknown Testing platform in: " __FILE__ )
@@ -124,17 +153,7 @@
 
 // ************ Generic macros ************
 
-#define UT_INIT(...)        aworx::NAString utSC (__FILE__);                                        \
-                            {                                                                      \
-                                aworx::integer idx= utSC.LastIndexOf( aworx::DirectorySeparator ); \
-                                utSC.DeleteStart( idx + 1 );                                       \
-                                idx= utSC.LastIndexOf( '.' );                                      \
-                                if( idx > 0 )                                                      \
-                                    utSC.Delete( idx );                                            \
-                            }                                                                      \
-                            AWorxUnitTesting ut( aworx::NString128("UT/")._(UT_GET_TEST_NAME), UT_GET_TEST_NAME );             \
-                            UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
-
+#define  UT_GET_TEST_NAME  ut.ActTestName
 
 #define  UT_PRINT(...   )  { ut.Print (__FILE__, __LINE__, aworx::Verbosity::Info   , __VA_ARGS__ ); }
 #define  UT_WARN(...    )  { ut.Print (__FILE__, __LINE__, aworx::Verbosity::Warning, __VA_ARGS__ ); }
@@ -142,6 +161,11 @@
 #define  UT_NEAR( a,b,d )  ut.Near    (__FILE__, __LINE__,  a,b, d );
 #define  UT_TRUE(  cond )  ut.IsTrue  (__FILE__, __LINE__,  cond   );
 #define  UT_FALSE( cond )  ut.IsFalse (__FILE__, __LINE__,  cond   );
+
+
+// change logging function name
+#undef  ALIB_CALLER
+#define ALIB_CALLER     __FILE__, __LINE__, UT_GET_TEST_NAME
 
 
 namespace ut_aworx {
@@ -193,18 +217,29 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
         static aworx::String    GeneratedSamplesSearchDir;
 
     public:
-        bool                                            initializer;
-        aworx::lib::lox::Lox                            lox;
+        bool                                              initializer;
+        #if defined(_WIN32)
+            bool                                          initializerCout;
+        #endif
+#if ALIB_ALOX
+        aworx::lib::lox::Lox                              lox;
         aworx::lib::lox::detail::textlogger::TextLogger*  utl;
+#else
+        aworx::Boxes      logablesFileAndLine;
+        aworx::Boxes      logables;
+        aworx::AString    outputBuffer;
+        aworx::Tokenizer  lines;
+#endif
 
-                 AWorxUnitTesting( const aworx::NCString& domain,  const aworx::NCString& testName);
+                 AWorxUnitTesting( const aworx::NCString& testName);
         virtual ~AWorxUnitTesting();
 
         template <typename... T>
         void Print (  const aworx::NCString& file, int line, aworx::Verbosity verbosity,  T&&... args  )
         {
-            aworx::Boxes argsBoxed(std::forward<T>( args )...);
-            print( file,line,verbosity,argsBoxed);
+            aworx::Boxes& argsBoxed= printPrepare( file, line );
+            argsBoxed.Add(std::forward<T>( args )...);
+            printDo( verbosity, argsBoxed );
         }
 
         void Failed(  const aworx::NCString& file, int line, const aworx::Box& exp, const aworx::Box& given );
@@ -213,20 +248,21 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
         template<typename T>
         void WriteResultFile(const aworx::NString& name, const T& output, const aworx::NString& doxyTag= "//! [OUTPUT]" )
         {
-            aworx::AString buf;
+            ALIB_DBG(AWorxUnitTesting& ut= *this;) //needed for the assertion, as macro ALIB_CALLER is changed here
+            aworx::String4K buf; buf.DbgDisableBufferReplacementWarning();
             buf << output;
+            ALIB_ASSERT_ERROR( buf.IsNotEmpty(), "Empty Doxygen sample output file." )
             writeResultFile( name, buf, doxyTag );
         }
 
         virtual void NotifyActivation  ( aworx::Phase ) { }
         virtual void Report  (  const aworx::lib::results::Message& msg );
 
-        template<typename TComp1, typename TComp2,
-                  typename TEnableIf= typename std::enable_if<(    (   aworx::lib::characters::T_CharArray<TComp1,aworx::character>::Access
-                                                                     !=aworx::lib::characters::AccessType::Implicit)
-                                                                 && !std::is_base_of<aworx::NString, TComp1>::value )
-                                                             >::type>
-        void EQ( const aworx::NCString& file, int line,  TComp1      exp , TComp2  v )
+        template<typename TComp1, typename TComp2>
+        ATMP_VOID_IF(     ( aworx::lib::characters::T_CharArray<TComp1 ALIB_COMMA aworx::character>::Access
+                                                                !=aworx::lib::characters::AccessType::Implicit)
+                      && !std::is_base_of<aworx::NString ALIB_COMMA TComp1>::value )
+        EQ( const aworx::NCString& file, int line,  TComp1      exp , TComp2  v )
         {
             if ( v != exp)
                 Failed(file,line, exp, v);
@@ -238,7 +274,6 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
             #else
             #   pragma message ("Unknown Testing platform in: " __FILE__ )
             #endif
-
         }
 
 
@@ -269,9 +304,9 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
         void IsFalse( const aworx::NCString& file, int line,  bool cond );
 
     protected:
-        void writeResultFile(const aworx::NString& name, aworx::AString& output, const aworx::NString& doxyTag );
-        void print (  const aworx::NCString& file, int line, aworx::Verbosity verbosity, aworx::Boxes& args  );
-
+        void            writeResultFile(const aworx::NString& name, aworx::AString& output, const aworx::NString& doxyTag );
+        aworx::Boxes&   printPrepare   (const aworx::NCString& file, int line  );
+        void            printDo        (aworx::Verbosity verbosity, aworx::Boxes& args );
 };
 
 } // namespace ut_aworx

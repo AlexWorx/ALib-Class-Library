@@ -11,6 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
+project("ALox.Samples")
 cmake_minimum_required( VERSION 3.3.0 )
 
 # -------------------------------------------------------------------------------------------------
@@ -25,8 +26,5 @@ cmake_minimum_required( VERSION 3.3.0 )
 # Includine the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    include( ../../cmake.cpp/alox.samples/CMakeLists.txt )
-
-
-
+include( ../../cmake/samples/ALox/CMakeLists.txt )
 

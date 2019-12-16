@@ -6,7 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+#if ALIB_UT_SYSTEM
 
 
 #include "alib/alox.hpp"
@@ -41,57 +41,57 @@ UT_CLASS()
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(DirectorySpecial)
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT(""); UT_PRINT( "### Directory::SpecialFolders ###" );
+    UT_PRINT("") UT_PRINT( "### Directory::SpecialFolders ###" )
 
     {
         String512 cwd;
         Directory::CurrentDirectory( cwd );
-        UT_PRINT( String512() << "The current directory is:     "  << cwd );
-        UT_TRUE( cwd.IsNotEmpty() );   UT_TRUE( Directory::Exists( cwd ) );
+        UT_PRINT( String512() << "The current directory is:     "  << cwd )
+        UT_TRUE( cwd.IsNotEmpty() )   UT_TRUE( Directory::Exists( cwd ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::Current );
-        UT_PRINT( String512() << "The current directory is:     " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The current directory is:     " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::Home );
-        UT_PRINT( String512() << "The home directory is:        " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The home directory is:        " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::HomeConfig );
-        UT_PRINT( String512() << "The HomeConfig directory is:  " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The HomeConfig directory is:  " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::Module );
-        UT_PRINT( String512() << "The Module directory is:      " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The Module directory is:      " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::Root );
-        UT_PRINT( String512() << "The Root directory is:        " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The Root directory is:        " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::Temp );
-        UT_PRINT( String512() << "The Temp directory is:        " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The Temp directory is:        " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 
     {
         Directory dir( Directory::SpecialFolder::VarTemp );
-        UT_PRINT( String512() << "The VarTemp directory is:     " << dir.Path );
-        UT_TRUE( dir.Path.IsNotEmpty() );    UT_TRUE( Directory::Exists( dir.Path ) );
+        UT_PRINT( String512() << "The VarTemp directory is:     " << dir.Path )
+        UT_TRUE( dir.Path.IsNotEmpty() )    UT_TRUE( Directory::Exists( dir.Path ) )
     }
 }
 
@@ -102,9 +102,9 @@ UT_METHOD(DirectorySpecial)
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(GetVariable)
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT(""); UT_PRINT( "### Environment::GetVariable###" );
+    UT_PRINT("") UT_PRINT( "### Environment::GetVariable###" )
     aworx::AString aString;
     bool result;
     #if defined(_WIN32)
@@ -114,14 +114,14 @@ UT_METHOD(GetVariable)
         result=  lib::system::GetEnvironmentVariable( A_CHAR("HOME")    , aString );
     #endif
 
-    UT_PRINT("The aString directory is:" );
-    UT_PRINT(aString);
-    UT_TRUE( Directory::Exists( aString ) );
-    UT_TRUE( result );
+    UT_PRINT("The aString directory is:" )
+    UT_PRINT(aString)
+    UT_TRUE( Directory::Exists( aString ) )
+    UT_TRUE( result )
 
     result=  lib::system::GetEnvironmentVariable( A_CHAR("Nonexistingenvvar")  , aString );
-    UT_FALSE( result );
-    UT_TRUE( aString.IsEmpty() );
+    UT_FALSE( result )
+    UT_TRUE( aString.IsEmpty() )
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -129,14 +129,14 @@ UT_METHOD(GetVariable)
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(Processes)
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT(""); UT_PRINT( "### Environment::GetProcessInfo###" );
+    UT_PRINT("") UT_PRINT( "### Environment::GetProcessInfo###" )
 
 
     String2K output;
     const ProcessInfo& currentProcess= ProcessInfo::Current();
-    UT_TRUE( currentProcess.PID != 0 );
+    UT_TRUE( currentProcess.PID != 0 )
 
     #if defined (__GLIBC__) || defined(__APPLE__)
         // print process tree of us
@@ -157,7 +157,7 @@ UT_METHOD(Processes)
             #endif
             //output.Reset(' ', 2* indent); output  << "Stat:      " << pi.Stat;      UT_PRINT( output )
 
-            indent++;
+            ++indent;
             nextPID= pi.PPID;
         }
 
@@ -175,9 +175,9 @@ UT_METHOD(Processes)
 }
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
-}; //namespace
+} //namespace
 
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+#endif // ALIB_UT_SYSTEM

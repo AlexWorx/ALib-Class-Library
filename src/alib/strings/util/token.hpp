@@ -1,14 +1,15 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKEN
 #define HPP_ALIB_STRINGS_UTIL_TOKEN 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
@@ -19,8 +20,8 @@
     #include "alib/strings/localstring.hpp"
 #endif
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES && !defined(HPP_ALIB_LIB_MODULE)
-#   include "alib/lib/module.hpp"
+#if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(HPP_ALIB_FS_MODULES_MODULE)
+#   include "alib/lib/fs_modules/module.hpp"
 #endif
 
 
@@ -28,7 +29,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
 
 
 /** ************************************************************************************************
- * Tokens in the context of \alibmod_nolink_strings, are human readable "words" or "symbols" that
+ * Tokens in the context of \alib_strings_nl, are human readable "words" or "symbols" that
  * represent a certain value or entity of a software. Tokens may be used with configuration files,
  * mathematical or general expressions, programming languages, communication protocols and so forth.
  *
@@ -37,15 +38,15 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * definition.
  *
  * ## %Token Format: ##
- * With the construction/\ref Define "definition" of a token, special formats are detected.
- * These formats are:
+ * With the construction, respectively the \ref Define "definition" of a token, special formats are
+ * detected. These formats are:
  * - <em>"snake_case"</em><br>
  * - <em>"kebab-case"</em><br>
  * - <em>"CamelCase"</em><br>
  *
  * \note
  *   Information about such case formats is given in this
- *   [Wikipedia article](https://en.wikipedia.org/wiki/Letter_case#Special_case_styles).
+ *   \https{Wikipedia article,en.wikipedia.org/wiki/Letter_case#Special_case_styles}.
  *
  * \note
  *   If the name indicates a mix of \e snake_case, \e kebab-case or \e CamelCase formats
@@ -64,7 +65,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * If none of the special formats is detected, the tokens can optionally be abbreviated by just
  * providing a minimum amount of starting characters as specified by the then single entry
  * in #minLengths.
- * Otherwise, each segment of the token (e.g. "camel hump") can (again optionally) be shortenable
+ * Otherwise, each segment of the token (e.g. "camel hump") can (again optionally) be shortened
  * on its own.
  * As an example, if for token <c>"SystemProperty"</c> the minimum lengths given are
  * \c 3 and \c 4, the minimum abbreviation is <c>"SysProp"</c>, while <c>"SystProper"</c> also
@@ -133,7 +134,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  *
  * The definition strings passed to method #Define are considered static (resourced) data.
  * In other words, this definition data should be compile-time defined and not be customizable
- * by end-users, for example through using configuration files.
+ * by end-users, but only by experts.
  * Therefore, only in debug-compilations of the library, a due testing of correctness of the
  * definitions is available.
  *
@@ -247,7 +248,7 @@ class Token
                int8_t minLength3= -1, int8_t minLength4= -1, int8_t minLength5= -1,
                int8_t minLength6= -1, int8_t minLength7= -1                                 );
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES
+#if ALIB_ENUMS
         /** ****************************************************************************************
          * Constructor using a (usually resourced) string to read the definitions.
          * Invokes #Define.
@@ -257,8 +258,7 @@ class Token
          *                    Defaults to <c>';'</c>.
          *
          * \par Module Dependencies
-         *   This method is only available if module \alibmod_resources as well as
-         *   \ref alib_manual_modules_filesets "file-set" "Modules" is included in the \alibdist.
+         *   This method is only available if module \alib_enums is included in the \alibdist.
          ******************************************************************************************/
         Token( const String& definition, character separator = ';'  )
         {
@@ -284,7 +284,6 @@ class Token
              * @return \alib{strings::util::Token,DbgDefinitionError::OK}, if this token is well
              *         defined, a different error code otherwise.
              **************************************************************************************/
-            inline
             DbgDefinitionError DbgGetError()
             {
                 return  int(format) >= 0 ?  DbgDefinitionError::OK
@@ -305,8 +304,7 @@ class Token
          *
          * @return This token's #name.
          ******************************************************************************************/
-        inline
-        const String& GetRawName()           const
+        const String&   GetRawName()                                                           const
         {
             ALIB_ASSERT_ERROR( int8_t(format) >= 0,
                                "Error in token definition. Use DbgGetError in debug-compilations!" )
@@ -321,10 +319,9 @@ class Token
          *       These three informational methods are rather provided to support the unit tests.
          * @return This token's format,  used with method #Match.
          ******************************************************************************************/
-        inline
-        Formats GetFormat()               const
+        Formats         GetFormat()                                                            const
         {
-            #if ALIB_MODULE_BOXING
+            #if ALIB_BOXING
                ALIB_ASSERT_ERROR( int8_t(format) >= 0,
                                   "Error {} in definition of token {!Q}. "
                                   "Use DbgGetError in debug-compilations!",
@@ -346,8 +343,7 @@ class Token
          *       These three informational methods are rather provided to support the unit tests.
          * @return The letter case sensitivity used with method #Match.
          ******************************************************************************************/
-        inline
-        Case    Sensitivity()             const
+        Case            Sensitivity()                                                          const
         {
             return (int(format) & 1 ) == 1 ? Case::Ignore
                                            : Case::Sensitive;
@@ -371,17 +367,16 @@ class Token
          *
          * @return The minimum length of segment number \p{idx}.
          ******************************************************************************************/
-        inline
-        int8_t  GetMinLength( int idx )   const
+        int8_t          GetMinLength( int idx )                                                const
         {
             return minLengths[idx];
         }
 
-#if ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES
+    #if ALIB_ENUMS
         /** ****************************************************************************************
          * Defines or redefines this token by parsing the attributes from the given sub-string.
          * This method is usually invoked by code that loads tokens and other data from
-         * \alib{resources,Resources,resources} of \alib \alib{Module} objects.
+         * \alib{resources,ResourcePool,resources} of \alib \alib{Module} objects.
          *
          * The expected format is defined as a list of the following values, separated by
          * the character given with parameter \p{separator}:
@@ -389,24 +384,24 @@ class Token
          *   the name in "normalized" format, as it may be use to generate human readable output
          *   strings.
          * - Letter case sensitivity. This can be "Sensitive" or "Ignore"
-         *   (respectively what is defined with \alib{resources,T_EnumMetaDataDecl,resourced enum} type
-         *   \alib{Case}), can be abbreviated to just one character (i.e. <c>'s'</c> and
+         *   (respectively what is defined with resourced
+         *   \ref alib_enums_records "ALib Enum Records" of type \alib{Case}),
+         *   can be abbreviated to just one character (i.e. <c>'s'</c> and
          *   <c>'i'</c>) and itself is not parsed taking letter case into account.
          * - The list of minimum length for each segment of the name. The number of values have
          *   to match the number of segments. A value of \c 0 specifies that no abbreviation
-         *   must be done and therefore is the same as specifying the exact length of the segement.
+         *   must be done and therefore is the same as specifying the exact length of the segment.
          *
          * @param definition  The input string.
          * @param separator   Separation character used to parse the input.
          *                    Defaults to <c>';'</c>.
          *
          * \par Module Dependencies
-         *   This method is only available if module \alibmod_resources as well as
-         *   \ref alib_manual_modules_filesets "file-set" "Modules" is included in the \alibdist.
+         *   This method is only available if module \alib_enums is included in the \alibdist.
          ******************************************************************************************/
         ALIB_API
-        void Define( const String& definition, character separator = ';' );
-#endif
+        void            Define( const String& definition, character separator = ';' );
+    #endif
         /** ****************************************************************************************
          * Matches a given string with this token. See this class's description for details.
          *
@@ -416,45 +411,112 @@ class Token
         ALIB_API
         bool Match( const String& needle );
 
-        #if ALIB_DOCUMENTATION_PARSER
+    #if ALIB_ENUMS && ALIB_RESOURCES
+      #if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * Static utility function, that loads a list of token objects from resources.
+         * Static utility function that defines a table of token objects from external resourced
+         * strings.
+         *
+         * It is possible to provide the table lines in two ways:
+         * - In one resource string: In this case, parameter \p{outerDelim} has to specify
+         *   the delimiter that separates the records.
+         * - In an array of resource strings: If the resource string as given is not defined, this
+         *   method appends an integral index starting with \c 0 to the resource name, parses
+         *   a single record and increments the index.
+         *   Parsing ends when a resource with a next higher index is not found.
+         *
+         * The second option is recommended for larger token sets. While the separation causes
+         * some overhead in a resource backend, the external (!) management (translation,
+         * manipulation, etc.) is most probably simplified with this approach.
          *
          * \note
-         *   The length of the given table has to fit to number of entries found in
-         *   the resources. To assure this, in debug compilations, parameter \p{dbgSizeVerifier}
+         *   The length of the given table has to fit to the number of entries found in
+         *   the resource pool. To assure this, with debug builds, parameter \p{dbgSizeVerifier}
          *   has to be provided (preferably by using macro \ref ALIB_DBG "ALIB_DBG(, N)").
          *
+         * @param resourcePool     The resource pool to load the resource from.
+         * @param resourceCategory The resource category.
+         * @param resourceName     The resource name.
+         * @param target           The table to fill.
+         * @param dbgSizeVerifier  This parameter has to be specified only in debug builds and
+         *                         provides the expected size of the resourced table.
+         *                         To be surrounded by macro #ALIB_DBG (not to be given in
+         *                         release builds.)
+         * @param outerSeparator   The character that separates the entries.
+         *                         Defaults to <c>','</c>.
+         * @param innerSeparator   The character that separates the values of an entry.
+         *                         Defaults to <c>' '</c> (space).
+         *
+         * \par Module Dependencies
+         *   This method is only available if module \alib_enums as well as module \alib_resources
+         *   is included in the \alibdist.
+         ******************************************************************************************/
+        ALIB_API static
+        void LoadResourcedTokens( ResourcePool&         resourcePool,
+                                  const NString&        resourceCategory,
+                                  const NString&        resourceName,
+                                  strings::util::Token* target,
+                                  int                   dbgSizeVerifier,
+                                  character             outerSeparator = ',',
+                                  character             innerSeparator = ' '     );
+      #else
+        ALIB_API static
+        void LoadResourcedTokens( ResourcePool&         resourcePool,
+                                  const NString&        resourceCategory,
+                                  const NString&        resourceName,
+                                  strings::util::Token* target,
+                      ALIB_DBG(   int                   dbgSizeVerifier, )
+                                  character             outerSeparator = ',' ,
+                                  character             innerSeparator = ' '     );
+      #endif
+    #endif
+
+    #if ALIB_FILESET_MODULES && ALIB_RESOURCES
+     #if defined(ALIB_DOX)
+        /** ****************************************************************************************
+         * Shortcut to #LoadResourcedTokens that accepts a module and uses its resource pool
+         * and resource category.
+         *
          * @param module          The resource module to load the resource from.
-         * @param resourceName    The resource string to parse.
+         * @param resourceName    The resource name.
          * @param target          The table to fill.
          * @param dbgSizeVerifier This parameter has to be specified only in debug comilations and
          *                        provides the expected size of the resourced table.
-         *                        To be surrounded by macro #ALIB_DBG.
+         *                        To be surrounded by macro #ALIB_DBG (not to be given in
+         *                        release builds.)
          * @param outerSeparator  The character that separates the entries.
          *                        Defaults to <c>','</c>.
          * @param innerSeparator  The character that separates the values of an entry.
          *                        Defaults to <c>' '</c> (space).
          *
          * \par Module Dependencies
-         *   This method is only available if module \alibmod_resources as well as
+         *   This method is only available if module \alib_resources as well as
          *   \ref alib_manual_modules_filesets "file-set" "Modules" is included in the \alibdist.
          ******************************************************************************************/
-        ALIB_API static
-        void LoadResourcedTokens( Module& module, const NString& resourceName,
-                                  strings::util::Token *target,
-                                  int dbgSizeVerifier,
-                                  character outerSeparator = ',',
-                                  character innerSeparator = ' '                  );
+        static inline
+        void LoadResourcedTokens( Module&               module,
+                                  const NString&        resourceName,
+                                  strings::util::Token* target,
+                                  int                   dbgSizeVerifier,
+                                  character             outerSeparator = ',',
+                                  character             innerSeparator = ' '     );
+      #else
+        static
+        void LoadResourcedTokens( Module&               module,
+                                  const NString&        resourceName,
+                                  strings::util::Token* target,
+                      ALIB_DBG(   int                   dbgSizeVerifier, )
+                                  character             outerSeparator = ',',
+                                  character             innerSeparator = ' '     )
+        {
+            LoadResourcedTokens( module.GetResourcePool(), module.ResourceCategory, resourceName,
+                                 target, ALIB_DBG(dbgSizeVerifier,) outerSeparator, innerSeparator );
+        }
+      #endif
 
-        #elif ALIB_FILESET_MODULES && ALIB_MODULE_RESOURCES
-        ALIB_API static
-        void LoadResourcedTokens( Module& module, const NString& resourceName,
-                                  strings::util::Token *target,
-                                  ALIB_DBG(int dbgSizeVerifier, )
-                                  character outerSeparator = ',',
-                                  character innerSeparator = ' '                  );
-        #endif
+    #endif
+
+
     protected:
         /** ****************************************************************************************
          * Detects snake_case, kebab-case or CamelCase.
@@ -467,12 +529,12 @@ class Token
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     Token=     aworx::lib::strings::util::Token;
+using     Token=     lib::strings::util::Token;
 
 }  // namespace [aworx]
 
 namespace aworx { namespace lib { namespace strings {
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
             namespace APPENDABLES {
 #endif
     /** ********************************************************************************************
@@ -494,7 +556,7 @@ namespace aworx { namespace lib { namespace strings {
          */
         ALIB_API void operator()( AString& target, const strings::util::Token& src );
     };
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
             }
 #endif
         }}}

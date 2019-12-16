@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_STRINGNZT
 #define HPP_ALIB_STRINGS_STRINGNZT 1
 
@@ -29,7 +30,7 @@ namespace aworx { namespace lib { namespace strings {
  * \see
  *   Details and a quick sample are given in chapter
  *   \ref alib_strings_nzt "4. Non-Zero-Terminated String Detection" of the
- *   \ref alib_mod_strings "Programmer's Manual" of module \alibmod_nolink_strings.
+ *   \ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
  *
  * @tparam TChar The character type. Alias names of this class using character types
  *               \aworx{character}, \aworx{nchar}, \aworx{wchar} and \aworx{xchar} are provided
@@ -50,14 +51,13 @@ class TStringNZT  : public TString<TChar>
          * @param pBuffer   Pointer to the start of the character string to represent.
          * @param pLength   The length of the character string to represent.
          ******************************************************************************************/
-        inline
         constexpr
         TStringNZT( const TChar* pBuffer, integer pLength )
         : TString<TChar>( pBuffer, pLength)
         {}
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Templated constructor that accepts C++ string types which are not zero-terminated.
          *

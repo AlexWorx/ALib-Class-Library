@@ -6,12 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE)
 #   include "alib/expressions/detail/virtualmachine.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_TEXT)
-#   include "alib/stringformat/text.hpp"
+#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
+#   include "alib/text/paragraphs.hpp"
 #endif
 
 #if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
@@ -25,15 +26,16 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
 #   include "alib/expressions/detail/ast.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
 
 
-VirtualMachine::Command::Command( Program* program, const String& functionOrOp,
+VirtualMachine::Command::Command( Program* program, const Box& resultType, const String& functionOrOp,
                                   integer idxOriginal, integer idxNormalized          )
 : opcode          ( OpCodes::Subroutine )
 , Operation       ( program )
-, ResultType      ( program ? program->ResultType() : Box( nullptr ) )
+, ResultType      ( resultType )
 , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (sizeof(integer)/2*8) )
                       + static_cast<uinteger>(idxOriginal  )  )
 , DecompileType   ( DecompileInfoType::Subroutine )
@@ -51,62 +53,54 @@ VirtualMachine::Command::Command( Program* program, const String& functionOrOp,
 // #################################################################################################
 Box  VirtualMachine::Run( Program& program, Scope& scope )
 {
-    ALIB_ASSERT_ERROR( program.compileStorage == nullptr,
-         "Internal error in program: AssembleFinalize not called?"  )
-
-    // If the stack is empty, this indicates, that this is an 'external' call and not a subroutine.
-    // In this case, we clean the scope and such
-    std::vector<aworx::Box>&    stack=     scope.Stack;
-    stack.clear();
-    scope.Clear();
-    scope.nestedExpressionStack.clear();
+    // If the scope.Stack is empty, this indicates, that this is an 'external' call and not a
+    // subroutine.
+    scope.Reset();
 
     // attach the compile-time scope to the evaluation scope.
-    scope.CTScope= program.ctScope;
+    scope.CTScope= program.expression.ctScope;
 
     // run
-    run( program, scope, stack, scope.nestedExpressionStack );
-
+    run( program, scope );
 
     // unset ctscope
     scope.CTScope=  nullptr;
 
     // Remove top element from the stack and return its result.
-    Box result= stack.back();
-    stack.pop_back();
+    Box result= scope.Stack.back();
+    scope.Stack.pop_back();
     return result;
-
 }
 
 
-void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& stack,
-                           std::vector<Expression*>& nestedCalls )
+void  VirtualMachine::run( Program& program, Scope& scope )
 {
 
     ALIB_DBG( using DCT= Command::DecompileInfoType; )
-    ALIB_DBG( auto initialStackSize= stack.size(); )
+    ALIB_DBG( auto initialStackSize= scope.Stack.size(); )
+
+    auto& stack= scope.Stack;
 
     // check circular calls
-    for( auto it: nestedCalls )
-        if( it == &program.expression )
+    for( auto* nestedExpression : scope.NestedExpressions )
+        if( nestedExpression == &program.expression )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::CircularNestedExpressions );
-            for( auto it2= nestedCalls.begin() ; it2!=  nestedCalls.end(); ++it2 )
+            for( auto it2= scope.NestedExpressions.begin() ; it2!=  scope.NestedExpressions.end(); ++it2 )
                 e.Add  ( ALIB_CALLER_NULLED, Exceptions::CircularNestedExpressionsInfo,
                           (*it2)->Name(),
-                          it2 + 1 != nestedCalls.end()
+                          it2 + 1 != scope.NestedExpressions.end()
                               ? (*(it2+1))->Name()
-                              : it->Name()                   );
+                              : nestedExpression->Name()                   );
             throw e;
         }
 
-    nestedCalls.emplace_back( &program.expression );
-
+    scope.NestedExpressions.emplace_back( &program.expression );
 
 
     for( integer programCounter= 0; programCounter < program.Length() ; ++ programCounter )
     {
-        const Command& cmd= program.AtConst(programCounter);
+        const Command& cmd= program.At(programCounter);
         ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
         switch( cmd.Which() )
         {
@@ -131,8 +125,8 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                                "       In expression: {!Q} {{{}}}\\n"
                                "              Plugin: {}\\n"
                                "          Identifier: {} ({})\\n"
-                               "       Expected type: <{}> (aka {})\\n"
-                               "         Result type: <{}> (aka {})\\n"
+                               "       Expected type: {!Q<>} (aka {})\\n"
+                               "         Result type: {!Q<>} (aka {})\\n"
                                "        Result value: {}\\n",
                                program.expression.Name(),
                                program.expression.GetNormalizedString(),
@@ -180,18 +174,18 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                                         break;
                                     case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                                     case DCT::OptimizationConstant:
-                                        ALIB_ERROR("Must not be set with function calls");
+                                        ALIB_ERROR("Must not be set with function calls")
                                 }
 
                                 String512 msg;
-                                auto fmt= GetDefaultFormatter();
+                                auto fmt= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
                                 fmt->Format( msg, "Result type mismatch during command execution:\\n"
                                                  "       In expression: {!Q} {{{}}}\\n"
                                                  "              Plugin: {}\\n"
                                                  "                Info: {}\\n"
                                                  "            Callback: {}\\n"
-                                                 "       Expected type: <{}> (aka {})\\n"
-                                                 "         Result type: <{}> (aka {})\\n"
+                                                 "       Expected type: {!Q<>} (aka {})\\n"
+                                                 "         Result type: {!Q<>} (aka {})\\n"
                                                  "        Result value: {}\\n"
                                                  "    Parameter values: ",
                                                  program.expression.Name(),
@@ -202,14 +196,15 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                                                  program.compiler.TypeName( cmd.ResultType ), cmd.ResultType.TypeID(),
                                                  program.compiler.TypeName( stack.back()   ), stack.back()  .TypeID(),
                                                  stack.back()                                 );
-                                fmt->Format( msg, "('{}' <{}>",
+                                fmt->Format( msg, "({!Q'} {!Q<>}",
                                                  arg1Saved,
                                                  program.compiler.TypeName( arg1Saved )        );
                                 for( integer i= cmd.QtyFunctionArgs - 1; i > 0 ; --i )
-                                    fmt->Format( msg, ", '{}' <{}>",
+                                    fmt->Format( msg, ", {!Q'} {!Q<>}",
                                                      *(stack.end()  - i),
                                                      program.compiler.TypeName( *(stack.end()-i))   );
                                 msg << ')';
+                                fmt->Release();
                                 ALIB_ERROR( msg )
                             }
                         #endif
@@ -220,7 +215,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                 }
                 catch( Exception& e )
                 {
-                    if( !EnumContains(program.compiler.CfgCompilation, Compilation::CallbackExceptionFallThrough) )
+                    if( !HasBits(program.compiler.CfgCompilation, Compilation::CallbackExceptionFallThrough) )
                     {
                         e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInCallback,
                                program.expression.Name()         );
@@ -231,7 +226,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                 }
                 catch( std::exception& stdException )
                 {
-                    if( !EnumContains(program.compiler.CfgCompilation, Compilation::CallbackExceptionFallThrough) )
+                    if( !HasBits(program.compiler.CfgCompilation, Compilation::CallbackExceptionFallThrough) )
                     {
                         Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInCallback,
                                      program.expression.Name()         );
@@ -277,7 +272,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         {
                             // not found? -> remove name parameter from stack and use result of
                             // second parameter.
-                            if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                            if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
                             {
                                 stack.erase( stack.end() - 2 );
                                 break;
@@ -292,7 +287,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         }
 
                         // 3rd parameter "throw" was given
-                        if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                        if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
                             e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundET,
                                    nestedExpressionName         );
                         else
@@ -301,7 +296,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
                         throw;
                     }
 
-                    run( * dynamic_cast<Program*>(nested.get()->GetProgram()), scope, stack, nestedCalls );
+                    run( * dynamic_cast<Program*>(nested.get()->GetProgram()), scope);
 
                     if( !(stack.end()-2)->IsSameType(stack.back()) )
                     {
@@ -319,7 +314,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
 
                 // compile-time defined nested expression: just call it
                 else
-                    run( *cmd.Operation.NestedProgram, scope, stack, nestedCalls );
+                    run( *cmd.Operation.NestedProgram, scope );
 
                 break;
         }
@@ -327,7 +322,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
 
     } // command loop
 
-    nestedCalls.pop_back();
+    scope.NestedExpressions.pop_back();
 
     // This assertion should never happen. It indicates rather a library error than an
     // erroneous plug-in.
@@ -338,8 +333,8 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
     // Usually a function did not return what it is defined to return.
     ALIB_ASSERT_ERROR( program.ResultType().IsSameType(stack.back()),
                        "Wrong result type of program execution:\\n"
-                       "   Expected Type: <{}> (aka {})\\n"
-                       "     Result Type: <{}> (aka {})\\n"
+                       "   Expected Type: {!Q<>} (aka {})\\n"
+                       "     Result Type: {!Q<>} (aka {})\\n"
                        "    Result value: {}\\n"
                        "   In expression: {!Q}"
                        ,
@@ -353,7 +348,7 @@ void  VirtualMachine::run( Program& program, Scope& scope, std::vector<Box>& sta
 // #################################################################################################
 // Decompile()
 // #################################################################################################
-AST* VirtualMachine::Decompile( Program& program )
+AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
 {
     using DCT= Command::DecompileInfoType;
 
@@ -371,7 +366,7 @@ AST* VirtualMachine::Decompile( Program& program )
 
     for( integer pc= 0 ; pc < program.Length() ; ++pc )
     {
-        const Command& cmd= program.AtConst(pc);
+        const Command& cmd= program.At(pc);
         integer positionInExpression= POS_IN_EXPR_STR;
 
         ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
@@ -383,31 +378,36 @@ AST* VirtualMachine::Decompile( Program& program )
                 if(    cmd.Operation.NestedProgram == nullptr
                     || cmd.Operation.NestedProgram == & program )
                 {
-                    ASTFunction* node= new ASTFunction( cmd.DecompileSymbol, positionInExpression );
+                    ASTFunction* node= allocator.Emplace<ASTFunction>( cmd.DecompileSymbol, positionInExpression, allocator );
                     for( integer i= 0 ; i< 2 ; ++i )
                     {
-                        node->Arguments.insert( node->Arguments.begin(), Arg );
+                        node->Arguments.Emplace( node->Arguments.begin(), Arg );
                         PopNode;
                     }
 
                     // if nullptr, third parameter "throw"
                     if( cmd.Operation.NestedProgram != nullptr )
-                        node->Arguments.emplace_back( new ASTIdentifier( program.compiler.CfgNestedExpressionThrowIdentifier, positionInExpression ) );
+                        node->Arguments.EmplaceBack(
+                            allocator.Emplace<ASTIdentifier>( allocator.EmplaceString( program.compiler.CfgNestedExpressionThrowIdentifier ),
+                                                              positionInExpression ) );
 
                     PushNode(node);
                     break;
                 }
 
                 // constant call (program was given)
-                ASTIdentifier* name  = new ASTIdentifier( cmd.Operation.NestedProgram->expression.Name(), positionInExpression );
-                ASTUnaryOp*    nested= new ASTUnaryOp( program.compiler.CfgNestedExpressionOperator, name, positionInExpression );
+                ASTIdentifier* name  = allocator.Emplace<ASTIdentifier>( allocator.EmplaceString(cmd.Operation.NestedProgram->expression.Name()) ,
+                                                                         positionInExpression  );
+                ASTUnaryOp*    nested= allocator.Emplace<ASTUnaryOp>( program.compiler.CfgNestedExpressionOperator,
+                                                                      name,
+                                                                      positionInExpression );
                 PushNode( nested );
             }
             break;
 
             case Command::OpCodes::Constant:
             {
-                ASTLiteral* node= new ASTLiteral( static_cast<integer>(0), positionInExpression );
+                ASTLiteral* node= allocator.Emplace<ASTLiteral>( static_cast<integer>(0), positionInExpression );
                 node->Value= cmd.Operation.Value;
                 PushNode(node);
             }
@@ -417,7 +417,7 @@ AST* VirtualMachine::Decompile( Program& program )
             {
                 if( cmd.DecompileType == DCT::UnaryOp )
                 {
-                    ASTUnaryOp* node= new ASTUnaryOp( cmd.DecompileSymbol, Arg, positionInExpression );
+                    ASTUnaryOp* node= allocator.Emplace<ASTUnaryOp>( cmd.DecompileSymbol, Arg, positionInExpression );
                     PopNode;
                     PushNode(node);
                     break;
@@ -425,7 +425,7 @@ AST* VirtualMachine::Decompile( Program& program )
 
                 if( cmd.DecompileType == DCT::BinaryOp )
                 {
-                    ASTBinaryOp* node= new ASTBinaryOp( cmd.DecompileSymbol, Lhs, Rhs, positionInExpression );
+                    ASTBinaryOp* node= allocator.Emplace<ASTBinaryOp>( cmd.DecompileSymbol, Lhs, Rhs, positionInExpression );
                     PopNode;
                     PopNode;
                     PushNode(node);
@@ -434,15 +434,15 @@ AST* VirtualMachine::Decompile( Program& program )
 
                 if( cmd.QtyFunctionArgs < 0 )
                 {
-                    ASTIdentifier* node= new ASTIdentifier( cmd.DecompileSymbol, positionInExpression );
+                    ASTIdentifier* node= allocator.Emplace<ASTIdentifier>( cmd.DecompileSymbol, positionInExpression );
                     PushNode(node);
                     break;
                 }
 
-                ASTFunction* node= new ASTFunction( cmd.DecompileSymbol, positionInExpression );
+                ASTFunction* node= allocator.Emplace<ASTFunction>( cmd.DecompileSymbol, positionInExpression, allocator );
                 for( integer i= 0 ; i< cmd.QtyFunctionArgs ; ++i )
                 {
-                    node->Arguments.insert( node->Arguments.begin(), Arg );
+                    node->Arguments.Emplace( node->Arguments.begin(), Arg );
                     PopNode;
                 }
 
@@ -468,7 +468,7 @@ AST* VirtualMachine::Decompile( Program& program )
         {
             AST* F= Arg; PopNode;
             AST* T= Arg; PopNode;               // F-Pos -2 is a little vague. But we don't care!
-            Arg= new ASTConditional( Arg, T, F, positionInExpression, F->Position - 2  );
+            Arg= allocator.Emplace<ASTConditional>( Arg, T, F, positionInExpression, F->Position - 2  );
             conditionalStack.pop();
         }
 
@@ -482,7 +482,7 @@ AST* VirtualMachine::Decompile( Program& program )
     #undef Arg
 
     ALIB_ASSERT_ERROR( nodeStack.size() == 1,
-        "VM AST generation error: Node stack must contain one element. Elements: {}", nodeStack.size())
+        "VM AST generation error: NodeImpl stack must contain one element. Elements: {}", nodeStack.size())
     ALIB_ASSERT_ERROR( conditionalStack.size() == 0,
         "VM Program List error: Conditional stack after listing not 0 but {}", conditionalStack.size())
 
@@ -500,7 +500,7 @@ AST* VirtualMachine::Decompile( Program& program )
 namespace{
 void writeArgPositions(AString& target, std::vector<VirtualMachine::PC>& resultStack, integer qtyArgs )
 {
-    for( integer argNo= qtyArgs ; argNo > 0 ; -- argNo )
+    for( integer argNo= qtyArgs ; argNo > 0 ; --argNo )
     {
         target << (argNo == qtyArgs ? "" : ", ")
                << (qtyArgs-argNo) << "{"
@@ -521,9 +521,9 @@ AString VirtualMachine::DbgList( Program& program )
     String fmtLine=   EXPRESSIONS.GetResource( "ProgListLine"  );
     String fmtHeader= EXPRESSIONS.GetResource( "ProgListHeader");
 
-    Text text;
+    Paragraphs text;
     text.LineWidth=0;
-    text.Formatter= program.ctScope->Formatter;
+    text.Formatter= program.expression.ctScope->Formatter;
     text.Formatter->Acquire( ALIB_CALLER_PRUNED ); // get formatter once to keep autosizes!
 
     // repeat the whole output until its size is stable and all auto-tabs are set
@@ -542,16 +542,17 @@ AString VirtualMachine::DbgList( Program& program )
 
         text.LineWidth= 0;
         NString hdlKey= "ProgListHdl";
-        Boxes hdlArgs( fmtLine );
+        Box hdlArgs[10];
+        hdlArgs[0]= fmtLine;
         NString64 hdlKeyNumbered(hdlKey);
         for( int i= 0 ; i < 7 ; ++i )
         {
-            hdlArgs.Add( EXPRESSIONS.GetResource(hdlKeyNumbered << i ) );
+            hdlArgs[i+1]=  EXPRESSIONS.GetResource(hdlKeyNumbered << i );
             hdlKeyNumbered.ShortenTo( hdlKey.Length() );
         }
 
-        hdlArgs.Add( 1 );
-        hdlArgs.Add( program.expression.GetNormalizedString() );
+        hdlArgs[8]= 1;
+        hdlArgs[9]= program.expression.GetNormalizedString();
         text.AddMarked( hdlArgs );
         text.LineWidth= text.DetectedMaxLineWidth;
             text.AddMarked("@HL-");
@@ -561,7 +562,7 @@ AString VirtualMachine::DbgList( Program& program )
         #define FMT(qtyArgs)                                                                       \
         { if( cmd.DbgInfo.Plugin ) description << ", CP=\"" << cmd.DbgInfo.Plugin->Name<< '\"';    \
             String256 argpos; writeArgPositions(argpos,resultStack,qtyArgs);                       \
-          text.Add( fmtLine,                                                                         \
+          text.Add( fmtLine,                                                                       \
                   pc,                                                                              \
                   program.compiler.TypeName( cmd.ResultType ),                                     \
                   cmd.Which(),                                                                     \
@@ -584,7 +585,7 @@ AString VirtualMachine::DbgList( Program& program )
         PC stackSize    = 0;
         for( integer pc= 0 ; pc < program.Length() ; ++pc )
         {
-            const Command& cmd= program.AtConst(pc);
+            const Command& cmd= program.At(pc);
 
             String128 operation;
             String128 description;
@@ -596,7 +597,7 @@ AString VirtualMachine::DbgList( Program& program )
                     if(    cmd.Operation.NestedProgram == nullptr
                         || cmd.Operation.NestedProgram == &program )
                     {
-                        stackSize--;
+                        --stackSize;
                         operation   << ( cmd.Operation.NestedProgram == nullptr ? "Expr(name, type)"
                                                                                 : "Expr(name, type, throw)" );
                         description << "Nested expr. searched at evaluation-time";
@@ -604,7 +605,7 @@ AString VirtualMachine::DbgList( Program& program )
                     }
                     else
                     {
-                        stackSize++;
+                        ++stackSize;
                         operation   << cmd.DecompileSymbol
                                     << "\"" << cmd.Operation.NestedProgram->expression.Name() << '\"';
                         description << "Nested expr. searched at compile-time";
@@ -616,7 +617,7 @@ AString VirtualMachine::DbgList( Program& program )
 
                 case Command::OpCodes::Constant:
                 {
-                    stackSize++;
+                    ++stackSize;
                     char uetzelchen= cmd.Operation.Value.IsType<String>() ? '\"' : '\'';
                     operation   << uetzelchen << cmd.Operation.Value << uetzelchen;
                     description << (cmd.DecompileType == DCT::LiteralConstant ? "Literal constant"
@@ -631,7 +632,7 @@ AString VirtualMachine::DbgList( Program& program )
                     operation   << cmd.DbgInfo.Callback
                                 << "(#" << (cmd.QtyFunctionArgs < 0 ? 0 : cmd.QtyFunctionArgs) << ')';
 
-                    NString descr;
+                    NString descr= nullptr;
                     char   decSym= '\0';
                     switch( cmd.DecompileType )
                     {
@@ -663,7 +664,7 @@ AString VirtualMachine::DbgList( Program& program )
                             break;
                         case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                         case DCT::OptimizationConstant:
-                            ALIB_ERROR("Must not be set with function calls");
+                            ALIB_ERROR("Must not be set with function calls")
                     }
                     if( descr.IsNotNull() )
                         description << descr << ' ' << decSym << cmd.DecompileSymbol << decSym;
@@ -681,7 +682,7 @@ AString VirtualMachine::DbgList( Program& program )
                     operation   << ( pc + cmd.Operation.Distance ) << " (absolute)"  ;
                     description << "'?'";
                     FMT( 1 )     // first print  Q
-                    ResultPos++; // then have jump be included in T
+                    ++ResultPos; // then have jump be included in T
                 }
                 break;
 
@@ -691,7 +692,7 @@ AString VirtualMachine::DbgList( Program& program )
                     operation   << ( pc + cmd.Operation.Distance ) << " (absolute)"  ;
                     description << "':'";
                     FMT( 1 )     // first print  T
-                    ResultPos++; // then have jump be included in T
+                    ++ResultPos; // then have jump be included in T
                 }
                 break;
 
@@ -716,14 +717,17 @@ AString VirtualMachine::DbgList( Program& program )
         #undef ResultPos
 
         ALIB_ASSERT_ERROR( lastLineWidth!= 0 || stackSize == 1,
-            "VM Program List error: Stack size after listing not 1 but {}", stackSize )
+            "VM Program List error: Stack size after listing not 1 but {}. Listing follows.\\n",
+             stackSize, text.Buffer )
 
         ALIB_ASSERT_ERROR( lastLineWidth!= 0 || resultStack.size() == 1,
-            "VM Program List error: Resultstack after listing not 1 but {}", resultStack.size())
+            "VM Program List error: Resultstack after listing not 1 but {}. Listing follows.\\n",
+             resultStack.size(), text.Buffer )
 
         ALIB_ASSERT_ERROR( lastLineWidth!= 0 || conditionalStack.size() == 0,
-            "VM Program List error: Conditional stack after listing not 0 but {}", conditionalStack.size())
-    }; // main loop
+            "VM Program List error: Conditional stack after listing not 0 but {}.Listing follows.\\n",
+             conditionalStack, text.Buffer )
+    } // main loop
 
     text.Formatter->Release();
 

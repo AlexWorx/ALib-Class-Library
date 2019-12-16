@@ -22,8 +22,8 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    project( "DoxygenGraphTemplateInstanceRemover" )
     cmake_minimum_required( VERSION 3.3.0 )
+    project( "DoxygenGraphTemplateInstanceRemover" )
 
     # this defaults to a release version!
     if ( "${CMAKE_BUILD_TYPE}" STREQUAL ""    )
@@ -42,7 +42,7 @@
 ## include ALib/ALox base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    list( APPEND  ALIB_MODULES  "ALOX"        )
+    list( APPEND  ALIB_DISTRIBUTION  "ALOX"        )
     include( ${CMAKE_CURRENT_LIST_DIR}/../../build/cmake/ALib.cmake )
 
 
@@ -60,7 +60,7 @@ aux_source_directory(. SRC_LIST)
     add_executable( dot ${SRC_LIST})
     ALibSetCompilerAndLinker( dot )
 
-    target_compile_definitions( dot   PUBLIC   ${ALIB_COMPILATION_SYMBOLS} )
+    target_compile_definitions( dot   PUBLIC   ${ALIB_SYMBOLS} )
 
 
 #! [DOXYGEN_CMAKE_COTIRE_TARGET]

@@ -1,10 +1,14 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#if !defined(HPP_ALIB_BOXING_PROPPERINCLUDE)
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_boxing of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALIB_BOXING_FUNCTIONS
+#define HPP_ALIB_BOXING_FUNCTIONS 1
+
+#if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
@@ -40,8 +44,8 @@ struct FIsNotNull
     /**
      * This implementation of function #FIsNotNull returns constant \c true.
      * It may be registered with custom types that do not provide the concept of being \e nulled.
-     * \ref alib_manual_bootstrapping "Bootstrap" function
-     * \alib{boxing::Init} registers this implementation with type \c bool and all integral,
+     * \ref alib_manual_bootstrapping "Bootstrapping" function
+     * \alib{boxing::Bootstrap} registers this implementation with type \c bool and all integral,
      * floating point and character types.
      *
      * @return Constant \c true.
@@ -52,8 +56,8 @@ struct FIsNotNull
 
 
 /** ************************************************************************************************
- * This function returns a hashcode on contents of the box. This is useful if boxes
- * are to be used as key-values of containers like \c std::unordered_map.
+ * This function returns a hashcode on contents of the box. This is useful if boxes are to
+ * be used as key-values of containers like \c std::unordered_map or \alib{monomem,HashTable}.
  *
  * Its default implementation creates a hash code using the raw placeholder values and
  * in case of array types over the array memory used.
@@ -63,7 +67,7 @@ struct FIsNotNull
  * to shortest code. It is registered with all fundamental types.
  *
  * \note
- *   Compatibility header \ref alib/compatibility/std_boxing_functional.hpp specializes
+ *   Compatibility header \alibheader{compatibility/std_boxing_functional.hpp} specializes
  *   functors \c std::hash, \c std::equal_to and \c std::less for use with containers of the
  *   C++ standard library.
  *
@@ -84,8 +88,8 @@ struct FHashcode
      * Templated hash function usable with types boxed as values.
      * For pointer types, a custom variant that collects type-specific hashable data is recommended.
      *
-     * @param  self The box to calculate a hash code for.
      * @tparam N    The number of bytes to check.
+     * @param  self The box to calculate a hash code for.
      * @return The hash code.
      */
     template<size_t N>
@@ -97,7 +101,7 @@ struct FHashcode
 /** ************************************************************************************************
  * This function compares two boxes.
  *
- * A default implementation is \alib{boxing,RegisterDefault,registered} that compares the types
+ * A default implementation is \alib{boxing,BootstrapRegisterDefault,registered} that compares the types
  * (\alib{boxing,Box::IsSameType}) and if equal, with arrays compares the array's length,
  * \e nulled state and finally the contents using \c memcmp.<br>
  * For non-array types, it compares the relevant bytes in the placeholder.
@@ -129,7 +133,7 @@ struct FEquals
     using Signature = bool (*) ( const Box& self, const Box& rhs);
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /**
      * Templated implementation for function #FEquals, usable with boxable types which have
      * <c>operator==</c> implemented.
@@ -144,9 +148,9 @@ struct FEquals
      * \see
      *   Macro \ref ALIB_BOXING_DEFINE_FEQUALS_FOR_COMPARABLE_TYPE.
      *
+     * @tparam TComparable  The mapped type that can be compared using <c>operator==</c>.
      * @param self The box that the function was invoked on.
      * @param rhs  The boxed value to compare.
-     * @tparam TComparable  The mapped type that can be compared using <c>operator==</c>.
      *
      * @return \c true if \p{self} equals \p{rhs}, \c false otherwise.
      */
@@ -169,14 +173,14 @@ struct FEquals
 };
 
 #define ALIB_BOXING_DEFINE_FEQUALS_FOR_COMPARABLE_TYPE( TComparable )                              \
-aworx::lib::boxing::Register< FEquals,                                                             \
+aworx::lib::boxing::BootstrapRegister< FEquals,                                                    \
    aworx::lib::boxing::TMappedTo<TComparable >>(FEquals::ComparableTypes<TComparable>);            \
 
 
 /** ************************************************************************************************
  * This function provides a relational comparison of two boxes.
  *
- * A default implementation is \alib{boxing,RegisterDefault,registered} that compares the types.
+ * A default implementation is \alib{boxing,BootstrapRegisterDefault,registered} that compares the types.
  * If they are equal, the first \c uinteger values in the placeholders are compared.
  * Specifics for array types are \b not implemented with that default version.
  *
@@ -229,7 +233,7 @@ aworx::lib::boxing::Register< FEquals,                                          
  * \alib{boxing,Box::UnboxSignedIntegral}, \alib{boxing,Box::UnboxUnsignedIntegral} and
  * \alib{boxing,Box::UnboxFloatingPoint} and appropriate casting.
  *
- * If module \alibmod_strings is included in the distribution, an implementation for
+ * If module \alib_strings is included in the distribution, an implementation for
  * arrays of \alib{characters,nchar}, \alib{characters,wchar} and \alib{characters,xchar} is given.
  *
  * For custom types, with #ComparableTypes, a templated implementation is suggested: Rather than
@@ -251,7 +255,7 @@ struct FIsLess
     using Signature = bool (*) ( const Box& self, const Box& rhs);
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /**
      * Templated implementation for function #FIsLess, usable with boxable types which have
      * <c>operator\<</c> implemented.
@@ -267,9 +271,9 @@ struct FIsLess
      * \see
      *   Macro \ref ALIB_BOXING_DEFINE_FISLESS_FOR_COMPARABLE_TYPE.
      *
+     * @tparam TComparable  The mapped type that can be compared using <c>operator\<</c>.
      * @param self The box that the function was invoked on.
      * @param rhs  The boxed value to compare.
-     * @tparam TComparable  The mapped type that can be compared using <c>operator\<</c>.
      *
      * @return \c true if \p{self} equals \p{rhs}, \c false otherwise.
      */
@@ -287,23 +291,22 @@ struct FIsLess
 };
 
 #define ALIB_BOXING_DEFINE_FISLESS_FOR_COMPARABLE_TYPE( TComparable )                              \
-aworx::lib::boxing::Register< FIsLess,                                                             \
+aworx::lib::boxing::BootstrapRegister< FIsLess,                                                             \
    aworx::lib::boxing::TMappedTo<TComparable >>(FIsLess::ComparableTypes<TComparable>);            \
 
 
-#if ALIB_MODULE_MEMORY
-// forwards
-} namespace memory  { class MemoryBlocks; }  namespace boxing  {
+#if ALIB_MONOMEM
+} namespace monomem  { class MonoAllocator; }  namespace boxing  {
 
 
 /** ************************************************************************************************
  * This type declares a built-in \ref alib_boxing_functions "box-function".<br>
  * Besides mandatory parameter \p{self}, implementations expect a reference to a
- * block allocator of type \alib{memory,MemoryBlocks}.
+ * monotonic allocator of type \alib{monomem,MonoAllocator}.
  * With that, a deep copy of the boxed object can be allocated.
  *
  * The function is provided for use-cases where boxes have to "survive" the end of
- * the lifecycle of the original object.
+ * the life-cycle of the original object.
  *
  * A default implementation of this function is provided. While this just does nothing
  * for non-array types, with array types, the complete contents of the array is cloned.
@@ -315,8 +318,8 @@ aworx::lib::boxing::Register< FIsLess,                                          
  *
  * \attention
  *   Only objects that do not need to be destructed are allowed to be cloned using the
- *   block-allocator given. This is because \b no destructor will be invoked for boxed objects
- *   (which is true in general for \alibmod_boxing).<br>
+ *   monotonic allocator given. This is because \b no destructor will be invoked for boxed objects
+ *   (which is true in general for \alib_boxing).<br>
  *   Of-course a custom implementation could create and allocate the object in a custom place,
  *   that allows later destruction. Alternatively, a custom method could just assure that
  *   an object will not be deleted, e.g. by increasing a usage counter and leave the given box
@@ -333,14 +336,14 @@ aworx::lib::boxing::Register< FIsLess,                                          
  *
  * \attention
  *   If a mapped type has no specialization for this function, there are three possibilities:
- *   1. The original value is not deleted during the lifecycle of the box.
+ *   1. The original value is not deleted during the life-cycle of the box.
  *   2. The type was boxed as a value type (or, very unlikely, otherwise is safe to be unboxed,
  *      even after the deletion of the original value).
- *   3. Undefined behaviour (crash) due to unboxing the value after deletion of the original
+ *   3. Undefined behavior (crash) due to unboxing the value after deletion of the original
  *      object.
  *
  * #### Availability ####
- * This box-function is available only if module \alibmod_memory is included in the
+ * This box-function is available only if module \alib_monomem is included in the
  * \alibdist.
  **************************************************************************************************/
 struct FClone
@@ -348,15 +351,15 @@ struct FClone
     /**
      * Signature of the box-function.
      *
-     * @param self    The mutable box that the function was invoked on.
-     * @param memory  A block-allocator that may be used for cloning.
+     * @param self       The mutable box that the function was invoked on.
+     * @param allocator  A monotonic allocator that may be used for cloning.
      */
-    using Signature = void (*) ( boxing::Box& self, memory::MemoryBlocks& memory );
+    using Signature = void (*) ( boxing::Box& self, monomem::MonoAllocator& allocator );
 };
 #endif
 
 /** ************************************************************************************************
- * This is one of the built-in \ref alib_boxing_functions "box-functions" of \alibmod_nolink_boxing.
+ * This is one of the built-in \ref alib_boxing_functions "box-functions" of \alib_boxing_nl.
  * This function is used to give an answer to the question if a boxed value represents boolean
  * value \c true or \c false. This is useful if "yes/no" decisions should be taken based on
  * arbitrary boxed values.
@@ -380,7 +383,7 @@ struct FIsTrue
 
 
 
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
 /** ************************************************************************************************
  * Implementations of this \ref alib_boxing_functions "box-function" write the content of the
  * data stored in the box to the given \b %AString object.
@@ -408,14 +411,14 @@ struct FIsTrue
  *      text << box;               // translates to: box.Call<FAppend<character>>( text )
  *
  * #### Availability ####
- * This box-function is available only if module \alibmod_strings is included in the \alibdist.
+ * This box-function is available only if module \alib_strings is included in the \alibdist.
  *
  * \see
  *    - Manual chapter \ref alib_boxing_strings_fappend
- *    - Chapter \ref alib_stringformat_custom_types "3. Formatting Custom Types" of
- *      the Programmer's Manual of \alibmod_stringformat, which gives
+ *    - Chapter \ref alib_text_custom_types "3. Formatting Custom Types" of
+ *      the Programmer's Manual of \alib_text, which gives
  *      a sample implementation of this function, as well as introduces a more powerful
- *      box-function \alib{stringformat,FFormat}.
+ *      box-function \alib{text,FFormat}.
  *
  * @tparam TChar  The character type of the destination \alib{strings,TAString,AString} given with
  *                parameter \p{target}.
@@ -432,7 +435,7 @@ struct FAppend
     using Signature = void (*) ( const Box& self, strings::TAString<TChar>& target );
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /**
      * Static templated implementation of \ref FAppend for boxed types which are appendable.
      *
@@ -453,10 +456,10 @@ struct FAppend
      *
      * \see
      *  Macros
-     *  - ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE
-     *  - ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N
-     *  - ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W
-     *  - ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X
+     *  - ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE
+     *  - ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N
+     *  - ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W
+     *  - ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X
      *
      * @tparam TAppendable   The "appendable" mapped box type that the function is to be implemented
      *                       for.
@@ -493,27 +496,27 @@ struct FAppend
     template<typename TAppendable>
     inline static
     void WrappedAppendable( const Box& self, strings::TAString<TChar>& target);
-
-
 };
 
 
-#define ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(TAppendable)                              \
-aworx::lib::boxing::Register<FAppend<character>, aworx::lib::boxing::TMappedTo<TAppendable>>       \
-                      (aworx::lib::boxing::FAppend<character>::Appendable<TAppendable>);           \
+#define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(TAppendable)                      \
+aworx::lib::boxing::BootstrapRegister<FAppend<character>, aworx::lib::boxing::TMappedTo<TAppendable>>\
+                 (aworx::lib::boxing::FAppend<character>::Appendable<TAppendable>);                  \
 
-#define ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(TAppendable)                            \
-aworx::lib::boxing::Register<FAppend<nchar  >, aworx::lib::boxing::TMappedTo<TAppendable>>         \
-                      (aworx::lib::boxing::FAppend<nchar    >::Appendable<TAppendable>);           \
+#define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(TAppendable)                    \
+aworx::lib::boxing::BootstrapRegister<FAppend<nchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
+                 (aworx::lib::boxing::FAppend<nchar    >::Appendable<TAppendable>);                  \
 
-#define ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W(TAppendable)                            \
-aworx::lib::boxing::Register<FAppend<wchar  >, aworx::lib::boxing::TMappedTo<TAppendable>>         \
-                      (aworx::lib::boxing::FAppend<wchar    >::Appendable<TAppendable>);           \
+#define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W(TAppendable)                    \
+aworx::lib::boxing::BootstrapRegister<FAppend<wchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
+                 (aworx::lib::boxing::FAppend<wchar    >::Appendable<TAppendable>);                  \
 
-#define ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X(TAppendable)                            \
-aworx::lib::boxing::Register<FAppend<xchar  >, aworx::lib::boxing::TMappedTo<TAppendable>>         \
-                      (aworx::lib::boxing::FAppend<xchar    >::Appendable<TAppendable>);           \
+#define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X(TAppendable)                    \
+aworx::lib::boxing::BootstrapRegister<FAppend<xchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
+                 (aworx::lib::boxing::FAppend<xchar    >::Appendable<TAppendable>);                  \
 
-#endif //ALIB_MODULE_STRINGS
+#endif //ALIB_STRINGS
 
 }}} // namespace [aworx::lib::boxing]
+
+#endif // HPP_ALIB_BOXING_FUNCTIONS

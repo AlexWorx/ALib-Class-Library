@@ -1,22 +1,77 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#ifndef HPP_ALOX_CORE_DOMAIN
-#define HPP_ALOX_CORE_DOMAIN 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALOX_DETAIL_DOMAIN
+#define HPP_ALOX_DETAIL_DOMAIN 1
 
 #if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace lox {
+#if !defined (HPP_ALOX_DETAIL_LOGGER)
+#   include "alib/alox/detail/logger.hpp"
+#endif
 
-class PrefixLogable;
+#if !defined (HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
+#endif
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
+#endif
 
-namespace detail {
+namespace aworx { namespace lib { namespace lox { namespace detail {
 
+// forward declarations
+class ScopeInfo;
+
+/** ************************************************************************************************
+ * Used to store prefixes set. Those provided as
+ * \ref aworx::lib::boxing::Box "boxes" of character arrays are copied into an internal AString
+ * and will be deleted with the object. This ensures, that simple strings might get assembled
+ * on the stack and still be used as a prefix logable.
+ **************************************************************************************************/
+class PrefixLogable : public Box
+{
+    protected:
+        /** If set, it will be deleted. */
+        AString* copy   = nullptr;
+
+    public:
+    /**
+     * Constructor taking the originally provided box. If this is an array of characters, the
+     * contents is copied into a heap allocated (new) AString and our vtable is replaced accordingly.
+     * @param src The prefix object provided by the user
+     */
+    PrefixLogable( const Box& src )
+    : Box( src )
+    {
+        // uses "placement new" to overwrite the box part of ourselves
+        if( src.IsNotNull() )
+        {
+                 if ( IsArrayOf<nchar>() )  new (this) Box( copy= new AString( Unbox<NString>() ));
+            else if ( IsArrayOf<wchar>() )  new (this) Box( copy= new AString( Unbox<WString>() ));
+            else if ( IsArrayOf<xchar>() )  new (this) Box( copy= new AString( Unbox<XString>() ));
+        }
+    }
+
+    ~PrefixLogable()
+    {
+        if(copy)
+            delete copy;
+    }
+    /**
+     * Move assignment operator.
+     * Default implementation of compiler is used.
+     * (Needs to be explicitly given due to custom destructor.)
+     * @param move The object to be moved.
+     * @return This object
+     */
+    PrefixLogable& operator= (PrefixLogable&& move ) = default;
+};
 
 /** ************************************************************************************************
  * Objects of this class represent a <em>Log Domain</em> of \alox. This class is internally used by
@@ -31,7 +86,7 @@ class Domain
     struct LoggerData
     {
         /** The logger. */
-        detail::Logger*       Logger;
+        detail::Logger*     Logger;
 
         /** The verbosity of the \e Logger for this domain. */
         Verbosity           LoggerVerbosity       = Verbosity::Off;
@@ -59,34 +114,35 @@ class Domain
     public:
 
         /** The name of the domain. For root domains, this is \e nulled. */
-        NString32                           Name;
-
-        /** The parent domain. For root domains, this is \c nullptr. */
-        Domain*                             Parent;
-
-        /** A list of sub domains. */
-        std::vector<Domain*>                SubDomains;
-
-        /** Data stored per logger. The index is corresponding to the list of loggers in 'our' Lox. */
-        std::vector<LoggerData>             Data;
+        NString                           Name;
 
         /** The full path of the domain (set in the constructor once) . */
-        NString64                           FullPath;
+        NString                           FullPath;
+
+        /** The parent domain. For root domains, this is \c nullptr. */
+        Domain*                           Parent;
+
+        /** A list of sub domains, sorted by name. */
+        List<Domain>                      SubDomains;
+
+        /** Data stored per logger. The index is corresponding to the list of loggers in 'our'
+         *  Lox. */
+        std::vector<LoggerData,StdContMA<LoggerData>>   Data;
+
+        /** <em>Prefix Logables</em> associated with this domain. */
+        List<std::pair<PrefixLogable*, Inclusion>>      PrefixLogables;
 
        /**
          * A counter for the quantity of calls on this domain.
-         * The does not include:
+         * Counting does not include:
          * - logs when no \e Logger was set
          * - conditional logs that were suppressed
          * Otherwise, it includes all log calls, even when no \e Logger was enabled on this domain.
          */
-        int                                 CntLogCalls                                          =0;
+        integer                             CntLogCalls                                          =0;
 
-        /** <em>Prefix Logables</em> associated with this domain. */
-        std::vector<std::pair<PrefixLogable*, Inclusion>>   PrefixLogables;
-
-        /** Flag to which is set when verbosity configuration data was read. */
-        bool                                ConfigurationRead                                =false;
+        /** Flag which is set when verbosity configuration data was read. */
+        bool                                ConfigurationAlreadyRead                         =false;
 
     // #############################################################################################
     // Public interface
@@ -100,9 +156,17 @@ class Domain
          }
 
         /** ****************************************************************************************
+         * Constructor used for the root domain.
+         * @param allocator The monotonic allocator used allocation of permanent objects.
+         * @param name      The name of this root domains
+         ******************************************************************************************/
+        ALIB_API
+        Domain( MonoAllocator* allocator,  const NString& name  );
+
+        /** ****************************************************************************************
          * Constructor
          * @param parent    The parent domain. For root domains, this is \c nullptr.
-         * @param name      The name of the domain. For root domains, this is \e nulled.
+         * @param name      The name of the domain.
          ******************************************************************************************/
         ALIB_API
         Domain( Domain* parent,  const NString& name );
@@ -117,7 +181,6 @@ class Domain
          * Returns the root domain of this object.
          * @return The root domain of this object
          ******************************************************************************************/
-        inline
         Domain* GetRoot()
         {
             Domain* rootDomain= this;
@@ -133,7 +196,6 @@ class Domain
          * @param logger The logger to add.
          * @return The number of the \e Logger, -1 if a logger with the same name exists already.
          ******************************************************************************************/
-        inline
         int    AddLogger( detail::Logger* logger)
         {
             // let our root do this
@@ -154,7 +216,6 @@ class Domain
          * its sub-domains.
          * @param loggerNo  The number of the \e Logger to be removed.
          ******************************************************************************************/
-        inline
         void    RemoveLogger( int loggerNo )
         {
             // let our root do this
@@ -173,7 +234,6 @@ class Domain
          * a tree).
          * @return The number of loggers attached.
          ******************************************************************************************/
-        inline
         int  CountLoggers()
         {
             return static_cast<int>( Data.size() );
@@ -185,10 +245,9 @@ class Domain
          * @return The \e Logger found corresponding to given name.
          *         If the \e Logger does not exist, nullptr is returned.
          ******************************************************************************************/
-        inline
         detail::Logger*  GetLogger( const NString& loggerName )
         {
-            for ( size_t i= 0; i < Data.size() ; i++  )
+            for ( size_t i= 0; i < Data.size() ; ++i  )
                 if ( loggerName.Equals<Case::Ignore>( Data[i].Logger->GetName()) )
                     return Data[i].Logger;
             return nullptr;
@@ -199,7 +258,6 @@ class Domain
          * @param no  The number of the \e Logger to return.
          * @return The \e Logger found with number \p{no}.
          ******************************************************************************************/
-        inline
         detail::Logger*  GetLogger( int no )
         {
             ALIB_ASSERT_ERROR( no < static_cast<int>(Data.size()), "Internal error: Illegal Logger Number" )
@@ -212,10 +270,9 @@ class Domain
          * @return The number of the \e Logger found corresponding to given name.
          *         If the \e Logger does not exist, -1 is returned.
          ******************************************************************************************/
-        inline
         int  GetLoggerNo( const NString& loggerName )
         {
-            for ( size_t i= 0; i < Data.size() ; i++  )
+            for ( size_t i= 0; i < Data.size() ; ++i  )
                 if ( loggerName.Equals<Case::Ignore>( Data[i].Logger->GetName() ) )
                     return static_cast<int>( i );
             return -1;
@@ -226,10 +283,9 @@ class Domain
          * @param logger  The logger to search.
          * @return The number of the \e Logger. If the \e Logger does not exist, -1 is returned.
          ******************************************************************************************/
-        inline
         int  GetLoggerNo( detail::Logger* logger)
         {
-            for ( size_t i= 0; i < Data.size() ; i++  )
+            for ( size_t i= 0; i < Data.size() ; ++i  )
                 if ( logger == Data[i].Logger )
                     return static_cast<int>( i );
             return -1;
@@ -245,27 +301,14 @@ class Domain
          * @param priority    The priority of the setting.
          * @return The new \e Verbosity.
          ******************************************************************************************/
-        inline
-        Verbosity SetVerbosity( int loggerNo, Verbosity verbosity, Priorities priority )
-        {
-            LoggerData& ld= Data[static_cast<size_t>(loggerNo)];
-            if( priority >= ld.Priority )
-            {
-                ld.Priority=        priority;
-                ld.LoggerVerbosity= verbosity;
-
-                for( Domain* subDomain : SubDomains )
-                    subDomain->SetVerbosity( loggerNo, verbosity, priority );
-            }
-            return ld.LoggerVerbosity;
-        }
+        ALIB_API
+        Verbosity SetVerbosity( int loggerNo, Verbosity verbosity, Priorities priority );
 
         /** ****************************************************************************************
          * Returns the <em>%Log %Domain's %Verbosity</em> for the given logger number.
          * @param loggerNo  The number of the \e Logger whose \e Verbosity is requested.
          * @return The found/defined domain \e Verbosity.
          ******************************************************************************************/
-        inline
         Verbosity GetVerbosity( int loggerNo )
         {
             return Data[static_cast<size_t>(loggerNo)].LoggerVerbosity;
@@ -276,7 +319,6 @@ class Domain
          * @param loggerNo  The number of the \e Logger whose \e Verbosity is requested.
          * @return The priority.
          ******************************************************************************************/
-        inline
         Priorities GetPriority( int loggerNo )
         {
             return Data[static_cast<size_t>(loggerNo)].Priority;
@@ -288,7 +330,6 @@ class Domain
          * @param loggerNo  The number of the \e Logger whose \e Verbosity is requested.
          * @return The number of calls executed by this logger on this domain.
          ******************************************************************************************/
-        inline
         int       GetCount( int loggerNo )
         {
             return Data[static_cast<size_t>(loggerNo)].LogCallsPerDomain;
@@ -302,7 +343,6 @@ class Domain
          * @param statement The \e Verbosity to check.
          * @return  \c true if domain is active (log should be performed)
          ******************************************************************************************/
-        inline
         bool      IsActive( int loggerNo, Verbosity statement )
         {
             Verbosity domain= GetVerbosity( loggerNo );
@@ -322,7 +362,7 @@ class Domain
                      ||   domain == Verbosity::Verbose )
               )
             {
-                Data[static_cast<size_t>(loggerNo)].LogCallsPerDomain++;
+                ++Data[static_cast<size_t>(loggerNo)].LogCallsPerDomain;
                 return true;
             }
 
@@ -373,28 +413,23 @@ class Domain
          * Internal, recursive helper of #AddLogger.
          * @param logger The logger to add.
          ******************************************************************************************/
-        inline
-        void        addLoggerRecursive( detail::Logger* logger)
-        {
-            Data.emplace_back( LoggerData( logger ) );
-            for( Domain* subDomain : SubDomains )
-                subDomain->addLoggerRecursive( logger );
-        }
+        ALIB_API
+        void        addLoggerRecursive( detail::Logger* logger);
 
         /** ****************************************************************************************
          * Internal, recursive helper of #RemoveLogger.
          * @param loggerNo  The number of the \e Logger to be removed.
          ******************************************************************************************/
-        inline
-        void        removeLoggerRecursive( int loggerNo )
-        {
-            Data.erase( Data.begin() + loggerNo );
-            for( Domain* subDomain : SubDomains )
-                subDomain->removeLoggerRecursive( loggerNo );
-        }
+        ALIB_API
+        void        removeLoggerRecursive( int loggerNo );
 
 }; // Domain
 
 }}}}// namespace [aworx::lib::lox::detail]
 
-#endif // HPP_ALOX_CORE_DOMAIN
+#if !defined(ALIB_DOX)
+    ALIB_STRINGS_APPENDABLE_TYPE_INLINE( aworx::lib::lox::detail::PrefixLogable,
+                                         target.Append(static_cast<const Box&>(src) ); )
+#endif
+
+#endif // HPP_ALOX_DETAIL_DOMAIN

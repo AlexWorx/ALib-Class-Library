@@ -1,15 +1,12 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_cli of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_CLIAPP
 #define HPP_ALIB_CLI_CLIAPP 1
-
-#if !defined (HPP_ALIB_RESOURCES_RESOURCESTRING)
-    #include "alib/resources/resourcestring.hpp"
-#endif
 
 #if !defined (HPP_ALIB_CLI_ARGUMENTS)
     #include "alib/cli/arguments.hpp"
@@ -18,6 +15,15 @@
 #if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
     #include "alib/compatibility/std_boxing_functional.hpp"
 #endif
+
+#if !defined (HPP_ALIB_MONOMEM_HASHMAP)
+#   include "alib/monomem/hashmap.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
+#endif
+
 
 namespace aworx { namespace lib { namespace cli {
 
@@ -42,15 +48,48 @@ class CLIUtil;
  **************************************************************************************************/
 class CLIApp
 {
-    #if !ALIB_DOCUMENTATION_PARSER
+    // #############################################################################################
+    // Type definitions
+    // #############################################################################################
+    #if !defined(ALIB_DOX)
         // This friend provides utility methods for using this class.
-        friend class CLIUtil;
+        friend class  CommandDecl;
+        friend struct Command;
+        friend struct Option;
+        friend struct Parameter;
+
+        friend class  CLIUtil;
     #endif
+
+    // #############################################################################################
+    // Type definitions
+    // #############################################################################################
+    public:
+
+    // #############################################################################################
+    // protected fields
+    // #############################################################################################
+    protected:
+        /** Monotonic allocator used for all resourced static definitions as well as the data
+         *  used during parsing.                                                               */
+        MonoAllocator                                                   allocator;
+
+        /** The element recycler shared between lists of strings.  */
+        typename List<String, Recycling::Shared>::TSharedRecycler      stringListRecycler;
+
+        /** The element recycler shared between fields \alib{cli,Command::ParametersMandatory} and
+         *  \alib{cli,Command::ParametersOptional}.  */
+        typename List<Parameter*, Recycling::Shared>::TSharedRecycler  paramListRecycler;
 
     // #############################################################################################
     // Fields
     // #############################################################################################
     public:
+        /**
+         * Application information text.
+         * Used as a sort of "header" output by class \alib{cli,CLIUtil} .
+         */
+        String                              AppInfo;
 
         // ################################## Arguments ############################################
         /**
@@ -62,7 +101,7 @@ class CLIApp
          * The original command line arguments (provided in constructor). Might be nullptr, if
          * \c wchar_t variant of constructor was used.
         */
-        const char**                       ArgNOriginal;
+        const char**                        ArgNOriginal;
 
         /**
          * The original command line arguments (provided in constructor) Might be nullptr, if
@@ -72,40 +111,38 @@ class CLIApp
 
         /**
          * A vector of args. If the type of CLI argument strings provided with the constructor does
-         * not match the \ref ALIB_CHARACTERS_ARE_NARROW "default ALib string width", the strings get
+         * not match the \ref ALIB_CHARACTERS_WIDE "default ALib string width", the strings get
          * converted.<br>
          * Values that are 'consumed' by options that get defined, are \b not removed from this
          * list. Instead, they are removed from index vector #ArgsLeft.
          */
-        std::vector<String>                 ArgStrings;
+        std::vector<String, StdContMA<String>>      ArgStrings;
 
         /**
          * A vector of args. If constructor variant accepting \b wchar strings is used,
          * those unicode strings get converted to 1-byte strings using the current locale.<br>
          * Values that are 'consumed' by options that get defined, are removed.
          */
-        std::vector<size_t>                 ArgsLeft;
+        std::vector<integer, StdContMA<integer>>    ArgsLeft;
 
         // ############################ Declarations (from custom enums) ###########################
         /** Commands defined. */
-        std::vector<CommandDecl>            CommandDecls;
+        List<CommandDecl*>                  CommandDecls;
 
         /** Possible Options. */
-        std::vector<OptionDecl>             OptionDecls;
+        List<OptionDecl*>                   OptionDecls;
 
         /** Possible Parameters. */
-        std::vector<ParameterDecl>          ParameterDecls;
+        List<ParameterDecl*>                ParameterDecls;
 
         /** Possible Errors. */
-        std::map<Enum, ExitCodeDecl>        ExitCodeDecls;
+        HashMap<Enum, ExitCodeDecl*>        ExitCodeDecls;
 
     // ################################ Parsed CLI objects  ########################################
 
-        /** A map of lists of options that were found in the parameter list. */
-        std::map<Enum, std::vector<Option>> OptionsFound;
 
-        /** A map of options that were found in the parameter list. */
-        std::map<Enum, std::vector<Option>> OptionsOverwritten;
+        /** The options parsed in the order of their appearance.  */
+        List<Option*>                        Options;
 
         /**
          * List of arguments that start with a hyphen and are ignored by this class due to the
@@ -113,13 +150,13 @@ class CLIApp
          *
          * \see Method #ReadOptions for details on this.
          */
-        std::vector<String>                 OptionArgsIgnored;
+        List<String, Recycling::Shared>     OptionArgsIgnored;
 
-        /** A lists of commands actually parsed. Filled with method #ReadNextCommands. */
-        std::vector<Command>                CommandsParsed;
+        /** A list of commands actually parsed. Filled with method #ReadNextCommands. */
+        List<Command>                       CommandsParsed;
 
         /** The next command in #CommandsParsed to be processed. Used with method #NextCommand. */
-        size_t                              NextCommandNo                                       = 0;
+        List<Command>::Iterator             NextCommandIt;
 
         /**
          * The maximum length of token names:
@@ -141,17 +178,27 @@ class CLIApp
          */
         DryRunModes                         DryRun                                =DryRunModes::Off;
 
-    protected:
-        /**
-         * List of string buffers used in the case that a different character version was passed
-         * with the constructor than the \alib{characters,character,default character type}.
-         */
-        std::vector<AString>                convertedArgStrings;
-
      // #############################################################################################
-     // destructor
+     // Constructor/destructor
      // #############################################################################################
      public:
+        /**
+         * Constructor.
+         */
+        CLIApp()
+        : allocator          ( 2048 )
+        , ArgStrings         (  allocator )
+        , ArgsLeft           (  allocator )
+        , CommandDecls       ( &allocator )
+        , OptionDecls        ( &allocator )
+        , ParameterDecls     ( &allocator )
+        , ExitCodeDecls      ( &allocator, 3.0, 10.0 )
+        , Options            ( &allocator )
+        , OptionArgsIgnored  ( &allocator, stringListRecycler )
+        , CommandsParsed     ( &allocator )
+        , NextCommandIt      ( CommandsParsed.end()      )
+        {}
+
         /**
          * Virtual empty destructor.
          */
@@ -172,99 +219,119 @@ class CLIApp
         virtual
         void      Init( Module* resModule );
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Defines parameters given with enumeration \p{TEnum}.
-         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the
-         * given type using macro \ref ALIB_CLI_PARAMETERS.
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERParameterDecl} need to
+         * associated to given enumeration type \p{TEnum}.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
-        void  DefineParameters()
+        template<typename TEnum>
+        inline
+        void  DefineParameters();
+        #else
+        template<typename TEnum>
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<ERParameterDecl>() )
+        DefineParameters()
         {
-            auto& emd= EnumMetaData<TEnum>::GetSingleton();
-            emd.CheckLoad();
-            for( auto& entry : emd.Table )
+            for( auto recordIt=  EnumRecords<TEnum>::begin()
+                 ;    recordIt!= EnumRecords<TEnum>::end  ()
+                 ; ++ recordIt                                )
             {
-                ParameterDecls.emplace_back( TEnum(std::get<0>(entry)) );
+                ParameterDecls.EmplaceBack( allocator.Emplace<ParameterDecl>( recordIt.Enum() ) );
 
-                String name= ParameterDecls.back().Name();
-                if ( MaxNameLength[2] < name.Length() )
-                     MaxNameLength[2]=  name.Length();
+                if ( MaxNameLength[2] < recordIt->EnumElementName.Length() )
+                     MaxNameLength[2]=  recordIt->EnumElementName.Length();
             }
         }
+        #endif
 
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Defines commands given with enumeration \p{TEnum}.
-         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the
-         * given type using macro \ref ALIB_CLI_COMMANDS.
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERCommandDecl} need to
+         * associated to given enumeration type \p{TEnum}.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
-        void  DefineCommands()
+        template<typename TEnum>
+        inline
+        void  DefineCommands();
+        #else
+        template<typename TEnum>
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<ERCommandDecl>() )
+        DefineCommands()
         {
-            auto& emd= EnumMetaData<TEnum>::GetSingleton();
-            emd.CheckLoad();
-            for( auto& entry : emd.Table )
+            for( auto recordIt=  EnumRecords<TEnum>::begin()
+                 ;    recordIt!= EnumRecords<TEnum>::end  ()
+                 ; ++ recordIt                                )
             {
-                CommandDecls.emplace_back( TEnum(std::get<0>(entry)),  *this  );
+                CommandDecls.EmplaceBack(  allocator.Emplace<CommandDecl>( recordIt.Enum(), *this ) );
 
-                String name= CommandDecls.back().Identifier();
+                auto& name= CommandDecls.Back()->Identifier();
                 if ( MaxNameLength[0] < name.Length() )
                      MaxNameLength[0]=  name.Length();
             }
         }
+        #endif
 
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Defines options given with enumeration \p{TEnum}.
-         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the given
-         * type using macro \ref ALIB_CLI_OPTIONS.
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,EROptionDecl} need to
+         * associated to given enumeration type \p{TEnum}.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
-        void  DefineOptions()
+        template<typename TEnum>
+        inline
+        void  DefineOptions();
+        #else
+        template<typename TEnum>
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<EROptionDecl>() )
+        DefineOptions()
         {
-            auto& emd= EnumMetaData<TEnum>::GetSingleton();
-            emd.CheckLoad();
-            for( auto& entry : emd.Table )
+            for( auto recordIt=  EnumRecords<TEnum>::begin()
+                 ;    recordIt!= EnumRecords<TEnum>::end  ()
+                 ; ++ recordIt                                )
             {
-                OptionDecls.emplace_back( TEnum(std::get<0>(entry))  );
+                OptionDecls.EmplaceBack( allocator.Emplace<OptionDecl>( recordIt.Enum() ) );
 
-                String name= OptionDecls.back().Identifier();
-                if ( MaxNameLength[1] < name.Length() )
-                     MaxNameLength[1]=  name.Length();
+                if ( MaxNameLength[1] < recordIt->EnumElementName.Length() )
+                     MaxNameLength[1]=  recordIt->EnumElementName.Length();
             }
         }
+        #endif
 
 
 
 
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Defines errors given with enumeration \p{TEnum}.
-         * \alib{resources,T_EnumMetaDataDecl,Enum meta data} needs to be available for the given
-         * type using macro \ref ALIB_CLI_EXIT_CODES.
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERExitCodeDecl} need to
+         * associated to given enumeration type \p{TEnum}.
          *
          * @tparam TEnum  The enum type.
          ******************************************************************************************/
-        template<typename TEnum,
-                 typename  TEnableIf= typename  std::enable_if<std::is_enum<TEnum>::value>::type >
-        void  DefineExitCodes()
+        template<typename TEnum>
+        inline
+        void  DefineExitCodes();
+        #else
+        template<typename TEnum>
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<ERExitCodeDecl>() )
+        DefineExitCodes()
         {
-            auto& emd= EnumMetaData<TEnum>::GetSingleton();
-            emd.CheckLoad();
-            for( auto& entry : emd.Table )
-            {
-                TEnum elem= TEnum( std::get<0>( entry ) );
-                ExitCodeDecls.emplace( elem, elem );
-            }
+            for( auto recordIt=  EnumRecords<TEnum>::begin()
+                 ;    recordIt!= EnumRecords<TEnum>::end  ()
+                 ; ++ recordIt                                )
+                ExitCodeDecls.EmplaceUnique( recordIt.Enum(),
+                                             allocator.Emplace<ExitCodeDecl>(recordIt.Enum()) );
         }
+        #endif
 
 
     // #############################################################################################
@@ -278,8 +345,8 @@ class CLIApp
          * - DefineParameters and
          * - DefineExitCodes,
          *
-         * have been performed. All options recognized get collected in lists #OptionsFound and
-         * #OptionsOverwritten. The arguments of the options get removed from #ArgsLeft.
+         * have been performed. All options recognized get collected in list #Options
+         * The arguments of the options get removed from #ArgsLeft.
          *
          * In case of options that have own parameter arguments, such arguments may not be fully
          * removed. This depends on whether it is possible with the simple flags and values
@@ -306,7 +373,7 @@ class CLIApp
          *  invocation, similar to this may be used with all \alibmods that use an own configuration
          *  object:
          *
-         *          XYZModule.Config->GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
+         *          XYZModule.GetConfig().GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
          *
          * In the case that other libraries have more complex option syntax, e.g. options
          * consisting of multiple arguments or such that do not even start with a hyphen character,
@@ -325,12 +392,23 @@ class CLIApp
         void            ReadOptions();
 
         /** ****************************************************************************************
+         * Searches and returns the last occurrence of the specified option.
+         *
+         * This method is to be used with options that overwrite previous values in case
+         * that it was given multiple times as a the CLI argument.
+         *
+         * @param element The option's declaration enum element.
+         * @return A pointer to the parsed option, respectively \c nullptr if not given.
+         ******************************************************************************************/
+        Option*         GetOption( Enum element );
+
+        /** ****************************************************************************************
          * Parses as many commands as possible and stores them in #CommandsParsed. Prior
          * to invoking this methods, all CLI declarations have to be made. Furthermore, usually
          * method #ReadOptions has to be invoked prior to this method.
          *
          * The name of the method indicates that one or more, but maybe not all commands are read.
-         * The reason for this behaviour lies in the fact that commands may be defined that
+         * The reason for this behavior lies in the fact that commands may be defined that
          * do their own, specifically coded parsing. As a matter of the fact that the flags and
          * options of structs \alib{cli,CommandDecl} and \alib{cli,ParameterDecl} are kept rather
          * simple to match the most usual cases, the parsing of arguments of a command often
@@ -344,7 +422,7 @@ class CLIApp
          * - Remove and process first command in #CommandsParsed.
          *
          * A similar parsing approach is supported with method #NextCommand. The only difference
-         * is that the parsed commands stay in #CommandsParsed and instead field #NextCommandNo
+         * is that the parsed commands stay in #CommandsParsed and instead field #NextCommandIt
          * indicates the position of the next command to read. This way, commands may refer
          * to previous ones, if this is needed.
          *
@@ -366,7 +444,7 @@ class CLIApp
         void            ReadNextCommands();
 
         /** ****************************************************************************************
-         * Returns the #NextCommandNo in vector #NextCommand. If needed, #ReadNextCommands is
+         * Returns the next item in vector #NextCommand. If needed, #ReadNextCommands is
          * invoked.
          * @return The next command parsed from CLI argument list. \c nullptr, if no more commands
          *         are found.
@@ -376,6 +454,33 @@ class CLIApp
         Command*        NextCommand();
 
         /** ****************************************************************************************
+         * Retrieves the argument at the given position.
+         *
+         * In debug builds, this method assert the index range.
+         *
+         * @return The element \p{idx} of vector #ArgStrings.
+         ******************************************************************************************/
+        virtual
+        integer         ArgCount()
+        {
+            return static_cast<integer>(ArgStrings.size());
+        }
+
+        /** ****************************************************************************************
+         * Retrieves the argument at the given position.<br>
+         * In debug builds, this method assert the index range.
+         * @param idx The requested argument's index.
+         * @return The element \p{idx} of vector #ArgStrings.
+         ******************************************************************************************/
+        virtual
+        String          Arg(integer idx)
+        {
+            ALIB_ASSERT_ERROR( idx >= 0 && static_cast<size_t>(idx) < ArgStrings.size(),
+                               "Index out of bounds" )
+            return ArgStrings[static_cast<size_t>(idx)];
+        }
+
+        /** ****************************************************************************************
          * Retrieves the next argument from the list without removing it.
          *
          * \see Method #PopArg, #RemoveArg and #ReadNextCommands.
@@ -383,14 +488,12 @@ class CLIApp
          * @return The first argument of (respectively remaining in) the list.
          *         If no argument is available, a \e nulled string is returned.
          ******************************************************************************************/
-        inline
         virtual
         String          PeekArg()
         {
-            return ArgsLeft.size() > 0 ? ArgStrings[ArgsLeft[0]]
+            return ArgsLeft.size() > 0 ? ArgStrings[static_cast<size_t>(ArgsLeft[0])]
                                        : String();
         }
-
 
         /** ****************************************************************************************
          * Retrieves the next argument and removes it from list #ArgsLeft.
@@ -413,14 +516,49 @@ class CLIApp
          * @param argNo The argument number to remove.
          ******************************************************************************************/
         ALIB_API
-        virtual
-        void            RemoveArg( size_t argNo );
-};
+        void            RemoveArg( integer argNo );
+}; // class CLIApp
+
+
+
+// #############################################################################################
+// Definitions of methods of related objects that can be only mede after CLIApp is defined
+// #############################################################################################
+inline
+Parameter::Parameter( CLIApp* parent )
+: Parsed( parent )
+, Args       ( &Parent->allocator, parent->stringListRecycler )
+{}
+
+Option::Option( CLIApp* parent )
+: Parsed( parent )
+, Args       ( &Parent->allocator, parent->stringListRecycler )
+{}
+
+template<typename TEnum>
+CommandDecl::CommandDecl( TEnum element, CLIApp& parent )
+: declElement ( element )
+, resourceInfo(element)
+, Parent      (parent)
+, Parameters  (&Parent.allocator)
+{
+    // make a copy of the resourced record
+    record= enums::GetRecord(element);
+
+    addParamDecls();
+}
+
+Command::Command( CLIApp* parent )
+: Parsed        ( parent )
+, ParametersMandatory( &Parent->allocator, parent->paramListRecycler )
+, ParametersOptional ( &Parent->allocator, parent->paramListRecycler )
+{}
+
 
 }} // namespace lib::system
 
 /// Type alias in namespace #aworx.
-using     CLIApp=           aworx::lib::cli::CLIApp;
+using     CLIApp=           lib::cli::CLIApp;
 
 
 }  // namespace [aworx]

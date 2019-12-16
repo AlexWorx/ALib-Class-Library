@@ -6,36 +6,159 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(ALIB_DOX)
+#if !defined(HPP_ALIB_BOXING_BOXING)
+#   include "alib/boxing/boxing.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
-#if ALIB_MODULE_STRINGFORMAT
+#if ALIB_DEBUG_BOXING
 
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_BOXING_DBGBOXING)
+#      include "alib/boxing/dbgboxing.hpp"
+#   endif
+#   if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
+#      include "alib/compatibility/std_typeinfo.hpp"
+#   endif
 
-#if !defined(HPP_ALIB_BOXING_DBGBOXING)
-#   include "alib/boxing/dbgboxing.hpp"
-#endif
+#   if ALIB_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCK)
+#      include "alib/threads/threadlock.hpp"
+#   endif
 
-#if ALIB_DEBUG
+#   if ALIB_TEXT
+#       if !defined (HPP_ALIB_STRINGS_FORMAT)
+#          include "alib/strings/format.hpp"
+#       endif
+#   endif
+#   if ALIB_MONOMEM
+#      if !defined(HPP_ALIB_MONOMEM_HASHMAP)
+#         include "alib/monomem/hashmap.hpp"
+#      endif
+#      if !defined(HPP_ALIB_MONOMEM_HASHSET)
+#         include "alib/monomem/hashset.hpp"
+#      endif
+#   else
+#      if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
+#         include <unordered_map>
+#      endif
+#      if !defined(_GLIBCXX_SET) && !defined(_SET_)
+#         include <set>
+#      endif
+#   endif
 
-
-
-#if !defined(HPP_ALIB_STRINGS_UTIL_STRINGTUPLES)
-#   include "alib/strings/util/stringtuples.hpp"
-#endif
+#endif // !defined(ALIB_DOX)
 
 #if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
 #   include <algorithm>
 #endif
 
+namespace aworx { namespace lib { namespace boxing { namespace detail {
 
-namespace aworx { namespace lib { namespace boxing {
+#if !defined(ALIB_DOX)
+
+#if ALIB_MONOMEM
+    extern HashSet           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+           HashSet           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions(&monomem::GlobalAllocator);
+    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+           HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables(&monomem::GlobalAllocator);
+    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+           HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray(&monomem::GlobalAllocator);
+#else
+    extern std:set           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+           std::set          <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+           std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+           std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+#endif
+
+
+    ALIB_IF_THREADS( namespace { ThreadLock dbgLock; } )
+
+    extern ALIB_API
+    void DbgLockMaps( bool doLock );
+    void DbgLockMaps( bool doLock )
+    {
+        #if !ALIB_THREADS
+            (void) doLock;
+            lib::DbgCheckSingleThreaded();
+        #else
+            if( doLock )
+                dbgLock.Acquire( ALIB_CALLER_PRUNED );
+            else
+                dbgLock.Release();
+        #endif
+    }
+
+#endif
+
+void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType productionType )
+{
+    vtable->DbgProduction= productionType;
+    DbgLockMaps(true);
+        if( !vtable->IsArray() )
+        {
+            #if ALIB_MONOMEM
+                ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+                DbgKnownVTables.InsertUnique( std::make_pair( &vtable->Type, vtable ) );
+            #else
+                if ( DbgKnownVTables.find( vtable->Type ) != DbgKnownVTables.end() )
+                {
+                    ALIB_ERROR( "Double instantiation of VTable of Type: \"",
+                                DbgTypeDemangler( vtable->Type ).Get(), "\"" )
+                    DbgLockMaps(false);
+                    return;
+                }
+
+                DbgKnownVTables.insert(std::make_pair( &vtable->Type, vtable ) );
+            #endif
+        }
+        else
+        {
+            #if ALIB_MONOMEM
+                ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+                DbgKnownVTablesArray.InsertUnique(std::make_pair( &vtable->ElementType, vtable ) );
+            #else
+                if ( DbgKnownVTablesArray.find( vtable->ElementType ) != DbgKnownVTablesArray.end() )
+                {
+                    ALIB_ERROR( "Double instantiation of VTable of Type: \"",
+                                DbgTypeDemangler( vtable->ElementType ).Get(), "[]\"" )
+                    DbgLockMaps(false);
+                    return;
+                }
+
+                DbgKnownVTablesArray.insert(std::make_pair( &vtable->ElementType, vtable ) );
+            #endif
+        }
+    DbgLockMaps(false);
+}
+
+} // namespace aworx::lib::boxing[::detail]
+
+
+#if ALIB_STRINGS
 
 // #############################################################################################
 // Type Name
 // #############################################################################################
+AString&     DbgBoxing::removeNamespaces( AString& string, integer startIndex  )
+{
+    for( auto& search: RemovableNamespaces )
+    {
+        integer idx;
+        while( (idx= string.IndexOf(search, startIndex) ) >= 0 )
+            string.Delete( idx, search.Length() );
+    }
+    return string;
+}
+
+std::vector<aworx::String>   DbgBoxing::RemovableNamespaces
+{
+    A_CHAR( "aworx::lib::boxing::" ),
+    A_CHAR( "aworx::lib::"         ),
+};
+
 void  DbgBoxing::typeName( const detail::VTable* vtable, AString& result )
 {
     auto startLength= result.Length();
@@ -51,10 +174,13 @@ void  DbgBoxing::typeName( const detail::VTable* vtable, AString& result )
     removeNamespaces(result, startLength);
 }
 
+#endif // ALIB_STRINGS
+
+#if ALIB_TEXT
+
 // #############################################################################################
 // Type Info
 // #############################################################################################
-
 
 void  DbgBoxing::typeInfo( AString&                 target,
                            const detail::VTable*    vtable,
@@ -64,6 +190,7 @@ void  DbgBoxing::typeInfo( AString&                 target,
                            bool                     isPointerTypeCustomized,
                            bool                     fitsToPlaceholder,
                            bool                     copyConstructible,
+                           bool                     triviallyDestructible,
                            bool                     isUnboxable                )
 {
     target <<indent << "Mapping:        " << (  vtable->Mapping == detail::VTable::MappingType::Pointer
@@ -101,11 +228,11 @@ void  DbgBoxing::typeInfo( AString&                 target,
                         :  srcIsPointer && pointerBoxing && isPointerTypeCustomized
                         ?  "Yes (By customization)"
 
-                        :  srcIsPointer && pointerBoxing && !isPointerTypeCustomized && !copyConstructible
-                        ?  "Yes (Value would not fit to placeholder)"
+                        :  srcIsPointer && pointerBoxing && !isPointerTypeCustomized && (!copyConstructible || !triviallyDestructible)
+                        ?  "Yes (Value would not be copy-constructible or trivially destructible)"
 
                         :  srcIsPointer && pointerBoxing && !isPointerTypeCustomized && !fitsToPlaceholder
-                        ?  "Yes (Value would not be copy-constructible)"
+                        ?  "Yes (Value would not fit to placeholder)"
 
                         :  srcIsValue   && arrayBoxing   && isValueTypeCustomized
                         ?  "Yes (Custom unboxing from array type)"
@@ -128,8 +255,8 @@ void  DbgBoxing::typeInfo( AString&                 target,
                         :  srcIsValue   && pointerBoxing && isPointerTypeCustomized
                         ?  "Not as value (Pointer type is customized)"
 
-                        :  srcIsValue   && pointerBoxing && !isPointerTypeCustomized  && !copyConstructible
-                        ?  "Not as value (Not copy-constructible)"
+                        :  srcIsValue   && pointerBoxing && !isPointerTypeCustomized  && (!copyConstructible || !triviallyDestructible)
+                        ?  "Not as value (Not copy-constructible or trivially destructible)"
 
                         :  srcIsValue   && pointerBoxing && !isPointerTypeCustomized  && !fitsToPlaceholder
                         ?  "Not as value (Does not fit to placeholder)"
@@ -141,7 +268,7 @@ void  DbgBoxing::typeInfo( AString&                 target,
                         ?  "Not as pointer (Value type is customized)"
 
                         :  srcIsPointer && valueBoxing && !isValueTypeCustomized
-                        ?  "Not as pointer (Value fits in placeholder and is copy constructible)"
+                        ?  "Not as pointer (Value fits in placeholder and is copy constructible and trivially destructible)"
 
                         : "INTERNAL ERROR IN DBG METHOd: CASE NOT MATCHED (E2)"
                      )
@@ -161,70 +288,11 @@ void  DbgBoxing::typeInfo( AString&                 target,
     ALIB_ASSERT_ERROR( target.IndexOf( A_CHAR("INTERNAL ERROR") ) < 0, "Error occurred describing type" )
 
     auto functions=  GetSpecificFunctionTypes(vtable);
-    StringTable<uinteger> tmpStrings;
+    MonoAllocator allocator(8192);
+    detail::DbgStringTable<uinteger> tmpStrings( allocator );
     String256 headline; headline << '\n' << indent << "Associated Specialized Functions:";
     String256 indent2;  indent2  << indent << indent;
     dumpFunctions( functions, target, headline, indent2, tmpStrings );
-}
-
-
-
-// #############################################################################################
-// Function Lists
-// #############################################################################################
-std::vector<std::pair<const std::type_info*,uinteger>>  DbgBoxing::GetKnownFunctionTypes()
-{
-    std::vector<std::pair<const std::type_info*,uinteger>> result;
-    result.emplace_back( &typeid( FHashcode         ), detail::DEFAULT_FUNCTIONS.fHashcode  ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFHashcode  : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FClone            ), detail::DEFAULT_FUNCTIONS.fClone     ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFClone     : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FIsNotNull        ), detail::DEFAULT_FUNCTIONS.fIsNotNull ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsNotNull : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FEquals           ), detail::DEFAULT_FUNCTIONS.fEquals    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFEquals    : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FIsLess           ), detail::DEFAULT_FUNCTIONS.fIsLess    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsLess    : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FIsTrue           ), detail::DEFAULT_FUNCTIONS.fIsTrue    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsTrue    : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FAppend<character>), detail::DEFAULT_FUNCTIONS.fAppend    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFAppend    : (std::numeric_limits<uinteger>::max)() );
-
-    detail::DbgLockMaps(true);
-        for (auto& it : detail::DBG_KNOWN_FUNCTIONS )
-        {
-            auto& fTypeId= it.get();
-
-            // search corresponding default implementation.
-            auto usage= (std::numeric_limits<uinteger>::max)();
-            detail::FunctionTable::Entry* entry= detail::DEFAULT_FUNCTIONS.Custom;
-            while( entry )
-            {
-                if( entry->Type == fTypeId )
-                {
-                    usage= entry->DbgCntInvocations;
-                    break;
-                }
-                entry= entry->Next;
-            }
-            result.emplace_back( &fTypeId, usage );
-        }
-    detail::DbgLockMaps(false);
-
-    return result;
-}
-
-void DbgBoxing::getFunctionTypes( const detail::FunctionTable&                             input,
-                                  std::vector<std::pair<const std::type_info*,uinteger>>&  output  )
-{
-    output.clear();
-    if(input.fHashcode ) output.emplace_back( &typeid( FHashcode         ), input.DbgCntInvocationsFHashcode  );
-    if(input.fClone    ) output.emplace_back( &typeid( FClone            ), input.DbgCntInvocationsFClone     );
-    if(input.fIsNotNull) output.emplace_back( &typeid( FIsNotNull        ), input.DbgCntInvocationsFIsNotNull );
-    if(input.fEquals   ) output.emplace_back( &typeid( FEquals           ), input.DbgCntInvocationsFEquals    );
-    if(input.fIsLess   ) output.emplace_back( &typeid( FIsLess           ), input.DbgCntInvocationsFIsLess    );
-    if(input.fIsTrue   ) output.emplace_back( &typeid( FIsTrue           ), input.DbgCntInvocationsFIsTrue    );
-    if(input.fAppend   ) output.emplace_back( &typeid( FAppend<character>), input.DbgCntInvocationsFAppend    );
-
-    detail::FunctionTable::Entry* entry= input.Custom;
-    while( entry )
-    {
-        output.emplace_back( &entry->Type , entry->DbgCntInvocations );
-        entry= entry->Next;
-    }
 }
 
 
@@ -235,12 +303,12 @@ AString DbgBoxing::DumpFunctions( const std::vector<std::pair<const std::type_in
                                   const String&                                                 headline,
                                   const String&                                                 indent    )
 {
-    AString                 result;
-    StringTable<uinteger>   tmpStrings;
+    AString                            result;
+    MonoAllocator                      allocator(8192);
+    detail::DbgStringTable<uinteger>   tmpStrings( allocator );
 
     // repeat twice to get auto-tabs adjusted
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
         for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
         {
             result.Reset();
@@ -255,7 +323,7 @@ void  DbgBoxing::dumpFunctions( const std::vector<std::pair<const std::type_info
                                 AString&                                                      output,
                                 const String&                                                 headline,
                                 const String&                                                 indent,
-                                strings::util::StringTable<uinteger>&                         tmpStrings )
+                                detail::DbgStringTable<uinteger>&                             tmpStrings )
 {
     String512 buffer;
     tmpStrings.clear();
@@ -273,15 +341,17 @@ void  DbgBoxing::dumpFunctions( const std::vector<std::pair<const std::type_info
     if ( headline.IsNotEmpty() )
         output << headline << NewLine();
 
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::GetDefault();
+    Boxes& args= formatter->Acquire(ALIB_CALLER_PRUNED);
+    args.Add( indent, "{}  {!ATab5}{:>2})\\n", nullptr, '(', nullptr );
     for( auto& nameAndUse : tmpStrings )
-        formatter->Format( output, indent, "{}  {!ATab5}{:>2})\\n",
-                           std::get<0>(nameAndUse), '(',
-                           std::get<1>(nameAndUse) != (std::numeric_limits<uinteger>::max)()
-                            ? Box( std::get<1>(nameAndUse) )
-                            : Box( "No default implementation" )
-                            );
+    {
+        args[2]= std::get<0>(nameAndUse);
+        args[4]= std::get<1>(nameAndUse) != (std::numeric_limits<uinteger>::max)()
+                 ? Box( std::get<1>(nameAndUse) )
+                 : Box( "No default implementation" );
+        formatter->FormatArgs( output, args );
+    }
     formatter->Release();
     output << NewLine();
 }
@@ -293,16 +363,17 @@ void  DbgBoxing::dumpFunctions( const std::vector<std::pair<const std::type_info
 
 AString  DbgBoxing::DumpVTables( bool staticVtables, bool includeFunctions )
 {
-    AString                             result;
-    StringTable<const detail::VTable*>  vtableNames;
+    AString                                        result;
+    MonoAllocator                                  allocator(8192);
 
     // repeat twice to get auto-tabs adjusted
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
 
         for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
         {
-            result.Reset();
+            result      .Reset();
+            allocator   .Reset();
+            detail::DbgStringTable<const detail::VTable*>  vtableNames( allocator );
             dumpVTables( result, vtableNames, staticVtables , includeFunctions );
         }
 
@@ -311,13 +382,12 @@ AString  DbgBoxing::DumpVTables( bool staticVtables, bool includeFunctions )
 }
 
 
-void DbgBoxing::dumpVTables( AString&                                result,
-                             StringTable<const detail::VTable*>&     vtableNames,
-                             bool                                    staticVtables,
-                             bool                                    includeFunctions )
+void DbgBoxing::dumpVTables( AString&                                        result,
+                             detail::DbgStringTable<const detail::VTable*>&  vtableNames,
+                             bool                                            staticVtables,
+                             bool                                            includeFunctions )
 {
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
 
     // dump vtables and their interfaces
     result << ( staticVtables ? A_CHAR("Mapped types with static VTables")
@@ -328,11 +398,11 @@ void DbgBoxing::dumpVTables( AString&                                result,
     (result << ':' << NewLine()) .InsertChars('-', 77) << NewLine();
 
     // Get vtables and add names to string array
-    vtableNames.Clear();
+    vtableNames.clear();
     String1K temp;
     detail::DbgLockMaps(true);
         for( int i= 0 ; i <  2; ++i )
-            for( auto& it : detail::DBG_KNOWN_VTABLES[i] )
+            for( auto& it : ( i == 0 ? detail::DbgKnownVTables : detail::DbgKnownVTablesArray) )
             {
                 if(   (it.second->DbgProduction == (staticVtables ? detail::VTable::DbgFactoryType::Static
                                                                   : detail::VTable::DbgFactoryType::Dynamic ))
@@ -352,8 +422,8 @@ void DbgBoxing::dumpVTables( AString&                                result,
     detail::DbgLockMaps(false);
 
     std::sort( vtableNames.begin(), vtableNames.end(),
-               []   ( StringTable<const detail::VTable*>::ElementType & a,
-                      StringTable<const detail::VTable*>::ElementType & b )
+               []   ( detail::DbgStringTable<const detail::VTable*>::ElementType & a,
+                      detail::DbgStringTable<const detail::VTable*>::ElementType & b )
                {
                     // skip the prepended usage number
                     Substring lhs= std::get<0>(a); lhs.TrimStart().ConsumeToken(' '); lhs.TrimStart();
@@ -362,7 +432,8 @@ void DbgBoxing::dumpVTables( AString&                                result,
                }
             );
 
-    StringTable<uinteger>                                    tempStrings;
+    MonoAllocator allocator(8192);
+    detail::DbgStringTable<uinteger>                         tempStrings( allocator );
     std::vector<std::pair<const std::type_info*,uinteger>>   tempFunctions;
     for( auto& vtable: vtableNames )
     {
@@ -382,23 +453,31 @@ AString  DbgBoxing::DumpAll()
     AString  result;
 
     // Get vtables and add names to string array
-    StringTable<const detail::VTable*>    vtableNames;
+    MonoAllocator                                   allocator(8192);
+
     // repeat twice to get auto-tabs adjusted
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
 
         for( int theSakeOfAutoTabs= 0 ; theSakeOfAutoTabs < 2 ; ++theSakeOfAutoTabs )
         {
-            result.Reset();
+            result   .Reset();
+            allocator.Reset();
+            detail::DbgStringTable<const detail::VTable*>   vtableNames( allocator );
+            detail::DbgStringTable<uinteger>                tempStrings( allocator);
             dumpVTables( result, vtableNames, true , true );     result.NewLine();
             dumpVTables( result, vtableNames, false, true );     result.NewLine();
 
-
-            StringTable<uinteger>   tempStrings;
             auto knownFunctions= GetKnownFunctionTypes();
             (result << "Known Function Declarators And Usage Of Default Implementation:"
                     << NewLine()) .InsertChars('-', 77) << NewLine();
             dumpFunctions( knownFunctions, result, NullString(), A_CHAR("  "), tempStrings );
+
+            #if ALIB_DEBUG_MONOMEM
+                (result << NewLine() << "Metrics Of Custom Function Implementation HashMap: "
+                        << NewLine()) .InsertChars('-', 77) << NewLine();
+                DumpCustomFunctionHashMapMetrics( result, false );
+                result << NewLine();
+            #endif
         }
 
     formatter->Release();
@@ -406,28 +485,11 @@ AString  DbgBoxing::DumpAll()
     return result;
 }
 
-AString&     DbgBoxing::removeNamespaces( AString& string, integer startIndex  )
-{
-    for( auto& search: RemovableNamespaces )
-    {
-        integer idx;
-        while( (idx= string.IndexOf(search, startIndex) ) >= 0 )
-            string.Delete( idx, search.Length() );
-    }
-    return string;
-}
 
-std::vector<aworx::String>   DbgBoxing::RemovableNamespaces
-{
-    A_CHAR( "aworx::lib::boxing::" ),
-    A_CHAR( "aworx::lib::"         ),
-};
-
+#endif // ALIB_TEXT
 
 }}}// namespace [aworx::lib::boxing]
 
-
-#endif // ALIB_DEBUG
-#endif // ALIB_MODULE_STRINGFORMAT
+#endif // ALIB_DEBUG_BOXING
 
 

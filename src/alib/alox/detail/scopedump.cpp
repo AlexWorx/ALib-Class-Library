@@ -6,11 +6,26 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALOX_CORE_SCOPEDUMP)
-    #define HPP_ALIB_LOX_PROPPERINCLUDE
-    #   include "alib/alox/detail/scopedump.inl"
-    #undef HPP_ALIB_LOX_PROPPERINCLUDE
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_ALOX)
+#      include "alib/alox/alox.hpp"
+#   endif
+
+#   define HPP_ALIB_LOX_PROPPERINCLUDE
+#      if !defined (HPP_ALOX_DETAIL_SCOPE)
+#          include "alib/alox/detail/scopestore.inl"
+#      endif
+#      if !defined (HPP_ALOX_DETAIL_SCOPEINFO)
+#          include "alib/alox/detail/scopeinfo.inl"
+#      endif
+#      include "alib/alox/detail/scopedump.inl"
+#   undef HPP_ALIB_LOX_PROPPERINCLUDE
+
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
+
 
 // For code compatibility with ALox Java/C++
 // We have to use underscore as the start of the name and for this have to disable a compiler
@@ -37,10 +52,10 @@ namespace aworx { namespace lib { namespace lox { namespace detail {
 // #################################################################################################
 // template instantiations
 // #################################################################################################
-template   int ScopeDump::writeStore   ( ScopeStore<NAString*                >* store, int indentSpaces );
-template   int ScopeDump::writeStore   ( ScopeStore<Box*                     >* store, int indentSpaces );
-template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NAString, int>* >* store );
-template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NAString, Box>* >* store );
+template   int ScopeDump::writeStore   ( ScopeStore<NString                , true >* store, int indentSpaces );
+template   int ScopeDump::writeStore   ( ScopeStore<PrefixLogable*         , true >* store, int indentSpaces );
+template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NString, int>*, false>* store );
+template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NString, Box>*, false>* store );
 
 // #################################################################################################
 // local helper functions (non members)
@@ -67,7 +82,7 @@ template<typename T> void write(       T*  val, NAString& target )
         target << buffer;
     }
     else
-        target._(*val);
+        target._(*static_cast<Box*>(val));
 }
 } // anonymous namespace
 
@@ -103,17 +118,19 @@ NAString& ScopeDump::storeKeyToScope( String key )
     return targetBuffer;
 }
 
-NAString& ScopeDump::storeThreadToScope( ThreadID threadID )
+#if ALIB_THREADS
+NAString& ScopeDump::storeThreadToScope( threads::ThreadID threadID )
 {
-    auto it= threadDict.find( threadID );
+    auto it= threadDict.Find( threadID );
     if ( it != threadDict.end() )
         return targetBuffer._("[Thread=\"")._( it->second )._("\"]");
 
     return targetBuffer._("[ThreadID=")._( threadID )._(']');
 }
+#endif
 
 template<typename T>
-integer ScopeDump::writeStoreMapHelper( std::map<NAString, T>& map, const NString& prefix )
+integer ScopeDump::writeStoreMapHelper( std::map<NString, T>& map, const NString& prefix )
 {
     for ( auto& it : map )
     {
@@ -141,7 +158,7 @@ integer ScopeDump::writeStoreMapHelper( std::map<NAString, T>& map, const NStrin
 // Interface
 // #################################################################################################
 template<typename T>
-int ScopeDump::writeStoreMap( ScopeStore<T>* store )
+int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
 {
     int cnt= 0;
     bool firstEntry= true;
@@ -153,96 +170,109 @@ int ScopeDump::writeStoreMap( ScopeStore<T>* store )
         maximumKeyLength= writeStoreMapHelper( *store->globalStore, "    " );
     }
 
-    for ( auto& thread : store->threadOuterStore )
+#if ALIB_THREADS
+    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
     {
-        if ( thread.second.size() == 0 )
+        if ( thread->first.first== false )
             continue;
-        ALIB_ASSERT( thread.second.size() == 1 );
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._NC("  Scope::ThreadOuter ");  storeThreadToScope( thread.first )._( ':' ).NewLine();
-        cnt+= static_cast<int>( thread.second[0]->size() );
-        maximumKeyLength= writeStoreMapHelper( *thread.second[0], "    " );
+        targetBuffer._NC("  Scope::ThreadOuter ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
+        cnt+= static_cast<int>( thread->second->size() );
+        maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
+#endif
 
 
     String512 keyStr;
-    typename ScopeStore<T>::LanguageStore::Walker walker( store->languageStore );
-    walker.PathGeneration( Switch::On );
-    walker.SetRecursionDepth(-1);
-    for( walker.SetStart( store->languageStore) ;walker.IsValid() ; walker.Next() )
+    typename ScopeStore<T, false>::LanguageStoreT::RecursiveIterator iterator;
+    iterator.SetSorting( Switch::On );
+    iterator.SetPathGeneration( Switch::On );
+    for( iterator.Initialize( store->languageStore) ; iterator.IsValid() ; iterator.Next() )
     {
-        if( *walker == ScopeStoreType<T>::NullValue() )
+        if( iterator.Node().Value() == ScopeStoreType<T>::NullValue() )
             continue;
-        cnt+= static_cast<int>( (*walker)->size() );
+        cnt+= static_cast<int>( iterator.Node().Value()->size() );
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
         targetBuffer._NC( "  " );
-        storeKeyToScope( walker.GetPath(keyStr) ).NewLine();
-        maximumKeyLength= writeStoreMapHelper( **walker, "    " );
+        storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
+        maximumKeyLength= writeStoreMapHelper( *iterator.Node().Value(), "    " );
     }
 
-    for ( auto& thread : store->threadInnerStore )
+#if ALIB_THREADS
+    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
     {
-        if ( thread.second.size() == 0 )
+        if ( thread->first.first == true )
             continue;
-        ALIB_ASSERT( thread.second.size() == 1 );
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._NC("  Scope::ThreadInner ");  storeThreadToScope( thread.first )._( ':' ).NewLine();
-        cnt+= static_cast<int>( thread.second[0]->size() );
-        maximumKeyLength= writeStoreMapHelper( *thread.second[0], "    " );
+        targetBuffer._NC("  Scope::ThreadInner ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
+        cnt+= static_cast<int>( thread->second->size() );
+        maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
+#endif
     return cnt;
 }
 
 template<typename T>
-int ScopeDump::writeStore( ScopeStore<T>* store, int indentSpaces )
+int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
 {
     int cnt= 0;
-    if ( store->globalStore )
+
+    // global store
+    if ( !ScopeStoreType<T>::IsNull(store->globalStore) )
     {
-        cnt++;
+        ++cnt;
         targetBuffer.InsertChars( ' ', indentSpaces );
         write( store->globalStore, targetBuffer );
         targetBuffer._NC(NFormat::Tab( 25, -1 ) )._NC( "Scope::Global " ).NewLine();
     }
 
-    for ( auto& thread : store->threadOuterStore )
-        for ( auto& it : thread.second )
-        {
-            cnt++;
-            targetBuffer.InsertChars( ' ', indentSpaces );
-            write(it, targetBuffer);
-            targetBuffer._NC( NFormat::Tab( 25, -1 ) )
-                  ._NC( "Scope::ThreadOuter " );
-            storeThreadToScope( thread.first ).NewLine();
-        }
+    // outer thread store
+#if ALIB_THREADS
+    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
+        if( thread->first.first == false )
+            for ( auto& it : thread->second )
+            {
+                ++cnt;
+                targetBuffer.InsertChars( ' ', indentSpaces );
+                write(it, targetBuffer);
+                targetBuffer._NC( NFormat::Tab( 25, -1 ) )
+                      ._NC( "Scope::ThreadOuter " );
+                storeThreadToScope( thread->first.second ).NewLine();
+            }
+#endif
 
+    // language store
     {
         String512 keyStr;
-        typename ScopeStore<T>::LanguageStore::Walker walker( store->languageStore );
-        walker.PathGeneration( Switch::On );
-        walker.SetRecursionDepth(-1);
-        for( walker.SetStart( store->languageStore) ;walker.IsValid() ; walker.Next() )
+        typename ScopeStore<T, true>::LanguageStoreT::RecursiveIterator iterator;
+        iterator.SetSorting( Switch::On );
+        iterator.SetPathGeneration( Switch::On );
+        for( iterator.Initialize( store->languageStore ); iterator.IsValid() ; iterator.Next() )
         {
-            if( *walker == ScopeStoreType<T>::NullValue() )
+            if( iterator.Node().Value() == ScopeStoreType<T>::NullValue() )
                 continue;
-            cnt++;
+            ++cnt;
             targetBuffer.InsertChars( ' ', indentSpaces );
-            write( *walker, targetBuffer );
+            write( iterator.Node().Value(), targetBuffer );
             targetBuffer._NC(NFormat::Tab( 25, -1 ) );
-            storeKeyToScope( walker.GetPath(keyStr) ).NewLine();
+            storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
         }
     }
 
-    for ( auto& thread : store->threadInnerStore )
-        for ( auto& it : thread.second )
-        {
-            cnt++;
-            targetBuffer.InsertChars( ' ', indentSpaces );
-            write(it, targetBuffer);
-            targetBuffer._NC( NFormat::Tab( 25, -1 ) )
-                  ._NC( "Scope::ThreadInner " );
-            storeThreadToScope( thread.first ).NewLine();
-        }
+    // inner thread store
+#if ALIB_THREADS
+    for ( auto thread= store->threadStore.begin() ; thread != store->threadStore.end() ; ++thread )
+        if( thread->first.first == true )
+            for ( auto& it : thread->second )
+            {
+                ++cnt;
+                targetBuffer.InsertChars( ' ', indentSpaces );
+                write(it, targetBuffer);
+                targetBuffer._NC( NFormat::Tab( 25, -1 ) )
+                      ._NC( "Scope::ThreadInner " );
+                storeThreadToScope( thread->first.second ).NewLine();
+            }
+#endif
     return cnt;
 }
 

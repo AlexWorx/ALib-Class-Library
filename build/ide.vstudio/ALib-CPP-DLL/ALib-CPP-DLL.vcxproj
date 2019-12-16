@@ -101,9 +101,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -116,9 +116,9 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -134,9 +134,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -153,9 +153,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO_ON;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -169,25 +169,24 @@
     <ClInclude Include="..\..\..\src\alib\alib_precompile.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\alox.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\aloxmodule.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\alox_console_loggers.hpp" />
-    <ClInclude Include="..\..\..\src\alib\alox\alox_predef.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\detail\logger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\detail\textlogger\plaintextlogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\detail\textlogger\textlogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\loggers\ansilogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\loggers\consolelogger.hpp" />
-    <ClInclude Include="..\..\..\src\alib\alox\loggers\memorylogger.hpp" />
+    <ClInclude Include="..\..\..\src\alib\alox\loggers\monomemlogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\loggers\textfilelogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\loggers\vstudiologger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\logtools.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\reportwriter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\alox\variables.hpp" />
     <ClInclude Include="..\..\..\src\alib\boxing\boxing.hpp" />
     <ClInclude Include="..\..\..\src\alib\boxing\dbgboxing.hpp" />
     <ClInclude Include="..\..\..\src\alib\boxing\enum.hpp" />
     <ClInclude Include="..\..\..\src\alib\boxing\fwds.hpp" />
     <ClInclude Include="..\..\..\src\alib\characters\characters.hpp" />
-    <ClInclude Include="..\..\..\src\alib\characters\characters_predef.hpp" />
     <ClInclude Include="..\..\..\src\alib\characters\chararray.hpp" />
     <ClInclude Include="..\..\..\src\alib\cli\arguments.hpp" />
     <ClInclude Include="..\..\..\src\alib\cli\cli.hpp" />
@@ -201,23 +200,29 @@
     <ClInclude Include="..\..\..\src\alib\compatibility\std_characters.hpp" />
     <ClInclude Include="..\..\..\src\alib\compatibility\std_strings_functional.hpp" />
     <ClInclude Include="..\..\..\src\alib\compatibility\std_strings_iostream.hpp" />
+    <ClInclude Include="..\..\..\src\alib\compatibility\std_typeinfo.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\config.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\configuration.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\inifile.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\inmemoryplugin.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\plugins.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\variable.hpp" />
-    <ClInclude Include="..\..\..\src\alib\enums\enumarithmetical.hpp" />
-    <ClInclude Include="..\..\..\src\alib\enums\enumbitwise.hpp" />
-    <ClInclude Include="..\..\..\src\alib\enums\enumiterators.hpp" />
-    <ClInclude Include="..\..\..\src\alib\enums\enumvalue.hpp" />
+    <ClInclude Include="..\..\..\src\alib\config\variabledecl.hpp" />
+    <ClInclude Include="..\..\..\src\alib\distribution.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\arithmetical.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\bitwise.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\iteratable.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\recordbootstrap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\recordparser.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\records.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\serialization.hpp" />
+    <ClInclude Include="..\..\..\src\alib\enums\underlyingintegral.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\compiler.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\compilerplugin.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\detail\ast.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\detail\parser.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\detail\parser_impl.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\detail\program.hpp" />
-    <ClInclude Include="..\..\..\src\alib\expressions\detail\spirit.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\detail\virtualmachine.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\expression.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\expressions.hpp" />
@@ -231,47 +236,50 @@
     <ClInclude Include="..\..\..\src\alib\expressions\plugins\strings.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\scope.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\util\expressionformatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\alibmodules.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\assert.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\commonenums.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\commonenumsresourced.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\integers.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\module.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\owner.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\plugincontainer.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_compiler.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_features.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_modules.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_platform.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_tmp.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\predef_tools.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\typedemangler.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\typemap.hpp" />
-    <ClInclude Include="..\..\..\src\alib\memory\memoryblocks.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\enummetadata.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\enummetadataspec.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\resourcedtupleloader.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\compilers.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\features.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenumdefs.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenums.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_debug\assert.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_debug\typedemangler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_integers\integers.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\bidilist.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\forwardlist.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\distribution.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\module.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_owner\owner.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\fs_plugins\plugins.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\modules.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\platforms.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\tmp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lib\tools.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\detail\recycler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\hashmap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\hashset.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\hashtable.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\list.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\mastring.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\monoallocator.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\monomem.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\selfcontained.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\stdcontainerma.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\stringtree.hpp" />
+    <ClInclude Include="..\..\..\src\alib\monomem\util\rttrallocator.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\configresourcepool.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\detail\resourcemap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\resources\localresourcepool.hpp" />
     <ClInclude Include="..\..\..\src\alib\resources\resources.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\resourcestring.hpp" />
     <ClInclude Include="..\..\..\src\alib\results\exception.hpp" />
     <ClInclude Include="..\..\..\src\alib\results\iclonemessageargument.hpp" />
     <ClInclude Include="..\..\..\src\alib\results\message.hpp" />
     <ClInclude Include="..\..\..\src\alib\results\report.hpp" />
     <ClInclude Include="..\..\..\src\alib\results\results.hpp" />
+    <ClInclude Include="..\..\..\src\alib\singletons\dbgsingletons.hpp" />
     <ClInclude Include="..\..\..\src\alib\singletons\singleton.hpp" />
-    <ClInclude Include="..\..\..\src\alib\singletons\singletons_predef.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\formatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\formatterjavastyle.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\formatterpythonstyle.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\formatterstdimpl.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\fwds.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\propertyformatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\propertyformatters.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\stringformat.hpp" />
-    <ClInclude Include="..\..\..\src\alib\stringformat\text.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\astring.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\cstring.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\detail\numberconversion.hpp" />
+    <ClInclude Include="..\..\..\src\alib\strings\format.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\fwds.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\localstring.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\numberformat.hpp" />
@@ -281,8 +289,6 @@
     <ClInclude Include="..\..\..\src\alib\strings\util\autosizes.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\regexmatcher.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\spaces.hpp" />
-    <ClInclude Include="..\..\..\src\alib\strings\util\stringtree.hpp" />
-    <ClInclude Include="..\..\..\src\alib\strings\util\stringtuples.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\subsearch.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\token.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\tokenizer.hpp" />
@@ -293,6 +299,15 @@
     <ClInclude Include="..\..\..\src\alib\system\environment.hpp" />
     <ClInclude Include="..\..\..\src\alib\system\processinfo.hpp" />
     <ClInclude Include="..\..\..\src\alib\system\system.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\formatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\formatterjavastyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\formatterpythonstyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\formatterstdimpl.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\fwds.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\paragraphs.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\propertyformatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\propertyformatters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\text\text.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\smartlock.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\thread.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\threadlock.hpp" />
@@ -304,8 +319,9 @@
     <ClInclude Include="..\..\..\src\alib\time\time.hpp" />
     <ClInclude Include="..\..\..\src\alib\time\timepointbase.hpp" />
     <ClInclude Include="targetver.h" />
-    <ClCompile Include="..\..\..\src\alib\alox\alox.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\aloxmodule.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\domain.cpp" />
+    <ClCompile Include="..\..\..\src\alib\alox\detail\loxpimpl.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\scopedump.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\scopeinfo.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\scopestore.cpp" />
@@ -318,9 +334,8 @@
     <ClCompile Include="..\..\..\src\alib\alox\loggers\vstudiologger.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\loggers\windowsconsolelogger.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\logtools.cpp" />
-    <ClCompile Include="..\..\..\src\alib\alox\lox.cpp" />
-    <ClCompile Include="..\..\..\src\alib\alox\lox_getstate.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\reportwriter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\boxing\boxes.cpp" />
     <ClCompile Include="..\..\..\src\alib\boxing\boxing.cpp" />
     <ClCompile Include="..\..\..\src\alib\boxing\dbgboxing.cpp" />
     <ClCompile Include="..\..\..\src\alib\boxing\detail\vtable.cpp" />
@@ -336,12 +351,12 @@
     <ClCompile Include="..\..\..\src\alib\config\inmemoryplugin.cpp" />
     <ClCompile Include="..\..\..\src\alib\config\plugins.cpp" />
     <ClCompile Include="..\..\..\src\alib\config\variable.cpp" />
+    <ClCompile Include="..\..\..\src\alib\enums\records.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\compiler.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\detail\ast.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\detail\parser.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\detail\parser_impl.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\detail\program.cpp" />
-    <ClCompile Include="..\..\..\src\alib\expressions\detail\spirit.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\detail\virtualmachine.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\expression.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\expressions.cpp" />
@@ -353,25 +368,19 @@
     <ClCompile Include="..\..\..\src\alib\expressions\plugins\math.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\plugins\strings.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\util\expressionformatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\alibmodules.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\assert.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\module.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\typedemangler.cpp" />
-    <ClCompile Include="..\..\..\src\alib\memory\memoryblocks.cpp" />
-    <ClCompile Include="..\..\..\src\alib\resources\enummetadata.cpp" />
-    <ClCompile Include="..\..\..\src\alib\resources\resources.cpp" />
-    <ClCompile Include="..\..\..\src\alib\resources\resourcestring.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\alib.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\fs_debug\assert.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\fs_debug\typedemangler.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\distribution.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\module.cpp" />
+    <ClCompile Include="..\..\..\src\alib\monomem\detail\hashtablebase.cpp" />
+    <ClCompile Include="..\..\..\src\alib\monomem\monoallocator.cpp" />
+    <ClCompile Include="..\..\..\src\alib\resources\configresourcepool.cpp" />
+    <ClCompile Include="..\..\..\src\alib\resources\localresourcepool.cpp" />
     <ClCompile Include="..\..\..\src\alib\results\exception.cpp" />
     <ClCompile Include="..\..\..\src\alib\results\report.cpp" />
     <ClCompile Include="..\..\..\src\alib\results\results.cpp" />
     <ClCompile Include="..\..\..\src\alib\singletons\singleton.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\formatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\formatterjavastyle.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\formatterpythonstyle.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\formatterstdimpl.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\propertyformatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\stringformat.cpp" />
-    <ClCompile Include="..\..\..\src\alib\stringformat\text.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\appendables.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\astring.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\detail\numberconversion.cpp" />
@@ -385,12 +394,18 @@
     <ClCompile Include="..\..\..\src\alib\strings\util\token.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\util\tokenizer.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\util\wildcardmatcher.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\calendar.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\console.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\directory.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\environment.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp" />
     <ClCompile Include="..\..\..\src\alib\system\system.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\formatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\formatterjavastyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\formatterpythonstyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\formatterstdimpl.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\paragraphs.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\propertyformatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\text\text.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\smartlock.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\thread.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\threadlock.cpp" />
@@ -427,7 +442,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\src\alib\alox\detail\domain.inl" />
-    <None Include="..\..\..\src\alib\alox\detail\logger.inl" />
+    <None Include="..\..\..\src\alib\alox\detail\loxpimpl.inl" />
     <None Include="..\..\..\src\alib\alox\detail\scopedump.inl" />
     <None Include="..\..\..\src\alib\alox\detail\scopeinfo.inl" />
     <None Include="..\..\..\src\alib\alox\detail\scopestore.inl" />
@@ -442,6 +457,8 @@
     <None Include="..\..\..\src\alib\boxing\functions.inl" />
     <None Include="..\..\..\src\alib\boxing\placeholder.inl" />
     <None Include="..\..\..\src\alib\boxing\typetraits.inl" />
+    <None Include="..\..\..\src\alib\monomem\detail\hashtablebase.inl" />
+    <None Include="..\..\..\src\alib\monomem\detail\stringtreebase.inl" />
     <None Include="..\..\..\src\alib\strings\appendables.inl" />
     <None Include="..\..\..\src\alib\strings\chararraytraits.inl" />
     <None Include="..\..\..\src\alib\system\directory.mm" />

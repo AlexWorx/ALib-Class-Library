@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_time of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_STOPWATCH
 #define HPP_ALIB_TIME_STOPWATCH 1
 
@@ -42,7 +43,6 @@ class StopWatch
         /** ****************************************************************************************
          *  Creates a started StopWatch.
          ******************************************************************************************/
-        inline
         StopWatch  ()
         : startTime()
         , sum()
@@ -53,7 +53,7 @@ class StopWatch
          * Provides access to the internal start time.
          * @return    The start time
          ******************************************************************************************/
-        inline Ticks&       GetStartTime()
+        Ticks&       GetStartTime()
         {
             return startTime;
         }
@@ -63,7 +63,7 @@ class StopWatch
          * This affects both, the reference value for the calculation of this StopWatch's age in
          * subsequent calls, as well as subsequent sample time spans.
          ******************************************************************************************/
-        inline void         Start()
+        void         Start()
         {
             startTime= Ticks::Now();
         }
@@ -72,12 +72,12 @@ class StopWatch
          *  Sets the internal value to current system time and clears existing sum and quantity of
          *  samples.
          ******************************************************************************************/
-        inline void         Reset()
+        void         Reset()
         {
             sum= Ticks::Duration::FromNanoseconds(0);
             cntSamples= 0;
-            min= std::numeric_limits<Ticks::Duration>::max();
-            max= std::numeric_limits<Ticks::Duration>::min();
+            min= (std::numeric_limits<Ticks::Duration>::max)();
+            max= (std::numeric_limits<Ticks::Duration>::min)();
 
             Start();
         }
@@ -92,13 +92,13 @@ class StopWatch
          * @return The time difference between the current system time and the internal
          *         reference value.
          ******************************************************************************************/
-        inline Ticks::Duration Sample()
+        Ticks::Duration Sample()
         {
             Ticks::Duration sample= startTime.Age();
             sum+= sample;
             if( min > sample ) min= sample;
             if( max < sample ) max= sample;
-            cntSamples++;
+            ++cntSamples;
             startTime= Ticks::Now();
 
             return sample;
@@ -109,7 +109,10 @@ class StopWatch
          * invoked.
          * @return    The number of samples.
          ******************************************************************************************/
-        inline int              GetSampleCnt()  const   { return cntSamples; }
+        int              GetSampleCnt()                                                        const
+        {
+            return cntSamples;
+        }
 
         /** ****************************************************************************************
          * Returns the cumulated time of all samples taken since this instance was created or
@@ -117,7 +120,10 @@ class StopWatch
          *
          * @return  The cumulated measured time.
          ******************************************************************************************/
-        inline Ticks::Duration  GetCumulated()  const   { return sum; }
+        Ticks::Duration  GetCumulated()                                                        const
+        {
+            return sum;
+        }
 
         /** ****************************************************************************************
          * Returns the average time of all samples since this instance was created or reset.
@@ -125,7 +131,7 @@ class StopWatch
          *
          * @return  The cumulated measured time.
          ******************************************************************************************/
-        inline Ticks::Duration  GetAverage()    const
+        Ticks::Duration  GetAverage()                                                          const
         {
             return cntSamples== 0 ? Ticks::Duration()
                                   : ( sum / static_cast<int64_t>(cntSamples) );
@@ -138,7 +144,7 @@ class StopWatch
          *
          * @return  The minimum measured duration.
          ******************************************************************************************/
-        inline Ticks::Duration  GetMinimum()    const
+        Ticks::Duration  GetMinimum()                                                          const
         {
             return min;
         }
@@ -150,7 +156,7 @@ class StopWatch
          *
          * @return  The maximum measured duration.
          ******************************************************************************************/
-        inline Ticks::Duration  GetMaximum()    const
+        Ticks::Duration  GetMaximum()                                                          const
         {
             return max;
         }
@@ -159,7 +165,7 @@ class StopWatch
 }} // namespace lib::time
 
 /// Type alias in namespace #aworx.
-using     StopWatch=            aworx::lib::time::StopWatch;
+using     StopWatch=            lib::time::StopWatch;
 
 }  // namespace [aworx]
 

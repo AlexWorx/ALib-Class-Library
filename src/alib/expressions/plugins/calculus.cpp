@@ -6,18 +6,347 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#   include "alib/expressions/plugins/calculus.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
+#      include "alib/expressions/plugins/calculus.hpp"
+#   endif
 
+#   if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
+#      include "alib/compatibility/std_boxing_functional.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
+
+ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
 namespace aworx { namespace lib { namespace expressions {  namespace plugins {
 
 constexpr Calculus::CTInvokable Calculus::CTI;
 constexpr Calculus::CTInvokable Calculus::ETI;
 
+
 // #################################################################################################
-// Identifiers operators
+// Operator setup helpers (unary and binary)
+// #################################################################################################
+void Calculus::AddOperator     ( const String&      op,
+                                 Type               lhsType,
+                                 Type               rhsType,
+                                 CallbackDecl       callback,
+                                 #if ALIB_DEBUG
+                                    const char*     dbgCallbackName,
+                                 #endif
+                                 Type               resultType,
+                                 CTInvokable        cti                )
+{
+    #if ALIB_DEBUG
+        auto result=
+        Operators.EmplaceIfNotExistent(
+                    OperatorKey { op, lhsType.TypeID(), rhsType.TypeID() },
+                    std::make_tuple( callback, resultType, cti  ALIB_DBG(, dbgCallbackName) ) );
+
+        ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+                           "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\\n"
+                           "                                           and {!Q<>} (aka {}).",
+                           op, Cmplr.TypeName( lhsType ), lhsType.TypeID(),
+                               Cmplr.TypeName( rhsType ), rhsType.TypeID()  )
+    #else
+        Operators.EmplaceUnique(
+                    OperatorKey { op, lhsType.TypeID(), rhsType.TypeID() },
+                    std::make_tuple( callback, resultType, cti  ALIB_DBG(, dbgCallbackName) ) );
+    #endif
+}
+
+void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
+{
+    Operators.Reserve( Operators.Size() + static_cast<integer>(length) );
+    ALIB_DBG( auto actBucketCount= Operators.BucketCount(); )
+
+    #define OP         std::get<0>( *(table + i) )
+    #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
+    #define RHS_TYPE   std::get<2>( *(table + i) ).TypeID()
+    #define CBFUNC     std::get<3>( *(table + i) )
+    #define RESULTTYPE std::get<ALIB_REL_DBG(4,5)>( *(table + i) )
+    #define CTINVOKE   std::get<ALIB_REL_DBG(5,6)>( *(table + i) )
+
+    for( size_t i= 0 ; i < length ; ++i )
+    {
+        #if ALIB_DEBUG
+            auto result=
+            Operators.EmplaceIfNotExistent(
+                        OperatorKey { OP, LHS_TYPE, RHS_TYPE },
+                        std::make_tuple( CBFUNC, RESULTTYPE, CTINVOKE
+                                           ALIB_DBG(, std::get<4>( *(table + i) ))   ) );
+
+            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+                       "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\\n"
+                       "                                           and {!Q<>} (aka {}).",
+                           OP, Cmplr.TypeName(std::get<1>( *(table+i))), LHS_TYPE,
+                               Cmplr.TypeName(std::get<2>( *(table+i))), RHS_TYPE      )
+        #else
+            Operators.EmplaceUnique(
+                        OperatorKey { OP, LHS_TYPE, RHS_TYPE },
+                        std::make_tuple( CBFUNC, RESULTTYPE, CTINVOKE
+                                           ALIB_DBG(, std::get<4>( *(table + i) ))   ) );
+        #endif
+
+    }
+
+    ALIB_ASSERT_ERROR( actBucketCount == Operators.BucketCount(),
+                       "This is rather an internal error of HashTable: The number of buckets "
+                       "of hash map 'Operators' increased, although it was reserved above." )
+
+    #undef OP
+    #undef LHS_TYPE
+    #undef RHS_TYPE
+    #undef CBFUNC
+    #undef RESULTTYPE
+    #undef CTINVOKE
+}
+
+void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const String& op )
+{
+    #if ALIB_DEBUG
+        auto result=
+        OperatorAliases.EmplaceIfNotExistent( OperatorKey { alias, lhs.TypeID(), rhs.TypeID() },
+                                              op );
+
+        ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\\n"
+                                                                            "and {!Q<>} (aka {}).",
+                           alias, Cmplr.TypeName( lhs ), lhs.TypeID(),
+                                  Cmplr.TypeName( rhs ), rhs.TypeID()                              )
+    #else
+        OperatorAliases.EmplaceUnique( OperatorKey { alias, lhs.TypeID(), rhs.TypeID() },
+                                       op );
+    #endif
+}
+
+void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length )
+{
+    OperatorAliases.Reserve( OperatorAliases.Size() + static_cast<integer>( length ) );
+
+    #define ALIAS      std::get<0>( *(table + i) )
+    #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
+    #define RHS_TYPE   std::get<2>( *(table + i) ).TypeID()
+    #define OP         std::get<3>( *(table + i) )
+
+    for( size_t i= 0 ; i < length ; ++i )
+    {
+        #if ALIB_DEBUG
+            auto result=
+            OperatorAliases.EmplaceIfNotExistent( OperatorKey { ALIAS, LHS_TYPE, RHS_TYPE },  OP );
+
+            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\\n"
+                                                                            "and {!Q<>} (aka {}).",
+                           ALIAS,   Cmplr.TypeName( std::get<1>( *(table + i) ) ), LHS_TYPE,
+                                    Cmplr.TypeName( std::get<2>( *(table + i) ) ), RHS_TYPE       )
+        #else
+            OperatorAliases.EmplaceUnique( OperatorKey { ALIAS, LHS_TYPE, RHS_TYPE },
+                                           OP );
+        #endif
+    }
+
+    #undef ALIAS
+    #undef LHS_TYPE
+    #undef RHS_TYPE
+    #undef OP
+}
+
+// #################################################################################################
+// Unary operators
+// #################################################################################################
+bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
+{
+    Box& arg= ciUnaryOp.CompileTimeScope.Stack[0];
+    OperatorKey key     =  { ciUnaryOp.Operator, arg.TypeID(), typeid(void) };
+    auto        hashCode=  OperatorKey::Hash()( key );
+
+    // search alias first
+    {
+        auto aliasIt= OperatorAliases.Find( key, hashCode );
+        if( aliasIt != OperatorAliases.end() )
+            ciUnaryOp.Operator= aliasIt.Mapped();
+    }
+
+
+    // search callback
+    auto opIt= Operators.Find( key, hashCode );
+    if( opIt == Operators.end() )
+        return false;
+
+    auto& op= opIt.Mapped();
+
+    // for constants, the callback might b invoked right away (optimizing cal out)
+    if( ciUnaryOp.ArgIsConst && std::get<2>(op) )
+    {
+        // calculate constant value
+        ciUnaryOp.TypeOrValue=  std::get<0>(op)( ciUnaryOp.CompileTimeScope,
+                                                          ciUnaryOp.ArgsBegin,
+                                                          ciUnaryOp.ArgsEnd           );
+ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
+        ALIB_ASSERT_ERROR(ciUnaryOp.TypeOrValue.IsSameType(std::get<1>(op)),
+                          "Type mismatch in definition of unary operator {!Q} ({}) in plugin {!Q}.\\n"
+                          "                    Type specified: {!Q<>} (aka {})\\n"
+                          "         Type returned by callback: {!Q<>} (aka {})",
+                          ciUnaryOp.Operator, ciUnaryOp.DbgCallbackName, CompilerPlugin::Name,
+                          CompilerPlugin::Cmplr.TypeName(std::get<1>(op)),
+                          std::get<1>(op).TypeID(),
+                          CompilerPlugin::Cmplr.TypeName(ciUnaryOp.TypeOrValue),
+                          ciUnaryOp.TypeOrValue.TypeID()                                   )
+        return true;
+    }
+    ciUnaryOp.Callback       = std::get<0>(op);
+    ciUnaryOp.TypeOrValue    = std::get<1>(op);
+ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
+
+    return true;
+}
+
+// #################################################################################################
+// Binary operators
+// #################################################################################################
+
+void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length )
+{
+    BinaryOperatorOptimizations.Reserve(   BinaryOperatorOptimizations.Size()
+                                         + static_cast<integer>(length) );
+
+    #define OP         std::get<0>( *(table + i) )
+    #define SIDE       std::get<1>( *(table + i) )
+    #define CONSTVAL   std::get<2>( *(table + i) )
+    #define CONSTTYPE  std::get<2>( *(table + i) ).TypeID()
+    #define OTHERBOX   std::get<3>( *(table + i) )
+    #define OTHERTYPE  std::get<3>( *(table + i) ).TypeID()
+    #define RESULT     std::get<4>( *(table + i) )
+
+    for( size_t i= 0 ; i < length ; ++i )
+    {
+        #if ALIB_DEBUG
+            auto result=
+                BinaryOperatorOptimizations.EmplaceIfNotExistent( BinOpOptKey { OP, SIDE, CONSTVAL, OTHERTYPE },  RESULT );
+
+            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+               "Optimization already defined for operator {!Q} with {!Lower}-hand "
+               "constant value {!Q} of type {!Q<>} (aka {}) and with "
+               "{!L}-hand type {!Q<>} (aka {}).",
+               OP, SIDE, CONSTVAL,                            Cmplr.TypeName(CONSTVAL), CONSTTYPE,
+               SIDE == Side::Left ? Side::Right : Side::Left, Cmplr.TypeName(OTHERBOX), OTHERTYPE  )
+        #else
+            BinaryOperatorOptimizations.EmplaceUnique( BinOpOptKey { OP, SIDE, CONSTVAL, OTHERTYPE },
+                                                       RESULT );
+        #endif
+    }
+
+    #undef OP
+    #undef TYPE
+    #undef CONSTVAL
+    #undef RESULT
+}
+
+
+bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
+{
+    Box& lhs= * ciBinaryOp.ArgsBegin;
+    Box& rhs= *(ciBinaryOp.ArgsBegin + 1);
+
+    OperatorKey key     =  { ciBinaryOp.Operator, lhs.TypeID(), rhs.TypeID() };
+    auto        hashCode=  OperatorKey::Hash()( key );
+
+    // search alias first
+    if(    ciBinaryOp.Operator == A_CHAR("=")
+        && HasBits( Cmplr.CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator ) )
+    {
+        ciBinaryOp.Operator= A_CHAR("==");
+    }
+    else
+    {
+        auto aliasIt =  OperatorAliases.Find( key, hashCode );
+        if(  aliasIt != OperatorAliases.end() )
+            ciBinaryOp.Operator= aliasIt.Mapped();
+    }
+
+    #define     CBFUNC        std::get<0>(op)
+    #define     RESULTTYPE    std::get<1>(op)
+    #define     CT_INVOKABLE  std::get<2>(op)
+    #if ALIB_DEBUG
+    #   define  DBG_CB_NAME   std::get<3>(op)
+    #endif
+
+// search callback
+    auto opIt =  Operators.Find( key, hashCode );
+    if(  opIt == Operators.end() )
+        return false;
+
+    auto& op= opIt.Mapped();
+
+    // if both are constant, the callback might be invoked right away (optimizing the call out)
+    if( ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst )
+    {
+        if( CT_INVOKABLE )
+        {
+            // calculate constant value
+            ciBinaryOp.TypeOrValue=  CBFUNC  ( ciBinaryOp.CompileTimeScope,
+                                               ciBinaryOp.ArgsBegin,
+                                               ciBinaryOp.ArgsEnd           );
+ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                                    )
+            ALIB_ASSERT_ERROR(ciBinaryOp.TypeOrValue.IsSameType(RESULTTYPE),
+                              "Type mismatch in definition of binary operator {!Q} ({}) of plugin {!Q}.\\n"
+                              "                    Type specified: {!Q<>} (aka {})\\n"
+                              "         Type returned by callback: {!Q<>} (aka {})",
+                              ciBinaryOp.Operator, ciBinaryOp.DbgCallbackName, CompilerPlugin::Name,
+                              CompilerPlugin::Cmplr.TypeName(RESULTTYPE            ),
+                                                             RESULTTYPE            .TypeID(),
+                              CompilerPlugin::Cmplr.TypeName(ciBinaryOp.TypeOrValue),
+                                                             ciBinaryOp.TypeOrValue.TypeID() )
+            return true;
+        }
+    }
+
+
+    // if one is constant, we may find an entry in BinaryOpConsL/RHSOptimizations
+    else if( ciBinaryOp.LhsIsConst || ciBinaryOp.RhsIsConst )
+    {
+        auto& nonConstType= (ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin + 1 )
+                                                   :  *(ciBinaryOp.ArgsBegin     ) ).TypeID();
+        auto& constValue=    ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin     )
+                                                   :  *(ciBinaryOp.ArgsBegin + 1 );
+
+        auto entryIt= BinaryOperatorOptimizations.Find( { ciBinaryOp.Operator,
+                                                          ciBinaryOp.RhsIsConst ? Side::Right : Side::Left,
+                                                          constValue,
+                                                          nonConstType
+                                                         } );
+        if( entryIt  != BinaryOperatorOptimizations.end() )
+        {
+            // found! If it is an unset box, this tells us, that the result is the other side
+            // (identity operation). Otherwise it is a constant.
+            if( entryIt.Mapped().IsType<void>() )
+                ciBinaryOp.NonConstArgIsResult= true;
+            else
+                ciBinaryOp.TypeOrValue        = entryIt.Mapped();
+            return true;
+        }
+    }
+
+
+    ciBinaryOp.Callback       = CBFUNC;
+    ciBinaryOp.TypeOrValue    = RESULTTYPE;
+ALIB_DBG(
+    ciBinaryOp.DbgCallbackName= DBG_CB_NAME; )
+    return true;
+
+
+    #undef CBFUNC
+    #undef RESULTTYPE
+    #undef CT_INVOKABLE
+    #if ALIB_DEBUG
+    #undef DBG_CB_NAME
+    #endif
+}
+
+
+// #################################################################################################
+// Functions
 // #################################################################################################
 bool Calculus::TryCompilation( CIFunction& ciFunction )
 {
@@ -32,12 +361,12 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             {
                 // check for wrong parentheses
                 if(     ciFunction.NoParentheses
-                    && !EnumContains(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
+                    && !HasBits(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
                     throw Exception( ALIB_CALLER_NULLED, Exceptions::MissingFunctionParentheses,
                                      entry.Descriptor );
 
                 if(    !ciFunction.NoParentheses
-                    && !EnumContains(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
+                    && !HasBits(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
                     throw Exception( ALIB_CALLER_NULLED, Exceptions::IdentifierWithFunctionParentheses,
                                      entry.Descriptor );
 
@@ -63,7 +392,7 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
                                                || entry.Signature[entry.SignatureLength - 1]->IsType<void>() ) )
             {
                 isVariadic= true;
-                qtyRequired--;
+                --qtyRequired;
             }
 
             size_t qtyShared     = (std::min)( qtyGiven, qtyRequired );
@@ -76,11 +405,13 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
                 || ( isVariadic ? qtyGiven <  qtyRequired
                                 : qtyGiven != qtyRequired )         )
             {
-                ciFunction.FunctionsWithNonMatchingArguments.emplace_back( entry.Descriptor );
+                String256 buffer( entry.Descriptor );
                 if( qtyRequired )
                     Cmplr.WriteFunctionSignature( entry.Signature,
                                                   entry.SignatureLength,
-                                                  ciFunction.FunctionsWithNonMatchingArguments.back() );
+                                                  buffer );
+                ciFunction.AddFunctionsWithNonMatchingArguments( buffer );
+
                 // search next
                 continue;
             }
@@ -88,13 +419,13 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             // check for wrong parentheses
             if(     ciFunction.NoParentheses
                 &&  entry.Signature != nullptr
-                && !EnumContains(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
+                && !HasBits(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::MissingFunctionParentheses,
                                  entry.Descriptor );
 
             if(    !ciFunction.NoParentheses
                 &&  entry.Signature == nullptr
-                && !EnumContains(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
+                && !HasBits(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::IdentifierWithFunctionParentheses,
                                  entry.Descriptor );
 
@@ -119,8 +450,8 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
                                                               ciFunction.ArgsEnd           );
                 ALIB_ASSERT_ERROR(ciFunction.TypeOrValue.IsSameType(*entry.ResultType),
                                   "Type mismatch in definition of function {!Q} ({}) in plugin {!Q}.\\n"
-                                  "                    Type specified: <{}> (aka {})\\n"
-                                  "         Type returned by callback: <{}> (aka {})",
+                                  "                    Type specified: {!Q<>} (aka {})\\n"
+                                  "         Type returned by callback: {!Q<>} (aka {})",
                                   entry.Descriptor, entry.DbgCallbackName, CompilerPlugin::Name,
                                   CompilerPlugin::Cmplr.TypeName(*entry.ResultType),
                                                                   entry.ResultType->TypeID(),
@@ -139,399 +470,6 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
 
     return false;
 }
-
-
-
-// #################################################################################################
-// Unary operators
-// #################################################################################################
-void Calculus::AddUnaryOp  ( const String&      op,
-                             Type               argType,
-                             CallbackDecl       callback,
-                             #if ALIB_DEBUG
-                                const char*     dbgCallbackName,
-                             #endif
-                             Type               resultType,
-                             CTInvokable        cti              )
-{
-    auto& map=  UnaryOpMap[op];
-    ALIB_ASSERT_ERROR( map.find( argType.TypeID() ) == map.end(),
-                       "Unary operator '{}' already defined for type <{}> (aka {}).",
-                       op, Cmplr.TypeName( argType ), argType.TypeID()    )
-
-    map[argType.TypeID()]=  std::make_tuple( callback, resultType, cti  ALIB_DBG(, dbgCallbackName) );
-}
-
-void Calculus::AddUnaryOps( UnaryOpTableEntry* table, size_t length )
-{
-
-    #define OP         std::get<0>( *(table + i) )
-    #define TYPE       std::get<1>( *(table + i) ).TypeID()
-    #define CBFUNC     std::get<2>( *(table + i) )
-    #define RESULTTYPE std::get<ALIB_REL_DBG(3,4)>( *(table + i) )
-    #define CTINVOKE   std::get<ALIB_REL_DBG(4,5)>( *(table + i) )
-    for( size_t i= 0 ; i < length ; ++i )
-    {
-        auto& map=  UnaryOpMap[OP];
-        ALIB_ASSERT_ERROR( map.find( TYPE ) == map.end(),
-                           "Unary operator '{}' already defined for type <{}> (aka {}).",
-                           OP, Cmplr.TypeName( std::get<1>( *(table + i) ) ),
-                                               std::get<1>( *(table + i) ).TypeID()    )
-
-        map[TYPE] =  std::make_tuple( CBFUNC,
-                                      RESULTTYPE,
-                                      CTINVOKE
-                           ALIB_DBG(, std::get<3>(*(table + i)))            );
-
-    }
-    #undef OP
-    #undef TYPE
-    #undef CBFUNC
-    #undef RESULTTYPE
-    #undef CTINVOKE
-}
-
-void Calculus::AddUnaryOpAlias  ( const String& alias, Type argType, const String& op )
-{
-    auto& map=  UnaryOpAliases[alias];
-    ALIB_ASSERT_ERROR( map.find( argType.TypeID() ) == map.end(),
-                       "Unary operator alias '{}' already defined for type <{}> (aka {}).",
-                       alias, Cmplr.TypeName(argType), argType.TypeID()    );
-    map[argType.TypeID()]= op;
-}
-
-void Calculus::AddUnaryOpAliases( UnaryOpAliasTableEntry* table, size_t length )
-{
-    if( length == 0 )
-        return;
-
-    #define ALIAS       std::get<0>( *(table + i) )
-    #define ARG_TYPE    std::get<1>( *(table + i) ).TypeID()
-    #define OP          std::get<2>( *(table + i) )
-
-    size_t i= 0;
-    do
-    {
-        const String& alias= ALIAS;
-        auto& map=  UnaryOpAliases[alias];
-        do
-        {
-            ALIB_ASSERT_ERROR( map.find( ARG_TYPE ) == map.end(),
-                               "Unary operator alias '{}' already defined for type <{}> (aka {}).",
-                               alias, Cmplr.TypeName(std::get<1>( *(table + i) )), ARG_TYPE   )
-            map[ARG_TYPE]= OP ;
-        }
-        while( ++i < length && ALIAS == alias );
-    }
-    while( i < length );
-
-    #undef OP
-    #undef ARG_TYPE
-    #undef ALIAS
-
-}
-
-bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
-{
-    Box& arg= ciUnaryOp.CompileTimeScope.Stack[0];
-
-    // search alias first
-    {
-        auto it1= UnaryOpAliases.find( ciUnaryOp.Operator );
-        if( it1 != UnaryOpAliases.end() )
-        {
-            auto it2= it1->second.find( arg.TypeID() );
-            if( it2 != it1->second.end() )
-            {
-                ciUnaryOp.Operator= it2->second;
-            }
-        }
-    }
-
-    // search callback
-    auto it1= UnaryOpMap.find( ciUnaryOp.Operator );
-    if( it1 != UnaryOpMap.end() )
-    {
-        auto it2= it1->second.find( arg.TypeID() );
-        if( it2 != it1->second.end() )
-        {
-            // for constants, the callback might b invoked right away (optimizing cal out)
-            if( ciUnaryOp.ArgIsConst && std::get<2>(it2->second) )
-            {
-                // calculate constant value
-                ciUnaryOp.TypeOrValue=  std::get<0>(it2->second)( ciUnaryOp.CompileTimeScope,
-                                                                  ciUnaryOp.ArgsBegin,
-                                                                  ciUnaryOp.ArgsEnd           );
-       ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(it2->second);)
-                ALIB_ASSERT_ERROR(ciUnaryOp.TypeOrValue.IsSameType(std::get<1>(it2->second)),
-                                  "Type mismatch in definition of unary operator {!Q} ({}) in plugin {!Q}.\\n"
-                                  "                    Type specified: <{}> (aka {})\\n"
-                                  "         Type returned by callback: <{}> (aka {})",
-                                  ciUnaryOp.Operator, ciUnaryOp.DbgCallbackName, CompilerPlugin::Name,
-                                  CompilerPlugin::Cmplr.TypeName(std::get<1>(it2->second)),
-                                  std::get<1>(it2->second).TypeID(),
-                                  CompilerPlugin::Cmplr.TypeName(ciUnaryOp.TypeOrValue),
-                                  ciUnaryOp.TypeOrValue.TypeID()                                   )
-                return true;
-            }
-            ciUnaryOp.Callback       = std::get<0>(it2->second);
-            ciUnaryOp.TypeOrValue    = std::get<1>(it2->second);
-   ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(it2->second);)
-            return true;
-        }
-    }
-
-    // not found
-    return false;
-}
-
-// #################################################################################################
-// Binary operators
-// #################################################################################################
-void Calculus::AddBinaryOp     ( const String&      op,
-                                 Type               lhsType,
-                                 Type               rhsType,
-                                 CallbackDecl       callback,
-                                 #if ALIB_DEBUG
-                                    const char*     dbgCallbackName,
-                                 #endif
-                                 Type               resultType,
-                                 CTInvokable        cti                )
-{
-    auto& map= BinaryOpMap[op][lhsType.TypeID()];
-    ALIB_ASSERT_ERROR( map.find( rhsType.TypeID() ) == map.end(),
-                       "Binary operator '{}' already defined for types <{}> (aka {})\\n"
-                       "                                           and <{}> (aka {}).",
-                       op, Cmplr.TypeName( lhsType ), lhsType.TypeID(),
-                           Cmplr.TypeName( rhsType ), rhsType.TypeID()  );
-    map[rhsType.TypeID()]= std::make_tuple( callback, resultType, cti  ALIB_DBG(, dbgCallbackName) );
-
-}
-
-void Calculus::AddBinaryOps( BinaryOpTableEntry* table, size_t length )
-{
-    #define OP         std::get<0>( *(table + i) )
-    #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
-    #define RHS_TYPE   std::get<2>( *(table + i) ).TypeID()
-    #define CBFUNC     std::get<3>( *(table + i) )
-    #define RESULTTYPE std::get<ALIB_REL_DBG(4,5)>( *(table + i) )
-    #define CTINVOKE   std::get<ALIB_REL_DBG(5,6)>( *(table + i) )
-
-    for( size_t i= 0 ; i < length ; ++i )
-    {
-        auto& map= BinaryOpMap[OP][LHS_TYPE];
-        ALIB_ASSERT_ERROR( map.find( RHS_TYPE ) == map.end(),
-                       "Binary operator '{}' already defined for types <{}> (aka {})\\n"
-                       "                                           and <{}> (aka {}).",
-                           OP, Cmplr.TypeName(std::get<1>( *(table+i))), LHS_TYPE,
-                               Cmplr.TypeName(std::get<2>( *(table+i))), RHS_TYPE      )
-        map[RHS_TYPE]= std::make_tuple( CBFUNC,
-                                        RESULTTYPE,
-                                        CTINVOKE
-                             ALIB_DBG(, std::get<4>( *(table + i) )) );
-    }
-
-    #undef OP
-    #undef LHS_TYPE
-    #undef RHS_TYPE
-    #undef CBFUNC
-    #undef RESULTTYPE
-    #undef CTINVOKE
-}
-
-void Calculus::AddBinaryOpAlias( const String& alias, Type lhs, Type rhs, const String& op )
-{
-    auto& map= BinaryOpAliases[alias][lhs.TypeID()];
-    ALIB_ASSERT_ERROR( map.find( rhs.TypeID() ) == map.end(),
-                       "Binary operator alias '{}' already defined for types <{}> (aka {})\\n"
-                                                                        "and <{}> (aka {}).",
-                       alias, Cmplr.TypeName( lhs ), lhs.TypeID(),
-                              Cmplr.TypeName( rhs ), rhs.TypeID()                              )
-    map[rhs.TypeID()]= op;
-}
-
-void Calculus::AddBinaryOpAliases( BinaryOpAliasTableEntry* table, size_t length )
-{
-    if( length == 0 )
-        return;
-
-    #define ALIAS      std::get<0>( *(table + i) )
-    #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
-    #define RHS_TYPE   std::get<2>( *(table + i) ).TypeID()
-    #define OP         std::get<3>( *(table + i) )
-
-    size_t i= 0;
-    do
-    {
-        const String& alias= ALIAS;
-        auto& map1=  BinaryOpAliases[alias];
-        do
-        {
-            auto& lhsType= LHS_TYPE;
-            auto& map2=  map1[lhsType];
-            do
-            {
-                ALIB_ASSERT_ERROR( map2.find( RHS_TYPE ) == map2.end(),
-                                   "Binary operator alias '{}' already defined for types <{}> (aka {})\\n"
-                                                                                    "and <{}> (aka {}).",
-                                   alias,   Cmplr.TypeName( std::get<1>( *(table + i) ) ), LHS_TYPE,
-                                            Cmplr.TypeName( std::get<2>( *(table + i) ) ), RHS_TYPE       )
-                map2[RHS_TYPE]= OP;
-            }
-            while( ++i != length && LHS_TYPE == lhsType );
-        }
-        while( i < length && ALIAS == alias );
-    }
-    while( i < length );
-
-    #undef ALIAS
-    #undef LHS_TYPE
-    #undef RHS_TYPE
-    #undef OP
-}
-
-void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length,
-                                         bool lhsOrRhs )
-{
-    #define OP         std::get<0>( *(table + i) )
-    #define TYPE       std::get<1>( *(table + i) ).TypeID()
-    #define CONSTVAL   std::get<2>( *(table + i) )
-    #define RESULT     std::get<3>( *(table + i) )
-
-    auto& map= !lhsOrRhs ? BinaryOpConstLHSOptimizations
-                         : BinaryOpConstRHSOptimizations;
-
-    for( size_t i= 0 ; i < length ; ++i )
-    {
-        auto& map2= map[OP][TYPE];
-        ALIB_ASSERT_ERROR( map2.find( CONSTVAL ) == map2.end(),
-                           "Optimization already defined for operator {}, {}-hand side type <{}> (aka {}) and {}-hand constant {}.",
-                           OP,
-                           ( lhsOrRhs ? "left" : "right"),
-                           Cmplr.TypeName( std::get<1>( *(table + i) ) ), TYPE,
-                           ( lhsOrRhs ? "right" : "left"),
-                           CONSTVAL                                                                )
-        map2[CONSTVAL]= RESULT;
-    }
-
-    #undef OP
-    #undef TYPE
-    #undef CONSTVAL
-    #undef RESULT
-}
-
-
-bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
-{
-    Box& lhs= * ciBinaryOp.ArgsBegin;
-    Box& rhs= *(ciBinaryOp.ArgsBegin + 1);
-
-    // search alias first
-    if(    ciBinaryOp.Operator == A_CHAR("=")
-        && EnumContains( Cmplr.CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator ) )
-    {
-        ciBinaryOp.Operator= A_CHAR("==");
-    }
-    else
-    {
-        auto it1= BinaryOpAliases.find( ciBinaryOp.Operator );
-        if( it1 != BinaryOpAliases.end() )
-        {
-            auto it2= it1->second.find( lhs.TypeID() );
-            if( it2 != it1->second.end() )
-            {
-                auto it3= it2->second.find( rhs.TypeID() );
-                if( it3 != it2->second.end() )
-                {
-                    ciBinaryOp.Operator= it3->second;
-                }
-            }
-        }
-    }
-
-    #define  CBFUNC        std::get<0>(it3->second)
-    #define  RESULTTYPE    std::get<1>(it3->second)
-    #define  CT_INVOKABLE  std::get<2>(it3->second)
-    #if ALIB_DEBUG
-    #define  DBG_CB_NAME   std::get<3>(it3->second)
-    #endif
-    // search callback
-    auto it1= BinaryOpMap.find( ciBinaryOp.Operator );
-    if( it1 != BinaryOpMap.end() )
-    {
-        auto it2= it1->second.find( lhs.TypeID() );
-        if( it2 != it1->second.end() )
-        {
-            auto it3= it2->second.find( rhs.TypeID() );
-            if( it3 != it2->second.end() )
-            {
-                // if both are constant, the callback might be invoked right away (optimizing the call out)
-                if( ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst )
-                {
-                    if( CT_INVOKABLE )
-                    {
-                        // calculate constant value
-                        ciBinaryOp.TypeOrValue=  CBFUNC  ( ciBinaryOp.CompileTimeScope,
-                                                           ciBinaryOp.ArgsBegin,
-                                                           ciBinaryOp.ArgsEnd           );
-           ALIB_DBG(    ciBinaryOp.DbgCallbackName= DBG_CB_NAME;)
-                        ALIB_ASSERT_ERROR(ciBinaryOp.TypeOrValue.IsSameType(RESULTTYPE),
-                                          "Type mismatch in definition of binary operator {!Q} ({}) of plugin {!Q}.\\n"
-                                          "                    Type specified: <{}> (aka {})\\n"
-                                          "         Type returned by callback: <{}> (aka {})",
-                                          ciBinaryOp.Operator, ciBinaryOp.DbgCallbackName, CompilerPlugin::Name,
-                                          CompilerPlugin::Cmplr.TypeName(RESULTTYPE            ),
-                                                                         RESULTTYPE            .TypeID(),
-                                          CompilerPlugin::Cmplr.TypeName(ciBinaryOp.TypeOrValue),
-                                                                         ciBinaryOp.TypeOrValue.TypeID() )
-                        return true;
-                    }
-                }
-
-
-                // if one is constant, we may find an entry in BinaryOpConsL/RHSOptimizations
-                else if( ciBinaryOp.LhsIsConst || ciBinaryOp.RhsIsConst )
-                {
-                    auto& map=           ciBinaryOp.LhsIsConst ?  BinaryOpConstLHSOptimizations
-                                                               :  BinaryOpConstRHSOptimizations;
-                    auto& nonConstType= (ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin + 1 )
-                                                               :  *(ciBinaryOp.ArgsBegin     ) ).TypeID();
-                    auto& constValue=    ciBinaryOp.LhsIsConst ?  *(ciBinaryOp.ArgsBegin     )
-                                                               :  *(ciBinaryOp.ArgsBegin + 1 );
-                    auto& map2= map[ciBinaryOp.Operator][nonConstType];
-                    auto entryIt= map2.find( constValue );
-
-                    if( entryIt  != map2.end() )
-                    {
-                        // found! If it is an unset box, this tells us, that the result is the other side
-                        // (identity operation). Otherwise it is a constant.
-                        if( entryIt->second.IsType<void>() )
-                            ciBinaryOp.NonConstArgIsResult= true;
-                        else
-                            ciBinaryOp.TypeOrValue        = entryIt->second;
-                        return true;
-                    }
-                }
-
-
-                ciBinaryOp.Callback       = CBFUNC;
-                ciBinaryOp.TypeOrValue    = RESULTTYPE;
-       ALIB_DBG(ciBinaryOp.DbgCallbackName= DBG_CB_NAME; )
-                return true;
-            }
-        }
-    }
-
-    return false;
-
-    #undef CBFUNC
-    #undef RESULTTYPE
-    #undef CT_INVOKABLE
-    #if ALIB_DEBUG
-    #undef DBG_CB_NAME
-    #endif
-}
-
 
 // #################################################################################################
 // Auto-Casts
@@ -558,7 +496,7 @@ namespace {
             {
                 operatorIsIn= false;
                 for( auto& op : *entry.OperatorsAccepted )
-                    if( op.Equals( ciAutoCast.Op ) )
+                    if( op.Equals( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= true;
                         break;
@@ -571,7 +509,7 @@ namespace {
                 && entry.OperatorsDeclined->size() > 0    )
             {
                 for( auto& op : *entry.OperatorsDeclined )
-                    if( op.Equals( ciAutoCast.Op ) )
+                    if( op.Equals( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= false;
                         break;
@@ -668,5 +606,5 @@ ALIB_DBG(  ciAutoCast.DbgCallbackNameRhs=  entry->DbgCallbackName; )
 
 }}}} // namespace [aworx::lib::expressions::plugin]
 
-
+ALIB_WARNINGS_RESTORE
 

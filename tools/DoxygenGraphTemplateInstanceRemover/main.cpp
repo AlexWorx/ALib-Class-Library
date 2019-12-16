@@ -19,12 +19,15 @@
 // to preserve the right order, we are not includable directly from outside.
 #include <alib/alox.hpp>
 #include "alib/compatibility/std_strings_iostream.hpp"
+#include "alib/strings/format.hpp"
 #include "alib/config/inifile.hpp"
+#include "alib/distribution.hpp"
+#include "alib/results/report.hpp"
+#include "alib/system/directory.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <list>
-#include <algorithm>
 
 using namespace aworx;
 using namespace std;
@@ -168,7 +171,7 @@ bool ParseLine( Line& fileLine )
             }
             else
             {
-                Log_Info( "  Template param <{}> found, not usable as parameter name", line );
+                Log_Info( "  Template param {!Q<>} found, not usable as parameter name", line );
                 dotFile.TClassesUntouched.emplace_back( &fileLine );
             }
 
@@ -235,11 +238,11 @@ int ReadFile()
             line->original.SearchAndReplace("aworx::lib::lox::detail::textlogger::", "" );
             line->original.SearchAndReplace("aworx::lib::lox::detail::"            , "" );
             line->original.SearchAndReplace("aworx::lib::lox::"                    , "" );
-            line->original.SearchAndReplace("aworx::lib::memory::"                 , "" );
+            line->original.SearchAndReplace("aworx::lib::monomem::"                , "" );
             line->original.SearchAndReplace("aworx::lib::resources::"              , "" );
             line->original.SearchAndReplace("aworx::lib::results::"                , "" );
             line->original.SearchAndReplace("aworx::lib::singletons::"             , "" );
-            line->original.SearchAndReplace("aworx::lib::stringformat::"           , "" );
+            line->original.SearchAndReplace("aworx::lib::text::"                   , "" );
             line->original.SearchAndReplace("aworx::lib::strings::"                , "" );
             line->original.SearchAndReplace("aworx::lib::system::"                 , "" );
             line->original.SearchAndReplace("aworx::lib::threads"                  , "" );
@@ -293,21 +296,21 @@ bool Build()
             if (    line.content != nullptr
                  && line.content->type == Content::Type::Node )
             {
-                cntNodes++;
+                ++cntNodes;
                 theTNode= &line;
             }
 
         if( cntNodes == 1 )
         {
-            InMemoryPlugin::Section* ifSection= Inifile->Sections[0];
+            const InMemoryPlugin::Section& ifSection= Inifile->Sections().Front();
 
-            for( InMemoryPlugin::Entry* entry : ifSection->Entries )
+            for( auto& entry : ifSection.Entries() )
             {
-                if( entry->Name.StartsWith( "TCLASS_" ) )
+                if( entry.Name().StartsWith( "TCLASS_" ) )
                 {
-                    if( theTNode->original.IndexOf( entry->Name.Substring( 7 ) ) > 0 )
+                    if( theTNode->original.IndexOf( entry.Name().Substring( 7 ) ) > 0 )
                     {
-                        Variable var( nullptr, entry->Name );
+                        Variable var( nullptr, entry.Name() );
                         Inifile->Load( var );
                         if( theTNode->original.IndexOf( var.GetString() ) < 0 )
                         {
@@ -345,7 +348,7 @@ bool Build()
         for ( auto& replacementNode : dotFile.TClasses )
             if( actNode->TClassName.Equals( replacementNode ->TClassName ) )
             {
-                qtyReplacements++;
+                ++qtyReplacements;
                 actNode->ReplacementNodeNum= replacementNode->Num;
                 dotFile.ReplacedNodes.emplace_back( actNode );
                 found= true;
@@ -380,7 +383,7 @@ bool Build()
 //    }
 
     Log_Info( String512() <<  dotFile.TClasses.size() << " TClass(es) found:" );
-    Log_Prune ( for( auto tClass : dotFile.TClasses )               )
+    Log_Prune ( for( auto* tClass : dotFile.TClasses )               )
         Log_Verbose( String32() << "  " <<tClass->TClassName )
 
 
@@ -546,7 +549,7 @@ void     InvokeDotAndExit( int argc, char *argv[] )
     //----- invoking dot ---------
     NAString dotCommand("dot");
     dotCommand._(' ')._(FileName);
-    for( int i= 2; i< argc ; i++ )
+    for( int i= 2; i< argc ; ++i )
         dotCommand << ' ' << NString(argv[i]);
 
     FILE* pipe = popen( dotCommand.Terminate(), "r");
@@ -571,7 +574,7 @@ int main(int argc, char *argv[])
     DebugMode= argc==1;
 
     // init ALib
-    ALIB.Init( argc, argv);
+    ALIB.Bootstrap( argc, argv);
     Log_AddDebugLogger();
     Log_SetDomain( "DOXGRAPH", Scope::Filename  );
     Log_SetVerbosity( "DEBUG_LOGGER", DebugMode || ALIB.IsDebuggerPresent()
@@ -595,7 +598,7 @@ int main(int argc, char *argv[])
         String debugFile( "classaworx_1_1lib_1_1singletons_1_1Singleton__inherit__graph.dot" ); // "inherit_graph_49.dot" );
 
         FileName._("../html");
-        for( int depth= 0; depth < 10 ; depth++ )
+        for( int depth= 0; depth < 10 ; ++depth )
         {
             if ( Directory::Exists( FileName ) )
             {
@@ -654,7 +657,7 @@ int main(int argc, char *argv[])
 
     delete Inifile;
     FileName.SetNull();
-    ALIB.TerminationCleanUp();
+    ALIB.Shutdown();
 
     return 0;
 }

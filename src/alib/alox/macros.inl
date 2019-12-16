@@ -1,31 +1,27 @@
-﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALOX_MACROS
 #define HPP_ALOX_MACROS 1
 
-#if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
+#if !defined(HPP_ALIB_ALOX)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
-
 
 // #################################################################################################
 // Macros to access the Lox instance
 // #################################################################################################
-
 #if !defined(LOG_LOX)
-    #define LOG_LOX       (*aworx::lib::lox::ALox::Log())
+    #define LOG_LOX       (*aworx::lib::lox::Log::Get())
 #endif
-
 
 // #################################################################################################
 // Macros for setting the source code info prior to executing a log
 // #################################################################################################
-
-
 #ifdef  ALOX_DBG_LOG_CI
     #define LOG_CI      ALIB_CALLER
 #else
@@ -39,16 +35,15 @@
 #endif
 
 
-#define LOG_ACQUIRE     { aworx::Lox& _log= LOG_LOX; _log.Acquire( LOG_CI );
+#define LOG_ACQUIRE     { aworx::lib::lox::Lox& _log= LOG_LOX; _log.Acquire( LOG_CI );
 #define LOG_RELEASE         _log.Release(); }
-#define LOX_ACQUIRE     { aworx::Lox& _lox= LOX_LOX; _lox.Acquire( LOX_CI );
+#define LOX_ACQUIRE     { aworx::lib::lox::Lox& _lox= LOX_LOX; _lox.Acquire( LOX_CI );
 #define LOX_RELEASE     _lox.Release(); }
 
 
 // #################################################################################################
 // Debug logging macros
 // #################################################################################################
-
 #if ALOX_DBG_LOG
     #define Log_Prune( ... ) __VA_ARGS__
 #else
@@ -87,12 +82,10 @@
 // #################################################################################################
 // Release logging macros
 // #################################################################################################
-
-
 #if ALOX_REL_LOG
-    #define Lox_Prune( releaseLogCode ) releaseLogCode
+    #define Lox_Prune( ... ) __VA_ARGS__
 #else
-    #define Lox_Prune( releaseLogCode )
+    #define Lox_Prune( ... )
 #endif
 
 #define Lox_SetSourcePathTrimRule(...)      Lox_Prune( LOX_ACQUIRE _lox.SetSourcePathTrimRule( __VA_ARGS__ ); LOX_RELEASE )
@@ -118,8 +111,6 @@
 #define Lox_Retrieve(data,...)              Lox_Prune( LOX_ACQUIRE LogData* data= _lox.Retrieve( __VA_ARGS__ );  LOX_RELEASE )
 #define Lox_SetPrefix(...)                  Lox_Prune( LOX_ACQUIRE _lox.SetPrefix     ( __VA_ARGS__ );     LOX_RELEASE )
 #define Lox_Exception(...)                  Log_Prune( aworx::lib::lox::LogTools::Exception( LOX_LOX, __VA_ARGS__ );   )
-
-
 
 #endif // HPP_ALOX_MACROS
 

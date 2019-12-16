@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION
 #define HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION 1
 
@@ -16,12 +17,12 @@ namespace aworx { namespace lib { namespace strings { namespace detail {
 
 // clang 7.0.1 falsely reports:
 // "warning: '@tparam' command used in a comment that is not attached to a template declaration
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
     ALIB_WARNINGS_IGNORE_DOCS
 #endif
 
 /** ************************************************************************************************
-* Reads digits \c '0' to \c '9' into a positive integer value.
+* Reads digits \c '0' to \c '9' into a positive integral value.
  *
  * \note
  *   The function is very basic, i.e. it does not use an object of type
@@ -29,11 +30,11 @@ namespace aworx { namespace lib { namespace strings { namespace detail {
  *   Instead, it simply reads decimal digits, until a non-digit character
  *   is found or the string ends.
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found. If out of bounds, \c 0 is returned.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -55,12 +56,12 @@ uint64_t  ParseDecDigits( const TString<TChar>& src, integer& idx );
  * \alib{strings::TNumberFormat,OctLiteralPrefix} (usually \c 0b, \c 0x and \c 0o) and
  * invokes one of the functions #ParseDec, #ParseBin, #ParseHex or #ParseOct.
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -69,7 +70,7 @@ ALIB_API
 int64_t   ParseInt( const TString<TChar>& src, integer& idx, const TNumberFormat<TChar>& nf );
 
 /** ************************************************************************************************
-* Reads an unsigned integer value in \b decimal format from the given character
+ * Reads an unsigned integral value in \b decimal format from the given character
  * array at the given position.<br>
  * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail if found.
  * Whitespace and grouping characters, as defined in fields
@@ -81,12 +82,12 @@ int64_t   ParseInt( const TString<TChar>& src, integer& idx, const TNumberFormat
  * \alib{strings::TNumberFormat,Whitespaces} to \e nulled or empty string.
  *
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -95,7 +96,7 @@ ALIB_API
 uint64_t  ParseDec( const TString<TChar>& src, integer& idx, const TNumberFormat<TChar>& nf );
 
 /** ************************************************************************************************
-* Reads an unsigned integer value in \b binary format from the given character
+* Reads an unsigned integral value in \b binary format from the given character
  * array at the given position.<br>
  * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail if found.
  * Whitespace and grouping characters, as defined in fields
@@ -108,12 +109,12 @@ uint64_t  ParseDec( const TString<TChar>& src, integer& idx, const TNumberFormat
  * of group characters, set the fields to <c>'\\0'</c>. To suppress whitespace consumption,
  * set field \alib{strings::TNumberFormat,Whitespaces} to \e nulled or empty string.<br>
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -122,7 +123,7 @@ ALIB_API
 uint64_t  ParseBin( const TString<TChar>& src, integer& idx, const TNumberFormat<TChar>& nf );
 
 /** ************************************************************************************************
-* Reads an unsigned integer value in \b hexadecimal format from the given character
+* Reads an unsigned integral value in \b hexadecimal format from the given character
  * array at the given position.<br>
  * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail if found.
  * Whitespace and grouping characters, as defined in fields
@@ -137,12 +138,12 @@ uint64_t  ParseBin( const TString<TChar>& src, integer& idx, const TNumberFormat
  * Letters 'a' to 'f' are parsed ignoring their case. This is independent from the setting of field
  * \alib{strings::TNumberFormat,HexLowerCase}.
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -151,7 +152,7 @@ ALIB_API
 uint64_t  ParseHex( const TString<TChar>& src, integer& idx, const TNumberFormat<TChar>& nf );
 
 /** ************************************************************************************************
-* Reads an unsigned integer value in \b binary format from the given character
+* Reads an unsigned integral value in \b binary format from the given character
  * array at the given position.<br>
  * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail if found.
  * Whitespace and grouping characters, as defined in fields
@@ -161,12 +162,12 @@ uint64_t  ParseHex( const TString<TChar>& src, integer& idx, const TNumberFormat
  * of group characters, set the field to <c>'\\0'</c>. To suppress whitespace consumption,
  * set field \alib{strings::TNumberFormat,Whitespaces} to \e nulled or empty string.<br>
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -184,12 +185,12 @@ uint64_t  ParseOct( const TString<TChar>& src, integer& idx, const TNumberFormat
  * \p{nf}, the corresponding double constant (not a number, positive/negative infinity) will be
  * returned.
  *
+ * @tparam        TChar The character type of the string to parse from.
  * @param         src   The string to read the value from.
  * @param[in,out] idx   The start point for parsing within \p{src}. Will be set to point
  *                      behind the last character consumed. If unchanged, this indicates
  *                      that no parsable number was found.
  * @param         nf    The number format to use.
- * @tparam        TChar The character type of the string to parse from.
  * @return The parsed value. In addition, on success, parameter \p{idx} is moved to point to the
  *         first character behind the parsed number.
  **************************************************************************************************/
@@ -220,6 +221,7 @@ double ParseFloat( const TString<TChar>& src, integer& idx, const TNumberFormat<
  * \see
  *   Function #WriteDecSigned to write signed decimals.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -227,7 +229,6 @@ double ParseFloat( const TString<TChar>& src, integer& idx, const TNumberFormat<
  * @param minWidth  The minimum width of the output.
  *                  If \c 0, the value of \b DecMinimumFieldWidth of argument \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -241,6 +242,7 @@ integer  WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int minWi
  * on field \alib{strings::TNumberFormat,PlusSign} of the \b NumberFormat object given with \p{nf}.
  * After that, the value is negated (made positive) and #WriteDecUnsigned is invoked.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -248,7 +250,6 @@ integer  WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int minWi
  * @param minWidth  The minimum width of the output.
  *                  If \c 0, the value of \b DecMinimumFieldWidth in \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -288,6 +289,7 @@ integer  WriteDecSigned( int64_t value, TChar* buffer, integer idx, int minWidth
  *   The literal prefix found in field \alib{strings::TNumberFormat,BinLiteralPrefix} of \p{nf}
  *   is \b not written. The field is only used for detecting formats with function #ParseInt.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -295,7 +297,6 @@ integer  WriteDecSigned( int64_t value, TChar* buffer, integer idx, int minWidth
  * @param minWidth  The minimum width of the output.
  *                  If \c 0, the value of \b BinFieldWidth of argument \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -335,6 +336,7 @@ integer  WriteBin( uint64_t value, TChar* buffer, integer idx, int minWidth,
  *   The literal prefix found in field \alib{strings::TNumberFormat,HexLiteralPrefix} of \p{nf}
  *   is \b not written. The field is only used for detecting formats with function #ParseInt.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -342,7 +344,6 @@ integer  WriteBin( uint64_t value, TChar* buffer, integer idx, int minWidth,
  * @param minWidth  The minimum width of the output.
  *                  If \c 0, the value of \b HexFieldWidth of argument \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -379,6 +380,7 @@ integer  WriteHex( uint64_t value, TChar* buffer, integer idx, int minWidth,
  *   The literal prefix found in field \alib{strings::TNumberFormat,OctLiteralPrefix} of \p{nf}
  *   is \b not written. The field is only used for detecting formats with function #ParseInt.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -386,7 +388,6 @@ integer  WriteHex( uint64_t value, TChar* buffer, integer idx, int minWidth,
  * @param minWidth  The minimum width of the output.
  *                  If \c 0, the value of \b OctFieldWidth of argument \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -428,6 +429,7 @@ integer  WriteOct( uint64_t value, TChar* buffer, integer idx, int minWidth,
  *   The function does not (and can not) check an overflow of the given character buffer
  *   when writing.
  *
+ * @tparam TChar    The character type of the string to write into.
  * @param value     The value to write.
  * @param buffer    The character array to write the value to. Needs to be long enough
  *                  (after \p{idx}) to carry the string written.
@@ -435,7 +437,6 @@ integer  WriteOct( uint64_t value, TChar* buffer, integer idx, int minWidth,
  * @param minWidth  The minimum width of the integral part of the output.
  *                  If \c 0, the value of \b IntegralPartMinimumWidth of argument \p{nf} is used.
  * @param nf        Number format definitions.
- * @tparam TChar    The character type of the string to write into.
  * @return  The index pointing to behind the last character written in \b buffer.
  **************************************************************************************************/
 template<typename TChar>
@@ -450,7 +451,7 @@ ALIB_WARNINGS_RESTORE
 // #################################################################################################
 // Template instantiation declarations
 // #################################################################################################
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 extern template ALIB_API uint64_t ParseDecDigits  <nchar>( const TString<nchar>&, integer& );
 extern template ALIB_API  int64_t ParseInt        <nchar>( const TString<nchar>&, integer&, const TNumberFormat<nchar>& );
@@ -493,7 +494,7 @@ extern template ALIB_API integer  WriteBin        <xchar>( uint64_t, xchar*, int
 extern template ALIB_API integer  WriteHex        <xchar>( uint64_t, xchar*, integer, int,  const TNumberFormat<xchar>& );
 extern template ALIB_API integer  WriteOct        <xchar>( uint64_t, xchar*, integer, int,  const TNumberFormat<xchar>& );
 extern template ALIB_API integer  WriteFloat      <xchar>( double  , xchar*, integer, int,  const TNumberFormat<xchar>& );
-#endif //!ALIB_DOCUMENTATION_PARSER
+#endif //!defined(ALIB_DOX)
 
 
 }}}} // namespace [aworx::lib::strings::detail]

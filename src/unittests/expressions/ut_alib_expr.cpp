@@ -6,13 +6,22 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)
+#if ALIB_UT_EXPRESSIONS
 
 
-#include "alib/alox.hpp"
-#include "alib/alox/logtools.hpp"
-#include "alib/boxing/dbgboxing.hpp"
+#if !defined (HPP_ALOX)
+#   include "alib/alox.hpp"
+#endif
+#if ALIB_ALOX && !defined(HPP_ALOX_CONSOLE_LOGGER)
+#   include "alib/alox/loggers/consolelogger.hpp"
+#endif
 
+#if ALIB_ALOX && !defined (HPP_ALOX_LOGTOOLS)
+#   include "alib/alox/logtools.hpp"
+#endif
+#if !defined(HPP_ALIB_BOXING_DBGBOXING)
+#   include "alib/boxing/dbgboxing.hpp"
+#endif
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILER
 #   include "alib/expressions/compiler.hpp"
 #endif
@@ -24,8 +33,16 @@
 #   include "alib/expressions/plugins/arithmetics.hpp"
 #endif
 
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
 #   include "alib/expressions/detail/program.hpp"
-#   include "alib/expressions/detail/virtualmachine.hpp"
+#endif
+#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#   include "alib/expressions/detail/program.hpp"
+#endif
+
+#if !defined(HPP_ALIB_TEXT_TEXT)
+#   include "alib/text/text.hpp"
+#endif
 
 
 #include <math.h>
@@ -101,17 +118,17 @@ class MyScope : public lib::expressions::Scope
 Box name( Scope& scp, ArgIterator, ArgIterator )
 {
     return dynamic_cast<MyScope&>(scp).MyObject.Name;
-};
+}
 
 Box age ( Scope& scp, ArgIterator, ArgIterator )
 {
     return dynamic_cast<MyScope&>(scp).MyObject.Age;
-};
+}
 
 Box raw ( Scope& scp, ArgIterator, ArgIterator )
 {
     return dynamic_cast<MyScope&>(scp).MyObject;
-};
+}
 
 
 Box throwAlibException ( Scope& scp, ArgIterator, ArgIterator )
@@ -119,13 +136,14 @@ Box throwAlibException ( Scope& scp, ArgIterator, ArgIterator )
     String128 target;
     scp.Formatter->Format(target, A_CHAR("{"), 5 ); // throws!
     return target;
-};
+}
+
 Box throwSTDException ( Scope& , ArgIterator begin, ArgIterator end)
 {
     if((end - begin)==0) // always true
         throw std::runtime_error("test exception");
     return 42;
-};
+}
 
 
 class MyFunctions : public plugins::Calculus
@@ -189,11 +207,10 @@ UT_CLASS()
 // #################################################################################################
 // ### ParseSpeed
 // #################################################################################################
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
+#if ALIB_TIME
 UT_METHOD(ParseSpeed)
 {
-    UT_INIT();
-
+    UT_INIT()
     Compiler compiler;
     compiler.SetupDefaults();
     SPExpression expression;
@@ -205,38 +222,38 @@ UT_METHOD(ParseSpeed)
     UT_PRINT("Expression A1:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  1+2+3+4+5+6+7+8+9+10+11+12+13+14+15+16+17+18+19+20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
     // 0 ms seconds (release)
     UT_PRINT("Expression A2:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  1+2*3+4*5+6*7+8*9+10*11+12*13+14*15+16*17+18*19+20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
     // 0 ms seconds (release)
     UT_PRINT("Expression A3:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  1&2+3*4&5+6*7&8+9*10&11+12*13&14+15*16&17+18*19&20 ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
 
     // 120 ms seconds (release)
     UT_PRINT("Expression B1:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))))   );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
     // 250 ms seconds (release)
     UT_PRINT("Expression B2:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * ((2 + 6 * (2 + 6 * (2 + 1)) + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))))  ) );
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
     // 7,5 min, 760,250 ms seconds (release)
     UT_PRINT("Expression B3:")
     time= Ticks::Now();
     compiler.Compile( ALIB_STRINGIFY(  ((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-((2*4)/(2 * ( 5 - (3 + 4 *( 9-4 *( 9-4 *( 9-4 *( 9-2 ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) ))))) ) ) )) ) * (1 + 6 * (2 + 6 * (2 + 6 * (2 + 6 * (2 + 1)))) )))));
-    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() );
+    UT_PRINT("  Compile Time: {:,} ms", time.Age().InAbsoluteMilliseconds() )
 
 }
 #endif
@@ -247,7 +264,7 @@ UT_METHOD(ParseSpeed)
 // #################################################################################################
 UT_METHOD(ProgramListing)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -299,7 +316,7 @@ UT_METHOD(ProgramListing)
 // #################################################################################################
 UT_METHOD(TestNormalization)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -561,7 +578,7 @@ UT_METHOD(TestNormalization)
 // #################################################################################################
 UT_METHOD(BoolOps)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -728,11 +745,9 @@ UT_METHOD(BoolOps)
           CONSTEXPR(   1.0 =   true ,   1.0 ==   true );
 }
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-
 UT_METHOD(VerbalOps)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -842,21 +857,19 @@ UT_METHOD(VerbalOps)
     catch( Exception& e )
     {
         #define LOX_LOX ut.lox
-        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
-        ALIB_ERROR( "UT Failure" );
+        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+        log_exception( ut, e );
+        ALIB_ERROR( "UT Failure" )
         #undef LOX_LOX
     }
 }
-#endif
-
 
 // #################################################################################################
 // ### ArithOps
 // #################################################################################################
 UT_METHOD(ArithOps)
 {
-    UT_INIT();
+    UT_INIT()
 
     #if defined(__clang__)
     #   pragma clang diagnostic push
@@ -1143,7 +1156,7 @@ UT_METHOD(ArithOps)
 // #################################################################################################
 UT_METHOD(Exceptions)
 {
-    UT_INIT();
+    UT_INIT()
 
     //  std configuration
     {
@@ -1170,7 +1183,7 @@ UT_METHOD(Exceptions)
         Compiler compiler;
         compiler.CfgCompilation-= Compilation::AllowEmptyParenthesesForIdentifierFunctions;
         compiler.CfgCompilation-= Compilation::AllowSubscriptOperator;
-        compiler.CfgCompilation-= Compilation::AllowBitwiseBooleanOperations;
+        compiler.CfgCompilation-= Compilation::AllowBitwiseBooleanOperators;
         compiler.CfgCompilation-= Compilation::AliasEqualsOperatorWithAssignOperator;
         compiler.SetupDefaults();
         Scope scope(compiler.CfgFormatter);
@@ -1182,36 +1195,35 @@ UT_METHOD(Exceptions)
         CONSTEXPR( true = true        , expressions::Exceptions::BinaryOperatorNotDefined );
     }
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-    //  these tests try to produce memory leaks in the parser, hence made for valgrind runs
+    //  these tests try to produce memory leaks in the parser, hence are made for valgrind runs
     {
         Compiler compiler;
         compiler.SetupDefaults();
         Scope scope(compiler.CfgFormatter);
 
-        CONSTEXPR( true(1  2)         , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( true(1, 2 3)       , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( true(1, 2, 3 4)    , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( true(1  2)                , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( true(1, 2 3)              , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( true(1, 2, 3 4)           , expressions::Exceptions::SyntaxErrorExpectation );
 
-        CONSTEXPR( 1 2 ? 3 : 4        , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? 2 3 : 4        , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? 2 : 3 4        , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? ( 2 ? 3 4 : 5 ) : 6     , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? ( 2 ? 3 : 4 5 ) : 6     , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? 2 : ( 1 : 2 3 )         , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? 2 : ( 3 ? 4 5 : 6 )     , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1 ? 2 : ( 3 ? 4 : 5 6 )     , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 2 ? 3 : 4               , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? 2 3 : 4               , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? 2 : 3 4               , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? ( 2 ? 3 4 : 5 ) : 6   , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? ( 2 ? 3 : 4 5 ) : 6   , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? 2 : ( 1 : 2 3 )       , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? 2 : ( 3 ? 4 5 : 6 )   , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 ? 2 : ( 3 ? 4 : 5 6 )   , expressions::Exceptions::SyntaxErrorExpectation );
 
-        CONSTEXPR( 1 *                           , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( 1  2   * 3                    , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( (1 2 ) * 3                    , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( (1 + 2 ) *                    , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( (1 + 2 ) * 3 4                , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( (1 + 2 ) * (3 4)              , expressions::Exceptions::SyntaxErrorExpectation );
-        CONSTEXPR( (1 + 2 ) * (3 +(4 5 ))        , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1 *                       , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( 1  2   * 3                , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( (1 2 ) * 3                , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( (1 + 2 ) *                , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( (1 + 2 ) * 3 4            , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( (1 + 2 ) * (3 4)          , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( (1 + 2 ) * (3 +(4 5 ))    , expressions::Exceptions::SyntaxErrorExpectation );
 
-        CONSTEXPR( true[1 + 2]                   , expressions::Exceptions::BinaryOperatorNotDefined );
-        CONSTEXPR( true[1   2]                   , expressions::Exceptions::SyntaxErrorExpectation );
+        CONSTEXPR( true[1 + 2]               , expressions::Exceptions::BinaryOperatorNotDefined );
+        CONSTEXPR( true[1   2]               , expressions::Exceptions::SyntaxErrorExpectation );
 
         // literals
         try { compiler.Compile( A_CHAR(R"("X" + "y )")  ); } catch(Exception& e)
@@ -1240,13 +1252,13 @@ UT_METHOD(Exceptions)
         CONSTEXPR( ~          , expressions::Exceptions::SyntaxErrorExpectation    );
         CONSTEXPR( /          , expressions::Exceptions::UnknownUnaryOperatorSymbol);
         CONSTEXPR(  ^         , expressions::Exceptions::UnknownUnaryOperatorSymbol);
-        EXPR_STR( A_CHAR(")" )  , expressions::Exceptions::SyntaxErrorExpectation, 0 );
-        EXPR_STR( A_CHAR("(" )  , expressions::Exceptions::SyntaxErrorExpectation, 0 );
-        EXPR_STR( A_CHAR("," )  , expressions::Exceptions::SyntaxErrorExpectation, 0 );
-        EXPR_STR( A_CHAR("\"")  , expressions::Exceptions::SyntaxErrorExpectation, 0 );
+        EXPR_STR( A_CHAR(")" ), expressions::Exceptions::SyntaxErrorExpectation, 0 );
+        EXPR_STR( A_CHAR("(" ), expressions::Exceptions::SyntaxErrorExpectation, 0 );
+        EXPR_STR( A_CHAR("," ), expressions::Exceptions::SyntaxErrorExpectation, 0 );
+        EXPR_STR( A_CHAR("\""), expressions::Exceptions::SyntaxErrorExpectation, 0 );
         CONSTEXPR(  .         , expressions::Exceptions::SyntaxError               );
         CONSTEXPR(  {         , expressions::Exceptions::SyntaxError);
-        EXPR_STR (A_CHAR("$" )  , expressions::Exceptions::SyntaxError           , 0 );
+        EXPR_STR (A_CHAR("$" ), expressions::Exceptions::SyntaxError           , 0 );
     }
 
     // parse localized numberformat
@@ -1283,7 +1295,6 @@ expression= compiler.Compile( A_CHAR("1,5")  );
         compiler.CfgFormatter->DefaultNumberFormat.DecimalPointChar= '.';
         UT_EQ( A_CHAR("1,5 2 3"), expression->Evaluate(scope).Unbox<String>()  )
     }
-#endif
 
     // compile-time exceptions in plug-in
     {
@@ -1298,7 +1309,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
 
         compiler.CfgCompilation+= Compilation::PluginExceptionFallThrough;
 
-        CONSTEXPR( "Will throw" + ThrowALib , lib::stringformat::Exceptions::MissingClosingBracket );
+        CONSTEXPR( "Will throw" + ThrowALib , lib::text::Exceptions::MissingClosingBracket );
 
         bool stdExceptionCaught= false;
         try
@@ -1309,7 +1320,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
         {
             stdExceptionCaught= true;
         }
-        UT_TRUE(stdExceptionCaught);
+        UT_TRUE(stdExceptionCaught)
     }
 
     // run-time exceptions in callbacks
@@ -1325,7 +1336,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
 
         compiler.CfgCompilation+= Compilation::CallbackExceptionFallThrough;
 
-        CONSTEXPR( "Will throw" + ThrowALib , lib::stringformat::Exceptions::MissingClosingBracket );
+        CONSTEXPR( "Will throw" + ThrowALib , lib::text::Exceptions::MissingClosingBracket );
 
         bool stdExceptionCaught= false;
         try
@@ -1336,7 +1347,17 @@ expression= compiler.Compile( A_CHAR("1,5")  );
         {
             stdExceptionCaught= true;
         }
-        UT_TRUE(stdExceptionCaught);
+        UT_TRUE(stdExceptionCaught)
+    }
+
+    // Formatter exception inside CBFormat
+    {
+        Compiler compiler;
+        compiler.SetupDefaults();
+        Scope scope(compiler.CfgFormatter);
+
+        CONSTEXPR( Format("Hex: {:x}", 3.1415          ), expressions::Exceptions::ExceptionInPlugin   );
+        CONSTEXPR( Format("Hex: {:x}", (rand * 3.1415) ), expressions::Exceptions::ExceptionInCallback );
     }
 }
 
@@ -1345,7 +1366,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
 // #################################################################################################
 UT_METHOD(Conditional)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -1353,9 +1374,7 @@ UT_METHOD(Conditional)
 
 //--------------- all built-in combinations of T and F --------------
       CONSTEXPR( "Hello" , A_CHAR("Hello") );
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
       CONSTEXPR( ""      , A_CHAR("")      );
-#endif
 
 
 CCOMP_CONSTEXPR( true  ? false : true       );
@@ -1516,16 +1535,13 @@ CCOMP_CONSTEXPR(  -(  true ? 1 + 2 : 3 + 4  ));
 // #################################################################################################
 UT_METHOD(Strings)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
     MyScope scope(compiler);
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
     CONSTEXPR( ""     , A_CHAR(""     )   );
-#endif
-
     CONSTEXPR( "Hello", A_CHAR("Hello")   );
 
     // unary !, +, -
@@ -1554,7 +1570,6 @@ UT_METHOD(Strings)
     CONSTEXPR(  "Integer: " +  5000                , A_CHAR("Integer: 5000")  );
     CONSTEXPR(  "Integer: " + -5123                , A_CHAR("Integer: -5123") );
 
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
     compiler.CfgFormatter->DefaultNumberFormat.WriteGroupChars= true;
     compiler.CfgFormatter->DefaultNumberFormat.ReadGroupChars=  true;
     compiler.CfgFormatter->DefaultNumberFormat.ThousandsGroupChar= ',';
@@ -1576,7 +1591,6 @@ UT_METHOD(Strings)
     CONSTEXPR(    5000    + " <-Integer"           , A_CHAR("+5,000 <-Integer"));
     CONSTEXPR(    3.1415  + " <-Float"             , A_CHAR("+3.1415 <-Float") );
     CONSTEXPR(   -3.1415  + " <-Float"             , A_CHAR("-3.1415 <-Float") );
-#endif
 
     // reset scope
     compiler.CfgFormatter->DefaultNumberFormat.SetComputational();
@@ -1601,7 +1615,7 @@ UT_METHOD(Strings)
 
 
 //! [DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_3]
-ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( ut_aworx::MyType* )
+ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( ut_aworx::MyType* )
 //! [DOX_ALIB_EXPRESSIONS_STRINGOPS_IAPPEND_3]
 
     CONSTEXPR(   raw              , scope.MyObject          );
@@ -1636,7 +1650,7 @@ ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( ut_aworx::MyType* )
    EXPRESSION(  name  * "Joe"         , true   , 3  );
    EXPRESSION(  name  * "Joe" && false, false  , 1  );
     CONSTEXPR(  "ABC" * "?B*"         , true        );
-#if ALIB_FEAT_BOOST_REGEX
+#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
     CONSTEXPR(  "ABC" % ".B."         , true        );
 #endif
 
@@ -1654,7 +1668,7 @@ ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( ut_aworx::MyType* )
 // #################################################################################################
 UT_METHOD(Nested)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -1666,14 +1680,17 @@ UT_METHOD(Nested)
     // exception when using unary operator '*'
     CONSTEXPR( *"notdefined"        , expressions::Exceptions::NestedExpressionNotFoundCT );
     CONSTEXPR( *("notdefined")      , expressions::Exceptions::NestedExpressionNotFoundCT );
-    CONSTEXPR( * 5                  , expressions::Exceptions::UnaryOperatorNotDefined );
-    CONSTEXPR( * (today + hours(5)) , expressions::Exceptions::UnaryOperatorNotDefined );
-    CONSTEXPR( * (today)            , expressions::Exceptions::NestedExpressionNotFoundCT );
+    CONSTEXPR( * 5                  , expressions::Exceptions::UnaryOperatorNotDefined    );
+ALIB_IF_SYSTEM(
+    CONSTEXPR( * (today + hours(5)) , expressions::Exceptions::UnaryOperatorNotDefined    );
+    CONSTEXPR( * (today)            , expressions::Exceptions::NestedExpressionNotFoundCT );   )
+
     CONSTEXPR( * nested             , 42 );
 
+ALIB_IF_SYSTEM(
     compiler.CfgCompilation-= Compilation::AllowIdentifiersForNestedExpressions;
     CONSTEXPR( * (today)            , expressions::Exceptions::UnaryOperatorNotDefined );
-    compiler.CfgCompilation+= Compilation::AllowIdentifiersForNestedExpressions;
+    compiler.CfgCompilation+= Compilation::AllowIdentifiersForNestedExpressions;               )
 
     // exception when using function "Expression()"
     CONSTEXPR( Expression("notdefined")                 , expressions::Exceptions::NestedExpressionNotFoundCT );
@@ -1691,7 +1708,9 @@ UT_METHOD(Nested)
     CONSTEXPR( Expression(5, 5, 3, throw)               , expressions::Exceptions::NestedExpressionCallArgumentMismatch );
 
 
-    CONSTEXPR( Expression(""+today)            , expressions::Exceptions::NamedExpressionNotConstant );
+ALIB_IF_SYSTEM(
+    CONSTEXPR( Expression(""+today)            , expressions::Exceptions::NamedExpressionNotConstant ); )
+
     CONSTEXPR( Expression("nested" )           , 42 );
     CONSTEXPR( Expression( nested  )           , 42 );
 
@@ -1743,20 +1762,20 @@ UT_METHOD(Nested)
     }
     catch( Exception& e )
     {
-        UT_PRINT("Exception in Unit Test" );
+        UT_PRINT("Exception in Unit Test" )
         #define LOX_LOX ut.lox
-        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" );
-        LogTools::Exception( ut.lox, e, Verbosity::Info, nullptr, nullptr );
-        ALIB_ERROR( "UT Failure" );
+        Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
+        log_exception( ut, e );
+        ALIB_ERROR( "UT Failure" )
         #undef LOX_LOX
     }
 
     // removal of nested expression after compilation
     SPExpression expression= compiler.Compile( A_CHAR("*nested") );
-    UT_TRUE ( expression->Evaluate(scope).Unbox<integer>() == 42 );
+    UT_TRUE ( expression->Evaluate(scope).Unbox<integer>() == 42 )
     UT_TRUE ( compiler.RemoveNamed(A_CHAR("nested")) )
     UT_FALSE( compiler.RemoveNamed(A_CHAR("nested")) )
-    UT_TRUE ( expression->Evaluate(scope).Unbox<integer>() == 42 );
+    UT_TRUE ( expression->Evaluate(scope).Unbox<integer>() == 42 )
     expression= nullptr; // this calls expression destructor twice: this expression plus "nested".
 
     // Circular dependencies
@@ -1775,10 +1794,9 @@ UT_METHOD(Nested)
 // #################################################################################################
 // ### NumberLiterals
 // #################################################################################################
-#if !ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
 UT_METHOD(NumberLiterals)
 {
-    UT_INIT();
+    UT_INIT()
 
     Compiler compiler;
     compiler.SetupDefaults();
@@ -1830,12 +1848,11 @@ UT_METHOD(NumberLiterals)
     compiler.CfgFormatter->DefaultNumberFormat.HexWordGroupChar= '*';
     EXPRNORMNS(  0x1*234A  , "0x1*234A"     );
 }
-#endif
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
-}; //namespace
+} //namespace
 
 ALIB_WARNINGS_RESTORE
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_EXPRESSIONS)
+#endif // ALIB_UT_EXPRESSIONS

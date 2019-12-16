@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILER
 #define HPP_ALIB_EXPRESSIONS_COMPILER
 
@@ -11,26 +12,38 @@
 #   include "alib/expressions/expression.hpp"
 #endif
 
-#if ALIB_MODULE_CONFIGURATION
+#if ALIB_CONFIGURATION
 #   ifndef HPP_ALIB_CONFIG_CONFIGURATION
 #       include "alib/config/configuration.hpp"
 #   endif
 #endif
 
-#ifndef HPP_ALIB_PLUGINCONTAINER
-#   include "alib/lib/plugincontainer.hpp"
+#ifndef HPP_ALIB_FS_PLUGINS_PLUGINS
+#   include "alib/lib/fs_plugins/plugins.hpp"
 #endif
 
-#if !defined(HPP_ALIB_LIB_TYPEMAP)
-#    include "alib/lib/typemap.hpp"
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
+#   include "alib/compatibility/std_typeinfo.hpp"
 #endif
 
 #if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
 #   include "alib/strings/util/token.hpp"
 #endif
 
-#if !defined(HPP_ALIB_STRINGFORMAT_FWDS)
-    #include "alib/stringformat/fwds.hpp"
+#if !defined(HPP_ALIB_TEXT_FWDS)
+#   include "alib/text/fwds.hpp"
+#endif
+
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_HASHMAP)
+#   include "alib/monomem/hashmap.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
 #endif
 
 namespace aworx {
@@ -43,7 +56,7 @@ namespace detail { struct Parser; }
 struct  CompilerPlugin;
 
 /** ************************************************************************************************
- * This is a central class of library module \alibmod_nolink_expressions used to compile
+ * This is a central class of library module \alib_expressions_nl used to compile
  * expression strings.
  *
  * For information about general use and features of this class consult the
@@ -54,9 +67,10 @@ struct  CompilerPlugin;
  **************************************************************************************************/
 class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 {
-    #if !ALIB_DOCUMENTATION_PARSER
-        // Expressions are friends.
-        friend class Expression;
+    #if !defined(ALIB_DOX)
+        friend class  Expression;
+        friend struct detail::Parser;
+        friend class  detail::Program;
     #endif
 
     public:
@@ -67,21 +81,28 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
     // internal fields
     // #############################################################################################
     protected:
-        /** The parser based on \c boost::spirit. */
-        detail::Parser*                         parser                                    = nullptr;
+        /** Memory for used for permanent allocations during the set-up phase.
+         *  Later it is also used for temporary allocations during compilation and reset to its
+         *  state after setup. */
+        MonoAllocator                       allocator;
 
+        /** The expression parser. */
+        detail::Parser*                     parser                                        = nullptr;
 
         /** The map of Type names and bit flag values. */
-        TypeMap<NString>                        types;
-
+        HashMap<TypeFunctors::Key, NAString,
+                TypeFunctors::Hash,
+                TypeFunctors::EqualTo>      typeMap;
 
         /** The map of 'named' expressions. */
-        UnorderedAStringMap<SPExpression>       namedExpressions;
+        HashMap< AString, SPExpression,
+                 std::hash    <String>,
+                 std::equal_to<String> >     namedExpressions;
 
-        #if ALIB_MODULE_CONFIGURATION
+        #if ALIB_CONFIGURATION
             /** A variable object, reused (performance vs memory) */
-            Variable        var;
-        #endif // ALIB_MODULE_CONFIGURATION
+            Variable                        var;
+        #endif // ALIB_CONFIGURATION
 
 
     // #############################################################################################
@@ -91,37 +112,45 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 
         /**
          * The list of unary operators.
-         * To define a new unary operator, entry may be added prior to invoking #SetupDefaults
-         * using method #AddUnaryOperator.
+         * To define a new unary operator, method #AddUnaryOperator should be used.
+         * In debug-builds, the methods asserts that no double insertions are performed.
+         *
+         * Custom insertions may be performed before or after invoking #SetupDefaults,
+         * but before a first expression is compiled.
+         *
          *
          * Flag \alib{expressions,Compilation::DefaultUnaryOperators} controls if method
          * \b %SetupDefaults adds operators resourced with enumeration
          * \alib{expressions,DefaultUnaryOperators}.
          */
-        std::vector<String>                     UnaryOperators;
+        List<String>                       UnaryOperators;
 
         /**
          * This public map allows to define alias names for unary operators. Such names
          * must consist only of alphabetic characters.
          *
          * Flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} controls if method
-         * #SetupDefaults adds the aliases defined with resourced meta data of enumeration
+         * #SetupDefaults adds the aliases defined with resourced data records of enumeration
          * \alib{expressions,DefaultAlphabeticUnaryOperatorAliases} to this map.
          */
-        UnorderedStringMapIgnoreCase<String>    AlphabeticUnaryOperatorAliases;
+        HashMap<String, String,
+                aworx::hash_string_ignore_case<character>,
+                aworx::equal_to_string_ignore_case<character> > AlphabeticUnaryOperatorAliases;
 
         /**
          * This public map allows to define alias names for binary operators. Such names
          * must consist only of alphabetic characters.
          *
          * Flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} controls if method
-         * #SetupDefaults adds the aliases defined with resourced meta data of enumeration
+         * #SetupDefaults adds the aliases defined with resourced data records of enumeration
          * \alib{expressions,DefaultAlphabeticBinaryOperatorAliases} to this map.
          */
-        UnorderedStringMapIgnoreCase<String>    AlphabeticBinaryOperatorAliases;
+        HashMap<String, String,
+                aworx::hash_string_ignore_case<character>,
+                aworx::equal_to_string_ignore_case<character> > AlphabeticBinaryOperatorAliases;
 
         /**
-         * Adds a unary operator to this expression compiler.
+         * Adds an unary operator to this expression compiler.
          * This method should be invoked prior to prior to invoking #SetupDefaults.
          *
          * Operator symbols must be added only once.
@@ -134,10 +163,10 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
                 for( auto& op : UnaryOperators )
                     if( op.Equals( symbol ) )
                     {
-                        ALIB_ASSERT_ERROR( false, "Unary operator '{}' already defined.", symbol )
+                        ALIB_ASSERT_ERROR( false, "Unary operator {!Q'} already defined.", symbol )
                     }
             #endif
-            UnaryOperators.emplace_back(symbol);
+            UnaryOperators.EmplaceBack(symbol);
         }
 
 
@@ -151,7 +180,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * \b %SetupDefaults adds operators resourced with enumeration
          * \alib{expressions,DefaultBinaryOperators}.
          */
-        UnorderedStringMap<int>                 BinaryOperators;
+        HashMap<String, int>                BinaryOperators;
 
         /**
          * Adds a binary operator to this expression compiler.
@@ -164,9 +193,10 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          */
         void AddBinaryOperator( const String& symbol, int precedence )
         {
-            ALIB_ASSERT_ERROR( BinaryOperators.find( symbol ) == BinaryOperators.end(),
-                               "Binary operator '{}' already defined.", symbol )
-            BinaryOperators[symbol]= precedence;
+            ALIB_DBG( auto result= )
+            BinaryOperators.EmplaceOrAssign(symbol, precedence);
+            ALIB_ASSERT_ERROR( result.second == true, // was inserted
+                               "Binary operator {!Q'} already defined.", symbol )
         }
 
         /**
@@ -177,24 +207,25 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          */
         int GetBinaryOperatorPrecedence( const String& symbol )
         {
-            auto it= BinaryOperators.find( symbol );
-            if( it == BinaryOperators.end() )
-            {
-                auto aliasOp= AlphabeticBinaryOperatorAliases.find( symbol );
+            // search in operator table first
+            auto it= BinaryOperators.Find( symbol );
+            if( it != BinaryOperators.end() )
+                return it.Mapped();
 
-                ALIB_ASSERT_ERROR( aliasOp != AlphabeticBinaryOperatorAliases.end(),
-                                   "Unknown binary operator '{}'.", symbol       )
+            // have an alias?
+            auto aliasOp= AlphabeticBinaryOperatorAliases.Find( symbol );
+            ALIB_ASSERT_ERROR( aliasOp != AlphabeticBinaryOperatorAliases.end(),
+                               "Unknown binary operator {!Q'}.", symbol       )
 
-                it= BinaryOperators.find( aliasOp->second );
-                ALIB_ASSERT_ERROR( it != BinaryOperators.end(),
-                                   "Unknown binary operator '{}' which was aliased by '{}'.",
-                                   aliasOp->second, symbol       )
-            }
-            return it->second;
+            it= BinaryOperators.Find( aliasOp.Mapped() );
+            ALIB_ASSERT_ERROR( it != BinaryOperators.end(),
+                               "Unknown binary operator {!Q'} which was aliased by {!Q'}.",
+                               aliasOp->second, symbol       )
+            return it.Mapped();
         }
 
 
-    #if ALIB_MODULE_CONFIGURATION
+    #if ALIB_CONFIGURATION
 
         /**
          * This object defaults to \c nullptr and may be set in during bootstrap of the comiler
@@ -217,7 +248,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 
         /**
          * Within this vector, all variables loaded 'automatically' from #Configuration with
-         * default implementation of method #getExpressionString are stored here. The tuple
+         * default implementation of method #getExpressionString are stored. The tuple
          * string values provide:
          * - the priority,
          * - the category name,
@@ -235,7 +266,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          *   (e.g. to release memory) without causing any side effects, other than what
          *   an application itself volunteers to do with this information.
          */
-        std::vector<std::tuple<Priorities,AString,AString,String>>  VariablesLoaded;
+        std::vector<std::tuple<Priorities,AString,AString,String>>                  VariablesLoaded;
     #endif
 
         /**
@@ -252,9 +283,8 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
             Arithmetics        = (1 << 3),   ///< Installs \alib{expressions,plugins::Arithmetics}.
             Math               = (1 << 4),   ///< Installs \alib{expressions,plugins::Math}.
             Strings            = (1 << 5),   ///< Installs \alib{expressions,plugins::Strings}.
-#if ALIB_MODULE_SYSTEM
-            DateAndTime        = (1 << 6),   ///< Installs \alib{expressions,plugins::DateAndTime}.
-#endif
+ALIB_IF_SYSTEM(
+            DateAndTime        = (1 << 6), ) ///< Installs \alib{expressions,plugins::DateAndTime}. )
         };
 
 
@@ -263,6 +293,14 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * by method #SetupDefaults.
          *
          * Defaults to \alib{expressions::Compiler,BuiltInPlugins::ALL}
+         *
+         * \note
+         *   The built-in plug-ins are allowed to be shared by different compiler instances.
+         *   To reach that, they must not be disabled here (or method #SetupDefaults must be
+         *   omitted) and instead created once and registered with the compiler using
+         *   inherited method \alib{PluginContainer::InsertPlugin}. In that case, parameter
+         *   \p{responsibility} of that method has to be provided as
+         *   \c Responsibility::KeepWithSender.
          */
         BuiltInPlugins              CfgBuiltInPlugins                         = BuiltInPlugins::ALL;
 
@@ -283,7 +321,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * \see Manual chapter \ref alib_expressions_nested "10. Nested Expressions".
          *
          */
-        String                      CfgNestedExpressionOperator                         = A_CHAR("*");
+        String                      CfgNestedExpressionOperator                   = A_CHAR("*");
 
         /**
          * Name descriptor for nested expression function.
@@ -340,8 +378,8 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
         /**
          * Formatter used throughout all phases of the life-cycle of an expression:
          * - Used for parsing expression strings (Using the encapsulated
-         *   \alib{strings,TNumberFormat,NumberFormat} object. This is also the reason, why the type of
-         *   formatter is \b %Formatter and not its more abstract base % \b %Formatter.)
+         *   \alib{strings,TNumberFormat,NumberFormat} object. This is also the reason, why the type
+         *   of formatter is \b %Formatter and not its more abstract base % \b %Formatter.)
          * - Used for the generation of the normalized expression strings.
          * - Used for the generation of constant string objects during compilation.
          * - Used for the generation of string objects during evaluation.
@@ -352,8 +390,8 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * compile-time scope and the creation of the evaluation-time scope. If done,
          * the expression results could differ when optimizations during compilation are performed.
          *
-         * In the constructor of this class, a \alib{stringformat,Formatter::Clone,clone} of the
-         * \alib \alib{stringformat::Stringformat,GetDefaultFormatter,default formatter} is set here.
+         * In the constructor of this class, a \alib{text,Formatter::Clone,clone} of the
+         * \alib \alib{text::Formatter,GetDefault,default formatter} is set here.
          */
         SPFormatter              CfgFormatter;
 
@@ -380,14 +418,15 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * display a type name to end-users, for example, when malformed expressions throw an
          * exception.
          *
-         * The built-in types get registered in the constructor of the compiler as follows:
-         * \snippet "alib/expressions/compiler.cpp"  DOX_ALIB_EXPRESSIONS_COMPILER_REGISTERING_TYPES
+         * The built-in types get registered in the constructor of the compiler, where the
+         * type names are read from the \alib{resources,ResourcePool} of static library object
+         * \alib{EXPRESSIONS}.
          *
          * It is recommended that custom plug-ins invoke this method in their constructor.
          *
          * \note
          *   There is no general need to register types for using them
-         *   with \alibmod_nolink_expressions. Parameter  \p{name} of this method is exclusively
+         *   with \alib_expressions_nl. Parameter  \p{name} of this method is exclusively
          *   used to generate textual, human readable output!
          *
          * @param sample    A \ref alib_expressions_prereq_sb "sample value"
@@ -436,6 +475,36 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
         /** ****************************************************************************************
          * Completes construction according to configuration options provided with fields
          * prefixed <c>Cfg</c>.
+         * In detail, the following actions are performed:
+         * - If flag \alib{expressions,Compilation::DefaultUnaryOperators} is set in field
+         *   #CfgCompilation, then
+         *   - the unary operators listed in the \ref alib_enums_records "enum records" of
+         *     \alib{expressions,DefaultUnaryOperators} are added using #AddUnaryOperator.
+         *   - If flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} is set in
+         *     field #CfgCompilation, then the alphabetic alias names found in
+         *     the data records of enumeration
+         *     \alib{expressions,DefaultAlphabeticUnaryOperatorAliases}
+         *     are set in field #AlphabeticUnaryOperatorAliases. (As of the current version this
+         *     is only the token \b NOT aliasing operator <b>"!"</b>.
+         * - If flag \alib{expressions,Compilation::DefaultBinaryOperators} is set in field
+         *   #CfgCompilation, then
+         *   - the binary operators listed in the data records of enumeration
+         *     \alib{expressions,DefaultBinaryOperators} are added using #AddBinaryOperator.
+         *   - If flag \alib{expressions,Compilation::AllowSubscriptOperator} is not set, the
+         *     subscript operator is omitted.
+         *   - If flag \alib{expressions,Compilation::DefaultAlphabeticOperatorAliases} is set in
+         *     field #CfgCompilation, then the alphabetic alias names found in
+         *     the data records of enumeration
+         *     \alib{expressions,DefaultAlphabeticBinaryOperatorAliases}
+         *     are set in field #AlphabeticBinaryOperatorAliases. (As of the current version this
+         *     is only the token \b NOT aliasing operator <b>"!"</b>.
+         * - Strings <b>"++"</b> and <b>"--"</b> are added to field #CfgNormalizationDisallowed
+         *   to prevent the unintentional creation of these potential operators in normalizations.
+         *   (This way, a space character will be added between binary <b>"+"</b> and unary
+         *    <b>"+"</b>, respectively binary <b>"-"</b> and unary <b>"-"</b> operators,
+         *   even if the normalization options do not suggest to do this.
+         * - Depending on the flags set in #CfgBuiltInPlugins, the plug-ins listed in
+         *   enumeration #BuiltInPlugins are created and added.
          ******************************************************************************************/
         ALIB_API
         void                SetupDefaults();
@@ -473,27 +542,26 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * Compiles the given \p{expressionString} and adds a compiled expression to the map of
          * named expressions.
          *
-         * @param identifier        The name used to map the expression.
+         * @param name              The name used to map the expression.
          * @param expressionString  The string to parse.
          *                          If \c nullptr an existing expression is removed.
          * @return \c true if an expression with the same named existed and was replaced.
          *         Otherwise returns \c false.
          ******************************************************************************************/
         virtual ALIB_API
-        bool                AddNamed( const String& identifier, const String& expressionString );
+        bool                AddNamed( const String& name, const String& expressionString );
 
         /** ****************************************************************************************
          * Removes a named expression. This is just a shortcut to #AddNamed, providing
          * \c nullptr for parameter \p{expressionString}.
          *
-         * @param identifier        The name of the named expression to be removed.
+         * @param name  The name of the expression to be removed.
          * @return \c true if an expression with the given name existed and was removed.
          *         Otherwise returns \c false.
          ******************************************************************************************/
-        inline
-        bool                RemoveNamed( const String& identifier )
+        bool                RemoveNamed( const String& name )
         {
-            return AddNamed( identifier, NullString() );
+            return AddNamed( name, NullString() );
         }
 
         /** ****************************************************************************************
@@ -501,13 +569,13 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * #AddNamed prior to retrieving it, or implementations of this class overwrite protected
          * method #getExpressionString, which allows to receive expression strings 'on the fly'.
          *
-         * @param identifier  The name of the expression.
+         * @param name  The name of the expression.
          * @return In case of success a shared pointer to the expression.
          ******************************************************************************************/
         virtual ALIB_API
-        SPExpression        GetNamed( const String& identifier );
+        SPExpression        GetNamed( const String& name );
 
-        #if ALIB_MODULE_CONFIGURATION
+        #if ALIB_CONFIGURATION
             /** ************************************************************************************
              * Stores back all expression strings which had been automatically loaded from
              * the plugin specified by \p{slot} to configuration system. For storing, the parsed
@@ -526,7 +594,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
              **************************************************************************************/
             ALIB_API
             int                 StoreLoadedExpressions( Priorities slot= Priorities::Standard );
-        #endif // ALIB_MODULE_CONFIGURATION
+        #endif // ALIB_CONFIGURATION
 
     // #############################################################################################
     // Protected Interface
@@ -544,9 +612,9 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
          * custom scope types, then this method has to be overridden to return such custom
          * scope object.
          *
-         * @return The default implementation returns the standard scope object. As constructor
-         *         parameter \p{formatter}, field #CfgFormatter is provided.<br>
-         *         Derived types may need to return a scope object of derived type.
+         * @return The default implementation returns the standard scope object.
+         *         For its construction, field #CfgFormatter is provided.<br>
+         *         Derived compilers may need to return a scope object of a derived type.
          ******************************************************************************************/
         virtual  ALIB_API
         Scope*              getCompileTimeScope();
@@ -586,12 +654,12 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 }} // namespace aworx[::lib::expressions]
 
 /// Type alias in namespace #aworx.
-using     Compiler=           aworx::lib::expressions::Compiler;
+using     Compiler=           lib::expressions::Compiler;
 
 
 }// namespace [aworx]
 
-ALIB_ENUM_IS_BITWISE(aworx::lib::expressions::Compiler::BuiltInPlugins)
+ALIB_ENUMS_MAKE_BITWISE(aworx::lib::expressions::Compiler::BuiltInPlugins)
 
 
 #endif // HPP_ALIB_EXPRESSIONS_COMPILER

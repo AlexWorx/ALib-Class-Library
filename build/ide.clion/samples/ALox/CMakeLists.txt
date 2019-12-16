@@ -11,6 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
+project("ALox.Samples")
 cmake_minimum_required( VERSION 3.3.0 )
 
 

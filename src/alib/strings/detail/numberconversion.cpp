@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
@@ -25,14 +26,15 @@
 #if defined(_WIN32) && !defined (__INTRIN_H_)
     #include <intrin.h>
 #endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings {
 
 /**
- * This is a detail namespace of module \alibmod_nolink_strings.
+ * This is a detail namespace of module \alib_strings_nl.
  */
 namespace detail {
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 
 namespace {
@@ -94,7 +96,7 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
             break;
 
         result= ( result * 10 ) + static_cast<uint64_t>( c - '0'  );
-        idx++;
+        ++idx;
     }
 
     // that's it
@@ -207,7 +209,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
         const TChar c= buf[idx];
         if ( charFound && nf.ReadGroupChars && c!= '\0' && c == nf.ThousandsGroupChar  )
         {
-            idx++;
+            ++idx;
             continue;
         }
 
@@ -217,7 +219,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
         charFound= true;
         result= ( result * 10 ) + static_cast<uint64_t>( c - '0' );
 
-        idx++;
+        ++idx;
     }
 
     if ( charFound )
@@ -251,14 +253,14 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
                   || c == nf.BinWordGroupChar
                   || c == nf.BinWord32GroupChar )    )
         {
-            idx++;
+            ++idx;
             continue;
         }
 
         if ( c == '0'  )
         {
             result<<= 1;
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -267,7 +269,7 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             result<<= 1;
             result|=1;
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -304,7 +306,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
                   || c == nf.HexWordGroupChar
                   || c == nf.HexWord32GroupChar )    )
         {
-            idx++;
+            ++idx;
             continue;
         }
 
@@ -312,7 +314,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             result<<= 4;
             result|=  static_cast<uint64_t>(c - '0');
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -321,7 +323,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             result<<= 4;
             result|=  static_cast<uint64_t>(c - 'A' + 10 );
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -330,7 +332,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             result<<= 4;
             result|=  static_cast<uint64_t>(c - 'a' + 10 );
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -366,7 +368,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
              && c != 0
              && c == nf.OctGroupChar )
         {
-            idx++;
+            ++idx;
             continue;
         }
 
@@ -374,7 +376,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             result<<= 3;
             result|=  static_cast<uint64_t>(c - '0');
-            idx++;
+            ++idx;
             charFound= true;
             continue;
         }
@@ -463,7 +465,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
     if( nf.DecimalPointChar == *buf  )
     {
         // consume dot
-        buf++;
+        ++buf;
 
         // read number after dot
         if (      buf <  bufEnd
@@ -489,13 +491,13 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
             integer pos= 0;
             while (     pos < sepLen
                     &&  nf.ExponentSeparator. template CharAt<false>(pos) == *(buf + pos) )
-                pos++;
+                ++pos;
             if ( (eSepFound= ( pos == sepLen ) ) == true )
                 buf += pos;
         }
         if ( !eSepFound && ( *buf == 'e' || *buf == 'E' ) )
         {
-            buf++;
+            ++buf;
             eSepFound= true;
         }
 
@@ -504,7 +506,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             bool negativeE= false;
             if ( (negativeE= (*buf == '-') ) == true ||  *buf == '+' )
-                buf++;
+                ++buf;
 
             if( buf < bufEnd )
             {
@@ -572,7 +574,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
                 digitsInValue= binSizeToDecSize[leadingBinaryZeros];
                 // could be one lower due to the rest after the most significant bit
                 if( value < pow10_0to19[digitsInValue-1] )
-                    digitsInValue--;
+                    --digitsInValue;
 
             #else
                 // we have to treat the 0, so let's treat 0 to 9 then
@@ -634,7 +636,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     {
         // print normal digit
         int digitValue=   static_cast<int>( ( value / pow10_0to19[actDigit-1] ) );
-        ALIB_ASSERT( digitValue <= 9 );
+        ALIB_ASSERT( digitValue <= 9 )
 
         // write group character
         if(     nf.WriteGroupChars && nf.ThousandsGroupChar != '\0'
@@ -649,7 +651,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
         // next
         value=    value % pow10_0to19[actDigit-1];
 
-        actDigit--;
+        --actDigit;
     }
 
     return idx;
@@ -678,9 +680,7 @@ integer WriteDecSigned( int64_t value, TChar* buffer, integer idx, int overrideW
     int width= overrideWidth != 0 ? overrideWidth
                                   : nf.DecMinimumFieldWidth;
     if( idx != oldIdx && width > 1 )
-    {
-        width--;
-    }
+        --width;
 
     return WriteDecUnsigned( uValue, buffer, idx, width, nf );
 }
@@ -752,7 +752,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
                 uint64_t actSize=  ((uint64_t)1) << (digits - 1);
                 while( value < actSize )
                 {
-                    digits--;
+                    --digits;
                     actSize >>= 1;
                 }
             #endif
@@ -782,7 +782,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
 
         // next
         testValue >>= 1;
-        digits--;
+        --digits;
     }
 
     return idx;
@@ -857,7 +857,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
                     uint64_t testValue= 0xF;
                     while( value > testValue )
                     {
-                        digits++;
+                        ++digits;
                         testValue= (testValue << 4 ) | 0xF;
                     }
                 }
@@ -892,7 +892,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
         // next
         testMask  >>= 4;
         shiftBits -=  4;
-        digits--;
+        --digits;
     }
 
     return idx;
@@ -962,7 +962,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
                     uint64_t testValue= 0x7;
                     while( value > testValue )
                     {
-                        digits++;
+                        ++digits;
                         testValue= (testValue << 3 ) | 0x7;
                     }
                }
@@ -991,7 +991,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
         // next
         shiftBits -=  3;
-        digits--;
+        --digits;
     }
 
     return idx;
@@ -1067,12 +1067,12 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         firstNonZero= 0;
         if ( fractPart > 0 )
         {
-            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero < 20);
+            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero < 20)
             while ( fractPart < pow10_0to19[ MaxFloatSignificantDigits - firstNonZero - 1 ] )
-                firstNonZero++;
-            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero > 0);
+                ++firstNonZero;
+            ALIB_ASSERT( MaxFloatSignificantDigits - firstNonZero > 0)
         }
-        firstNonZero++;
+        ++firstNonZero;
 
         unusedFractDigits= fractionalDigits >= 0 ?  MaxFloatSignificantDigits - fractionalDigits
                                                  :  1;
@@ -1082,7 +1082,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
      else if (exp10 >= 0 )
      {
         int intPartSize= MaxFloatSignificantDigits - exp10;
-        ALIB_ASSERT( intPartSize > 0  && intPartSize <= MaxFloatSignificantDigits );
+        ALIB_ASSERT( intPartSize > 0  && intPartSize <= MaxFloatSignificantDigits )
         intPart=     static_cast<uint64_t>(llrint( value * pow( 10, intPartSize ) ));
         fractPart=   intPart %  pow10_0to19[ intPartSize ];
         intPart=     intPart /  pow10_0to19[ intPartSize ];
@@ -1091,12 +1091,12 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         firstNonZero= 0;
         if ( fractPart > 0 )
         {
-            ALIB_ASSERT( intPartSize - firstNonZero < 20 );
+            ALIB_ASSERT( intPartSize - firstNonZero < 20 )
             while ( fractPart < pow10_0to19[ intPartSize - firstNonZero - 1 ] )
-                firstNonZero++;
-            ALIB_ASSERT( intPartSize - firstNonZero > 0 );
+                ++firstNonZero;
+            ALIB_ASSERT( intPartSize - firstNonZero > 0 )
         }
-        firstNonZero++;
+        ++firstNonZero;
 
         unusedFractDigits= fractionalDigits >= 0 ?  intPartSize - fractionalDigits
                                                  :  1;
@@ -1123,26 +1123,26 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         fractPart    = fractPart / pow10_0to19[ unusedFractDigits ];
         if ( rest > pow10_0to19[ unusedFractDigits ] / 2 )
         {
-            fractPart++;
+            ++fractPart;
             int  overflowDigit= 0;
             bool overflow=      false;
             while (    (overflowDigit <= fractionalDigits || fractionalDigits < 0 )
                     && (overflow|= fractPart == pow10_0to19[ overflowDigit ]) == false
                     &&  fractPart > pow10_0to19[ overflowDigit ]
                    )
-                overflowDigit++;
+                ++overflowDigit;
 
             if ( overflow )
             {
                 if ( overflowDigit == fractionalDigits )
                 {
                     fractPart= 0;
-                    intPart++;
+                    ++intPart;
                 }
                 else
                 {
-                    ALIB_ASSERT( firstNonZero > 1 );
-                    firstNonZero--;
+                    ALIB_ASSERT( firstNonZero > 1 )
+                    --firstNonZero;
                 }
             }
         }
@@ -1175,7 +1175,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         if ( fractionalDigits > 0 && fractZeros > fractionalDigits )
             fractZeros= fractionalDigits;
 
-        for ( int i= 0 ; i < fractZeros ; i++ )
+        for ( int i= 0 ; i < fractZeros ; ++i )
             buffer[idx++]= '0';
 
         int  qtyDigits=        fractionalDigits - fractZeros;
@@ -1187,24 +1187,24 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                 && ( qtyDigits< 0 || cntDigits < qtyDigits )
               )
         {
-            actDigit--;
+            --actDigit;
 
             // get next d
             int digitValue=   static_cast<int>(  ( fractPart  / pow10_0to19[actDigit] ) );
 
-            ALIB_ASSERT( digitValue <= 9 );
+            ALIB_ASSERT( digitValue <= 9 )
 
             // don't write, yet?
             if ( (printStarted|= (digitValue != 0)) == false )
                 continue;
-            cntDigits++;
+            ++cntDigits;
 
             // write digit unless its a '0'
             if ( digitValue == 0 )
-                cntOmittedZeros++;
+                ++cntOmittedZeros;
             else
             {
-                for ( int i= 0; i< cntOmittedZeros ; i++ )
+                for ( int i= 0; i< cntOmittedZeros ; ++i )
                     buffer[idx++]= '0';
                 cntOmittedZeros= 0;
                 buffer[idx++]= static_cast<TChar>( 48 + digitValue ); // 48= '0'
@@ -1228,12 +1228,12 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
             }
             else
             {
-                for ( int i= 0; i< cntOmittedZeros ; i++ )
+                for ( int i= 0; i< cntOmittedZeros ; ++i )
                     buffer[idx++]= '0';
                 cntDigits+= cntOmittedZeros;
 
                 // write missing digits
-                for ( int i= cntDigits; i< qtyDigits; i++ )
+                for ( int i= cntDigits; i< qtyDigits; ++i )
                     buffer[idx++]= '0';
             }
         }
@@ -1301,5 +1301,5 @@ template integer  WriteOct        <xchar>( uint64_t, xchar*, integer, int , cons
 template integer  WriteFloat      <xchar>( double  , xchar*, integer, int , const TNumberFormat<xchar>& );
 
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 }}}}// namespace [aworx::lib::strings::detail]

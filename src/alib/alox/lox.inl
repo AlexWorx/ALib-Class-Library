@@ -1,102 +1,75 @@
-﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALOX_LOX
 #define HPP_ALOX_LOX 1
 
-#if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
+#if !defined(HPP_ALIB_ALOX)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (HPP_ALIB_THREADS_SMARTLOCK)
-    #include "alib/threads/smartlock.hpp"
-#endif
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
-#if !defined (HPP_ALOX_CORE_SCOPEINFO)
-    #include "alib/alox/detail/scopeinfo.inl"
-#endif
-#if !defined (HPP_ALOX_CORE_LOGGER)
-    #include "alib/alox/detail/logger.inl"
-#endif
-#if !defined (HPP_ALOX_CORE_DOMAIN)
-    #include "alib/alox/detail/domain.inl"
-#endif
-#if !defined (HPP_ALOX_CORE_SCOPE)
-    #include "alib/alox/detail/scopestore.inl"
+#if !defined (HPP_ALIB_ENUMS_BITWISE)
+    #include "alib/enums/bitwise.hpp"
 #endif
 
-#if !defined (_GLIBCXX_MAP) && !defined(_MAP_)
-    #include <map>
-#endif
 
 
 namespace aworx { namespace lib { namespace lox { namespace detail {
+
     class Logger;
+
     namespace textlogger
     {
         class TextLogger;
     }
-}
+} // namespace aworx::lib::lox[::detail]
 
-/** ************************************************************************************************
- * Used to store prefixes set. Those provided as
- * \ref aworx::lib::boxing::Box "boxes" of character arrays are copied into an internal AString
- * and will be deleted with the object. This ensures, that simple strings might get assembled
- * on the stack and still be used as a prefix logable.
- **************************************************************************************************/
-class PrefixLogable : public Box
+
+
+/**
+ * Denotes flags used with methods \alib{lox,Lox::GetState} and \alib{lox,Lox::State} to select
+ * different parts of the state receive.
+ */
+enum class StateInfo
 {
-    protected:
-        /** If set, it will be deleted. */
-        AString* copy   = nullptr;
+   NONE                     = 0,       ///< No state
+   Basic                    = 1 <<  0, ///< Name and number of log calls
+   Version                  = 1 <<  1, ///< Library Version and thread safeness
+   Loggers                  = 1 <<  2, ///< Loggers
 
-    public:
-    /**
-     * Constructor taking the originally provided box. If this is an array of characters, the
-     * contents is copied into a heap allocated (new) AString and our vtable is replaced accordingly.
-     * @param src The prefix object provided by the user
-     */
-    PrefixLogable( const Box& src )
-    : Box( src )
-    {
-        // uses "placement new" to overwrite the box part of ourselves
-             if ( IsArrayOf<nchar>() )  new (this) Box( copy= new AString( Unbox<NString>() ));
-        else if ( IsArrayOf<wchar>() )  new (this) Box( copy= new AString( Unbox<WString>() ));
-        else if ( IsArrayOf<xchar>() )  new (this) Box( copy= new AString( Unbox<XString>() ));
-    }
+   Domains                  = 1 <<  3, ///< Log domains currently registered
+   InternalDomains          = 1 <<  4, ///< Internal domains
+   ScopeDomains             = 1 <<  5, ///< Scope domains
+   DSR                      = 1 <<  6, ///< Domain substitution rules
+   PrefixLogables           = 1 <<  7, ///< Prefix logables
+   Once                     = 1 <<  8, ///< Log once counters
+   LogData                  = 1 <<  9, ///< Log data objects
+   ThreadMappings           = 1 << 10, ///< Named threads
 
-    ~PrefixLogable()
-    {
-        if(copy)
-            delete copy;
-    }
-    /**
-     * Move assignment operator.
-     * Default implementation of compiler is used.
-     * (Needs to be explicitly given due to custom destructor.)
-     * @param move The object to be moved.
-     * @return This object
-     */
-    PrefixLogable& operator= (PrefixLogable&& move ) = default;
+   SPTR                     = 1 << 20, ///< Source path trim rules
+   CompilationFlags         = 1 << 21, ///< \alib/\alox compilation flags
+
+   All                      = ~0L,
 };
+
+}}}
+
+ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::StateInfo, aworx::lib::enums::ERSerializable )
+
+#include "alib/alox/detail/loxpimpl.inl"
+
+namespace aworx { namespace lib { namespace lox {
 
 /** ************************************************************************************************
  * This class acts as a container for \e Loggers and provides a convenient interface to logging.
  * Fore information how to use this class, checkout the \alox tutorials and the ALox manual.
  *
  * If thread safeness is not needed for the logging system (see user manual),
- * the mutex can be switched of using inherited method \alib{threads,ThreadLock::SetSafeness}.
+ * the mutex can be switched off using inherited method \alib{threads,ThreadLock::SetSafeness}.
  * The goal here would be to increase logging performance. This is really a very
  * seldom case when performance is absolutely key, and it is better to be kept in safe mode.
  *
@@ -108,178 +81,49 @@ class PrefixLogable : public Box
  **************************************************************************************************/
 class Lox
 {
-    // #############################################################################################
-    // Public fields
-    // #############################################################################################
-    public:
-        /** A mutex to control parallel access. */
-        threads::ThreadLock                         Lock;
+    #if !defined(ALIB_DOX)
+        friend class   ALox;
+        friend struct  detail::LI;
+    #endif
 
-        /**
-         * A counter for the quantity of calls. The count includes logs that were suppressed by
-         * disabled <em>Log Domain</em> and those suppressed by the optional log condition parameter.
-         */
-        int                                         CntLogCalls                                  =0;
-
-        /**
-         * Denotes flags used with methods #GetState and #State to select different parts
-         * of the state receive.
-         */
-        enum class StateInfo
-        {
-           NONE                     = 0,       ///< No state
-           Basic                    = 1 <<  0, ///< Name and number of log calls
-           Version                  = 1 <<  1, ///< Library Version and thread safeness
-           Loggers                  = 1 <<  2, ///< Loggers
-
-           Domains                  = 1 <<  3, ///< Log domains currently registered
-           InternalDomains          = 1 <<  4, ///< Internal domains
-           ScopeDomains             = 1 <<  5, ///< Scope domains
-           DSR                      = 1 <<  6, ///< Domain substitution rules
-           PrefixLogables           = 1 <<  7, ///< Prefix logables
-           Once                     = 1 <<  8, ///< Log once counters
-           LogData                  = 1 <<  9, ///< Log data objects
-           ThreadMappings           = 1 << 10, ///< Named threads
-
-           SPTR                     = 1 << 20, ///< Source path trim rules
-           CompilationFlags         = 1 << 21, ///< \alib/\alox compilation flags
-
-           All                      = ~0L,
-        };
-
-
-    // #############################################################################################
-    // Private/protected fields  and constants
-    // #############################################################################################
     protected:
-        /** A list of a lists of logables used for (recursive) logging. */
-        std::vector<Boxes*>                         logableContainers;
+        /** The implementation.         */
+        detail::LoxImpl*                                    impl;
 
-        /** A list of a lists of logables used for (recursive) internal logging. */
-        std::vector<Boxes*>                         internalLogables;
+    public:
+    /**
+     * This is the path for logging to the internal domain. By manipulating this
+     *  <em>%Log %Domain's %Verbosity</em>, the verbosity of \alox itself can be controlled.
+     * For example, with \e Verbosity.INFO, the 'on the fly' creation of <em>Log Domains</em>
+     * are logged, which can be helpful to determine the <em>Lo                                                                 bg Domains</em> that are
+     * created by libraries and larger projects.
+     *
+     * The following sub-domains are used by \alox:
+     *
+     *   Sub-Domain | Description
+     *   - - - - - -| - - - - - - - - - - - - - - - - - - -
+     *   LGR        | Used when \e %Loggers are registered, retrieved or removed from a \b %Lox and when the \e Verbosity of a <em>Log Domain</em> for a \e %Logger is changed.<br>In addition used with method \b %Lox::SetStartTime.
+     *   DMN        | Used when <em>Log Domains</em> are registered (on first use), when <em>Scope Domains</em> are set or removed and when <em>Domain Substitution Rules</em> are set.
+     *   PFX        | Used when <em>Prefix Logables</em> are set or removed.
+     *   THR        | Used with method \b %Lox::MapThreadName.
+     *   LGD        | Used with storing and retrieving <em>Log Data</em> objects.
+     *
+     * In addition, class \alox{ALoxReportWriter} logs into sub-domain <c>'REPORT'</c>.
+     *
+     * \note For internal logging an separated <em>domain tree</em> is used. This means, that
+     *       setting the root domain of a \b %Lox to a certain \e Verbosity does \e not affect
+     *       the internal domains. In other words, the \e Verbosity of the internal domain
+     *       (or one of its sub-domains) has to be set explicitly.
+     *
+     */
+    static constexpr  NString  InternalDomains                                            {  "$/" };
 
-        /** The recursion counter for internal logging. */
-        size_t                                      internalLogRecursionCounter             = 0;
-
-        /** Information about the source code, method, thread, etc. invoking a log  call */
-        detail::ScopeInfo                             scopeInfo;
-
-        /**
-         * The root domain \"/\". All registered domains become a sub domain of this root.
-         * If a <em>Sub-Log Domain's Verbosity</em> is not explicitly set, such sub domain inherits
-         * the verbosity of its parent.
-         */
-        detail::Domain                                domains;
-
-        /** The root domain for internal <em>Log Domains</em>. */
-        detail::Domain                                internalDomains;
-
-
-        /** Scope Domains */
-        detail::ScopeStore<NAString*>                 scopeDomains;
-
-        /** Log once counters */
-        detail::ScopeStore<std::map<NAString, int>*>  scopeLogOnce;
-
-        /** Prefix logables store */
-        detail::ScopeStore<Box*>                      scopePrefixes;
-
-        /** Log data store */
-        detail::ScopeStore<std::map<NAString, Box>*>  scopeLogData;
-
-        /** Used for tabular output of logger lists */
-        integer                                     maxLoggerNameLength                       =0;
-
-        /** Used for tabular output of logger lists */
-        integer                                     maxDomainPathLength;
-
-        /** A key value used in stores if no key is given (global object). */
-        const aworx::NString                        noKeyHashKey                    = "$";
-
-        /** Domain stubstitution rules. */
-        struct DomainSubstitutionRule
-        {
-            /** Rule types. */
-            public: enum class Type
-            {
-                Exact,       ///< Exact match.
-                StartsWith,  ///< Starts with match.
-                EndsWith,    ///< Ends with match.
-                Substring    ///< Any sub-string.
-            };
-
-            Type            type;          ///< Denotes the type of the rule, depending of what
-                                           ///<was set in originally as search path
-            NString32       Search;        ///< The path to search.
-            NString32       Replacement;   ///< The replacement.
-
-            /**  Constructor.
-             * @param s The path to search.
-             * @param r The replacement.
-            */
-            DomainSubstitutionRule( const NString& s, const NString& r )
-            {
-                Search     .DbgDisableBufferReplacementWarning();
-                Replacement.DbgDisableBufferReplacementWarning();
-
-                // get type and adjust given search parameter
-                integer startPos=   0;
-                integer length=     s.Length();
-                if ( s.CharAtStart() == '*' )
-                {
-                    startPos++;
-                    length--;
-                    if ( s.CharAtEnd() == '*' )
-                    {
-                        type= Type::Substring;
-                        length--;
-                    }
-                    else
-                        type= Type::EndsWith;
-                }
-                else
-                {
-                    if ( s.CharAtEnd() == '*' )
-                    {
-                        type= Type::StartsWith;
-                        length--;
-                    }
-                    else
-                        type= Type::Exact;
-                }
-                Search._( s, startPos, length );
-
-                // minimum rule check
-                if (   (     (    type == Type::Exact
-                               || type == Type::StartsWith )
-                         && Search.CharAtStart() != '/'
-                        )
-                    || (    type == Type::EndsWith
-                        &&  Search.CharAtEnd() == '/'
-                       )
-                   )
-                    Search.Reset(); // illegal rule
-
-
-                Replacement= r;
-            }
-        };
-
-        /** The list of domain substitution rules. */
-        std::vector<DomainSubstitutionRule>        domainSubstitutions;
-
-        /** Flag if a warning on circular rule detection was logged. */
-        bool                                       oneTimeWarningCircularDS                  =false;
-
-        /** Flag used with configuration variable LOXNAME_DUMP_STATE_ON_EXIT. */
-        bool                                       loggerAddedSinceLastDebugState            =false;
 
 
     // #############################################################################################
     // Constructors/destructor
     // #############################################################################################
     public:
-
         /** ****************************************************************************************
          * Constructs a new, empty Lox with the given \p{name}.
          * The name is immutable and all \b %Lox objects registered with \alox must be unique.
@@ -298,13 +142,18 @@ class Lox
          *                   \ref aworx::lib::lox::ALox "ALox".
          *                   Optional and defaults to \c true.
          ******************************************************************************************/
-        ALIB_API
-        Lox(const NString& name, bool doRegister =true );
+        Lox(const NString& name, bool doRegister =true )
+        {
+            detail::LI::Construct( this, name, doRegister );
+        }
 
         /** ****************************************************************************************
          * Destructs a lox
          ******************************************************************************************/
-        ALIB_API       ~Lox();
+        ~Lox()
+        {
+            detail::LI::Destruct(this);
+        }
 
     // #############################################################################################
     // Interface
@@ -316,28 +165,29 @@ class Lox
          *
          * @returns The name of this %Lox.
          ******************************************************************************************/
-        const NString   GetName()
+        const NString&  GetName()
         {
-            return scopeInfo.loxName;
+            return detail::LI::GetName( impl );
         }
 
         /** ****************************************************************************************
-         * Status of registration with \alox. To keep a \b %Lox "private" using parameter
-         * \p{doRegister} of the constructor, allows to suppress registration.
-         * Registered instances of this class can be statically received (by their name) using
-         * \ref aworx::lib::lox::ALox::Get "ALox::Get".
+         * Returns the number of logs that have been performed with this \b Lox.
+         * The counter is not used internally other than for providing a
+         * unique log number: While each logger attached has a own number, if more than one
+         * logger is attached, their numbers may differ due to different log domain settings.
+         * \note
+         *    The result is given as a mutual reference to the internal counter, which is allowed
+         *    to be manipulated. This is for example used in unit tests.
          *
          * @returns \c true if this instance was registered with \alox, \c false if not.
          ******************************************************************************************/
-        bool            IsRegistered()
+        integer&        GetLogCounter()
         {
-            return ALOX.Get( GetName() ) == this;
+            return detail::LI::GetLogCounter( impl );
         }
 
-
-
         /** ***************************************************************************************
-         * Acquire s this \b %Lox and sets the scope information data for the next log.
+         * Acquires this \b %Lox and sets the scope information data for the next log.
          *
          * @param file  The name of the source code file that the call is placed in.
          *              Usually the predefined preprocessor macro __FILE__ is passed here.
@@ -348,10 +198,7 @@ class Lox
          **************************************************************************************/
         void            Acquire( const NCString& file, int line, const NCString& func )
         {
-            ALIB_REL_DBG(    Lock.Acquire();
-                           , Lock.Acquire(file,line,func);    )
-
-            scopeInfo.Set( file, line, func, Lock.Owner() );
+            detail::LI::Acquire(impl, file, line, func);
         }
 
         /** ****************************************************************************************
@@ -360,8 +207,7 @@ class Lox
          ******************************************************************************************/
         void            Release()
         {
-            scopeInfo.Release();
-            Lock.Release();
+            detail::LI::Release(impl);
         }
 
         /** ****************************************************************************************
@@ -372,16 +218,21 @@ class Lox
          * - Log data is cleared
          * - Log once counters are cleared
          * - The thread dictionary is cleared.
-         * - All Trim domains which set are cleared
+         * - All Trim domains cleared
          *
          * \attention
          *   This method was introduced to support resetting the debug \b %Lox objects in the unit
          *   tests. In real applications, and for release logging it recommended to delete a Lox
          *   and create a new one instead of resetting one.
          *   Side effects might appear using this method!
+         *
+         * @param reInitialze  If called from the destructor \c false is passed.
+         *                     Defaults to \c true and must not be set by callers.
          ******************************************************************************************/
-        ALIB_API
-        void        Reset();
+        void        Reset(bool reInitialze= true)
+        {
+            detail::LI::Reset(impl, reInitialze);
+        }
 
         /** ****************************************************************************************
          * Adds \p{path} to an internal list of sub-strings that are used to trim the path of
@@ -448,7 +299,7 @@ class Lox
                                          Priorities      priority        = Priorities::DefaultValues )
 
         {
-            scopeInfo.SetSourcePathTrimRule( path, includeString, trimOffset, sensitivity,
+            detail::LI::SetSourcePathTrimRule( impl, path, includeString, trimOffset, sensitivity,
                                              trimReplacement, reach, priority );
         }
 
@@ -461,7 +312,7 @@ class Lox
          * Setting parameter \p{allowAutoRule} to \c false, allows to suppress the creation of an
          * automatic rule based on the executables path.
          *
-         * \see [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/manual.html)
+         * \see \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}
          *      for more information.
          *
          * @param reach         Denotes whether only local rules are cleared or also global ones.
@@ -472,7 +323,7 @@ class Lox
         void      ClearSourcePathTrimRules( Reach       reach           = Reach::Global,
                                             bool        allowAutoRule   = true                  )
         {
-            scopeInfo.SetSourcePathTrimRule( nullptr, allowAutoRule ? Inclusion::Include
+            detail::LI::SetSourcePathTrimRule( impl, nullptr, allowAutoRule ? Inclusion::Include
                                                                     : Inclusion::Exclude,
                                              999999, // code for clearing
                                              Case::Ignore, NullNString(), reach, Priorities::NONE  );
@@ -480,8 +331,9 @@ class Lox
 
         /** ****************************************************************************************
          * This static method creates a console logger. To decide which logger type to choose,
-         * configuration variable [ALOX_CONSOLE_TYPE](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html) is checked.
-         * If this variable is not set, then the decision is made as follows:
+         * configuration variable
+         * \https{ALOX_CONSOLE_TYPE,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
+         * is checked. If this variable is not set, then the decision is made as follows:
          * - On GNU/Linux OS, a
          *   \ref aworx::lib::lox::loggers::AnsiConsoleLogger "AnsiConsoleLogger" is chosen.
          * - On Windows OS, if a console window is attached, type
@@ -495,8 +347,8 @@ class Lox
          *
          * @return An instance of the chosen console type logger.
          ******************************************************************************************/
-        ALIB_API
-        static detail::textlogger::TextLogger*  CreateConsoleLogger( const NString& name= nullptr );
+        ALIB_API static
+        detail::textlogger::TextLogger*  CreateConsoleLogger( const NString& name= nullptr );
 
         /** ****************************************************************************************
          * Retrieves an instance of a Logger by its name. This might be useful when access to a
@@ -505,8 +357,10 @@ class Lox
          * @param loggerName    The name of the \e Logger to search for (case insensitive).
          * @return  The logger, nullptr if not found.
          ******************************************************************************************/
-        ALIB_API
-        detail::Logger*   GetLogger( const NString& loggerName );
+        detail::Logger*   GetLogger( const NString& loggerName )
+        {
+            return detail::LI::GetLogger(impl, loggerName);
+        }
 
         /** ****************************************************************************************
          * Removes a logger from this container.
@@ -518,8 +372,10 @@ class Lox
          * @param logger   The logger to be removed.
          * @returns \c true, if the \e Logger was found and removed, \c false otherwise.
          ******************************************************************************************/
-        ALIB_API
-        bool            RemoveLogger( detail::Logger* logger );
+        bool            RemoveLogger( detail::Logger* logger )
+        {
+            return detail::LI::RemoveLogger(impl, logger);
+        }
 
         /** ****************************************************************************************
          * Removes logger named \p{loggerName} from this container.
@@ -531,8 +387,10 @@ class Lox
          * @param loggerName  The name of the \e Logger(s) to be removed (case insensitive).
          * @returns The logger that was removed, \c nullptr if not found.
          ******************************************************************************************/
-        ALIB_API
-        detail::Logger*   RemoveLogger( const NString& loggerName );
+        detail::Logger*   RemoveLogger( const NString& loggerName )
+        {
+            return detail::LI::RemoveLogger(impl, loggerName);
+        }
 
         /** ****************************************************************************************
          * Sets the \e %Verbosity of the <em>Log Domain</em> which is evaluated from parameter
@@ -562,7 +420,7 @@ class Lox
          *
          * For more information on how to use external configuration variables with priority and
          * on protecting verbosity settings, consult the
-         * [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/manual.html).
+         * \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}.
          *
          * \attention
          *   The same as with most interface methods of this class, the given \p{domain} parameter is
@@ -594,11 +452,13 @@ class Lox
          * @param priority   The priority of the setting. Defaults to
          *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
          ******************************************************************************************/
-        ALIB_API
-        void            SetVerbosity( detail::Logger*    logger,
+        void            SetVerbosity( detail::Logger*  logger,
                                       Verbosity        verbosity,
                                       const NString&   domain        = "/",
-                                      Priorities       priority      = Priorities::DefaultValues  );
+                                      Priorities       priority      = Priorities::DefaultValues  )
+        {
+            detail::LI::SetVerbosity(impl, logger, verbosity, domain, priority);
+        }
 
         /** ****************************************************************************************
          * Same as \ref #SetVerbosity(detail::Logger*,Verbosity,const NString&,Priorities) "SetVerbosity"
@@ -615,11 +475,13 @@ class Lox
          * @param priority   The priority of the setting. Defaults to
          *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
          ******************************************************************************************/
-        ALIB_API
         void            SetVerbosity( const NString&   loggerName,
                                       Verbosity        verbosity,
                                       const NString&   domain        = "/",
-                                      Priorities       priority      = Priorities::DefaultValues  );
+                                      Priorities       priority      = Priorities::DefaultValues  )
+        {
+            detail::LI::SetVerbosity(impl, loggerName, verbosity, domain, priority);
+        }
 
         /** ****************************************************************************************
          * The given \p{scopeDomain} becomes the default domain path for given \p{scope}.
@@ -639,11 +501,12 @@ class Lox
          * domain path of \e %Scope::ThreadOuter and \e %Scope::ThreadInner use method
          * #RemoveThreadDomain.
          *
-         * \note  The C++ version of \alox implements scope mechanisms using scope information
-         *        generated by the preprocessor. By default, debug logging supports such caller
-         *        information, release logging does not. This can be changed. For more information
-         *        on how to change such defaults, see \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI
-         *        in section \ref GrpALibCodeSelectorSymbols.
+         * \note
+         *   The C++ version of \alox implements scope mechanisms using scope information generated
+         *   by the preprocessor. By default, debug logging supports such caller information,
+         *   release logging does not. This can be changed.<br>
+         *   For more information on how to change such defaults, see documentation of preprocessor
+         *   symbols \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI.
          *
          * @param scopeDomain The domain path to register.
          * @param scope       The scope that should the given \p{domain} be registered for.
@@ -651,7 +514,7 @@ class Lox
          ******************************************************************************************/
         void        SetDomain( const NString& scopeDomain, Scope scope  )
         {
-            setDomainImpl( scopeDomain, scope, false, nullptr );
+            detail::LI::setDomain(impl, scopeDomain, scope, false, nullptr );
         }
 
         /** ****************************************************************************************
@@ -669,11 +532,9 @@ class Lox
          *                    values, an internal error is logged.
          * @param thread      The thread to set/unset a thread-related Scope Domains for.
          ******************************************************************************************/
-        void        SetDomain( const NString& scopeDomain, Scope scope, Thread* thread )
+        void        SetDomain( const NString& scopeDomain, Scope scope, threads::Thread* thread )
         {
-            if ( !isThreadRelatedScope( scope ) )
-                return;
-            setDomainImpl( scopeDomain, scope, false, thread );
+            detail::LI::setDomain( impl, scopeDomain, scope, false, thread );
         }
 
         /** ****************************************************************************************
@@ -728,13 +589,15 @@ class Lox
          * Any prioritized \e 'internal' setting of \e Verbosities this way could be circumvented!
          *
          * For more information consult the
-         * [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/alox_man_domain_substitution.html).
+         * \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/alox_man_domain_substitution.html}.
          *
          * @param domainPath  The path to search. Has to start with either  <c> '/'</c> or <c> '*'</c>.
          * @param replacement The replacement path.
          ******************************************************************************************/
-        ALIB_API
-        void     SetDomainSubstitutionRule( const NString& domainPath, const NString& replacement );
+        void     SetDomainSubstitutionRule( const NString& domainPath, const NString& replacement )
+        {
+            detail::LI::SetDomainSubstitutionRule(impl, domainPath, replacement);
+        }
 
         /** ****************************************************************************************
          * This method is used to remove an <em>explicitly given</em> domain path from the list
@@ -759,8 +622,11 @@ class Lox
          * @param thread      The thread to set/unset a thread-related Scope Domains for.
          *                    Defaults to the current thread.
          ******************************************************************************************/
-        ALIB_API
-        void        RemoveThreadDomain( const NString& scopeDomain, Scope scope, Thread* thread= nullptr );
+        void        RemoveThreadDomain( const NString&   scopeDomain, Scope scope,
+                                        threads::Thread* thread= nullptr )
+        {
+            detail::LI::RemoveThreadDomain(impl, scopeDomain, scope, thread);
+        }
 
         /** ****************************************************************************************
          * The given \p{prefix} becomes a <em>Prefix Logable</em> provided to loggers with each log
@@ -789,9 +655,9 @@ class Lox
          *   To implement a "variable" <em>Prefix Logable</em> of string-type, an object of type
          *   \b %AString might be passed wrapped in class \c std::reference_wrapper<AString>.<br>
          *   For more information consult the
-         *   [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/alox_man_prefix_logables.html#alox_man_prefix_logables_cppspecifics).
+         *   \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/alox_man_prefix_logables.html#alox_man_prefix_logables_cppspecifics}.
          *   as well as chapter \ref alib_boxing_customizing_identity of the Programmer's Manual
-         *   of module \alibmod_boxing.
+         *   of module \alib_boxing.
          *<p>
          * \note
          *   Unlike other methods of this class which accept an arbitrary amount of logables, this
@@ -807,9 +673,8 @@ class Lox
          * \note
          *   The C++ version of \alox implements scope mechanisms using scope information
          *   generated by the preprocessor. By default, debug logging supports such caller
-         *   information, release logging does not. This can be changed. For more information
-         *   on how to change such defaults, see \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI
-         *   in section \ref GrpALibCodeSelectorSymbols.
+         *   information, release logging does not. Both defaults can be changed with preprocessor
+         *   symbols \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI.
          *
          *<p>
          * \note
@@ -827,7 +692,7 @@ class Lox
          ******************************************************************************************/
         void        SetPrefix( const Box& prefix, Scope scope )
         {
-            setPrefixImpl( prefix, scope, nullptr );
+            detail::LI::setPrefix( impl, prefix, scope, nullptr );
         }
 
         /** ****************************************************************************************
@@ -844,9 +709,9 @@ class Lox
          *                    values, an internal error is logged.
          * @param thread      The thread to set/unset a thread-related Scope Domains for.
          ******************************************************************************************/
-        void        SetPrefix( const Box& prefix, Scope scope, Thread* thread )
+        void        SetPrefix( const Box& prefix, Scope scope, threads::Thread* thread )
         {
-            setPrefixImpl( prefix, scope, thread );
+            detail::LI::setPrefix( impl, prefix, scope, thread );
         }
 
         /** ****************************************************************************************
@@ -883,9 +748,11 @@ class Lox
          *                    the \e Loggers.
          *                    Defaults to \c Inclusion::Include.
          ******************************************************************************************/
-        ALIB_API
         void        SetPrefix( const Box& prefix, const NString& domain= nullptr,
-                               Inclusion otherPLs=  Inclusion::Include );
+                               Inclusion otherPLs=  Inclusion::Include )
+        {
+            detail::LI::SetPrefix(impl, prefix, domain, otherPLs);
+        }
 
         /** ****************************************************************************************
          * This method is used reset (or to explicitly set) the start time of one or all logger(s).
@@ -904,9 +771,11 @@ class Lox
          *                   Defaults to nullptr, which indicates that all loggers are to
          *                   be affected.
          ******************************************************************************************/
-        ALIB_API
         void SetStartTime( Ticks           startTime    = lib::time::Ticks    (),
-                           const NString&  loggerName   = nullptr                 );
+                           const NString&  loggerName   = nullptr                 )
+        {
+            detail::LI::SetStartTime(impl, startTime, loggerName);
+        }
 
         #if defined (__GLIBCXX__) || defined(__APPLE__)
             /** ************************************************************************************
@@ -919,8 +788,10 @@ class Lox
              *                   Defaults to empty string, which indicates that all loggers are to
              *                   be affected.
              **************************************************************************************/
-            ALIB_API
-            void SetStartTime( time_t startTime, const NString& loggerName= nullptr );
+            void SetStartTime( time_t startTime, const NString& loggerName= nullptr )
+            {
+                detail::LI::SetStartTime(impl, startTime, loggerName);
+            }
 
 
         #endif // no elif here, otherwise doxygen would ignore it!
@@ -936,8 +807,10 @@ class Lox
              *                   Defaults to empty string, which indicates that all loggers are to
              *                   be affected.
              **************************************************************************************/
-            ALIB_API
-            void    SetStartTime( const FILETIME& startTime, const NString& loggerName= nullptr );
+            void    SetStartTime( const FILETIME& startTime, const NString& loggerName= nullptr )
+            {
+                detail::LI::SetStartTime(impl, startTime, loggerName);
+            }
 
         #endif
 
@@ -945,12 +818,17 @@ class Lox
          * This method sets a human readable name to the given thread ID (or current thread) which
          * is optionally included in each log line.
          *
-         * @param threadName    The name of the thread as it should be displayed in the logs
+         * @param threadName    The name of the thread as it should be displayed in the logs.
          * @param id            (Optional) Parameter providing the thread ID. If omitted, the
-         *                      current thread's ID is used.
+         *                      current thread's ID is used.<br>
+         *                      If given, the associated object of \alib{threads,Thread} must not
+         *                      be deleted until this method returns. This is a race condition
+         *                      that a using code has do assure.
          ******************************************************************************************/
-        ALIB_API
-        void        MapThreadName( const String& threadName, ThreadID id= 0 );
+        void        MapThreadName( const String& threadName, threads::ThreadID id= 0 )
+        {
+            detail::LI::MapThreadName(impl, threadName, id);
+        }
 
         /** ****************************************************************************************
          * Stores data encapsulated in an object of class
@@ -964,7 +842,7 @@ class Lox
          *  When data objects are 'overwritten', previous objects will be deleted internally.
          *  Hence, only pointers to heap-allocated objects (created with \c new) may be passed!<br>
          *  For more information, consult the
-         *  [ALox User Manual](https://alexworx.github.io/ALox-Logging-Library/manual.html).
+         *  \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}.
          *
          * \note <em>Log Data</em> is a feature provided by \alox to support debug-logging.
          *       It is not advised to use <em>Log Data</em> to implement application logic.
@@ -979,11 +857,9 @@ class Lox
          *                  data is unique to the \e Lox.
          * @param scope     The \e %Scope that the data is bound to.
          ******************************************************************************************/
-        inline
-        void        Store( const Box& data,   const NString& key,
-                           Scope      scope= Scope::Global )
+        void        Store( const Box& data, const NString& key, Scope scope= Scope::Global )
         {
-            storeImpl( data, key, scope );
+            detail::LI::store( impl, data, key, scope );
         }
 
         /** ****************************************************************************************
@@ -994,10 +870,9 @@ class Lox
          *                  by this \b %Lox when overwritten or this lox is deleted.
          * @param scope     The \e %Scope that the data is bound to.
          ******************************************************************************************/
-        inline
         void        Store( const Box& data, Scope scope= Scope::Global )
         {
-            storeImpl( data, nullptr, scope );
+            detail::LI::store( impl, data, nullptr, scope );
         }
 
         /** ****************************************************************************************
@@ -1023,7 +898,7 @@ class Lox
         ALIB_API
         Box       Retrieve  ( const NString& key, Scope scope= Scope::Global )
         {
-            return retrieveImpl( key, scope );
+            return detail::LI::retrieve( impl, key, scope );
         }
 
         /** ****************************************************************************************
@@ -1038,7 +913,7 @@ class Lox
         ALIB_API
         Box  Retrieve  ( Scope scope= Scope::Global )
         {
-            return retrieveImpl( nullptr, scope );
+            return detail::LI::retrieve( impl, nullptr, scope );
         }
 
         /** ****************************************************************************************
@@ -1048,7 +923,7 @@ class Lox
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
          *   your code, \alox provides configuration variable
-         *   [ALOX_LOXNAME_DUMP_STATE_ON_EXIT](group__GrpALoxConfigVars.html).
+         *   \https{ALOX_LOXNAME_DUMP_STATE_ON_EXIT,group__GrpALoxConfigVars.html}.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.
@@ -1059,11 +934,13 @@ class Lox
          * @param headLine      If given, a separated headline will be logged at first place.
          * @param flags         Flag bits that define which state information is logged.
          ******************************************************************************************/
-        ALIB_API
         void        State   ( const NString&    domain,
                               Verbosity         verbosity,
                               const String&     headLine,
-                              StateInfo         flags        = StateInfo::All  );
+                              StateInfo         flags        = StateInfo::All  )
+        {
+            detail::LI::State(impl, domain, verbosity, headLine, flags);
+        }
 
         /** ****************************************************************************************
          * This method collects state information about this lox in a formatted multi-line AString.
@@ -1072,15 +949,17 @@ class Lox
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
          *   your code, \alox provides configuration variable
-         *   [ALOX_LOXNAME_DUMP_STATE_ON_EXIT](group__GrpALoxConfigVars.html).
+         *   \https{ALOX_LOXNAME_DUMP_STATE_ON_EXIT,group__GrpALoxConfigVars.html}.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.
          * @param buf        The target string.
          * @param flags      Bits that define which state information is collected.
          ******************************************************************************************/
-        ALIB_API
-        void        GetState( NAString& buf, StateInfo flags= StateInfo::All   );
+        void        GetState( NAString& buf, StateInfo flags= StateInfo::All   )
+        {
+            detail::LI::GetState(impl, buf, flags);
+        }
 
 
     // #############################################################################################
@@ -1098,8 +977,10 @@ class Lox
          *
          * @return An empty list of boxes.
          ******************************************************************************************/
-        ALIB_API
-        Boxes&  GetLogableContainer();
+        Boxes&  GetLogableContainer()
+        {
+            return detail::LI::GetLogableContainer(impl);
+        }
 
 
 
@@ -1116,13 +997,15 @@ class Lox
          * an user-specific list first and later pass them to these methods.
          *
          * Hence, the use of this method is recommended only if the verbosity of a log statement
-         * is is evaluated only at run-time.
+         * is evaluated only at run-time.
          *
          * @param domain        The domain.
          * @param verbosity     The verbosity.
          ******************************************************************************************/
-        ALIB_API
-        void Entry( const NString&  domain, Verbosity verbosity );
+        void Entry( const NString&  domain, Verbosity verbosity )
+        {
+            detail::LI::Entry(impl, domain, verbosity);
+        }
 
 
 
@@ -1130,7 +1013,7 @@ class Lox
          * Logs a list of \e Logables with the given \e %Verbosity.
          *
          * If more than one \e Logable is given and the first one is of string type and comprises a
-         * valid domain name, then this first argument is interpreted as a the domain name!
+         * valid domain name, then this first argument is interpreted as the domain name!
          * Valid domain names are strings that consists only of characters of the following set:
          * - upper case letters,
          * - numbers,
@@ -1144,7 +1027,7 @@ class Lox
          *
          * \note
          *   This method allows a consistent interface of overloaded methods \b %Info, \b Error,
-         *   etc, without introducing a separate version which excepts a then mandatory domain
+         *   etc, without introducing a separate version which excepts a - then mandatory - domain
          *   parameter.
          *   The little drawback of the auto detection is the possibility of ambiguous invocations.
          *
@@ -1154,8 +1037,8 @@ class Lox
         template <typename... BoxedObjects>
         void EntryDetectDomain( Verbosity verbosity,  BoxedObjects&&...  logables )
         {
-            GetLogableContainer().Add( std::forward<BoxedObjects>(logables)... );
-            entryDetectDomainImpl( verbosity );
+            detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+            detail::LI::entryDetectDomainImpl( impl, verbosity );
         }
 
         /** ****************************************************************************************
@@ -1172,10 +1055,10 @@ class Lox
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void Verbose( BoxedObjects&&... logables )
         {
-            EntryDetectDomain( Verbosity::Verbose, std::forward<BoxedObjects>(logables)... );
+            detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+            detail::LI::entryDetectDomainImpl( impl, Verbosity::Verbose );
         }
 
         /** ****************************************************************************************
@@ -1192,10 +1075,10 @@ class Lox
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void Info( BoxedObjects&&... logables )
         {
-            EntryDetectDomain( Verbosity::Info,  std::forward<BoxedObjects>(logables)... );
+            detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+            detail::LI::entryDetectDomainImpl( impl, Verbosity::Info );
         }
 
         /** ****************************************************************************************
@@ -1212,10 +1095,10 @@ class Lox
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void Warning( BoxedObjects&&... logables )
         {
-            EntryDetectDomain( Verbosity::Warning,  std::forward<BoxedObjects>(logables)... );
+            detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+            detail::LI::entryDetectDomainImpl( impl, Verbosity::Warning );
         }
 
         /** ****************************************************************************************
@@ -1232,10 +1115,10 @@ class Lox
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void Error( BoxedObjects&&... logables )
         {
-            EntryDetectDomain( Verbosity::Error,  std::forward<BoxedObjects>(logables)... );
+            detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+            detail::LI::entryDetectDomainImpl( impl, Verbosity::Error );
         }
 
         /** ****************************************************************************************
@@ -1254,15 +1137,15 @@ class Lox
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void Assert( bool condition, BoxedObjects&&... logables )
         {
             if (!condition )
             {
-                EntryDetectDomain( Verbosity::Error,  std::forward<BoxedObjects>(logables)... );
+                detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+                detail::LI::entryDetectDomainImpl( impl, Verbosity::Error );
             }
             else
-                CntLogCalls++;
+                detail::LI::IncreaseLogCounter( impl );
         }
 
         /** ****************************************************************************************
@@ -1277,16 +1160,15 @@ class Lox
          * @param logables  The list of \e Logables.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void If( bool condition, const NString& domain, Verbosity verbosity, BoxedObjects&&... logables )
         {
             if ( condition )
             {
-                GetLogableContainer().Add( std::forward<BoxedObjects>(logables)... );
-                Entry( domain, verbosity );
+                detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+                detail::LI::Entry( impl, domain, verbosity );
             }
             else
-                CntLogCalls++;
+                detail::LI::IncreaseLogCounter( impl );
         }
 
         /** ****************************************************************************************
@@ -1308,15 +1190,15 @@ class Lox
          * @param logables  The list of \e Logables.
          ******************************************************************************************/
         template <typename... BoxedObjects>
-        inline
         void If( bool condition, Verbosity verbosity, BoxedObjects&&... logables )
         {
             if ( condition )
             {
-                EntryDetectDomain( verbosity, std::forward<BoxedObjects>(logables)... );
+                detail::LI::GetLogableContainer(impl).Add( std::forward<BoxedObjects>(logables)... );
+                detail::LI::entryDetectDomainImpl( impl, verbosity );
             }
             else
-                CntLogCalls++;
+                detail::LI::IncreaseLogCounter( impl );
         }
 
 
@@ -1357,10 +1239,12 @@ class Lox
          *
          * \note
          *   Unlike other methods of this class which accept an arbitrary amount of logables, this
-         *   method and its overloaded variants accept only one object. To supply several objects
-         *   at once, a container of type \ref aworx::lib::boxing::Boxes "Boxes" may be passed with
-         *   parameter \p{logables}, like in the following sample:
+         *   method and its overloaded variants accept only one boxed object.
+         *   To still be able to  supply several objects at once, an array of boxes or a container
+         *   of type \ref aworx::lib::boxing::Boxes "Boxes" may be passed with parameter
+         *   \p{logables}, like in the following sample:
          *   \snippet "ut_alox_lox.cpp"      DOX_ALOX_LOX_ONCE
+         *   This is why the parameter name \p{logables} still uses the plural with its name!
          *
          *
          * @param domain    Optional <em>Log Domain</em> which is combined with <em>%Scope Domains</em>
@@ -1371,7 +1255,7 @@ class Lox
          * @param group     The optional name of the statement group . If used, all statements that
          *                  share the same group name are working on the same counter (according
          *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the \e %Scope
+         *                  If omitted (or empty or nullptr), the counter is bound to the \e %Scope
          *                  provided. If omitted and \p{scope} is Scope::Global, then the
          *                  counter is associated exclusively with the single <em>Log Statement</em> itself.
          * @param scope     The \e %Scope that the group or counter is bound to.
@@ -1379,14 +1263,13 @@ class Lox
          *                  this defaults to \c 1.
          *                  If negative, the first and every "-quantity-th" statement is executed.
          ******************************************************************************************/
-        inline
         void Once( const NString&   domain  , Verbosity verbosity,
                    const Box&       logables,
                    const String&    group,
                    Scope            scope= Scope::Global,
                    int quantity= 1)
         {
-            once( domain, verbosity, logables, group, scope, quantity );
+            detail::LI::once( impl, domain, verbosity, logables, group, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1399,20 +1282,19 @@ class Lox
          * @param group     The optional name of the statement group . If used, all statements that
          *                  share the same group name are working on the same counter (according
          *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the \e %Scope
+         *                  If omitted (or empty or nullptr), the counter is bound to the \e %Scope
          *                  provided. If omitted and \p{scope} is Scope::Global, then the
          *                  counter is associated exclusively with the single <em>Log Statement</em> itself.
          * @param scope     The \e %Scope that the group or counter is bound to.
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                        Verbosity verbosity, const Box& logables,
                    const String& group,
                    Scope scope,
                    int quantity= 1)
         {
-            once( nullptr, verbosity, logables, group, scope, quantity );
+            detail::LI::once( impl, nullptr, verbosity, logables, group, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1425,18 +1307,17 @@ class Lox
          * @param group     The optional name of the statement group . If used, all statements that
          *                  share the same group name are working on the same counter (according
          *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the \e %Scope
+         *                  If omitted (or empty or nullptr), the counter is bound to the \e %Scope
          *                  provided. If omitted and \p{scope} is Scope::Global, then the
          *                  counter is associated exclusively with the single <em>Log Statement</em> itself.
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                        Verbosity verbosity, const Box& logables,
                    const String& group,
                    int quantity= 1)
         {
-            once( nullptr, verbosity, logables, group, Scope::Global, quantity );
+            detail::LI::once( impl, nullptr, verbosity, logables, group, Scope::Global, quantity );
         }
 
         /** ****************************************************************************************
@@ -1449,11 +1330,10 @@ class Lox
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                        Verbosity verbosity, const Box& logables,
                    int quantity= 1)
         {
-            once( nullptr, verbosity, logables, nullptr, Scope::Global, quantity );
+            detail::LI::once( impl, nullptr, verbosity, logables, nullptr, Scope::Global, quantity );
         }
 
         /** ****************************************************************************************
@@ -1465,20 +1345,19 @@ class Lox
          * @param group     The optional name of the statement group . If used, all statements that
          *                  share the same group name are working on the same counter (according
          *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the \e %Scope
+         *                  If omitted (or empty or nullptr), the counter is bound to the \e %Scope
          *                  provided. If omitted and \p{scope} is Scope::Global, then the
          *                  counter is associated exclusively with the single <em>Log Statement</em> itself.
          * @param scope     The \e %Scope that the group or counter is bound to.
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                                          const Box& logables,
                    const String& group,
                    Scope scope,
                    int quantity= 1)
         {
-            once( nullptr, Verbosity::Info, logables, group, scope, quantity );
+            detail::LI::once( impl, nullptr, Verbosity::Info, logables, group, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1494,12 +1373,11 @@ class Lox
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once( const NString& domain, Verbosity verbosity, const Box& logables,
                    Scope scope= Scope::Global ,
                    int quantity= 1)
         {
-            once( domain, verbosity, logables, nullptr, scope, quantity );
+            detail::LI::once( impl, domain, verbosity, logables, nullptr, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1513,12 +1391,11 @@ class Lox
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                        Verbosity verbosity, const Box& logables,
                    Scope scope,
                    int quantity= 1)
         {
-            once( nullptr, verbosity, logables, nullptr, scope, quantity );
+            detail::LI::once( impl, nullptr, verbosity, logables, nullptr, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1531,12 +1408,11 @@ class Lox
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                                          const Box& logables,
                    Scope scope,
                    int quantity= 1)
         {
-            once( nullptr, Verbosity::Info, logables, nullptr, scope, quantity );
+            detail::LI::once( impl, nullptr, Verbosity::Info, logables, nullptr, scope, quantity );
         }
 
         /** ****************************************************************************************
@@ -1548,11 +1424,10 @@ class Lox
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                                          const Box& logables,
                    int quantity= 1)
         {
-            once( nullptr, Verbosity::Info, logables, nullptr, Scope::Global, quantity );
+            detail::LI::once( impl, nullptr, Verbosity::Info, logables, nullptr, Scope::Global, quantity );
         }
 
         /** ****************************************************************************************
@@ -1564,305 +1439,46 @@ class Lox
          * @param group     The optional name of the statement group . If used, all statements that
          *                  share the same group name are working on the same counter (according
          *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the \e %Scope
+         *                  If omitted (or empty or nullptr), the counter is bound to the \e %Scope
          *                  provided. If omitted and \p{scope} is Scope::Global, then the
          *                  counter is associated exclusively with the single <em>Log Statement</em> itself.
          * @param quantity  The number of logs to be performed. As the name of the method indicates,
          *                  this defaults to \c 1.
          ******************************************************************************************/
-        inline
         void Once(                                          const Box& logables,
                    const String& group, int quantity= 1 )
         {
-            once( nullptr, Verbosity::Info, logables, group, Scope::Global, quantity );
+            detail::LI::once( impl, nullptr, Verbosity::Info, logables, group, Scope::Global, quantity );
         }
 
 
     // #############################################################################################
     // Debug methods
     // #############################################################################################
-    #if ALIB_DEBUG
+    #if ALIB_DEBUG_MONOMEM
         /** ****************************************************************************************
-         * Returns the memory allocator of type \alib{memory,MemoryBlocks} used with the different
-         * language-related scopes stores.
+         * Returns the internal \b MonoAllocator used for storing permanent data.
          *
-         * Parameter \p{which} denotes the language store as follows:
-         * 1. Scope domains
-         * 2. Log-once information
-         * 3. Prefix logables
-         * 4. Stored log data.
+         * #### Availability ####
+         * This method is available only with debug builds with \ref ALIB_DEBUG_MONOMEM set.
          *
-         * This method is available only in debug compilations.
-         *
-         * @param which  Denotes the language store to address.
-         * @return The memory allocator. May be used to receive performance metrics.
+         * @return The monotonic allocator of this \b Lox.
          ******************************************************************************************/
-        MemoryBlocks& DbgGetStoreAllocator( int which )
+        monomem::MonoAllocator& DbgGetMonoAllocator()
         {
-            if( which == 1 )  return scopeDomains .languageStore->memoryBlocks;
-            if( which == 2 )  return scopeLogOnce .languageStore->memoryBlocks;
-            if( which == 3 )  return scopePrefixes.languageStore->memoryBlocks;
-            return scopeLogData .languageStore->memoryBlocks;
+            return  detail::LI::DbgGetMonoAllocator(impl);
         }
     #endif
-
-
-    // #############################################################################################
-    // internals
-    // #############################################################################################
-    protected:
-
-        /** ****************************************************************************************
-         * Assembles the resulting domain from the given \p{domainPath} and the Scope Domain paths
-         * (see #SetDomain) according to the scope identified by \p{scopeInfo}.
-         * The resulting full domain string is assembled from inner to outer scope.
-         * If \p{domainPath}, respectively as soon as any of the Scope Domain's paths
-         * start with the character defined with
-         * \ref aworx::lib::lox::detail::Domain::Separator "Domain::Separator",
-         * the evaluation is stopped (the path is interpreted as absolute).
-         *
-         * @param domainPath The domain path. If starting with the character defined with
-         *                   \ref aworx::lib::lox::detail::Domain::Separator "Domain::Separator",
-         *                   no scope domains are applied.
-         * @return The resulting \ref aworx::lib::lox::detail::Domain "Domain".
-         ******************************************************************************************/
-        ALIB_API
-        detail::Domain*   evaluateResultDomain( const NString& domainPath );
-
-        /** ****************************************************************************************
-         * Invokes \b Find on the given domain and logs internal message when the domain was
-         * not known before.
-         *
-         * @param domainSystem  The domain system. Either the standard or the internal one.
-         * @param domainPath    The domain path.
-         * @return The resulting \ref aworx::lib::lox::detail::Domain "Domain".
-         ******************************************************************************************/
-        ALIB_API
-        detail::Domain*   findDomain( detail::Domain& domainSystem, NString domainPath );
-
-        /** ****************************************************************************************
-         * This method is looping over the \e Loggers, checking their verbosity against the given
-         * one, and, if they match, invoke the log method of the \e Logger.
-         * With the first logger identified to be active, the <em>Prefix Objects</em> get
-         * collected from the scope store.
-         * @param dom          The domain to log on
-         * @param verbosity    The verbosity.
-         * @param logables     The objects to log.
-         * @param prefixes     Denotes if prefixes should be included or not.
-         ******************************************************************************************/
-        ALIB_API
-        void      log( detail::Domain*  dom,       Verbosity verbosity,
-                       Boxes&         logables,  Inclusion prefixes );
-
-
-        /** ****************************************************************************************
-         * Logs an internal error message using the internal domain tree as defined in
-         * \ref aworx::lib::lox::ALox::InternalDomains "ALox::InternalDomains".
-         *
-         * @param verbosity The verbosity.
-         * @param subDomain The sub-domain of the internal domain to log into.
-         * @param msg       The message.
-         ******************************************************************************************/
-        ALIB_API
-        void            logInternal( Verbosity verbosity, const NString& subDomain, Boxes& msg );
-
-        /** ****************************************************************************************
-         * Overloaded version accepting a string to log.
-         *
-         * @param verbosity The verbosity.
-         * @param subDomain The sub-domain of the internal domain to log into.
-         * @param msg       The message.
-         ******************************************************************************************/
-        ALIB_API
-        void            logInternal( Verbosity verbosity, const NString& subDomain, const NString& msg );
-
-        /** ****************************************************************************************
-         * Returns a reference to a list of boxes to be used by internal logging.
-         * Each invocation has to be followed by an invocation to #logInternal
-         * which releases the logables.
-         *
-         * @return A list of boxes.
-         ******************************************************************************************/
-        Boxes&  acquireInternalLogables()
-        {
-            if( internalLogables.size() == internalLogRecursionCounter )
-                internalLogables.emplace_back( new Boxes() );
-
-            return *internalLogables[internalLogRecursionCounter++];
-        }
-
-        /** ****************************************************************************************
-         * Implementation of the interface method fetching all possible parameters.
-         *
-         * @param scopeDomain The domain path to register.
-         * @param scope       The scope that the given \p{domain} should be registered for.
-         *                    Available Scope definitions are platform/language dependent.
-         * @param removeNTRSD Used to remove a named thread-related Scope Domain (and is true only
-         *                    when invoked by interface method #RemoveThreadDomain.
-         * @param thread      The thread to set/unset a thread-related Scope Domain for.
-         ******************************************************************************************/
-        ALIB_API
-        void      setDomainImpl( const NString& scopeDomain, Scope scope,
-                                 bool removeNTRSD, Thread* thread  );
-
-        /** ****************************************************************************************
-         * Implementation of the interface method fetching all possible parameters.
-         *
-         * @param prefix      The <em>Prefix Logable</em> to set.
-         * @param scope       The scope that the given \p{logable} should be registered for.
-         *                    Available Scope definitions are platform/language dependent.
-         * @param thread      The thread to set/unset a thread-related <em>Prefix Logable</em> for.
-         ******************************************************************************************/
-        ALIB_API
-        void      setPrefixImpl( const Box& prefix, Scope scope, Thread* thread );
-
-        /** ****************************************************************************************
-         * The implementation of #EntryDetectDomain.
-         *
-         * @param verbosity     The verbosity.
-         ******************************************************************************************/
-        ALIB_API
-        void entryDetectDomainImpl( Verbosity verbosity);
-
-        /** ****************************************************************************************
-         * Internal method serving public interface #Once.
-         *
-         * @param domain    Optional <em>Log Domain</em> which is combined with
-         *                  <em>%Scope Domains</em> set for the \e %Scope of invocation.
-         * @param verbosity The verbosity of the <em>Log Statement</em> (if performed).
-         * @param logables  The objects to log (Multiple objects may be provided within
-         *                  container class Boxes.)
-         * @param pGroup     The optional name of the statement group . If used, all statements that
-         *                  share the same group name are working on the same counter (according
-         *                  to the \p{scope}.)
-         *                  If omitted (or empty or nullptr), the counter is is bound to the
-         *                  \e %Scope provided. If omitted and \p{scope} is Scope::Global, then the
-         *                  counter is associated exclusively with the single <em>Log Statement</em>
-         *                  itself.
-         * @param scope     The \e %Scope that the group or counter is bound to.
-         * @param quantity  The number of logs to be performed. As the name of the method indicates,
-         *                  this defaults to \c 1.
-         ******************************************************************************************/
-        ALIB_API
-        void once( const NString& domain, Verbosity verbosity, const Box& logables,
-                   const String& pGroup,  Scope     scope, int quantity );
-
-        /** ****************************************************************************************
-         * Internal method serving public interface #Store.
-         *
-         * @param data      The data object to store.
-         *                  In C++, has to be heap allocated and will be deleted
-         *                  by this \b %Lox when overwritten or this lox is deleted.
-         * @param pKey       The key to the data.
-         * @param scope     The \e %Scope that the data is bound to.
-         ******************************************************************************************/
-        ALIB_API
-        void      storeImpl( const Box& data, const NString& pKey, Scope scope );
-
-        /** ****************************************************************************************
-         * Internal method serving public interface #Retrieve.
-         *
-         * @param pKey       The key to the data.
-         * @param scope     The \e %Scope that the data is bound to.
-         * @return The data, a \e nulled box if no value was found.
-         ******************************************************************************************/
-        ALIB_API
-        Box  retrieveImpl  ( const NString& pKey, Scope scope );
-
-        /** ****************************************************************************************
-         * Checks if given scope is thread-related.
-         *
-         * @param scope     The scope that is to be checked.
-         * @return \c true if \p{scope} is thread-related, \c false else.
-         ******************************************************************************************/
-        ALIB_API
-        bool      isThreadRelatedScope( Scope scope );
-
-        /** ****************************************************************************************
-         * Checks if given scope needs information that is not available. In addition, the
-         * in/out parameter \p{scope} is changed to \b Scope::Path, in case a level was added.
-         * That level is returned.
-         *
-         *
-         * @param[in,out] scope  A reference to the scope that is to be checked (and eventually
-         *                       modified.
-         * @param internalDomain The internal sub-domain to log any error/warning into.
-         * @return A posititve value providing the path level deducted from \p{scope} if all is fine,
-         *        \c -1 else.
-         ******************************************************************************************/
-        ALIB_API
-        int       checkScopeInformation( Scope& scope, const NString& internalDomain );
-
-        /** ****************************************************************************************
-         * Used on destruction and with #Reset.
-         ******************************************************************************************/
-        ALIB_API
-        void      clear();
-
-        /** ****************************************************************************************
-         * Reads the verbosity for the given logger and domain from the \alib configuration system.
-         * This internal method is used in two occasions:
-         * - when a new logger is added: recursively for all existing domains (\p{configStr} is
-         *   given)
-         * - when a new domain is created on the fly(\p{configStr} is not given)
-         *
-         * @param logger      The logger to set the verbosity for.
-         * @param dom         The domain to set the verbosity for.
-         * @param variable    The (already read) variable to set verbosities from.
-         ******************************************************************************************/
-        ALIB_API
-        void      getVerbosityFromConfig( detail::Logger*    logger, detail::Domain*  dom,
-                                          Variable& variable );
-
-        /** ****************************************************************************************
-         * Reads a prefix string from the \alib configuration system.
-         * This internal method is used when a new domain is created,
-         *
-         * @param dom         The domain to set the verbosity for.
-         ******************************************************************************************/
-        ALIB_API
-        void      getDomainPrefixFromConfig( detail::Domain*  dom );
-
-
-        /** ****************************************************************************************
-         * Reads the verbosity for the given logger and domain from the \alib configuration system.
-         * This internal method is used when a new logger is added.
-         * Walks recursively for all existing domains.
-         *
-         * @param logger      The logger to set the verbosity for.
-         * @param dom         The domain to set the verbosity for.
-         * @param variable    The (already read) variable to set verbosities from.
-         ******************************************************************************************/
-        ALIB_API
-        void      getAllVerbosities( detail::Logger*  logger,   detail::Domain*  dom,
-                                     Variable& variable  );
-
-        /** ****************************************************************************************
-         * Implements functionality for configuration variable \c LOXNAME_DUMP_STATE_ON_EXIT.
-         * Is called when a logger is removed.
-         ******************************************************************************************/
-        ALIB_API
-        void     dumpStateOnLoggerRemoval();
-
-        /** ****************************************************************************************
-         * Implements functionality for configuration variable \c LOXNAME_LOGGERNAME_VERBOSITY.
-         * Is called when a logger is removed.
-         * @param logger      The logger to write the verbosity for.
-         ******************************************************************************************/
-        ALIB_API
-        void     writeVerbositiesOnLoggerRemoval( Logger* logger );
 
 }; // class Lox
 
 }} // namespace aworx[::lib::lox]
 
 /// Type alias in namespace #aworx.
-using     Lox=           aworx::lib::lox::Lox;
+using     Lox=           lib::lox::Lox;
 
 }  // namespace [aworx]
 
-ALIB_ENUM_IS_BITWISE( aworx::lib::lox::Lox::StateInfo )
-ALIB_ENUM_PARSABLE(   aworx::lib::lox::Lox::StateInfo )
-ALIB_RESOURCED_IN_MODULE(  aworx::lib::lox::Lox::StateInfo, aworx::lib::ALOX,  "StateInfo"  )
+ALIB_ENUMS_MAKE_BITWISE( aworx::lib::lox::StateInfo )
 
 #endif // HPP_ALOX_LOX

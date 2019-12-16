@@ -6,6 +6,7 @@
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/singletons/singleton.hpp"
+#include "alib/singletons/dbgsingletons.hpp"
 
 #include <iostream>
 
@@ -26,26 +27,21 @@ class JustOne : public aworx::Singleton<JustOne>
 };
 
 
-#if ALIB_DEBUG && ALIB_FEAT_SINGLETON_MAPPED
-
-// declare the map of singletons. This is not done in the header files by purpose!
-#include "alib/lib/typemap.hpp"
-namespace aworx { namespace lib { namespace singletons {
-    extern ALIB_API  TypeMap<void*>  singletonMap;
-}}}
-
+#if ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG
 
 // A simple debug dump function
+extern
+void  DumpSingletons();
 void  DumpSingletons()
 {
     std::cout << std::endl
               << "Debug-compilation and mapped mode: Dumping Singletons: " << std::endl;
 
-    for( auto it : aworx::lib::singletons::singletonMap )
+    for( auto mapPair : aworx::lib::singletons::DbgGetSingletons() )
         std::cout << "  "
-             << it.first.get().name()
+             << mapPair.first->name()
              << " = 0x" << std::hex
-             << reinterpret_cast<uint64_t>(it.second)
+             << reinterpret_cast<uint64_t>(mapPair.second)
              << std::endl;
 }
 #endif

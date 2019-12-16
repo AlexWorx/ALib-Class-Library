@@ -54,175 +54,224 @@
 
 # --------------------------------------------------------------------------------------------------
 # ALib Cache Variables
-# The variables are only set, if not alreay predefined prior to invoking this script.
+# The variables are only set, if not already predefined prior to invoking this script.
 # --------------------------------------------------------------------------------------------------
 
-set( ALIB_VERSION                   "1903R0"                                            CACHE STRING
+set( ALIB_VERSION                   "1912R0"                                            CACHE STRING
      "The ALib version. Not modifiable (will be overwritten on generation!)"        FORCE )
 
-set( ALIB_VERSION_NO                "1903" )
+set( ALIB_VERSION_NO                "1912" )
 set( ALIB_VERSION_REV               "0" )
 
-if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-    set( defaultALIB_DEBUG   "On" )
-else()
-    set( defaultALIB_DEBUG   "Off" )
-endif()
-
-
 if( NOT DEFINED  ALIB_DEBUG )
-    set( ALIB_DEBUG                     ${defaultALIB_DEBUG}                            CACHE   BOOL
-         "Enable/disable ALib debug code. Defaults to true in debug compilations, otherwise to false." )
-endif()
-
-if( NOT DEFINED  ALIB_DEBUG_GLIB )
-    set( ALIB_DEBUG_GLIB                "Off"                                           CACHE   BOOL
-         "Defaults to false. If true, compiler symbols '_GLIBCXX_DEBUG', '_GLIBCXX_DEBUG_PEDANTIC' and '_GLIBCPP_CONCEPT_CHECKS' are set." )
-endif()
-
-if( NOT DEFINED  ALIB_AVOID_ANALYZER_WARNINGS )
-    set( ALIB_AVOID_ANALYZER_WARNINGS   "Off"                                           CACHE   BOOL
-         "Defaults to false. If true, minor code modifications are made to avoid unnecessary warnings with tools like 'valgrind'.")
-endif()
-
-if( NOT DEFINED  ALIB_COVERAGE_COMPILE )
-    set( ALIB_COVERAGE_COMPILE         "Off"                                            CACHE   BOOL
-         "Defaults to false. If true, option --coverag is added to GNU compiler command line.")
-endif()
-
-if ( $ENV{CLION_IDE} )
-    set( tmp_default_val   "On" )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        set( defaultALIB_DEBUG   "On" )
+    else()
+        set( defaultALIB_DEBUG   "Off" )
+    endif()
 else()
-    set( tmp_default_val   "Off" )
+        set( defaultALIB_DEBUG   ALIB_DEBUG )
 endif()
-if( NOT DEFINED  ALIB_GDB_PP_SUPPRESS_CHILDREN )
-    set( ALIB_GDB_PP_SUPPRESS_CHILDREN    ${tmp_default_val}                            CACHE   BOOL
-         "Defaults to false except if CMake is run from within JetBrains CLion. If true, a corresponding symbol gets set in debug compilations which is detected by GDB pretty printer scripts provided with ALib.")
-endif()
-if( NOT DEFINED  ALIB_GDB_PP_FIND_POINTER_TYPES )
-    set( ALIB_GDB_PP_FIND_POINTER_TYPES ${tmp_default_val}                              CACHE   BOOL
-         "Defaults to false. If true, a corresponding symbol gets set in debug compilations which is detected by GDB pretty printer scripts provided with ALib.")
+
+set( ALIB_DEBUG                        ${defaultALIB_DEBUG}                             CACHE   BOOL
+     "Enable/disable ALib debug code. Defaults to true with debug builds, otherwise to false." )
+
+
+if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    if( NOT DEFINED  ALIB_DEBUG_GLIB )
+        set( ALIB_DEBUG_GLIB                    "Off"                                   CACHE   BOOL
+             "Defaults to false. If true, compiler symbols '_GLIBCXX_DEBUG', '_GLIBCXX_DEBUG_PEDANTIC' and '_GLIBCPP_CONCEPT_CHECKS' are set." )
+    endif()
+
+
+    if( NOT DEFINED  ALIB_AVOID_ANALYZER_WARNINGS )
+        set( ALIB_AVOID_ANALYZER_WARNINGS       "Off"                                   CACHE   BOOL
+             "Defaults to false. If true, minor code modifications are made to avoid unnecessary warnings with tools like 'valgrind'.")
+    endif()
+
+
+    if( NOT DEFINED  ALIB_COVERAGE_COMPILE )
+        set( ALIB_COVERAGE_COMPILE              "Off"                                   CACHE   BOOL
+             "Defaults to false. If true, option --coverag is added to GNU compiler command line.")
+    endif()
+
+    if ( $ENV{CLION_IDE} )
+        set( tmpDefault   "On" )
+    else()
+        set( tmpDefault   "Off" )
+    endif()
+
+    set( ALIB_GDB_PP_SUPPRESS_CHILDREN     ${tmpDefault}                                CACHE   BOOL
+         "Defaults to false except if CMake is run from within JetBrains CLion. If true, a corresponding symbol gets set with debug builds which is detected by GDB pretty printer scripts provided with ALib.")
+
+    set( ALIB_GDB_PP_FIND_POINTER_TYPES    ${tmpDefault}                                CACHE   BOOL
+         "Defaults to false. If true, a corresponding symbol gets set with debug builds which is detected by GDB pretty printer scripts provided with ALib.")
 endif()
 
 if( NOT DEFINED  ALIB_CMAKE_COTIRE )
-    set( ALIB_CMAKE_COTIRE              "Off"                                           CACHE   BOOL
+    set( ALIB_CMAKE_COTIRE                  "Off"                                       CACHE   BOOL
          "If true, CMake compilation tool 'cotire' (https://github.com/sakra/cotire/) is downloaded and may be used to speedup builds." )
 endif()
 
-if( NOT DEFINED  ALIB_PRECOMPILED_HEADER_DISABLED )
-    set( ALIB_PRECOMPILED_HEADER        "Off"                                           CACHE   BOOL
-         "If on, header file ’alib/alib_precompile.hpp' does not include any header files." )
+
+if( NOT DEFINED  ALIB_PRECOMPILED_HEADER )
+    set( ALIB_PRECOMPILED_HEADER            "Off"                                       CACHE   BOOL
+         "If on, header file ’alib/alib_precompile.hpp' will included some default headers, depending on the selected modules. Defaults to off." )
 endif()
 
+
+if( NOT DEFINED  ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH )
+    set( ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH  "Off"                                       CACHE   BOOL
+         "If true, no thread library is searched and bound to the target. If false, a thread library is searched and bound even if module Threads is not included. This is to allow debug assertions with multi-threaded use of a single-threaded ALib distribution." )
+endif()
+
+
 if( NOT DEFINED  ALIB_CMAKE_VERBOSE )
-    set( ALIB_CMAKE_VERBOSE              "Off"                                          CACHE   BOOL
+    set( ALIB_CMAKE_VERBOSE                 "Off"                                       CACHE   BOOL
          "If true, CMake generation runs will provide a detailed report." )
 endif()
 
 
-if( "SINGLETONS" IN_LIST ALIB_MODULES )
+if( "SINGLETONS" IN_LIST ALIB_DISTRIBUTION )
     if ( ${WIN32} )
         set( platformDefaultFor_SINGLETON_MAPPED   "On" )
     else()
         set( platformDefaultFor_SINGLETON_MAPPED   "Off" )
     endif()
     if( NOT DEFINED  ALIB_FEAT_SINGLETON_MAPPED )
-        set( ALIB_FEAT_SINGLETON_MAPPED     ${platformDefaultFor_SINGLETON_MAPPED}      CACHE   BOOL
+        set( ALIB_FEAT_SINGLETON_MAPPED    ${platformDefaultFor_SINGLETON_MAPPED}       CACHE   BOOL
              "Defaults to true on Windows OS, which then selects code to implement class Singleton to work with multiple data segments, as imposed by the use of Windows DLLs.")
     endif()
 endif()
 
-if( "MEMORY" IN_LIST ALIB_MODULES )
-    if( NOT DEFINED  ALIB_MEMORY_DEBUG )
-        set( ALIB_MEMORY_DEBUG              "Off"                                       CACHE   BOOL
-             "Defaults to false. Adds consistency checks and collection of statistics with ALib memory classes." )
+if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( NOT DEFINED  ALIB_DEBUG_MONOMEM )
+            set( ALIB_DEBUG_MONOMEM             "Off"                                   CACHE   BOOL
+                 "Adds consistency checks and collection of statistics with module ALib Monomem. Defaults to false." )
+        endif()
     endif()
 endif()
 
 
-if( "BOXING" IN_LIST ALIB_MODULES )
-    if( NOT DEFINED  ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS )
-        set( ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS   "On"                            CACHE   BOOL
-             "Defaults to true. If true, any C++ integral will be boxed to 'integer', respectively / 'uinteger' and only those can be unboxed.")
+if( "BOXING" IN_LIST ALIB_DISTRIBUTION )
+    if( NOT DEFINED  ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS )
+        set( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS           "Off"                       CACHE   BOOL
+             "If true, any C++ integral type will be boxed to its original type. If false (the default) all types are boxed to type 'integer', respectively / 'uinteger' and only this can be unboxed.")
     endif()
-    if( NOT DEFINED  ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS )
-        set( ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS   "On"                           CACHE   BOOL
-             "Defaults to true. If true, any C++ character type will be boxed to type 'character' and only those can be unboxed.")
+
+    if( NOT DEFINED  ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS )
+        set( ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS          "Off"                       CACHE   BOOL
+             "If true, any C++ character type will be boxed to its original type. If false (the default) all types are boxed to type 'character' and only this can be unboxed.")
     endif()
-    if( NOT DEFINED  ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS )
-        set( ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS      "On"                            CACHE   BOOL
-             "Defaults to true. If true, type float will be boxed as double and can not be unboxed.")
+
+    if( NOT DEFINED  ALIB_FEAT_BOXING_BIJECTIVE_FLOATS )
+        set( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS              "Off"                       CACHE   BOOL
+             "If true, type float will be boxed as float. If false (the default) float will be boxed as double and can not be unboxed.")
+    endif()
+
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( NOT DEFINED  ALIB_DEBUG_BOXING )
+            set( ALIB_DEBUG_BOXING                          "Off"                       CACHE   BOOL
+                 "Adds collection of statistics and debug methods to module ALib Boxing. Defaults to false." )
+        endif()
     endif()
 endif()
 
-if( "STRINGS" IN_LIST ALIB_MODULES )
-    if( NOT DEFINED  ALIB_STRINGS_DEBUG )
-        set( ALIB_STRINGS_DEBUG             "Off"                                       CACHE   BOOL
-             "Defaults to false. Adds consistency checks to ALib string classes. Useful when developing code to manipulate strings externally, i.e T_Append to specializations.")
+if( "CHARACTERS" IN_LIST ALIB_DISTRIBUTION )
+    if ( ${WIN32} )
+        set( defaultALIB_CHARACTERS_WIDE          "On"  )
+        set( defaultALIB_CHARACTERS_SIZEOF_WCHAR  "2"   )
+    else()
+        set( defaultALIB_CHARACTERS_WIDE          "Off" )
+        set( defaultALIB_CHARACTERS_SIZEOF_WCHAR  "4"   )
     endif()
 
-    if (NOT DEFINED ALIB_FEAT_BOOST_REGEX)
+    if( NOT DEFINED  ALIB_CHARACTERS_WIDE )
+        set( ALIB_CHARACTERS_WIDE     ${defaultALIB_CHARACTERS_WIDE}                    CACHE   BOOL
+             "If false, the type 'aworx::character' is 1-byte wide, otherwise it has the width given with ALIB_CHARACTERS_SIZEOF_WCHAR. Default value depends on platform preference.")
+    endif()
+
+    if( NOT DEFINED  ALIB_CHARACTERS_SIZEOF_WCHAR )
+        set( ALIB_CHARACTERS_SIZEOF_WCHAR   ${defaultALIB_CHARACTERS_SIZEOF_WCHAR}    CACHE   STRING
+             "The width of wide characters, maybe 2 or 4. Default value depends on platform/compiler preference.")
+    endif()
+endif()
+
+if( "STRINGS" IN_LIST ALIB_DISTRIBUTION )
+    if( NOT DEFINED  ALIB_FEAT_BOOST_REGEX )
         set( ALIB_FEAT_BOOST_REGEX          "Off"                                       CACHE   BOOL
              "Defaults to false. If true, activates ALib classes that use boost regular expressions, for example strings::util::RegexMatcher. The corresponding boost library is searched and added to CMake variable ALIB_EXTERNAL_LIBS.")
     endif()
 
-    if (NOT DEFINED ALIB_CHARACTERS_FORCE_NARROW)
-        set( ALIB_CHARACTERS_FORCE_NARROW     "Off"                                     CACHE   BOOL
-             "Defaults to false. If true, forces 1-byte characters to be the standard type for strings, independent from the platform preference.")
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( NOT DEFINED  ALIB_DEBUG_STRINGS )
+            set( ALIB_DEBUG_STRINGS             "Off"                                   CACHE   BOOL
+                 "Defaults to false. Adds consistency checks to ALib string classes. Useful when developing code to manipulate strings externally, i.e T_Append to specializations.")
+        endif()
+    endif()
+endif()
+
+
+if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
+    if( NOT DEFINED  ALIB_RESOURCES_OMIT_DEFAULTS )
+        set( ALIB_RESOURCES_OMIT_DEFAULTS       "Off"                                   CACHE   BOOL
+             "If true, ALib modules do not add default versions of resource strings. See section 'Bootstrapping' of ALib Programer's Manual for more information. Defaults to false.")
     endif()
 
-    if (NOT DEFINED ALIB_CHARACTERS_FORCE_WIDE)
-        set( ALIB_CHARACTERS_FORCE_WIDE     "Off"                                       CACHE   BOOL
-             "Defaults to false. If true, forces wide characters to be the standard type for strings, independent from the platform preference. Still the character size (16 or 32 bit) is up to the platform preference.")
-    endif()
-
-    if (NOT DEFINED ALIB_CHARACTERS_FORCE_WIDE_2_BYTES)
-        set( ALIB_CHARACTERS_FORCE_WIDE_2_BYTES    "Off"                                CACHE   BOOL
-             "Defaults to false. If true, forces wide characters to be 2 bytes wide, instead of what the compiler proposes with built-in type definition 'wchar_t'.")
-    endif()
-
-    if (NOT DEFINED ALIB_CHARACTERS_FORCE_WIDE_4_BYTES)
-        set( ALIB_CHARACTERS_FORCE_WIDE_4_BYTES    "Off"                                CACHE   BOOL
-             "Defaults to false. If true, forces wide characters to be 4 bytes wide, instead of what the compiler proposes with built-in type definition 'wchar_t'.")
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( NOT DEFINED  ALIB_DEBUG_RESOURCES )
+            set( ALIB_DEBUG_RESOURCES           "Off"                                   CACHE   BOOL
+                 "Adds collection of statistics and resource export with module ALib Resources. Defaults to false." )
+        endif()
     endif()
 
 endif()
 
-if( "ALOX" IN_LIST ALIB_MODULES )
+if( "ALOX" IN_LIST ALIB_DISTRIBUTION )
 
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
         set( defaultALOX_DBG_LOG   "On" )
     else()
         set( defaultALOX_DBG_LOG   "Off" )
     endif()
+    if( NOT DEFINED  ALOX_DBG_LOG )
+        set( ALOX_DBG_LOG                   ${defaultALOX_DBG_LOG}                      CACHE   BOOL
+             "Enable/disable debug log statements. Defaults to true with debug builds, otherwise to false." )
+    endif()
 
-    set( ALOX_DBG_LOG                   ${defaultALOX_DBG_LOG}                          CACHE   BOOL
-         "Enable/disable debug log statements. Defaults to true in debug compilations, otherwise to false." )
+    if( NOT DEFINED  ALOX_DBG_LOG_CI )
+        set( ALOX_DBG_LOG_CI                    "On"                                    CACHE   BOOL
+             "Defaults to true. If set, caller information is used with debug log statements." )
+    endif()
 
-    set( ALOX_DBG_LOG_CI                "On"                                            CACHE   BOOL
-         "Defaults to true. If set, caller information is used with debug log statements." )
+    if( NOT DEFINED  ALOX_REL_LOG )
+        set( ALOX_REL_LOG                       "On"                                    CACHE   BOOL
+             "Enable/disable release log statements. Defaults to true." )
+    endif()
 
-    set( ALOX_REL_LOG                   "On"                                            CACHE   BOOL
-         "Enable/disable release log statements. Defaults to true." )
-
-    set( ALOX_REL_LOG_CI                "Off"                                           CACHE   BOOL
-         "Defaults to false. If set, caller information is used even with release log statements (and even in release builds!)" )
+    if( NOT DEFINED  ALOX_REL_LOG_CI )
+        set( ALOX_REL_LOG_CI                    "Off"                                   CACHE   BOOL
+             "Defaults to false. If set, caller information is used even with release log statements (and even in release builds!)" )
+    endif()
 endif()
 
 # --------------------------------------------------------------------------------------------------
-# compilation symbols
+# Compiler symbols
 # --------------------------------------------------------------------------------------------------
 
 # module selection
 if( NOT allModules )
     SET( moduleList "" )
-    LIST( APPEND moduleList    "ALOX;EXPRESSIONS;CONFIGURATION;CLI;SYSTEM" )
-    LIST( APPEND moduleList    "REPORTS;EXCEPTIONS;STRINGFORMAT"           )
-    LIST( APPEND moduleList    "RESOURCES;THREADS;STRINGS;BOXING"          )
-    LIST( APPEND moduleList    "TIME;CHARACTERS;ENUMS;SINGLETONS;MEMORY"   )
+    LIST( APPEND moduleList    "EXPRESSIONS;CLI;ALOX" )
+    LIST( APPEND moduleList    "CONFIGURATION;SYSTEM" )
+    LIST( APPEND moduleList    "RESULTS;TEXT" )
+    LIST( APPEND moduleList    "RESOURCES;THREADS"                    )
+    LIST( APPEND moduleList    "ENUMS;BOXING;STRINGS"                 )
+    LIST( APPEND moduleList    "SINGLETONS;MONOMEM;CHARACTERS;TIME"   )
     FOREACH( module IN LISTS moduleList )
-        IF( module IN_LIST  ALIB_MODULES )
-            list( APPEND  ALIB_COMPILATION_SYMBOLS    "ALIB_MODULE_${module}_ON"  )
+        IF( module IN_LIST  ALIB_DISTRIBUTION )
+            list( APPEND  ALIB_SYMBOLS    "ALIB_${module}"  )
         ENDIF()
     ENDFOREACH()
 endif()
@@ -230,124 +279,180 @@ endif()
 
 
 # debug
-if( defaultALIB_DEBUG )
-    if ( NOT ${ALIB_DEBUG} )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_DEBUG_OFF"         )
+if ( ${ALIB_DEBUG} )
+    list( APPEND ALIB_SYMBOLS      "ALIB_DEBUG"                )
+
+    if ( ${ALIB_DEBUG_GLIB} )
+        list( APPEND ALIB_SYMBOLS         "_GLIBCXX_DEBUG"
+                                          "_GLIBCXX_DEBUG_PEDANTIC"
+                                          "_GLIBCPP_CONCEPT_CHECKS"   )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED  "_GLIBCXX_DEBUG"
+                                          "_GLIBCXX_DEBUG_PEDANTIC"
+                                          "_GLIBCPP_CONCEPT_CHECKS"   )
     endif()
-else()
-    if ( ${ALIB_DEBUG} )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_DEBUG_ON"          )
+
+    if ( ${ALIB_GDB_PP_SUPPRESS_CHILDREN} )
+        list( APPEND ALIB_SYMBOLS           "ALIB_GDB_PP_SUPPRESS_CHILDREN"   )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_GDB_PP_SUPPRESS_CHILDREN"   )
     endif()
-endif()
+    if ( ${ALIB_GDB_PP_FIND_POINTER_TYPES} )
+        list( APPEND ALIB_SYMBOLS           "ALIB_GDB_PP_FIND_POINTER_TYPES"  )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_GDB_PP_FIND_POINTER_TYPES"  )
+    endif()
 
-
-
-if ( ${ALIB_DEBUG_GLIB} )
-    list( APPEND ALIB_COMPILATION_SYMBOLS    "_GLIBCXX_DEBUG"
-                                              "_GLIBCXX_DEBUG_PEDANTIC"
-                                              "_GLIBCPP_CONCEPT_CHECKS"   )
 endif()
 
 if ( ${ALIB_AVOID_ANALYZER_WARNINGS} )
-    list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_AVOID_ANALYZER_WARNINGS_ON" )
+    list( APPEND ALIB_SYMBOLS           "ALIB_AVOID_ANALYZER_WARNINGS" )
+else()
+    list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_AVOID_ANALYZER_WARNINGS" )
 endif()
-
-if ( ${ALIB_GDB_PP_SUPPRESS_CHILDREN} )
-    list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_GDB_PP_SUPPRESS_CHILDREN"   )
-endif()
-if ( ${ALIB_GDB_PP_FIND_POINTER_TYPES} )
-    list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_GDB_PP_FIND_POINTER_TYPES"  )
-endif()
-
 
 # precompiled header
-if ( ${ALIB_PRECOMPILED_HEADER_DISABLED} )
-    list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_PRECOMPILED_HEADER_DISABLED"  )
+if ( ${ALIB_PRECOMPILED_HEADER} )
+    list( APPEND ALIB_SYMBOLS           "ALIB_PRECOMPILED_HEADER"  )
+else()
+    list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_PRECOMPILED_HEADER"  )
 endif()
 
 # ALib features
-if( "SINGLETONS" IN_LIST ALIB_MODULES )
-    if (platformDefaultFor_SINGLETON_MAPPED)
-        if ( NOT ALIB_FEAT_SINGLETON_MAPPED )
-            list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_SINGLETON_MAPPED_OFF"  )
+if( "SINGLETONS" IN_LIST ALIB_DISTRIBUTION )
+    if (NOT platformDefaultFor_SINGLETON_MAPPED STREQUAL ALIB_FEAT_SINGLETON_MAPPED)
+        if ( ALIB_FEAT_SINGLETON_MAPPED )
+            list( APPEND ALIB_SYMBOLS    "ALIB_FEAT_SINGLETON_MAPPED"    )
+        else()
+            list( APPEND ALIB_SYMBOLS    "ALIB_FEAT_SINGLETON_MAPPED=0"  )
         endif()
     else()
-        if (     ALIB_FEAT_SINGLETON_MAPPED )
-            list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_SINGLETON_MAPPED_ON"  )
+        list( APPEND ALIB_SYMBOLS_UNUSED "ALIB_FEAT_SINGLETON_MAPPED=0"  )
+    endif()
+endif()
+
+if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if ( ALIB_DEBUG_MONOMEM )
+            list( APPEND ALIB_SYMBOLS           "ALIB_DEBUG_MONOMEM"  )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_DEBUG_MONOMEM"  )
         endif()
     endif()
 endif()
 
-if( "MEMORY" IN_LIST ALIB_MODULES )
-    if ( ALIB_MEMORY_DEBUG )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_MEMORY_DEBUG_ON"  )
+if( "BOXING" IN_LIST ALIB_DISTRIBUTION )
+    if ( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS )
+        list( APPEND ALIB_SYMBOLS           "ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS"  )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS"  )
+    endif()
+    if ( ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS )
+        list( APPEND ALIB_SYMBOLS           "ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS"  )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS"  )
+    endif()
+    if ( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS )
+        list( APPEND ALIB_SYMBOLS           "ALIB_FEAT_BOXING_BIJECTIVE_FLOATS"  )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_FEAT_BOXING_BIJECTIVE_FLOATS"  )
+    endif()
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( ALIB_DEBUG_BOXING )
+            list( APPEND ALIB_SYMBOLS           "ALIB_DEBUG_BOXING"   )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_DEBUG_BOXING"   )
+        endif()
     endif()
 endif()
 
-if( "BOXING" IN_LIST ALIB_MODULES )
-    if ( NOT ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS_OFF"  )
+if( "CHARACTERS" IN_LIST ALIB_DISTRIBUTION )
+    if (NOT (defaultALIB_CHARACTERS_WIDE STREQUAL ALIB_CHARACTERS_WIDE ))
+        if ( ALIB_CHARACTERS_WIDE )
+            list( APPEND ALIB_SYMBOLS       "ALIB_CHARACTERS_WIDE" )
+        else()
+            list( APPEND ALIB_SYMBOLS       "ALIB_CHARACTERS_WIDE=0" )
+        endif()
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_CHARACTERS_WIDE" )
     endif()
-    if ( NOT ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS_OFF"  )
+
+    if (NOT defaultALIB_CHARACTERS_SIZEOF_WCHAR STREQUAL ALIB_CHARACTERS_SIZEOF_WCHAR)
+        if ( NOT (ALIB_CHARACTERS_SIZEOF_WCHAR STREQUAL "2" OR  ALIB_CHARACTERS_SIZEOF_WCHAR STREQUAL "4") )
+            message( FATAL_ERROR "Value of ALIB_CHARACTERS_SIZEOF_WCHAR must be 2 or 4" )
+            return()
+        endif()
+        list( APPEND ALIB_SYMBOLS           "ALIB_CHARACTERS_SIZEOF_WCHAR=${ALIB_CHARACTERS_SIZEOF_WCHAR}" )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_CHARACTERS_SIZEOF_WCHAR=${ALIB_CHARACTERS_SIZEOF_WCHAR}" )
     endif()
-    if ( NOT ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS_OFF"  )
-    endif()
+
 endif()
 
-if( "STRINGS" IN_LIST ALIB_MODULES )
-    if ( ALIB_STRINGS_DEBUG )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_STRINGS_DEBUG_ON"  )
-    endif()
-
+if( "STRINGS" IN_LIST ALIB_DISTRIBUTION )
     if ( ALIB_FEAT_BOOST_REGEX )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_FEAT_BOOST_REGEX_ON"  )
+        list( APPEND ALIB_SYMBOLS           "ALIB_FEAT_BOOST_REGEX"  )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_FEAT_BOOST_REGEX"  )
     endif()
 
-    if ( ALIB_CHARACTERS_FORCE_NARROW )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_CHARACTERS_FORCE_NARROW_ON" )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if ( ALIB_DEBUG_STRINGS )
+            list( APPEND ALIB_SYMBOLS           "ALIB_DEBUG_STRINGS"  )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_DEBUG_STRINGS"  )
+        endif()
     endif()
-    if ( ALIB_CHARACTERS_FORCE_WIDE )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_CHARACTERS_FORCE_WIDE_ON"   )
-    endif()
-    if ( ALIB_CHARACTERS_FORCE_WIDE_2_BYTES )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON"   )
-    endif()
-    if ( ALIB_CHARACTERS_FORCE_WIDE_4_BYTES )
-        list( APPEND ALIB_COMPILATION_SYMBOLS    "ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON"   )
-    endif()
-
 endif()
 
-if( "ALOX" IN_LIST ALIB_MODULES )
+if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
 
-    if ( ${ALOX_DBG_LOG} )
+    if( ALIB_RESOURCES_OMIT_DEFAULTS )
+        list( APPEND ALIB_SYMBOLS          "ALIB_RESOURCES_OMIT_DEFAULTS"   )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED   "ALIB_RESOURCES_OMIT_DEFAULTS"   )
+    endif()
 
-        if( NOT defaultALOX_DBG_LOG )
-            list( APPEND ALIB_COMPILATION_SYMBOLS        "ALOX_DBG_LOG_ON"      )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( ALIB_DEBUG_RESOURCES )
+            list( APPEND ALIB_SYMBOLS          "ALIB_DEBUG_RESOURCES"   )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED   "ALIB_DEBUG_RESOURCES"   )
+        endif()
+    endif()
+endif()
+
+if( "ALOX" IN_LIST ALIB_DISTRIBUTION )
+
+    if (NOT defaultALOX_DBG_LOG STREQUAL ALOX_DBG_LOG)
+        if( NOT ALOX_DBG_LOG )
+            list( APPEND ALIB_SYMBOLS           "ALOX_DBG_LOG"         )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALOX_DBG_LOG"         )
         endif()
 
         if ( NOT ${ALOX_DBG_LOG_CI} )
-            list( APPEND ALIB_COMPILATION_SYMBOLS    "ALOX_DBG_LOG_CI_OFF"  )
+            list( APPEND ALIB_SYMBOLS           "ALOX_DBG_LOG_CI=0"    )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALOX_DBG_LOG_CI=0"    )
         endif()
-
     else()
-
-        if( defaultALOX_DBG_LOG )
-            list( APPEND ALIB_COMPILATION_SYMBOLS        "ALOX_DBG_LOG_OFF"     )
-        endif()
-
+        list( APPEND ALIB_SYMBOLS_UNUSED        "ALOX_DBG_LOG"         )
+        list( APPEND ALIB_SYMBOLS_UNUSED        "ALOX_DBG_LOG_CI"      )
     endif()
 
-    if ( ${ALOX_REL_LOG} )
-        if ( ${ALOX_REL_LOG_CI} )
-            list( APPEND ALIB_COMPILATION_SYMBOLS    "ALOX_REL_LOG_CI_ON"   )
-        endif()
+    if ( NOT ALOX_REL_LOG )
+        list( APPEND ALIB_SYMBOLS               "ALOX_REL_LOG=0"       )
     else()
-        list( APPEND ALIB_COMPILATION_SYMBOLS        "ALOX_REL_LOG_OFF"     )
+        list( APPEND ALIB_SYMBOLS_UNUSED        "ALOX_REL_LOG=0"       )
+    endif()
+    if ( ALOX_REL_LOG_CI )
+        list( APPEND ALIB_SYMBOLS               "ALOX_REL_LOG_CI"      )
+    else()
+        list( APPEND ALIB_SYMBOLS_UNUSED        "ALOX_REL_LOG_CI"      )
     endif()
 endif()
+
 
 
 # --------------------------------------------------------------------------------------------------
@@ -359,8 +464,16 @@ include( ${CMAKE_CURRENT_LIST_DIR}/ALibSources.cmake )
 # --------------------------------------------------------------------------------------------------
 # External libraries
 # --------------------------------------------------------------------------------------------------
-if (  "THREADS"  IN_LIST ALIB_MODULES )
+if ( NOT ${ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH} )
     find_package(Threads)
+
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(     APPEND  ALIB_SYMBOLS  "ALIB_EXT_LIB_THREADS_AVAILABLE" )
+        if(CMAKE_USE_PTHREADS_INIT)
+            list( APPEND  ALIB_COMPILE_FLAGS        "-pthread"             )
+        endif()
+    endif()
+
     list( APPEND  ALIB_EXTERNAL_LIBS  ${CMAKE_THREAD_LIBS_INIT} )
 endif()
 
@@ -368,8 +481,7 @@ if ( ${ALIB_FEAT_BOOST_REGEX} )
     find_package( Boost REQUIRED COMPONENTS regex )
 
     if(Boost_FOUND)
-        #recommended but does not work currently: "Boost::regex"
-        list( APPEND  ALIB_EXTERNAL_LIBS  boost_regex )
+        list( APPEND  ALIB_EXTERNAL_LIBS  boost_regex ) #recommended but does not work currently: "Boost::regex"
     else()
         MESSAGE("Attention: Boost::regex requested, but library not found!")
     endif()
@@ -385,58 +497,66 @@ endif()
 # A-Worx compiler features and flags
 # --------------------------------------------------------------------------------------------------
 
-if     ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"    )
+# Set minimum required standard C++ 11
+list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11"    )
 
-    # add -H to generate output "!/x" for use of precompiled header
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wall"          )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wextra"        )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Werror"        )
-    #list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"       )
+# if "ALIB_SUPPRESS_COMPILER_WARNINGS" is set prior to invoking this script, this entry is removed
+# and nothing is added.
+if ("ALIB_SUPPRESS_COMPILER_WARNINGS" IN_LIST ALIB_COMPILER_WARNINGS)
+    LIST( REMOVE_ITEM  ALIB_COMPILER_WARNINGS "ALIB_SUPPRESS_COMPILER_WARNINGS" )
+else()
+    if     ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"    )
+        # add -H to generate output "!/x" for use of precompiled header
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wall"          )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wextra"        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Werror"        )
+        #list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"       )
 
-    # add coverage flags to GCC
-    if( ${ALIB_COVERAGE_COMPILE} )
-        list( APPEND  AWORX_COMPILER_FLAGS "--coverage"     )
-        list( APPEND  ALIB_LINKER_FLAGS   "--coverage"     )
+        # add coverage flags to GCC
+        if( ${ALIB_COVERAGE_COMPILE} )
+            list( APPEND  ALIB_COMPILE_FLAGS   "--coverage"     )
+            list( APPEND  ALIB_LINKER_FLAGS    "--coverage"     )
+        endif()
+
+    # Clang: We are using -Weverything, although this is not recommended. We think it should be
+    #        recommmended. ALib for example does not use old-style casts and explicitly cast each
+    #        and every type change! The benefit for ALib users is that ALib code can be used in very
+    #        strict build environmnets without using special warning flags.
+    #        Of-course, some very obvious things like C++98 compatibility warnings have to be
+    #        removed explicitly:
+    elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"     )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-pedantic"                          )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"                           )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Weverything"                       )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat"                  )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat-pedantic"         )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-global-constructors"           )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-exit-time-destructors"         )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-padded"                        )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-weak-vtables"                  )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-documentation-unknown-command" )
+
+        if ( ${ALIB_CMAKE_COTIRE} )
+            # needs to be off of due to "unity builds" of cotire
+            list( APPEND ALIB_COMPILER_WARNINGS "-Wno-header-hygiene"      )
+        endif()
+
+        if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+            list( APPEND ALIB_COMPILE_FLAGS   "-fno-limit-debug-info"      )
+        endif()
+
+
+
+    #! NEVER TESTED YET !
+    elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel"  )
+        list( APPEND ALIB_COMPILER_WARNINGS "" )
+
+    #! NEVER TESTED YET !
+    elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC"   )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/W4"    )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/WX"    )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/EHsc"  )
     endif()
-
-# Clang: We are using -Weverything, although this is not recommended. We think it should be
-#        recommmended. ALib for example does not use old-style casts and explicitly cast each
-#        and every type change! The benefit for ALib users is that ALib code can be used in very
-#        strict build environmnets without using special warning flags.
-#        Of-course, some very obvious things like C++98 compatibility warnings have to be
-#        removed explicitly:
-elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"     )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-pedantic"                          )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"                           )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Weverything"                       )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat"                  )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-c++98-compat-pedantic"         )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-global-constructors"           )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-exit-time-destructors"         )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-padded"                        )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-weak-vtables"                  )
-    list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-documentation-unknown-command" )
-
-    if ( ${ALIB_CMAKE_COTIRE} )
-        # needs to be off of due to "unity builds" of cotire
-        list( APPEND ALIB_COMPILER_WARNINGS "-Wno-header-hygiene"      )
-    endif()
-
-    if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-        list( APPEND ALIB_COMPILE_FLAGS   "-fno-limit-debug-info"      )
-    endif()
-
-
-
-#! NEVER TESTED YET !
-elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel"  )
-    list( APPEND ALIB_COMPILER_WARNINGS "" )
-
-#! NEVER TESTED YET !
-elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC"   )
-    list( APPEND ALIB_COMPILER_WARNINGS   "/W4"    )
-    list( APPEND ALIB_COMPILER_WARNINGS   "/WX"    )
-    list( APPEND ALIB_COMPILER_WARNINGS   "/EHsc"  )
 endif()
 
 # --------------------------------------------------------------------------------------------------
@@ -463,7 +583,7 @@ if ( NOT ALIB_LIBRARY_FILENAME )
     if( NOT allModules )
 
         # create copy of module list and remove all dependent modules
-        SET( modules    ${ALIB_MODULES} )
+        SET( modules    ${ALIB_DISTRIBUTION} )
 
         list( FIND   modules  "BOXING"            idx )
         if( NOT idx LESS 0 )
@@ -485,10 +605,10 @@ if ( NOT ALIB_LIBRARY_FILENAME )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "STRINGS"     )
             LIST( REMOVE_ITEM  modules  "SINGLETONS"  )
-            LIST( REMOVE_ITEM  modules  "MEMORY"  )
+            LIST( REMOVE_ITEM  modules  "MONOMEM"  )
         endif()
 
-        list( FIND   modules  "STRINGFORMAT"      idx )
+        list( FIND   modules  "TEXT"      idx )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "RESOURCES"   )
             LIST( REMOVE_ITEM  modules  "BOXING"      )
@@ -497,7 +617,7 @@ if ( NOT ALIB_LIBRARY_FILENAME )
 
         list( FIND   modules  "RESULTS"          idx )
         if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "STRINGFORMAT")
+            LIST( REMOVE_ITEM  modules  "TEXT")
         endif()
 
         list( FIND   modules  "SYSTEM"            idx )
@@ -532,7 +652,7 @@ if ( NOT ALIB_LIBRARY_FILENAME )
 
             # STRINGS: debug mode?
             IF(     modName STREQUAL "STRINGS" )
-                if ( ALIB_STRINGS_DEBUG )
+                if ( ALIB_DEBUG_STRINGS )
                     set ( ALIB_LIBRARY_FILENAME         ${ALIB_LIBRARY_FILENAME}_DBGSTRINGS )
                 else()
                     set ( ALIB_LIBRARY_FILENAME         ${ALIB_LIBRARY_FILENAME}_STRINGS    )
@@ -558,16 +678,25 @@ if ( NOT ALIB_LIBRARY_FILENAME )
 endif()
 
 # -------------------------------------------------------------------------------------------------
+# Create doxygen.ini file from .cmake.ini file
+# -------------------------------------------------------------------------------------------------
+if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini" "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.ini" @ONLY)
+endif()
+
+# -------------------------------------------------------------------------------------------------
 # Display result summary
 # -------------------------------------------------------------------------------------------------
 message( "ALib CMake Configuration:"                             )
 IF( NOT allModules )
-    message( "  Module Selection:     ${ALIB_MODULES}"           )
+    message( "  Module Selection:   ${ALIB_DISTRIBUTION}"           )
 ELSE()
-    message( "  Module Selection:     All (${ALIB_MODULES})"     )
+    message( "  Module Selection:   All (${ALIB_DISTRIBUTION})"     )
 ENDIF()
 
-message( "  Lbrary filename:      ${ALIB_LIBRARY_FILENAME}"      )
+    message( "  Library filename:   ${ALIB_LIBRARY_FILENAME}"      )
+    message( "  Compiler ID:        ${CMAKE_CXX_COMPILER_ID}")
+
 IF( NOT ALIB_CMAKE_VERBOSE )
     message( "  (For further details enable CMake variable 'ALIB_CMAKE_VERBOSE')"      )
 ELSE()
@@ -583,11 +712,22 @@ ELSE()
         string(REPLACE "${ALIB_SOURCE_DIR}/" "" entry ${entry} )
         message( "      ${entry}"          )
     ENDFOREACH()
+
     SET( result  "" )
-    LIST( APPEND result ${ALIB_COMPILATION_SYMBOLS} )
+    LIST( APPEND result ${ALIB_SYMBOLS} )
     LIST( SORT   result  )
     LIST( LENGTH result  length)
     message( "\n  Compiler definitions (${length} items):"  )
+    FOREACH( entry IN LISTS result  )
+        message( "      ${entry}"          )
+    ENDFOREACH()
+    SET( result  "" )
+
+    SET( result  "" )
+    LIST( APPEND result ${ALIB_SYMBOLS_UNUSED} )
+    LIST( SORT   result  )
+    LIST( LENGTH result  length)
+    message( "\n  Compiler definitions NOT given/omitted (${length} items):"  )
     FOREACH( entry IN LISTS result  )
         message( "      ${entry}"          )
     ENDFOREACH()
@@ -639,14 +779,13 @@ ELSE()
     SET( result  "" )
 
     message( "\n"  )
-
 ENDIF()
 
 # -------------------------------------------------------------------------------------------------
 # ALibSetCompilerAndLinker(target)
 #
-# Simple CMake functin that sets
-# - ALIB_COMPILATION_SYMBOLS
+# Simple CMake function that sets
+# - ALIB_SYMBOLS
 # - ALIB_COMPILER_FEATURES
 # - ALIB_COMPILE_FLAGS
 # - ALIB_COMPILER_WARNINGS
@@ -666,7 +805,7 @@ function( ALibSetCompilerAndLinker  target )
     target_include_directories( ${target}    PUBLIC          ${ALIB_SOURCE_DIR}              )
 
     #definitions
-    target_compile_definitions( ${target}    PUBLIC          ${ALIB_COMPILATION_SYMBOLS}     )
+    target_compile_definitions( ${target}    PUBLIC          ${ALIB_SYMBOLS}     )
 
     # linker flags
 

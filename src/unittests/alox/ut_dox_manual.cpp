@@ -7,7 +7,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#if ALIB_UT_DOCS
 
 
 #include "alib/alox.hpp"
@@ -16,52 +16,29 @@
 #include "alib/alox/loggers/memorylogger.hpp"
 
 #include <iostream>
-#include <string>
-#include <vector>
 
-#define TESTCLASSNAME       CPP_Dox_ReferenceManual
-#include "unittests/aworx_unittests.hpp"
+// Fix the method name of logging (needed for unity builds)
+ALIB_WARNINGS_IGNORE_UNUSED_MACRO
+#undef  ALIB_CALLER
+#if defined( __GNUC__ )
+#   define ALIB_CALLER    __FILE__, __LINE__, __func__
+#else
+#   define ALIB_CALLER    __FILE__, __LINE__, __FUNCTION__
+#endif
 
 using namespace std;
-using namespace ut_aworx;
-
 using namespace aworx;
-
-//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
-#include "alib/alox/reportwriter.hpp"
-//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
-
-namespace ut_alox {
-
-
-UT_CLASS()
-
-//##################################################################################################
-// SAMPLE code of class ESC documentation
-//##################################################################################################
-
-void docSampleESC()
-{
-
-//! [DOX_ALOX_ESC]
-Log_Info( "The result is: ", ESC::RED, 42 )
- //! [DOX_ALOX_ESC]
-}
-
-
-UT_METHOD( ALoxDocSamples )
-{
-    UT_INIT();
-
-    UT_PRINT("*** ALox Sample tests: ESC ***")
-    docSampleESC();
-}
 
 
 //##################################################################################################
 // SAMPLE code installing a report writer
 //##################################################################################################
 
+//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
+#include "alib/alox/reportwriter.hpp"
+//! [DOX_ALOX_INSTALL_REPORT_WRITER_0]
+
+void docSampleInstallReportWriter();
 void docSampleInstallReportWriter()
 {
 Log_Prune( Lox lox("RELEASE");               )
@@ -79,15 +56,49 @@ Log_Prune( Lox_SetVerbosity( myReleaseLogger, Verbosity::Info, lib::lox::ALoxRep
 //! [DOX_ALOX_INSTALL_REPORT_WRITER_2]
 Log_Prune( Log::RemoveALibReportWriter() );
 //! [DOX_ALOX_INSTALL_REPORT_WRITER_2]
+}
 
 
+namespace ut_alox {
+
+//##################################################################################################
+// SAMPLE code of class ESC documentation
+//##################################################################################################
+
+void docSampleESC();
+void docSampleESC()
+{
+
+//! [DOX_ALOX_ESC]
+Log_Info( "The result is: ", ESC::RED, 42 )
+ //! [DOX_ALOX_ESC]
+}
 
 }
 
 
 
-UT_CLASS_END
+#define TESTCLASSNAME       CPP_Dox_ReferenceManual
+#include "unittests/aworx_unittests.hpp"
+
+using namespace ut_aworx;
+
+namespace ut_alox {
+
+UT_CLASS()
+
+UT_METHOD( ALoxDocSamples )
+{
+    UT_INIT()
+
+    UT_PRINT("*** ALox Sample tests: ESC ***")
+    docSampleESC();
+}
+
+
+#include "unittests/aworx_unittests_end.hpp"
 } // namespace
 
+ALIB_WARNINGS_RESTORE
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_ALOX)
+#endif // ALIB_UT_ALOX

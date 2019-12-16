@@ -1,23 +1,23 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
 #define HPP_ALIB_EXPRESSIONS_SCOPE
 
-#ifndef HPP_ALIB_STRINGFORMAT_FORMATTER_STD
-#   include "alib/stringformat/formatterstdimpl.hpp"
+#ifndef HPP_ALIB_TEXT_FORMATTER_STD
+#   include "alib/text/formatterstdimpl.hpp"
 #endif
 
-#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
-    #include "alib/compatibility/std_strings_functional.hpp"
+#if !defined (HPP_ALIB_MONOMEM_HASHMAP)
+#   include "alib/monomem/hashmap.hpp"
 #endif
 
-#if !defined(HPP_ALIB_MEMORY_MEMORYBLOCKS)
-    #include "alib/memory/memoryblocks.hpp"
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace expressions {
@@ -35,7 +35,7 @@ class Expression;
  * Instances of this type allocated with operator \c new, may be stored in class \b %Scope in
  * containers accessible with fields \alib{expressions::Scope,Resources} and
  * \alib{expressions::Scope,NamedResources}.
- * All objects in these fields will be deleted with method \alib{expressions,Scope::Clear}.
+ * All objects in these fields will be deleted with method \alib{expressions,Scope::Reset}.
  **************************************************************************************************/
 struct ScopeResource
 {
@@ -44,7 +44,7 @@ struct ScopeResource
 };
 
 /** ************************************************************************************************
- * This type is used as base class to provide access to program data when evaluating
+ * This type is used as the default class to provide access to program data when evaluating
  * \alib expressions.
  * Usually a derived type which contains references to necessary application data is passed to
  * method \alib{expressions,Expression::Evaluate}.
@@ -61,7 +61,7 @@ struct ScopeResource
  *
  * A scope object can be reused for evaluating the same expression several times. Prior to
  * evaluation, the custom "scoped data" has to be set.
- * With each reuse, method #Clear will be invoked internally.
+ * With each reuse, method #Reset will be invoked internally.
  * Hence, if custom 'allocators' are added in derived types, this method has
  * to be overwritten to a) invoke the original method and b) clean such custom types.
  *
@@ -80,6 +80,15 @@ struct ScopeResource
 struct Scope
 {
     /**
+     * Block-allocator used to store temporary data and results. The allocated data within
+     * this object becomes cleared automatically by method #Reset, in the moment
+     * an expression is evaluated a next time (usually with different custom scope data).
+     *
+     * Note that this allocator is \b not cleared for the compile-time scope object #CTScope.
+     */
+    MonoAllocator                           Allocator;
+
+    /**
      * This is a pointer to the compile-time scope. This is available only at evaluation time
      * and primarily is used to access field #NamedResources. This allows to create resources
      * at compile-time, which can be used for evaluation.<br>
@@ -89,35 +98,28 @@ struct Scope
      * constant pattern strings, the matching class (which itself "compiles" the pattern once) is
      * created once and reused during evaluation.
      */
-    Scope*                              CTScope;
+    Scope*                                  CTScope;
 
     /**
      * This is the argument stack used by class \alib{expressions,detail::VirtualMachine} when
      * evaluating expressions.
      */
-    std::vector<aworx::Box>             Stack;
+    std::vector<aworx::Box>                 Stack;
 
-    /** List of nested expressions called during evaluation. Used to detect cyclic expressions. */
-    std::vector<Expression*>            nestedExpressionStack;
-
-    /**
-     * Block-allocator used to store temporary data and results. The allocated data within
-     * this object becomes cleared automatically by method #Clear, in the moment
-     * an expression is evaluated a next time (usually with different custom scope data).
-     */
-    MemoryBlocks                        Memory;
+    /** Stack of nested expressions called during evaluation. Used to detect cyclic expressions. */
+    std::vector<Expression*, StdContMA<Expression*>>        NestedExpressions;
 
     /**
      * Simple list of user-defined, virtually deletable objects.
-     * The objects in this vector will be deleted with #Clear.
+     * The objects in this vector will be deleted with #Reset.
      */
-    std::vector<ScopeResource*>         Resources;
+    std::vector<ScopeResource*,StdContMA<ScopeResource*>>   Resources;
 
     /**
      * A list of user-defined, named resources. Named resources may be allocated at compile-time
      * and used at evaluation-time.
      */
-    UnorderedStringMap<ScopeResource*, nchar> NamedResources;
+    HashMap<NString, ScopeResource*>        NamedResources;
 
     /**
      * Used to convert numbers to strings and vice versa. In addition expression function
@@ -126,14 +128,14 @@ struct Scope
      *
      * Hence, to support customized format strings, a different formatter is to be passed here.
      * Default format string conventions provided with \alib are
-     * \alib{stringformat,FormatterPythonStyle,python style} and
-     * \alib{stringformat,FormatterJavaStyle,java/printf-like style}.
+     * \alib{text,FormatterPythonStyle,python style} and
+     * \alib{text,FormatterJavaStyle,java/printf-like style}.
      *
      * The default implementation of method \alib{expressions,Compiler::getCompileTimeScope}
      * provides field \alib{expressions,Compiler::CfgFormatter} with the constructor of the
      * default compile-time scope.
      */
-    SPFormatter                      Formatter;
+    SPFormatter                             Formatter;
 
 
     /** ********************************************************************************************
@@ -149,10 +151,9 @@ struct Scope
     /** ********************************************************************************************
      * Virtual destructor
      **********************************************************************************************/
-    inline
     virtual        ~Scope()
     {
-        Clear();
+        Reset();
     }
 
     /** ********************************************************************************************
@@ -166,7 +167,7 @@ struct Scope
      *
      * @return \c true if this is a compile-time invocation, \c false otherwise.
      **********************************************************************************************/
-    inline bool     IsCompileTime()
+    bool            IsCompileTime()
     {
         return CTScope == nullptr;
     }
@@ -177,20 +178,20 @@ struct Scope
      * different expression.<br>
      * Such reuse is internally detected and if so, this method is invoked.
      *
-     * Instances of this class used as compilation scope, are not cleared during the life-cycle
+     * Instances of this class used as compilation scope, are not reset during the life-cycle
      * of an expression.
      *
      * Derived versions of this class need to free allocations performed by callback functions.
      **********************************************************************************************/
     ALIB_API
-    virtual void    Clear();
+    virtual void    Reset();
 
 };
 
 }} // namespace aworx[::lib::expressions]
 
 /// Type alias in namespace #aworx. Renamed to not collide with #aworx::lib::lox::Scope.
-using     ExpressionScope=    aworx::lib::expressions::Scope;
+using     ExpressionScope=    lib::expressions::Scope;
 
 
 }// namespace [aworx]

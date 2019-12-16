@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
 #define HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
 
@@ -15,18 +16,18 @@
 #   include "alib/expressions/detail/parser.hpp"
 #endif
 
-#if !defined(HPP_ALIB_MEMORY_MEMORYBLOCKS)
-    #include "alib/memory/memoryblocks.hpp"
+#if !defined(HPP_ALIB_MONOMEM_HASHSET)
+#   include "alib/monomem/hashset.hpp"
 #endif
-
-#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
-    #include "alib/compatibility/std_strings_functional.hpp"
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
 #endif
-
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-    #include "alib/strings/substring.hpp"
+#   include "alib/strings/substring.hpp"
 #endif
-
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL)
+#   include "alib/compatibility/std_strings_functional.hpp"
+#endif
 
 #include <bitset>
 
@@ -38,20 +39,17 @@ class Parser;
 namespace detail {
 
 /** ************************************************************************************************
- * Implementation of the default parser of module \alibmod_nolink_expressions.
+ * Implementation of the default parser of module \alib_expressions_nl.
  *
  * This internal class is not too well documented. Nevertheless, it is designed to be able
- * to tweak its behaviour slightly and in case of need, even derive and use a custom parser
+ * to tweak its behavior slightly and in case of need, even derive and use a custom parser
  * class. For doing so, please consult the source code of this class.
+ * A custom parser might be set to protected field \alib{expressions,Compiler::parser}by a derived
+ * compiler type prior to compiling a first expression.
  *
  * It is possible to define scannable custom unary and binary operators. Definitions of binary
  * operators include a "precedence value" that allows to align them with the built-in types.
  * Also, built-in operators can be \em removed if wanted.
- *
- * \see
- *   Besides this class, a parser based on \c boost::spirit is available as an alternative.
- *   This is documented with appendix manual section
- *   \ref alib_expressions_appendix_boostspirit "A.5 Using Built-In Alternative Parser Based On boost::spirit".
  **************************************************************************************************/
 class ParserImpl  : public Parser
 {
@@ -76,12 +74,15 @@ class ParserImpl  : public Parser
             SubscriptClose  = ']' ,
         };
 
+        /** Memory for temporary allocations, like AST objects or literal strings with converted
+         *  escape sequences. Provided by the compiler with method #Parse.                       */
+        MonoAllocator*             compileTimeAllocator;
+
         /** The actual token type. */
         Tokens                      token;
 
         /** The actual token type. */
         ASTLiteral::NFHint          tokLiteralHint;
-
 
         /** Integer value of token (if applicable). */
         integer                     tokInteger;
@@ -108,9 +109,6 @@ class ParserImpl  : public Parser
         /** The rest of #expression. */
         Substring                   scanner;
 
-        /** Memory for literal strings with converted escape sequences. */
-        MemoryBlocks                internalizedStrings;
-
         /**
          * Lists single characters that get directly converted into tokens of corresponding type
          * when found in the expression string. Tokens are <c>"()[],"</c>.
@@ -130,32 +128,32 @@ class ParserImpl  : public Parser
         std::bitset<256>            operatorChars;
 
         /**
-         * Hash map of unary operators. The key of the table is the operator string, which usually
+         * Hash set of unary operators. The key of the table is the operator string, which usually
          * consists of one character, like <c>'-'</c> or <c>'!'</c>.
-         * The value stored is undefined and unused. The map is rather for just testing for
-         * existence.
          *
          * This table is filled in the constructor of the class with the values stored in
-         * \alib{expressions,Compiler::UnaryOperators}
+         * \alib{expressions,Compiler::UnaryOperators} and used for testing of existence.
          */
-        UnorderedStringMapIgnoreCase<int>     unaryOperators;
+        HashSet< String,
+                 aworx::hash_string_ignore_case    <character>,
+                 aworx::equal_to_string_ignore_case<character>  >  unaryOperators;
 
         /**
-         * Hash map of binary operators. The key of the table is the operator string, which usually
+         * Hash set of binary operators. The key of the table is the operator string, which usually
          * consists of one to three characters, like <c>'+'</c> or <c>'<<='</c>.
-         * The value provides the precedence, which is not used with parsing. The map is rather
-         * for just testing for existence.
          *
          * This table is filled in the constructor of the class with the values stored in
-         * \alib{expressions,Compiler::BinaryOperators}
+         * \alib{expressions,Compiler::BinaryOperators} and used for testing of existence.
          */
-        UnorderedStringMapIgnoreCase<int>     binaryOperators;
+        HashSet< String,
+                 aworx::hash_string_ignore_case    <character>,
+                 aworx::equal_to_string_ignore_case<character>  >  binaryOperators;
 
-        /**
-         * List of ASTs currently created in recursion. Due to the recursive approach, collecting
-         * them is only needed for deletion in case of exceptions.
-         */
-        std::vector<AST*>           ASTs;
+        /** List of ASTs currently created in recursion.
+         *  \note
+         *    This vector is created in the monotonic allocator and never even deleted, as all
+         *    inserted \b AST elements, exclusively allocate from the same temporary allocator.  */
+        std::vector<AST*, StdContMA<AST*>>*                        ASTs;
 
     // #############################################################################################
     // Constructor/destructor, interface
@@ -164,12 +162,11 @@ class ParserImpl  : public Parser
         /**
          * Constructor.
          * @param compiler   The compiler that this parser works for.
+         * @param allocator  A monotonic allocator for permanent allocations.
          */
-        ParserImpl( Compiler& compiler );
+        ParserImpl( Compiler& compiler, MonoAllocator* allocator );
 
-        /**
-         * Virtual destructor.
-         */
+        /** Virtual destructor. */
         virtual    ~ParserImpl()                                                            override
         {}
 
@@ -177,14 +174,16 @@ class ParserImpl  : public Parser
          * Parses the given expression string.
          * \note
          *   The return value is hidden by using <c>void*</c>. This is to allow avoid flooding
-         *   of \c boost header includes files to the code entities using module \alibmod_nolink_expressions.
+         *   of \c boost header includes files to the code entities using module \alib_expressions_nl.
          *
-         * @param expressionString The string to parse.
-         * @param nf               Used to scan number literals.
+         * @param exprString The string to parse.
+         * @param nf         Used to scan number literals.
+         * @param allocator  Allocator to create temporary objects.
          * @return  The abstract syntax tree representing the expression.
          */
         ALIB_API virtual
-        detail::AST* Parse( const String& expressionString, NumberFormat* nf )             override;
+        detail::AST* Parse( const String&   exprString, NumberFormat* nf,
+                            MonoAllocator* allocator                            )         override;
 
 
     protected:
@@ -216,14 +215,14 @@ class ParserImpl  : public Parser
         String      getBinaryOp();
 
         /**
-         * Internal method that optionally parses a conditional operation (<c>Q ? T : F</c> )
+         * Internal method that optionally parses a conditional operator (<c>Q ? T : F</c> )
          *
          * @return  T.
          */
         AST*        parseConditional();
 
         /**
-         * Internal method that optionally parses a binary operation and levels (recursively)
+         * Internal method that optionally parses a binary operator and levels (recursively)
          * trees of such according to operator precedence and brackets given.
          * @return  T.
          */
@@ -252,10 +251,10 @@ class ParserImpl  : public Parser
          * Simple shortcut popping and returning last ast from the current list.
          * @return Popped AST object.
          */
-        inline AST* pop()
+        AST* pop()
         {
-            AST* ast= ASTs.back();
-            ASTs.pop_back();
+            AST* ast= ASTs->back();
+            ASTs->pop_back();
             return ast;
         }
 
@@ -264,9 +263,9 @@ class ParserImpl  : public Parser
          * @param  ast The AST node to push.
          * @return Popped AST object.
          */
-        inline AST* push( AST* ast)
+        AST* push( AST* ast )
         {
-            ASTs.emplace_back(ast);
+            ASTs->emplace_back(ast);
             return ast;
         }
 
@@ -274,9 +273,9 @@ class ParserImpl  : public Parser
          * Simple shortcut to the topmost AST.
          * @return The topmost AST object.
          */
-        inline AST* top()
+        AST* top()
         {
-            return ASTs.back();
+            return ASTs->back();
         }
 
         /**
@@ -284,18 +283,15 @@ class ParserImpl  : public Parser
          * @param  ast The new AST node to replace the existing one with.
          * @return The given object.
          */
-        inline AST* replace( AST* ast)
+        AST* replace( AST* ast )
         {
-            ASTs.back()= ast;
+            ASTs->back()= ast;
             return ast;
         }
+};  // class ParserImpl
 
 
-
-};
-
-
-}}}}; // namespace [aworx::lib::expressions::detail]
+}}}} // namespace [aworx::lib::expressions::detail]
 
 
 

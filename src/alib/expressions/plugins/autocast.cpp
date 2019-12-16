@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST)
 #   include "alib/expressions/plugins/autocast.hpp"
 #endif
@@ -19,6 +20,7 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
 #   include "alib/expressions/plugins/arithmetics.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 //! @cond NO_DOX
 

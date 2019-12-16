@@ -1,21 +1,22 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-//
-//  Legal Notice:
-//    This is an optional extension header to provide compatibility between ALib and
-//    the QT class library.
-//    All information about QT is found under https://www.qt.io
-//    ALib otherwise does not use or rely on QT.
-//    The use of QT is bound to the QT license restrictions.
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ *
+ * <b>Legal Notice:</b>
+ * This is an optional extension header to provide compatibility between ALib and
+ * the QT class library.
+ * All information about QT is found at https://www.qt.io
+ * ALib otherwise does not use or rely on QT.
+ * The use of QT is bound to the QT license restrictions.
+ **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_BOXING_QT
 #define HPP_ALIB_COMPATIBILITY_BOXING_QT 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -39,7 +40,7 @@ ALIB_ASSERT_MODULE(BOXING)
     #pragma clang diagnostic pop
 #endif
 
-#if ALIB_MODULE_CHARACTERS && !defined(HPP_ALIB_COMPATIBILITY_QT_CHARACTERS)
+#if ALIB_CHARACTERS && !defined(HPP_ALIB_COMPATIBILITY_QT_CHARACTERS)
 #   include "alib/compatibility/qt_characters.hpp"
 #endif
 
@@ -55,20 +56,20 @@ ALIB_ASSERT_MODULE(BOXING)
 
 namespace aworx { namespace lib { namespace boxing { namespace compatibility {
 /**
- * This namespace documents compatibility features of \alibmod_nolink_boxing and the
- * [QT Class Library](https://www.qt.io).
+ * This namespace documents compatibility features of \alib_boxing_nl and the
+ * \https{QT Class Library,www.qt.io}.
  */
 namespace qt {
 
 
 
-void InitQTStringBoxing();
+void BootstrapQTStringBoxing();
 /**
- * Initializes \alibmod_nolink_boxing in respect to boxing QT string types.
+ * Initializes \alib_boxing_nl in respect to boxing QT string types.
  *
- * This method is \b not automatically invoked with \alib{ALibModules::Init}, because support
+ * This method is \b not automatically invoked with \alib{ALibDistribution::Bootstrap}, because support
  * for boxing QT string types is optional and provided with the inclusion of header
- * \ref alib/compatibility/qt_boxing.hpp.
+ * \alibheader{compatibility/qt_boxing.hpp}.
  *
  * In general, boxing of QT string types works well without the one-time invocation of
  * this function at the bootstrap section of a process.
@@ -80,18 +81,18 @@ void InitQTStringBoxing();
  * \b nchar and \b wchar.
  *
  * \note
- *   Although the method must be invoked only once, it is defined inline to avoid the need of
- *   including a corresponding compilation unit.
+ *   If invoked after bootstrap and module \alib_monomem_nl is included in the \alibdist,
+ *   mutex \alib{monomem,GlobalAllocatorLock} has to be locked prior to an invocation.
  */
-inline void InitQTStringBoxing()
+inline void BootstrapQTStringBoxing()
 {
-    #if ALIB_MODULE_STRINGS
-        aworx::lib::boxing::Register<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<nchar>::WrappedAppendable<QByteArray>    );
-        aworx::lib::boxing::Register<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<wchar>::WrappedAppendable<QByteArray>    );
-        aworx::lib::boxing::Register<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<nchar>::WrappedAppendable<QLatin1String> );
-        aworx::lib::boxing::Register<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<wchar>::WrappedAppendable<QLatin1String> );
-        aworx::lib::boxing::Register<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<nchar>::WrappedAppendable<QString>       );
-        aworx::lib::boxing::Register<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<wchar>::WrappedAppendable<QString>       );
+    #if ALIB_STRINGS
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<nchar>::WrappedAppendable<QByteArray>    );
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<wchar>::WrappedAppendable<QByteArray>    );
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<nchar>::WrappedAppendable<QLatin1String> );
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<wchar>::WrappedAppendable<QLatin1String> );
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<nchar>::WrappedAppendable<QString>       );
+        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<wchar>::WrappedAppendable<QString>       );
     #endif
 }
 }}}}}

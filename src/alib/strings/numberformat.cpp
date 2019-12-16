@@ -6,13 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
 #   include "alib/strings/numberformat.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
+
+#if defined( _WIN32 ) || defined(__APPLE__)
+#   include <clocale>
 #endif
 
 namespace aworx { namespace lib { namespace strings {
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 // #################################################################################################
 //  Set methods

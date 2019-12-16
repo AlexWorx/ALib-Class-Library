@@ -14,7 +14,7 @@
  \~Comment ####################################################################################### \~
 # 1. Introduction # {#alib_characters_intro}
 
-Module \alibmod_nolink_characters is very foundational. The main goal of the module is not to provide
+Module \alib_characters_nl is very foundational. The main goal of the module is not to provide
 algorithms and functionality, but rather to provide clarity and consistency. Both are needed in
 two related areas, where the C++ language itself turns out to be a little unclear and fighting with
 legacy compatibility issues.<br>
@@ -30,7 +30,7 @@ This module introduces own type definitions and "type traits" aiming to overcome
 while still using the same strictness and clarity that a programmer is used from the C++ language.
 
 And here, the scope of the module already ends! Further functionality is only found with
-separated modules like \alibmod_strings, \alibmod_boxing or \alibmod_stringformat.
+separated modules like \alib_strings, \alib_boxing or \alib_text.
 We think that the combination of the modules together form an unrivalled team and no other
 C++ library that we know of, makes character and string handling as convenient, seamless, compatible,
 readable and flexible as these.
@@ -48,26 +48,26 @@ systems is at least well understood. But it is complex.
 ## 2.1 The Challenges Of C++ Character Types ## {#alib_characters_chars_challenge}
 The right definition of the character type creates a lot of confusion and platform dependencies.
 This Programmer's Manual can not elaborate in all depth on this topic. To make best and most
-efficient use of this module \alibmod_nolink_characters and those modules that depend on it, it is probably
+efficient use of this module \alib_characters_nl and those modules that depend on it, it is probably
 enough what is written in this and the following manual sections.<br>
 To get deep knowledge and to understand the rationals behind the design decisions of this library,
 some links are provided here for the interested user:
 
-- [ASCII (Wikipedia)](https://en.wikipedia.org/wiki/ASCII)
-- [Unicode (Wikipedia)](https://en.wikipedia.org/wiki/Unicode)
-- [UTF-8 ](https://en.wikipedia.org/wiki/UTF-8),
-  [UTF-16](https://en.wikipedia.org/wiki/UTF-16),
-  [UTF-32](https://en.wikipedia.org/wiki/UTF-32) (all Wikipedia)
-- [UTF-8 Everywhere](http://utf8everywhere.org/), a "manifesto" on the use of UTF-8 written by
+- \https{ASCII (Wikipedia),en.wikipedia.org/wiki/ASCII)}
+- \https{Unicode (Wikipedia),en.wikipedia.org/wiki/Unicode)}
+- \https{UTF-8 ,en.wikipedia.org/wiki/UTF-8},
+  \https{UTF-16,en.wikipedia.org/wiki/UTF-16},
+  \https{UTF-32,en.wikipedia.org/wiki/UTF-32} (all Wikipedia)
+- \https{UTF-8 Everywhere,utf8everywhere.org/}, a "manifesto" on the use of UTF-8 written by
   people that have a strong opinion. Absolutely worth to read.
-- [ICU Library](http://site.icu-project.org/). See the more general and introduction/tutorial
+- \https{ICU Library,site.icu-project.org/}. See the more general and introduction/tutorial
   parts of their documentation.
 
 The following simple observations already indicate that choosing "the right" character width,
 which then leads to an efficient implementation of C++ strings, is a non-trivial task:
 1. GNU C++ and Clang compilers define \c wchar_t as a <b>4-byte</b> integral type under GNU/Linux.
 2. Microsoft Visual Studio C++ compiler for Windows defines \c wchar_t as a <b>2-byte</b> integral type.
-3. Famous and wide-spread [QT Class Library](https://www.qt.io) uses a <b>2-byte</b> integral type
+3. Famous and wide-spread \https{QT Class Library,www.qt.io} uses a <b>2-byte</b> integral type
    on both platforms, GNU/Linux and Windows OS.
 
 While we have never seen a compiler doing this, the C++ language standard officially even allows
@@ -108,9 +108,8 @@ the two types themselves are aliased once more by two further type definitions:
 - \ref aworx::character and
 - \ref aworx::complementChar.
 
-Depending on the compiler, the platform defaults and the
-\ref ALIB_CHARACTERS_FORCE_NARROW_ON "compilation settings" of \alib, one of these types aliases
-\b nchar and the other \b wchar.
+Depending on the compiler, the platform defaults and the compiler symbol
+\ref ALIB_CHARACTERS_WIDE, one of these types aliases equals \b nchar and the other \b wchar.
 
 This logical naming means that a \aworx{character} is the default type for characters used with
 \alib and type \ref aworx::complementChar "complementChar" is just the counterpart.
@@ -157,7 +156,7 @@ We now have covered
 - all three "type domains", namely <b>"ALib Logical"</b>, <b>"ALib Explict"</b> and <b>C++-Type</b>
 
 
-With this, the \ref ALIB_CHARACTERS_FORCE_WIDE_ON "default" on GNU/Linux is:
+With this, the \ref ALIB_CHARACTERS_SIZEOF_WCHAR "default" on GNU/Linux is:
 
        Logical Type                     Explicit Type               C++ Type
        -----------------------------------------------------------------------------------
@@ -180,7 +179,7 @@ this is never sure and depends on the compiler, platform and library compilation
 
 \note
   From this perspective, if mixing \alib characters with the character definition found in
-  [QT Class Library](https://www.qt.io),  \c QChar is equivalent to logical type \aworx{strangeChar}
+  \https{QT Class Library,www.qt.io},  \c QChar is equivalent to logical type \aworx{strangeChar}
   under GNU/Linux,  while it is equivalent to type \aworx{character}
   on Windows OS. This is true, because on any platform, type \c QChar is defined to have a width of
   of 2 bytes!
@@ -191,7 +190,7 @@ to write platform independent code, it might not be so simple to imagine a use c
 Mostly those two are needed internally, but they are also very useful when it
 comes to template meta programming with the aim to create functionality that supports any type of
 character or string types.
-Samples of this will be seen in the Programmer's Manual of module \alibmod_strings.
+Samples of this will be seen in the Programmer's Manual of module \alib_strings.
 
 
 
@@ -200,13 +199,13 @@ Samples of this will be seen in the Programmer's Manual of module \alibmod_strin
 Let us quickly summarize what was said in this chapter about character types:
 - Four C++ built-in types exist: \c char, \c char16_t or \c char32_t, \c wchar_t.<br>
   None of the four have a defined size in bits.
-- Module \alibmod_nolink_characters provides three alias types that define character width \e explicitly:
+- Module \alib_characters_nl provides three alias types that define character width \e explicitly:
    - \ref aworx::nchar for narrow characters, always an alias to \c char, and
    - \ref aworx::wchar for wide characters, not necessarily an alias to \c wchar_t.
    - \ref aworx::xchar, for the third possible size that is neither narrow nor wide and can be
      considered as an incompatible wide character.
 
-- Module \alibmod_nolink_characters provides three alias types that define character width in a logical
+- Module \alib_characters_nl provides three alias types that define character width in a logical
   sense:
    - \ref aworx::character is the default character type chosen with compiling the library.
      This either resolves to \b nchar or \b wchar.
@@ -235,34 +234,26 @@ As it was explained in the previous section, the default for GNU/Linux and GCC i
 narrow \c char type, while the library's default choice with Microsoft compiler under Windows OS
 is the using the built-in 2-byte \c wchar_t.
 
-Now, if for example, a software mixes \alib with the [QT Class Library](https://www.qt.io)
+Now, if for example, a software mixes \alib with the \https{QT Class Library,www.qt.io}
 to avoid a lot of (transparent) string conversions, it would be preferable to use the same 2-byte
 wide character type that \b QT uses for its strings, independent from the platform that the software
 is compiled at.
 
-To achieve this, compiler two compiler symbols have to be passed:
-1. \ref ALIB_CHARACTERS_FORCE_WIDE_ON<br>
-   As its name indicates, this symbol overwrites the default use of either narrow type \c char
-   or any of the wide character types \c wchar_t, \c char16_t or \c char32_t for the default
-   logical character type \alib{characters,character}: It forces to use one of the wide types.
-   On all currently supported platforms, the type chosen would be \c wchar_t.
-2. \ref ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON<br>
-   This symbol now forces the wide character type to be 2-bytes wide.
+To achieve this, two compiler symbols may be passed:
+1. \ref ALIB_CHARACTERS_WIDE<br>
+   As its name indicates, this symbol controls the use of either narrow type \c char
+   or any of the wide character types \c wchar_t, \c char16_t or \c char32_t as the default
+   logical character type \alib{characters,character}.
 
-As a result of the two compilation symbols given, with the Microsoft compiler on Windows OS, type
-\alib{characters,character} remains equivalent to built-in \c wchar_t, while on GNU/Linux it
-would be defined as \c char16_t. Therefore, the same 2-byte width, compatible with the QT string
-was used.
-
-Corresponding counterparts to the sampled compiler symbols are available with
-\ref ALIB_CHARACTERS_FORCE_NARROW_ON and \ref ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON.
+2. \ref ALIB_CHARACTERS_SIZEOF_WCHAR<br>
+   This symbol enables to control the width of wide characters to be \b 2 or \b 4 bytes.
 
 \note
   With the current \alib platform implementations, by default type \alib{characters,wchar}
   always corresponds to C++ type \c wchar_t. Type \alib{characters,xchar} consequently defaults
   to either \c char16_t or \c char32_t, just the one with the different width than \c wchar_t.<br>
   When the use of a compiler symbol changes the width of type \alib{characters,wchar} to
-  be different to \c wchar_t, then the assignment just changes: \b wchar becomes either
+  be different to the width of \c wchar_t, then the assignment just changes: \b wchar becomes either
   \c char16_t or \c char32_t while \b xchar becomes \c wchar_t.
 
 
@@ -272,26 +263,28 @@ Corresponding counterparts to the sampled compiler symbols are available with
 ## 3.2 Code Selection Symbols ## {#alib_characters_prepro_codeselect}
 General purpose user code should not be affected on how the library is compiled in respect to
 character width. Especially all \alibmod compile and run independent from the compiler
-symbols introduced in the previous section. Furthermore, module \alibmod_strings (which of-course
+symbols introduced in the previous section. Furthermore, module \alib_strings (which of-course
 heavily relies on this module) provides various features to keep a users code clean and transparent
 in respect to the character selection.
 
 However, still in some situations, different code may be selected dependent on the library compilation
 settings. For this, a few corresponding symbols are provided:
 
-- \ref ALIB_CHARACTERS_ARE_NARROW<br>
-  This symbol evaluates to \c true (\c 1) when type \alib{characters,character} is equivalent to
-  C++ type \c char and to \c false (\c 0) if the type is a wide character.
+- \ref ALIB_CHARACTERS_WIDE<br>
+  This symbol evaluates to \c false (\c 0) when type \alib{characters,character} is equivalent to
+  C++ type \c char and to \c false (\c 1) if the type is a wide character.<br>
+  This symbol may also be passed to the compiler to control the setting.
+
+- \ref ALIB_CHARACTERS_SIZEOF_WCHAR<br>
+  Provides the width of \alib type \alib{characters,wchar}.<br>
+  The symbol is a counterpart to symbol \ref ALIB_SIZEOF_WCHAR_T which holds the compiler-dependent
+  size of C++ type \c wchar_t.<br>
+  This symbol may also be passed to the compiler to control the setting.
 
 - \ref ALIB_CHARACTERS_NATIVE_WCHAR<br>
   This symbol evaluates to \c true (\c 1) when type \alib{characters,wchar} is equivalent to
   C++ type \c wchar_t and to \c false (\c 0) if the type is any of
   \c char16_t or \c char32_t and has a different width than \c wchar_t.
-
-- \ref ALIB_CHARACTERS_SIZEOF_WCHAR<br>
-  Provides the width of \alib type \alib{characters,wchar}.<br>
-  The symbol is a counterpart to symbol \ref ALIB_SIZEOF_WCHAR_T which holds the compiler-dependent
-  size of C++ type \c wchar_t.
 
 
 \~Comment ####################################################################################### \~
@@ -348,7 +341,7 @@ With this in place, literals of the default character can easily be defined like
 
 To conclude this section, this last snippet shows the use of all six macros. Instead of
 constant character pointers, this sample uses the string classes introduced with separate module
-\alibmod_strings. These classes are templated in respect to the character type and consequently,
+\alib_strings. These classes are templated in respect to the character type and consequently,
 six aliases types are offered:
 
 \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_CHARACTERS_LITERALS_5
@@ -390,7 +383,7 @@ Of course, we can convert both to a character pointer:
 
 Now, the information about the array length is gone with the first array, with the second
 it is preserved due to zero termination.<br>
-Already with the following lines of code, we have undefined behaviour:
+Already with the following lines of code, we have undefined behavior:
 
         std::cout << "array A: " << cpA << std::endl;
         std::cout << "array B: " << cpB << std::endl;
@@ -403,7 +396,7 @@ proposed zero-terminated strings.
 \note
   We, the makers of \alib, very much agree to the theses that the invention of zero-terminated
   strings during the previous millennium, was one of the
-  [most expensive one-byte mistakes](http://queue.acm.org/detail.cfm?id=2010365) of IT-history!
+  \https{most expensive one-byte mistakes,queue.acm.org/detail.cfm?id=2010365} of IT-history!
 
 A next irritating observation is about assigning string literals to const and non-const character pointers:
 
@@ -530,7 +523,7 @@ to create a value of type \p{TString} from the character array provided with the
   A reader might wonder how type traits might be used to influence whether construction of
   objects might be performed implicitly or explicitly, especially in the case of third party
   classes residing a library.<br>
-  This irritation will be resolved with module \alibmod_strings.
+  This irritation will be resolved with module \alib_strings.
   As a quick outlook: \alib string classes define up to four templated cast operators: the
   permutation of implicit and explicit and normal and zero-terminated character array construction
   options. To have the compiler select one (or none) of the four operators, the character
@@ -627,16 +620,16 @@ struct \b T_CharArray.
 \~Comment ####################################################################################### \~
 # 5. Built-In Character Array Traits # {#alib_characters_builtintraits}
 
-As stated before, this module \alibmod_nolink_characters, has a very foundational nature and
+As stated before, this module \alib_characters_nl, has a very foundational nature and
 does not provide algorithms and functionality, but rather type definitions and type traits.
-The rational for this is that several modules of \alib, especially \alibmod_strings and
-\alibmod_boxing, independently from each other benefit from the foundation provided here.
+The rational for this is that several modules of \alib, especially \alib_strings and
+\alib_boxing, independently from each other benefit from the foundation provided here.
 Consequently, this module had to be independent from each.
 
 However, in the context of a custom set of string classes, the meaning of the array type traits is
 much more easy to understand. As this chapter provides information about which built-in specializations
 of the traits structs are provided (and why), we quickly want to anticipate what is found
-with separated module \alibmod_strings:
+with separated module \alib_strings:
 
 - A type \alib{strings,TString<TChar>,String} representing a (not zero-terminated) character string.<br>
   For custom types \p{TString}, this string class tests flags in specializations of
@@ -664,7 +657,7 @@ string-like objects, again using the type traits.
 
 The combination of all of this, provides the huge gain that comes with using character array traits:
 Objects of any string type, may it be C++ string literals, <c>std::string</c> objects, \alib strings
-or any custom 3rd-party library string type like [QString](https://www.qt.io), <b>become seamlessly interchangeable!</b>
+or any custom 3rd-party library string type like \https{QString,www.qt.io}, <b>become seamlessly interchangeable!</b>
 For example, if implicit access is allowed for an external string type \b XYZString and a method expects a constant \alib string
 reference, such method can be invoked with objects of type \b XYZString seamlessly, meaning without
 any explicit conversions. The other way round, if a third party method expects such constant reference
@@ -710,11 +703,11 @@ The following table lists the access and construction traits for the three types
   of TMP structs \alib{characters,T_CharArray} and \alib{characters,T_ZTCharArray}, is searching
   for the termination character.<br>
   In other words: passing a pointer to a non-zero terminated character array to the constructor
-  of class \b %String is <b>undefined behaviour!</b><br>
+  of class \b %String is <b>undefined behavior!</b><br>
   All that the character array traits in respect to plain pointer types can do is to provide a
   hint about whether it could be expected that a pointer points to a zero-terminated array or not.
   The recommendation of avoiding the use of plain pointer types remains the same.
-  The character array type traits introduced by this \alibmod_nolink can not fix the general problem.
+  The character array type traits introduced by this \alibmod_nl can not fix the general problem.
   It just eases the use of pointers in unavoidable cases, for example with the operating system API
   calls or processing the zero-terminated string arguments of function <c>main()</c>.
 
@@ -748,7 +741,7 @@ Hence, the implicit creation can not be avoided if in parallel we want to allow 
   creation is allowed due to the TMP programming of the standard library.
 - With C++ version 11 or 14 (when \c std::string_view is not in place), the creation of
   class \c std::string from character arrays is defined to be implicit.
-  This is is done in favour to have compilations of the library behave compatible independent
+  This is done in favour to have compilations of the library behave compatible independent
   from the availability of the type \c std::string_view.
 - Creation of type \c std::vector<TChar> is defined to be explicit.
 
@@ -782,14 +775,14 @@ The definitions for the three types is summarized in the following table:
 ### 5.3.1 QT String Types ### {#alib_characters_builtintraits_3rdparty_qt}
 
 \note
-  Character array traits for types of the [QT Class Library](https://www.qt.io) is optional
+  Character array traits for types of the \https{QT Class Library,www.qt.io} is optional
   and available with the inclusion of header file \c alib/compatibility/chararray_qt.hpp.<br>
   The rational for choosing these traits definitions are similar to those discussed in the
   previous chapters and therefore not repeated here.
 
 
 The following character array type traits are made for string and character array
-types of the [QT Class Library](https://www.qt.io):
+types of the \https{QT Class Library,www.qt.io}:
 
 |Type             |  Character Arrays                               | Zero-Terminated C. Arrays
 |-----------------|-------------------------------------------------|-------------------------------------------------
@@ -799,7 +792,7 @@ types of the [QT Class Library](https://www.qt.io):
 |\c QByteArray    | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 |\c QVector<uint> | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 
-If module \alibmod_strings is included in the \alibdist, in addition to the these type traits, the
+If module \alib_strings is included in the \alibdist, in addition to the these type traits, the
 inclusion of header file alib/compatibility/chararray_qt.hpp provides a specialization of
 \alib{strings,T_Append} for \b QT type \b QChar.
 

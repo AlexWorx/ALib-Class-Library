@@ -10,7 +10,6 @@
 
 \tableofcontents
 
-
 \~Comment ####################################################################################### \~
 # 1. Introduction # {#alib_threads_intro}
 
@@ -38,6 +37,20 @@ this library a little more advanced. The good news is of-course that any protect
 works in combination with any other thread libraries, may this be posix, Windows OS or threads
 imposed by the standard library of C++ 11 and later.
 
+\attention
+  This module must not be omitted from an \alibdist if the using software does not make
+  direct use of this module. If omitted, all other \alibmods will <b>silently (!)</b> drop
+  the protection of their resources against multi-threaded access.<br>
+  In other words, this module <b>has to be included</b> in an \alibdist_nl in the case that
+  \alib is used in a multi-threaded environment!<br>
+
+\attention
+  If however, a single-threaded application is built, then omitting this module relieves all
+  other \alib code from performing unnecessary mutex operations.
+
+\attention
+  More details on this topic is found in chapter \ref alib_manual_modules_impact_singlethreaded
+  of the Programmer's Manual of this library.
 
 \~Comment ####################################################################################### \~
 # 2. Bootstrapping and Termination # {#alib_threads_bootstrap}
@@ -80,7 +93,7 @@ following types:
 
 For details on the types, consult their reference documentation. All of them support
 - General deactivation if single-threaded use is assured
-- In debug compilations, the source file and line number of the acquisition of the lock is
+- With debug builds, the source file and line number of the acquisition of the lock is
   noted. This helps to identify missing unlocks.
 - Their interfaces matches the one required by template class \alib{Owner}. This way,
   the locks can be used with macro \ref ALIB_OWN.<br>
@@ -99,7 +112,7 @@ do this only "optionally": While the dependency graph shows only \e mandatory de
 are a lot of "optional dependencies" between other modules and this one.
 
 For example, class \alib{config,Configuration} inherits from library class \alib{PluginContainer}
-which, in case code selector symbol \b ALIB_MODULE_THREADS evaluates to \c true, inherits from
+which, in case code selector symbol \b ALIB_THREADS evaluates to \c true, inherits from
 class \alib{threads,ThreadLock}. Then class \b %Configuration uses macro \ref ALIB_LOCK to
 lock critical code sections against concurrent thread access. This macro is empty in the case
 this module is not included in the \alibdist.

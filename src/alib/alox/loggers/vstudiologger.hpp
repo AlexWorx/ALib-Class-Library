@@ -1,13 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALOX_VSTUDIO_LOGGER
 #define HPP_ALOX_VSTUDIO_LOGGER 1
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
@@ -41,7 +43,7 @@ class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogge
          * A character buffer used for the creation of zero-terminated output strings
          * required by the VStudio logger interface.
          *
-         * If \ref ALIB_CHARACTERS_ARE_NARROW is set, this string also acts as a converter to wide
+         * If \ref ALIB_CHARACTERS_WIDE is set, this string also acts as a converter to wide
          * characters.
          */
         AString             outputString;
@@ -101,7 +103,7 @@ class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogge
 }}}// namespace aworx[::lib::lox::loggers]
 
 /// Type alias in namespace #aworx.
-using     VStudioLogger=           aworx::lib::lox::loggers::VStudioLogger;
+using     VStudioLogger=           lib::lox::loggers::VStudioLogger;
 
 }  // namespace [aworx]
 

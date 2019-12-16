@@ -6,20 +6,36 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#if ALIB_UT_STRINGS
 
 #include "alib/alox.hpp"
 
+#if !defined (HPP_ALIB_STRINGS_FORMAT)
+#    include "alib/strings/format.hpp"
+#endif
 #if !defined (HPP_ALIB_STRINGS)
-    #include "alib/strings/util/tokenizer.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
 #endif
 #if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
     #include "alib/strings/numberformat.hpp"
 #endif
+#if ALIB_SYSTEM
+#   include "alib/system/calendar.hpp"
+#endif
 
-#include "alib/stringformat/formatterpythonstyle.hpp"
-#include "alib/stringformat/formatterjavastyle.hpp"
-#include "alib/alox/logtools.hpp"
+#if !defined(HPP_ALIB_TEXT_FORMATTER_PYTHONSTYLE)
+#   include "alib/text/formatterpythonstyle.hpp"
+#endif
+#if !defined(HPP_ALIB_TEXT_FORMATTER_JAVASTYLE)
+#   include "alib/text/formatterjavastyle.hpp"
+#endif
+#if !defined(HPP_ALIB_TEXT_TEXT)
+#   include "alib/text/text.hpp"
+#endif
+
+#if ALIB_ALOX
+#   include "alib/alox/logtools.hpp"
+#endif
 
 #undef min
 #undef max
@@ -35,7 +51,7 @@
 
 using namespace std;
 using namespace aworx;
-using namespace aworx::lib::stringformat;
+using namespace aworx::lib::text;
 
 namespace ut_aworx {
 
@@ -48,7 +64,7 @@ UT_CLASS()
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( Unsorted )
 {
-    UT_INIT();
+    UT_INIT()
 
     AString as;
     integer pos;
@@ -58,43 +74,43 @@ UT_METHOD( Unsorted )
     as._();
     {
 ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
-        UT_EQ(   0,  as.ParseInt()   );
+        UT_EQ(   0,  as.ParseInt()   )
 
-        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
-        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
+        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
+        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
     }
 
     // parse on non number
     as.Reset( "Hello");
     {
-        UT_EQ(   0,  as.ParseInt()   );
+        UT_EQ(   0,  as.ParseInt()   )
 
-        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
-        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
-        posOrig= pos= 2;    UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
+        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
+        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
+        posOrig= pos= 2;    UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
     }
 
     // check that leading whitespaces do not move pointer
     as.Reset( "   Hello");
     {
-        UT_EQ(   0,  as.ParseInt()   );
+        UT_EQ(   0,  as.ParseInt()   )
 
-        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
-        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
-        posOrig= pos= 2;    UT_EQ(   0,  as.ParseInt( pos, &pos )  );     UT_EQ( pos, posOrig );
+        posOrig= pos= 0;    UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
+        posOrig= pos= -5;   UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
+        posOrig= pos= 2;    UT_EQ(   0,  as.ParseInt( pos, &pos )  )     UT_EQ( pos, posOrig )
     }
 
     // parse integers
     {
-        as.Reset( "123456789");      UT_EQ( 123456789L,  as.ParseInt  ( integer(0), &pos ) );        UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "  123");          UT_EQ( 123L,        as.ParseInt  ( integer(0), &pos ) );        UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "  -23  ");        UT_EQ( -23L,        as.ParseInt  ( integer(0), &pos ) );        UT_EQ( -2 + as.Length() , pos );
-        as.Reset(   "123  ");        UT_EQ( 123L,        as.ParseInt  ( integer(0), &pos ) );        UT_EQ( -2 + as.Length() , pos );
+        as.Reset( "123456789");      UT_EQ( 123456789L,  as.ParseInt  ( integer(0), &pos ) )        UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "  123");          UT_EQ( 123L,        as.ParseInt  ( integer(0), &pos ) )        UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "  -23  ");        UT_EQ( -23L,        as.ParseInt  ( integer(0), &pos ) )        UT_EQ( -2 + as.Length() , pos )
+        as.Reset(   "123  ");        UT_EQ( 123L,        as.ParseInt  ( integer(0), &pos ) )        UT_EQ( -2 + as.Length() , pos )
 
-        as.Reset( "xxx123456789");   UT_EQ( 123456789L,  as.ParseInt  ( 3, &pos ) );        UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "xxx  123");       UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) );        UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "xxx  123  ");     UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) );        UT_EQ( -2 + as.Length() , pos );
-        as.Reset(   "xxx123  ");     UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) );        UT_EQ( -2 + as.Length() , pos );
+        as.Reset( "xxx123456789");   UT_EQ( 123456789L,  as.ParseInt  ( 3, &pos ) )        UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "xxx  123");       UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) )        UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "xxx  123  ");     UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) )        UT_EQ( -2 + as.Length() , pos )
+        as.Reset(   "xxx123  ");     UT_EQ( 123L,        as.ParseInt  ( 3, &pos ) )        UT_EQ( -2 + as.Length() , pos )
     }
 
     // parse with grouping symbol
@@ -103,11 +119,11 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         numberFormat.SetComputational();
         numberFormat.ThousandsGroupChar=   ',';
         numberFormat.ReadGroupChars=       true;
-        as.Reset( "123,456,789");   UT_EQ( 123456789L,  as.ParseInt( 0, &numberFormat, &pos ) ); UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "  1,2,3"    );   UT_EQ( 123L,        as.ParseInt( 0, &numberFormat, &pos ) ); UT_EQ(  0 + as.Length() , pos );
-        as.Reset( " +1,2,,4"   );   UT_EQ( 124L,        as.ParseInt( 0, &numberFormat, &pos ) ); UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "  -2,3  "   );   UT_EQ( -23L,        as.ParseInt( 0, &numberFormat, &pos ) ); UT_EQ( -2 + as.Length() , pos );
-        as.Reset(   ",123  "   );   UT_EQ(   0L,        as.ParseInt( 0, &numberFormat, &pos ) ); UT_EQ(  0               , pos );
+        as.Reset( "123,456,789");   UT_EQ( 123456789L,  as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "  1,2,3"    );   UT_EQ( 123L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
+        as.Reset( " +1,2,,4"   );   UT_EQ( 124L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "  -2,3  "   );   UT_EQ( -23L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ( -2 + as.Length() , pos )
+        as.Reset(   ",123  "   );   UT_EQ(   0L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0               , pos )
     }
 
 
@@ -120,32 +136,32 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         NumberFormat* nf=  &NumberFormat::Computational;
         NumberFormat  nfG; nfG.WriteGroupChars= true;
 
-        ms._(); ui= 0;       ms._( ui    );                UT_EQ(      A_CHAR("0"), ms );
-        ms._(); ui= 0;       ms._( Format( ui, 1 ,nf) );   UT_EQ(      A_CHAR("0"), ms );
-        ms._(); ui= 0;       ms._( Format( ui, 3 ,nf) );   UT_EQ(    A_CHAR("000"), ms );
-        ms._(); ui= 10;      ms._( ui    );                UT_EQ(     A_CHAR("10"), ms );
-        ms._(); ui= 100;     ms._( Format( ui, 1 ,nf) );   UT_EQ(    A_CHAR("100"), ms );
-        ms._(); ui= 100;     ms._( Format( ui, 3 ,nf) );   UT_EQ(    A_CHAR("100"), ms );
-        ms._(); ui= 100;     ms._( Format( ui, 4 ,nf) );   UT_EQ(   A_CHAR("0100"), ms );
-        ms._(); ui= 23;      ms._( ui    );                UT_EQ(     A_CHAR("23"), ms );
-        ms._(); ui= 99;      ms._( Format( ui, 5 ,nf) );   UT_EQ(  A_CHAR("00099"), ms );
-        ms._();  i= 49;      ms._( i     );                UT_EQ(     A_CHAR("49"), ms );
-        ms._();  i= -5;      ms._( Format ( i, 5 ,nf) );   UT_EQ(  A_CHAR("-0005"), ms );
-        ms._();  i= -5324;   ms._( Format ( i, 2 ,nf) );   UT_EQ(  A_CHAR("-5324"), ms );
-        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._(         ui            );   UT_EQ(    A_CHAR("4294967295"),  ms );
-        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._(         ui            );   UT_EQ(             A_CHAR("0"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._(         i             );   UT_EQ(    A_CHAR("2147483647"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._(         i             );   UT_EQ(   A_CHAR("-2147483648"),  ms );
+        ms._(); ui= 0;       ms._( ui    );                UT_EQ(      A_CHAR("0"), ms )
+        ms._(); ui= 0;       ms._( Format( ui, 1 ,nf) );   UT_EQ(      A_CHAR("0"), ms )
+        ms._(); ui= 0;       ms._( Format( ui, 3 ,nf) );   UT_EQ(    A_CHAR("000"), ms )
+        ms._(); ui= 10;      ms._( ui    );                UT_EQ(     A_CHAR("10"), ms )
+        ms._(); ui= 100;     ms._( Format( ui, 1 ,nf) );   UT_EQ(    A_CHAR("100"), ms )
+        ms._(); ui= 100;     ms._( Format( ui, 3 ,nf) );   UT_EQ(    A_CHAR("100"), ms )
+        ms._(); ui= 100;     ms._( Format( ui, 4 ,nf) );   UT_EQ(   A_CHAR("0100"), ms )
+        ms._(); ui= 23;      ms._( ui    );                UT_EQ(     A_CHAR("23"), ms )
+        ms._(); ui= 99;      ms._( Format( ui, 5 ,nf) );   UT_EQ(  A_CHAR("00099"), ms )
+        ms._();  i= 49;      ms._( i     );                UT_EQ(     A_CHAR("49"), ms )
+        ms._();  i= -5;      ms._( Format ( i, 5 ,nf) );   UT_EQ(  A_CHAR("-0005"), ms )
+        ms._();  i= -5324;   ms._( Format ( i, 2 ,nf) );   UT_EQ(  A_CHAR("-5324"), ms )
+        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._(         ui            );   UT_EQ(    A_CHAR("4294967295"),  ms )
+        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._(         ui            );   UT_EQ(             A_CHAR("0"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._(         i             );   UT_EQ(    A_CHAR("2147483647"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._(         i             );   UT_EQ(   A_CHAR("-2147483648"),  ms )
 
-        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._( Format( ui ,&nfG    ) );   UT_EQ( A_CHAR("4,294,967,295"),  ms );
-        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._( Format( ui ,&nfG    ) );   UT_EQ(             A_CHAR("0"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._( Format ( i ,&nfG    ) );   UT_EQ( A_CHAR("2,147,483,647"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._( Format ( i ,&nfG    ) );   UT_EQ(A_CHAR("-2,147,483,648"),  ms );
+        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._( Format( ui ,&nfG    ) );   UT_EQ( A_CHAR("4,294,967,295"),  ms )
+        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._( Format( ui ,&nfG    ) );   UT_EQ(             A_CHAR("0"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._( Format ( i ,&nfG    ) );   UT_EQ( A_CHAR("2,147,483,647"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._( Format ( i ,&nfG    ) );   UT_EQ(A_CHAR("-2,147,483,648"),  ms )
 
-        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._( Format( ui , 12 ,nf ) );   UT_EQ(  A_CHAR("004294967295"),  ms );
-        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._( Format( ui , 12 ,nf ) );   UT_EQ(  A_CHAR("000000000000"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._( Format ( i , 12 ,nf ) );   UT_EQ(  A_CHAR("002147483647"),  ms );
-        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._( Format ( i , 12 ,nf ) );   UT_EQ(  A_CHAR("-02147483648"),  ms );
+        ms._(); ui= std::numeric_limits<uint32_t>::max();    ms._( Format( ui , 12 ,nf ) );   UT_EQ(  A_CHAR("004294967295"),  ms )
+        ms._(); ui= std::numeric_limits<uint32_t>::min();    ms._( Format( ui , 12 ,nf ) );   UT_EQ(  A_CHAR("000000000000"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::max();    ms._( Format ( i , 12 ,nf ) );   UT_EQ(  A_CHAR("002147483647"),  ms )
+        ms._();  i= std::numeric_limits<int32_t> ::min();    ms._( Format ( i , 12 ,nf ) );   UT_EQ(  A_CHAR("-02147483648"),  ms )
     }
 
     // int64
@@ -157,39 +173,39 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         NumberFormat* nf= &NumberFormat::Computational;
         NumberFormat  nfG; nfG.WriteGroupChars= true;
 
-        ui= 0;       ms.Reset( ui );                   UT_EQ(      A_CHAR("0"), ms );
-        ui= 0;       ms.Reset( Format( ui, 1  ,nf ));  UT_EQ(      A_CHAR("0"), ms );
-        ui= 0;       ms.Reset( Format( ui, 3  ,nf ));  UT_EQ(    A_CHAR("000"), ms );
-        ui= 10;      ms.Reset( ui );                   UT_EQ(     A_CHAR("10"), ms );
-        ui= 100;     ms.Reset( Format( ui, 1  ,nf ));  UT_EQ(    A_CHAR("100"), ms );
-        ui= 100;     ms.Reset( Format( ui, 3  ,nf ));  UT_EQ(    A_CHAR("100"), ms );
-        ui= 100;     ms.Reset( Format( ui, 4  ,nf ));  UT_EQ(   A_CHAR("0100"), ms );
-        ui= 23;      ms.Reset( ui );                   UT_EQ(     A_CHAR("23"), ms );
-        ui= 99;      ms.Reset( Format( ui, 5  ,nf ));  UT_EQ(  A_CHAR("00099"), ms );
-         i= 49;      ms.Reset(                 i   );  UT_EQ(     A_CHAR("49"), ms );
-         i= -5;      ms.Reset( Format ( i, 5  ,nf ));  UT_EQ(  A_CHAR("-0005"), ms );
-         i= -5324;   ms.Reset( Format ( i, 2  ,nf ));  UT_EQ(  A_CHAR("-5324"), ms );
-        ui= std::numeric_limits<uint32_t>::max();    ms.Reset(                ui     );  UT_EQ(    A_CHAR("4294967295"),  ms );
-        ui= std::numeric_limits<uint32_t>::min();    ms.Reset(                ui     );  UT_EQ(             A_CHAR("0"),  ms );
-         i= std::numeric_limits<int32_t> ::max();    ms.Reset(                i      );  UT_EQ(    A_CHAR("2147483647"),  ms );
-         i= std::numeric_limits<int32_t> ::min();    ms.Reset(                i      );  UT_EQ(   A_CHAR("-2147483648"),  ms );
+        ui= 0;       ms.Reset( ui );                   UT_EQ(      A_CHAR("0"), ms )
+        ui= 0;       ms.Reset( Format( ui, 1  ,nf ));  UT_EQ(      A_CHAR("0"), ms )
+        ui= 0;       ms.Reset( Format( ui, 3  ,nf ));  UT_EQ(    A_CHAR("000"), ms )
+        ui= 10;      ms.Reset( ui );                   UT_EQ(     A_CHAR("10"), ms )
+        ui= 100;     ms.Reset( Format( ui, 1  ,nf ));  UT_EQ(    A_CHAR("100"), ms )
+        ui= 100;     ms.Reset( Format( ui, 3  ,nf ));  UT_EQ(    A_CHAR("100"), ms )
+        ui= 100;     ms.Reset( Format( ui, 4  ,nf ));  UT_EQ(   A_CHAR("0100"), ms )
+        ui= 23;      ms.Reset( ui );                   UT_EQ(     A_CHAR("23"), ms )
+        ui= 99;      ms.Reset( Format( ui, 5  ,nf ));  UT_EQ(  A_CHAR("00099"), ms )
+         i= 49;      ms.Reset(                 i   );  UT_EQ(     A_CHAR("49"), ms )
+         i= -5;      ms.Reset( Format ( i, 5  ,nf ));  UT_EQ(  A_CHAR("-0005"), ms )
+         i= -5324;   ms.Reset( Format ( i, 2  ,nf ));  UT_EQ(  A_CHAR("-5324"), ms )
+        ui= std::numeric_limits<uint32_t>::max();    ms.Reset(                ui     );  UT_EQ(    A_CHAR("4294967295"),  ms )
+        ui= std::numeric_limits<uint32_t>::min();    ms.Reset(                ui     );  UT_EQ(             A_CHAR("0"),  ms )
+         i= std::numeric_limits<int32_t> ::max();    ms.Reset(                i      );  UT_EQ(    A_CHAR("2147483647"),  ms )
+         i= std::numeric_limits<int32_t> ::min();    ms.Reset(                i      );  UT_EQ(   A_CHAR("-2147483648"),  ms )
 
-        ui= std::numeric_limits<uint32_t>::max();    ms.Reset( Format(   ui ,&nfG   ));  UT_EQ( A_CHAR("4,294,967,295"),  ms );
-        ui= std::numeric_limits<uint32_t>::min();    ms.Reset( Format(   ui ,&nfG   ));  UT_EQ(             A_CHAR("0"),  ms );
-         i= std::numeric_limits<int32_t> ::max();    ms.Reset( Format(   i  ,&nfG   ));  UT_EQ( A_CHAR("2,147,483,647"),  ms );
-         i= std::numeric_limits<int32_t> ::min();    ms.Reset( Format(   i  ,&nfG   ));  UT_EQ(A_CHAR("-2,147,483,648"),  ms );
+        ui= std::numeric_limits<uint32_t>::max();    ms.Reset( Format(   ui ,&nfG   ));  UT_EQ( A_CHAR("4,294,967,295"),  ms )
+        ui= std::numeric_limits<uint32_t>::min();    ms.Reset( Format(   ui ,&nfG   ));  UT_EQ(             A_CHAR("0"),  ms )
+         i= std::numeric_limits<int32_t> ::max();    ms.Reset( Format(   i  ,&nfG   ));  UT_EQ( A_CHAR("2,147,483,647"),  ms )
+         i= std::numeric_limits<int32_t> ::min();    ms.Reset( Format(   i  ,&nfG   ));  UT_EQ(A_CHAR("-2,147,483,648"),  ms )
 
-        ui= std::numeric_limits<uint32_t>::max();    ms.Reset( Format(ui, 12,nf));  UT_EQ(  A_CHAR("004294967295"),  ms );
-        ui= std::numeric_limits<uint32_t>::min();    ms.Reset( Format(ui, 12,nf));  UT_EQ(  A_CHAR("000000000000"),  ms );
-         i= std::numeric_limits<int32_t> ::max();    ms.Reset( Format(i , 12,nf));  UT_EQ(  A_CHAR("002147483647"),  ms );
-         i= std::numeric_limits<int32_t> ::min();    ms.Reset( Format(i , 12,nf));  UT_EQ(  A_CHAR("-02147483648"),  ms );
+        ui= std::numeric_limits<uint32_t>::max();    ms.Reset( Format(ui, 12,nf));  UT_EQ(  A_CHAR("004294967295"),  ms )
+        ui= std::numeric_limits<uint32_t>::min();    ms.Reset( Format(ui, 12,nf));  UT_EQ(  A_CHAR("000000000000"),  ms )
+         i= std::numeric_limits<int32_t> ::max();    ms.Reset( Format(i , 12,nf));  UT_EQ(  A_CHAR("002147483647"),  ms )
+         i= std::numeric_limits<int32_t> ::min();    ms.Reset( Format(i , 12,nf));  UT_EQ(  A_CHAR("-02147483648"),  ms )
 
-        ui= std::numeric_limits<uint64_t>::max();    ms.Reset( Format(  ui,&nfG     ));  UT_EQ( A_CHAR("18,446,744,073,709,551,615"),  ms );
-        ui= std::numeric_limits<uint64_t>::min();    ms.Reset( Format(  ui,&nfG     ));  UT_EQ(                          A_CHAR("0"),  ms );
-         i= std::numeric_limits<int64_t> ::max();    ms.Reset( Format(  i ,&nfG     ));  UT_EQ(  A_CHAR("9,223,372,036,854,775,807"),  ms );
+        ui= std::numeric_limits<uint64_t>::max();    ms.Reset( Format(  ui,&nfG     ));  UT_EQ( A_CHAR("18,446,744,073,709,551,615"),  ms )
+        ui= std::numeric_limits<uint64_t>::min();    ms.Reset( Format(  ui,&nfG     ));  UT_EQ(                          A_CHAR("0"),  ms )
+         i= std::numeric_limits<int64_t> ::max();    ms.Reset( Format(  i ,&nfG     ));  UT_EQ(  A_CHAR("9,223,372,036,854,775,807"),  ms )
         ms.SetBuffer(20);
-         i= std::numeric_limits<int64_t> ::min();    ms.Reset( Format(  i ,&nfG     ));  UT_EQ( A_CHAR("-9,223,372,036,854,775,808"),  ms );
-         i= std::numeric_limits<int64_t> ::min() + 75008; ms.Reset(Format(i,&nfG    ));  UT_EQ( A_CHAR("-9,223,372,036,854,700,800"),  ms );
+         i= std::numeric_limits<int64_t> ::min();    ms.Reset( Format(  i ,&nfG     ));  UT_EQ( A_CHAR("-9,223,372,036,854,775,808"),  ms )
+         i= std::numeric_limits<int64_t> ::min() + 75008; ms.Reset(Format(i,&nfG    ));  UT_EQ( A_CHAR("-9,223,372,036,854,700,800"),  ms )
     }
 
     // plus sign
@@ -197,11 +213,11 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         AString ms;
         int32_t   i;
         NumberFormat nf; nf.WriteGroupChars= true;
-        i= 49;                            ms.Reset( i );                  UT_EQ(     A_CHAR("49"), ms );
-        i= 49;      nf.PlusSign=' '; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR(" 49"), ms );
-        i= 49;      nf.PlusSign='+'; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR("+49"), ms );
-        i= 49;      nf.PlusSign=' '; ms.Reset( Format ( i,  5, &nf  ) );  UT_EQ(  A_CHAR("  049"), ms );
-        i= 49;      nf.PlusSign='+'; ms.Reset( Format ( i,  5, &nf  ) );  UT_EQ(  A_CHAR("+ 049"), ms );
+        i= 49;                            ms.Reset( i );                  UT_EQ(     A_CHAR("49"), ms )
+        i= 49;      nf.PlusSign=' '; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR(" 49"), ms )
+        i= 49;      nf.PlusSign='+'; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR("+49"), ms )
+        i= 49;      nf.PlusSign=' '; ms.Reset( Format ( i,  5, &nf  ) );  UT_EQ(  A_CHAR("  049"), ms )
+        i= 49;      nf.PlusSign='+'; ms.Reset( Format ( i,  5, &nf  ) );  UT_EQ(  A_CHAR("+ 049"), ms )
     }
 
     // Group character
@@ -212,35 +228,35 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         NumberFormat nf; nf.WriteGroupChars= true;
         int w;
 
-        w=  3; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(                A_CHAR("100"),  ms ); UT_EQ( w, ms.Length() );
-        w=  4; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(               A_CHAR(" 100"),  ms ); UT_EQ( w, ms.Length() );
-        w=  5; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(              A_CHAR("0,100"),  ms ); UT_EQ( w, ms.Length() );
-        w=  7; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(            A_CHAR("100,000"),  ms ); UT_EQ( w, ms.Length() );
-        w=  8; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(           A_CHAR(" 100,000"),  ms ); UT_EQ( w, ms.Length() );
-        w=  9; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(          A_CHAR("0,100,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 11; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(        A_CHAR("100,000,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 12; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(       A_CHAR(" 100,000,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 13; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(      A_CHAR("0,100,000,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 15; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(    A_CHAR("100,000,000,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 16; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(   A_CHAR(" 100,000,000,000"),  ms ); UT_EQ( w, ms.Length() );
-        w= 17; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(  A_CHAR("0,100,000,000,000"),  ms ); UT_EQ( w, ms.Length() );
+        w=  3; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(                A_CHAR("100"),  ms )  UT_EQ( w, ms.Length() )
+        w=  4; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(               A_CHAR(" 100"),  ms )  UT_EQ( w, ms.Length() )
+        w=  5; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(              A_CHAR("0,100"),  ms )  UT_EQ( w, ms.Length() )
+        w=  7; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(            A_CHAR("100,000"),  ms )  UT_EQ( w, ms.Length() )
+        w=  8; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(           A_CHAR(" 100,000"),  ms )  UT_EQ( w, ms.Length() )
+        w=  9; ms._(); ui=           100000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(          A_CHAR("0,100,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 11; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(        A_CHAR("100,000,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 12; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(       A_CHAR(" 100,000,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 13; ms._(); ui=        100000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(      A_CHAR("0,100,000,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 15; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(    A_CHAR("100,000,000,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 16; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(   A_CHAR(" 100,000,000,000"),  ms )  UT_EQ( w, ms.Length() )
+        w= 17; ms._(); ui=     100000000000;      ms._( Format( ui , w, &nf  ) );   UT_EQ(  A_CHAR("0,100,000,000,000"),  ms )  UT_EQ( w, ms.Length() )
 
-        w=  3; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(               A_CHAR("-100"),  ms ); UT_EQ( w+1, ms.Length() );
-        w=  4; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(               A_CHAR("-100"),  ms ); UT_EQ( w  , ms.Length() );
-        w=  5; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(              A_CHAR("- 100"),  ms ); UT_EQ( w  , ms.Length() );
-        w=  6; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(             A_CHAR("-0,100"),  ms ); UT_EQ( w  , ms.Length() );
-        w=  7; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(           A_CHAR("-100,000"),  ms ); UT_EQ( w+1, ms.Length() );
-        w=  8; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(           A_CHAR("-100,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w=  9; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(          A_CHAR("- 100,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 10; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(         A_CHAR("-0,100,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 11; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(       A_CHAR("-100,000,000"),  ms ); UT_EQ( w+1, ms.Length() );
-        w= 12; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(       A_CHAR("-100,000,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 13; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(      A_CHAR("- 100,000,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 14; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(     A_CHAR("-0,100,000,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 15; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(   A_CHAR("-100,000,000,000"),  ms ); UT_EQ( w+1, ms.Length() );
-        w= 16; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(   A_CHAR("-100,000,000,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 17; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(  A_CHAR("- 100,000,000,000"),  ms ); UT_EQ( w  , ms.Length() );
-        w= 18; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ( A_CHAR("-0,100,000,000,000"),  ms ); UT_EQ( w  , ms.Length() );
+        w=  3; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(               A_CHAR("-100"),  ms )  UT_EQ( w+1, ms.Length() )
+        w=  4; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(               A_CHAR("-100"),  ms )  UT_EQ( w  , ms.Length() )
+        w=  5; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(              A_CHAR("- 100"),  ms )  UT_EQ( w  , ms.Length() )
+        w=  6; ms._(); i=     -         100;      ms._( Format(  i , w, &nf  ) );   UT_EQ(             A_CHAR("-0,100"),  ms )  UT_EQ( w  , ms.Length() )
+        w=  7; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(           A_CHAR("-100,000"),  ms )  UT_EQ( w+1, ms.Length() )
+        w=  8; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(           A_CHAR("-100,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w=  9; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(          A_CHAR("- 100,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 10; ms._(); i=     -      100000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(         A_CHAR("-0,100,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 11; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(       A_CHAR("-100,000,000"),  ms )  UT_EQ( w+1, ms.Length() )
+        w= 12; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(       A_CHAR("-100,000,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 13; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(      A_CHAR("- 100,000,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 14; ms._(); i=     -   100000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(     A_CHAR("-0,100,000,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 15; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(   A_CHAR("-100,000,000,000"),  ms )  UT_EQ( w+1, ms.Length() )
+        w= 16; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(   A_CHAR("-100,000,000,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 17; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ(  A_CHAR("- 100,000,000,000"),  ms )  UT_EQ( w  , ms.Length() )
+        w= 18; ms._(); i=     -100000000000;      ms._( Format(  i , w, &nf  ) );   UT_EQ( A_CHAR("-0,100,000,000,000"),  ms )  UT_EQ( w  , ms.Length() )
     }
 }
 
@@ -255,27 +271,27 @@ void intTestDetection( AWorxUnitTesting& ut, const String& src, int64_t exp, boo
     integer newIdx;
     itAS.Reset("abc  ")._(src)._("@@@");
     integer expNewIdx= 5 + ( qtyConsume >= 0 ? qtyConsume : src.Length() );
-    UT_EQ( exp, itAS.ParseInt( 3, &newIdx ) );
+    UT_EQ( exp, itAS.ParseInt( 3, &newIdx ) )
     if( parsable )
     {
-        UT_EQ( expNewIdx, newIdx );
+        UT_EQ( expNewIdx, newIdx )
     }
     else
     {
-        UT_EQ( 3       , newIdx );
+        UT_EQ( 3       , newIdx )
     }
 
     int64_t result;
     Substring itSB= itAS.Substring(3);
     if( parsable )
     {
-        UT_TRUE( itSB.ConsumeInt( result ) );
-        UT_EQ( exp, result );
-        UT_EQ( 3 + (qtyConsume < 0 ?  0 :  src.Length() - qtyConsume), itSB.Length() );
+        UT_TRUE( itSB.ConsumeInt( result ) )
+        UT_EQ( exp, result )
+        UT_EQ( 3 + (qtyConsume < 0 ?  0 :  src.Length() - qtyConsume), itSB.Length() )
     }
     else
     {
-        UT_FALSE( itSB.ConsumeInt( result ) );
+        UT_FALSE( itSB.ConsumeInt( result ) )
         UT_EQ( itAS.Length() -3, itSB.Length())
     }
 
@@ -290,27 +306,27 @@ void intTestRoundtrip( AWorxUnitTesting& ut, int64_t i )
     Substring itSB;
     uint64_t ui= static_cast<uint64_t>(i);
 
-    itAS.Reset("  ")._( Format( i, &itNF ) );  if( i>=0) {uiBack= itAS.ParseDec  ( 2,     &itNF  );   UT_EQ( i, static_cast<int64_t>(uiBack )); }
-                                                           iBack= itAS.ParseInt  (        &itNF  );   UT_EQ( i, iBack );
-                                      itSB= Substring(itAS);     UT_TRUE(itSB.ConsumeInt( iBack, &itNF ));   UT_EQ( i, iBack ); UT_TRUE(itSB.IsEmpty())
+    itAS.Reset("  ")._( Format( i, &itNF ) );  if( i>=0) {uiBack= itAS.ParseDec  ( 2,     &itNF  );   UT_EQ( i, static_cast<int64_t>(uiBack )) }
+                                                           iBack= itAS.ParseInt  (        &itNF  );   UT_EQ( i, iBack )
+                                      itSB= Substring(itAS);     UT_TRUE(itSB.ConsumeInt( iBack, &itNF ))   UT_EQ( i, iBack ) UT_TRUE(itSB.IsEmpty())
 
 
     if( i >= 0 )
     {
-        itAS.Reset("0b")._( Format::Bin  (ui, &itNF ) );  uiBack= itAS.ParseBin  ( 2,     &itNF  );   UT_EQ( i, static_cast<int64_t>(uiBack ));
-                                                           iBack= itAS.ParseInt  (        &itNF  );   UT_EQ( i, iBack );
-                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeBin(uiBack, &itNF ));   UT_EQ( i, static_cast<int64_t>( uiBack ) ); UT_TRUE(itSB.IsEmpty())
-                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ));   UT_EQ( i,                        iBack   ); UT_TRUE(itSB.IsEmpty())
+        itAS.Reset("0b")._( Format::Bin  (ui, &itNF ) );  uiBack= itAS.ParseBin  ( 2,     &itNF  );        UT_EQ( i, static_cast<int64_t>(uiBack ))
+                                                           iBack= itAS.ParseInt  (        &itNF  );        UT_EQ( i, iBack )
+                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeBin(uiBack, &itNF ))   UT_EQ( i, static_cast<int64_t>( uiBack ) ) UT_TRUE(itSB.IsEmpty())
+                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ))   UT_EQ( i,                        iBack   ) UT_TRUE(itSB.IsEmpty())
 
-        itAS.Reset("0x")._( Format::Hex  (ui, &itNF ) );  uiBack= itAS.ParseHex  ( 2,     &itNF  );   UT_EQ( i, static_cast<int64_t>(uiBack ));
-                                                           iBack= itAS.ParseInt  (        &itNF  );   UT_EQ( i, iBack );
-                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeHex(uiBack, &itNF ));   UT_EQ( i, static_cast<int64_t>( uiBack ) ); UT_TRUE(itSB.IsEmpty())
-                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ));   UT_EQ( i,                        iBack   ); UT_TRUE(itSB.IsEmpty())
+        itAS.Reset("0x")._( Format::Hex  (ui, &itNF ) );  uiBack= itAS.ParseHex  ( 2,     &itNF  );        UT_EQ( i, static_cast<int64_t>(uiBack ))
+                                                           iBack= itAS.ParseInt  (        &itNF  );        UT_EQ( i, iBack )
+                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeHex(uiBack, &itNF ))   UT_EQ( i, static_cast<int64_t>( uiBack ) ) UT_TRUE(itSB.IsEmpty())
+                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ))   UT_EQ( i,                        iBack   ) UT_TRUE(itSB.IsEmpty())
 
-        itAS.Reset("0o")._( Format::Oct  (ui, &itNF ) );  uiBack= itAS.ParseOct  ( 2,     &itNF  );   UT_EQ( i, static_cast<int64_t>(uiBack ));
-                                                           iBack= itAS.ParseInt  (        &itNF  );   UT_EQ( i, iBack );
-                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeOct(uiBack, &itNF ));   UT_EQ( i, static_cast<int64_t>( uiBack ) ); UT_TRUE(itSB.IsEmpty())
-                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ));   UT_EQ( i,                        iBack   ); UT_TRUE(itSB.IsEmpty())
+        itAS.Reset("0o")._( Format::Oct  (ui, &itNF ) );  uiBack= itAS.ParseOct  ( 2,     &itNF  );        UT_EQ( i, static_cast<int64_t>(uiBack ))
+                                                           iBack= itAS.ParseInt  (        &itNF  );        UT_EQ( i, iBack )
+                                      itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeOct(uiBack, &itNF ))   UT_EQ( i, static_cast<int64_t>( uiBack ) ) UT_TRUE(itSB.IsEmpty())
+                                      itSB= itAS;               UT_TRUE(itSB.ConsumeInt( iBack, &itNF ))   UT_EQ( i,                        iBack   ) UT_TRUE(itSB.IsEmpty())
     }
 }
 
@@ -321,22 +337,22 @@ void intTestRoundtripUS( AWorxUnitTesting& ut, uint64_t ui )
     uint64_t uiBack;
     Substring itSB;
 
-    itAS.Reset("0b")._( Format::Bin  ( ui, &itNF ) );  uiBack= itAS.ParseBin ( 2,     &itNF  );  UT_EQ( ui, uiBack );
-                                                        iBack= itAS.ParseInt (        &itNF  );  UT_EQ( ui, static_cast<uint64_t>(iBack ));
-                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeBin( uiBack,&itNF ));  UT_EQ( ui, uiBack ); UT_TRUE(itSB.IsEmpty())
+    itAS.Reset("0b")._( Format::Bin  ( ui, &itNF ) );  uiBack= itAS.ParseBin ( 2,     &itNF  );        UT_EQ( ui, uiBack )
+                                                        iBack= itAS.ParseInt (        &itNF  );        UT_EQ( ui, static_cast<uint64_t>(iBack ))
+                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeBin( uiBack,&itNF ))   UT_EQ( ui, uiBack ) UT_TRUE(itSB.IsEmpty())
 
-    itAS.Reset("0x")._( Format::Hex  ( ui, &itNF ) );  uiBack= itAS.ParseHex ( 2,     &itNF  );  UT_EQ( ui, uiBack );
-                                                       iBack= itAS.ParseInt  (        &itNF  );  UT_EQ( ui, static_cast<uint64_t>(iBack ));
-                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeHex( uiBack,&itNF ));  UT_EQ( ui, uiBack ); UT_TRUE(itSB.IsEmpty())
+    itAS.Reset("0x")._( Format::Hex  ( ui, &itNF ) );  uiBack= itAS.ParseHex ( 2,     &itNF  );        UT_EQ( ui, uiBack )
+                                                       iBack= itAS.ParseInt  (        &itNF  );        UT_EQ( ui, static_cast<uint64_t>(iBack ))
+                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeHex( uiBack,&itNF ))   UT_EQ( ui, uiBack ) UT_TRUE(itSB.IsEmpty())
 
-    itAS.Reset("0o")._( Format::Oct  ( ui, &itNF ) );  uiBack= itAS.ParseOct ( 2,     &itNF );   UT_EQ( ui, uiBack );
-                                                       iBack= itAS.ParseInt  (        &itNF );   UT_EQ( ui, static_cast<uint64_t>(iBack ));
-                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeOct( uiBack,&itNF ));  UT_EQ( ui, uiBack ); UT_TRUE(itSB.IsEmpty())
+    itAS.Reset("0o")._( Format::Oct  ( ui, &itNF ) );  uiBack= itAS.ParseOct ( 2,     &itNF );         UT_EQ( ui, uiBack )
+                                                       iBack= itAS.ParseInt  (        &itNF );         UT_EQ( ui, static_cast<uint64_t>(iBack ))
+                                  itSB= itAS.Substring(2);  UT_TRUE(itSB.ConsumeOct( uiBack,&itNF ))   UT_EQ( ui, uiBack ) UT_TRUE(itSB.IsEmpty())
 }
 
 UT_METHOD( ConvertIntegers )
 {
-    UT_INIT();
+    UT_INIT()
 
     // int detection and string borders
     {
@@ -344,38 +360,38 @@ UT_METHOD( ConvertIntegers )
             int result;
             integer newIdx;
             Substring substring(A_CHAR("0x"));
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ( 0, result );
-            UT_EQ( A_CHAR("x"), substring);
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ( 0, result )
+            UT_EQ( A_CHAR("x"), substring)
 
             AString astring(A_CHAR("0x"));
-            UT_EQ( 0L, astring.ParseInt( &newIdx ));
-            UT_EQ( 1, newIdx );
+            UT_EQ( 0L, astring.ParseInt( &newIdx ))
+            UT_EQ( 1, newIdx )
         }
         {
             int result;
             integer newIdx;
             Substring substring(A_CHAR("0xy"));
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ( 0, result );
-            UT_EQ( A_CHAR("xy"), substring);
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ( 0, result )
+            UT_EQ( A_CHAR("xy"), substring)
 
             AString astring(A_CHAR("0xy"));
-            UT_EQ( 0L, astring.ParseInt( &newIdx ));
-            UT_EQ( 1, newIdx );
+            UT_EQ( 0L, astring.ParseInt( &newIdx ))
+            UT_EQ( 1, newIdx )
         }
         {
             int result;
             integer newIdx;
 
             Substring substring= String(A_CHAR("0x1234")).Substring<false>( 0, 2);
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ( 0, result );
-            UT_EQ( A_CHAR("x"), substring );
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ( 0, result )
+            UT_EQ( A_CHAR("x"), substring )
 
             AString astring(A_CHAR("0x1234")); astring.ShortenTo(2);
-            UT_EQ( 0L,  astring.ParseInt( &newIdx ));
-            UT_EQ( 1,  newIdx );
+            UT_EQ( 0L,  astring.ParseInt( &newIdx ))
+            UT_EQ( 1,  newIdx )
         }
 
         // the same with leading spaces
@@ -383,38 +399,38 @@ UT_METHOD( ConvertIntegers )
             int result;
             integer newIdx;
             Substring substring(A_CHAR("  0x"));
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ(  0, result );
-            UT_EQ( A_CHAR("x"), substring);
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ(  0, result )
+            UT_EQ( A_CHAR("x"), substring)
 
             AString astring(A_CHAR("  0x"));
-            UT_EQ( 0L, astring.ParseInt( &newIdx ));
-            UT_EQ( 3, newIdx );
+            UT_EQ( 0L, astring.ParseInt( &newIdx ))
+            UT_EQ( 3, newIdx )
         }
         {
             int result;
             integer newIdx;
             Substring substring(A_CHAR("  0xy"));
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ( 0, result );
-            UT_EQ( A_CHAR("xy"), substring);
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ( 0, result )
+            UT_EQ( A_CHAR("xy"), substring)
 
             AString astring(A_CHAR("  0xy"));
-            UT_EQ( 0L, astring.ParseInt( &newIdx ));
-            UT_EQ( 3, newIdx );
+            UT_EQ( 0L, astring.ParseInt( &newIdx ))
+            UT_EQ( 3, newIdx )
         }
         {
             int result;
             integer newIdx;
 
             Substring substring= String(A_CHAR("  0x1234")).Substring<false>( 0, 4);
-            UT_TRUE( substring.ConsumeInt( result ));
-            UT_EQ( 0, result );
-            UT_EQ( A_CHAR("x"), substring );
+            UT_TRUE( substring.ConsumeInt( result ))
+            UT_EQ( 0, result )
+            UT_EQ( A_CHAR("x"), substring )
 
             AString astring(A_CHAR("  0x1234")); astring.ShortenTo(4);
-            UT_EQ( 0L,  astring.ParseInt( &newIdx ));
-            UT_EQ( 3,  newIdx );
+            UT_EQ( 0L,  astring.ParseInt( &newIdx ))
+            UT_EQ( 3,  newIdx )
         }
     }
 
@@ -435,8 +451,13 @@ UT_METHOD( ConvertIntegers )
     intTestDetection( ut, A_CHAR(" -FF")                    ,  0           , false ,  0);
 
     // range from -4096  to + 4096
-    for( int i= -0xFFF - 10; i < 0xFFF + 10 ; i++ )
+    #if defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+    for( int i= -0xFF - 10; i < 0xFF + 10 ; ++i )
         intTestRoundtrip( ut, i );
+    #else
+    for( int i= -0xFFF - 10; i < 0xFFF + 10 ; ++i )
+        intTestRoundtrip( ut, i );
+    #endif
 
     // limits
     #if defined(__GNUC__)
@@ -468,8 +489,13 @@ UT_METHOD( ConvertIntegers )
         #pragma clang diagnostic pop
         #
     #endif
+
     // random
-    for( int i= 0; i < 1000 ; i++ )
+    #if defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+    for( int i= 0; i < 10 ; ++i )
+    #else
+    for( int i= 0; i < 1000 ; ++i )
+    #endif
         intTestRoundtrip( ut,   static_cast<int_fast64_t>(std::rand())
                               * static_cast<int_fast64_t>(std::rand())
                               * static_cast<int_fast64_t>(std::rand()) );
@@ -501,10 +527,10 @@ void floatTest( AWorxUnitTesting& ut, double d, character decimalPoint, int8_t m
     ms._( Format(d, &nf) );
     if ( expectedString != nullptr )
     {
-        #if ALIB_CHARACTERS_ARE_NARROW
-        UT_EQ(  expectedString, String(ms) );
+        #if !ALIB_CHARACTERS_WIDE
+            UT_EQ(  expectedString, String(ms) )
         #else
-        UT_EQ(  String128(expectedString), String(ms) );
+            UT_EQ(  String128(expectedString), String(ms) )
         #endif
     }
 
@@ -512,23 +538,23 @@ void floatTest( AWorxUnitTesting& ut, double d, character decimalPoint, int8_t m
                                          :  pow ( 10, digitsAfterDot ) / 2.0;
 
     // check with system parsing (only if system specific decimal point format was given)
-    #if ALIB_CHARACTERS_ARE_NARROW
+    #if !ALIB_CHARACTERS_WIDE
     if ( decimalPoint == '\0' )
     {
         double dSystem= ::atof( ms );
-        UT_NEAR( d, dSystem, precision );
+        UT_NEAR( d, dSystem, precision )
     }
     #endif
 
     // check with aworx parsing
     double dALib= ms.ParseFloat(&nf);
-    UT_NEAR( d, dALib, precision );
+    UT_NEAR( d, dALib, precision )
 }
 
 
 UT_METHOD( ConvertFloats )
 {
-    UT_INIT();
+    UT_INIT()
 
     AString as;
     integer pos;
@@ -537,95 +563,96 @@ UT_METHOD( ConvertFloats )
     // parse on empty
     as._();
     {
-                            UT_EQ( 0.0,        as.ParseFloat  (           )  );
-        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
-        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
+                            UT_EQ( 0.0,        as.ParseFloat  (           )  )
+        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
+        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
     }
 
     // parse on non number
     as.Reset( A_CHAR("Hello"));
     {
-                            UT_EQ( 0.0,        as.ParseFloat  (           )  );
-        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
-        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
-        posOrig= pos= 2;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
+                            UT_EQ( 0.0,        as.ParseFloat  (           )  )
+        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
+        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
+        posOrig= pos= 2;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
     }
 
     // check that leading whitespaces do not move pointer
     as.Reset( A_CHAR("   Hello"));
     {
-                            UT_EQ( 0.0,        as.ParseFloat  ()             );
-        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
-        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
-        posOrig= pos= 2;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  );     UT_EQ( posOrig, pos );
+                            UT_EQ( 0.0,        as.ParseFloat  ()             )
+        posOrig= pos= 0;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
+        posOrig= pos= -5;   UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
+        posOrig= pos= 2;    UT_EQ( 0.0,        as.ParseFloat  ( pos, &pos )  )     UT_EQ( posOrig, pos )
     }
 
     // parse NaN and INF
     {
-        as.Reset( A_CHAR("nan"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) );             UT_EQ( 3, pos );
-        as.Reset(A_CHAR("-nan"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) );             UT_EQ( 4, pos );
-        as.Reset( A_CHAR("nAN"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) );             UT_EQ( 3, pos );
-        as.Reset(A_CHAR("-nAN"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) );             UT_EQ( 4, pos );
+        as.Reset( A_CHAR("nan"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) )     UT_EQ( 3, pos )
+        as.Reset(A_CHAR("-nan"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) )     UT_EQ( 4, pos )
+        as.Reset( A_CHAR("nAN"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) )     UT_EQ( 3, pos )
+        as.Reset(A_CHAR("-nAN"));    UT_TRUE( isnan( as.ParseFloat( &pos ) ) )     UT_EQ( 4, pos )
 
-        as.Reset( A_CHAR("inf"));    UT_TRUE( isinf( as.ParseFloat( &pos ) ) );             UT_EQ( 3, pos );
-        as.Reset(A_CHAR("-inf"));    UT_TRUE( isinf( as.ParseFloat( &pos ) ) );             UT_EQ( 4, pos );
+        as.Reset( A_CHAR("inf"));    UT_TRUE( isinf( as.ParseFloat( &pos ) ) )     UT_EQ( 3, pos )
+        as.Reset(A_CHAR("-inf"));    UT_TRUE( isinf( as.ParseFloat( &pos ) ) )     UT_EQ( 4, pos )
 
         #if defined(__clang__)
             #pragma clang diagnostic push
             #pragma clang diagnostic ignored "-Wfloat-equal"
         #endif
 
-            as.Reset( A_CHAR("INf"));    UT_TRUE( as.ParseFloat( &pos ) ==  std::numeric_limits<double>::infinity() );  UT_EQ( 3, pos );
-            as.Reset(A_CHAR("-INf"));    UT_TRUE( as.ParseFloat( &pos ) == -std::numeric_limits<double>::infinity() );  UT_EQ( 4, pos );
+            as.Reset( A_CHAR("INf"));    UT_TRUE( as.ParseFloat( &pos ) ==  std::numeric_limits<double>::infinity() )  UT_EQ( 3, pos )
+            as.Reset(A_CHAR("-INf"));    UT_TRUE( as.ParseFloat( &pos ) == -std::numeric_limits<double>::infinity() )  UT_EQ( 4, pos )
 
         #if defined(__clang__)
             #pragma clang diagnostic pop
         #endif
     }
 
+
     // write NaN and INF
     {
-        as.Reset(  std::numeric_limits<double>::quiet_NaN() );    UT_EQ( NumberFormat::Global.NANLiteral,  as );
-        as.Reset(  std::numeric_limits<double>::infinity()  );    UT_EQ( NumberFormat::Global.INFLiteral,  as );
-        as.Reset( -std::numeric_limits<double>::infinity()  );    UT_EQ( String16(A_CHAR("-"))._(NumberFormat::Global.INFLiteral), as );
+        as.Reset(  std::numeric_limits<double>::quiet_NaN() );    UT_EQ( NumberFormat::Global.NANLiteral,  as )
+        as.Reset(  std::numeric_limits<double>::infinity()  );    UT_EQ( NumberFormat::Global.INFLiteral,  as )
+        as.Reset( -std::numeric_limits<double>::infinity()  );    UT_EQ( String16(A_CHAR("-"))._(NumberFormat::Global.INFLiteral), as )
     }
 
     // write and parse doubles
     {
         NumberFormat nf;
-        nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345.789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0 + as.Length() , pos );
-        nf.DecimalPointChar= '@';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0 + as.Length() , pos );
-        nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.0  ,  as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  5               , pos );
+        nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345.789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0 + as.Length() , pos )
+        nf.DecimalPointChar= '@';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0 + as.Length() , pos )
+        nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.0  ,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  5               , pos )
 
         nf.DecimalPointChar= '.';
-        as.Reset( "");               UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0               , pos );
-        as.Reset(  '-');             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0               , pos );
-        as.Reset( "-X");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0               , pos );
-        as.Reset(  '.');             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  1               , pos );
-        as.Reset( ".0");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  2               , pos );
-        as.Reset( "0.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  2               , pos );
-        as.Reset( "+.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  2               , pos );
-        as.Reset( "-.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  2               , pos );
-        as.Reset( "-.0");            UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  3               , pos );
-        as.Reset( "-.08");           UT_EQ(  -0.08,           as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  4               , pos );
-        as.Reset( "  123");          UT_EQ( 123.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "+42");            UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  3               , pos );
-        as.Reset( "  +42  ");        UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
-        as.Reset( "  +42.  ");       UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
-        as.Reset( "-23");            UT_EQ( -23.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ(  3               , pos );
-        as.Reset( "  -23  ");        UT_EQ( -23.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
-        as.Reset(   "123  ");        UT_EQ( 123.,             as.ParseFloat( 0, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
+        as.Reset( "");               UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0               , pos )
+        as.Reset(  '-');             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0               , pos )
+        as.Reset( "-X");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0               , pos )
+        as.Reset(  '.');             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  1               , pos )
+        as.Reset( ".0");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  2               , pos )
+        as.Reset( "0.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  2               , pos )
+        as.Reset( "+.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  2               , pos )
+        as.Reset( "-.");             UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  2               , pos )
+        as.Reset( "-.0");            UT_EQ(   0.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  3               , pos )
+        as.Reset( "-.08");           UT_EQ(  -0.08,           as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  4               , pos )
+        as.Reset( "  123");          UT_EQ( 123.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "+42");            UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  3               , pos )
+        as.Reset( "  +42  ");        UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ( -2 + as.Length() , pos )
+        as.Reset( "  +42.  ");       UT_EQ(  42.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ( -2 + as.Length() , pos )
+        as.Reset( "-23");            UT_EQ( -23.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  3               , pos )
+        as.Reset( "  -23  ");        UT_EQ( -23.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ( -2 + as.Length() , pos )
+        as.Reset(   "123  ");        UT_EQ( 123.,             as.ParseFloat( 0, &nf, &pos ) )   UT_EQ( -2 + as.Length() , pos )
 
-        as.Reset( "xxx123456789");   UT_EQ( 123456789.,       as.ParseFloat( 3, &nf, &pos ) );   UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "xxx  1.3");       UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) );   UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "xxx  1.3  ");     UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
-        as.Reset(   "xxx1.3  ");     UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) );   UT_EQ( -2 + as.Length() , pos );
+        as.Reset( "xxx123456789");   UT_EQ( 123456789.,       as.ParseFloat( 3, &nf, &pos ) )  UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "xxx  1.3");       UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) )  UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "xxx  1.3  ");     UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) )  UT_EQ( -2 + as.Length() , pos )
+        as.Reset(   "xxx1.3  ");     UT_EQ( 1.3,              as.ParseFloat( 3, &nf, &pos ) )  UT_EQ( -2 + as.Length() , pos )
 
-        as.Reset( "1.234E1");        UT_EQ( 12.34,            as.ParseFloat( 0, &nf, &pos  ) );  UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "1.234E0") ;       UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos  ) );  UT_EQ(  0 + as.Length() , pos );
-        as.Reset( "1.234E-1");       UT_NEAR( 0.1234,         as.ParseFloat( 0, &nf, &pos  ) , 0.0000000001);  UT_EQ(  0  + as.Length() , pos );
-        as.Reset( "1.234E");         UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos  ) );  UT_EQ(       as.Length() , pos );
-        as.Reset( "1.234Ex");        UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos  ) );  UT_EQ(       as.Length()-2,pos );
+        as.Reset( "1.234E1");        UT_EQ( 12.34,            as.ParseFloat( 0, &nf, &pos ) )  UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "1.234E0") ;       UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos ) )  UT_EQ(  0 + as.Length() , pos )
+        as.Reset( "1.234E-1");       UT_NEAR( 0.1234,         as.ParseFloat( 0, &nf, &pos ) , 0.0000000001)  UT_EQ(  0  + as.Length() , pos )
+        as.Reset( "1.234E");         UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos ) )  UT_EQ(       as.Length() , pos )
+        as.Reset( "1.234Ex");        UT_EQ( 1.234,            as.ParseFloat( 0, &nf, &pos ) )  UT_EQ(       as.Length()-2,pos )
     }
 
     // write and parse doubles, non scientific mode
@@ -827,11 +854,16 @@ UT_METHOD( ConvertFloats )
 
         // roundtrip -3.0 to 3.0 step 0.001
         {
-            for (int8_t digits= -1 ; digits < 5 ; digits++ )
+            for (int8_t digits= -1 ; digits < 5 ; ++digits )
             {
                 double d= -3.0;
                 double end= 3.0;
+                #if defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+                double inc= 0.1;
+                #else
                 double inc= 0.001;
+                #endif
+
                 while ( d <= end )
                 {
                     floatTest( ut, d, '\0' , -1, digits, nullptr );
@@ -841,13 +873,16 @@ UT_METHOD( ConvertFloats )
         }
 
         // roundtrip e-200 to e+200
-        #if !ALIB_AVOID_ANALYZER_WARNINGS
         {
             for ( int exp= -200 ; exp <= 200 ; exp+=1 )
             {
                 double expFactor= pow( 10, exp );
 
-                for ( int t= 0 ; t <= 100 ; t++)
+                #if defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+                for ( int t= 0 ; t <= 2 ; ++t)
+                #else
+                for ( int t= 0 ; t <= 100 ; ++t)
+                #endif
                 {
                     // create a random number of type r.rrrrr *10^exp
                     //double d= drand48() * expFactor;
@@ -859,7 +894,6 @@ UT_METHOD( ConvertFloats )
                 }
             }
         }
-        #endif
 
         // special exponent symbol
         {
@@ -868,9 +902,9 @@ UT_METHOD( ConvertFloats )
             String64 s;
             double v= 7.5E42;
             s._( Format(v, &nf) );
-            UT_EQ( A_CHAR("7.5*10^42"), String(s)  );
+            UT_EQ( A_CHAR("7.5*10^42"), String(s)  )
             double back= s.ParseFloat( &nf );
-            UT_NEAR( v, back, 0.0000000001 );
+            UT_NEAR( v, back, 0.0000000001 )
         }
 
         // single floats
@@ -878,7 +912,7 @@ UT_METHOD( ConvertFloats )
             float f= 3.14f;
             as.Reset(f);
             double d= as.ParseFloat();
-            UT_EQ( d, static_cast<double>(f) );
+            UT_EQ( d, static_cast<double>(f) )
         }
 
     }
@@ -895,31 +929,41 @@ template <typename... BoxedObjects>
 void    checkError (AWorxUnitTesting& ut, Enum expectedException, BoxedObjects&&... args )
 {
     // create argument objects using implicit constructor invocation
-    Boxes boxes( std::forward<BoxedObjects>(args) ... );
+    Boxes& boxes= testFormatter->Acquire(ALIB_CALLER_PRUNED);
+    boxes.Add( std::forward<BoxedObjects>(args) ... );
 
     // invoke format
     bool caught= false;
     try
     {
         testAS.Reset();
-        testFormatter->FormatArgs( testAS, boxes );
+        testFormatter->FormatArgs( testAS );
     }
     catch (Exception& e)
     {
         caught= true;
-        UT_PRINT( "Exception caught as expected: " );
+        UT_PRINT( "Exception caught as expected: " )
+#if ALIB_ALOX
         LogTools::Exception( ut.lox, e, Verbosity::Info, ut.Domain, A_CHAR("  ") );
+#else
+        String2K buf;
+        e.Format(buf);
+        UT_PRINT( buf )
+#endif
         if( e.Type() != expectedException  )
         {
-          UT_PRINT( "But wrong type: caught: {}, expected: {}", e.Type(), expectedException );
-          UT_TRUE( false );
+          UT_PRINT( "But wrong type: caught: {}, expected: {}", e.Type(), expectedException )
+          UT_TRUE( false )
         }
     }
+
+    testFormatter->Release();
+
     if( !caught )
     {
-        UT_PRINT( "No Exception caught. Expected: ", expectedException );
-        UT_PRINT( "Instead, formatting result is {!Q}", testAS );
-        UT_TRUE( caught );
+        UT_PRINT( "No Exception caught. Expected: ", expectedException )
+        UT_PRINT( "Instead, formatting result is {!Q}", testAS )
+        UT_TRUE( caught )
     }
 }
 
@@ -928,19 +972,35 @@ template <typename... BoxedObjects>
 void    checkFormat(AWorxUnitTesting& ut,  const NString& exp, BoxedObjects&&... args )
 {
     // create argument objects using implicit constructor invocation
-    Boxes boxes( std::forward<BoxedObjects>(args) ... );
+    Boxes& boxes= testFormatter->Acquire(ALIB_CALLER_PRUNED);
+    boxes.Add( std::forward<BoxedObjects>(args) ... );
 
     // clear AString buffer to test for enough capacity
     testAS._();
     testAS.SetBuffer(1);
 
     // invoke format
-    testFormatter->FormatArgs( testAS, boxes );
-
-#if ALIB_CHARACTERS_ARE_NARROW
-    UT_EQ( exp, testAS );
+    try
+    {
+        testFormatter->FormatArgs( testAS );
+    }
+    catch (Exception& e)
+    {
+        UT_PRINT( "Unexpected exception caught: " )
+#if ALIB_ALOX
+        LogTools::Exception( ut.lox, e, Verbosity::Error, ut.Domain, A_CHAR("  ") );
 #else
-    UT_EQ( tempAS.Reset(exp), testAS );
+        String2K buf;
+        e.Format(buf);
+        UT_PRINT( buf )
+#endif
+    }
+    testFormatter->Release();
+
+#if !ALIB_CHARACTERS_WIDE
+    UT_EQ( exp, testAS )
+#else
+    UT_EQ( tempAS.Reset(exp), testAS )
 #endif
 
 }
@@ -955,8 +1015,8 @@ void    checkFormat(AWorxUnitTesting& ut,  const NString& exp, BoxedObjects&&...
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( FormatterJavaStyle )
 {
-    UT_INIT();
-    UT_PRINT(  "ALib Format Tests Java Style: Start" );
+    UT_INIT()
+    UT_PRINT(  "ALib Format Tests Java Style: Start" )
 
     aworx::FormatterJavaStyle          formatterJS;
     formatterJS.Next.reset( new aworx::FormatterPythonStyle() );
@@ -1053,13 +1113,14 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut, " true",        "%5.6b"  , true  );
     checkFormat(ut, "false",        "%5.6b"  , false  );
 
-    //===== Hash value 'h'/'H' =========
+    //===== Hash code 'h'/'H' =========
     NAString tExpect;
     tExpect._() << lib::strings::TFormat<char>::Hex(reinterpret_cast<uinteger>( &formatterJS ) ) ;
     checkFormat(ut, tExpect.ToLower()         , "%h" , reinterpret_cast<uinteger>( &formatterJS )  );
     checkFormat(ut, tExpect.ToUpper()         , "%H" , reinterpret_cast<uinteger>( &formatterJS )  );
 
     //===== Date/Time 't'/'T' =========
+#if ALIB_SYSTEM
     CalendarDateTime ctAM;
     ctAM.Year     = 2015;
     ctAM.Day      =    3;
@@ -1077,7 +1138,9 @@ UT_METHOD( FormatterJavaStyle )
     ctPM.Minute   =   18;
     ctPM.Second   =   22;
     DateTime dateTimePM( ctPM.Get() );
+#endif
 
+#if ALIB_SYSTEM
     checkError (ut, Exceptions::UnknownDateTimeConversionSuffix, "Test %tX"     , dateTimeAM );
 
     checkFormat(ut,  "05"                         , "%tH"         ,dateTimeAM );
@@ -1121,6 +1184,7 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut,  "09/30/16"                   , "%tD"         ,dateTimePM );
     checkFormat(ut,  "2015-01-03"                 , "%tF"         ,dateTimeAM );
     checkFormat(ut,  "2016-09-30"                 , "%tF"         ,dateTimePM );
+#endif
 
 
     //======================================= Characters ===========================================
@@ -1136,16 +1200,18 @@ UT_METHOD( FormatterJavaStyle )
     checkError (ut, Exceptions::NoPrecisionWithConversion    , "%5.2c"   , 'x' );
     checkError (ut, Exceptions::NoAlternateFormOfConversion  , "%#c"     , 'x' );
 
+#if ALIB_SYSTEM // otherwise locale is not set to UTF-8
     // wchar
     checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , L'\u03B1'    ); //greek alpha
     checkFormat(ut,  NString64()._(L"    \u03B1")  , "%5c"        , L'\u03B1'    ); //greek alpha
     checkFormat(ut,  NString64('a')<<L"\u03B1"<<'b' << L"\u03B2", "a%cb%c"   , L'\u03B1', L'\u03B2'    ); //greek alpha, beta
-    checkFormat(ut,  "@"                          , "%c"         , 64           ); // int   ascii @
-    checkFormat(ut,  "@"                          , "%c"         , 64L          ); // long  ascii @
-    checkFormat(ut,  "@"                          , "%c"         , 64UL         ); // ulong ascii @
+    checkFormat(ut,  "@"                           , "%c"         , 64           ); // int   ascii @
+    checkFormat(ut,  "@"                           , "%c"         , 64L          ); // long  ascii @
+    checkFormat(ut,  "@"                           , "%c"         , 64UL         ); // ulong ascii @
     checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1       ); //greek alpha
     checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1L      ); //greek alpha
     checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1UL     ); //greek alpha
+#endif
 
 
     //===== Hex =========
@@ -1516,7 +1582,7 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut,  "100,000,000.00000"        , "%,#.5f"              ,  100000000.0 );
 
 
-    UT_PRINT(  "ALib Format Tests Java Style: Done" );
+    UT_PRINT(  "ALib Format Tests Java Style: Done" )
 
     testFormatter->Release();
 }
@@ -1526,8 +1592,8 @@ UT_METHOD( FormatterJavaStyle )
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( FormatterPythonStyle )
 {
-    UT_INIT();
-    UT_PRINT( "ALib Format Tests Python Style: Start" );
+    UT_INIT()
+    UT_PRINT( "ALib Format Tests Python Style: Start" )
 
     aworx::FormatterPythonStyle formatterPS;
     formatterPS.Next.reset( new aworx::FormatterJavaStyle() );
@@ -1651,6 +1717,7 @@ UT_METHOD( FormatterPythonStyle )
     // checkFormat(ut,  "0xFF"            , "{:#H}"                   , 255);
 
     //===== DateTime/calendar =========
+#if ALIB_SYSTEM
     CalendarDateTime ct;
     ct.Year     = 2016;
     ct.Day      =    5;
@@ -1661,6 +1728,7 @@ UT_METHOD( FormatterPythonStyle )
     DateTime dateTime( ct.Get() );
 
     checkFormat(ut,  "2016-09-05 14:05:22"       , "{:yyyy-MM-dd HH:mm:ss}"         ,dateTime);
+#endif
 
 
 
@@ -1680,7 +1748,7 @@ UT_METHOD( FormatterPythonStyle )
         signed char     sChar=  'y';
         unsigned char   uChar=  'z';
         signed char     sChar2=  -5;
-        AString as;   as << c << '/' << sChar << '/' << uChar << '/' << sChar2; UT_EQ( A_CHAR("x/121/122/-5"), as );
+        AString as;   as << c << '/' << sChar << '/' << uChar << '/' << sChar2; UT_EQ( A_CHAR("x/121/122/-5"), as )
 
         checkFormat(ut,  "x"               , "{}"                         ,  c  );
         checkFormat(ut,  "121"             , "{}"                         , sChar  );
@@ -1713,41 +1781,43 @@ UT_METHOD( FormatterPythonStyle )
 
     //======================================= Characters ===========================================
 
-    checkFormat(ut,  "x"                        , "{}"           , 'x'          );
-    checkFormat(ut,  "x    "                    , "{:5c}"        , 'x'          );
+#if ALIB_SYSTEM // otherwise locale is not set to UTF-8
+    checkFormat(ut,  "x"                         , "{}"           , 'x'          );
+    checkFormat(ut,  "x    "                     , "{:5c}"        , 'x'          );
     checkFormat(ut,  NString64()._(L"\u03B1")    , "{:c}"         , L'\u03B1'    ); //greek alpha
     checkFormat(ut,  NString64()._(L"\u03B1    "), "{:5c}"        , L'\u03B1'    ); //greek alpha
-    checkFormat(ut,  "@"                        , "{:c}"         , 64           ); // int   ascii @
-    checkFormat(ut,  "@"                        , "{:c}"         , 64L          ); // long  ascii @
-    checkFormat(ut,  "@"                        , "{:c}"         , 64UL         ); // ulong ascii @
+    checkFormat(ut,  "@"                         , "{:c}"         , 64           ); // int   ascii @
+    checkFormat(ut,  "@"                         , "{:c}"         , 64L          ); // long  ascii @
+    checkFormat(ut,  "@"                         , "{:c}"         , 64UL         ); // ulong ascii @
+#endif
 
     // alignment
-    checkFormat(ut,  "#x  #"                , "#{:<3}#"         , 'x'    );
-    checkFormat(ut,  "# x #"                , "#{:^3}#"         , 'x'    );
-    checkFormat(ut,  "#  x#"                , "#{:>3}#"         , 'x'    );
+    checkFormat(ut,  "#x  #"                     , "#{:<3}#"      , 'x'          );
+    checkFormat(ut,  "# x #"                     , "#{:^3}#"      , 'x'          );
+    checkFormat(ut,  "#  x#"                     , "#{:>3}#"      , 'x'          );
 
 
 
     //======================================= Strings ===========================================
-    checkFormat(ut,  "x"                 , "{}"         , "x"    );
-    checkFormat(ut,  "xy"                , "{}"         , "xy"    );
-    checkFormat(ut,  "xy"                , "{:s}"       , "xy"    );
+    checkFormat(ut,  "x"           , "{}"            , "x"    );
+    checkFormat(ut,  "xy"          , "{}"            , "xy"   );
+    checkFormat(ut,  "xy"          , "{:s}"          , "xy"   );
 
-    checkFormat(ut,  "xyz"                , "{}z"       , "xy"    );
-    checkFormat(ut,  "xyz"                , "{:2}z"     , "xy"    );
-    checkFormat(ut,  "xy z"               , "{:3}z"     , "xy"    );
+    checkFormat(ut,  "xyz"         , "{}z"           , "xy"   );
+    checkFormat(ut,  "xyz"         , "{:2}z"         , "xy"   );
+    checkFormat(ut,  "xy z"        , "{:3}z"         , "xy"   );
 
     // precision (max width)
-    checkFormat(ut,  "xyz"                , "{:.4s}"       , "xyz"    );
-    checkFormat(ut,  "xyz"                , "{:.3s}"       , "xyz"    );
-    checkFormat(ut,  "xy"                 , "{:.2s}"       , "xyz"    );
+    checkFormat(ut,  "xyz"         , "{:.4s}"        , "xyz"  );
+    checkFormat(ut,  "xyz"         , "{:.3s}"        , "xyz"  );
+    checkFormat(ut,  "xy"          , "{:.2s}"        , "xyz"  );
 
 
     // alignment
-    checkFormat(ut,  "#x  #"                , "#{:<3}#"         , "x"    );
-    checkFormat(ut,  "# x #"                , "#{:^3}#"         , "x"    );
-    checkFormat(ut,  "#  x#"                , "#{:>3}#"         , "x"    );
-    checkFormat(ut,  "#1234#"               , "#{:^3}#"         , "1234" );
+    checkFormat(ut,  "#x  #"       , "#{:<3}#"       , "x"    );
+    checkFormat(ut,  "# x #"       , "#{:^3}#"       , "x"    );
+    checkFormat(ut,  "#  x#"       , "#{:>3}#"       , "x"    );
+    checkFormat(ut,  "#1234#"      , "#{:^3}#"       , "1234" );
 
     //===== Strings width/precision =========
     checkFormat(ut, "aBcDe",         "{:s}"          , "aBcDe"  );
@@ -2474,13 +2544,13 @@ UT_METHOD( FormatterPythonStyle )
     checkFormat(ut,      "45%"             , "{:.0%}"              ,          0.4537    );
     checkFormat(ut,      "45.%"            , "{:#.0%}"             ,          0.4537    );
 
-    UT_PRINT( "ALib Format Tests Python Style: Done" );
+    UT_PRINT( "ALib Format Tests Python Style: Done" )
 
     testFormatter->Release();
 }
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#endif // ALIB_UT_STRINGS

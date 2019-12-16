@@ -6,42 +6,119 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #ifndef HPP_ALIB_BOXING_BOXING
 #   include "alib/boxing/boxing.hpp"
 #endif
 
-
-#if ALIB_MODULE_STRINGS  && !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-#   include "alib/strings/localstring.hpp"
+#if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
+#   include "alib/compatibility/std_typeinfo.hpp"
 #endif
 
-#if ALIB_MODULE_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCK)
-#   include "alib/threads/threadlock.hpp"
+#if ALIB_DEBUG
+#   if !defined (HPP_ALIB_BOXING_DBGBOXING)
+#      include "alib/boxing/dbgboxing.hpp"
+#   endif
 #endif
+
+#endif // !defined(ALIB_DOX)
+
+#if ALIB_MONOMEM
+#   if !defined(HPP_ALIB_MONOMEM_HASHMAP)
+#      include "alib/monomem/hashmap.hpp"
+#   endif
+#   if !defined(HPP_ALIB_MONOMEM_HASHSET)
+#      include "alib/monomem/hashset.hpp"
+#   endif
+#else
+#   if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
+#      include <unordered_map>
+#   endif
+#   if !defined(_GLIBCXX_SET) && !defined(_SET_)
+#      include <set>
+#   endif
+#endif
+
 
 
 namespace aworx { namespace lib { namespace boxing { namespace detail {
 
-// #################################################################################################
-// DbgLockMaps
-// #################################################################################################
-#if ALIB_DEBUG && !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
-    #if ALIB_MODULE_THREADS
-        namespace { ThreadLock dbgLock; }
+#if ALIB_MONOMEM
+    extern HashSet           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+#else
+    extern std::set          <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+#endif
+
+extern ALIB_API void DbgLockMaps( bool doLock );
+
+
+// #################################################################################################
+// Custom function hash map implementation
+// #################################################################################################
+namespace
+{
+    struct CustomFunctionKey
+    {
+        const FunctionTable*    Parent;
+        const std::type_info&   Type;
+
+        CustomFunctionKey( const FunctionTable* parent, const std::type_info& type )
+        : Parent(parent)
+        , Type  (type )
+        {}
+    };
+
+    struct CustomFunctionMapped
+    {
+         void*                   Implementation;
+ALIB_DBG(uinteger               DbgCntInvocations; )
+
+         CustomFunctionMapped( void* implementation )
+         : Implementation    (implementation)
+ALIB_DBG(,DbgCntInvocations  (0             )  )
+         {}
+    };
+
+
+    struct CustomFunctionHash
+    {
+        std::size_t operator()(const CustomFunctionKey& key)             const
+        {
+            size_t result=    reinterpret_cast<size_t>(key.Parent)
+                            ^ key.Type.hash_code();
+            result^= (result << 21 );
+            result^= (result >> 11);
+            return result;
+        }
+
+    };
+
+    struct CustomFunctionEqualTo
+    {
+        bool operator()(const CustomFunctionKey& lhs, const CustomFunctionKey& rhs) const
+        {
+            return     lhs.Parent == rhs.Parent
+                    && lhs.Type   == rhs.Type;
+        }
+    };
+
+    #if ALIB_MONOMEM
+        HashMap           < CustomFunctionKey, CustomFunctionMapped,
+                            CustomFunctionHash,
+                            CustomFunctionEqualTo >                  customFunctionMap( &monomem::GlobalAllocator );
+    #else
+        std::unordered_map< CustomFunctionKey, CustomFunctionMapped,
+                            CustomFunctionHash,
+                            CustomFunctionEqualTo >                  customFunctionMap;
     #endif
 
-    void DbgLockMaps( bool doLock )
-    {
-        #if !ALIB_MODULE_THREADS
-        (void) doLock;
-        #else
-            if( doLock )
-                dbgLock.Acquire( ALIB_CALLER_PRUNED );
-            else
-                dbgLock.Release();
-        #endif
-    }
+}// anonymous namespace
 
 #endif
 
@@ -50,97 +127,164 @@ namespace aworx { namespace lib { namespace boxing { namespace detail {
 // #################################################################################################
 FunctionTable DEFAULT_FUNCTIONS;
 
-#if ALIB_DEBUG
-    TypeSet   DBG_KNOWN_FUNCTIONS;
-#endif
-
 
 
 void* FunctionTable::getCustom( const std::type_info& rtti ALIB_DBG(, bool isInvocation) )     const
 {
-    FunctionTable::Entry* entry= Custom;
-    while( entry )
+#if ALIB_MONOMEM
+    auto it= customFunctionMap.Find( CustomFunctionKey(this, rtti) );
+#else
+    auto it= customFunctionMap.find( CustomFunctionKey(this, rtti) );
+#endif
+    if ( it != customFunctionMap.end() )
     {
-        if( entry->Type == rtti )
-        {
-ALIB_DBG(   if( isInvocation )
-                entry->DbgCntInvocations++;      )
-            return entry->Implementation;
-        }
-        entry= entry->Next;
+        ALIB_DBG(   if( isInvocation )
+                        ++it->second.DbgCntInvocations;      )
+        return it->second.Implementation;
     }
-
     return nullptr;
 }
 
 void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
 {
-    #if ALIB_DEBUG
+    #if ALIB_DEBUG_BOXING
         detail::DbgLockMaps(true);
-            DBG_KNOWN_FUNCTIONS.emplace( rtti );
+            #if ALIB_MONOMEM
+                DbgKnownCustomFunctions.InsertIfNotExistent( &rtti );
+            #else
+                DbgKnownCustomFunctions.emplace( rtti );
+            #endif
         detail::DbgLockMaps(false);
     #endif
 
     // search existing (replace)
-    FunctionTable::Entry* entry= Custom;
-    while( entry )
-    {
-        if( entry->Type == rtti )
-        {
-            entry->Implementation= impl;
-            return;
-        }
-        entry= entry->Next;
-    }
+    #if ALIB_MONOMEM
+        if( customFunctionMap.Size() == 0 )
+            customFunctionMap.Reserve( 50 );
 
-    // add to front.
-    Custom= new FunctionTable::Entry( rtti, impl, Custom );
+        customFunctionMap.InsertOrAssign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
+    #else
+        if( customFunctionMap.size() == 0 )
+            customFunctionMap.reserve( 50 );
+        #if ALIB_CPPVER < 17
+            auto it= customFunctionMap.find( CustomFunctionKey(this, rtti) );
+            if ( it != customFunctionMap.end() )
+                it->second.Implementation= impl;
+            else
+                customFunctionMap.emplace( CustomFunctionKey(this, rtti), impl );
+        #else
+            customFunctionMap.insert_or_assign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
+        #endif
+    #endif
+
 }
 
-// #################################################################################################
-// struct VTable
-// #################################################################################################
-#if ALIB_DEBUG
-TypeMap<detail::VTable*>    DBG_KNOWN_VTABLES[2];
+} // namespace aworx::lib::boxing[::detail]
 
+using namespace detail;
 
-void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType productionType )
+// #################################################################################################
+// DBGBoxing Function Lists Implementation
+// (located here due to anonymous function table)
+// #################################################################################################
+#if ALIB_DEBUG_BOXING
+std::vector<detail::VTable*>  DbgBoxing::GetKnownVTables()
 {
-    vtable->DbgProduction= productionType;
     DbgLockMaps(true);
-        if( !vtable->IsArray() )
-        {
-            if ( DBG_KNOWN_VTABLES[0].find( vtable->Type ) != DBG_KNOWN_VTABLES[0].end() )
-            {
-                ALIB_ERROR( "Double instantiation of VTable of Type: \"",
-                            DbgTypeDemangler( vtable->Type ).Get(), "\"" )
-                DbgLockMaps(false);
-                return;
-            }
 
-            DBG_KNOWN_VTABLES[0].insert(std::make_pair(std::reference_wrapper<const std::type_info>( vtable->Type ),
-                                                     vtable ) );
-        }
-        else
-        {
-            if ( DBG_KNOWN_VTABLES[1].find( vtable->ElementType ) != DBG_KNOWN_VTABLES[1].end() )
-            {
-                ALIB_ERROR( "Double instantiation of VTable of Type: \"",
-                            DbgTypeDemangler( vtable->ElementType ).Get(), "[]\"" )
-                DbgLockMaps(false);
-                return;
-            }
+        std::vector<detail::VTable*> result;
+    #if ALIB_MONOMEM
+        result.reserve( static_cast<size_t>(
+                          DbgKnownVTables     .Size()
+                        + DbgKnownVTablesArray.Size()  ) );
+    #else
+        result.reserve(   DbgKnownVTables     .size()
+                        + DbgKnownVTablesArray.size()  );
+    #endif
 
-            DBG_KNOWN_VTABLES[1].insert(std::make_pair(std::reference_wrapper<const std::type_info>( vtable->ElementType ),
-                                                     vtable ) );
+        for( int type= 0 ; type < 2 ; ++type )
+        {
+            auto& map= type == 0 ? DbgKnownVTables
+                                 : DbgKnownVTablesArray;
+            for( auto it= map.begin() ; it!= map.end() ; ++it )
+                result.emplace_back( it->second );
         }
+
     DbgLockMaps(false);
+    return result;
 }
 
+std::vector<std::pair<const std::type_info*,uinteger>>  DbgBoxing::GetKnownFunctionTypes()
+{
+    std::vector<std::pair<const std::type_info*,uinteger>> result;
+    result.emplace_back( &typeid( FHashcode         ), detail::DEFAULT_FUNCTIONS.fHashcode  ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFHashcode  : (std::numeric_limits<uinteger>::max)() );
+ALIB_IF_MONOMEM(
+    result.emplace_back( &typeid( FClone            ), detail::DEFAULT_FUNCTIONS.fClone     ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFClone     : (std::numeric_limits<uinteger>::max)() ); )
+    result.emplace_back( &typeid( FIsNotNull        ), detail::DEFAULT_FUNCTIONS.fIsNotNull ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsNotNull : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FEquals           ), detail::DEFAULT_FUNCTIONS.fEquals    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFEquals    : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FIsLess           ), detail::DEFAULT_FUNCTIONS.fIsLess    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsLess    : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FIsTrue           ), detail::DEFAULT_FUNCTIONS.fIsTrue    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsTrue    : (std::numeric_limits<uinteger>::max)() );
+ALIB_IF_STRINGS(
+    result.emplace_back( &typeid( FAppend<character>), detail::DEFAULT_FUNCTIONS.fAppend    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFAppend    : (std::numeric_limits<uinteger>::max)() ); )
+
+    detail::DbgLockMaps(true);
+    {
+        for (auto* typeIt : detail::DbgKnownCustomFunctions )
+        {
+            // search corresponding default implementation.
+            auto usage= (std::numeric_limits<uinteger>::max)();
+
+        #if ALIB_MONOMEM
+            auto implIt= customFunctionMap.Find( CustomFunctionKey(&detail::DEFAULT_FUNCTIONS, *typeIt) );
+        #else
+            auto implIt= customFunctionMap.find( CustomFunctionKey(&detail::DEFAULT_FUNCTIONS, *typeIt) );
+        #endif
+            if( implIt != customFunctionMap.end() )
+                usage= implIt->second.DbgCntInvocations;
+
+            result.emplace_back( typeIt, usage );
+        }
+    }
+    detail::DbgLockMaps(false);
+
+    return result;
+}
+
+void DbgBoxing::getFunctionTypes( const detail::FunctionTable&                             functionTable,
+                                  std::vector<std::pair<const std::type_info*,uinteger>>&  output  )
+{
+    output.clear();
+    if(functionTable.fHashcode ) output.emplace_back( &typeid( FHashcode         ), functionTable.DbgCntInvocationsFHashcode  );
+  ALIB_IF_MONOMEM(
+    if(functionTable.fClone    ) output.emplace_back( &typeid( FClone            ), functionTable.DbgCntInvocationsFClone     ); )
+    if(functionTable.fIsNotNull) output.emplace_back( &typeid( FIsNotNull        ), functionTable.DbgCntInvocationsFIsNotNull );
+    if(functionTable.fEquals   ) output.emplace_back( &typeid( FEquals           ), functionTable.DbgCntInvocationsFEquals    );
+    if(functionTable.fIsLess   ) output.emplace_back( &typeid( FIsLess           ), functionTable.DbgCntInvocationsFIsLess    );
+    if(functionTable.fIsTrue   ) output.emplace_back( &typeid( FIsTrue           ), functionTable.DbgCntInvocationsFIsTrue    );
+  ALIB_IF_STRINGS(
+    if(functionTable.fAppend   ) output.emplace_back( &typeid( FAppend<character>), functionTable.DbgCntInvocationsFAppend    ); )
+
+    // add custom function types
+    {
+        for( auto funcIt= customFunctionMap.begin() ; funcIt != customFunctionMap.end() ; ++funcIt )
+            if( funcIt->first.Parent == &functionTable )
+                output.emplace_back( &funcIt->first.Type , funcIt->second.DbgCntInvocations );
+    }
+}
+
+
+#if ALIB_DEBUG_MONOMEM
+void DbgBoxing::DumpCustomFunctionHashMapMetrics( AString& target, bool detailedBucketList )
+{
+    target << monomem::DbgDumpDistribution( customFunctionMap, detailedBucketList );
+}
 #endif
 
 
-}}}} // namespace [aworx::lib::boxing::detail]
+#endif // ALIB_DEBUG_BOXING
+
+
+}}} // namespace [aworx::lib::boxing]
 
 
 
@@ -157,7 +301,7 @@ ALIB_BOXING_VTABLE_DEFINE( bool,  vt_bool )
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
 
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 
     ALIB_BOXING_VTABLE_DEFINE(   integer  ,  vt_integer )
     ALIB_BOXING_VTABLE_DEFINE(   uinteger ,  vt_uinteger)
@@ -167,25 +311,27 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
     ALIB_BOXING_VTABLE_DEFINE(    uint8_t ,   vt_uint8_t)
     ALIB_BOXING_VTABLE_DEFINE(    int16_t ,   vt_int16_t)
     ALIB_BOXING_VTABLE_DEFINE(   uint16_t ,  vt_uint16_t)
+    ALIB_BOXING_VTABLE_DEFINE(    int32_t ,  vt_int32_t)
+    ALIB_BOXING_VTABLE_DEFINE(   uint32_t , vt_uint32_t)
     ALIB_BOXING_VTABLE_DEFINE(   intGap_t ,  vt_intGap_t)
     ALIB_BOXING_VTABLE_DEFINE(  uintGap_t , vt_uintGap_t)
 
-#if ALIB_SIZEOF_INTEGER == 8
-    ALIB_BOXING_VTABLE_DEFINE(    int32_t )
-    ALIB_BOXING_VTABLE_DEFINE(   uint32_t )
-#endif
+  #if ALIB_SIZEOF_INTEGER == 8
+    ALIB_BOXING_VTABLE_DEFINE(    int64_t ,  vt_int64_t)
+    ALIB_BOXING_VTABLE_DEFINE(   uint64_t , vt_uint64_t)
+  #endif
 
 #endif
 
     ALIB_BOXING_VTABLE_DEFINE(      double, vt_double )
-  #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+#if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
     ALIB_BOXING_VTABLE_DEFINE( long double, vt_long_double )
-  #endif
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+#endif
+#if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     ALIB_BOXING_VTABLE_DEFINE(      float , vt_float  )
 #endif
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
     ALIB_BOXING_VTABLE_DEFINE( wchar    , vt_wchar )
 #else
     ALIB_BOXING_VTABLE_DEFINE( char     , vt_char     )

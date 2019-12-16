@@ -6,22 +6,35 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(HPP_ALOX_ANSI_LOGGER)
-    #include "alib/alox/loggers/ansilogger.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALOX_ANSI_LOGGER)
+       #include "alib/alox/loggers/ansilogger.hpp"
+#   endif
 
-#if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
-    #include "alib/strings/util/spaces.hpp"
-#endif
+#   if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
+       #include "alib/strings/util/spaces.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_ALOX_VARIABLES)
-    #include "alib/alox/variables.hpp"
-#endif
+#   if !defined (HPP_ALIB_ALOXMODULE)
+#      include "alib/alox/aloxmodule.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#      include "alib/strings/util/tokenizer.hpp"
+#   endif
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+
+#   if !defined(HPP_ALIB_RESULTS_REPORT)
+#      include "alib/results/report.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 using namespace aworx::lib::lox::detail;
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
-// #################################################################################################
+
+    // #################################################################################################
 // ANSI Escape Codes
 // #################################################################################################
  #if defined(_MSC_VER)
@@ -147,15 +160,15 @@ void AnsiLogger::construct()
     // evaluate environment variable "ALOX_CONSOLE_LIGHT_COLORS"
     UseLightColors= LightColorUsage::Auto;
     Variable variable( Variables::CONSOLE_LIGHT_COLORS );
-    if ( ALOX.Config->Load( variable ) != Priorities::NONE && variable.Size() > 0)
+    if ( ALOX.GetConfig().Load( variable ) != Priorities::NONE && variable.Size() > 0)
     {
         Substring p= variable.GetString();
         if(p.Trim().IsNotEmpty())
         {
-            if( !p.ConsumeEnum<LightColorUsage>( UseLightColors ) )
+            if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
             {
-                ALIB_WARNING( "Unknown value specified in variable: {} = '{}'.",
-                              variable.Fullname, variable.GetString() );
+                ALIB_WARNING( "Unknown value specified in variable: {} = {!Q'}.",
+                              variable.Fullname(), variable.GetString() )
             }
         }
     }
@@ -167,7 +180,7 @@ void AnsiLogger::construct()
     }
 
     // move verbosity information to the end to colorize the whole line
-    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( A_CHAR("]%V["), A_CHAR("][") ), 0);
+    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( A_CHAR("]%V["), A_CHAR("][") ), 0)
     MetaInfo->Format._("%V");
     MetaInfo->VerbosityError           = ESC::RED;
     MetaInfo->VerbosityWarning         = ESC::BLUE;
@@ -204,7 +217,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
             integer idx= rest.IndexOf( 'm' );
             if ( idx < 0 ) // unknown ANSI Code
             {
-                ALIB_WARNING( "Unknown ANSI ESC Code \"{}...\"", rest.Substring(0, 10 ) );
+                ALIB_WARNING( "Unknown ANSI ESC Code \"{}...\"", rest.Substring(0, 10 ) )
                 writer.Write( actual );
                 continue;
             }
@@ -342,7 +355,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
         else
         {
             rest.ConsumeChar();
-            ALIB_WARNING( "Unknown ESC code '{}'.", c )
+            ALIB_WARNING( "Unknown ESC code {!Q'}.", c )
         }
 
     } // write loop

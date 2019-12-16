@@ -6,22 +6,17 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
-#   include "alib/expressions/detail/parser.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-#   include "alib/expressions/compiler.hpp"
-#endif
-
-
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
-#   include "alib/expressions/detail/parser_impl.hpp"
-#endif
-
-#if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER && !defined (HPP_ALIB_EXPRESSIONS_DETAIL_SPIRIT)
-#   include "alib/expressions/detail/spirit.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
+#      include "alib/expressions/detail/parser.hpp"
+#   endif
+#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
+#      include "alib/expressions/compiler.hpp"
+#   endif
+#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
+#      include "alib/expressions/detail/parser_impl.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -29,15 +24,7 @@ namespace aworx { namespace lib { namespace expressions { namespace detail {
 // static creation method
 Parser* Parser::Create( Compiler& compiler )
 {
-#if ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER
-    if( EnumContains( compiler.CfgCompilation, Compilation::UseSpiritParser ) )
-        return detail::CreateBoostSpiritParser(
-                EnumContains( compiler.CfgCompilation, Compilation::AliasEqualsOperatorWithAssignOperator ),
-                EnumContains( compiler.CfgCompilation, Compilation::AllowSubscriptOperator                )
-            );
-    else
-#endif
-        return new detail::ParserImpl( compiler );
+    return compiler.allocator.Emplace<detail::ParserImpl>( compiler, &compiler.allocator );
 }
 
 

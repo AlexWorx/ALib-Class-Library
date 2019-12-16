@@ -40,8 +40,8 @@ This is why the library code and documentation is organized into different so ca
 \note
   The term \e module relates to the planned future C++ language feature with the same name.
   As of today C++ modularization is not technically used with \alib, yet.
-  Experimental support for implementing \alibmods_nolink as C++ modules is planned for
-  \checkpromise{one of the next release, probably in 2019}.
+  Experimental support for implementing \alibmods_nl as C++ modules is planned for
+  \checkpromise{one of the next release, probably in 2020}.
 
 The rationals for organizing the library in modules are:
 
@@ -61,13 +61,13 @@ The rationals for organizing the library in modules are:
 3. Well Defined Library Bootstrapping<br>
    As explained in a later chapter, bootstrapping a software process written in C++ needs to
    obey to some certain rules which the programming language itself does not provide support
-   for. \alibmods_nolink tremendously helps organizing the library bootstrap process.
+   for. \alibmods_nl tremendously helps organizing the library bootstrap process.
 
 
 4. Minimum Footprint<br>
    Modules can be compiled and used separately from others, as long as there is no dependency
    between modules.
-   When using \c [CMake](https://cmake.org/) to build the library, all module-dependencies are
+   When using \https{CMake,cmake.org/} to build the library, all module-dependencies are
    automatically resolved: If a using application just needs a single module, that module is
    all that has to be specified with CMake. The provided scripts select the dependent modules and
    corresponding source files automatically.
@@ -80,22 +80,22 @@ The rationals for organizing the library in modules are:
 \~Comment ####################################################################################### \~
 ## 2.1 Overview Of Modules ## {#alib_manual_modules_overview}
 
-The following table lists all \alibmods_nolink in alphabetical order.
+The following table lists all \alibmods_nl in alphabetical order.
 
-Name (Links to Programmer's Manual)        |Namespace (Links to Reference Documentation)    | Description |
+Name <br>(Programmer's Manual)     |Namespace <br>(Reference Documentation)    | Description |
 -------------------------------------------|-------------------------------|-------------------------------
 \ref alib_mod_alox          "ALox"         | \ref aworx::lib::lox          |A very unique and powerful approach to implement a software's debug and release logging facilities.
 \ref alib_mod_boxing        "Boxing"       | \ref aworx::lib::boxing       |Implements <b>"auto-boxing"</b> for C++, known from higher level programming languages. Transparently wraps C++ values of arbitrary type together with run-time type information into very lightweight objects. In other words, this library provides <em>"type-safe void pointers which support virtual function calls"</em>, provides type-safe a variadic argument paradigm and much more.
 \ref alib_mod_characters    "Characters"   | \ref aworx::lib::characters   |Mitigates C++ character type, character pointer and character array hell.
 \ref alib_mod_cli           "CLI"          | \ref aworx::lib::cli          |Implements parsing and partly the processing of command line arguments (CLI stands for "command line interface"). In case of pure CLI software, provides tools for formatted and localized help and result output.
 \ref alib_mod_config        "Configuration"| \ref aworx::lib::config       |Transparently encapsulates access to configuration or other input data coming from various sources, like command line parameters, environment variables, INI-files, 3rd-party configuration databases, etc. Support for persistent write-back of such data is given.
-                             Enums         | \ref aworx::lib::enums        |A few useful tools for otherwise limited C++ scoped and non-scoped enum types.
+\ref alib_mod_enums         "Enums"        | \ref aworx::lib::enums        |Extensions for otherwise limited C++ enum types.
 \ref alib_mod_expressions   "Expressions"  | \ref aworx::lib::expressions  |Regular expression parser, compiler and a virtual machine for evaluation of compiled expressions. Excels in respect to speed and flexibility and is very easy to adopt in own projects.
-                             Memory        | \ref aworx::lib::memory       |Today, this module only consists of one simple class that features block-allocation of objects. In combination with \alibmod_strings (optional dependency), block-allocation of string data is supported as well.
-\ref alib_mod_results       "Results"      | \ref aworx::lib::results      |Provides the standard \alib throwable type \alib{results,Exception} supporting "inner exceptions" and resourced exception details. Furthermore provides \alib{results,Report,ALib Reports}, which is a simple reporting system. (Not very good, currently used only in debug compilations for assertions, and expected to be changed in the future!).
-\ref alib_mod_resources     "Resources"    | \ref aworx::lib::resources    |String-based resource management. Usually, other modules that depend on (use) this module are named <em>"full module"</em> and dispose about a singleton that derives from library class \alib{Module}, which holds a pointer to the resources type found here.<br> This module in addition provides some "resourced types", where especially important is \alib{resources,T_EnumMetaDataDecl,resourced C++ enum meta data}.
+\ref alib_mod_monomem        "Monomem"     | \ref aworx::lib::monomem      |Today, this module only consists of one simple class that features monotonic allocation of objects. In combination with \alib_strings (optional dependency), monotonic allocation of string data is supported as well.
+\ref alib_mod_results       "Results"      | \ref aworx::lib::results      |Provides the standard \alib throwable type \alib{results,Exception} supporting "inner exceptions" and resourced exception details. Furthermore provides \alib{results,Report,ALib Reports}, which is a simple reporting system. (Not very good, currently used only with debug builds for assertions, and expected to be changed in the future!).
+\ref alib_mod_resources     "Resources"    | \ref aworx::lib::resources    |String-based resource management. Usually, other modules that depend on (use) this module are named <em>"full module"</em> and dispose about a singleton that derives from library class \alib{Module}, which holds a pointer to the resources type found here.<br> This module in addition provides some "resourced types", and is especially helpful to extend the concept of \ref alib_enums_records "ALib Enum Records".
 \ref alib_mod_singletons    "Singletons"   | \ref aworx::lib::singletons   |Implements the singleton paradigm that overcomes the Windows OS DLL boundaries (caused by Window DLL's local data segments), while under other operating systems chooses a faster, straight-forward implementation.
-\ref alib_mod_stringformat  "Stringformat" | \ref aworx::lib::stringformat |Implements Python- and JAVA compatible string formatters and other string formatting tools.
+\ref alib_mod_text          "Text"         | \ref aworx::lib::text |Implements Python- and JAVA compatible string formatters and other string formatting tools.
 \ref alib_mod_strings       "Strings"      | \ref aworx::lib::strings      |With a least intrusive design offers compatible, lightweight, secure, efficient, complete and convenient C++ string classes.
                              System        | \ref aworx::lib::system       |Types related to the operating system and hardware environment.
 \ref alib_mod_threads       "Threads"      | \ref aworx::lib::threads      |Thread locking, threads and runables.
@@ -107,21 +107,21 @@ Name (Links to Programmer's Manual)        |Namespace (Links to Reference Docume
 \~Comment ####################################################################################### \~
 ### 2.2.1 Mandatory Dependencies ### {#alib_manual_modules_dependencies_mandatory}
 
-Modules of \alib have dependencies. For example, module \alibmod_strings does not compile without
-the availability of module \alibmod_characters.
+Modules of \alib have dependencies. For example, module \alib_strings does not compile without
+the availability of module \alib_characters.
 
 There is only one case where such dependency is circular. This concerns modules
-\alibmod_results and \alibmod_stringformat. Both modules rely on the existence of each other.
+\alib_results and \alib_text. Both modules rely on the existence of each other.
 
 
 The following diagram shows the mandatory dependencies between the modules:
 \anchor alib_manual_modules_dependency_graph
 
 \~Comment Sometimes, doxygen does not show the graph below. Then an empty graph helps. Dont know what this is!
-  \dot
-  digraph forSomeReasonsDoxygenNeedsAnEmptyGraphHere_Strange {}
-  \enddot
 \~
+  \dot
+  digraph forSomeReasonsDoxygenSometimesNeedsAnEmptyGraphHere_Strange {}
+  \enddot
 
 \dot
 digraph ModuleDependencies
@@ -140,27 +140,27 @@ digraph ModuleDependencies
     CLI            [label= CLI             shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_cli"          ];
     System         [label= System          shape= "component" style="bold" color="midnightblue"  URL="namespaceaworx_1_1lib_1_1system.html"];
     Results        [label= Results         shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_results"     ];
-    Stringformat   [label= Stringformat    shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_stringformat" ];
+    Text           [label= Text            shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_text" ];
 
     subgraph sameRank1   {  rank="same";  CLI; Expressions; ALox;     }
     subgraph clusterMod
     {
-        rank="same";  Results; Stringformat;
+        rank="same";  Results; Text;
         color="midnightblue"
 
         //label= "Full Modules"
-        subgraph sameRankMod {   rank="same";  Results; Stringformat;    }
+        subgraph sameRankMod {   rank="same";  Results; Text;    }
 
     }
 
     //--- dependencies full -> full
     ALox            ->  Configuration   [ color="midnightblue" ];
-    Expressions     ->  Stringformat    [ color="midnightblue" lhead="clusterMod" ];
+    Expressions     ->  Text            [ color="midnightblue" lhead="clusterMod" ];
     Configuration   ->  System          [ color="midnightblue" ];
-    CLI             ->  Stringformat    [ color="midnightblue" lhead="clusterMod" ];
-    System          ->  Stringformat    [ color="midnightblue" lhead="clusterMod" ];
-    Results         ->  Stringformat    [ color="midnightblue" ];
-    Stringformat    ->  Results         [ color="midnightblue" ];
+    CLI             ->  Text            [ color="midnightblue" lhead="clusterMod" ];
+    System          ->  Text            [ color="midnightblue" lhead="clusterMod" ];
+    Results         ->  Text            [ color="midnightblue" ];
+    Text            ->  Results         [ color="midnightblue" ];
 
     //--- Micro Modules ---
     Resources      [label= Resources       shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_resources"    ];
@@ -172,28 +172,27 @@ digraph ModuleDependencies
     Characters     [label= Characters      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_characters"   ];
     Enums          [label= Enums           shape= "box"        color="cornflowerblue"   URL="namespaceaworx_1_1lib_1_1enums.html"     ];
     Singletons     [label= Singletons      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_singletons"   ];
-    Memory         [label= Memory          shape= "box"        color="cornflowerblue"   URL="namespaceaworx_1_1lib_1_1memory.html"    ];
+    Monomem        [label= Monomem         shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_monomem"      ];
 
-    subgraph sameRankA   {  rank="same";  Resources; Threads;     }
-    subgraph sameRankB   {  rank="same";  Boxing; Strings;        }
-    subgraph sameRankC   {  rank="same";  Time; Characters; Memory; Singletons; Enums;     }
+    subgraph sameRankA   {  rank="same";  Resources; Threads;                         }
+    subgraph sameRankB   {  rank="same";  Boxing;    Strings;   Enums                 }
+    subgraph sameRankC   {  rank="same";  Time;     Characters; Monomem; Singletons;  }
 
     //--- dependencies headless -> headless
     Resources       -> Strings       [ color="cornflowerblue"  ];
-    Resources       -> Memory        [ color="cornflowerblue"  ];
+    Resources       -> Monomem       [ color="cornflowerblue"  ];
     Resources       -> Singletons    [ color="cornflowerblue"  ];
     Threads         -> Strings       [ color="cornflowerblue"  ];
-    Threads         -> Time          [ color="cornflowerblue"  ];
     Strings         -> Characters    [ color="cornflowerblue"  ];
     Boxing          -> Characters    [ color="cornflowerblue"  ];
     Boxing          -> Singletons    [ color="cornflowerblue"  ];
+    Enums           -> Singletons    [ color="cornflowerblue"  ];
 
 
     //--- dependencies full -> headless
-    ALox            -> Threads       [ color="cornflowerblue"  ];
     System          -> Time          [ color="cornflowerblue"  ];
-    Stringformat    -> Resources     [ color="cornflowerblue"  ltail="clusterMod" ];
-    Stringformat    -> Boxing        [ color="cornflowerblue"  ltail="clusterMod" ];
+    Text            -> Resources     [ color="cornflowerblue"  ltail="clusterMod" ];
+    Text            -> Boxing        [ color="cornflowerblue"  ltail="clusterMod" ];
     Results         -> Enums         [ color="cornflowerblue"  ltail="clusterMod" ];
 }
 \enddot
@@ -201,10 +200,12 @@ digraph ModuleDependencies
 \note
   - The dark blue modules contain a singleton derived
     from class \alib{Module} and can be considered <b>"full modules"</b>.<br>
-    The light blue modules do not dispose of a module-class.
+    The light blue modules do not dispose of a module-class and are referred to as
+    <b>"micro modules"</b>.
   - The two small rectangles on the left side of some of the module boxes indicate that a
     module has initialization and termination functions that needs to be invoked with bootstrapping
-    a process, respectively terminating it.
+    a process, respectively terminating it. As it can be seen (and will be discussed later)
+    this is true for all <em>"full modules"</em>, but also for some of the <em>"micro modules"</em>
 
 \note
   The exact meaning of these differences will be discussed later in this manual.
@@ -212,16 +213,105 @@ digraph ModuleDependencies
 
 
 \~Comment ####################################################################################### \~
-###2.2.2 Supporting Relationships### {#alib_manual_modules_dependencies_supporting}
+### 2.2.2 Optional Relationships ### {#alib_manual_modules_dependencies_supporting}
 Besides the mandatory dependencies shown in the graph above, also optional relations between the
 modules exist. Those could be phrased as <em>\"Module \b A makes use of module \b B if \b B is
 available\"</em>.
-Or, the other way round: <em>\"If Module \b A is available, it supports Module \b B\"</em>.
-Both versions are existent.
 
 These relationships are documented with each module's Programmer's Manual.
 Furthermore, within the reference documentation, you will find sentences like
-<em>"This feature is available only if  module XYZ is included in the ALib distribution."</em>
+<em>\"This feature is available only if module <b>ALib XYZ</b> is included in the \alibdist_nl.\"</em>
+
+The following diagram shows the optional dependencies:
+
+
+
+\dot
+digraph OptionalModuleDependencies
+{
+    compound=true;
+    fontsize="10";
+    fontname="Open Sans";
+
+    node [shape=plaintext, fontsize="10", fontname="Open Sans"]
+
+
+    //--- Full Modules ---
+    ALox           [label= ALox            shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_alox"         ];
+    Expressions    [label= Expressions     shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_expressions"  ];
+    Configuration  [label= Configuration   shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_config"       ];
+    CLI            [label= CLI             shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_cli"          ];
+    System         [label= System          shape= "component" style="bold" color="midnightblue"  URL="namespaceaworx_1_1lib_1_1system.html"];
+    Results        [label= Results         shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_results"     ];
+    Text           [label= Text            shape= "component" style="bold" color="midnightblue"  URL="\ref alib_mod_text" ];
+
+    subgraph sameRank1   {  rank="same";  CLI; Expressions; ALox;     }
+    subgraph sameRank1   {  rank="same";  Configuration; System;      }
+    subgraph clusterMod
+    {
+        rank="same";  Results; Text;
+        color="midnightblue"
+
+        //label= "Full Modules"
+        subgraph sameRankMod {   rank="same";  Results; Text;    }
+
+    }
+
+    //--- optional dependencies full -> full
+    Expressions     ->  System          [ color="midnightblue" ];
+    Expressions     ->  Configuration   [ color="midnightblue" ];
+
+    //--- Micro Modules ---
+    Resources      [label= Resources       shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_resources"    ];
+    Threads        [label= Threads         shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_threads"      ];
+    Boxing         [label= Boxing          shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_boxing"       ];
+
+    Strings        [label= Strings         shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_strings"      ];
+    Time           [label= Time            shape= "component"  color="cornflowerblue"   URL="\ref alib_mod_time"         ];
+    Characters     [label= Characters      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_characters"   ];
+    Enums          [label= Enums           shape= "box"        color="cornflowerblue"   URL="namespaceaworx_1_1lib_1_1enums.html"     ];
+    Singletons     [label= Singletons      shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_singletons"   ];
+    Monomem        [label= Monomem         shape= "box"        color="cornflowerblue"   URL="\ref alib_mod_monomem"      ];
+
+    subgraph sameRankA   {  rank="same";  Resources; Threads;     }
+    subgraph sameRankB   {  rank="same";  Boxing; Strings;        }
+    subgraph sameRankC   {  rank="same";  Time; Characters; Monomem; Singletons; Enums;     }
+
+    //--- optional dependencies headless -> headless
+    Resources       -> Threads       [ color="cornflowerblue"  ];
+    Strings         -> Threads       [ color="cornflowerblue"  ];
+    Boxing          -> Threads       [ color="cornflowerblue"  ];
+    Monomem         -> Threads       [ color="cornflowerblue"  ];
+    Singletons      -> Threads       [ color="cornflowerblue"  ];
+
+    Threads         -> Monomem       [ color="cornflowerblue"  ];
+    Singletons      -> Monomem       [ color="cornflowerblue"  ];
+    Boxing          -> Monomem       [ color="cornflowerblue"  ];
+
+    Resources       -> Configuration [ color="cornflowerblue"  ];
+    Resources       -> Results       [ color="cornflowerblue"  ];
+
+    Strings         -> Enums         [ color="cornflowerblue"  ];
+    Strings         -> Resources     [ color="cornflowerblue"  ];
+
+    Boxing          -> Strings       [ color="cornflowerblue"  ];
+    Boxing          -> Text          [ color="cornflowerblue"  ];
+
+    Enums           -> Resources     [ color="cornflowerblue"  ];
+    Enums           -> Strings       [ color="cornflowerblue"  ];
+
+    Monomem         -> Strings       [ color="cornflowerblue"  ];
+    Singletons      -> Strings       [ color="cornflowerblue"  ];
+
+
+    //--- optional dependencies full -> headless
+    ALox            -> Threads       [ color="cornflowerblue"  ];
+    Configuration   -> Threads       [ color="cornflowerblue"  ];
+    System          -> Threads       [ color="cornflowerblue"  ];
+    Results         -> Threads       [ color="cornflowerblue"  ];
+    Expressions     -> Time          [ color="cornflowerblue"  ];
+}
+\enddot
 
 
 \~Comment ####################################################################################### \~
@@ -229,61 +319,84 @@ Furthermore, within the reference documentation, you will find sentences like
 The fact of having (selectable) modules that are connected through a set of dependencies, has to
 be taken into account in different ways.
 
-<b> 1. Impact on Source Selection / Compilation: </b>
-\par
+\~Comment ####################################################################################### \~
+### 2.3.1 Impact on Source Selection / Compilation ### {#alib_manual_modules_impact_sources}
+
 The selection of \alib library source code to compile (either to a dedicated library file or directly
 into a custom software unit) depends on the permutation of selected modules.
 Now, as the modules have dependencies, all sources of all dependent modules have to be
 (recursively) selected.
 
-\par
 \alib comes with a set of \e CMake scripts that perform such selection. Even if \e CMake is not used
 for the daily build process, the scripts may be used once to select the source and header files
 needed to feed them into the build system in place.
 
-\par
 All details about the build process are given in section \ref alib_manual_build "4. Building The Library".
 
-<b> 2. Impact on Header File Inclusion and Code Selection: </b>
-\par
+\~Comment ####################################################################################### \~
+### 2.3.2 Impact on Header File Inclusion and Code Selection ### {#alib_manual_modules_impact_codeselection}
+
 ALib header files are designed to be always includable, without the precondition to include other
 files before. For example, to work with type \alib{strings,TAString,AString}, it is enough
 to state
 
         #include "alib/strings/astring.hpp"
 
-\par
 at the top of the compilation unit in question. Through the recursive header inclusion, the very
 first header that is processed is always:
 
-\par
-&nbsp;&nbsp;&nbsp;&nbsp;<b>alib/lib/predef_modules.hpp</b>
+&nbsp;&nbsp;&nbsp;&nbsp;\alibheader{lib/modules.hpp}
 
-\par
-This header reads eventually given \ref GrpALibCompilerSymbols "compiler symbols" that define
-required modules and resolves all dependencies of those.
-For each module, a \ref GrpALibCodeSelectorSymbols "code selector symbol" (aka preprocessor
-definition) is set to either \c 0 or \c 1.
+This header analyzes the given set of \ref GrpALibPreproSymbols "compiler symbols" which
+define the modules included in a distribution. These symbols are:
 
-\par
-These symbols are
-- \ref ALIB_MODULE_ALOX
-- \ref ALIB_MODULE_BOXING
+- \ref ALIB_ALOX
+- \ref ALIB_BOXING
 - ...
 - ...
-- \ref ALIB_MODULE_TIME
+- \ref ALIB_TIME
 
-\par
-The inclusion of header files of modules which are not part of the \alibdist will lead to
-a compilation error (even if they existed in the source tree).
+Each symbol that is not given will be defined as either \c 0 or \c 1, by resolving all dependencies
+of those symbols given.
 
-<b> 3. Impact on Bootstrapping: </b>
+\~Comment ####################################################################################### \~
+### 2.3.3 Impact on Bootstrapping ### {#alib_manual_modules_impact_bootstrapping}
 
-\par
 Selected modules have to be initialized in the right order. "Most independent" have to be
 initialized first, dependent modules afterwards.
 All information about bootstrapping the library is provided later in this manual, namely
 in chapter \ref alib_manual_bootstrapping "3. Bootstrapping ALib".
+
+\~Comment ####################################################################################### \~
+### 2.3.4 Single Threaded Library Compilation ### {#alib_manual_modules_impact_singlethreaded}
+Excluding module \alib_threads from an \alibdist_nl has the special effect of
+compiling \alib for single-threaded execution. Due to the fact that \alib uses class
+\alib{threads,ThreadLock} and sibling types from this module for all its <em>"mutex locks"</em>,
+leaving out this module removes just all concurrency protection from <b>every remaining module</b>!
+
+The advantage of this approach lies of course in performance and code size of single-threaded
+compilations, because setting a mutex is a redundant action there. It is important to understand that
+module \alib_threads_nl is <b>mandatory</b> if concurrent access to library functions
+is performed.
+
+In debug-compilations of the library, if module \alib_threads_nl is omitted, single-threaded
+use is therefore asserted: An \alib assertion is raised when multi-threading is detected.
+
+To detect multi-threading in debug-code, the underlying threading library (e.g. "pthreads" on
+GNU/Linux) has to be provided with the build. For this reason, the default <b>CMake</b>-script,
+which is described in later sections, does \b not depend on the inclusion of module
+\alib_threads_nl, but just \b always searches the target system's thread library.
+If found, symbol \ref ALIB_EXT_LIB_THREADS_AVAILABLE is passed to the C++ compiler.
+
+The way to prevent searching and adding a thread library is by setting special <b>CMake</b> cached
+variable \ref alib_manual_build_cmake_3 "LIB_CMAKE_SKIP_THREAD_LIB_SEARCH" to \c true.
+
+In general it could be said:
+\attention
+   It is highly recommended to include module \alib_threads in an \alibdist_nl.
+
+...unless a user knows exactly what she is doing!
+
 
 
 \~Comment ####################################################################################### \~
@@ -298,38 +411,39 @@ the modules. This means, that files belonging to a set have to be included in th
 if one or more of the selected module depend on the corresponding file-set.
 
 The same that was explained in the previous section about modules is true for the file-sets:
-The \e CMake scripts as well as header file <c>predef_modules.hpp</c> are identifying the necessary
+The \e CMake scripts as well as header file \alibheader{lib/modules.hpp} are identifying the necessary
 file-sets from the list of modules included.
 
-The following  \ref GrpALibCodeSelectorSymbols "code selector symbols" represent the file-sets
+The following  \ref GrpALibPreproSymbols represent the file-sets
 defined and are set to either \c 0 or \c 1:
 
-- \ref ALIB_FILESET_PREDEF_PF
-- \ref ALIB_FILESET_PREDEF_TMP
-- \ref ALIB_FILESET_TYPEMAP
 - \ref ALIB_FILESET_INTEGERS
 - \ref ALIB_FILESET_DEBUG
 - \ref ALIB_FILESET_OWNER
 - \ref ALIB_FILESET_COMMON_ENUMS
 - \ref ALIB_FILESET_MODULES
+- \ref ALIB_FILESET_LISTS
 - \ref ALIB_FILESET_PLUGINS
 
-These symbols are rather used internally and no further specification is provided with this
-manual. If necessary, the following information can be collected from the sources:
+These symbols must not be passed to the compiler as an option, but are internally deduced from
+the set of included modules.
+
+While no further documentation is given, if required, the following information can be collected
+from the sources:
 - Dependencies:<br>
-  Header file <c>predef_modules.hpp</c> as well as \e CMake script <c>ALibModules.cmake</c>
+  Header file \alibheader{lib/modules.hpp} as well as \e CMake script <c>ALibModules.cmake</c>
   contain the dependency relationship of modules and file-sets.
 - Sources of Modules and File-Sets:<br>
   The source files that belong to each file-set are defined with \e CMake script
   <c>ALibSources.cmake</c>.
 
 An important file-set is <c>"Modules"</c>. This incorporates library types \alib{Module} and
-\alib{ALibModules}. It is included in the moment any of the
+\alib{ALibDistribution}. It is included in the moment any of the
 \ref alib_manual_modules_dependency_graph "full modules" is included in the \alibdist.
 
 \~Comment ####################################################################################### \~
 ## 2.5  The Term "ALib Distribution" ## {#alib_manual_modules_dist}
-Within this manual, the distinct manuals of \alibmods_nolink and within the reference documentation,
+Within this manual, the distinct manuals of \alibmods_nl and within the reference documentation,
 the term "ALib Distribution" is frequently used. The term addresses the permutation of modules
 that have been selected from the overall set of modules, at the time of compiling the library.
 It might be in a user's interest to reduce \alib to a subset of its functionality and this way
@@ -339,35 +453,57 @@ The omission of single modules might have "side effects" on other modules, in th
 while they are still compilable, certain features might be dropped. If this is the case,
 such dropping is always documented with the feature (function, type, method, member, etc.).
 
-As a sample, \alibmod_expressions can be compiled with the absence of module \alibmod_config,
+As a sample, \alib_expressions can be compiled with the absence of module \alib_config,
 however in this case, functionality for loading and automatically compiling nested expression
 strings defined in INI-files, command-line arguments, etc. is dropped.
 
+\~Comment ####################################################################################### \~
+## 2.6  Special Treatment For Modules ALox And Threads ## {#alib_manual_modules_special_alox}
+A special treatment is granted to module \alib_alox, by having header file \alibheader{alox.hpp}
+always included in any \alibdist. For this reason, the file is placed outside of
+directory \alibsrcdir{alox}, and instead right inside the source's root folder \alibsrcdir.
+
+This allows a user to place \alox log statements in a compilation unit without the need of testing
+preprocessor symbol \ref ALIB_ALOX or the use of macros \ref ALIB_IF_ALOX and \ref ALIB_IFN_ALOX,
+in the case that her sources should be ready to compile likewise in an \alibdist_nl that does
+not include \alox.
+
+Similar to this, macros \ref ALIB_LOCK and \ref ALIB_LOCK_WITH remain available in the absence
+of module \alib_threads, as already discussed in previous section
+\ref alib_manual_modules_impact_singlethreaded.
 
 \~Comment ####################################################################################### \~
 \~Comment ###  3.  Bootstrapping ALib                                                             \~
 \~Comment ####################################################################################### \~
-# 3. Bootstrapping ALib # {#alib_manual_bootstrapping}
+# 3. Bootstrapping And Shutting Down ALib # {#alib_manual_bootstrapping}
 
 The term "bootstrapping" means the one-time initialization of the library that is to be performed
 in an early stage of a software process.
-The counterpart of bootstrapping is the "termination" of the library. Usually the termination
-is rather simple and in the case that only memory is freed, it is not needed to be performed at
-all, because modern operating systems care for that themselves.
+The counterpart of bootstrapping is "shutting down" the library.
 
-Standard bootstrapping of \alib is performed by invoking method \alib{Module::Init} on the singleton
-instance of class \alib{ALibModules}.
-Such invocation usually is performed as one of the first actions in method \c main.
+Standard bootstrapping and shutdown of \alib is performed by invoking methods
+\alib{Module::Bootstrap}, respectively \alib{Module::Shutdown} on the singleton
+instance \ref aworx::ALIB of class \alib{ALibDistribution}.
+Such invocation usually is performed as one of the first and last actions in method \c main.
 In source code, this simply looks like this:
+
+        #include "alib/distribution.hpp"
 
         int main( int argc, const char **argv )
         {
-            aworx::ALIB.Init(argc, argv);
+            aworx::ALIB.Bootstrap(argc, argv);
             ...
+            ...
+            ...
+            aworx::ALIB.Shutdown();
 
-The following chapters explain the details behind this invocation, provide recipes to customize
-certain aspects of the bootstrapping process and explain how the bootstrapping mechanics of \alib
-can be leveraged in custom code.
+            return 0;
+        }
+
+
+The following chapters explain the details behind these invocations, provide recipes to customize
+certain aspects of the process and explain how  - optionally - the provided mechanics can be
+leveraged for the bootstrapping and shutdown of custom code entities likewise.
 
 \~Comment ####################################################################################### \~
 ## 3.1 Weak Support For Bootstrapping In C++ ## {#alib_manual_bootstrapping_cpp}
@@ -401,105 +537,57 @@ before the data is used.
 
 <b>3. Module Dependencies:</b><br>
 
-Finally, the dependencies between the modules have to be respected: As mentioned already,
-dependent modules have to be initialized first.
+\par
+The dependencies between the modules have to be respected during initializations.
+As mentioned already, dependent modules have to be initialized first.
+
+<b>4. Multi-Threaded Access:</b><br>
+
+\par
+Multi-Threaded software has to take preparations to avoid undefined behavior due to thread-racing
+conditions while accessing "shared resources", which is often simply shared memory.
+Such preparation involves a performance penalty.
+In the case that all modifications of the memory that is to be protected can be aggregated to
+a one-time initialization action during bootstrap, such precaution could be omitted if
+bootstrapping guaranteed a period of single threaded access.
+
 
 \~Comment ####################################################################################### \~
 ## 3.2 Class Module ## {#alib_manual_bootstrapping_class_module}
 
-\alib supports the management of (string) resources with module \alibmod_resources. Looking
+\alib supports the management of (string) resources with module \alib_resources. Looking
 at the \ref alib_manual_modules_dependency_graph "module dependency graph" above, it can be
-observed that each module that is directly or indirectly dependent on \alibmod_nolink_resources
+observed that each module that is directly or indirectly dependent on \alib_resources_nl
 (which means the module is using resources) is colored in dark blue and was named a "full module".
 
-The reason is, that as soon as a module is either using resources or configuration data, a
+The reason for this is, that as soon as a module is either using resources or configuration data, a
 singleton type derived from class \alib{Module} will be added to the module's codebase.
-For example, the singleton type of module \alibmod_expressions is class \alib{expressions,Expressions}
-and the one of module \alibmod_cli is class \alib{cli,Cli}.
+For example, the singleton type of module \alib_expressions is class \alib{expressions,Expressions}
+and the one of module \alib_cli is class \alib{cli,Cli}.<br>
+As modules may (and usually do) share resources and configuration data, the class implements data
+members \alib{resources,ResourcePool} and \alib{config,Configuration} as pointers.
+
+\~Comment ####################################################################################### \~
+### 3.2.1 Singletons ### {#alib_manual_bootstrapping_class_module_singletons}
 
 Class \b %Module is one of the few types in \alib that is not part of a specific module,
 and as such it is placed in the root namespace of the library, #aworx::lib.<br>
-The class has the following data members:
 
-- A pointer to a \alib{resources,Resources} instance.
-- A pointer to a \alib{config,Configuration} instance.
-  (Only in the case that \alibmod_config is part of the \alibdist.)
-- An ordered list of dependent modules.
-
-Derived types need to implement two protected, \b abstract methods:
-- \alib{Module::init} and
-- \alib{Module::terminationCleanUp}.
-
-While the latter is invoked only once, the initialization is done in three phases defined with
-enumeration \alib{Module::InitLevels}. The implementations of abstract methods \alib{Module,init}
-need to switch upon the levels and perform different tasks:
-
-- \aworx{lib,Module::InitLevels::PrepareResources}<br>
-  In this phase is is assured that all static objects of C++ got initialized (because
-  bootstrapping is called directly or indirectly from C++ <c>main()</c> function).<br>
-  A module that uses \alib{resources,Resources,resources} needs to add default values of such
-  in this phase to the object found in field \alib{Module::Resources}.
-  This may be done either "hard coded" or for example by using a third party resource facility.
-- \aworx{lib,Module::InitLevels::PrepareConfig}<br>
-  In this phase, resources that are <b>not lazily loadable</b> need to be loaded here explicitly.
-  Samples of lazily loadable resources are:
-  - \alib{resources,ResourceString}
-  - Resourced \alib{resources,T_EnumMetaDataDecl,ALib enum meta data} (when using the built-in
-    implementation)
-  - Resourced \alib \ref ALIB_CONFIG_VARIABLES "configuration variable declarations".
-  - Resourced \alib \ref ALIB_EXCEPTIONS "exceptions".
-- \aworx{lib,Module::InitLevels::Final}<br>
-  In this phase, final initialization steps may be performed. Especially notable is, that
-  configuration variables are (only) available now.
-
-
-The rational for having the phases is that each phase will be initialized for all modules, before
-the subsequent phase is initialized.
-The loop over the phases and its inner recursive calls to the list of dependent modules is
-triggered with interface method \alib{Module::Init}.
-(Note the capital ’I', this is not the abstract \b %init() method mentioned above.)
-
-For default initialization this is almost all we need to know. The remaining question is: Which are
-the "topmost" modules in the dependency hierarchy, that method \b Init needs to be invoked on,
-so that all modules become finally initialized through the recursion?
-
-
-\~Comment ####################################################################################### \~
-## 3.3 Class ALibModules ## {#alib_manual_bootstrapping_class_alibmodules}
-
-The question that the previous section ended with can only be answered with a look at the
-\ref alib_manual_modules_dependency_graph "module dependency graph". At the time of writing
-this documentation, if all modules were included in the \alibdist, there are three independent
-"top level" modules that needed initialization: \b %Expressions, \b %CLI and \b %ALox.
-For each of the three, method \b Init (capital 'I') needs to be invoked. The then duplicate
-resulting invocation of \b init (small letter 'i') is ignored.
-
-The need to have this knowledge (that 3 modules need to be initialized), is not burdened
-on the user of the library. Instead, special module class \alib{ALibModules} (also derived derived
-from class \alib{Module}) is used. It does not represent a specific module, but - as its
-name suggests - it represents the collection of \alib modules.
-The class collects all necessary \alib modules as dependencies (respecting the permutation
-of \alibmods_nolink included in the \alibdist) and this way acts as the ultimate singleton module
-instance that is to be initialized.
-
-\~Comment ####################################################################################### \~
-## 3.4 Module Singletons ## {#alib_manual_bootstrapping_class_modsingletons}
-
-The different classes derived from class \b Module are "strict singleton" types, which means
+The different types derived from class \b Module are "strict singleton" types, which means
 that only one object must be created. These singleton objects are collected in namespace
-#aworx::lib:
+#aworx::lib with global instances:
 - aworx::lib::ALOX
 - aworx::lib::CLI
 - aworx::lib::CONFIG
 - aworx::lib::EXPRESSIONS
 - aworx::lib::RESULTS
-- aworx::lib::STRINGFORMAT
+- aworx::lib::TEXT
 - aworx::lib::SYSTEM
 
 \note
-  As explained previously, the other \alibmods_nolink
-  \ref alib_manual_modules_dependencies_mandatory "available in the library", do not use
-  resources or configuration data and hence no module singleton exists.
+  As explained previously,
+  \ref alib_manual_modules_dependencies_mandatory "\"micro modules\" available in the library",
+  do not use resources or configuration data and hence no module singleton exists.
 
 \note
   Further note, that the derived modules do not implement the typical "singleton design pattern"
@@ -507,13 +595,126 @@ that only one object must be created. These singleton objects are collected in n
   \c private and provide a getter method that returns a local static instance.<br>
   Instead the constructor raises a run-time exception in debug-compilations, if an object was
   created that is not the singleton found in namespace #aworx::lib.<br>
-  To take this approach is purely design decision, rationalized by the
-  \ref alib_manual_appendix_bauhaus "Bauhaus Code Style" of the library. With it, all
-  module instances are "nicely sitting next to each other" in namespace #aworx::lib.
+  To take this approach is purely a design decision, With it, all module instances are
+  nicely "sitting next to each other" in namespace #aworx::lib.
 
-The special module class \alib{ALibModules}, is residing in namespace \b aworx, with variable
+Special module class \alib{ALibDistribution}, that is discussed later, is residing in namespace
+\b aworx and is given with global instance
 
 - aworx::ALIB
+
+
+\~Comment ####################################################################################### \~
+### 3.2.2 Bootstrapping And Shutdown Interface ### {#alib_manual_bootstrapping_class_module_bootstrapping}
+
+For bootstrapping and shutdown, derived types need to implement two protected, \b abstract methods:
+- \alib{Module::bootstrap} and
+- \alib{Module::shutdown}.
+
+Both methods are invoked more than once: Bootstrapping is done in <b>three phases</b>, defined by
+enumeration \alib{Module::BootstrapPhases} and shutdown is done in <b>two phases</b>, defined by
+enumeration \alib{Module::ShutdownPhases}.
+The implementations of the methods need to switch upon the given levels and perform different tasks.
+
+Each phase will be finished for all modules, before a subsequent phase is initiated.
+The loop over the phases and its inner loop over the list of modules is implemented with interface
+method \alib{Module::Bootstrap}, respectively \alib{Module::Shutdown}.
+\note Mind the capital ’I' and 'S'' of both methods, in contrast to lower case names of previously
+      mentioned protected, abstract virtual methods \b bootstrap and \b shutdown.
+
+\~Comment ####################################################################################### \~
+#### 3.2.2.1 Bootstrap Phases #### {#alib_manual_bootstrapping_class_module_bootstrapping_bs}
+
+With \alib{Module::Bootstrap}, an outer loop over all phases is initiated. An inner loop iterates
+over all modules, in order of their "dependency level". For each combination of phase and
+module, virtual method \alib{Module::bootstrap} is called. This assures that for each phase,
+"low level modules" are initialized first and those of "higher level" are initialized next.
+
+The three phases are defined as follows:
+
+1. \aworx{lib::Module,BootstrapPhases::PrepareResources}<br>
+   All initialization actions that exclusively involve static data, is deemed to be performed
+   in this phase. For example, the \alib{boxing,BootstrapRegister,registration} of
+   \ref alib_boxing_functions "box-functions" is to be done in this phase.
+
+   The phase received its name from the fact that the  \alib{resources,ResourcePool} is already
+   available and a module is supposed to to feed its static default resource strings to the instance
+   retrieved with \alib{Module::GetResourcePool}.
+
+   More on this topic will be explained in a later chapter.<br>
+
+
+2. \aworx{lib::Module,BootstrapPhases::PrepareConfig}<br>
+   In this phase, the configuration object is available and receivable with \alib{Module::GetConfig}.
+   It may now be extended with plug-ins, but <b>access to configuration variables is not allowed yet!</b> <br>
+   For most modules there is not much to do in this phase.<br>
+   One important action usually placed here is to initialize static
+   \ref alib_enums_records "ALib Enum Records". If - as it is recommended -
+   \ref alib_enums_records_resourced "record definitions are given using externalized strings",
+   then this is definitely the right place to invoke \alib{enums,EnumRecords::Bootstrap} for each
+   enumeration in question.
+   \note
+     While the enumeration records are static data and could also be initialized in the first
+     phase, after the definition of resources, placing it in this phase allows modules of higher
+     dependency levels to modify (patch!) the resources of a lower level module  - prior to their use.
+
+   <br>
+
+3. \aworx{lib::Module,BootstrapPhases::Final}<br>
+   In this phase, final initialization steps may be performed.<br>
+   Only in this phase the <b>start of threads is allowed (!)</b>, as any mandatory \alib initializations which
+   are not protected against racing conditions are deemed to be performed in the previous phases.<br>
+   Furthermore, access to configuration variables is allowed in this phase.
+
+
+\~Comment ####################################################################################### \~
+#### 3.2.2.2 Shutdown Phases #### {#alib_manual_bootstrapping_class_module_bootstrapping_sd}
+
+With \alib{Module::Shutdown}, an outer loop over the two shutdown phases is initiated.
+Again, an inner loop iterates over all modules, but this time in \b reverse order of their
+"dependency level". For each combination of phase and module, virtual method \alib{Module::shutdown}
+is called. This assures that for each phase, "high level modules" are shut down first and those of
+"lower level" are shutdown later.
+
+The two phases are defined as follows:
+
+1. \aworx{lib::Module,ShutdownPhases::Announce}<br>
+   Within this phase, a module can rely on the full stability of a software and all modules.
+   Only actions might be taken that do not result in defects if features of a module are still
+   used. Typical samples of actions to perform with this phase are writing out configuration data or
+   making an application's state  persistent, to be able to restore it with a next run of a
+   software.
+   <br><br>
+
+2. \aworx{lib::Module,ShutdownPhases::Destruct}<br>
+   This is the "true" shutdown phase. After the phase a module is obligated to have freed all
+   it's resources and is allowed to be dysfunctional afterwards.
+
+
+
+\~Comment ####################################################################################### \~
+## 3.3 Class ALibDistribution ## {#alib_manual_bootstrapping_class_alibdistribution}
+
+For default bootstrapping and shutdown, this is almost all we need to know. The remaining question is:
+Where is the list of modules (used for the inner loops of \b Bootstrap and \b Shutdown) defined
+and what exactly does "higher and lower level" module mean?
+The latter was answered already in chapter \ref alib_manual_modules_dependencies_mandatory.
+Looking at the graph presented in this chapter, lower level modules are \b Text and
+\b Results, while higher level modules are for example \b Expressions, \b ALox or \b CLI.
+
+Besides this schematic, the list depends on the availability of the modules, which is defined by
+the \alibdist and it's permutation of selected modules.
+
+Class \alib{ALibDistribution}, which is itself derived from class \alib{Module}, provides the
+the list with its field \alib{ALibDistribution,Modules}.
+Method \alib{ALibDistribution,BootstrapFillDefaultModuleList} fills the list in the right order,
+respecting the dependency hierarchy and permutation of modules of the \alibdist_nl.
+
+Now, if method \b Module::Bootstrap is invoked without filling the list
+(as shown in the introductory section of this chapter), then the method will detect this and will
+use \b BootstrapFillDefaultModuleList to do this now.
+
+In later sections of this manual, options for modifying these defaults will be demonstrated.
 
 
 \~Comment ####################################################################################### \~
@@ -521,149 +722,183 @@ The special module class \alib{ALibModules}, is residing in namespace \b aworx, 
 With the knowledge taken from the previous sections, it is now easily understood what was said
 in the introductory chapter:
 \par
-    <em>Standard bootstrapping of \alib is performed by invoking method \alib{Module::Init} on the
-    singleton instance of class \alib{ALibModules}.</em>
+    <em>Standard bootstrapping of \alib is performed by invoking method \alib{Module::Bootstrap}
+    on the singleton instance \ref aworx::ALIB of class \alib{ALibDistribution}.</em>
 
-Consequently the simple version of bootstrapping looks like this::
+Consequently the simple version of bootstrapping was given like this:
 
         int main( int argc, const char **argv )
         {
-            aworx::ALIB.Init(argc, argv);
+            aworx::ALIB.Bootstrap(argc, argv);
+            ...
             ...
 
 
-This standard invocation of method \alib{Module::Init} defaults method argument \p{level} to
-\alib{Module,InitLevels::Final}. As explained, this way internally the method loops over all initialization
-levels. Within the loop, abstract method \alib{Module::init} is recursively called with all dependent
-modules.
+This standard invocation of method \alib{Module::Bootstrap} defaults method argument \p{targetPhase} to
+\alib{Module,BootstrapPhases::Final}. The loop iterating the phases, starts with the first phase
+that the module has \b not been bootstrapped with, yet, and ends with the given \p{targetPhase}.
+With that, all phases are executed in above sample.
 
-What was not discussed, yet is when the instances of \alib{resources,Resources} and \alib{config,Configuration}
-are created and how the corresponding pointer memberss \alib{Module::Resources} and \alib{Module::Config}
+
+What was not discussed, yet is when the instances of \alib{resources,ResourcePool} and \alib{config,Configuration}
+are created and how the corresponding pointer members \alib{Module::resourcePool} and \alib{Module::config}
 are set. This is how this is done:
 
-- An instance of class \alib{resources,Resources} is created prior to the recursive calls
-  to \alib{Module::init} with the first level \alib{Module,InitLevels::PrepareResources}.
-  This instance is distributed to the dependent modules along with the recursion.
-- An instance of class \alib{config,Configuration} is created \b after the recursive calls
-  to \alib{Module::init} with the second level \alib{Module,InitLevels::PrepareConfig}.
-  This instance is distributed to the dependent modules along with the recursion of the
-  final level \alib{Module,InitLevels::Final}.
+- An instance of class \alib{resources,ResourcePool} is created prior executing the first
+  phase \alib{Module::BootstrapPhases,PrepareResources} and is distributed amoung the modules.<br>
+  The distribution is performed in reverse order, starting with the module that \b Bootstrap was
+  invoked on (usually #aworx::ALIB) and from there to the lower level modules.
 
-Note the obvious fact, that the recursion of calling method \alib{Module,init} stops when a
-dependent module had been initialized already. Along with that, also the distribution and sharing
-of the objects stop! This can be used to customize the bootstrapping as described in the following
+- The same is done with a new instance of class \alib{config,Configuration}, but prior to
+  executing second phase \alib{Module::BootstrapPhases,PrepareConfig}.
+
+
+The following schematic summarizes this:
+
+  - Outer loop: Phase PrepareResources
+    - Creation of a resource pool.
+    - 1st inner loop: Distribution to lower level modules in reverse, descending order.
+    - 2nd inner loop: Invocation of <em>bootstrap( PrepareResources )</em> on all dependent modules, in ascending order.
+  - Outer loop: Phase PrepareConfig
+    - Creation of configuration instance.
+    - 1st inner loop: Distribution to lower level modules in reverse, descending order.
+    - 2nd inner loop: Invocation of <em>bootstrap( PrepareConfig )</em> on all dependent modules, in ascending order.
+  - Outer loop: Phase Final
+    - Invocation of <em>bootstrap( Final )</em> on all dependent, in ascending order.
+
+With this information the standard process of bootstrapping is well defined. The following
+chapters introduce different ways to customize bootstrapping.
+
+\~Comment ####################################################################################### \~
+## 3.5 Customizing The Bootstrap Process ## {#alib_manual_bootstrapping_customize}
+
+\~Comment ####################################################################################### \~
+### 3.5.1 Using Custom Resources and/or Configuration Plug-ins ### {#alib_manual_bootstrapping_customize_resconf}
+
+The default implementation of class \alib{resources,ResourcePool} used with non-customized
+bootstrapping is of type  \alib{resources,LocalResourcePool} and this does \b not externalize
+the resource strings. To use either alternative, built-in type \alib{resources,ConfigResourcePool}
+or a custom implementation of the interface that attaches to a 3rd-party "resource pool backend",
+all that needs to be done is to create such instance and pass it to method
+\alib{Module,BootstrapSetResourcePool}.<br>
+This has to be done \b prior to the first invocation of \alib{Module,Bootstrap}.
+
+As documented with class \alib{config,Configuration}, the type allows to be equipped with custom
+mechanics for loading external data. To do so, the bootstrapping process has to be interrupted
+after the configuration is internally created. This is done by explicitly specifying
+\alib{Module,BootstrapPhases::PrepareConfig} with method \b Bootstrap.
+
+Now, the configuration can be accessed with \alib{Module::GetConfig} and
+is manipulated as wanted. When done, bootstrapping is finalized by invoking \b Bootstrap a
+second time with argument \alib{Module,BootstrapPhases::Final}.
+
+The schematic that shows both approaches at once, then looks as follows:
+- Create instance \b myResources
+- Invoke \b BootstrapSetResourcePool(myResources)
+- Invoke \b Bootstrap(PrepareConfig)
+- Modify configuration object received with \b GetConfig.
+- Invoke \b Bootstrap(Final)
+
+
+\~Comment ####################################################################################### \~
+### 3.5.2 Bootstrapping Custom Modules ### {#alib_manual_bootstrapping_custommods}
+As explained in previous chapter \ref alib_manual_bootstrapping_cpp, the reason why bootstrapping
+\alib is a non-trivial task, does not lie in specifics of this library, but in a general lack of
+support for bootstrapping in the C++ language. Any more complex software needs to solve this
+task.
+
+Consequently, it might be a reasonable decision, to adopt what this library offers and use the this
+concept and the mechanics to bootstrap custom code units likewise.
+
+Doing this is rather simple. The steps are:
+1. Create one or more custom types derived from class \alib{Module}
+2. In the <c>main()</c> function, invoke \alib{ALibDistribution::BootstrapFillDefaultModuleList}
+   on singleton #aworx::ALIB
+3. Afterwards, use method \alib{monomem,List::PushBack} to add the static instance(s) of the custom
+   module type(s) to field \alib{ALibDistribution::Module} of singleton #aworx::ALIB.
+4. Perform bootstrapping.
+
+For the last point it does not matter if method \alib{Module::Bootstrap} is invoked on
+singleton #aworx::ALIB or the custom module instance. The result is the same.
+
+When a software chooses to hook itself into the bootstrap mechanism of \alib as shown above,
+the resources and configuration data (including for example INI-files) would be shared
+and contain both, data of \alib and custom data.<br>
+
+Often, this is not a desired scenario, because:
+- A software does not want to bother an end-user with the rather technical resources and
+  configuration variables provided by \alib. Cluttering custom data with \alib data should be avoided
+- A software might want to disallow an end-user to modify configuration data and/or resources
+  of \alib.
+- etc.
+
+How these goals can be reached is explained in the next section.
+
+\~Comment ####################################################################################### \~
+### 3.5.3 Using Multiple Resources and/or Configuration Instances ### {#alib_manual_bootstrapping_customize_non_shared}
+
+With the bootstrap process described so far, one instance of a resource pool and
+one instance of class \b Configuration is shared with all modules.
+
+Sometimes, especially if custom modules become integrated into the bootstrap process of \alib,
+it is wanted that different sets of modules share different instances of these objects, to
+separate the data and maybe even to use different types of resource pools and configuration plug-ins.
+
+To do so,  methods
+- \alib{Module,BootstrapSetResourcePool} and/or
+- \alib{Module,BootstrapSetConfig}
+
+may be called on arbitrary modules, \b prior to starting bootstrapping.
+
+An object set this way will not be overwritten when the corresponding bootstrap phase distributes
+instances from higher- to lower-level modules. Moreover, if the algorithm finds an object already
+set, then the distribution loop continues with this object!
+
+This allows a rather natural way to separate all modules into logical sets that share one
+resource pool and/or configuration.
+
+In the case that all built-in \alib modules should use one instance and all custom modules
+a different one, then the setter methods above have to be invoked simply on singleton #aworx::ALIB.
+
+\~Comment ####################################################################################### \~
+### 3.5.4 Separating Bootstrap Phases ### {#alib_manual_bootstrapping_customize_separated}
+The fact that method \alib{Module::Bootstrap} is allowed to be called directly on lower level modules
+(those that are not the last of list \alib{ALibDistribution::Modules}), allows to to bootstrap
+lower-level modules separated from bootstrapping corresponding higher-level ones.
+
+
+Like in previous section, such approach might be needed in case that custom modules are integrated
+into the \alib bootstrap process.
+
+Let's consider the following sample:
+1. Custom module \b MyApp is  derived from class \alib{Module}
+2. In the <c>main()</c> function, \alib{ALibDistribution::BootstrapFillDefaultModuleList} is invoked
+   on singleton #aworx::ALIB
+3. The singleton of \b MyApp is added to the end of list \alib{ALibDistribution::Module}
+4. Bootstrapping is fully performed on singleton #aworx::ALIB.
+5. Bootstrapping is fully performed on singleton \b MyApp
+
+The consequences from this approach are:
+- Like in the previous chapter, the set of \alib modules share a different resource pool and
+  configuration object than \b MyApp.
+- During the bootstrapping of \b MyApp, built-in \alib modules fully bootstrapped and functional.
+
+Of course, this approach can be mixed with the other variants of customization discussed in previous
 sections.
 
-\~Comment ####################################################################################### \~
-## 3.5 Custom Resources and/or Configuration Plug-ins## {#alib_manual_bootstrapping_customize_resconf}
-
-As documented with classes \alib{resources,Resources} and \alib{config,Configuration}, both types
-allow to be equipped with custom mechanics for loading external data. To do so, the bootstrapping
-of \alib need to be explicitly invoked for separated phases, by providing otherwise
-defaulted parameter \p{level} of method \alib{Module,Init} as follows:
-- <b>To create object \alib{Module,Resources} and fill it with default values:</b><br>
-   - \alib{Module::Init} needs to be called with \alib{Module,InitLevels::PrepareResources}.
-   - After that, object \b %Resources may be equipped with custom resource loading mechanics.
-   - Now, \alib{Module,Init} needs to be called again, e.g. with default value of
-     \alib{Module,InitLevels::Final}
-
-- <b>To add custom configuration plug-ins:</b><br>
-   - \alib{Module,Init} needs to be called with p \alib{Module,InitLevels::PrepareConfig}.
-   - After that, object \alib{Module,Config} may be equipped with a custom plug-in, e.g. of type
-     \alib{config,IniFile}. (Note that at this moment, the configuration object is not spread
-     to dependent modules, yet. Hence, it can only be addressed through field
-     \alib{Module,Config} of that module that method \alib{Module,Init} was invoked on.)
-   - Now, \alib{Module,Init} needs to be called again with \p{phases} set to
-     \alib{Module,InitLevels::Final}
-
-Of-course, both approaches can be mixed. In this case, the following order has to be adhered:
-- Initialize with \alib{Module,InitLevels::PrepareResources}
-- Customize object \alib{Module,Resources}
-- Initialize with \alib{Module,InitLevels::PrepareConfig}
-- Customize object \alib{Module,Config}
-- Initialize with \alib{Module,InitLevels::Final}
 
 
 \~Comment ####################################################################################### \~
-## 3.6 Using Different Resources and/or Configuration Instances ## {#alib_manual_bootstrapping_different_resconf}
+### 3.5.5 Customization Of Shutdown ### {#alib_manual_bootstrapping_custom_shutdown}
+Customization of shutting down \alib should be a seldom need and works the same in principle.
+Method \alib{Module::Shutdown} has defaulted parameter \p{targetPhase} and if specified to
+\alib{Module::ShutdownPhases,Announce} then only the first phase is performed and custom
+actions might be taken prior to invoking phase \alib{Module::ShutdownPhases,Destruct}.
 
-As explained above, method \alib{Module::Init} creates corresponding class instances for fields
-\alib{Module::Resources} and \alib{Module::Config} and passes them recursively to dependent
-modules. Now, if different instances of these objects should be used with different
-modules, the approach is to call method \alib{Module,Init} explicitly for different modules.
-Here, "lower level" modules need to be initialized first, higher level next, as otherwise the
-higher level modules would already initialize the lower ones (and spread the objects).
-
-The goal of doing so is to separate resources and configuration variables of different modules
-in different external configuration files, databases or whatsoever.
-
-To get a better understanding lets look at a sample. Requirements should be:
-- An application <b>"MyApp"</b> uses \alibmod_alox, which is registered as a dependency module
-  of singleton \alib{ALibModules}.
-- The application uses \alib module mechanics. (Let's consider class \b MyApp to be a singleton
-  of a custom type derived from class  \alib{Module}.)
-- The application uses class \alib{config,IniFile} to load custom \alib{config,Variable} objects.
-- The application wants to store \alib variables in separated files, just to
-  remove "clutter" from its main configuration file and document the use of the \alib/\alox
-  specific variables nicely separated from the main configuration file's documentation.
-
-What has to be done is:
-- Initialize \alib{ALibModules} with level \alib{Module,InitLevels::PrepareConfig}
-- Add a custom configuration plug-in (e.g \alib{config,IniFile}) to singleton
-  \alib{ALibModules}.
-- Initialize \alib{ALibModules} with level \alib{Module,InitLevels::Final}
-
-Now all modules included in the \alibdist are initialized and all share the same configuration
-and resource objects.
-
-- Then do the same with the application specific module singleton and provide a different
-  custom plug-in to it's configuration.
-
-With this approach, both objects resources and configuration are separated.
-If just the configuration should be separated, the steps to be done are:
-- Make module singleton \alib{ALibModules} a dependency module of <b>MyApp</b>.
-  (This is only an optional step in the previous to do list.)
-- Initialize <b>MyApp</b> with level
-  \aworx{lib,Module::InitLevels::PrepareResources,InitLevels::PrepareResources}.<br>
-  (Now all modules, including the custom one share the same resources.)
-- Initialize \alib{ALibModules} with level \alib{Module,InitLevels::PrepareConfig}
-  (Now all built-in modules share the same configuration object)
-- Add custom configuration plug-in (e.g \alib{config,IniFile}) to field \alib{Module,Config }
-  of singleton \alib{ALibModules}.
-- Initialize \alib{ALibModules} with level \alib{Module,InitLevels::Final}
-- Initialize <b>MyApp</b> with level \alib{Module,InitLevels::PrepareConfig}<br>
-  (Now module <b>MyApp</b> disposes about an own, dedicated configuration object.)
-- Add custom configuration plug-in (e.g \alib{config,IniFile}) to field \alib{Module,Config }
-  of singleton <b>MyApp</b>
-- Initialize <b>MyApp</b> with level \alib{Module,InitLevels::Final}
 
 \~Comment ####################################################################################### \~
-## 3.7 Custom Modules ## {#alib_manual_bootstrapping_custommods}
-As seen in the previous section, software that uses \alib might use module initialization mechanics
-for their own software units at their own discretion.
-If it is used, there are three principal possibilities of initializing custom modules:
-
-1. Adding the custom module singleton to field \alib{Module::Dependencies} of singleton object
-   #aworx::ALIB.
-2. Adding singleton object #aworx::ALIB to field \alib{Module::Dependencies} of o the custom module
-   singleton
-3. Invoking method \alib{Module::Init} separately on the custom module singleton.
-
-While the first and the second option are leading to a similar result (maybe apart from the
-order of initialization), with the third option separated instances for
-\alib{Module::Resources} and \alib{Module::Config} are used for the built-in modules and for the
-custom module(s).<br>
-Now, as explained in the previous chapters, separated instances of these object may also be created with the
-first and the second option, if the initialization is invoked for different phases on different modules of the hierarchy.
-
-This means: it is not only on the sole discretion of a library to use the \alib module
-bootstrap mechanics, but also in the case that it does, it is completely open how module
-dependencies are defined and resource and configuration objects are shared between built-in and
-custom modules.
-
-\~Comment ####################################################################################### \~
-## 3.8 Bootstrapping Small Modules ## {#alib_manual_bootstrapping_smallmods}
-As already explained, an \alibmod_nolink is called a "full module", if it disposes on a strict
+## 3.6 Bootstrapping Small Modules ## {#alib_manual_bootstrapping_smallmods}
+As already explained, an \alibmod_nl is called a "full module", if it disposes on a strict
 singleton type derived from class \alib{Module}.<br>
 This is not the case for the light-blue colored modules shown in the
 \ref alib_manual_modules_dependency_graph "module dependency graph".
@@ -671,11 +906,11 @@ Three of those still have the small rectangular markers that indicate that a mod
 initialized and terminated.
 
 The modules in question are:
-- \alibmod_threads,
-- \alibmod_boxing and
-- \alibmod_time.
+- \alib_threads,
+- \alib_boxing and
+- \alib_time.
 
-Each module provides namespace functions \b %Init and \b %TerminationCleanUp for that.
+Each module provides namespace functions \b %Bootstrap and \b %Shutdown for that.
 
 When the \alibdist includes also "full" modules,  initialization and termination of these three
 "small" modules is performed with the corresponding action invoked on dependent "full" modules.
@@ -686,24 +921,24 @@ a user of the library has to make sure that the namespace functions are invoked 
 and termination of the process.
 
 \~Comment ####################################################################################### \~
-## 3.9 Assuring Compilation Compatibility ## {#alib_manual_bootstrapping_assertcomp}
+## 3.7 Assuring Compilation Compatibility ## {#alib_manual_bootstrapping_assertcomp}
 
 It is important to understand that an \alib library compiled with a certain set of options
 might be incompatible to compilation units that use a different set of options. For example, the
 footprint (size) of library types might be different.
 
 If incompatible compilation units are mixed, often no warning is issued (neither by
-the compiler nor the linker) and the execution of a process might lead to very strange behaviour
+the compiler nor the linker) and the execution of a process might lead to very strange behavior
 which is irritating and hardly to debug.
 
-To detect incompatible compilation settings, method \alib{ALibModules::CheckDistribution} should be invoked
-on singleton \alib{ALibModules} from custom bootstrap code of each custom compilation target that uses
+To detect incompatible compilation settings, method \alib{ALibDistribution::CheckDistribution} should be invoked
+on singleton \alib{ALibDistribution} from custom bootstrap code of each custom compilation target that uses
 \alib. Code for doing so looks like this:
 
 
         int main( int argc, const char **argv )
         {
-            aworx::ALIB.Init(argc, argv);
+            aworx::ALIB.Bootstrap(argc, argv);
             aworx::ALIB.CheckDistribution();
             ...
 
@@ -718,7 +953,7 @@ from the same macros.
 
 <p>
 \note
-   Internally method \alib{ALibModules::CheckDistribution} uses method
+   Internally method \alib{ALibDistribution::CheckDistribution} uses method
    \alib{Module::VerifyCompilationFlags} which allows a "per module" verification.
    This inner method may be used for custom distributions (compilations) and/or custom modules,
    but is not further explained in this manual.
@@ -731,7 +966,7 @@ from the same macros.
 # 4. Building The Library # {#alib_manual_build}
 
 \~Comment ####################################################################################### \~
-## 4.1. Overview ## {#alib_manual_build_overview}
+## 4.1 Overview ## {#alib_manual_build_overview}
 
 \~Comment ####################################################################################### \~
 ### 4.1.1 Platforms and Toolchains ### {#alib_manual_build_overview_platforms}
@@ -757,8 +992,8 @@ warnings or errors when custom warning levels (of the including project) are use
 ### 4.1.2 Reference Toolchain CMake ### {#alib_manual_build_overview_cmake}
 
 While project files for different IDEs might be provided with the codebase, the main development of \alib is
-performed using [CMake](https://cmake.org/) scripts.
-Also, the relationship of source file and \alibmod_nolink selection is <b>"officially defined"</b>
+performed using \https{CMake,cmake.org/} scripts.
+Also, the relationship of source file and \alibmod_nl selection is <b>"officially defined"</b>
 by CMake scripts.
 
 \par
@@ -805,8 +1040,8 @@ An extensive set of unit tests is included in the distribution.
 
 
 \~Comment ####################################################################################### \~
-# 4.2. Performing A Test Compilation  # {#alib_manual_build_test}
-Clone the \alib repository from [ALib at GitHub](https://github.com/AlexWorx/ALib-Class-Library)
+## 4.2 Performing A Test Compilation  ## {#alib_manual_build_test}
+Clone the \alib repository from \https{ALib at GitHub,github.com/AlexWorx/ALib-Class-Library}
 to a place where you commonly store 3rd party libraries that your projects are using.
 Alternatively, download and unpack the ZIP file to that same place.
 
@@ -855,7 +1090,7 @@ After you cd into the 'release' folder, the cmake command is:
 
 
 \~Comment ####################################################################################### \~
-# 4.3. A Step-By-Step CMake Sample #  {#alib_manual_build_sample}
+## 4.3 A Step-By-Step CMake Sample ##  {#alib_manual_build_sample}
 
 With using \e CMake, compiling and using \alib  is very straight forward.
 This is because a set of easy to use \e CMake scripts is provided, of which one is to be included
@@ -873,11 +1108,11 @@ A custom \e CMake file has to be created. To start with, the top of the file mig
 
 <br>
 <b>Step 2: Choose %ALib Modules</b><br>
-The list of \alib modules to be included in the built is defined with \e CMake variable
-\c ALIB_MODULES which has to be set prior to invoking the \alib \e CMake script.
-If the variable is left empty, it will be defaulted to \b "ALL", which chooses all \alib modules
+The list of \alib modules to be included in the built is defined with \e CMake list variable
+\c ALIB_DISTRIBUTION which has to be set prior to invoking the \alib \e CMake script.
+If the list is left empty, it will be defaulted to \b "ALL", which chooses all \alib modules
 available.<br>
-In our sample, we add \b "ALOX", which chooses module \alibmod_alox and all
+In our sample, we add \b "ALOX", which chooses module \alib_alox and all
 \ref alib_manual_modules_dependency_graph "dependent modules".
 
 
@@ -935,7 +1170,7 @@ and have linked it to our sample project, which is now ready to be built!
 
 
 \~Comment ####################################################################################### \~
-# 4.4. The Build Process In Detail#  {#alib_manual_build_cmake}
+# 4.4 The Build Process In Detail#  {#alib_manual_build_cmake}
 
 The previous chapter demonstrated the use of the \e CMake script \c ALib.cmake provided with
 \alib. In the following sections a reference documentation on all aspects of the script is
@@ -953,15 +1188,15 @@ accordingly set:
 - Linker flags have to be defined.
 
 \note
-  The complete set of compilation symbols that the \alib library accepts from the
-  compiler (usually \e -D option) are \ref GrpALibCompilerSymbols "documented here".
+  The complete set of symbols that the \alib library accepts from the compiler (usually \e -D option)
+  are \ref GrpALibPreproSymbols "documented here".
 
 
 \~Comment ####################################################################################### \~
 ## 4.4.1  Selecting ALib Modules ##  {#alib_manual_build_cmake_1}
-\e CMake variable \c ALIB_MODULES is an input/output list which defines the particular \alibmods
-that should be included in the built.
-The script will process the values given and extend the list to include all necessary modules that
+\e CMake list variable \c ALIB_DISTRIBUTION is an input/output list which defines the particular
+\alibmods that should be included in the built.
+The script will process the values given and will extend the list to include all necessary modules that
 the \ref alib_manual_modules_dependency_graph "given selection depends on".
 
 The values correspond to the \ref alib_manual_modules_overview "module names" in upper case letters,
@@ -971,7 +1206,7 @@ If the variable is not set or contains special name \b "ALL", all modules are ch
 and included.
 
 \~Comment ####################################################################################### \~
-## 4.4.2  Variables For Directory and Source Code Definitions ##  {#alib_manual_build_cmake_2}
+### 4.4.2  Variables For Directory and Source Code Definitions ###  {#alib_manual_build_cmake_2}
 The following \e CMake variables are available after the invocation of the script:
 - \c ALIB_BASE_DIR<br>
   Defines the directory where the \alib project is stored.<br>
@@ -997,29 +1232,35 @@ The following \e CMake variables are available after the invocation of the scrip
 
 
 \~Comment ####################################################################################### \~
-## 4.4.3  Cached CMake Variables ##  {#alib_manual_build_cmake_3}
+### 4.4.3  Cached CMake Variables ###  {#alib_manual_build_cmake_3}
 The script will create a set of cached boolean \e CMake variables (which are variables that can be
 edited with CMake GUI tools and various C++ IDEs).
 
-The following variables correspond directly to \ref GrpALibCompilerSymbols "ALib Compilation Symbols":
+The following variables correspond directly to \ref GrpALibPreproSymbols "preprocessor symbols"
+used for code selection and thus this list links to their corresponding documentation:
 
-- ALIB_AVOID_ANALYZER_WARNINGS
-- ALIB_COVERAGE_COMPILE
-- ALIB_DEBUG
-- ALIB_DEBUG_GLIB
-- ALIB_STRINGS_DEBUG
-- ALIB_GDB_PP_FIND_POINTER_TYPES
-- ALIB_GDB_PP_SUPPRESS_CHILDREN
-- ALIB_FEAT_BOOST_REGEX
-- ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-- ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOAT
-- ALIB_FEAT_SINGLETON_MAPPED
-- ALIB_CHARACTERS_FORCE_NARROW
-- ALIB_CHARACTERS_FORCE_WIDE
-- ALOX_DBG_LOG
-- ALOX_DBG_LOG_CI
-- ALOX_REL_LOG
-- ALOX_REL_LOG_CI
+- \ref ALIB_AVOID_ANALYZER_WARNINGS
+- \ref ALIB_CHARACTERS_WIDE
+- \ref ALIB_CHARACTERS_SIZEOF_WCHAR
+- \ref ALIB_DEBUG
+- \ref ALIB_DEBUG_BOXING
+- \ref ALIB_DEBUG_MONOMEM
+- \ref ALIB_DEBUG_RESOURCES
+- \ref ALIB_DEBUG_STRINGS
+- \ref ALIB_EXT_LIB_THREADS_AVAILABLE
+- \ref ALIB_FEAT_BOOST_REGEX
+- \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+- \ref ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+- \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+- \ref ALIB_FEAT_SINGLETON_MAPPED
+- \ref ALIB_GDB_PP_FIND_POINTER_TYPES
+- \ref ALIB_GDB_PP_SUPPRESS_CHILDREN
+- \ref ALIB_PRECOMPILED_HEADER
+- \ref ALIB_RESOURCES_OMIT_DEFAULTS
+- \ref ALOX_DBG_LOG
+- \ref ALOX_DBG_LOG_CI
+- \ref ALOX_REL_LOG
+- \ref ALOX_REL_LOG_CI
 
 In addition, the following further cached variables are set:
 - <b>ALIB_CMAKE_COTIRE</b><br>
@@ -1038,34 +1279,55 @@ In addition, the following further cached variables are set:
   If set to \c true, extended information will be printed with running the \e CMake script.
   See \ref alib_manual_build_more_otherbuildsystems for details.
 
-\~Comment ####################################################################################### \~
-## 4.4.4  CMake Build-Setting Variables ##  {#alib_manual_build_cmake_4}
-The script will create the following non-cached \e CMake variables, which can be used to define
-built settings of custom projects:
+- <b>ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH</b><br>
+  If set to \c true, the provided script will not search for a thread library on the target
+  platform. For more information see chapter \ref alib_manual_modules_impact_singlethreaded.
 
-- <b>ALIB_COMPILATION_SYMBOLS</b><br>
-  Will contain the \ref GrpALibCompilerSymbols "ALib Compilation Symbols", as defined by the cached variables.
+- <b>ALIB_DEBUG_GLIB</b><br>
+  If \c true, symbols \b _GLIBCXX_DEBUG", \b _GLIBCXX_DEBUG_PEDANTIC and
+  \b _GLIBCPP_CONCEPT_CHECKS are passed to the compiler.
+
+- <b>ALIB_COVERAGE_COMPILE</b><br>
+  If \c true, option <b>--coverage</b> is added to CMake variables \b ALIB_COMPILE_FLAGS and
+  \b ALIB_LINKER_FLAGS
+
+
+
+\~Comment ####################################################################################### \~
+### 4.4.4  CMake Build-Setting Variables ###  {#alib_manual_build_cmake_4}
+The script will create the following non-cached \e CMake variables, which can be used to define
+build-settings of custom projects:
+
+- <b>ALIB_SYMBOLS</b><br>
+  Will contain the \ref GrpALibPreproSymbols "ALib preprocessor symbols", as defined by the cached variables.
   This variable can for example be used as a parameter to \e CMake function \c target_compile_definitions().
 <p>
 
 - <b>ALIB_COMPILER_WARNINGS</b><br>
-  Will contain compiler parameters to set the warning level used with compiling \alib.
-  This variable can for example be used as a parameter to \e CMake function \c target_compile_options().
+  Will contain compiler parameters to set the (high!) warning level used with compiling \alib.
+  This variable can for example be used as a parameter to \e CMake function
+  \c target_compile_options().<br>
+  Custom entries may be added to the list prior to invoking \b ALib.cmake.
+  If entry <em>"ALIB_SUPPRESS_COMPILER_WARNINGS"</em> is found, that entry is removed and no
+  compiler-specific warning settings are added to this symbol.
 <p>
 
 - <b>ALIB_COMPILE_FLAGS</b><br>
   Will contain parameters to be passed to the compiler when linking \alib.
-  This variable can for example be used as a parameter to \e CMake function \c target_compile_options().
+  This variable can for example be used as a parameter to \e CMake function
+  \c target_compile_options().
 <p>
 
 - <b>ALIB_LINKER_FLAGS</b><br>
   Will contain parameters to be passed to the linker when linking \alib.
-  This variable can for example be used as a parameter to \e CMake function \c set_target_properties().
+  This variable can for example be used as a parameter to \e CMake function
+  \c set_target_properties().
 <p>
 
 - <b>ALIB_EXTERNAL_LIBS</b><br>
   Will contain a list of external libraries needed to build \alib.
-  This variable can for example be used as a parameter to \e CMake function \c target_link_libraries().
+  This variable can for example be used as a parameter to \e CMake function
+  \c target_link_libraries().
 
 In addition, the following non-cached variable is an input variable which may be set prior to
 invoking the script:
@@ -1075,7 +1337,7 @@ invoking the script:
   This variable can for example be used as a parameter to \e CMake function \c target_compile_features().
 
 \~Comment ####################################################################################### \~
-## 4.4.5  CMake Functions Defined By The Script ##  {#alib_manual_build_cmake_5}
+### 4.4.5  CMake Functions Defined By The Script ###  {#alib_manual_build_cmake_5}
 The script will define the following \e CMake functions:
 
 - <b>ALibAddStaticLibrary</b><br>
@@ -1093,7 +1355,7 @@ The script will define the following \e CMake functions:
   on.
 
 \~Comment ####################################################################################### \~
-## 4.4.6  Library Filename ##  {#alib_manual_build_cmake_6}
+### 4.4.6  Library Filename ###  {#alib_manual_build_cmake_6}
 The library's filename is determined by (non-cached) \e CMake variable \c ALIB_LIBRARY_FILENAME.
 If this variable is \b not set prior to invoking script <c>ALib.cmake</c>, then the name is
 determined automatically from the selected modules.
@@ -1104,28 +1366,28 @@ in the previous section.
 If not provided, the name will be assembled according to the following set of rules:
 
 - The name starts with \c "alib_".
-- The library version is appended, for example \c "1903R0".
-- In the case of debug compilations, term \c "_DBG" is appended.
+- The library version is appended, for example \c "1912R0".
+- In the case of debug builds, term \c "_DBG" is appended.
 - In the case that all modules are selected in the \alibdist, no further rule is applied.
 
 - Otherwise, each selected module's name is added in capital letters, separated by an underscore
   character (<c>'_'</c>) unless a module is not "superseded" by another module that has a
   \ref alib_manual_modules_dependency_graph "mandatory dependency" to it.
 
-- As an exclamation, in the case that module \alibmod_strings is included (and no other module
-  supersedes it) and furthermore in the case that \ref ALIB_STRINGS_DEBUG is set,
+- As an exclamation, in the case that module \alib_strings is included (and no other module
+  supersedes it) and furthermore in the case that \ref ALIB_DEBUG_STRINGS is set,
   suffix <c>"_DBGSTRINGS"</c> is appended instead of <c>"_STRINGS"</c> .
 
-- In the case that \alibmod_alox is included, the suffixes <c>_ALOX</c> is extended by
+- In the case that \alib_alox is included, the suffixes <c>_ALOX</c> is extended by
   suffix <c>NRL</c> if release logging is switched off. In addition, suffix <c>NDL</c> is added with
-  debug compilations that do not include debug logging. Note that both exclamations cover the
+  debug builds that do not include debug logging. Note that both exclamations cover the
   non-default, unusual compilation cases in respect to the availability of debug- and release logging.
 
 
 \~Comment ####################################################################################### \~
-# 4.5. More Information #  {#alib_manual_build_more}
+## 4.5 More Information ##  {#alib_manual_build_more}
 
-## 4.5.1 Other Build Systems ## {#alib_manual_build_more_otherbuildsystems}
+### 4.5.1 Other Build Systems ### {#alib_manual_build_more_otherbuildsystems}
 
 As already explained, the \e CMake build process is viewed to be the reference process for \alib
 compilation.
@@ -1166,7 +1428,7 @@ Among the data displayed is:
 
 
 \~Comment ####################################################################################### \~
-## 4.5.2 Choosing C++ Language Version ## {#alib_manual_build_more_cppversion}
+### 4.5.2 Choosing C++ Language Version ### {#alib_manual_build_more_cppversion}
 
 As demonstrated in the chapter \ref alib_manual_build_sample "A Step-By-Step CMake Sample" (Step 3),
 \e CMake variable \c ALIB_COMPILER_FEATURES may be used to determine the C++ language standard for
@@ -1180,15 +1442,15 @@ invoked for a custom target).
 level, which of course may be used alternatively.
 
 \~Comment ####################################################################################### \~
-## 4.5.3 Copying The Sources ## {#alib_manual_build_more_copysources}
+### 4.5.3 Copying The Sources ### {#alib_manual_build_more_copysources}
 
-If \e CMake variable \c ALIB_MODULE_SOURCE_COPY_DIR is set prior to invoking CMake script
+If \e CMake variable \c ALIB_SOURCE_COPY_TARGET_DIR is set prior to invoking CMake script
 \c %ALib.cmake, then the source code (compilation units and header files) are copied to the
 directory specified in the variable. If the variable does not point to a valid directory, an
 error is raised and the \e CMake script is stopped.
 
 The files copied represent exactly the set of files which are needed for compiling the combination
-of \alibmods, which are optionally specified with list variable \c ALIB_MODULES
+of \alibmods, which are optionally specified with list variable \c ALIB_DISTRIBUTION
 (see \ref alib_manual_build_cmake_1).
 
 This feature therefore can be used to create a fresh, filtered copy of the \alib source tree
@@ -1198,50 +1460,50 @@ nor compiled. The feature is rather used by the \alib developers to verify modul
 dependencies.
 
 \~Comment ####################################################################################### \~
-## 4.5.4 External Library Dependencies ## {#alib_manual_build_more_externallibs}
+### 4.5.4 External Library Dependencies ### {#alib_manual_build_more_externallibs}
 
 ALib has <b>no mandatory</b> dependencies to external (3rd-party) libraries.
 The following \b optional dependencies exist:
 
-1. Boost RegEx
-   With passing compiler symbol \ref ALIB_FEAT_BOOST_REGEX_ON, a dependency to
-   [boost](https://www.boost.org) library component
-   [regex](https://www.boost.org/doc/libs/1_68_0/libs/regex/doc/html/index.html) is made.
+1. Boost RegEx<br>
+   If enabled by compiler symbol \ref ALIB_FEAT_BOOST_REGEX, a dependency to
+   \https{boost,www.boost.org} library component
+   \https{regex,www.boost.org/doc/libs/1_68_0/libs/regex/doc/html/index.html} is made.
    As a result, the following \alib features become available:
-   - In module \alibmod_strings, class \alib{strings::util,RegexMatcher}
-   - In module \alibmod_expressions, with expression compiler plugin \alib{expressions::plugins,Strings},
+   - In module \alib_strings, class \alib{strings::util,RegexMatcher}
+   - In module \alib_expressions, with expression compiler plugin \alib{expressions::plugins,Strings},
      expression term \b RegExMatch.
 
-2. Standard C++ library
+2. Standard C++ library<br>
    Some support to make types of the C++ standard library compatible with various concepts of
    \alib is activated by including compatibility header files found in source folder
-   <b>"alib/compatibility/"</b>.<br>
+   \alibsrcdir{compatibility}.<br>
    For more information see the following namespace documentations:
    - #aworx::lib::characters::compatibility::std
    - #aworx::lib::strings::compatibility::std
    - #aworx::lib::boxing::compatibility::std
 
-3. QT Library
-   If \alib is used in combination with the [QT Class Library](https://www.qt.io), compatibility
+3. QT Library<br>
+   If \alib is used in combination with the \https{QT Class Library,www.qt.io}, compatibility
    support for character array types (strings and character vectors) of the <em>QT Library</em>
-   becomes available with modules \alibmod_boxing and \alibmod_strings.<br>
+   becomes available with modules \alib_boxing and \alib_strings.<br>
    Such support is activated simply by including compatibility header files found in source folder
-   <b>"alib/compatibility/"</b>.<br>
+   \alibsrcdir{compatibility}.<br>
    For more information see the following namespace documentations:
    - #aworx::lib::characters::compatibility::qt
    - #aworx::lib::boxing::compatibility::qt
 
 
 \~Comment ####################################################################################### \~
-## 4.5.5 Using Cotire To Speed-Up Builds ## {#alib_manual_build_more_cotire}
+### 4.5.5 Using Cotire To Speed-Up Builds ### {#alib_manual_build_more_cotire}
 
-[Cotire](https://github.com/sakra/cotire/) is an open source CMake script which modifies C++ CMake
+\https{Cotire,github.com/sakra/cotire/} is an open source CMake script which modifies C++ CMake
 targets in a way to speed up compilation. This is achieved using mainly two techniques: Precompiled
 header files and so called "unity builds".
 
 The provided CMake script \c %ALib.cmake defines CMake cache variable \c ALIB_CMAKE_COTIRE. If
 this variable evaluates to  \c true, then the script downloads
-[Cotire](https://github.com/sakra/cotire/) (once) and includes it.
+\https{Cotire,github.com/sakra/cotire/} (once) and includes it.
 In this case, script \c %ALox.cmake applies cotire to the library targets created with
 \b ALibAddStaticLibrary and \b ALibAddSharedLibrary. To use cotire with custom targets, \e CMake
 function \e ALibSetCotire is defined.
@@ -1260,7 +1522,7 @@ options:
    library as well.
    This second approach is used in the provided \b ALoxSample project and CMake file.
 
-By default, [Cotire](https://github.com/sakra/cotire/) is switched off in the make files provided.
+By default, \https{Cotire,github.com/sakra/cotire/} is switched off in the make files provided.
 This is because it adds a next layer of complexity for compiling <b>%ALib/%ALox</b>.
 But it is generally worth to have a try!
 
@@ -1315,7 +1577,7 @@ manually. It should be allowed to mention, that the editor of C++ IDE \b CLion h
 unrivalled features: Instead of only supporting block selection and copy/paste of blocks, this
 editor creates a set of completely new "carets" in the moment block selection starts.
 We want to thank the team of [JetBrains](www.jetbrains.com) for supporting \alib development
-by providing a free [Open Source License](https://www.jetbrains.com/buy/opensource/)
+by providing a free \https{Open Source License,www.jetbrains.com/buy/opensource/}
 of their absolutely superb set of IDEs.
 
 
@@ -1324,7 +1586,7 @@ of their absolutely superb set of IDEs.
 ## A.2 How To Use This Library ## {#alib_manual_appendix_howto}
 
 Most of the time, a 3rd party library like \alib is used to help solving a certain task. Such
-tasks are addressed with higher level modules, like \alibmod_alox, \alibmod_cli or \alibmod_expressions.
+tasks are addressed with higher level modules, like \alib_alox, \alib_cli or \alib_expressions.
 In this case, the corresponding module documentation should be read directly, without loosing time
 on learning too much about the lower level modules and types.
 
@@ -1333,20 +1595,20 @@ time and by reading the reference documentation of types found in their correspo
 
 Should you really just be interested in general and therefore absolutely not knowing where to start
 reading, we recommend to start with some of the module's programming manuals, for example
-\alibmod_boxing or \alibmod_strings. As debug log-output is something most projects needs, another
+\alib_boxing or \alib_strings. As debug log-output is something most projects needs, another
 recommendation might be the
-[ALox Logging Library Tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html).
+\https{ALox Logging Library Tutorial,alexworx.github.io/ALoxLogging-Library/cpp_ref/alox_cpp_tutorial.html}.
 
 The manuals mentioned above may provide you with a good grasp of the design principles and
 features of \alib in general and thus with the value that \alib might bring to your own software
 projects.
 
 \warning
-  Experienced C++ programmers might complain that the programmer's manuals are to lengthy.
+  Experienced C++ programmers might complain that the Programmer's Manuals are to lengthy.
   Together they comprise almost <b>500 pages</b>!<br>
   We could now  say that the reason for often being quite "verbose" is that the manual address
   less experienced programmers. But this is not the truth. Explaining the details just helps
-  us to understand its own goals better and leads to a better library design.
+  us to understand a module's goals better and leads to a better code design.
   It happens that manual sections are written \e before the corresponding library feature is
   even implemented. Or, that while writing a manual chapter, the already written code gets heavily
   refactored.<br>
@@ -1358,20 +1620,6 @@ projects.
 
 
 
-\~Comment ####################################################################################### \~
-## A.3 Bauhaus Code Style ## {#alib_manual_appendix_bauhaus}
-
-While the authors of this library embrace common design patterns and modern code style, sometimes
-it happens that \alib takes the freedom to follow slightly different paths. An important sample
-of that is that types of this library use "setter and getter" methods only if such is not
-avoidable.
-
-Another sample are object factories: This might be a cool design pattern, but we rather provide
-a public constructor and keep things simple by omitting the factory.
-Often such design decision are targeting simplicity and execution performance.
-
-We sometimes call this [Bauhaus](http://en.wikipedia.org/wiki/Bauhaus) code style, as we rather
-try to be lean and straightforward instead of elegant and excessive.
 */
 
 

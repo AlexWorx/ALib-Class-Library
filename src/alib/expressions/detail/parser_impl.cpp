@@ -6,13 +6,22 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
-#   include "alib/expressions/detail/parser_impl.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
+#      include "alib/expressions/detail/parser_impl.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-#   include "alib/expressions/compiler.hpp"
-#endif
+#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
+#      include "alib/expressions/compiler.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_MONOMEM_MASTRING)
+#      include "alib/monomem/mastring.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -21,9 +30,10 @@ namespace aworx { namespace lib { namespace expressions { namespace detail {
 // Parser
 // #################################################################################################
 
-ParserImpl::ParserImpl( Compiler& pCompiler  )
-: compiler           (pCompiler)
-, internalizedStrings(128)
+ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
+: compiler       ( pCompiler )
+, unaryOperators ( allocator )
+, binaryOperators( allocator )
 {
     // characters to be known
     syntaxTokens [static_cast<unsigned char>('(')]= true;
@@ -36,20 +46,20 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
     // define unary ops
     for( auto& op : compiler.UnaryOperators )
     {
-        ALIB_ASSERT_ERROR( unaryOperators.find(op) == unaryOperators.end(),
-                           "Doubly defined unary operator symbol '{}'.", op )
+        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op),
+                           "Doubly defined unary operator symbol {!Q'}.", op )
 
-        unaryOperators[op]= 0;
+        unaryOperators.EmplaceUnique(op);
         for( auto it : op )
             operatorChars[static_cast<unsigned char>(it)]= true;
     }
 
     for( auto& op : compiler.AlphabeticUnaryOperatorAliases )
     {
-        ALIB_ASSERT_ERROR( unaryOperators.find(op.first) == unaryOperators.end(),
-                           "Doubly defined unary operator symbol '{}'.", op.first )
+        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op.first),
+                           "Doubly defined unary operator symbol {!Q'}.", op.first )
 
-        unaryOperators[op.first]= 0;
+        unaryOperators.EmplaceUnique(op.first);
         if( !isalpha( op.first.CharAtStart() ) )
             for( auto it : op.first )
                 operatorChars[static_cast<unsigned char>(it)]= true;
@@ -58,8 +68,8 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
 
     for( auto op : compiler.BinaryOperators )
     {
-        ALIB_ASSERT_ERROR( binaryOperators.find(op.first) == binaryOperators.end(),
-                           "Doubly defined binary operator symbol '{}'.", op.first )
+        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first),
+                           "Doubly defined binary operator symbol {!Q'}.", op.first )
         if( op.first == A_CHAR("[]") )
         {
             syntaxTokens[static_cast<unsigned char>('[')]= true;
@@ -67,7 +77,7 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
         }
         else
         {
-            binaryOperators[op.first]= op.second;
+            binaryOperators.EmplaceUnique(op.first);
             for( auto it : op.first )
                 operatorChars[static_cast<unsigned char>(it)]= true;
         }
@@ -75,15 +85,16 @@ ParserImpl::ParserImpl( Compiler& pCompiler  )
 
     for( auto op : compiler.AlphabeticBinaryOperatorAliases )
     {
-        ALIB_ASSERT_ERROR( binaryOperators.find(op.first) == binaryOperators.end(),
-                           "Doubly defined binary operator symbol '{}'.", op.first )
+        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first),
+                           "Doubly defined binary operator symbol {!Q'}.", op.first )
 
-        auto originalOp= compiler.BinaryOperators.find( op.second );
+        ALIB_DBG( auto originalOp= )
+        compiler.BinaryOperators.Find( op.second );
         ALIB_ASSERT_ERROR( originalOp != compiler.BinaryOperators.end(),
-                           "Alias '{}' defined for unknown operator '{}'.",
+                           "Alias {!Q'} defined for unknown operator {!Q'}.",
                            op.first, op.second )
 
-        binaryOperators[op.first]= originalOp->second;
+        binaryOperators.EmplaceUnique(op.first);
         if( !isalpha( op.first.CharAtStart() ) )
             for( auto it : op.first )
                 operatorChars[static_cast<unsigned char>(it)]= true;
@@ -123,12 +134,12 @@ void ParserImpl::NextToken()
         if( operatorChars[static_cast<unsigned char>(scanner.CharAtStart() ) ] )
         {
             scanner.ConsumeChar();
-            operatorLength++;
+            ++operatorLength;
 
             if( operatorChars[static_cast<unsigned char>(scanner.CharAtStart() ) ] )
             {
                 scanner.ConsumeChar();
-                operatorLength++;
+                ++operatorLength;
             }
         }
 
@@ -136,8 +147,7 @@ void ParserImpl::NextToken()
         tokString= String( expression.Buffer() + tokPosition, operatorLength );
 
         // special treatment for Elvis with spaces "? :"
-        if(    tokString == A_CHAR("?")
-            && compiler.BinaryOperators.find( A_CHAR("?:") ) != compiler.BinaryOperators.end()   )
+        if(    tokString == A_CHAR("?") && compiler.BinaryOperators.Contains( A_CHAR("?:") )   )
         {
             // patch existing token and return
             Substring backup= scanner;
@@ -160,13 +170,14 @@ void ParserImpl::NextToken()
         while( isalpha( lookAhead.CharAtStart() ) || lookAhead.CharAtStart() =='_' )
             lookAhead.ConsumeChar<false>();
         tokString= scanner.Substring<false>( 0, scanner.Length() - lookAhead.Length() );
-        UnorderedStringMapIgnoreCase<int>::iterator it;
-        if(   (   (it= unaryOperators .find( tokString )) != unaryOperators.end()
-               && (    EnumContains(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                    || tokString.Equals( it->first ) ) )
-           || (   (it= binaryOperators.find( tokString )) != binaryOperators.end()
-               && (    EnumContains(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                    || tokString.Equals( it->first ) ) )
+        auto hashCode=  tokString.HashcodeIgnoreCase();
+        decltype(unaryOperators)::Iterator it;
+        if(   (   (it= unaryOperators .Find( tokString, hashCode )) != unaryOperators.end()
+               && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
+                    || tokString.Equals( it.Value() ) ) )
+           || (   (it= binaryOperators.Find( tokString, hashCode )) != binaryOperators.end()
+               && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
+                    || tokString.Equals( it.Value() ) ) )
             )
         {
             scanner.ConsumeChars<false>( tokString.Length() );
@@ -253,12 +264,12 @@ void ParserImpl::NextToken()
             if( next == '\\' )                  { lastWasSlash= true;   continue;   }
             if( next == '\"' && !lastWasSlash ) break;
             lastWasSlash= false;
-        };
+        }
 
         if( next != '"' )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation,
-                         EXPRESSIONS.GetResource("ExcExp4")                                   );
+                         EXPRESSIONS.GetResource("EE4")                                   );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
                          expression, expression.Length() - scanner.Length() );
             throw e;
@@ -268,11 +279,7 @@ void ParserImpl::NextToken()
                        expression.Length() - scanner.Length() - tokPosition -2 );
 
 
-        AString internalizer;
-        internalizer.SetBuffer( internalizedStrings.AllocArray<character>( quoted.Length() + 1 ),
-                                quoted.Length() + 1,
-                                0,
-                                Responsibility::KeepWithSender );
+        MAString internalizer( *compileTimeAllocator, quoted.Length() + 1 );
         internalizer << quoted << Format::Escape( Switch::Off );
         token    = Tokens::LitString;
         tokString= internalizer;
@@ -292,14 +299,16 @@ void ParserImpl::NextToken()
 // #################################################################################################
 #define Start               parseConditional
 
-detail::AST* ParserImpl::Parse( const String& expressionString, NumberFormat* nf  )
+detail::AST* ParserImpl::Parse( const String& exprString, NumberFormat* nf, MonoAllocator* ba )
 {
-    if( expressionString.IsEmpty() )
+    if( exprString.IsEmpty() )
         throw Exception( ALIB_CALLER, Exceptions::EmptyExpressionString );
 
-    expression= expressionString;
-    numberFormat= nf;
-    internalizedStrings.Reset();
+    expression          = exprString;
+    numberFormat        = nf;
+    compileTimeAllocator= ba;
+    ASTs= ba->Emplace<std::vector<AST*, StdContMA<AST*>>>( StdContMA<AST*>(*ba) );
+    ASTs->reserve(20);
 
     // load first token
     scanner=    expression;
@@ -307,26 +316,13 @@ detail::AST* ParserImpl::Parse( const String& expressionString, NumberFormat* nf
 
 //ALIB_DBG( lexer.DbgListTokens(); )
 
-    AST* ast= nullptr;
-    try
-    {
-        ast= Start();
-    }
-    catch(Exception&)
-    {
-        for( AST* undone : ASTs )
-            delete undone;
-        ASTs.clear();
-        throw;
-    }
-    ALIB_ASSERT_ERROR( ASTs.size() == 0, "AST stack not empty. This must never happen." )
+    AST* ast= Start();
 
 
     // check if tokens remain
     if( token != Tokens::EOT )
     {
-        delete ast;
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp5") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE5") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
@@ -353,7 +349,7 @@ AST* ParserImpl::parseConditional()
         if(    token        != Tokens::Operator
             || tokString != A_CHAR(":")          )
         {
-            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp6") );
+            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE6") );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
             throw e;
         }
@@ -364,7 +360,7 @@ AST* ParserImpl::parseConditional()
         AST* F= Start();
         AST* T= pop();
         AST* Q= pop();
-        return new ASTConditional( Q, T, F, qmPosition, colonPosition );
+        return compileTimeAllocator->Emplace<ASTConditional>( Q, T, F, qmPosition, colonPosition );
     }
     // was no conditional
     return pop();
@@ -387,7 +383,7 @@ AST* ParserImpl::parseBinary()
         // rhs is braced? -> lhs becomes <lhs op rhs> and we start over
         if( token == Tokens::BraceOpen )
         {
-            replace( new ASTBinaryOp( binOp, top(), parseSimple(), position ) );
+            replace( compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, top(), parseSimple(), position ) );
             position= tokPosition;
             continue;
         }
@@ -397,7 +393,7 @@ AST* ParserImpl::parseBinary()
    // check if tokens remain
     if( token == Tokens::EOT )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp7") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE7") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
@@ -418,11 +414,11 @@ AST* ParserImpl::parseBinary()
     pop();
     pop();
     if( parent == nullptr )
-        return new ASTBinaryOp( binOp, lhs, rhs, position );
+        return compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, lhs, rhs, position );
 
     // insert binary at lhs of deepest equal-level binary found.
     // Its current lhs becomes its new lhs-child's rhs.
-    parent->Lhs=  new ASTBinaryOp( binOp, lhs, parent->Lhs, position );
+    parent->Lhs=  compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, lhs, parent->Lhs, position );
     return rhs;
 }
 
@@ -436,7 +432,7 @@ AST* ParserImpl::parseSimple()
 
         if( token != Tokens::BraceClose )
         {
-            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp1"));
+            Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE1"));
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
             throw e;
         }
@@ -450,16 +446,16 @@ AST* ParserImpl::parseSimple()
         String unOp= getUnaryOp();
         if( unOp.IsNotNull() )
         {
-            push( new ASTUnaryOp( unOp, parseSimple(), position ) );
+            push( compileTimeAllocator->Emplace<ASTUnaryOp>( unOp, parseSimple(), position ) );
             replace( parseSubscript( top() ) );
             return pop();
         }
     }
 
 
-    if( token == Tokens::LitInteger ) { push(new ASTLiteral( tokInteger, position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
-    if( token == Tokens::LitFloat   ) { push(new ASTLiteral( tokFloat  , position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
-    if( token == Tokens::LitString  ) { push(new ASTLiteral( tokString , position                 )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitInteger ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokInteger, position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitFloat   ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokFloat  , position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitString  ) { push(compileTimeAllocator->Emplace<ASTLiteral>( compileTimeAllocator->EmplaceString(tokString), position )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
 
     if( token == Tokens::Identifier )
     {
@@ -469,7 +465,7 @@ AST* ParserImpl::parseSimple()
         // function
         if( token == Tokens::BraceOpen )
         {
-            ASTFunction* astFunction= new ASTFunction( name, position );
+            ASTFunction* astFunction= compileTimeAllocator->Emplace<ASTFunction>( name, position, *compileTimeAllocator );
             push( astFunction );
             for(;;)
             {
@@ -479,14 +475,14 @@ AST* ParserImpl::parseSimple()
                     NextToken();
                     return pop();
                 }
-                astFunction->Arguments.emplace_back( Start() );
+                astFunction->Arguments.EmplaceBack( Start() );
 
                 if( token == Tokens::Comma )
                     continue;
 
                 if( token != Tokens::BraceClose )
                 {
-                    Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp2") );
+                    Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE2") );
                     e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
                     throw e;
                 }
@@ -498,46 +494,46 @@ AST* ParserImpl::parseSimple()
         }
 
         // identifier
-        replace( parseSubscript( push(new ASTIdentifier( name, position ) ) ) );
+        replace( parseSubscript( push(compileTimeAllocator->Emplace<ASTIdentifier>( compileTimeAllocator->EmplaceString(name), position ) ) ) );
         return pop();
     }
 
     if( token == Tokens::EOT )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp20") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE20") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
     if( token == Tokens::BraceClose )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp21") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE21") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
     if( token == Tokens::SubscriptOpen || token == Tokens::SubscriptClose )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp22") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE22") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
     if( token == Tokens::Comma )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp23") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE23") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
 
-    ALIB_ERROR( "Internal parser Error. This should never happen");
+    ALIB_ERROR( "Internal parser Error. This should never happen")
     return nullptr;
 }
 
 AST* ParserImpl::parseSubscript( AST *function )
 {
-    if(    !EnumContains( compiler.CfgCompilation, Compilation::AllowSubscriptOperator )
+    if(    !HasBits( compiler.CfgCompilation, Compilation::AllowSubscriptOperator )
         || token != Tokens::SubscriptOpen )
         return function;
 
@@ -549,14 +545,14 @@ AST* ParserImpl::parseSubscript( AST *function )
 
     if( token != Tokens::SubscriptClose )
     {
-        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("ExcExp3") );
+        Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE3") );
         e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
         throw e;
     }
 
     // success
     NextToken();
-    return new ASTBinaryOp( A_CHAR("[]"), function, pop(), position );
+    return compileTimeAllocator->Emplace<ASTBinaryOp>( A_CHAR("[]"), function, pop(), position );
 }
 
 
@@ -575,8 +571,7 @@ String ParserImpl::getUnaryOp()
     for( integer partialRead= 1 ; partialRead <= tokString.Length()    ; ++partialRead )
     {
         Substring key= Substring( tokString.Buffer(), partialRead );
-        auto entry= unaryOperators.find( key );
-        if( entry != unaryOperators.end() )
+        if( unaryOperators.Contains( key ) )
         {
             if( partialRead == tokString.Length() )
                 NextToken();
@@ -610,8 +605,7 @@ String ParserImpl::getBinaryOp()
     for( integer partialRead= tokString.Length() ; partialRead > 0    ; --partialRead )
     {
         Substring key= Substring( tokString.Buffer(), partialRead );
-        auto entry= binaryOperators.find( key );
-        if( entry != binaryOperators.end() )
+        if( binaryOperators.Contains( key ) )
         {
             if( partialRead == tokString.Length() )
                 NextToken();

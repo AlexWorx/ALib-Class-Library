@@ -1,0 +1,264 @@
+[ALIB_STRFMT]
+FmtExceptionsPrefix=format::
+FmtExceptionsPostfix=
+FmtExceptions=11,ArgumentIndexIs0,FMG11,12,ArgumentIndexOutOfBounds,FMG12,13,IncompatibleTypeCode,FMG13,101,MissingClosingBracket,FPS101,102,MissingPrecisionValuePS,FPS102,103,DuplicateTypeCode,FPS103,104,UnknownTypeCode,FPS104,105,ExclamationMarkExpected,FPS105,106,UnknownConversionPS,FPS106,107,PrecisionSpecificationWithInteger,FPS107,108,MissingReplacementStrings,FPS108,201,NegativeValuesInBracketsNotSupported,FJS101,202,MissingPrecisionValueJS,FJS102,203,HexadecimalFloatFormatNotSupported,FJS103,204,NoAlternateFormOfConversion,FJS104,205,NoPrecisionWithConversion,FJS105,206,UnknownDateTimeConversionSuffix,FJS106,207,UnknownConversionJS,FJS107,501,UnknownPropertyInFormatString,PFM501,502,ErrorInResultingFormatString,PFM502,510,MissingConfigurationVariable,PFM510,601,UnknownMarker,ST601,602,EndmarkerWithoutStart,ST602
+FMG11=Argument index 0 not allowed.\\nIn: {!Q}\\n     {!Fill}^
+FMG12=Argument index #{} is out of bounds. {} arguments are available.\\nIn: {!Q}\\n     {!Fill}^
+FMG13=Incompatible type code '{}' for argument #{} which is of type {!Q}.\\nIn: {!Q}\\n     {!Fill}^
+FPS101=Closing bracket '}}' of placeholder not found (or syntax error).\\nIn: {!Q}\\n     {!Fill}^
+FPS102=Missing precision value after '.' character.\\nIn: {!Q}\\n     {!Fill}^
+FPS103=Duplicate type code '{}' given (previous was '{}').\\nIn: {!Q}\\n     {!Fill}^
+FPS104=Unknownw type code '{}' given.\\nIn: {!Q}\\n     {!Fill}^
+FPS105=Excpected '!' in continuation of placeholder.\\nIn: {!Q}\\n     {!Fill}^
+FPS106=Unknown conversion "!{}".\\nIn: {!Q}\\n     {!Fill}^
+FPS107=Missing pair of replacement strings ")<src><repl>" after "!Replace".\\nIn: {!Q}\\n     {!Fill}^
+FJS101=Brackets for negative values not implemented/supported.\\nIn: {!Q}\\n     {!Fill}^
+FJS102=Missing precision value after '.' character.\\nIn: {!Q}\\n     {!Fill}^
+FJS103=Hexadecimal float format not implemented/supported.\\nIn: {!Q}\\n     {!Fill}^
+FJS104=Alternate form '#' not supported with conversion {!Q}.\\nIn: {!Q}\\n     {!Fill}^
+FJS105=Precision specification (".{}") is not supported with conversion {!Q}.\\nIn: {!Q}\\n     {!Fill}^
+FJS106=Unknown date/time conversion suffix '{}'.\\nIn: {!Q}\\n     {!Fill}^
+FJS107=Unknown conversion character '{}'.\\nIn: {!Q}\\n     {!Fill}^
+PFM501="Unknown property identifier \"{}{}\" in format string.\\nFormat string: {!Q}.\\nAllowed identifiers: "
+PFM502=Error in resulting format string.\\nSource format: {!Q}.
+PFM510=Missing or empty configuration variable {!Q} containing user defined format string.
+ST601=Unknown marker at position {}.\\n  Marked text: {!Q}.\\n                {!Fill}^\\n
+ST602=Found an end-marker without a start marker at position {}.\\n  Marked text: {!Q}.\\n                {!Fill}^\\n
+TS_ZERO=zero time
+DayP=" days"
+DayS=" day"
+HourP=" hours"
+HourS=" hour"
+MinP=" minutes"
+MinS=" minute"
+SecP=" seconds"
+SecS=" second"
+MlSecP=" ms"
+MlSecS=" ms"
+McSecP=" µs"
+McSecS=" µs"
+NSecP=" ns"
+NSecS=" ns"
+
+[ALIB_RESULTS]
+ExceptionsPrefix=
+ExceptionsPostfix=
+Exceptions=1,ErrorWritingReport,EX1
+EX1=Error writing ALib report.
+
+[ALIB_SYSTEM]
+Months=January,February,March,April,May,June,July,August,September,October,November,December
+Days=Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,
+ExceptionsPrefix=system::
+ExceptionsPostfix=
+Exceptions=0,OKNIY,1,ErrorNIY,2,FileExistsNIY,3,InvalidPathNIY
+SpecialFolder=0,Root,1,1,Current,1,3,HomeConfig,5,2,Home,1,4,Module,1,5,Temp,1,6,VarTemp,1
+SystemErrorsPrefix=glibc::
+OSERR=GNU-C Library call returned {!Q} ({}).
+SystemErrorsPostfix=
+SystemErrors=0,OK,,1,EPERM,OSERR,2,ENOENT,OSERR,3,ESRCH,OSERR,4,EINTR,OSERR,5,EIO,OSERR,6,ENXIO,OSERR,7,E2BIG,OSERR,8,ENOEXEC,OSERR,9,EBADF,OSERR,10,ECHILD,OSERR,11,EAGAIN,OSERR,12,ENOMEM,OSERR,13,EACCES,OSERR,14,EFAULT,OSERR,15,ENOTBLK,OSERR,16,EBUSY,OSERR,17,EEXIST,OSERR,18,EXDEV,OSERR,19,ENODEV,OSERR,20,ENOTDIR,OSERR,21,EISDIR,OSERR,22,EINVAL,OSERR,23,ENFILE,OSERR,24,EMFILE,OSERR,25,ENOTTY,OSERR,26,ETXTBSY,OSERR,27,EFBIG,OSERR,28,ENOSPC,OSERR,29,ESPIPE,OSERR,30,EROFS,OSERR,31,EMLINK,OSERR,32,EPIPE,OSERR,33,EDOM,OSERR,34,ERANGE,OSERR,35,EDEADLK,OSERR,36,ENAMETOOLONG,OSERR,37,ENOLCK,OSERR,38,ENOSYS,OSERR,39,ENOTEMPTY,OSERR,40,ELOOP,OSERR,42,ENOMSG,OSERR,43,EIDRM,OSERR,44,ECHRNG,OSERR,45,EL2NSYNC,OSERR,46,EL3HLT,OSERR,47,EL3RST,OSERR,48,ELNRNG,OSERR,49,EUNATCH,OSERR,50,ENOCSI,OSERR,51,EL2HLT,OSERR,52,EBADE,OSERR,53,EBADR,OSERR,54,EXFULL,OSERR,55,ENOANO,OSERR,56,EBADRQC,OSERR,57,EBADSLT,OSERR,59,EBFONT,OSERR,60,ENOSTR,OSERR,61,ENODATA,OSERR,62,ETIME,OSERR,63,ENOSR,OSERR,64,ENONET,OSERR,65,ENOPKG,OSERR,66,EREMOTE,OSERR,67,ENOLINK,OSERR,68,EADV,OSERR,69,ESRMNT,OSERR,70,ECOMM,OSERR,71,EPROTO,OSERR,72,EMULTIHOP,OSERR,73,EDOTDOT,OSERR,74,EBADMSG,OSERR,75,EOVERFLOW,OSERR,76,ENOTUNIQ,OSERR,77,EBADFD,OSERR,78,EREMCHG,OSERR,79,ELIBACC,OSERR,80,ELIBBAD,OSERR,81,ELIBSCN,OSERR,82,ELIBMAX,OSERR,83,ELIBEXEC,OSERR,84,EILSEQ,OSERR,85,ERESTART,OSERR,86,ESTRPIPE,OSERR,87,EUSERS,OSERR,88,ENOTSOCK,OSERR,89,EDESTADDRREQ,OSERR,90,EMSGSIZE,OSERR,91,EPROTOTYPE,OSERR,92,ENOPROTOOPT,OSERR,93,EPROTONOSUPPORT,OSERR,94,ESOCKTNOSUPPORT,OSERR,95,EOPNOTSUPP,OSERR,96,EPFNOSUPPORT,OSERR,97,EAFNOSUPPORT,OSERR,98,EADDRINUSE,OSERR,99,EADDRNOTAVAIL,OSERR,100,ENETDOWN,OSERR,101,ENETUNREACH,OSERR,102,ENETRESET,OSERR,103,ECONNABORTED,OSERR,104,ECONNRESET,OSERR,105,ENOBUFS,OSERR,106,EISCONN,OSERR,107,ENOTCONN,OSERR,108,ESHUTDOWN,OSERR,109,ETOOMANYREFS,OSERR,110,ETIMEDOUT,OSERR,111,ECONNREFUSED,OSERR,112,EHOSTDOWN,OSERR,113,EHOSTUNREACH,OSERR,114,EALREADY,OSERR,115,EINPROGRESS,OSERR,116,ESTALE,OSERR,117,EUCLEAN,OSERR,118,ENOTNAM,OSERR,119,ENAVAIL,OSERR,120,EISNAM,OSERR,121,EREMOTEIO,OSERR,122,EDQUOT,OSERR,123,ENOMEDIUM,OSERR,124,EMEDIUMTYPE,OSERR,125,ECANCELED,OSERR,126,ENOKEY,OSERR,127,EKEYEXPIRED,OSERR,128,EKEYREVOKED,OSERR,129,EKEYREJECTED,OSERR,130,EOWNERDEAD,OSERR,131,ENOTRECOVERABLE,OSERR,132,ERFKILL,OSERR,133,EHWPOISON,OSERR
+
+[ALIB_CONFIG]
+ExceptionsPrefix=config::
+ExceptionsPostfix=
+Exceptions=0,OK,,1,ErrorOpeningFile,EOF,2,ErrorWritingFile,EWF
+EOF=Can't open {}file '{}' for reading.
+EWF=Can't open {}file '{}' for writing.
+Priorities=0,NONE,1,500,AutoDetected,1,10000,DefaultValues,1,20000,Standard,1,30000,Environment,1,40000,CLI,1,-1,ProtectedValues,1
+CfgPlgDef=Internal Default Variables
+CfgPlgPro=Protected Variables
+CfgPlgEnv=Environment Variables
+CfgPlgCLI=Command Line Arguments
+
+[ALIB_EXPR]
+UO0=0,NONE
+UO1=1,+
+UO2=2,-
+UO3=3,!
+UO4=4,~
+UO5=5,*
+BO0=0,NONE,0
+BO1=1,[],0
+BO2=2,*,900
+BO3=3,/,900
+BO4=4,%,900
+BO5=5,+,800
+BO6=6,-,800
+BO7=7,<<,700
+BO8=8,>>,700
+BO9=9,<,600
+BO10=10,<=,600
+BO11=11,>,600
+BO12=12,>=,600
+BO13=13,==,500
+BO14=14,!=,500
+BO15=15,&,470
+BO16=16,^,460
+BO17=17,|,450
+BO18=18,&&,440
+BO19=19,||,430
+BO20=20,=,300
+BO21=21,?:,200
+UOA0=0,Not,!
+BOA0=0,And,&&
+BOA1=1,Or,||
+BOA2=2,Sm,<
+BOA3=3,Smaller,<
+BOA4=4,Smeq,<=
+BOA5=5,Smaller_Or_Equal,<=
+BOA6=6,Gt,>
+BOA7=7,Greater,>
+BOA8=8,Gteq,>=
+BOA9=9,Greater_Or_Equal,>=
+BOA10=10,Eq,==
+BOA11=11,Equals,==
+BOA12=12,Neq,!=
+BOA13=13,Not_equals,!=
+EF=Expression I 4
+EFT=throw
+ExceptionsPrefix=expressions::
+ExceptionsPostfix=
+Exceptions=1,SyntaxError,Exc1,-1,ExpressionInfo,Exc-1,-2,StdExceptionInfo,Exc-2,2,EmptyExpressionString,Exc2,5,SyntaxErrorExpectation,Exc5,6,UnknownUnaryOperatorSymbol,Exc6,7,UnknownBinaryOperatorSymbol,Exc7,14,UnknownIdentifier,Exc14,15,UnknownFunction,Exc15,-15,FunctionHint,Exc-15,16,UnaryOperatorNotDefined,Exc16,17,BinaryOperatorNotDefined,Exc17,22,MissingFunctionParentheses,Exc22,23,IdentifierWithFunctionParentheses,Exc23,25,IncompatibleTypesInConditional,Exc25,30,ExceptionInPlugin,Exc30,40,ExceptionInCallback,Exc40,50,NamedExpressionNotConstant,Exc50,51,NamedExpressionNotFound,Exc51,52,NestedExpressionNotFoundCT,Exc52,53,NestedExpressionCallArgumentMismatch,Exc53,54,NestedExpressionNotFoundET,Exc54,-54,WhenEvaluatingNestedExpression,Exc-54,55,NestedExpressionResultTypeError,Exc55,56,CircularNestedExpressions,Exc56,-56,CircularNestedExpressionsInfo,Exc-56,-500,InExpressionFormatter,Exc-500
+Exc1=Syntax error parsing expression.
+Exc-1=Expression: {{{}}}\\n             {!F}^->
+Exc-2=std::exception thrown: {!Q}.
+Exc2=Trying to parse empty expression string.
+Exc5=Syntax error while parsing expression{}
+Exc6=Unknown unary operator '{}' found.
+Exc7=Unknown binary operator '{}' found.
+Exc14=Unknown identifier {!Q}.
+Exc15=Unknown function '{}{}'.
+Exc-15=Found function {!Q}. Arguments not applicable.
+Exc16=Operator '{}' not defined for type {!Q}.
+Exc17=Operator '{}' not defined for types {!Q} and {!Q}.
+Exc22=Missing pair of empty parentheses '()' with call to function '{}'.
+Exc23=Function parentheses '()' not allowed identifier '{}'.
+Exc25=Incompatible types for conditional expression operator <{}> : <{}>.
+Exc30=Exception caught in 'callback function' while evaluating expression {!Q}.
+Exc40=Exception caught in 'callback function' while evaluating expression {!Q}.
+Exc50=Expression name has to be constant, if no expression return type is given.
+Exc51=Named expression {!Q} not found.
+Exc52=Compile-time defined nested expression {!Q} not found.
+Exc53=Erroneous arguments given with nested expression function {!Q}.
+Exc54=Evaluation-time defined nested expression {!Q} not found.
+Exc-54=Exception evaluating nested expression {!Q}.
+Exc55=Nested expression {!Q} returned wrong result type.\\nType expected: {}\\nType returned: {}
+Exc56=Circular nested expressions detected. Circular evaluation stack follows.
+Exc-56=Expression {!Q} contains nested expression {!Q}.
+Exc-500=Occured in ExpressionFormatter expression #{}.\\nof formatter string: {!Q}
+ExcExp0=.
+ExcExp1=: Closing brace ')' expected.
+ExcExp2=: Closing function parameter brace ')' expected.
+ExcExp3=: Closing subscript brace ']' expected.
+ExcExp4=: String literal closing quote ('"') expected.
+ExcExp5=: Operator expected.
+ExcExp6=: Colon ':' of conditional term expected.
+ExcExp7=: Right-hand side binary operand expected.
+ExcExp20=: Unexpected end of expression.
+ExcExp21=: Misplaced closing bracket.
+ExcExp22=: Misplaced subscript operator symbol.
+ExcExp23=: Misplaced comma.
+ANON_EXPR_NAME=ANONYMOUS
+VM_CMD_OPCODES=5,Subroutine,4,Jump,3,JumpIfFalse,2,Function,1,Constant
+ProgListHeader=@HL-ALib Expression Compiler\\n(c) 2019 AWorx GmbH. Published under MIT License (Open Source).\\nMore Info: https://github.com/AlexWorx/ALib-Class-Library.\\n@HL-Expression name: {}\\n     Normalized: {{{}}}\\n\\n
+ProgListHdl0=PC
+ProgListHdl1=ResultType
+ProgListHdl2=Command
+ProgListHdl3=Param
+ProgListHdl4=Stack
+ProgListHdl5=Description
+ProgListHdl6=ArgNo{Start..End}
+ProgListLine={:<02} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} |{!Fill}{}\\n
+ProgListFooter=@HL-
+Arithmethics=true I 4,false I 5,yes I 3,no I 2,on I 2,off I 3,Boolean I 4,Integer I 3,Float I 5
+Arithmethics2=Length I 3
+Math=PI I 2,E I 1,abs I 3,ceil I 4,floor I 5,trunc I 5,round I 5,rint I 4,max I 3,min I 3,remainder I 6,random I 4,sin I 3,asin I 4,cos I 3,acos I 4,tan I 3,atan I 4,sinh I 4,asinh I 5,cosh I 4,acosh I 5,tanh I 4,atanh I 5,exp I 3,exp2 I 4,exp10 I 5,log I 3,log2 I 4,log10 I 5,pow I 3,pow10 I 5,sqrt I 4,cbrt I 4,
+Strings=NewLine I 1 1,Tabulator I 3,String I 3,WildCardMatch I 1 1 1,Format I 6,ToUpper I 1 1,ToLower I 1 1,Compare I 4,StartsWith I 1 1,EndsWith I 1 1,Substring I 4,IndexOf I 3 1,Count I 5,Trim I 4,TrimStart I 4 1,TrimEnd I 4 1,Integer I 3,Float I 5,Token I 3,Hexadecimal I 3,Octal I 3,Binary I 3,Replace I 4,Repeat I 6,
+DateAndTime=January I 3,February I 3,March I 3,April I 3,May I 3,June I 3,July I 3,August I 3,September I 3,October I 3,November I 3,December I 3,Sunday I 3,Monday I 3,Tuesday I 3,Wednesday I 3,Thursday I 3,Friday I 3,Saturday I 3,NanoSecondS I 1 1 0,MicroSecondS I 3 1 0,MilliSecondS I 1 1 0,SecondS I 3 0,MinuteS I 3 0,Hours I 4,Days I 3,Weeks I 4,Months I 3,Years I 4,InDayS I 2 1 0,InHourS I 2 1 0,InMinuteS I 2 3 0,InSecondS I 2 3 0,InMilliSecondS I 2 1 1 0,InMicroSecondS I 2 3 1 0,InNanoSecondS I 2 1 1 0,InHertZ I 2 1 1,DateTime I 1 1,UtcDateTime I 1 1 1,Now I 3,Today I 5,UtcToday I 1 5,Age I 3,IsOlderThan I 2 1 1,GetYear I 1 1,GetMonth I 1 3,GetDay I 1 1,GetDayOfWeek I 1 1 1 1,GetHour I 1 1,GetMinute I 1 3,GetMilliSecond I 1 1 1,GetUtcYear I 1 1 1,GetUtcMonth I 1 1 3,GetUtcDay I 1 1 1,GetUtcDayOfWeek I 1 1 1 1 1,GetUtcHour I 1 1 1,GetUtcMinute I 1 1 3,GetUtcMilliSecond I 1 1 1 1
+
+[ALIB_CLI]
+ExceptionsPrefix=cli::
+ExceptionsPostfix=
+Exceptions=1,NoCommandGiven,Exc1,2,UnknownCommand,Exc2,10,ParsingOptions,Exc10,11,MissingOptionValue,Exc11,12,IllegalOptionNameContinuation,Exc12,20,ParsingCommand,Exc20,21,MissingParameterValue,Exc21
+Exc1=No command given.
+Exc2=Unknown command found with with CLI argument[{}]={!Q}
+Exc10=Error parsing option. Usage:\\n{}
+Exc20=Error parsing command.\\nUsage: {}\\n{}
+Exc11=Missing argument(s) of option <{}> found with CLI argument[{}]={!Q}.\\nExpected {}, given {}.
+Exc12=Option identifier <{}> found at start of CLI argument[{}]={!Q},\\nwhile CLI argument string continues with non-argument identifier characters.
+Exc21=Missing argument(s) of parameter <{}> found with CLI argument[{}]={!Q}.\\nQuantity expected {}, quantity given {}.
+DryRunModesPrefix=DryRunModes::
+DryRunModesPostfix=
+DryRunModes=0,Off,1,2,CLIDeclarations,4,1,CLIArgs,1,3,Application,1
+
+[ALIB_ALOX]
+Var0=1|ALOX|NO_IDE_LOGGER|VD01||||VC01
+Var1=2|ALOX|CONSOLE_TYPE|VD02||||VC02
+Var2=3|ALOX|%1_%2_VERBOSITY|VD03|;|=|1|VC03
+Var3=4|ALOX|GLOBAL_SOURCE_PATH_TRIM_RULES|ES|;|=|1|VC04
+Var4=5|ALOX|%1_SOURCE_PATH_TRIM_RULES|ES|;|=|1|VC05
+Var5=6|ALOX|%1_DOMAIN_SUBSTITUTION||;|->|1|
+Var6=7|ALOX|%1_PREFIXES|ES|;|=|1|VC07
+Var7=8|ALOX|%1_DUMP_STATE_ON_EXIT|VD08|,|||VC08
+Var8=20|ALOX|%1_AUTO_SIZES|||||VC20
+Var9=21|ALOX|%1_FORMAT||,||1|VC21
+Var10=22|ALOX|%1_FORMAT_DATE_TIME||,|||VC22
+Var11=23|ALOX|%1_FORMAT_MULTILINE||,|||VC23
+Var12=24|ALOX|%1_FORMAT_TIME_DIFF||,|||VC24
+Var13=25|ALOX|%1_MAX_ELAPSED_TIME|VD25|,|||VC25
+Var14=26|ALOX|%1_REPLACEMENTS||,|||VC26
+Var15=27|ALOX|CONSOLE_LIGHT_COLORS|ES||||VC27
+ES=
+VD01=false
+VD02=default
+VD03=writeback
+VD08=none, verbosity=info, domain=/ALOX
+VD25=0, limit=59
+VC01=If true, the creation of an additional, ide-specific debug logger is suppressed.\n(In particular suppresses DebugLogger (C#) and VStudioLogger (C++))
+VC02=Influences the type of console logger to be created by method\nLox::CreateConsoleLogger which is also used by Log::AddDebugLogger\nPossible values are: default, plain, ansi, windows, noqtcreator
+VC03=The verbosities of logger "%2" in lox "%1". Use 'writeback [VAR_NAME] ;'\nto enable automatic writing on application exit.
+VC04=Defines global source path trim rules (applicable for all Lox instances).\n   Format: [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; … ]
+VC05=Defines source path trim rules for Lox "%1". \n   Format: [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; … ]
+VC07="Prefix strings for log domains of lox \"%1\".\n   Format: [*]domainpath[*] =prefixstring [, inclusion] [ ; … ] "
+VC08=Log information about lox "%1" on exit. Comma separated list of arguments define\nverbosity, domain and content of output. Possible values content arguments are:\n  All, Basic, Version, SPTR, Loggers, Domains, InternalDomains\n  ScopeDomains, DSR, PrefixLogablesOnce, LogData, ThreadMappings, \n  CompilationFlags. If NONE is given nothing is dumped.
+VC20=Auto size values of last run of Logger '%1' (generated and temporary values).
+VC21=Meta info format of text logger "%1", including signatures for verbosity strings and\nan optional string added to the end of each log statement.\n   Format: metaInfoFormat [, Error [, Warning [, Info [, Verbose [, MsgSuffix ]]]]]
+VC22=Meta info date and time format of text logger ")%1".\n   Format: DateFormat [, TimeOfDayFormat [, TimeElapsedDays ]]]
+VC23=Multi-line format of text logger "%1".\n   Format: MultiLineMsgMode [, FmtMultiLineMsgHeadline [, FmtMultiLinePrefix [, FmtMultiLineSuffix\n           [, MultiLineDelimiter [, MultiLineDelimiterRepl ]]]]]
+VC24=Meta info time difference entities of text logger "%1".\n   Format: TimeDiffMinimum [, TimeDiffNone [, TimeDiffNanos [, TimeDiffMicros [, TimeDiffMillis \n           [, TimeDiffSecs [, TimeDiffMins [, TimeDiffHours [,  TimeDiffDays  ]]]]]]]]
+VC25=Maximum elapsed time of all runs of Logger '%1'. To reset elapsed time display\nwidth, set this to 0 manually. Generated and temporary value.)
+VC26=Pairs of search and replacement strings for text logger "%1".\n   Format: search, replacement [, search, replacement] [,...]
+VC27=Evaluated by colorful loggers that dispose about light and dark colors. Those may\nadjust their foreground and background color accordingly. If not given, under Windows OS\nthe right value is detected. Otherwise the value defaults to "foreground". In some\noccasions, the (detected or set) runtime environment might also indicate a different\ndefault value.  Possible values are 'foreground', 'background' and 'never'.
+Verbosity=0,Verbose,1,1,Info,1,2,Warning,1,2,Warnings,1,3,Error,1,3,Errors,1,4,Off,1
+Scope=0,Global,1,1,ThreadOuter,7,2,Filename,1,3,Method,1,4,ThreadInner,7,5,Path,7
+StateInfo=0,NONE,1,1,Basic,1,2,Version,1,512,LogData,4,4,Loggers,1,64,DSR,2,8,Domains,1,16,InternalDomains,1,0x100000,SPTR,2,32,ScopeDomains,1,128,PrefixLogables,1,256,Once,1,1024,ThreadMappings,1,0x200000,CompilationFlags,1,0xFFFFFFFF,All,1
+LightColorUsage=0,Auto,1,1,Never,1,2,Foreground,1,3,Background,1
+
+[ALIB]
+Bool=0,False,1,1,True,1,0,0,1,1,1,1,0,No,1,1,Yes,1,0,On,2,1,Off,2,0,-,1,1,Ok,2
+Case=0,Sensitive,1,1,Ignore,1
+ContainerOp=0,Insert,1,1,Remove,1,3,GetCreate,4,2,Get,1,4,Create,1
+Switch=0,Off,2,1,On,2
+Alignment=0,Left,1,1,Right,1,2,Center,1
+SortOrder=0,Ascending,1,1,Descending,1
+Inclusion=0,Include,1,1,Exclude,1
+Reach=0,Global,1,1,Local,1
+CurrentData=0,Keep,1,1,Clear,1
+SourceData=0,Copy,1,1,Move,1
+Safeness=0,Safe,1,1,Unsafe,1
+Responsibility=0,KeepWithSender,1,1,Transfer,1
+Timezone=0,Local,1,1,UTC,1
+Whitespaces=0,Trim,1,1,Keep,1
+Create=0,Never,1,1,IfNotExistent,1
+Propagation=0,Omit,1,1,ToDescendants,1
+Phase=0,Begin ,1,1,End,1
+Initialization=0,NoInit,1,1,Init,1,0,suppress,1,1,perform,1
+Timing=0,Async,1,1,Sync,1,0,asynchronous,1,1,synchronous,1,1,synchronized,1
+Var0=1|ALIB|LOCALE|ES||||VC1
+Var1=2|ALIB|WAIT_FOR_KEY_PRESS|VD2||||VC2
+Var2=3|ALIB|HAS_CONSOLE_WINDOW|ES||||VC3
+VC1=Defines the locale of the application. If empty or not set, the system's locale is used.
+VC2=If true, the process waits for a key stroke on termination. If empty, under Windows\nbehavior is detected, under other OSes, defaults to false.
+VC3=Boolean value that denotes what its name indicates. If empty, under Windows value is \ndetected, under other OSes, defaults to true.
+ES=
+VD2=

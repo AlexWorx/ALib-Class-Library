@@ -1,23 +1,27 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_STRING
 #define HPP_ALIB_STRINGS_STRING 1
 
-#if !defined (HPP_ALIB_LIB_ASSERT)
-#   include "alib/lib/assert.hpp"
+#if !defined (HPP_ALIB_FS_DEBUG_ASSERT)
+#   include "alib/lib/fs_debug/assert.hpp"
 #endif
 
 #if !defined(HPP_ALIB_STRINGS_FWDS)
 #   include "alib/strings/fwds.hpp"
 #endif
 
-#define HPP_ALIB_STRING_PROPPERINCLUDE
-#   include "alib/strings/chararraytraits.inl"
-#undef  HPP_ALIB_STRING_PROPPERINCLUDE
+#if !defined (HPP_ALIB_CHARACTERS_CHARARRAY)
+#   include "alib/characters/chararray.hpp"
+#endif
+
+#include "alib/strings/chararraytraits.inl"
+
 
 #if !defined (_GLIBCXX_ITERATOR) && !defined (_ITERATOR_)
 #   include <iterator>
@@ -30,7 +34,6 @@
     #pragma warning( push )
     #pragma warning( disable : 4127 )
 #endif
-
 
 namespace aworx { namespace lib { namespace strings {
 
@@ -70,7 +73,7 @@ class TString
     // #############################################################################################
     public:
         //! @cond NO_DOX
-            #if ALIB_STRINGS_DEBUG
+            #if ALIB_DEBUG_STRINGS
                 void     dbgCheck()   const;
             #endif
         //! @endcond
@@ -79,7 +82,7 @@ class TString
     // Private fields
     // #############################################################################################
     protected:
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
 
          union
          {
@@ -130,14 +133,23 @@ class TString
      ##@{ ########################################################################################*/
      public:
 
-        /** ****************************************************************************************
-         * Default constructor creating a \ref alib_strings_details_nulled \e "nulled" string.
-         ******************************************************************************************/
-        inline
-        constexpr TString()
-        : buffer(nullptr)
-        , length(0)
-        {}
+        /** Defaulted default constructor    */
+        constexpr TString()                                                               = default;
+
+        /** Defaulted copy constructor    */
+        constexpr TString(const TString&)                                                 = default;
+
+        /** Defaulted move constructor    */
+        constexpr TString(     TString&&)                                                 = default;
+
+        /** Defaulted copy assignment operator.
+         *  @return A reference to <c>this</c> instance. */
+                  TString& operator=(const TString&)                                      = default;
+
+        /** Defaulted move assignment operator.
+         *  @return A reference to <c>this</c> instance. */
+                  TString& operator=(     TString&&)                                      = default;
+
 
         /** ****************************************************************************************
          * Constructor accepting a pointer to a character array and a string length.
@@ -145,14 +157,13 @@ class TString
          * @param pBuffer   Pointer to the start of the character string to represent.
          * @param pLength   The length of the character string to represent.
          ******************************************************************************************/
-        inline
         constexpr
         TString( const TChar* pBuffer, integer pLength )
         : buffer(pBuffer)
         , length(pLength)
         {}
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * This templated constructor accepts various different kinds of source data.
          * Unlike this documentation suggests, this constructor is internally implemented by a
@@ -166,7 +177,7 @@ class TString
          * \see
          *   More information about string construction is provided with chapter
          *   \ref alib_strings_cc_construction of the Programmer's Manual of module
-         *   \alibmod_strings.
+         *   \alib_strings.
          *
          * @tparam TCharArray  Type that comprises a character array.
          * @param  src        The source object.
@@ -183,15 +194,15 @@ class TString
          *
          * \see
          *   More information about casting \alib string types to built-in C++ types or custom
-         *   types is provided with chapter \ref alib_strings_cc_cast of the programmer's
-         *   manual of module \alibmod_strings.
+         *   types is provided with chapter \ref alib_strings_cc_cast of the Programmer's
+         *   Manual of module \alib_strings.
          *
          * @tparam TCharArray The custom type to implicitly convert this object to.
          * @return A value of custom string type.
          ******************************************************************************************/
         template<typename TCharArray>
         inline
-        operator TCharArray () const
+        operator TCharArray ()                                                                 const
         {}
 
         /** ****************************************************************************************
@@ -201,15 +212,15 @@ class TString
          *
          * \see
          *   More information about casting \alib string types to built-in C++ types or custom
-         *   types is provided with chapter \ref alib_strings_cc_cast of the programmer's
-         *   manual of module \alibmod_strings.
+         *   types is provided with chapter \ref alib_strings_cc_cast of the Programmer's
+         *   Manual of module \alib_strings.
          *
          * @tparam TCharArray The custom type to explicitly convert this object to.
          * @return A value of custom string type.
          ******************************************************************************************/
         template<typename TCharArray>
         inline explicit
-        operator TCharArray () const
+        operator TCharArray ()                                                                 const
         {}
 
     #else // doxygen end
@@ -276,20 +287,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Returns a new string object representing a sub-string of the string that this object
          * represents.
          *
+         * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
+         *                      If \c false is given, no range check is performed.
          * @param  regionStart  The start of the sub-string within this string.
          * @param  regionLength The length of the sub-string to return.
          *                      Defaults to \alib{strings,MAX_LEN}.
-         * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
-         *                      If \c false is given, no range check is performed.
          * @return A string representing a region of this string.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TString<TChar>   Substring(integer regionStart, integer regionLength =MAX_LEN )        const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 AdjustRegion( regionStart, regionLength );
             }
@@ -319,16 +329,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The start of the character array comprising the string represented by this
          *         object.
          ******************************************************************************************/
-        inline
-        constexpr const TChar*  Buffer()          const       { return buffer;    }
+        constexpr const TChar*  Buffer()            const                      { return buffer;    }
 
         /** ****************************************************************************************
          * Returns the length of the string that this object represents.
          *
          * @return The length of the string represented by this object.
          ******************************************************************************************/
-        inline
-        constexpr integer       Length()          const       { return length;    }
+        constexpr integer       Length()            const                      { return length;    }
 
         /** ****************************************************************************************
          * Returns the length of the string if represented as a wide character string.
@@ -346,12 +354,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *   <em>setlocale()</em> once, prior to using this method, to successfully calculate
          *   the length.
          *   This by default is done during \ref alib_manual_bootstrapping "library initialization",
-         *   if performed on class \aworx{lib,ALibModules}.
+         *   if performed on class \aworx{lib,ALibDistribution}.
          *
          * @return  The length of string when it was converted to wide characters.
          *          If counting failed (what means that the conversion will fail) \c -1 is returned.
          ******************************************************************************************/
-        integer       WStringLength()   const;
+        integer                 WStringLength()     const;
 
 
         /** ****************************************************************************************
@@ -365,16 +373,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return \c true if no buffer is allocated.
          ******************************************************************************************/
-        inline
-        bool         IsNull()           const       { return buffer == nullptr; }
+        constexpr bool          IsNull()            const              { return buffer == nullptr; }
 
         /** ****************************************************************************************
          * Returns \c true if field #buffer does not equal \c nullptr, \c false otherwise.
          *
          * @return The negated value of method #IsNull.
          ******************************************************************************************/
-        inline
-        bool         IsNotNull()        const       { return buffer != nullptr; }
+        constexpr bool          IsNotNull()         const              { return buffer != nullptr; }
 
         /** ****************************************************************************************
          * Returns \c true if this string is of zero length.
@@ -386,19 +392,17 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *   \ref alib_mod_strings "Programmer's Manual".
          * @return \c true if the actual length equals zero.
          ******************************************************************************************/
-        inline
-        bool         IsEmpty()          const       { return length == 0; }
+        constexpr bool          IsEmpty()           const                    { return length == 0; }
 
         /** ****************************************************************************************
          * Returns \c true if this string has a length of \c 1 or more.
          * @return \c true if the actual length does not equal zero.
          ******************************************************************************************/
-        inline
-        bool         IsNotEmpty()       const       { return length != 0; }
+        constexpr bool          IsNotEmpty()        const                    { return length != 0; }
 
 
     /** ############################################################################################
-     * @name Character access
+     * @name Character Access
      ##@{ ########################################################################################*/
 
         /** ****************************************************************************************
@@ -411,10 +415,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The character at the given index, or '\0' if index out of range.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
-        TChar        CharAt( integer idx )          const
+        TChar        CharAt( integer idx )                                                     const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
                 return  ( idx >= 0 && idx < length ) ? *(buffer + idx )
                                                      : '\0' ;
             ALIB_ASSERT_ERROR( idx >= 0 && idx < length, "Non checking version: Index out of range" )
@@ -430,10 +433,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *         If this instance's length is zero,  '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
-        TChar        CharAtStart()          const
+        TChar        CharAtStart()                                                             const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
                 return length > 0  ?  *(buffer)
                                    :  '\0';
 
@@ -453,10 +455,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *         If this instance's length is zero,  '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         TChar        CharAtEnd()          const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
                 return length > 0   ?  *(buffer + length - 1)
                                     : '\0';
 
@@ -467,24 +468,29 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         /** ****************************************************************************************
          * Reads a character at a given index.
          *
-         * \attention
+         * \note
          *   Unlike method #CharAt, this operator does <em>not</em> perform do range check on
          *   parameter \p{idx}.
-         *   The rationale for this is that in derived class %AString, which overrides this operator
-         *   but returning a reference to the character (that provides write access), such reference
+         *   The rationale for this is that derived mutable types (e.g. class %AString),
+         *   may provide a mutable (non-<c>const</c>) version of this operator, returning a
+         *   a reference to the character to provide write access. Such reference
          *   to a character could not be given if the index was out of range.
-         *   This way, a check in the derived type could not be implemented.<br>
-         *   Consequently, this operator is equivalent to the non-checking version of method
+         *   This way, a check in the derived type could likewise not be implemented.
+         *
+         * \note
+         *   As a result, this operator is equivalent to the non-checking version of method
          *   #CharAt<\c false>. For safe access to characters in the buffer use #CharAt
          *   (with template parameter \p{TCheck} being \c true) which returns <c>'\0'</c> in the
-         *   case of that \p{idx} is out of bounds.<br>
-         *   In debug-compilations this operator raises an assertion if \p{idx} is out of bounds.
+         *   case of that \p{idx} is out of bounds.
+         *
+         * \note
+         *   Still, in debug-compilations this operator raises an assertion if \p{idx} is out of
+         *   bounds.
          *
          * @param   idx    The index of the character within this object's buffer.
          * @returns If the character contained at index \p{idx}.
          ******************************************************************************************/
-         inline
-         TChar    operator[] (integer idx) const
+         TChar    operator[] (integer idx)                                                     const
          {
             ALIB_ASSERT_ERROR( idx >= 0  && idx < length, "Index out of bounds" )
             return buffer[idx];
@@ -502,7 +508,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param rhs  The object to compare this string with.
          * @returns The result of the call to #Equals.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator== (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator== (const TCharArray& rhs)                 const
         {
             return  Equals<Case::Sensitive>( rhs );
         }
@@ -515,7 +521,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param rhs  The object to compare this string with.
          * @returns The negated result of the call to #Equals.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator!= (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator!= (const TCharArray& rhs)                 const
         {
             return !Equals<Case::Sensitive>( rhs );
         }
@@ -530,7 +536,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @returns \c true if the call to #CompareTo returned a negative result, \c false
          *          otherwise.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator<  (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator<  (const TCharArray& rhs)                 const
         {
             return CompareTo<true, Case::Sensitive>( rhs ) <  0;
         }
@@ -545,7 +551,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @returns \c true if the call to #CompareTo returned a negative or zero result, \c false
          *          otherwise.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator<= (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator<= (const TCharArray& rhs)                 const
         {
             return CompareTo<true, Case::Sensitive>( rhs ) <= 0;
         }
@@ -560,7 +566,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @returns \c true if the call to #CompareTo returned a positive but non-zero result,
          *          \c false otherwise.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator>  (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator>  (const TCharArray& rhs)                 const
         {
             return CompareTo<true, Case::Sensitive>( rhs ) >  0;
         }
@@ -575,10 +581,33 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @returns \c true if the call to #CompareTo returned a positive result, \c false
          *          otherwise.
          ******************************************************************************************/
-        template<typename TCharArray> inline  bool  operator>= (const TCharArray& rhs)         const
+        template<typename TCharArray> bool  operator>= (const TCharArray& rhs)                 const
         {
             return CompareTo<true, Case::Sensitive>( rhs ) >=  0;
         }
+
+        /** ****************************************************************************************
+         * Computes a hash number for the contained string.
+         *
+         * \note
+         *   If this library is compiled using C++ 17, internally this method is using
+         *   <c>std::hash<std::string_view<TChar>></c>. Otherwise a compatible hash function
+         *   is used.
+         * \see Alternative method #HashcodeIgnoreCase.
+         *
+         * @return  A hash number which is equal for two instances with the same content.
+         ******************************************************************************************/
+        std::size_t Hashcode()                                                                const;
+
+        /** ****************************************************************************************
+         * Computes a hash number for the contained string converted to upper case letters.
+         *
+         * \see Alternative method #Hashcode.
+         *
+         * @return  A hash number which is equal for two instances with have the same content
+         *          if converted to upper case letters.
+         ******************************************************************************************/
+        std::size_t HashcodeIgnoreCase()                                                      const;
 
         /** ****************************************************************************************
          * Compares this string with a
@@ -594,8 +623,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *          given \p{rhs} are equal.
          ******************************************************************************************/
         template <Case TSensitivity =Case::Sensitive>
-        inline
-        bool Equals( const TString<TChar>& rhs )                                            const
+        bool Equals( const TString<TChar>& rhs )                                               const
         {
             ALIB_STRING_DBG_CHK(this)
             if (    ( IsNull() !=  rhs.IsNull() )
@@ -605,7 +633,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             if ( length == 0 )
                 return true;
 
-            if ALIB_CPP17_CONSTEXPR (TSensitivity == Case::Sensitive )
+            if ALIB_CONSTEXPR_IF (TSensitivity == Case::Sensitive )
                 return  characters::CharArray<TChar>::Equal            ( buffer, rhs.buffer, length );
             else
                 return  characters::CharArray<TChar>::CompareIgnoreCase( buffer, rhs.buffer, length ) == 0;
@@ -630,7 +658,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template <bool TCheck       = true,
                   Case TSensitivity = Case::Sensitive>
-        inline
         int CompareTo( const TString<TChar>& rhs )                                          const
         {
             ALIB_STRING_DBG_CHK(this)
@@ -643,8 +670,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             if ( TCheck && length == 0 )  return  rhs.length == 0 ? 0 : -1;
             if (       rhs.length == 0 )  return +1;
 
-            bool    iAmShorter=  (length < rhs.length);
-            integer shortLen  =  iAmShorter ?  length  :  rhs.length;
+            bool    thisIsShorter=  ( length < rhs.length);
+            integer shortLen  = thisIsShorter ? length : rhs.length;
 
             int cmpVal=  (TSensitivity == Case::Sensitive)
                          ? characters::CharArray<TChar>::Compare          ( buffer, rhs.buffer, shortLen )
@@ -652,19 +679,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
             if ( cmpVal != 0 || length == rhs.length )
                 return cmpVal;
-            return iAmShorter ? -1 : 1;
+            return thisIsShorter ? -1 : 1;
         }
 
         /** ****************************************************************************************
          * Compares this string with a region of another
          * \ref alib_strings_cc_construction_string "string-like object".
          *
-         * @param rhs             The string to compare this string with.
-         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
-         *                        with.
-         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
-         *                        with.
-         *                        Defaults to \alib{strings,MAX_LEN}.
          * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
          *                        If \c false is given, no check for a \e nulled comparison
          *                        object is performed and this string must not be empty.
@@ -672,6 +693,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                        fits to parameter \p{rhs}. This also means that the default
          *                        value must not be used with <em>TCheck==\<\c false\></em>.
          * @tparam TSensitivity   Determines if comparison is case sensitive (the default) or not.
+         * @param rhs             The string to compare this string with.
+         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
+         *                        with.
+         *                        Defaults to \alib{strings,MAX_LEN}.
          *
          * @return
          *  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
@@ -681,12 +708,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template < bool TCheck       = true,
                    Case TSensitivity = Case::Sensitive>
-        inline
         int CompareTo(  const TString&  rhs,
                         integer            rhsRegionStart,
                         integer            rhsRegionLength   =MAX_LEN  )                       const
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 TString cmpSub( rhs.buffer, 0);
                 rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
@@ -704,14 +730,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Compares a region of this object with a region of another
          * \ref alib_strings_cc_construction_string "string-like object".
          *
-         * @param rhs             The string to compare this string with.
-         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
-         *                        with.
-         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
-         *                        with.
-         * @param regionStart     The start of the region in this object to compare with
-         * @param regionLength    The length of the region in this object to compare with.
-         *                        Defaults to \alib{strings,MAX_LEN}.
          * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
          *                        If \c false is given, no check for a \e nulled comparison
          *                        object is performed and this string must not be empty.
@@ -721,6 +739,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                        This also means that the default value of \p{regionLength} must
          *                        not be used in this case.
          * @tparam TSensitivity   Determines if comparison is case sensitive (the default) or not.
+         * @param rhs             The string to compare this string with.
+         * @param rhsRegionStart  The start of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param rhsRegionLength The length of the region in \p{rhs} to compare this object
+         *                        with.
+         * @param regionStart     The start of the region in this object to compare with
+         * @param regionLength    The length of the region in this object to compare with.
+         *                        Defaults to \alib{strings,MAX_LEN}.
          *
          * @return
          *  -  0 if this and \p{rhs} are \e nulled or if both have a length of 0 or if both
@@ -730,14 +756,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template < bool TCheck       = true,
                    Case TSensitivity = Case::Sensitive>
-        inline
         int CompareTo(  const TString&  rhs,
                         integer            rhsRegionStart,
                         integer            rhsRegionLength,
                         integer            regionStart,
                         integer            regionLength      =MAX_LEN  )                       const
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 TString cmpSub( rhs.buffer, 0);
                 rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
@@ -764,23 +789,22 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *     (This check only done if \p{TCheck} equals \c true.)
          *   - Otherwise, if the length of \p{needle} is 0, \c true is returned.
          *
-         * @param needle        The string to compare with. If it is \ref IsEmpty "empty", \c true
-         *                      is returned.
-         * @param pos           The position to search for needle.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c <false\> is given, no check on parameter
          *                      \p{pos} is performed and \p{needle} must not be \e nulled.
          * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
+         * @param needle        The string to compare with. If it is \ref IsEmpty "empty", \c true
+         *                      is returned.
+         * @param pos           The position to search for needle.
          * @return \c true if \p{needle} is found at the given position. False otherwise.
          ******************************************************************************************/
         template< bool  TCheck       = true,
                   Case  TSensitivity = Case::Sensitive >
-        inline
-        bool ContainsAt( const TString& needle, integer pos )                               const
+        bool ContainsAt( const TString& needle, integer pos )                                  const
         {
             integer needleLength= needle.length;
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( pos < 0 || pos + needleLength > length || needle.IsNull () )
                     return false;
@@ -806,21 +830,20 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * \p{needle}.
          * In the special case that \p{needle} is \ref IsEmpty "empty", \c true is returned.
          *
-         * @param needle        The string to compare the start of this string with.
-         *                      If \e nulled or empty, \c true is returned.
          * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c <false\> is given, the given needle must not be empty
          *                      and must not be longer than this string!
          *                      \p{pos} is performed and \p{needle} must not be \e nulled.
+         * @param needle        The string to compare the start of this string with.
+         *                      If \e nulled or empty, \c true is returned.
          * @return \c true if \p{needle} is found at the start of this string, \c false otherwise.
          ******************************************************************************************/
         template<bool  TCheck      = true,
                  Case  TSensitivity =Case::Sensitive>
-        inline
-        bool StartsWith( const TString& needle )                                            const
+        bool StartsWith( const TString& needle )                                               const
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -835,7 +858,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                    "Non checking and emtpy needle given." )
             }
 
-            if ALIB_CPP17_CONSTEXPR ( TSensitivity == Case::Sensitive )
+            if ALIB_CONSTEXPR_IF ( TSensitivity == Case::Sensitive )
                 return  characters::CharArray<TChar>::Equal            ( buffer,  needle.buffer, needle.length );
             else
                 return  characters::CharArray<TChar>::CompareIgnoreCase( buffer,  needle.buffer, needle.length ) == 0;
@@ -845,17 +868,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Returns \c true, if this string ends with the string found in parameter \p{needle}.
          * If \p{needle} is \ref IsEmpty "empty", \c true is returned.
          *
+         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
          * @param needle        The string to compare the end of this string with.
          *                      If \e nulled or empty, \c true is returned.
-         * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
          * @return \c true if \p{needle} is found at the end of this, \c false otherwise.
          ******************************************************************************************/
         template<bool        TCheck      = true,
                  Case  TSensitivity =Case::Sensitive>
-        inline
-        bool EndsWith( const TString& needle )                                              const
+        bool EndsWith( const TString& needle )                                                 const
         {
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -870,7 +892,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                    "Non checking and emtpy needle given." )
             }
 
-            if ALIB_CPP17_CONSTEXPR ( TSensitivity == Case::Sensitive )
+            if ALIB_CONSTEXPR_IF ( TSensitivity == Case::Sensitive )
                 return characters::CharArray<TChar>::Equal            ( buffer + length - needle.length,  needle.buffer, needle.length );
             else
                 return characters::CharArray<TChar>::CompareIgnoreCase( buffer + length - needle.length,  needle.buffer, needle.length ) == 0;
@@ -893,12 +915,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *          Otherwise the index of its first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer  IndexOf( TChar needle, integer startIdx = 0 )                                 const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -919,21 +940,20 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         /** ****************************************************************************************
          * Searches a character within a region of this.
          *
+         * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
+         *                     If \c false is given, no range check is performed.
          * @param needle       The character to search for.
          * @param regionStart  The start of the region to search the character in.
          * @param regionLength The length of the region to search the character in.
-         * @tparam TCheck      Defaults to \c true which is the normal invocation mode.
-         *                     If \c false is given, no range check is performed.
          * @return  \c -1 if the character \p{needle} is not found.
          *          Otherwise the index of its first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
-        integer         IndexOf( TChar needle, integer regionStart, integer regionLength )    const
+        integer         IndexOf( TChar needle, integer regionStart, integer regionLength )     const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( AdjustRegion( regionStart, regionLength ) )
@@ -965,7 +985,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  This string's #Length if character \p{needle} is not found.
          *          Otherwise the index of first occurrence.
          ******************************************************************************************/
-        inline
         integer      IndexOfOrLength( TChar needle )                                           const
         {
             ALIB_STRING_DBG_CHK(this)
@@ -981,19 +1000,18 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * Depending on the invocation context, the choice for the right version of this method may
          * lead to shorter and more efficient code.
          *
-         * @param needle    The character to search for.
-         * @param startIdx  The index in this to start searching the character.
          * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
          *                  If \c false is given, no range check is performed.
+         * @param needle    The character to search for.
+         * @param startIdx  The index in this to start searching the character.
          * @return  This string's #Length if  character \p{needle} is not found.
          *          Otherwise the index of first occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer      IndexOfOrLength( TChar needle, integer startIdx )                         const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -1026,12 +1044,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *          Otherwise the index of its last occurrence.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer    LastIndexOf( TChar needle, integer startIndex =MAX_LEN )                    const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( startIndex <  0      )   return -1;
@@ -1044,7 +1061,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             while( startIndex >= 0 && buffer[ startIndex ] != needle )
-                startIndex--;
+                --startIndex;
 
             return startIndex;
         }
@@ -1063,17 +1080,17 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * This method searches forwards. For backwards search, see #LastIndexOf.
          *
+         * @tparam TInclusion Denotes whether the search returns the first index that holds a value
+         *                    that is included or that is not excluded in the set of needle
+         *                    characters.
+         * @tparam TCheck     Defaults to \c true which is the normal invocation mode.
+         *                    If \c <false\> is given, no parameter checks are performed.
          * @param needles     Pointer to a zero terminated set of characters to be taken into
          *                    account.
          * @param startIdx    The index to start the search at. If the given value is less than 0,
          *                    it is set to 0. If it exceeds the length of the string, the length of
          *                    the string is returned.
          *                    Defaults to 0.
-         * @tparam TInclusion Denotes whether the search returns the first index that holds a value
-         *                    that is included or that is not excluded in the set of needle
-         *                    characters.
-         * @tparam TCheck     Defaults to \c true which is the normal invocation mode.
-         *                    If \c <false\> is given, no parameter checks are performed.
          *
          * @return The index of the first character found which is included, respectively not
          *         included, in the given set of characters.
@@ -1081,10 +1098,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template <Inclusion   TInclusion,
                   bool        TCheck      = true>
-        inline
-        integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                const
+        integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                   const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( startIdx < 0       ) startIdx= 0;
                 if ( startIdx >= length ) return   -1;
@@ -1111,15 +1127,15 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * This method searches backwards starting at the given index. For forwards search, see
          * #IndexOfAny.
          *
-         * @param needles     Pointer to a zero terminated set of characters to be searched for.
-         * @param startIdx    The index to start the search at. The value is cropped to be in
-         *                    the bounds of 0 and the length of this object minus one.
-         *                    Defaults to \alib{strings,MAX_LEN}.
          * @tparam TInclusion Denotes whether the search returns the first index that holds a value
          *                    that is included or that is not excluded in the set of needle
          *                    characters.
          * @tparam TCheck     Defaults to \c true which is the normal invocation mode.
          *                    If \c <false\> is given, no parameter checks are performed.
+         * @param needles     Pointer to a zero terminated set of characters to be searched for.
+         * @param startIdx    The index to start the search at. The value is cropped to be in
+         *                    the bounds of 0 and the length of this object minus one.
+         *                    Defaults to \alib{strings,MAX_LEN}.
          *
          * @return The index of the first character found which is included, respectively not
          *         included, in the given set of characters.
@@ -1127,10 +1143,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template <Inclusion   TInclusion,
                   bool        TCheck = true>
-        inline
         integer LastIndexOfAny( const TString& needles, integer startIdx =MAX_LEN )            const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( startIdx < 0       ) return -1;
                 if ( startIdx >= length ) startIdx=  length - 1;
@@ -1141,7 +1156,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                    "Non checking and illegal parameters" )
             }
 
-            if ALIB_CPP17_CONSTEXPR ( TInclusion == Inclusion::Include )
+            if ALIB_CONSTEXPR_IF ( TInclusion == Inclusion::Include )
                 return characters::CharArray<TChar>::LastIndexOfAnyInclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
             else
                 return characters::CharArray<TChar>::LastIndexOfAnyExclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
@@ -1153,26 +1168,24 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * If \p{needle} is empty, the adjusted value of \p{startIdx} is returned.
          *
-         * @param  needle         The string to search for.
-         * @param  startIdx       The index to start the search at. Optional and defaults to \c 0.
          * @tparam TSensitivity   Case sensitivity of the comparison.
          *                        Optional and defaults to \b Case::Sensitive.
          * @tparam TCheck         Defaults to \c true which is the normal invocation mode.
          *                        If \c false is given, parameter \p{needle} must not be empty and
          *                        \p{startIdx} must be in the range of [0 ... #Length() - needle.Length()].
          *                        This also implies that this string must not be empty.
-         *
+         * @param  needle         The string to search for.
+         * @param  startIdx       The index to start the search at. Optional and defaults to \c 0.
          *
          * @return    If the string is not found or the checking of parameters failed, \c -1 is
          *            returned. Otherwise the index of the first occurrence of \p{needle}.
          ******************************************************************************************/
         template<bool     TCheck        = true,
                  Case     TSensitivity  = Case::Sensitive>
-        inline
         integer  IndexOf( const TString&  needle,
                           integer         startIdx= 0  )                                       const
         {
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( needle.IsNull()  )
                     return  -1;
@@ -1207,14 +1220,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The index of the first difference found or \p{idx} plus the length of \p{needle}.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer  IndexOfFirstDifference( const TString&  needle,
                                          Case     sensitivity = Case::Sensitive,
                                          integer  idx         = 0                     )  const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( idx <  0      )  idx= 0;
@@ -1260,21 +1272,20 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * For empty strings \p{needle}, \c 0 is returned.
          *
+         * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
+         *                  If \c false is given, no range check is performed.
          * @param needle    The character to search for.
          * @param startPos  The index to start the counting.
          *                  Optional and defaults to \c 0.
-         * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
-         *                  If \c false is given, no range check is performed.
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
         template <bool TCheck= true>
-        inline
         integer  CountChar( TChar           needle,
                             integer         startPos        = 0   )                            const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1290,8 +1301,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             int     result= 0;
             while( startPos < length && (startPos= IndexOf<false>( needle, startPos )) >= 0 )
             {
-                startPos++;
-                result++;
+                ++startPos;
+                ++result;
             }
 
             return result;
@@ -1304,11 +1315,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * For empty strings \p{needle}, \c 0 is returned.
          * Also, for empty strings \p{omit}, \c 0 is returned.
          *
+         * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
+         *                  If \c false is given, no range check is performed.
          * @param needle    The character to search for.
          * @param omit      Omit occurrence if the given character follows.
          * @param startPos  The index to start the counting.
-         * @tparam TCheck   Defaults to \c true which is the normal invocation mode.
-         *                  If \c false is given, no range check is performed.
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
@@ -1318,7 +1329,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                             integer         startPos  )                                        const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CPP17_CONSTEXPR ( TCheck )
+            if ALIB_CONSTEXPR_IF ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1333,11 +1344,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             int     result= 0;
             while( startPos < length && (startPos= IndexOf<false>( needle, startPos )) >= 0 )
             {
-                startPos++;
+                ++startPos;
                 if( startPos < Length()  &&  *(buffer + startPos) == omit  )
                     continue;
 
-                result++;
+                ++result;
             }
 
             return result;
@@ -1348,27 +1359,27 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * For empty strings \p{needle}, \c 0 is returned.
          *
-         * @param needle        The string to search for.
-         * @param startPos      The index to start the counting.
-         *                      Optional and defaults to \c 0.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c false is given, parameter \p{startIdx} must be valid and
          *                      \p{needle} must not be empty.
          * @tparam TSensitivity Case sensitivity of the comparison.
          *                      Optional and defaults to \b Case::Sensitive.
+         * @param needle        The string to search for.
+         * @param startPos      The index to start the counting.
+         *                      Optional and defaults to \c 0.
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
         template< bool        TCheck       = true,
                   Case  TSensitivity = Case::Sensitive >
-        integer Count( const TString& needle,
+        integer Count( const TString&    needle,
                        integer           startPos   = 0 )                                      const
         {
             ALIB_STRING_DBG_CHK(this)
             integer nLen= needle.Length();
             if( nLen == 0  )
                 return 0;
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1383,7 +1394,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             while( (startPos= IndexOf<false, TSensitivity>( needle, startPos )) >= 0 )
             {
                 startPos+= needle.Length();
-                result++;
+                ++result;
             }
 
             return result;
@@ -1396,15 +1407,15 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * For empty strings \p{needle}, \c 0 is returned.
          * Also, for empty strings \p{omit}, \c 0 is returned.
          *
-         * @param needle        The string to search for.
-         * @param omit          Omit occurrence if the given string follows.
-         * @param startPos      The index to start the counting.
-         *                      Optional and defaults to \c 0.
          * @tparam TSensitivity Case sensitivity of the comparison.
          *                      Optional and defaults to \b Case::Sensitive.
          * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
          *                      If \c false is given, parameter \p{startPos} must be valid and
          *                      \p{needle} must not be empty.
+         * @param needle        The string to search for.
+         * @param omit          Omit occurrence if the given string follows.
+         * @param startPos      The index to start the counting.
+         *                      Optional and defaults to \c 0.
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
@@ -1412,13 +1423,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  Case     TSensitivity  = Case::Sensitive>
         integer  Count( const TString&   needle,
                         const TString&   omit,
-                        integer         startPos        = 0         )                          const
+                        integer          startPos        = 0         )                         const
         {
             ALIB_STRING_DBG_CHK(this)
             integer nLen= needle.Length();
             if ( nLen == 0  )
                 return  0;
-            if ALIB_CPP17_CONSTEXPR (TCheck)
+            if ALIB_CONSTEXPR_IF (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1439,7 +1450,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                          || ContainsAt<false>( omit, startPos ) )    )
                     continue;
 
-                result++;
+                ++result;
             }
 
             return result;
@@ -1454,11 +1465,11 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
      ##@{ ########################################################################################*/
 
         /** ****************************************************************************************
-         * Parses an integer value consisting of characters \c '0' to \c '9' from this string.
+         * Parses an integral value consisting of characters \c '0' to \c '9' from this string.
          * <br>Unlike with #ParseInt or #ParseDec, no sign, whitespaces or group characters are
          * accepted.
          *
-         * @param startIdx     The start index from where the integer value is tried to be parsed.
+         * @param startIdx     The start index from where the integral value is tried to be parsed.
          *                     Optional and defaults to \c 0.
          * @param[out] newIdx  Optional output variable that will point to the first character
          *                     in this string after the float number that was parsed.
@@ -1473,7 +1484,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 
         /** ****************************************************************************************
-         * Parses an integer value in decimal, binary, hexadecimal or octal format from
+         * Parses an integral value in decimal, binary, hexadecimal or octal format from
          * the string
          *
          * Parameter \p{numberFormat} defaults to \c nullptr. This denotes static singleton
@@ -1513,7 +1524,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         int64_t  ParseInt( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseInt( 0, numberFormat, newIdx );
@@ -1530,7 +1540,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         int64_t  ParseInt( integer* newIdx ) const
         {
             return ParseInt( 0, nullptr, newIdx );
@@ -1550,7 +1559,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         int64_t  ParseInt( integer startIdx, integer* newIdx ) const
         {
             return ParseInt( startIdx, nullptr, newIdx );
@@ -1569,7 +1577,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * read.
          *
          * Sign literals \c '-' or \c '+' are \b not accepted and parsing will fail.
-         * For reading signed integer values, see methods #ParseInt, for floating point numbers
+         * For reading signed integral values, see methods #ParseInt, for floating point numbers
          * #ParseFloat.
          *
          * For more information on number conversion, see class
@@ -1601,7 +1609,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseDec( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseDec( 0, numberFormat, newIdx );
@@ -1618,7 +1625,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseDec( integer* newIdx ) const
         {
             return ParseDec( 0, nullptr, newIdx );
@@ -1638,7 +1644,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseDec( integer startIdx, integer* newIdx ) const
         {
             return ParseDec( startIdx, nullptr, newIdx );
@@ -1686,7 +1691,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseBin( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseBin( 0, numberFormat, newIdx );
@@ -1703,7 +1707,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseBin( integer* newIdx ) const
         {
             return ParseBin( 0, nullptr, newIdx );
@@ -1723,7 +1726,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseBin( integer startIdx, integer* newIdx ) const
         {
             return ParseBin( startIdx, nullptr, newIdx );
@@ -1771,7 +1773,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseHex( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseHex( 0, numberFormat, newIdx );
@@ -1788,7 +1789,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseHex( integer* newIdx ) const
         {
             return ParseHex( 0, nullptr, newIdx );
@@ -1808,7 +1808,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseHex( integer startIdx, integer* newIdx ) const
         {
             return ParseHex( startIdx, nullptr, newIdx );
@@ -1856,7 +1855,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseOct( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseOct( 0, numberFormat, newIdx );
@@ -1873,7 +1871,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseOct( integer* newIdx ) const
         {
             return ParseOct( 0, nullptr, newIdx );
@@ -1893,7 +1890,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         uint64_t  ParseOct( integer startIdx, integer* newIdx ) const
         {
             return ParseOct( startIdx, nullptr, newIdx );
@@ -1940,7 +1936,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         double  ParseFloat( TNumberFormat<TChar>* numberFormat, integer* newIdx= nullptr ) const
         {
             return ParseFloat( 0, numberFormat, newIdx );
@@ -1957,7 +1952,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         double  ParseFloat( integer* newIdx ) const
         {
             return ParseFloat( 0, nullptr, newIdx );
@@ -1977,7 +1971,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The parsed value. In addition, the output parameter \b newIdx is set to
          *          point to the first character behind the parsed number.
          ******************************************************************************************/
-        inline
         double  ParseFloat( integer startIdx, integer* newIdx ) const
         {
             return ParseFloat( startIdx, nullptr, newIdx );
@@ -1994,15 +1987,14 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param dest   The destination buffer.
          * @return    The length of this string.
          ******************************************************************************************/
-        inline
-        integer CopyTo( TChar* dest ) const
+        integer CopyTo( TChar* dest )                                                          const
         {
             characters::CharArray<TChar>::Copy( buffer, length, dest );
             return length;
         }
 
     /** ############################################################################################
-     * @name Helper methods
+     * @name Helper Methods
      ##@{ ########################################################################################*/
     public:
         /** ************************************************************************************
@@ -2015,7 +2007,6 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return   Returns \c true, if the adjusted region is empty.
          **************************************************************************************/
-        inline
         bool AdjustRegion( integer& regionStart, integer& regionLength )                       const
         {
             // if start exceeds string, set to empty range at the end of the string and return true
@@ -2059,28 +2050,27 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * \p{TReference}. Descendant classes may expose a mutable
          * version (e.g. \alib{strings,TAString,AString}).
          *
-         * As the name of the class indicates, this iterator satisfies the std library concept
-         * [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator).
+         * As the name of the class indicates, this iterator satisfies the C++ standard library
+         * concept
+         * \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
          ******************************************************************************************/
-        template<typename TPointer, typename TReference>
+        template<typename TCharConstOrMutable>
         class TRandomAccessIterator
-            : public std::iterator< std::random_access_iterator_tag,  // iterator_category
-                                    TChar,                            // value_type
-                                    integer,                          // distance type
-                                    TPointer,                         // pointer
-                                    TReference                        // reference
-                                  >
+            : public std::iterator< std::random_access_iterator_tag,   // iterator_category
+                                    TCharConstOrMutable,               // value_type
+                                    integer,                           // distance type
+                                    TCharConstOrMutable*,              // pointer
+                                    TCharConstOrMutable&             > // reference
         {
             protected:
                 /** The pointer into the buffer is all we store. */
-                TPointer p;
+                TCharConstOrMutable* p;
 
             public:
                 /** Constructor.
                  *  @param start Pointer to the initial character.   */
-                explicit TRandomAccessIterator( TPointer start = nullptr ) : p(start)
-                {
-                }
+                explicit TRandomAccessIterator( TCharConstOrMutable* start = nullptr ) : p(start)
+                {}
 
             //######################   To satisfy concept of  InputIterator   ######################
 
@@ -2088,7 +2078,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @return A reference to this object. */
                 TRandomAccessIterator& operator++()
                 {
-                    p++;
+                    ++p;
                     return *this;
                 }
 
@@ -2103,7 +2093,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @param other  The iterator to compare ourselves to.
                  *  @return \c true if this and the given iterator are pointing to the same character
                  *          in the same array, \c false otherwise. */
-                bool operator==(TRandomAccessIterator other)                                const
+                bool operator==(TRandomAccessIterator other)                                   const
                 {
                     return p == other.p;
                 }
@@ -2111,14 +2101,14 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 /** Comparison operator.
                  *  @param other  The iterator to compare ourselves to.
                  *  @return \c true if this and given iterator are not equal, \c false otherwise. */
-                bool operator!=(TRandomAccessIterator other)                                const
+                bool operator!=(TRandomAccessIterator other)                                   const
                 {
                     return !(*this == other);
                 }
 
                 /** Retrieves the character that this iterator references.
                  * @return The character value.                               */
-                TReference operator*()                                                         const
+                TCharConstOrMutable& operator*()                                               const
                 {
                     return *p;
                 }
@@ -2130,7 +2120,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @return A reference to this object. */
                 TRandomAccessIterator& operator--()
                 {
-                    p--;
+                    --p;
                     return *this;
                 }
 
@@ -2166,7 +2156,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 /** Addition.
                  *  @param n The value to subtract.
                  *  @return The resulting iterator value. */
-                TRandomAccessIterator operator+(integer n)                                  const
+                TRandomAccessIterator operator+(integer n)                                     const
                 {
                     return TRandomAccessIterator( p + n );
                 }
@@ -2174,7 +2164,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 /** Subtraction.
                  *  @param n The value to subtract.
                  *  @return The resulting iterator value. */
-                TRandomAccessIterator operator-(integer n)                                  const
+                TRandomAccessIterator operator-(integer n)                                     const
                 {
                     return TRandomAccessIterator( p - n );
                 }
@@ -2182,7 +2172,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 /** Difference (distance) from this iterator to the given one.
                  *  @param other  The iterator to subtract
                  *  @return The difference between (distance of) this and the given iterator.    */
-                integer operator-(TRandomAccessIterator other)                              const
+                integer operator-(TRandomAccessIterator other)                                 const
                 {
                     return p - other.p;
                 }
@@ -2192,7 +2182,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @return Reference to the character referenced by this iterator plus the distance
                  *          given.
                  */
-                TReference operator[]( integer n )                                             const
+                TCharConstOrMutable& operator[]( integer n )                                   const
                 {
                     return *( p + n );
                 }
@@ -2203,7 +2193,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e smaller than \p{other},
                  *          \c false otherwise. */
-                bool operator<(TRandomAccessIterator other)                                 const
+                bool operator<(TRandomAccessIterator other)                                    const
                 {
                     return p < other.p;
                 }
@@ -2212,7 +2202,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e smaller than or equal to \p{other},
                  *          \c false otherwise. */
-                bool operator<=(TRandomAccessIterator other)                                const
+                bool operator<=(TRandomAccessIterator other)                                   const
                 {
                     return p <= other.p;
                 }
@@ -2222,7 +2212,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e greater than \p{other},
                  *          \c false otherwise. */
-                bool operator>(TRandomAccessIterator other)                                 const
+                bool operator>(TRandomAccessIterator other)                                    const
                 {
                     return p > other.p;
                 }
@@ -2231,7 +2221,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                  *  @param other  The iterator to compare
                  *  @return \c true if this iterator is \e greater than or equal to \p{other},
                  *          \c false otherwise. */
-                bool operator>=(TRandomAccessIterator other)                                const
+                bool operator>=(TRandomAccessIterator other)                                   const
                 {
                     return p >= other.p;
                 }
@@ -2241,26 +2231,44 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * The constant iterator exposed by this character container. A Mutable version is
          * found only in descendant classes (e.g. \alib{strings,TAString,AString}).
          */
-        using ConstIterator= TRandomAccessIterator<const TChar*, const TChar&>;
+        using ConstIterator         = TRandomAccessIterator<const TChar>;
+
+        /** The constant reverse iterator exposed by this character container. A Mutable version is
+         * found only in descendant classes (e.g. \alib{strings,TAString,AString}). */
+        using ConstReverseIterator  = std::reverse_iterator<ConstIterator>;
 
 
-        /**
-         * Returns an iterator pointing to the start of this string.
-         * @return The start of this string.
-         */
-        ConstIterator begin()                                                                  const
-        {
-            return ConstIterator( Buffer() );
-        }
+        /** Returns an iterator pointing to a constant character at the start of this string.
+         *  @return The start of this string.                                         */
+        ConstIterator          begin()  const           { return ConstIterator( buffer          ); }
 
-        /**
-         * Returns an iterator pointing to the first character behind this string.
-         * @return The end of this string.
-         */
-        ConstIterator end()                                                                    const
-        {
-            return ConstIterator( Buffer() + length );
-        }
+        /** Returns an iterator pointing behind this string.
+         *  @return The end of this string.                                           */
+        ConstIterator          end()    const           { return ConstIterator( buffer + length ); }
+
+        /** Returns an iterator pointing to a constant character at the start of this string.
+         *  @return The start of this string.                                         */
+        ConstIterator         cbegin()  const           { return ConstIterator( buffer          ); }
+
+        /** Returns an iterator pointing behind this string.
+         *  @return The end of this string.                                           */
+        ConstIterator         cend()    const           { return ConstIterator( buffer + length ); }
+
+        /** Returns a reverse iterator pointing to a constant character at the end of this string.
+         *  @return The last character of this string.                                        */
+        ConstReverseIterator  rbegin()  const           { return ConstReverseIterator( end()   );  }
+
+        /** Returns a reverse iterator pointing before the start of this string.
+         *  @return The character before this string.                        */
+        ConstReverseIterator  rend()    const           { return ConstReverseIterator( begin() );  }
+
+        /** Returns a reverse iterator pointing to a constant character at the end of this string.
+         *  @return The last character of this string.                                        */
+        ConstReverseIterator crbegin()  const           { return ConstReverseIterator( end()   );  }
+
+        /** Returns a reverse iterator pointing before the start of this string.
+         *  @return The character before this string.                        */
+        ConstReverseIterator crend()    const           { return ConstReverseIterator( begin() );  }
 
         /** ****************************************************************************************
          * Constructs this string using start and end iterators.
@@ -2268,38 +2276,75 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param start An iterator referencing the start of the string.
          * @param end   An iterator referencing the end of the string.
          ******************************************************************************************/
-        inline
         TString( ConstIterator& start, ConstIterator& end )
         : buffer( &*start)
         , length( end-start >= 0 ? end-start : 0 )
         {}
 
     protected:
-        #if !ALIB_DOCUMENTATION_PARSER
+        #if !defined(ALIB_DOX)
             ALIB_WARNINGS_IGNORE_DOCS // needed due to a bug in current clang
         #endif
 
         /** ****************************************************************************************
          * Implementation of the sub-string search function.
+         * @tparam TSensitivity The letter case sensitivity of the search.
          * @param  needle       The sub-string to search.
          * @param  startIdx     The start index of the search.
-         * @tparam TSensitivity The letter case sensitivity of the search.
          * @return The index of the first occurrence of \p{needle}, respectively \c -1 if not found.
          ******************************************************************************************/
         template<Case TSensitivity =Case::Sensitive>
         ALIB_API integer
         indexOfString( const TString&  needle, integer startIdx )                          const;
 
-        #if !ALIB_DOCUMENTATION_PARSER
+        #if !defined(ALIB_DOX)
             ALIB_WARNINGS_RESTORE
         #endif
 }; // class TString
 
 
 // #################################################################################################
+// Namespace Functions
+// #################################################################################################
+/**
+ * Inline namespace function to create a dynamically allocated copy of a string.
+ * The string may be deleted using #DeleteString.
+ *
+ * Strings created with this function might be deleted with #DeleteString.
+ * @tparam TChar The character type of the string. Deduced from the given argument.
+ * @param  src   The source string to copy.
+ * @return A string object pointing to the allocated string.
+ */
+template<typename TChar>
+inline
+lib::strings::TString<TChar>  AllocateCopy(const lib::strings::TString<TChar>& src)
+{
+    ALIB_ASSERT_ERROR( !src.IsNull(), "Nulled string given to allocate and copy." )
+    TChar* buf= new TChar[static_cast<size_t>(src.Length())];
+    characters::CharArray<TChar>::Copy( src.Buffer(), src.Length(), buf );
+    return TString<TChar>( buf, src.Length() );
+}
+
+/**
+ * Inline namespace function to delete the buffer of a dynamically allocated string.
+ * All the method does is:
+ *      delete[] string.Buffer()
+ *
+ * @tparam TChar The character type of the string. Deduced from the given argument.
+ * @param  string The string who'se buffer is to be deleted.
+ */
+template<typename TChar>
+inline
+void  DeleteString(const lib::strings::TString<TChar>& string)
+{
+    delete[] string.Buffer();
+}
+
+
+// #################################################################################################
 // Template instantiation declarations
 // #################################################################################################
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 template<>      ALIB_API integer  TString<nchar>::WStringLength                 ()                                           const;
 extern template ALIB_API integer  TString<nchar>::indexOfString<Case::Sensitive>( const TString<nchar   >&, integer        ) const;
@@ -2312,6 +2357,8 @@ extern template ALIB_API uint64_t TString<nchar>::ParseBin                      
 extern template ALIB_API uint64_t TString<nchar>::ParseHex                      ( integer, TNumberFormat<nchar>*, integer* ) const;
 extern template ALIB_API uint64_t TString<nchar>::ParseOct                      ( integer, TNumberFormat<nchar>*, integer* ) const;
 extern template ALIB_API double   TString<nchar>::ParseFloat                    ( integer, TNumberFormat<nchar>*, integer* ) const;
+extern template ALIB_API size_t   TString<nchar>::Hashcode                      ()                                           const;
+extern template ALIB_API size_t   TString<nchar>::HashcodeIgnoreCase            ()                                           const;
 
 template<> inline        integer  TString<wchar>::WStringLength() const  { return length; }
 extern template ALIB_API integer  TString<wchar>::indexOfString<Case::Sensitive>(const TString<wchar>&, integer            ) const;
@@ -2324,6 +2371,8 @@ extern template ALIB_API uint64_t TString<wchar>::ParseBin                      
 extern template ALIB_API uint64_t TString<wchar>::ParseHex                      ( integer, TNumberFormat<wchar>*, integer* ) const;
 extern template ALIB_API uint64_t TString<wchar>::ParseOct                      ( integer, TNumberFormat<wchar>*, integer* ) const;
 extern template ALIB_API double   TString<wchar>::ParseFloat                    ( integer, TNumberFormat<wchar>*, integer* ) const;
+extern template ALIB_API size_t   TString<wchar>::Hashcode                      ()                                           const;
+extern template ALIB_API size_t   TString<wchar>::HashcodeIgnoreCase            ()                                           const;
 
 template<>      ALIB_API integer  TString<xchar>::WStringLength                 ()                                           const;
 extern template ALIB_API integer  TString<xchar>::indexOfString<Case::Sensitive>( const TString<xchar   >&, integer        ) const;
@@ -2336,23 +2385,27 @@ extern template ALIB_API uint64_t TString<xchar>::ParseBin                      
 extern template ALIB_API uint64_t TString<xchar>::ParseHex                      ( integer, TNumberFormat<xchar>*, integer* ) const;
 extern template ALIB_API uint64_t TString<xchar>::ParseOct                      ( integer, TNumberFormat<xchar>*, integer* ) const;
 extern template ALIB_API double   TString<xchar>::ParseFloat                    ( integer, TNumberFormat<xchar>*, integer* ) const;
+extern template ALIB_API size_t   TString<xchar>::Hashcode                      ()                                           const;
+extern template ALIB_API size_t   TString<xchar>::HashcodeIgnoreCase            ()                                           const;
 
 // #################################################################################################
 // debug members
 // #################################################################################################
-#if ALIB_STRINGS_DEBUG
+#if ALIB_DEBUG_STRINGS
     extern template ALIB_API void    TString<nchar>::dbgCheck() const;
     extern template ALIB_API void    TString<wchar>::dbgCheck() const;
     extern template ALIB_API void    TString<xchar>::dbgCheck() const;
 #endif
 
-#endif //!ALIB_DOCUMENTATION_PARSER
+#endif //!defined(ALIB_DOX)
 
 }} // namespace aworx[::lib::strings]
 
 #if defined(_MSC_VER)
     #pragma warning( pop )
 #endif
+
+// Note: Emtpy strings are declared in cstring.hpp.
 
 /// Inline shortcut method to create a constexpr \e nulled string of standard character size.
 /// @return A \e nulled string.
@@ -2378,9 +2431,25 @@ inline constexpr WString            NullWString()           { return WString(nul
 /// @return A \e nulled string.
 inline constexpr XString            NullXString()           { return XString(nullptr);  }
 
+/// A global instance of a \e nulled string of standard character size.
+ALIB_API extern String              NULL_STRING;
+
+/// A global instance of a \e nulled string of complementary character size.
+ALIB_API extern ComplementString    NULL_COMPLEMENT_STRING;
+
+/// A global instance of a \e nulled string of strange character size.
+ALIB_API extern StrangeString       NULL_STRANGE_STRING;
+
+/// A global instance of a \e nulled string of wide character size.
+ALIB_API extern NString             NULL_N_STRING;
+
+/// A global instance of a \e nulled string of wide character size.
+ALIB_API extern WString             NULL_W_STRING;
+
+/// A global instance of a \e nulled string of strange character size.
+ALIB_API extern XString             NULL_X_STRING;
+
 
 } // namespace [aworx]
-
-
 
 #endif // HPP_ALIB_STRINGS_STRING

@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_results of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_EXCEPTION
 #define HPP_ALIB_RESULTS_EXCEPTION 1
 
@@ -13,37 +14,96 @@
 
 ALIB_ASSERT_MODULE(RESULTS)
 
-#if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA_SPECIFICATION)
-#   include "alib/resources/enummetadataspec.hpp"
+#if !defined (HPP_ALIB_ENUMS_RECORDS)
+#   include "alib/enums/records.hpp"
 #endif
 
-#if !defined (HPP_ALIB_RESOURCES_ENUM_META_DATA)
-#   include "alib/resources/enummetadata.hpp"
+#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
+#   include "alib/resources/resources.hpp"
 #endif
-
-#if !defined (_GLIBCXX_LIST) && !defined(_LIST_)
-#   include <list>
-#endif
-
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_TheType] )
-namespace aworx { namespace lib {  namespace results {
-   class Exception;
-}}}
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_TheType] )
-
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_decl] )
-ALIB_ENUM_SPECIFICATION_DECL( aworx::lib::results::Exception, String, String )
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_decl] )
 
 
 
 namespace aworx { namespace lib { namespace results {
 
+/** Internal details of namespace #aworx::lib::results. */
+namespace detail
+{
+    /**
+     * An element of the (single) linked list of message entries of class exception.
+     * A pointer to this type is used as the template parameter \p{TContained} of
+     * struct \alib{monomem,SelfContained} that class \alib{results,Exception} is derived from
+     * and this way allocated (self-contained) in a \alib{monomem,MonoAllocator}.
+     */
+    struct ExceptionEntry
+    {
+        Message           message;          ///< The message,
+        ExceptionEntry*   next = nullptr;   ///< A pointer to the next message.
+    };
+}
+
+/** ************************************************************************************************
+ * An \ref alib_enums_records "ALib Enum Record" type used to equip custom enumeration types
+ * with records that define an entries of class \alib{results,Exception}.
+ *
+ * Besides the exception entry name, the only field this record adds provides a textual description
+ * of an exception entry.
+ * If TMP struct \alib{resources,T_Resourced} is likewise specialized for a custom enumeration type,
+ * then this field is interpreted as a resource name to load the description from.
+ *
+ * When parsing the enum records from string data, inherited field
+ * \alib{enums,ERSerializable::MinimumRecognitionLength} is not parsed from the string, but set to
+ * fixed value \c 0. Therefore, only three fields have to be given per record:
+ *
+ * 1. The custom integral enum value (this is mandatory with every resourced enum record).
+ * 2. A string denoting inherited field \alib{enums,ERSerializable::EnumElementName}.
+ * 3. A string containing the description text, respectively the resource name of that.
+ **************************************************************************************************/
+struct ERException : public enums::ERSerializable
+{
+    /**
+     * The description of the exception.
+     * \note
+     *   If TMP struct \alib{resources,T_Resourced} is specialized for an enumeration,
+     *   this field is interpreted as a resource name to load the description from.
+     */
+    String      DescriptionOrItsResourceName;
+
+    /** Default constructor leaving the record undefined.    */
+    ERException()                                                               noexcept  = default;
+
+
+    /**
+     * Constructor usually used with static variable declarations (declarations that are not
+     * using enumeration types associated with \ref alib_enums_records "ALib Enum Records" of this
+     * type).
+     *
+     * If used however to to define an enum record during bootstrap of a software (by user code
+     * that omits the preferred option of parsing resourced strings to create such records), then
+     * each parameter of type \b String passed, has to be of "static nature".
+     * This means, that string buffers and their contents are deemed to survive the life-cycle of
+     * an application. Usually, C++ string literals are passed in such situation.
+     * @param name         The name of the exception. (Usually the enum element's C++ name.)
+     * @param description  The exception's descrption. (Usually a format string.)
+     */
+    ERException(const String&  name, const String&  description)                noexcept
+    : ERSerializable(name)
+    , DescriptionOrItsResourceName(description)
+    {}
+
+    /**
+     * Implementation of \alib{enums,EnumRecordPrototype::Parse}.
+     * \note Field \alib{enums,ERSerializable::MinimumRecognitionLength} is not read from the string, but set
+     *       to fixed value \c 0.
+     */
+    ALIB_API
+    void Parse();
+};
 
 /** ************************************************************************************************
  * The (one and only) <em>"throwable"</em> used with \aliblong.
  *
- * Please consult the Programmer's Manual of module \alibmod_results for
+ * Please consult the Programmer's Manual of module \alib_results for
  * \ref alib_results_exceptions "detailed information" about this class and its use.
  *
  * In short, this class implements the following "exception paradigm":
@@ -55,116 +115,111 @@ namespace aworx { namespace lib { namespace results {
  * - Messages contain IDs of \alib{boxing,Enum,arbitrary scoped enumeration types}.
  *   This allows structured processing of Exceptions.
  *
- * This type uses a smart memory model leveraging class \alib{memory,MemoryBlocks} in a
- * "self-contained" fashion. With that, exceptions usually perform only one single dynamic
- * allocation, even if various messages.
+ * This type uses a smart memory model leveraging class \alib{monomem,MonoAllocator}
+ * which places all internal data in \alib{monomem,MonoAllocator}, even this object itself!
+ * With that, exceptions usually perform only one single dynamic
+ * allocation, even if various messages with various data objects (\alib{boxing,Box,boxes}) are
+ * attached.
  *
- * Although the size of the class is only the size of a pointer (into the self-contained first
- * memory chunk of the allocator), objects of this type have to (can only) be caught by reference.
- * Copy-construction is deleted, as the self-contained block allocator must be referenced only
- * once.
+ * Although the footprint (<c>sizeof</c>) of the class is just the size of a pointer
+ * (One into the first chunk of memory of the monotonic allocator), objects of this type have to
+ * (can only)
+ * be caught by reference. Copy-construction and assignment is deleted.
  **************************************************************************************************/
-class Exception
+class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
 {
-    protected:
-        /** An element of a the (single) linked list of message entries.   */
-        struct MessageEntry
-        {
-            Message         message;  ///< The message,
-            MessageEntry*   next;     ///< A pointer to the next message.
-        };
-
-        /**
-         * The members of this class. Will be created in block allocator, which itself is
-         * a part of the members. This way the outer class is only of the size of one pointer
-         * (e.g. 8 bytes on usual 64-bit systems).
-         */
-        struct This
-        {
-            MemoryBlocks*       memory;     ///< The block allocator that this object and contained objects reside in.
-            MessageEntry*       firstEntry; ///< A pointer to the first message.
-        };
-
-        /**
-         * Pointer to the members of this class, stored in the block allocator (which is the first
-         * element within this instance).
-         */
-        This*                   instance;
-
-    public:
-        /**
-         * Shortcut to the tuple type of custom enum meta data associated with enumerations
-         * stored in \alib{results,Message::Type}. Only enumeration elements that
-         * are associated with meta data of this exact type are allowed to be used as code values
-         * of exception entries.
-         *
-         * The tuple type is defined as:
-         *
-         *      std::tuple<int,aworx::String,aworx::String>.
-         *
-         * The tuple elements have the following meaning:
-         * - As usual with enum meta data, the integral value denotes the underlying enum element
-         *   value.
-         * - The first string denotes the name of the exception.
-         * - The second string provides the resource name of a human readable description text.
-         *   The resource string can be retrieved with method
-         *   \alib{results,Exception::Format}
-         *
-         */
-        using TEnumMetaData= resources::T_EnumMetaDataSpecification<Exception>::TTuple;
-
-
-    // #############################################################################################
-    // Constructor/Destructor
-    // #############################################################################################
     public:
         /** ****************************************************************************************
-         * Deleted constructor. Exceptions must be caught only as references.
-         * @param src The object to move.
+         * Deleted copy constructor. Exceptions must be caught only as references.
          ******************************************************************************************/
-        Exception( Exception& src )  = delete;
+        Exception( Exception&  )                                                           = delete;
 
         /** ****************************************************************************************
          * Move constructor moves the entries and deletes them in source object.
+         *
          * @param src The object to move.
          ******************************************************************************************/
-        inline
         Exception(Exception&& src) noexcept
+        : SelfContained( std::move(src) )
+        {}
+
+        /** ****************************************************************************************
+         * Deleted copy assignment operator.
+         * @return Nothing (deleted).
+         ******************************************************************************************/
+        Exception  operator=( Exception& )                                                 = delete;
+
+        /** ****************************************************************************************
+         * Deleted move assignment operator.
+         * @return Nothing (deleted).
+         ******************************************************************************************/
+        Exception& operator=( Exception&& )                                                = delete;
+
+        /** ****************************************************************************************
+         * Default constructor.
+         * \note If this constructor is used, one or more invocations of #Add have be performed
+         *       prior to throwing the exception. Otherwise, the exception does not contain any
+         *       information. From this perspective, it could be said that this constructor is
+         *       provided for the cases where either more than one entry is added in a loop or
+         *       different types of entries are added in a later <c>if statement</c> after
+         *       construction. Otherwise, this constructor should be avoided.
+         ******************************************************************************************/
+        Exception()
+        : SelfContained( 1024 )
+        {}
+
+        /** ****************************************************************************************
+         * Constructor that allows to provide the size of the allocated chunk of memory in bytes.
+         * With other constructors, this size is fixed to \c 1024.
+         * A higher size may avoid a second allocation (which is not problematic in usual cases).
+         *
+         * \note The use of this constructor is advisable only in seldom cases. The same
+         *       notes as given with the documentation of the default constructor apply.
+         *
+         * @param stdChunkSize  The standard allocation size of the internal
+         *                      \alib{monomem,MonoAllocator}.
+         ******************************************************************************************/
+        template<typename  TIntegral>
+        Exception( TIntegral stdChunkSize )
+        : SelfContained( static_cast<size_t>(stdChunkSize) )
         {
-            this->instance    = src.instance;
-            src.instance      = nullptr;
+            static_assert( !std::is_enum<TIntegral>::value,
+                           "Errorneous use of Exception constructor. Enumeration element given "
+                           "without caller information. Add macro ALIB_CALLER or "
+                           "ALIB_CALLER_NULLED as a first argument." );
         }
 
         /** ****************************************************************************************
          * Constructs an exception and invokes #Add to create the initial message entry.
          *
          * In case that the enumeration type of given parameter \p{type} is equipped with
-         * enum meta information according to tuple #TEnumMetaData, an additional argument
-         * is added to the beginning of the list of arguments of the message entry. For more
+         * \ref alib_enums_records "ALib Enum Records" according to record type
+         * \alib{results,ERException}, the first argument added to the message entry
+         * is collected from the corresponding enum record. For more
          * information consult the \ref alib_results_exceptions_res "corresponding section" of the
          * Programmer's Manual.
          *
-         * @param file  File name of the place of entry creation.
-         * @param line  Line number of the place of entry creation.
-         * @param func  Function/method name of the place of entry creation.
-         * @param type  An enum element denoting the message type.
-         * @param args  The message arguments.
-         *
          * @tparam TEnum  Template type of the enumeration element.
          * @tparam TArgs  The variadic template argument types.
-         */
-        template <typename    TEnum, typename... TArgs  >
-        Exception( const NCString& file, int line, const NCString& func, TEnum type, TArgs&&... args )
+         *
+         * @param  file  File name of the place of entry creation.
+         * @param  line  Line number of the place of entry creation.
+         * @param  func  Function/method name of the place of entry creation.
+         * @param  type  An enum element denoting the message type.
+         * @param  args  The message arguments.
+         ******************************************************************************************/
+        template<typename  TEnum, typename... TArgs  >
+        Exception( const NCString& file, int line, const NCString& func,
+                   TEnum type, TArgs&&... args )
+        : SelfContained( 1024 )
         {
-            construct();
-            Add( file,line,func, type, args... );
+            Add( file,line,func, type, std::forward<TArgs>(args)... );
         }
 
         /** ****************************************************************************************
          * Destructor
          ******************************************************************************************/
-        ALIB_API
-        ~Exception();
+        ~Exception()                                                                      = default;
 
     // #############################################################################################
     // Interface
@@ -175,7 +230,7 @@ class Exception
          * @return The most recently added message.
          ******************************************************************************************/
         ALIB_API
-        Message&   Back()                                                                     const;
+        Message&        Back()                                                                const;
 
         /** ****************************************************************************************
          * Returns the number of message entries.
@@ -183,7 +238,7 @@ class Exception
          * @return The number of messages added to this exception.
          ******************************************************************************************/
         ALIB_API
-        int        Size()                                                                     const;
+        int             Size()                                                                const;
 
         /** ****************************************************************************************
          * Returns field \alib{results,Message::Type} of the \b last message in the list of
@@ -199,93 +254,63 @@ class Exception
          * @return The most high level exception code.
          ******************************************************************************************/
         ALIB_API
-        const Enum&   Type()                                                                  const;
+        const Enum&     Type()                                                                const;
 
-#if ALIB_DOCUMENTATION_PARSER
         /** ****************************************************************************************
          * Adds a new message to this exception. The parameters of this method are
          * exactly those that are expected by the \alib{results,Message::Message,constructor}
          * of class \alib{results,Message}.
          *
-         * The message object itself is created in the block allocoator of this exception found
-         * with \alib{results,Exception::This::memory} of field #instance. After the insertion
-         * method \alib{results,Message,CloneArguments} is invoked, which creates "safe" copies
-         * the arguments that are guaranteed to survive this exception's lifespan.
+         * The message object itself is created in the monotonic allocator of this exception
+         * received by inherited method \alib{monomem,SelfContained::Allocator}.
          *
-         * Internally, this method is implemented twice. A slightly extended variant exists, which
-         * is selected by the compiler if the templated type \p{TEnum} of the given enumeration
-         * element is equipped with \alib{resources,T_EnumMetaDataDecl,enum meta data} that follows
-         * the scheme defined with #TEnumMetaData.<br>
-         * If this is the case, this variant of this method inserts anadditional argument to the
-         * front of message created. This argument is of string type and is loaded from
-         * the resourced enum meta data. Usually, this string argument is a formatter-string
-         * that is used to format the arguments of an exception into a human readable message.
+         * After the insertion, method \alib{results,Message,CloneArguments} is invoked, which
+         * creates "safe" copies of the arguments to guarantee their survival during this
+         * exception's lifespan.
          *
-         * For more information on using enum meta data with this class, see Programmer's Manual
-         * chapter \ref alib_results_exceptions_res "3. Resourced Exceptions".
+         * If the enumeration type \p{TEnum} (which is deduced from parameter \p{type}) is equipped
+         * with \ref alib_enums_records "ALib Enum Records" of type \alib{results,ERException},
+         * an additional message argument is \b prepended to the message
+         * This argument is of string type and is taken from field
+         * \alib{results::ERException,DescriptionOrItsResourceName} of the associated enum record.
+         * As described in chapter alib_results_exceptions_args of the Programmer's Manual, it is
+         * proposed that this argument of string type, is a formatter-string that is used to format
+         * the arguments of an exception into a human readable message.
          *
-         * @param file  File name of the place of entry creation.
-         * @param line  Line number of the place of entry creation.
-         * @param func  Function/method name of the place of entry creation.
-         * @param type  An enum element denoting the message type.
-         * @param args  The message arguments.
+         * If furthermore, TMP struct \alib{resources,T_Resourced} is specialized for enumeration
+         * type \p{TEnum}, then the value of \b DescriptionOrItsResourceName is not directly
+         * prepended, but interpreted as a resource name. In this case the resourced description
+         * is prepended instead.
+         *
+         * For more information consult chapter \ref alib_results_exceptions_res of the
+         * Programmer's Manual.
          *
          * @tparam TEnum  The enumeration type used to define the message type.
          * @tparam TArgs  The variadic template argument types.
+         *
+         * @param  file  File name of the place of entry creation.
+         * @param  line  Line number of the place of entry creation.
+         * @param  func  Function/method name of the place of entry creation.
+         * @param  type  An enum element denoting the message type.
+         * @param  args  The message arguments.
          * @return Return <c>*this</c> to allow concatenated operations or use with throw statement.
          ******************************************************************************************/
         template <typename TEnum, typename... TArgs> inline
-        Exception&  Add( const NCString& file, int line, const NCString& func, TEnum type, TArgs&&... args );
-#else
-
-        template <typename TEnum, typename... TArgs> inline
-        ATMP_T_IF( Exception&,    std::is_enum<TEnum>::value
-                              &&  !ATMP_EQ( typename resources::T_EnumMetaDataDecl<TEnum>::TTuple,
-                                            TEnumMetaData ) )
-        Add( const NCString& file, int line, const NCString& func, TEnum type, TArgs&&... args )
+        Exception&  Add( const NCString& file, int line, const NCString& func, TEnum type, TArgs&&... args )
         {
-
-            Message* newMessage= allocMessage();
-            new (newMessage)  Message( file,line,func, type, Boxes( std::forward<TArgs>( args )... ) );
-            newMessage->CloneArguments( *instance->memory );
-            return *this;
-        }
-
-
-
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
-template <typename TEnum, typename... TArgs  > inline
-
-ATMP_T_IF( Exception&,     std::is_enum<TEnum>::value
-                       &&  ATMP_EQ( typename resources::T_EnumMetaDataDecl<TEnum>::TTuple,
-                                    TEnumMetaData ) )
-Add( const NCString& file, int line, const NCString& func, TEnum type, TArgs&&... args )
-{
-    //...
-    //...
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
-
-            Message* newMessage= allocMessage();
-            new (newMessage)  Message( file,line,func, type );
-            newMessage->Args.Add( std::forward<TArgs>( args )... );
-            newMessage->CloneArguments( *instance->memory );
-
-            // prepend the resourced string (not needed to be cloned)
-            auto& metaInfo= EnumMetaData<TEnum>::GetSingleton();
-            metaInfo.CheckLoad();
-            TEnumMetaData& tuple= *metaInfo.Get(type);
-
-            ALIB_STRINGS_TO_NARROW(std::get<2>(tuple), resName, 64)
-            newMessage->Args.insert(newMessage->Args.begin(),
-                          resources::T_Resourced<TEnum>::Resource()->Get(
-                              resources::T_Resourced<TEnum>::Category(), resName ALIB_DBG(, true)) );
+            Message* newMessage= allocMessageLink();
+            new (newMessage)  Message( file,line,func, &Allocator(), Responsibility::KeepWithSender, type );
+            newMessage->Add( std::forward<TArgs>( args )... );
+            finalizeMessage(  newMessage,
+                              ATMP_ISOF( typename enums::T_EnumRecords<TEnum>::Type, ERException ),
+                              T_Resourced<TEnum>::Pool(),
+                              T_Resourced<TEnum>::Category()   );
 
             return *this;
         }
-#endif
 
         /** ****************************************************************************************
-         * Uses class \alib{stringformat,Text} to write all entries of this
+         * Uses class \alib{text,Paragraphs} to write all entries of this
          * exception into the given narrow \p{target} string.
          * Entries are expected to have a format string set as their description meta information
          * that corresponds (in respect to the placeholders within the string) to the arguments
@@ -294,7 +319,7 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
          * @param target The target string to format the entry description to.
          ******************************************************************************************/
         ALIB_API
-        void   Format( AString& target )  const;
+        void   Format( AString& target )                                                      const;
 
         /** ****************************************************************************************
          * Same as \alib{results::Exception,Format(AString&)const,Format(AString&)}, but writing
@@ -303,7 +328,7 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
          * @param target The target string to format the entry description to.
          ******************************************************************************************/
         ALIB_API
-        void   Format( strings::TAString<complementChar>& target )  const
+        void   Format( strings::TAString<complementChar>& target )                             const
         {
             target << Format();
         }
@@ -314,8 +339,7 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
          *
          * @return The formatted description of the Exception.
          ******************************************************************************************/
-        inline
-        AString Format()  const
+        AString Format()                                                                       const
         {
             AString result;
             Format( result );
@@ -326,44 +350,63 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
     // #############################################################################################
     // std::ForwardIterator
     // #############################################################################################
+    protected:
         /** ****************************************************************************************
          * Implementation of \c std::ForwardIterator that iterates all \alib{results,Message}
-         * entries of an  \b %Exception.
+         * entries of an \b %Exception.
          ******************************************************************************************/
-        class ForwardIterator
+        template<typename TConstOrMutableMessage>
+        class IteratorType
             : public std::iterator< std::forward_iterator_tag,        // iterator_category
                                     Message,                          // value_type
                                     integer,                          // distance type
-                                    Message*,                         // pointer
-                                    Message&                          // reference
+                                    TConstOrMutableMessage*,          // pointer
+                                    TConstOrMutableMessage&           // reference
                                   >
         {
             protected:
                 /** The pointer to the actual node. */
-                MessageEntry* p;
+                detail::ExceptionEntry* p;
 
             public:
                 /** Constructor.
                  *  @param _p Our initial value       */
-                explicit ForwardIterator( MessageEntry* _p = nullptr )
+                explicit IteratorType( detail::ExceptionEntry* _p = nullptr )
                 : p(_p)
+                {}
+
+                /** Constructor taking a constant entry pointer.
+                 *  Available for the constant version of this iterator only.
+                 *  @param entry The initial message entry.   */
+                ATMP_SELECT_IF_1TP( typename TConstEntry, std::is_const<TConstEntry>::value )
+                IteratorType( TConstEntry* entry )
+                : p(const_cast<detail::ExceptionEntry*>(entry))
+                {}
+
+
+                /** Constructor taking a mutable iterator.
+                 *  Available for the constant version of this iterator only.
+                 *  @param it The mutable iterator to used to construct this constant one.  */
+                ATMP_SELECT_IF_1TP( typename TMutableIterator, ATMP_EQ(TMutableIterator, IteratorType<const Message> ) )
+                IteratorType( TMutableIterator it )
+                : p(it)
                 {}
 
             //######################   To satisfy concept of  InputIterator   ######################
 
                 /** Prefix increment operator.
                  *  @return A reference to ourselves. */
-                ForwardIterator& operator++()
+                IteratorType& operator++()
                 {
                     p= p->next;
                     return *this;
                 }
 
                 /** Postfix increment operator.
-                 *  @return A a new iterator object that is not increased, yet. */
-                ForwardIterator operator++(int)
+                 *  @return A new iterator object that is not increased, yet. */
+                IteratorType operator++(int)
                 {
-                    auto result= ForwardIterator(p);
+                    auto result= IteratorType(p);
                     p= p->next;
                     return result;
                 }
@@ -371,7 +414,7 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
                 /** Comparison operator.
                  *  @param other  The iterator to compare ourselves to.
                  *  @return \c true if this and given iterator are equal, \c false otherwise. */
-                bool operator==(ForwardIterator other)                                         const
+                bool operator==(IteratorType other)                                         const
                 {
                     return p == other.p;
                 }
@@ -379,42 +422,68 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
                 /** Comparison operator.
                  *  @param other  The iterator to compare ourselves to.
                  *  @return \c true if this and given iterator are not equal, \c false otherwise. */
-                bool operator!=(ForwardIterator other)                                         const
+                bool operator!=(IteratorType other)                                         const
                 {
                     return p != other.p;
                 }
 
                 /** Retrieves the message that this iterator references.
                  * @return The message reference.                               */
-                Message& operator*()                                                           const
+                TConstOrMutableMessage& operator*()                                            const
                 {
                     return p->message;
                 }
 
                 /** Retrieves the pointer to the message that this iterator references.
                  * @return The message pointer.                                  */
-                Message* operator->()                                                          const
+                TConstOrMutableMessage* operator->()                                           const
                 {
                     return &p->message;
                 }
         };
 
+    public:
+        /** The constant iterator exposed by this container. */
+        using ConstForwardIterator  = IteratorType        <const Message>;
+
+        /** The mutable iterator exposed by this container. */
+        using ForwardIterator       = IteratorType        <      Message>;
+
+
         /**
          * Returns an iterator pointing to the first message entry.
          * @return A forward iterator to the first message entry.
          */
-        ForwardIterator begin()                                                                const
+        ForwardIterator begin()
         {
-            return ForwardIterator( instance->firstEntry );
+            return ForwardIterator( Self() );
         }
 
         /**
          * Returns an iterator representing the end of the message entries.
          * @return The end of this exception's message entries.
          */
-        ForwardIterator end()                                                                  const
+        ForwardIterator end()
         {
             return ForwardIterator( nullptr );
+        }
+
+        /**
+         * Returns an iterator pointing to the first message entry.
+         * @return A forward iterator to the first message entry.
+         */
+        ConstForwardIterator begin()                                                           const
+        {
+            return ConstForwardIterator( Self() );
+        }
+
+        /**
+         * Returns an iterator representing the end of the message entries.
+         * @return The end of this exception's message entries.
+         */
+        ConstForwardIterator end()                                                             const
+        {
+            return ConstForwardIterator( nullptr );
         }
 
 
@@ -423,43 +492,43 @@ DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_usinginlib] )
     // #############################################################################################
     protected:
         /** ****************************************************************************************
-         * Internal constructor method.
+         * Searches the last linked message and attaches a new, monotonically allocated list node.
+         * @returns A pointer to the message in the allocated link node.
          ******************************************************************************************/
         ALIB_API
-        void construct();
+        Message* allocMessageLink();
 
         /** ****************************************************************************************
-         * Searches the last message and attaches a new, block-allocated list object.
-         * @returns A pointer to the allocated object.
+         * Non-inlined portion of method #Add. Clones arguments and prepends description argument,
+         * in case  the enum element of the message has an enum record attached.
+         * If furthermore, the enum element's record was resourced, then the record's description
+         * value is interpreted as a resource string's name, which is prepended instead.
+         * @param message   The message to finalize.
+         * @param hasRecord Indicates if a record is assigned.
+         * @param pool      If records are resourced, this is the resource pool to use.
+         * @param category  If records are resourced, this is the category to use.
          ******************************************************************************************/
         ALIB_API
-        Message* allocMessage();
-};
+        void finalizeMessage( Message* message, bool hasRecord, ResourcePool* pool, const NString& category );
 
-}} // namespace aworx[::lib::exception]
+
+}; // class Exception
+
+
+}} // namespace aworx[::lib::results]
+
 
 /// Type alias in namespace #aworx.
-using     Exception=           aworx::lib::results::Exception;
-
+using     Exception=           lib::results::Exception;
 
 }  // namespace [aworx]
-
-// #################################################################################################
-// Macros
-// #################################################################################################
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_macro] )
-#define  ALIB_EXCEPTIONS( TEnum, TModule, ResourceName )                                           \
-ALIB_RESOURCED_IN_MODULE( TEnum, TModule, ResourceName)                                            \
-ALIB_ENUM_SPECIFICATION(  aworx::lib::results::Exception, TEnum)                                   \
-DOX_MARKER( [DOX_ALIB_ENUM_META_DATA_SPECIFCATION_macro] )
-
 
 
 // #################################################################################################
 // Append
 // #################################################################################################
 namespace aworx { namespace lib { namespace strings {
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 namespace APPENDABLES {
 #endif
     /** ********************************************************************************************
@@ -475,12 +544,12 @@ namespace APPENDABLES {
          * @param target The \b AString that method \b Append was invoked on.
          * @param src    The exception to append.
          */
-        inline void operator()( TAString<TChar>& target, const results::Exception&  src  )
+        void operator()( TAString<TChar>& target, const results::Exception&  src  )
         {
            src.Format(target);
         }
     };
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 }
 #endif
 }}}

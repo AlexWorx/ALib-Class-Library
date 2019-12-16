@@ -28,7 +28,7 @@ void AcceptAny( const Box&  box )
     // fundamental types
          if( box.IsType<bool             >() ) { cout << t << "bool        "; cout << v << (box.Unbox<bool             >() ? "true" : "false" ); }
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     else if( box.IsType<aworx::integer   >() ) { cout << t << "integer   "; cout << v <<  box.Unbox<aworx::integer >(); }
     else if( box.IsType<aworx::uinteger  >() ) { cout << t << "uinteger  "; cout << v <<  box.Unbox<aworx::uinteger>(); }
 #else
@@ -46,13 +46,13 @@ void AcceptAny( const Box&  box )
     else if( box.IsType<aworx::uintGap_t >() ) { cout << t << "aworx::uintGap_t"; cout << v <<  box.Unbox<aworx::uintGap_t>(); }
 #endif
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+#if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     else if( box.IsType<float            >() ) { cout << t << "float       "; cout << v <<  box.Unbox<float         >(); }
 #endif
     else if( box.IsType<double           >() ) { cout << t << "double      "; cout << v <<  box.Unbox<double        >(); }
     else if( box.IsType<long double      >() ) { cout << t << "long double "; cout << v <<  box.Unbox<long double   >(); }
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     else if( box.IsType<wchar            >() ) { cout << t << "char        "; cout << v; wcout <<  box.Unbox<wchar_t>(); }
 #else
     else if( box.IsType<char             >() ) { cout << t << "char        "; cout << v <<  box.Unbox<char          >(); }
@@ -79,7 +79,8 @@ void AcceptAny( const Box&  box )
 template <typename... T> void AcceptMany( T&&... args )
 {
     // fetch the arguments into an array of boxes
-    Boxes boxes( std::forward<T>( args )... );
+    Boxes boxes;
+    boxes.Add( std::forward<T>( args )... );
 
     // process one by one
     for( const Box& box : boxes )
@@ -94,7 +95,7 @@ int main()
 {
     // bootstrap boxing: this is necessary as this sample compiles with single module boxing
     //                   only. With the full library, bootstrap of boxing is performed inherently.
-    aworx::lib::boxing::Init();
+    aworx::lib::boxing::Bootstrap();
 
 
     std::cout << "bool:" << std::endl;

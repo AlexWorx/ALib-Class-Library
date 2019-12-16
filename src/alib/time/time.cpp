@@ -6,34 +6,20 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined(HPP_ALIB_TIME_TIME)
 #   include "alib/time/time.hpp"
 #endif
-
 
 #if !defined (HPP_ALIB_TIME_TICKSCONVERTER)
 #   include "alib/time/tickconverter.hpp"
 #endif
 
-
-#if ALIB_MODULE_STRINGS
-    #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-        #include "alib/strings/substring.hpp"
-    #endif
-
-    #if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
-        #include "alib/strings/numberformat.hpp"
-    #endif
-#endif
-
-#if !defined (_GLIBCXX_ALGORITHM) && !defined (_ALGORITHM_)
-    #include <algorithm>
-#endif
-
+#endif // !defined(ALIB_DOX)
 
 using namespace std::chrono;
 
-#if ALIB_MODULE_BOXING
+#if ALIB_BOXING
     ALIB_BOXING_VTABLE_DEFINE( aworx::Ticks              , vt_time_ticks             )
     ALIB_BOXING_VTABLE_DEFINE( aworx::Ticks::Duration    , vt_time_ticks_duration    )
     ALIB_BOXING_VTABLE_DEFINE( aworx::DateTime           , vt_time_datetime          )
@@ -52,30 +38,29 @@ namespace aworx { namespace lib {
 namespace time {
 
 // #################################################################################################
-// Micro module Init/Termination
+// Micro module Bootstrap/Termination
 // #################################################################################################
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 namespace
 {
     Ticks*   creationTime= nullptr;
 }
 #endif
 
-void    Init()
+void    Bootstrap()
 {
     // create a ticks object that marks the time of creation of this micro module
     if( !creationTime )
         creationTime= new Ticks();
 
-    #if ALIB_MODULE_BOXING
-        ALIB_BOXING_VTABLE_REGISTER( vt_time_ticks             )
-        ALIB_BOXING_VTABLE_REGISTER( vt_time_ticks_duration    )
-        ALIB_BOXING_VTABLE_REGISTER( vt_time_datetime          )
-        ALIB_BOXING_VTABLE_REGISTER( vt_time_datetime_duration )
-    #endif
+    ALIB_IF_BOXING(
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_ticks             )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_ticks_duration    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_datetime          )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_datetime_duration )  )
 }
 
-void    TerminationCleanUp()
+void    Shutdown()
 {
     if( creationTime )
     {
@@ -107,7 +92,7 @@ void TickConverter::SyncClocks( int qtyRepeats )
         auto steadyCount= steadyClock.time_since_epoch().count();
 
         // This can not be optimized, because:
-        // a) we have to use a unsigned integer, and
+        // a) we have to use an unsigned integer, and
         // b) we have to take into account which clock was measured first and which last. If
         //    interrupted between the calls, the difference either shrinks or increases.
         if( systemCount < steadyCount )
@@ -138,7 +123,7 @@ void TickConverter::SyncClocks( int qtyRepeats )
 // #################################################################################################
 // Windows OS specific: file time, system time
 // #################################################################################################
-#if defined( _WIN32 ) && !ALIB_DOCUMENTATION_PARSER
+#if defined( _WIN32 ) && !defined(ALIB_DOX)
 
 // filetime_duration has the same layout as FILETIME; 100ns intervals
 using filetime_duration = duration<int64_t, std::ratio::ratio<1, 10000000>>;
@@ -212,7 +197,7 @@ DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, Timezone timezone )
     return DateTime::FromFileTime( ft );
 }
 
-#endif // defined( _WIN32 ) && !ALIB_DOCUMENTATION_PARSER
+#endif // defined( _WIN32 ) && !defined(ALIB_DOX)
 
 
 }}}// namespace [aworx::lib::time]

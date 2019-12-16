@@ -6,19 +6,37 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+#if ALIB_UT_TIME
 
 #include "alib/alox.hpp"
 
 #include "alib/compatibility/std_characters.hpp"
-#include "alib/time/time.hpp"
-
-#if !defined (HPP_ALIB_SYSTEM_CALENDAR)
-    #include "alib/system/calendar.hpp"
+#if !defined(HPP_ALIB_TIME_TIME)
+#   include "alib/time/time.hpp"
+#endif
+#if !defined (HPP_ALIB_TIME_TICKSCONVERTER)
+#   include "alib/time/tickconverter.hpp"
 #endif
 #if !defined (HPP_ALIB_TIME_STOPWATCH)
     #include "alib/time/stopwatch.hpp"
 #endif
+#if !defined (HPP_ALIB_STRINGS_FORMAT)
+#    include "alib/strings/format.hpp"
+#endif
+#if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
+    #include "alib/strings/numberformat.hpp"
+#endif
+#if ALIB_SYSTEM && !defined (HPP_ALIB_SYSTEM_CALENDAR)
+    #include "alib/system/calendar.hpp"
+#endif
+#if !defined (HPP_ALIB_TIME_TIMEPOINTBASE)
+#   include "alib/time/timepointbase.hpp"
+#endif
+
+#if ALIB_THREADS
+#   include "alib/threads/thread.hpp"
+#endif
+
 
 #define TESTCLASSNAME       CPP_ALib_Time
 #include "unittests/aworx_unittests.hpp"
@@ -45,7 +63,7 @@ void print_clock_info(AWorxUnitTesting& ut, const NString& name)
               name,
               TPeriod::num*1000000000ull / TPeriod::den,
               chrono::duration_cast<chrono::nanoseconds>(unit).count(),
-              (TClock::is_steady?"true":"false") );
+              (TClock::is_steady?"true":"false") )
 
     // take n measurements
 	const long long qtyIterations = 3;
@@ -55,7 +73,7 @@ void print_clock_info(AWorxUnitTesting& ut, const NString& name)
 		    timePoints[i] = TClock::now();
 	auto duration= timer.Age();
 
-	UT_PRINT( "Time per measure:      {} ns", duration.InNanoseconds() / qtyIterations );
+	UT_PRINT( "Time per measure:      {} ns", duration.InNanoseconds() / qtyIterations )
 
 	auto minDuration= timePoints[1] - timePoints[0];
 	for( size_t i= 2 ; i < qtyIterations ; ++i )
@@ -64,7 +82,7 @@ void print_clock_info(AWorxUnitTesting& ut, const NString& name)
     	if( actDuration < minDuration )
     	    actDuration=  minDuration;
     }
-	UT_PRINT( "Min measurement delta: {} ns", std::chrono::duration_cast<std::chrono::nanoseconds>( minDuration ).count() );
+	UT_PRINT( "Min measurement delta: {} ns", std::chrono::duration_cast<std::chrono::nanoseconds>( minDuration ).count() )
 }
 }
 UT_CLASS()
@@ -74,86 +92,88 @@ UT_CLASS()
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(Basics)
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT("") UT_PRINT( "### TicksBasics ###" );
+    UT_PRINT("") UT_PRINT( "### TicksBasics ###" )
 
     // durations
     {
         Ticks::Duration t;
         int64_t  i;
         t= Ticks::Duration::FromSeconds( 42 );
-            i= t.InNanoseconds();                     UT_NEAR ( 42000000000L , i     , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42000000LL   , i            ) ;
-            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 42000LL      , i            ) ;
-            i= t.InAbsoluteSeconds();                 UT_EQ   ( 42LL         , i            ) ;
+            i= t.InNanoseconds();                     UT_NEAR ( 42000000000L , i     , 500L )
+            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42000000LL   , i            )
+            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 42000LL      , i            )
+            i= t.InAbsoluteSeconds();                 UT_EQ   ( 42LL         , i            )
         t= Ticks::Duration::FromMilliseconds( 42 );
-            i= t.InNanoseconds  ();                   UT_NEAR ( 42000000L    , i     , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42000LL      , i            ) ;
-            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 42LL         , i            ) ;
-            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            ) ;
+            i= t.InNanoseconds  ();                   UT_NEAR ( 42000000L    , i     , 500L )
+            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42000LL      , i            )
+            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 42LL         , i            )
+            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            )
         t= Ticks::Duration::FromMicroseconds( 42 );
-            i= t.InNanoseconds  ();                   UT_NEAR ( 42000L       , i     , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42LL         , i            ) ;
-            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 0LL          , i            ) ;
-            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            ) ;
+            i= t.InNanoseconds  ();                   UT_NEAR ( 42000L       , i     , 500L )
+            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 42LL         , i            )
+            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 0LL          , i            )
+            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            )
         t= Ticks::Duration::FromNanoseconds( 42 );
-            i= t.InNanoseconds  ();                   UT_NEAR ( 42L          , i     , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 0LL          , i            ) ;
-            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 0LL          , i            ) ;
-            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            ) ;
+            i= t.InNanoseconds  ();                   UT_NEAR ( 42L          , i     , 500L )
+            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 0LL          , i            )
+            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 0LL          , i            )
+            i= t.InAbsoluteSeconds();                 UT_EQ   ( 0LL          , i            )
         t= Ticks::Duration::FromNanoseconds( 123456789 );
-            i= t.InNanoseconds  ();                   UT_NEAR ( 123456789L   , i     , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 123456LL     , i            ) ;
-            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 123LL        , i            ) ;
-            i= t.InAbsoluteSeconds();                UT_EQ    ( 0LL          , i            ) ;
+            i= t.InNanoseconds  ();                   UT_NEAR ( 123456789L   , i     , 500L )
+            i= t.InAbsoluteMicroseconds ();           UT_EQ   ( 123456LL     , i            )
+            i= t.InAbsoluteMilliseconds ();           UT_EQ   ( 123LL        , i            )
+            i= t.InAbsoluteSeconds();                 UT_EQ    ( 0LL          , i            )
 
 
         t=  Ticks::Duration::FromMilliseconds( 100 ) + Ticks::Duration::FromSeconds( 42 );
-            i= t.InNanoseconds();              UT_NEAR ( 42100000000L                  , i         , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();    UT_EQ   ( 42100000LL                    , i                ) ;
-            i= t.InAbsoluteMilliseconds ();    UT_EQ   ( 42100LL                       , i                ) ;
-            i= t.InAbsoluteSeconds();          UT_EQ   ( 42LL                          , i                ) ;
+            i= t.InNanoseconds();              UT_NEAR ( 42100000000L                  , i         , 500L )
+            i= t.InAbsoluteMicroseconds ();    UT_EQ   ( 42100000LL                    , i                )
+            i= t.InAbsoluteMilliseconds ();    UT_EQ   ( 42100LL                       , i                )
+            i= t.InAbsoluteSeconds();          UT_EQ   ( 42LL                          , i                )
         t-= Ticks::Duration::FromMilliseconds( 100 );
-            i= t.InNanoseconds();              UT_NEAR ( 42000000000L                  , i         , 500L ) ;
-            i= t.InAbsoluteMicroseconds ();    UT_EQ   ( 42000000LL                    , i                ) ;
-            i= t.InAbsoluteMilliseconds ();    UT_EQ   ( 42000LL                       , i                ) ;
-            i= t.InAbsoluteSeconds();          UT_EQ   ( 42LL                          , i                ) ;
+            i= t.InNanoseconds();              UT_NEAR ( 42000000000L                  , i         , 500L )
+            i= t.InAbsoluteMicroseconds ();    UT_EQ   ( 42000000LL                    , i                )
+            i= t.InAbsoluteMilliseconds ();    UT_EQ   ( 42000LL                       , i                )
+            i= t.InAbsoluteSeconds();          UT_EQ   ( 42LL                          , i                )
 
-        t= Ticks::Duration::FromMilliseconds( 100 );  UT_NEAR ( t.InHertz(    ) , 10.0      , 0.0001 ) ;
-        t= Ticks::Duration::FromMilliseconds( 300 );  UT_EQ   ( t.InHertz( 0  ) , 3.0                ) ;
-                                               UT_EQ   ( t.InHertz( 1  ) , 3.3                ) ;
-                                               UT_EQ   ( t.InHertz( 2  ) , 3.33               ) ;
-                                               UT_EQ   ( t.InHertz( 5  ) , 3.33333            ) ;
+        t= Ticks::Duration::FromMilliseconds( 100 );  UT_NEAR ( t.InHertz(    ) , 10.0      , 0.0001 )
+        t= Ticks::Duration::FromMilliseconds( 300 );  UT_EQ   ( t.InHertz( 0  ) , 3.0                )
+                                                      UT_EQ   ( t.InHertz( 1  ) , 3.3                )
+                                                      UT_EQ   ( t.InHertz( 2  ) , 3.33               )
+                                                      UT_EQ   ( t.InHertz( 5  ) , 3.33333            )
     }
 
     // check time library creation time
     {
         auto creationTimeDiff= lib::time::CreationTime().Age();
-        UT_PRINT( "Time library creation was: {} ns ago"        , creationTimeDiff.InNanoseconds()  );
-        UT_PRINT( "Time library creation was: {} \u00B5s ago"   , creationTimeDiff.InAbsoluteMicroseconds() );
-        UT_PRINT( "Time library creation was: {} ms ago"        , creationTimeDiff.InAbsoluteMilliseconds() );
-        UT_PRINT( "Time library creation was: {} s  ago"        , creationTimeDiff.InAbsoluteSeconds());
-        UT_TRUE ( creationTimeDiff.InNanoseconds() > 100  ); // It should really take 100 nanoseconds to get here!
-        UT_TRUE ( creationTimeDiff.InAbsoluteSeconds() < 3600 ); // these tests will probably not last an hour
+        UT_PRINT( "Time library creation was: {} ns ago"        , creationTimeDiff.InNanoseconds()  )
+        UT_PRINT( "Time library creation was: {} \u00B5s ago"   , creationTimeDiff.InAbsoluteMicroseconds() )
+        UT_PRINT( "Time library creation was: {} ms ago"        , creationTimeDiff.InAbsoluteMilliseconds() )
+        UT_PRINT( "Time library creation was: {} s  ago"        , creationTimeDiff.InAbsoluteSeconds())
+        UT_TRUE ( creationTimeDiff.InNanoseconds()     > 100  ) // It should really take 100 nanoseconds to get here!
+        UT_TRUE ( creationTimeDiff.InAbsoluteSeconds() < 3600 ) // these tests will probably not last an hour
     }
 
     // check if we could sleep for 100ms
+    #if ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
     {
         Ticks start;
             Thread::SleepMillis( 30 );
         auto sleepTime= start.Age();
-        UT_PRINT( "Time diff after 30ms sleep: {}\u00B5s ago", sleepTime.InAbsoluteMicroseconds() );
-        UT_TRUE ( sleepTime.InAbsoluteMilliseconds() > 25 );
-        UT_TRUE ( sleepTime.InAbsoluteMilliseconds() < 150 ); // should work even on heavily loaded machines
+        UT_PRINT( "Time diff after 30ms sleep: {}\u00B5s ago", sleepTime.InAbsoluteMicroseconds() )
+        UT_TRUE ( sleepTime.InAbsoluteMilliseconds() >  25 )
+        UT_TRUE ( sleepTime.InAbsoluteMilliseconds() < 150 ) // should work even on heavily loaded machines
     }
+    #endif
 
     // check initialization
     {
-        Ticks     ticksI;                               UT_EQ( true , ticksI   .IsSet() );
-        Ticks     ticksU(Initialization::Suppress);     UT_EQ( false, ticksU   .IsSet() );
-        DateTime dateTimeI;                             UT_EQ( true , dateTimeI.IsSet() );
-        DateTime dateTimeU(Initialization::Suppress);   UT_EQ( false, dateTimeU.IsSet() );
+        Ticks     ticksI;                               UT_EQ( true , ticksI   .IsSet() )
+        Ticks     ticksU(Initialization::Suppress);     UT_EQ( false, ticksU   .IsSet() )
+        DateTime dateTimeI;                             UT_EQ( true , dateTimeI.IsSet() )
+        DateTime dateTimeU(Initialization::Suppress);   UT_EQ( false, dateTimeU.IsSet() )
     }
 
     // check boxing
@@ -162,13 +182,13 @@ UT_METHOD(Basics)
         Box b= ticks;
         Ticks ticksBack= b.Unbox<Ticks>();
         UT_TRUE( ticks == ticksBack )
-        UT_EQ( ticks.Raw(), ticksBack.Raw() );
+        UT_EQ( ticks.Raw(), ticksBack.Raw() )
 
         DateTime dateTime;
         b= dateTime;
         DateTime dateTimeBack= b.Unbox<DateTime>();
         UT_TRUE( dateTime == dateTimeBack )
-        UT_EQ( dateTime.Raw(), dateTimeBack.Raw() );
+        UT_EQ( dateTime.Raw(), dateTimeBack.Raw() )
     }
 }
 
@@ -178,11 +198,11 @@ UT_METHOD(Basics)
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(SpeedTest)
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT(""); UT_PRINT( "### TicksSpeedTest ###" );
+    UT_PRINT("") UT_PRINT( "### TicksSpeedTest ###" )
 
-    UT_PRINT( "# Clock information #" );
+    UT_PRINT( "# Clock information #" )
 
     print_clock_info<DateTime::TTimePoint::clock>(ut, "DateTime::TClock" );
     print_clock_info<Ticks   ::TTimePoint::clock>(ut, "   Ticks::TClock" );
@@ -191,35 +211,35 @@ UT_METHOD(SpeedTest)
 //    print_clock_info<std::chrono::high_resolution_clock>(ut, "hpc" );
 
 
-    for (int runs= 0; runs < 5; runs ++ )
+    for (int runs= 0; runs < 5; ++runs  )
     {
         int aLotOf= 100;
 
         Ticks tsMeasure;
         Ticks setTest;
-        for (int i= 0; i < aLotOf; i++ )
+        for (int i= 0; i < aLotOf; ++i )
             setTest= Ticks::Now();
 
         auto nanos= tsMeasure.Age().InNanoseconds();
         auto averageNanos= nanos / aLotOf ;
-        UT_PRINT(  "{} x    Ticks::Now() took {} ns. This is an average of {} nanoseconds per call", aLotOf, nanos, averageNanos );
-        UT_TRUE ( averageNanos < 10000 );
+        UT_PRINT(  "{} x    Ticks::Now() took {} ns. This is an average of {} nanoseconds per call", aLotOf, nanos, averageNanos )
+        UT_TRUE ( averageNanos < 10000 )
     }
 
-    for (int runs= 0; runs < 5; runs ++ )
+    for (int runs= 0; runs < 5; ++runs  )
     {
         int aLotOf= 100;
 
         DateTime tsMeasure;
         DateTime setTest;
-        for (int i= 0; i < aLotOf; i++ )
+        for (int i= 0; i < aLotOf; ++i )
             setTest= DateTime::Now();
 
         auto nanos= tsMeasure.Age().InNanoseconds();
         auto averageNanos= nanos / aLotOf ;
-        UT_PRINT(  "{} x DateTime::Now() took {} ns. This is an average of {} nanoseconds per call", aLotOf, nanos, averageNanos );
+        UT_PRINT(  "{} x DateTime::Now() took {} ns. This is an average of {} nanoseconds per call", aLotOf, nanos, averageNanos )
         #if !ALIB_AVOID_ANALYZER_WARNINGS
-        UT_TRUE ( averageNanos < 10000 );
+        UT_TRUE ( averageNanos < 10000 )
         #endif
     }
 }
@@ -229,8 +249,8 @@ UT_METHOD(SpeedTest)
 //--------------------------------------------------------------------------------------------------
 UT_METHOD(DateTimeConversion)
 {
-    UT_INIT();
-    UT_PRINT("")  UT_PRINT( "### TickSpeedTest ###" );
+    UT_INIT()
+    UT_PRINT("")  UT_PRINT( "### TickSpeedTest ###" )
 
     #if defined (__GLIBCXX__) || defined(__APPLE__)
 
@@ -241,11 +261,11 @@ UT_METHOD(DateTimeConversion)
             // first we get time_t from system and from ticks and compare
             time_t timetNowFromTicks=      ticksNowOrig.InEpochSeconds();
             time_t timetNowFromSystem;     std::time(&timetNowFromSystem);
-            UT_PRINT( "time_t from DateTime:  {} (seconds after 1/1/1970 GMT)", timetNowFromTicks );
-            UT_PRINT( "time_t from system:     {} -> Diff: {}", timetNowFromSystem, (timetNowFromTicks - timetNowFromSystem) );
-            UT_PRINT( "Today from DateTime:   {}", ctime( &timetNowFromTicks )  );
-            UT_PRINT( "Today from System:      {}", ctime( &timetNowFromSystem )   );
-            UT_TRUE ( abs ( timetNowFromTicks - timetNowFromSystem ) <= 1 );
+            UT_PRINT( "time_t from DateTime:  {} (seconds after 1/1/1970 GMT)", timetNowFromTicks )
+            UT_PRINT( "time_t from system:     {} -> Diff: {}", timetNowFromSystem, (timetNowFromTicks - timetNowFromSystem) )
+            UT_PRINT( "Today from DateTime:   {}", ctime( &timetNowFromTicks )  )
+            UT_PRINT( "Today from System:      {}", ctime( &timetNowFromSystem )   )
+            UT_TRUE ( abs ( timetNowFromTicks - timetNowFromSystem ) <= 1 )
 
             // now we convert time_t back to ticks
             {
@@ -253,12 +273,13 @@ UT_METHOD(DateTimeConversion)
 
                 int64_t ns1= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowOrig     .NativeValue().time_since_epoch() ).count();
                 int64_t ns2= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowRoundtrip.NativeValue().time_since_epoch() ).count();
-                UT_PRINT( "DateTime in nanos since epoch, original:  ", ns1 );
-                UT_PRINT( "DateTime in nanos since epoch, roundtrip: ", ns2 );
-                UT_NEAR( (ticksNowOrig - ticksNowRoundtrip).InAbsoluteSeconds(), 1, 1 );
+                UT_PRINT( "DateTime in nanos since epoch, original:  ", ns1 )
+                UT_PRINT( "DateTime in nanos since epoch, roundtrip: ", ns2 )
+                UT_NEAR( (ticksNowOrig - ticksNowRoundtrip).InAbsoluteSeconds(), 1, 1 )
             }
 
             // now we add a day
+            #if ALIB_SYSTEM
             {
                 time_t           timetTomorrowTime= timetNowFromTicks + 3600*24 + 2*3600 + 3*60 + 4;
                 DateTime        ticksTomorrow( ticksNowOrig );
@@ -270,13 +291,14 @@ UT_METHOD(DateTimeConversion)
                 ticksTomorrow+= converter.ToDateTimeDuration();
 
                 time_t  timetTomorrowTicks= ticksTomorrow.InEpochSeconds();
-                UT_PRINT( "Tomorrow time_t from DateTime: {}", timetTomorrowTicks           );
-                UT_PRINT( "Tomorrow time_t from system:    {}  Diff: {}", timetTomorrowTime, (timetTomorrowTicks - timetTomorrowTime) );
-                UT_PRINT( "Tomorrow from DateTime:        {}", ctime( &timetTomorrowTicks ) );
-                UT_PRINT( "Tomorrow from System:           {}", ctime( &timetTomorrowTime )  );
+                UT_PRINT( "Tomorrow time_t from DateTime: {}", timetTomorrowTicks           )
+                UT_PRINT( "Tomorrow time_t from system:   {}  Diff: {}", timetTomorrowTime, (timetTomorrowTicks - timetTomorrowTime) )
+                UT_PRINT( "Tomorrow from DateTime:        {}", ctime( &timetTomorrowTicks ) )
+                UT_PRINT( "Tomorrow from System:          {}", ctime( &timetTomorrowTime )  )
 
-                UT_EQ( timetTomorrowTicks ,  timetTomorrowTime );
+                UT_EQ( timetTomorrowTicks ,  timetTomorrowTime )
             }
+            #endif
         }
 
     #elif defined(_WIN32)
@@ -344,6 +366,7 @@ UT_METHOD(DateTimeConversion)
 
 
     // CalendarDateTime
+    #if ALIB_SYSTEM
     {
         DateTime   tNow;
 
@@ -356,8 +379,8 @@ UT_METHOD(DateTimeConversion)
         #endif
         CalendarDateTime   cNow( tNow );
 
-        UT_PRINT( "Today local is: {}/{}/{} {}:{:02}:{:02}", cNow.Year, cNow.Month, cNow.Day,
-                                                       cNow.Hour, cNow.Minute, cNow.Second     );
+        UT_PRINT( "Today local is: {}/{}/{} {}:{:02}:{:02}", cNow.Year, cNow.Month , cNow.Day,
+                                                             cNow.Hour, cNow.Minute, cNow.Second  )
 
         DateTime   tNowBack( cNow.Get() );
 
@@ -365,7 +388,7 @@ UT_METHOD(DateTimeConversion)
         #if defined(_WIN32) // currently, this does not do better than this!
             UT_NEAR( diff, 0, 1 );
         #else
-            UT_EQ( 0, diff );
+            UT_EQ( 0, diff )
         #endif
     }
 
@@ -381,8 +404,8 @@ UT_METHOD(DateTimeConversion)
         #endif
         CalendarDateTime   cNow( tNow, Timezone::UTC );
 
-        UT_PRINT( "Today UTC is:  {}/{}/{} {}:{:02}:{:02}", cNow.Year, cNow.Month, cNow.Day,
-                                                      cNow.Hour, cNow.Minute, cNow.Second     );
+        UT_PRINT( "Today UTC is:  {}/{}/{} {}:{:02}:{:02}", cNow.Year, cNow.Month , cNow.Day,
+                                                            cNow.Hour, cNow.Minute, cNow.Second   )
 
         DateTime   tNowBack( cNow.Get( Timezone::UTC ) );
 
@@ -390,9 +413,10 @@ UT_METHOD(DateTimeConversion)
         #if defined(_WIN32) // currently, this does not do better than this!
             UT_NEAR( diff, 0, 1 );
         #else
-            UT_EQ( 0, diff );
+            UT_EQ( 0, diff )
         #endif
     }
+    #endif
 
     // Ticks converter
     {
@@ -413,9 +437,10 @@ UT_METHOD(DateTimeConversion)
 //--------------------------------------------------------------------------------------------------
 //--- Ages
 //--------------------------------------------------------------------------------------------------
+#if ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 UT_METHOD(Ages)
 {
-    UT_INIT();
+    UT_INIT()
     //UT_PRINT( "Nanos per 2013 years:    "                << (nanosPerYear*2013) );
 
     StopWatch tt;
@@ -430,15 +455,15 @@ UT_METHOD(Ages)
             if( minimum > actual )
                 minimum=  actual;
         }
-        UT_PRINT( "Ticks::Duration minimum measurement: {} ns", minimum.InNanoseconds()            );
-        UT_PRINT( "Ticks::Duration average measurement: {} ns", tt.GetAverage().InNanoseconds()    );
+        UT_PRINT( "Ticks::Duration minimum measurement: {} ns", minimum.InNanoseconds()            )
+        UT_PRINT( "Ticks::Duration average measurement: {} ns", tt.GetAverage().InNanoseconds()    )
 
-        UT_TRUE ( tt.GetAverage().InAbsoluteMilliseconds()  < 10 || ALIB_AVOID_ANALYZER_WARNINGS   );
+        UT_TRUE ( tt.GetAverage().InAbsoluteMilliseconds()  < 10 || ALIB_AVOID_ANALYZER_WARNINGS   )
     }
     // minimum sleep time measuring
     {
         tt.Reset();
-        for (int i= 0 ; i< 100 ; i++)
+        for (int i= 0 ; i< 100 ; ++i)
         {
             Thread::SleepNanos( 1 );
             tt.Sample();
@@ -446,37 +471,37 @@ UT_METHOD(Ages)
 
         UT_PRINT( "{} probes of 1 ns of sleep leads to average sleep time of {} ns",
                   tt.GetSampleCnt(),
-                  tt.GetAverage().InNanoseconds() );
+                  tt.GetAverage().InNanoseconds() )
 
         tt.Reset();
-        for (int i= 0 ; i< 100 ; i++)
+        for (int i= 0 ; i< 100 ; ++i)
         {
             Thread::SleepMicros( 1 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 1 microsecond of sleep leads to average sleep time of {} ns",
                   tt.GetSampleCnt(),
-                  tt.GetAverage().InNanoseconds() );
+                  tt.GetAverage().InNanoseconds() )
 
         tt.Reset();
-        for (int i= 0 ; i< 100 ; i++)
+        for (int i= 0 ; i< 100 ; ++i)
         {
             Thread::SleepMicros( 20 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 20 microseconds of sleep leads to average sleep time of {} microseconds",
                   tt.GetSampleCnt(),
-                  tt.GetAverage().InAbsoluteMicroseconds() );
+                  tt.GetAverage().InAbsoluteMicroseconds() )
 
         tt.Reset();
-        for (int i= 0 ; i< 10 ; i++)
+        for (int i= 0 ; i< 10 ; ++i)
         {
             Thread::SleepMillis( 1 );
             tt.Sample();
         }
         UT_PRINT( "{} probes of 1 ms of sleep leads to average sleep time of {} microseconds",
                   tt.GetSampleCnt(),
-                  tt.GetAverage().InAbsoluteMicroseconds() );
+                  tt.GetAverage().InAbsoluteMicroseconds() )
     }
 
     // sleep two times 20 ms and probe it to an average
@@ -491,13 +516,13 @@ UT_METHOD(Ages)
         auto cnt=    tt.GetSampleCnt();
         auto avg=    tt.GetAverage().InAbsoluteMilliseconds();
         auto hertz=  tt.GetAverage().InHertz(1);
-        UT_PRINT(  "{} probes of 20 ms sleep leads to sleep time of {} ms", cnt, cum );
-        UT_PRINT(  "  average is: {} ms", avg  );
-        UT_PRINT(  "  in Hertz  : {}", hertz );
-        UT_TRUE ( hertz < 55 );
-        UT_TRUE ( hertz > 45 );
-        UT_TRUE ( avg   > 15 );
-        UT_TRUE ( avg   < 25 );
+        UT_PRINT(  "{} probes of 20 ms sleep leads to sleep time of {} ms", cnt, cum )
+        UT_PRINT(  "  average is: {} ms", avg  )
+        UT_PRINT(  "  in Hertz  : {}", hertz )
+        UT_TRUE ( hertz < 60 )
+        UT_TRUE ( hertz > 20 )
+        UT_TRUE ( avg   > 10 )
+        UT_TRUE ( avg   < 40 )
     }
 
     // simple calculation
@@ -507,19 +532,22 @@ UT_METHOD(Ages)
         ts1-= Ticks::Duration::FromSeconds( 1001 );
         ts2-= Ticks::Duration::FromSeconds( 1000 );
 
-        UT_TRUE ( (ts2-ts1).InAbsoluteMilliseconds() == 1000L );
-        UT_TRUE ( (ts2-ts1).InAbsoluteMicroseconds() == 1000L * 1000L );
-        UT_TRUE ( (ts2-ts1).InNanoseconds ()         == 1000L * 1000L * 1000L);
+        UT_TRUE ( (ts2-ts1).InAbsoluteMilliseconds() == 1000L )
+        UT_TRUE ( (ts2-ts1).InAbsoluteMicroseconds() == 1000L * 1000L )
+        UT_TRUE ( (ts2-ts1).InNanoseconds ()         == 1000L * 1000L * 1000L)
     }
 }
+#endif  // ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+
 
 
 //--------------------------------------------------------------------------------------------------
 //--- SpeedTestIndexOf
 //--------------------------------------------------------------------------------------------------
+#if !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 UT_METHOD(SpeedTestIndexOf)
 {
-    UT_INIT();
+    UT_INIT()
 
     // Note: Compares std::string against AString. In debug, std is faster, in release AString
     //       is faster.
@@ -530,21 +558,21 @@ UT_METHOD(SpeedTestIndexOf)
     StopWatch   ttString;
     StopWatch   ttAString;
     AString        output;
-    for (int run= 4; run < 18; run++ )
+    for (int run= 4; run < 18; ++run )
     {
         int qtyLoops= 1 << run;
         integer nonOptimizableUsedResultValue= 0;
 
         // use String.IndexOf()
         ttString.Reset();
-            for (int i= 0; i < qtyLoops; i++ )
+            for (int i= 0; i < qtyLoops; ++i )
                 nonOptimizableUsedResultValue+= testString.find( (i & 1) ? '*' : '#' );
         Ticks::Duration stringSample= ttString.Sample();
 
 
         // use AString.IndexOf()
         ttAString.Reset();
-            for (int i= 0; i < qtyLoops; i++ )
+            for (int i= 0; i < qtyLoops; ++i )
                 nonOptimizableUsedResultValue+= testAString.IndexOf( (i & 1) ? '*' : '#' );
         Ticks::Duration aStringSample= ttAString.Sample();
 
@@ -558,23 +586,25 @@ UT_METHOD(SpeedTestIndexOf)
                   ._( " / "  )                     ._( Format::Field( String32( aStringSample.InNanoseconds()   ), 8 ) )
                   ._( "   Ratio String/AString: " )._( static_cast<double>(stringSample.InNanoseconds()) / static_cast<double>(aStringSample.InNanoseconds()) );
 
-            UT_PRINT( output );
+            UT_PRINT( output )
         }
     }
 }
+#endif // !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 
+#if ALIB_SYSTEM
 void dateFormatCheck( AWorxUnitTesting& ut, CalendarDateTime& ct,  const character * fmt, const character * expected )
 {
     String128 res;
     ct.Format( fmt, res );
-    UT_PRINT( (String128("CalendarDateTime.Format: ") << fmt << " ->")._(Format::Tab(20)) << res );
-    UT_EQ( expected, String(res) );
+    UT_PRINT( (String128("CalendarDateTime.Format: ") << fmt << " ->")._(Format::Tab(20)) << res )
+    UT_EQ( expected, String(res) )
 }
 
 
 UT_METHOD(DateFormat)
 {
-    UT_INIT();
+    UT_INIT()
 
     CalendarDateTime ct;
     ct.Year     = 2015;
@@ -627,22 +657,23 @@ UT_METHOD(DateFormat)
 
     dateFormatCheck( ut, ct, A_CHAR("yyyy-MM-dd HH:mm:ss"),  A_CHAR("2015-04-03 05:06:07") );
 }
+#endif
 
 UT_METHOD(DurationConversion)
 {
-    UT_INIT();
+    UT_INIT()
 
     double  d= 3.14;
     integer i= 3;
     Ticks::Duration ts;
-    ts= Ticks::Duration::FromDays        ( d );   UT_NEAR( d, ts.InDays        () ,0.0001);   UT_EQ( i, ts.InAbsoluteDays        () );
-    ts= Ticks::Duration::FromHours       ( d );   UT_NEAR( d, ts.InHours       () ,0.0001);   UT_EQ( i, ts.InAbsoluteHours       () );
-    ts= Ticks::Duration::FromMinutes     ( d );   UT_NEAR( d, ts.InMinutes     () ,0.0001);   UT_EQ( i, ts.InAbsoluteMinutes     () );
-    ts= Ticks::Duration::FromSeconds     ( d );   UT_NEAR( d, ts.InSeconds     () ,0.0001);   UT_EQ( i, ts.InAbsoluteSeconds     () );
-    ts= Ticks::Duration::FromMilliseconds( d );   UT_NEAR( d, ts.InMilliseconds() ,0.0001);   UT_EQ( i, ts.InAbsoluteMilliseconds() );
-    ts= Ticks::Duration::FromMicroseconds( d );   UT_NEAR( d, ts.InMicroseconds() ,0.1   );   UT_EQ( i, ts.InAbsoluteMicroseconds() );
+    ts= Ticks::Duration::FromDays        ( d );   UT_NEAR( d, ts.InDays        () ,0.0001)   UT_EQ( i, ts.InAbsoluteDays        () )
+    ts= Ticks::Duration::FromHours       ( d );   UT_NEAR( d, ts.InHours       () ,0.0001)   UT_EQ( i, ts.InAbsoluteHours       () )
+    ts= Ticks::Duration::FromMinutes     ( d );   UT_NEAR( d, ts.InMinutes     () ,0.0001)   UT_EQ( i, ts.InAbsoluteMinutes     () )
+    ts= Ticks::Duration::FromSeconds     ( d );   UT_NEAR( d, ts.InSeconds     () ,0.0001)   UT_EQ( i, ts.InAbsoluteSeconds     () )
+    ts= Ticks::Duration::FromMilliseconds( d );   UT_NEAR( d, ts.InMilliseconds() ,0.0001)   UT_EQ( i, ts.InAbsoluteMilliseconds() )
+    ts= Ticks::Duration::FromMicroseconds( d );   UT_NEAR( d, ts.InMicroseconds() ,0.1   )   UT_EQ( i, ts.InAbsoluteMicroseconds() )
     #if !defined( _WIN32 )
-    ts= Ticks::Duration::FromNanoseconds ( i );   UT_EQ( i, ts.InNanoseconds () );
+    ts= Ticks::Duration::FromNanoseconds ( i );   UT_EQ( i, ts.InNanoseconds () )
     #endif
 }
 
@@ -650,12 +681,12 @@ void durationToStringCheck( AWorxUnitTesting& ut, Ticks::Duration& ts, const Str
 {
     String128 res;
     res << ts;
-    UT_EQ( expected, String(res) );
+    UT_EQ( expected, String(res) )
 }
 
 UT_METHOD(DurationAppend)
 {
-    UT_INIT();
+    UT_INIT()
     NumberFormat::Global.SetComputational();
 
     Ticks::Duration ts;                             durationToStringCheck( ut, ts, A_CHAR("zero time")           );
@@ -687,8 +718,8 @@ UT_METHOD(DurationAppend)
 
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
-}; //namespace
+} //namespace [ut_aworx]
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_CORE)
+#endif // ALIB_UT_TIME

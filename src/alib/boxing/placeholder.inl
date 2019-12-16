@@ -1,11 +1,19 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#if !defined(HPP_ALIB_BOXING_PROPPERINCLUDE)
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_boxing of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALIB_BOXING_PLACEHOLDER
+#define HPP_ALIB_BOXING_PLACEHOLDER 1
+
+#if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
+#endif
+
+#if !defined (_GLIBCXX_CSTRING) && !defined(_CSTRING_)
+#   include <cstring>
 #endif
 
 namespace aworx { namespace lib { namespace boxing  { namespace detail {
@@ -19,8 +27,8 @@ struct StructArray
     integer     Length;  ///< The length of the array.
 
   // constexpr constructors
-  #if !ALIB_DOCUMENTATION_PARSER
-    inline constexpr StructArray( const void* p, integer l) : Pointer( p ), Length ( l )      {}
+  #if !defined(ALIB_DOX)
+    constexpr StructArray( const void* p, integer l) : Pointer( p ), Length ( l )      {}
   #endif
 };
 
@@ -37,7 +45,7 @@ union  UnionIntegrals
      int16_t         Int16  ;   ///< 16-bit signed integral.
     uint16_t        UInt16  ;   ///< 16-bit unsigned integral.
 
-  #if ALIB_DOCUMENTATION_PARSER
+  #if defined(ALIB_DOX)
      int32_t         Int32  ;   ///< 32-bit signed integral.   Available only if platform is not of 32-bit.
     uint32_t        UInt32  ;   ///< 32-bit unsigned integral. Available only if platform is not of 32-bit.
      int64_t         Int64  ;   ///< 64-bit signed integral.   Available only if platform is not of 64-bit.
@@ -56,7 +64,7 @@ union  UnionIntegrals
      int8_t          Array8  [2 * sizeof(uinteger) / sizeof( int8_t  )]; ///< Array of  8-bit signed integrals of length 16 on 64-bit platform, 8 on a 32-bit platform.
      int16_t         Array16 [2 * sizeof(uinteger) / sizeof( int16_t )]; ///< Array of 16-bit signed integrals of length  8 on 64-bit platform, 4 on a 32-bit platform.
 
-  #if ALIB_DOCUMENTATION_PARSER
+  #if defined(ALIB_DOX)
      int32_t         Array32 [2 * sizeof(uinteger) / sizeof( int32_t )]; ///< Array of 32-bit signed integrals of length 4 on a 64-bit platform. Not available on 32-bit platforms.
      int64_t         Array64 [2 * sizeof(uinteger) / sizeof( int64_t )]; ///< Array of 64-bit signed integrals of length 1 on a 32-bit platform. Not available on 64-bit platforms.
 
@@ -71,42 +79,42 @@ union  UnionIntegrals
 
 
   // constexpr constructors
-  #if !ALIB_DOCUMENTATION_PARSER
-    inline constexpr UnionIntegrals     (  integer v1, integer v2 )   :  Array { v1, v2 }  {}
-    inline constexpr UnionIntegrals     (  int8_t     value )  :  Int8     { value }  {}
-    inline constexpr UnionIntegrals     ( uint8_t     value )  : UInt8     { value }  {}
-    inline constexpr UnionIntegrals     (  int16_t    value )  :  Int16    { value }  {}
-    inline constexpr UnionIntegrals     ( uint16_t    value )  : UInt16    { value }  {}
+  #if !defined(ALIB_DOX)
+    constexpr UnionIntegrals     (  integer v1, integer v2 )  :  Array    { v1, v2 }  {}
+    constexpr UnionIntegrals     (  int8_t     value )        :  Int8     { value }  {}
+    constexpr UnionIntegrals     ( uint8_t     value )        : UInt8     { value }  {}
+    constexpr UnionIntegrals     (  int16_t    value )        :  Int16    { value }  {}
+    constexpr UnionIntegrals     ( uint16_t    value )        : UInt16    { value }  {}
   #if    ALIB_SIZEOF_INTEGER != 4
-    inline constexpr UnionIntegrals     (  int32_t    value )  :  Int32    { value }  {}
-    inline constexpr UnionIntegrals     ( uint32_t    value )  : UInt32    { value }  {}
+    constexpr UnionIntegrals     (  int32_t    value )        :  Int32    { value }  {}
+    constexpr UnionIntegrals     ( uint32_t    value )        : UInt32    { value }  {}
   #elif  ALIB_SIZEOF_INTEGER != 8
-    inline constexpr UnionIntegrals     (  int64_t    value )  :  Int64    { value }  {}
-    inline constexpr UnionIntegrals     ( uint64_t    value )  : UInt64    { value }  {}
+    constexpr UnionIntegrals     (  int64_t    value )        :  Int64    { value }  {}
+    constexpr UnionIntegrals     ( uint64_t    value )        : UInt64    { value }  {}
   #endif
-    inline constexpr UnionIntegrals     (  integer    value )  :  Int      { value }  {}
-    inline constexpr UnionIntegrals     ( uinteger    value )  : UInt      { value }  {}
+    constexpr UnionIntegrals     (  integer    value )        :  Int      { value }  {}
+    constexpr UnionIntegrals     ( uinteger    value )        : UInt      { value }  {}
 
 
 
     #if   ALIB_SIZEOF_INTGAP == 2
-    inline constexpr UnionIntegrals     (  intGap_t   value )  :  Int16    { value }  {}
-    inline constexpr UnionIntegrals     ( uintGap_t   value )  : UInt16    { value }  {}
+    constexpr UnionIntegrals     (  intGap_t   value )  :  Int16    { value }  {}
+    constexpr UnionIntegrals     ( uintGap_t   value )  : UInt16    { value }  {}
     #elif ALIB_SIZEOF_INTGAP == 4
         #if  ALIB_SIZEOF_INTEGER != 4
-        inline constexpr UnionIntegrals     (  intGap_t   value )  :  Int32    { value }  {}
-        inline constexpr UnionIntegrals     ( uintGap_t   value )  : UInt32    { value }  {}
+        constexpr UnionIntegrals     (  intGap_t   value )  :  Int32    { value }  {}
+        constexpr UnionIntegrals     ( uintGap_t   value )  : UInt32    { value }  {}
         #else
-        inline constexpr UnionIntegrals     (  intGap_t   value )  :  Int      { value }  {}
-        inline constexpr UnionIntegrals     ( uintGap_t   value )  : UInt      { value }  {}
+        constexpr UnionIntegrals     (  intGap_t   value )  :  Int      { value }  {}
+        constexpr UnionIntegrals     ( uintGap_t   value )  : UInt      { value }  {}
         #endif
     #elif ALIB_SIZEOF_INTGAP == 8
         #if  ALIB_SIZEOF_INTEGER != 8
-        inline constexpr UnionIntegrals     (  intGap_t   value )  :  Int64    { value }  {}
-        inline constexpr UnionIntegrals     ( uintGap_t   value )  : UInt64    { value }  {}
+        constexpr UnionIntegrals     (  intGap_t   value )  :  Int64    { value }  {}
+        constexpr UnionIntegrals     ( uintGap_t   value )  : UInt64    { value }  {}
         #else
-        inline constexpr UnionIntegrals     (  intGap_t   value )  :  Int      { value }  {}
-        inline constexpr UnionIntegrals     ( uintGap_t   value )  : UInt      { value }  {}
+        constexpr UnionIntegrals     (  intGap_t   value )  :  Int      { value }  {}
+        constexpr UnionIntegrals     ( uintGap_t   value )  : UInt      { value }  {}
         #endif
     #else
         #error "ALIB_SIZEOF_INTGAP not matched"
@@ -124,18 +132,18 @@ union  UnionFloatingPoints
 {
     float           Float  ;   ///< A \c float value.
     double          Double ;   ///< A \c double value.
-#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || ALIB_DOCUMENTATION_PARSER
+#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
     long double     LDouble;   ///< A <c>long double</c> value. Available only if sizeof(long double) is smaller or equal than 2 x sizeof(integer), which is for example not true with GCC on Linux 32 -bit.
 #endif
 
     float           FloatArray  [2 * sizeof(uinteger) / sizeof(float      )]; ///< Array of \c float.  The Length is usually  4 on 64-bit platform, 2 on a 32-bit platform.
     double          DoubleArray [2 * sizeof(uinteger) / sizeof(double     )]; ///< Array of \c double. The Length is usually 2 on 64-bit platform, 1 on a 32-bit platform.
 
-  #if !ALIB_DOCUMENTATION_PARSER
-    inline constexpr UnionFloatingPoints( float       value )     : Float     { value }  {}
-    inline constexpr UnionFloatingPoints( double      value )     : Double    { value }  {}
-#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || ALIB_DOCUMENTATION_PARSER
-    inline constexpr UnionFloatingPoints( long double value )     : LDouble   { value }  {}
+  #if !defined(ALIB_DOX)
+    constexpr UnionFloatingPoints( float       value )     : Float     { value }  {}
+    constexpr UnionFloatingPoints( double      value )     : Double    { value }  {}
+#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
+    constexpr UnionFloatingPoints( long double value )     : LDouble   { value }  {}
 #endif
   #endif
 };
@@ -149,7 +157,7 @@ union  UnionFloatingPoints
  * In addition, non-pointer field #Memory (type \c char) is given, which can be be used to
  * receive a pointer to the start of the placeholder by applying <c>operator&</c>.
  * This \c char* then can be reinterpreted without braking the
- * [strict-aliasing rule](https://stackoverflow.com/questions/98650/what-is-the-strict-aliasing-rule)
+ * \https{strict-aliasing rule,stackoverflow.com/questions/98650/what-is-the-strict-aliasing-rule}
  * when compiling the code with higher optimization levels.
  */
 union  UnionPointers
@@ -170,17 +178,17 @@ union  UnionPointers
 
     char  Memory;                 ///< Not a pointer but becomes one with applying <c>operator&</c>.
 
-  #if !ALIB_DOCUMENTATION_PARSER
-    inline constexpr UnionPointers(        void*  value )   :   Void   { value }  {}
-    inline constexpr UnionPointers( const  void*  value )   :  CVoid   { value }  {}
-    inline constexpr UnionPointers(        char*  value )   :   Char   { value }  {}
-    inline constexpr UnionPointers( const  char*  value )   :  CChar   { value }  {}
-    inline constexpr UnionPointers(       wchar*  value )   :  WChar   { value }  {}
-    inline constexpr UnionPointers( const wchar*  value )   : CWChar   { value }  {}
+  #if !defined(ALIB_DOX)
+    constexpr UnionPointers(        void*  value )   :   Void   { value }  {}
+    constexpr UnionPointers( const  void*  value )   :  CVoid   { value }  {}
+    constexpr UnionPointers(        char*  value )   :   Char   { value }  {}
+    constexpr UnionPointers( const  char*  value )   :  CChar   { value }  {}
+    constexpr UnionPointers(       wchar*  value )   :  WChar   { value }  {}
+    constexpr UnionPointers( const wchar*  value )   : CWChar   { value }  {}
 
-    inline constexpr UnionPointers( const  void*  v1, const  void* v2 ) :   CVoidArray { v1, v2 }  {}
-    inline constexpr UnionPointers( const  char*  v1, const  char* v2 ) :   CCharArray { v1, v2 }  {}
-    inline constexpr UnionPointers( const wchar*  v1, const wchar* v2 ) :  CWCharArray { v1, v2 }  {}
+    constexpr UnionPointers( const  void*  v1, const  void* v2 ) :   CVoidArray { v1, v2 }  {}
+    constexpr UnionPointers( const  char*  v1, const  char* v2 ) :   CCharArray { v1, v2 }  {}
+    constexpr UnionPointers( const wchar*  v1, const wchar* v2 ) :  CWCharArray { v1, v2 }  {}
   #endif
 };
 
@@ -202,7 +210,7 @@ union  UnionPointers
  * Virtually any sort of data might be written into the union. With non-injective boxing, what means
  * that two or more types are boxed to the same target type, the format that type uses has to be
  * implemented by all \b Write and \b Read methods of any specialization of \alib{boxing,T_Boxer}.
- * Otherwise, undefined behaviour occurs.
+ * Otherwise, undefined behavior occurs.
  *
  * This type offers two sets of templated overloaded methods, named \b %Write and \b Read.
  * In addition to be overloaded, the methods use TMP to be selected by the compiler only for
@@ -240,7 +248,7 @@ union  UnionPointers
  * \c constexpr instances of class \b Box to be created from likewise \c constexpr values.
  * The C++ language rules for \c constexpr constructors impose some restrictions. In C++ 11,
  * constructors have to be empty except member initializations. Apart from that, in all C++
- * versions, no reinterpret casts have to be performed. Furthermore, a union constructor must
+ * versions, no reinterpret casts have to be performed. Furthermore, an union constructor must
  * not initialize a field of an inner union by accessing it using the dot operator. Instead,
  * the inner unions need to provide \c constexpr constructors that are called for the field of the
  * outer union.
@@ -264,7 +272,7 @@ union  UnionPointers
  *
  * \see
  *   Chapter \ref alib_boxing_customizing "7. Customizing Boxing" of the Programmer's Manual of
- *   \alibmod_nolink_boxing.<br>
+ *   \alib_boxing_nl.<br>
  *   Furthermore structs \alib{boxing,T_Boxer} and \alib{boxing,T_SizeInPlaceholder}.
  * ************************************************************************************************/
 union Placeholder
@@ -281,50 +289,50 @@ union Placeholder
 
 
     // constexpr constructors
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
 
     // This unnecessary default initialization with default constructor will be optimized out.
-    inline constexpr Placeholder()                                       : Integrals(0)           {}
+    constexpr Placeholder()                                       : Integrals(0)           {}
 
     // Pointer construction
-    inline constexpr Placeholder(        void* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder( const  void* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder(        char* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder( const  char* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder(       wchar* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder( const wchar* p                   )     : Pointers( p )          {}
-    inline constexpr Placeholder( const  void* p1, const  void* p2 )     : Pointers( p1, p2 )     {}
-    inline constexpr Placeholder(        char* p1,        char* p2 )     : Pointers( p1, p2 )     {}
-    inline constexpr Placeholder( const  char* p1, const  char* p2 )     : Pointers( p1, p2 )     {}
-    inline constexpr Placeholder(       wchar* p1,       wchar* p2 )     : Pointers( p1, p2 )     {}
-    inline constexpr Placeholder( const wchar* p1, const wchar* p2 )     : Pointers( p1, p2 )     {}
+    constexpr Placeholder(        void* p                   )     : Pointers( p )          {}
+    constexpr Placeholder( const  void* p                   )     : Pointers( p )          {}
+    constexpr Placeholder(        char* p                   )     : Pointers( p )          {}
+    constexpr Placeholder( const  char* p                   )     : Pointers( p )          {}
+    constexpr Placeholder(       wchar* p                   )     : Pointers( p )          {}
+    constexpr Placeholder( const wchar* p                   )     : Pointers( p )          {}
+    constexpr Placeholder( const  void* p1, const  void* p2 )     : Pointers( p1, p2 )     {}
+    constexpr Placeholder(        char* p1,        char* p2 )     : Pointers( p1, p2 )     {}
+    constexpr Placeholder( const  char* p1, const  char* p2 )     : Pointers( p1, p2 )     {}
+    constexpr Placeholder(       wchar* p1,       wchar* p2 )     : Pointers( p1, p2 )     {}
+    constexpr Placeholder( const wchar* p1, const wchar* p2 )     : Pointers( p1, p2 )     {}
 
     template<typename TMapped>
-    inline constexpr Placeholder( const TMapped* p )  : Pointers( p )    {}
+    constexpr Placeholder( const TMapped* p )  : Pointers( p )    {}
 
     // Integral construction
-    inline constexpr Placeholder(  int8_t     value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder(  int16_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder(  int32_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder(  int64_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder(  intGap_t   value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( uint8_t     value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( uint16_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( uint32_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( uint64_t    value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( uintGap_t   value )  : Integrals      ( value )  {}
-    inline constexpr Placeholder( integer word1, integer word2 ) : Integrals( word1, word2 )      {}
+    constexpr Placeholder(  int8_t     value )  : Integrals      ( value )  {}
+    constexpr Placeholder(  int16_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder(  int32_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder(  int64_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder(  intGap_t   value )  : Integrals      ( value )  {}
+    constexpr Placeholder( uint8_t     value )  : Integrals      ( value )  {}
+    constexpr Placeholder( uint16_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder( uint32_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder( uint64_t    value )  : Integrals      ( value )  {}
+    constexpr Placeholder( uintGap_t   value )  : Integrals      ( value )  {}
+    constexpr Placeholder( integer word1, integer word2 ) : Integrals( word1, word2 )      {}
 
     // Float construction
-    inline constexpr Placeholder( float       value )  : FloatingPoints ( value )  {}
-    inline constexpr Placeholder( double      value )  : FloatingPoints ( value )  {}
+    constexpr Placeholder( float       value )  : FloatingPoints ( value )  {}
+    constexpr Placeholder( double      value )  : FloatingPoints ( value )  {}
 #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
-    inline constexpr Placeholder( long double value )  : FloatingPoints ( value )  {}
+    constexpr Placeholder( long double value )  : FloatingPoints ( value )  {}
 #endif
 
     // Array construction
     template<typename TArray>
-    inline constexpr Placeholder( const TArray* tpointer, integer length ) : Array( tpointer, length ) {}
+    constexpr Placeholder( const TArray* tpointer, integer length ) : Array( tpointer, length ) {}
 
     #endif
 
@@ -334,53 +342,53 @@ union Placeholder
      * @return The pointer stored.
      */
     template<typename TReturn>
-    inline constexpr TReturn*   Pointer    ()                    const { return reinterpret_cast<TReturn*>( Pointers.Char); }
+    constexpr TReturn*   Pointer    ()                    const { return reinterpret_cast<TReturn*>( Pointers.Char); }
 
     /**
      * Returns a pointer of type \c void*.
      * @return The pointer stored.
      */
-    inline constexpr void*      VoidPointer()                    const { return Pointers.Void;         }
+    constexpr void*      VoidPointer()                    const { return Pointers.Void;         }
 
     /**
      * Sets a pointer of type \c char*.
      * @param value The value to set.
      */
-    inline ALIB_CPP14_CONSTEXPR
+    ALIB_CPP14_CONSTEXPR
     void                        Pointer    ( const char* value )       { Pointers.CChar= value;        }
 
     /**
      * Sets a pointer of type \c void*.
      * @param value The value to set.
      */
-    inline ALIB_CPP14_CONSTEXPR
+    ALIB_CPP14_CONSTEXPR
     void                        VoidPointer( const void* value )       { Pointers.CVoid= value;        }
 
     /**
      * Returns the length of a stored array (the second word stored).
      * @return The length stored.
      */
-    inline constexpr integer     Length ()                       const { return GetInteger(1);  }
+    constexpr integer     Length ()                       const { return GetInteger(1);  }
 
     /**
      * Returns the length of a stored array (the second word stored).
      * @return The length stored.
      */
-    inline constexpr uinteger   ULength ()                       const { return GetUInteger(1); }
+    constexpr uinteger   ULength ()                       const { return GetUInteger(1); }
 
     /**
      * Returns the signed integral at index \p{idx}.
      * @param idx The index requested. Only \c 0 and \c 1 is allowed.
      * @return The integral value one or two.
      */
-    inline constexpr  integer   GetInteger( int idx )            const { return Integrals.Array [idx];  }
+    constexpr  integer   GetInteger( int idx )            const { return Integrals.Array [idx];  }
 
     /**
      * Sets \p{value} at index \p{idx}.
      * @param idx   The index to store \p{value} in. Only \c 0 and \c 1 is allowed.
      * @param value The value to set.
      */
-    inline ALIB_CPP14_CONSTEXPR
+    ALIB_CPP14_CONSTEXPR
     void                        SetInteger( int idx, integer value )
     {
         Integrals.Array [idx]= value;
@@ -391,14 +399,14 @@ union Placeholder
      * @param idx The index requested. Only \c 0 and \c 1 is allowed.
      * @return The integral value one or two.
      */
-    inline constexpr uinteger   GetUInteger( int idx )          const { return Integrals.UArray[idx];  }
+    constexpr uinteger   GetUInteger( int idx )          const { return Integrals.UArray[idx];  }
 
     /**
      * Sets \p{value} at index \p{idx}.
      * @param idx   The index to store \p{value} in. Only \c 0 and \c 1 is allowed.
      * @param value The value to set.
      */
-    inline ALIB_CPP14_CONSTEXPR
+    ALIB_CPP14_CONSTEXPR
     void                        SetUInteger( int idx, uinteger value )
     {
         Integrals.UArray[idx]= value;
@@ -418,14 +426,14 @@ union Placeholder
      * @tparam UsageLength The number of bytes to clear.
      * ********************************************************************************************/
     template<unsigned int UsageLength>
-    inline ALIB_CPP14_CONSTEXPR void    Clear()
+    ALIB_CPP14_CONSTEXPR void    Clear()
     {
 ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         static_assert( UsageLength > 0 && ( UsageLength <= 2 * sizeof(uinteger) ),
                        "Invalid usage length given" );
 
             Integrals.Array[0]= 0;
-            if ALIB_CPP17_CONSTEXPR( UsageLength > sizeof(integer) )
+            if ALIB_CONSTEXPR_IF( UsageLength > sizeof(integer) )
                 Integrals.Array[1]= 0;
 ALIB_WARNINGS_RESTORE
     }
@@ -434,7 +442,8 @@ ALIB_WARNINGS_RESTORE
     // #########################             Boxing            #####################################
     // #############################################################################################
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
+
     /** ********************************************************************************************
      * This version of the overloaded methods is selected using TMP with most types, namly
      * fundamental, pointers and those value types that are copy assignable.
@@ -461,7 +470,7 @@ ALIB_WARNINGS_RESTORE
 
     #endif
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** ********************************************************************************************
      * This version of the overloaded methods is selected using TMP with types boxed as values
      * that are not copy-assignbable.
@@ -484,13 +493,13 @@ ALIB_WARNINGS_RESTORE
                   && (sizeof(TMapped) <= 2 * sizeof(uinteger))    )
     Write( const TMapped& value)
     {
-        memcpy( &Pointers.Memory, &value, sizeof(TMapped) );
+        std::memcpy( &Pointers.Memory, &value, sizeof(TMapped) );
     }
 
     #endif
 
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** ********************************************************************************************
      * This version of the overloaded methods is used for boxing C++ array types.
      * The type and length of the array is stored in field #Array of the data union.
@@ -500,9 +509,9 @@ ALIB_WARNINGS_RESTORE
      * directly from this struct.
      * (I.e. there is no overloaded method \b Read available for arrays.)
      *
+     * @tparam  TArray  The templated pointer type.
      * @param   pointer The pointer to store.
      * @param   length  The array's length to store.
-     * @tparam  TArray  The templated pointer type.
      * ********************************************************************************************/
     template<typename TArray>
     inline constexpr
@@ -546,4 +555,5 @@ static_assert( sizeof(Placeholder) == 2 * sizeof(std::size_t),
 
 }}} // namespace [aworx::lib::boxing]
 
+#endif // HPP_ALIB_BOXING_PLACEHOLDER
 

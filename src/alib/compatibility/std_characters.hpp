@@ -1,17 +1,20 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of the \aliblong.<br>
+ * With the inclusion of this header compatibility features between \alib and the C++ standard
+ * library are provided.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_CHARACTERS
 #define HPP_ALIB_COMPATIBILITY_STD_CHARACTERS 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
-#if ALIB_MODULE_CHARACTERS
+#if ALIB_CHARACTERS
 
 #ifndef HPP_ALIB_CHARACTERS_CHARACTERS
 #   include "alib/characters/characters.hpp"
@@ -21,7 +24,7 @@
 #   include <string>
 #endif
 
-#if ALIB_CPP17 && !defined (_GLIBCXX_STRING_VIEW) && !defined(_STRING_VIEW_)
+#if (ALIB_CPPVER >= 17) && !defined (_GLIBCXX_STRING_VIEW) && !defined(_STRING_VIEW_)
 #   include <string_view>
 #endif
 
@@ -30,29 +33,29 @@
 #endif
 
 
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
 #   if !defined(HPP_ALIB_STRINGS_FWDS)
 #      include "alib/strings/fwds.hpp"
 #   endif
 #endif
 
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 namespace aworx { namespace lib { namespace characters {
 #else
 namespace aworx { namespace lib { namespace characters {
 
 /**
  * This namespace contains sub-namespaces that provide compatibility of 3rd-party types and
- * module \alibmod_nolink_characters.<br>
+ * module \alib_characters_nl.<br>
  * The entities of those namespaces become available with the inclusion of optional "compatibility"
- * headers found in folder \b "alib/compatibility".
+ * headers found in folder \alibsrcdir{compatibility}.
  *
  */
 namespace compatibility {
 
 /**
- * This namespace documents compatibility features of \alibmod_nolink_characters and the
+ * This namespace documents compatibility features of \alib_characters_nl and the
  * standard C++ class library found in namespace \c std.
  */
 namespace std {
@@ -60,7 +63,7 @@ namespace std {
 
 
 // ####################################   std::string_view    ######################################
-#if ALIB_CPP17 || ALIB_DOCUMENTATION_PARSER
+#if (ALIB_CPPVER >= 17) || defined(ALIB_DOX)
 
 /**
  * Specialization of TMP struct \alib{characters,T_CharArray} for type
@@ -75,12 +78,12 @@ template<typename TChar>
 struct     T_CharArray<std::basic_string_view<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                            >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const TChar*                  Buffer   (std::basic_string_view<TChar> const & src) { return                       src.data  ()  ; }
-    static inline integer                       Length   (std::basic_string_view<TChar> const & src) { return static_cast<integer>( src.length() ); }
-    static inline std::basic_string_view<TChar> Construct(const TChar* array, integer length       ) { return std::basic_string_view<TChar>( array, static_cast<size_t>(length) ); }
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const TChar*                  Buffer   (std::basic_string_view<TChar> const & src) { return                       src.data  ()  ; }
+    static integer                       Length   (std::basic_string_view<TChar> const & src) { return static_cast<integer>( src.length() ); }
+    static std::basic_string_view<TChar> Construct(const TChar* array, integer length       ) { return std::basic_string_view<TChar>( array, static_cast<size_t>(length) ); }
   #endif
 };
 
@@ -99,16 +102,16 @@ template<typename TChar>
 struct     T_ZTCharArray<std::basic_string_view<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                            >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType          Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType    Construction = ConstructionType::Implicit;
-    static inline const TChar*                  Buffer   (std::basic_string_view<TChar> const & src ) { return                       src.data  ()  ; }
-    static inline integer                       Length   (std::basic_string_view<TChar> const & src ) { return static_cast<integer>( src.length() ); }
-    static inline std::basic_string_view<TChar> Construct(const TChar* array, integer length        ) { return std::basic_string_view<TChar>( array, static_cast<size_t>(length) ); }
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType          Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType    Construction = ConstructionType::Implicit;
+    static const TChar*                  Buffer   (std::basic_string_view<TChar> const & src ) { return                       src.data  ()  ; }
+    static integer                       Length   (std::basic_string_view<TChar> const & src ) { return static_cast<integer>( src.length() ); }
+    static std::basic_string_view<TChar> Construct(const TChar* array, integer length        ) { return std::basic_string_view<TChar>( array, static_cast<size_t>(length) ); }
   #endif
 };
 
-#endif //ALIB_CPP17
+#endif //ALIB_CPPVER >= 17
 
 
 
@@ -129,12 +132,12 @@ template<typename TChar>
 struct     T_CharArray<std::basic_string<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                            >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const TChar*                  Buffer   ( std::basic_string<TChar> const &  src ) { return                       src.data  ()  ; }
-    static inline integer                       Length   ( std::basic_string<TChar> const &  src ) { return static_cast<integer>( src.length() ); }
-    static inline std::basic_string<TChar>      Construct( const TChar* array, integer length    ) { return std::basic_string<TChar>( array, static_cast<size_t>(length) ); }
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const TChar*                  Buffer   ( std::basic_string<TChar> const &  src ) { return                       src.data  ()  ; }
+    static integer                       Length   ( std::basic_string<TChar> const &  src ) { return static_cast<integer>( src.length() ); }
+    static std::basic_string<TChar>      Construct( const TChar* array, integer length    ) { return std::basic_string<TChar>( array, static_cast<size_t>(length) ); }
   #endif
 };
 
@@ -173,12 +176,12 @@ template<typename TChar>
 struct     T_ZTCharArray<std::basic_string<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                            >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType       Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType Construction = ConstructionType::ExplicitOnly;
-    static inline const TChar*               Buffer   ( std::basic_string<TChar> const &  src ) { return                       src.data  ()  ; }
-    static inline integer                    Length   ( std::basic_string<TChar> const &  src ) { return static_cast<integer>( src.length() ); }
-    static inline std::basic_string<TChar>   Construct( const TChar* array, integer length    ) { return std::basic_string<TChar>( array, static_cast<size_t>(length) ); }
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType       Access       =       AccessType::Implicit;
+    static constexpr ConstructionType Construction = ConstructionType::ExplicitOnly;
+    static const TChar*               Buffer   ( std::basic_string<TChar> const &  src ) { return                       src.data  ()  ; }
+    static integer                    Length   ( std::basic_string<TChar> const &  src ) { return static_cast<integer>( src.length() ); }
+    static std::basic_string<TChar>   Construct( const TChar* array, integer length    ) { return std::basic_string<TChar>( array, static_cast<size_t>(length) ); }
   #endif
 };
 
@@ -198,12 +201,12 @@ template<typename TChar>
 struct     T_CharArray<std::vector<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                  >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
-    static inline integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
-    static inline std::vector<TChar>            Construct(const TChar* array, integer length )
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
+    static integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
+    static std::vector<TChar>            Construct(const TChar* array, integer length )
     {
         std::vector<TChar> result;
         result.reserve( static_cast<size_t>(length) );
@@ -232,12 +235,12 @@ template<typename TChar>
 struct     T_ZTCharArray<std::vector<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                    >::type >
 {
-  #if !ALIB_DOCUMENTATION_PARSER
-    static        constexpr AccessType          Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static inline const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
-    static inline integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
-    static inline std::vector<TChar>            Construct(const TChar* array, integer length )
+  #if !defined(ALIB_DOX)
+    static constexpr AccessType          Access       =       AccessType::Implicit;
+    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+    static const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
+    static integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
+    static std::vector<TChar>            Construct(const TChar* array, integer length )
     {
         std::vector<TChar> result;
         result.reserve( static_cast<size_t>(length) );
@@ -249,7 +252,7 @@ struct     T_ZTCharArray<std::vector<TChar>, TChar, typename std::enable_if<
   #endif
 };
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 }}} // namespace [aworx::lib::characters]
 #else
 }}}}} // namespace [aworx::lib::characters::compatibility::std]
@@ -258,7 +261,7 @@ struct     T_ZTCharArray<std::vector<TChar>, TChar, typename std::enable_if<
 
 // Suppress conversion of CString and AString to std::string. This rational for this is
 // documented with T_ZTCharArray<std::basic_string> above.
-#if ALIB_MODULE_STRINGS && !ALIB_DOCUMENTATION_PARSER
+#if ALIB_STRINGS && !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings {
   template<typename TChar>  struct T_SuppressAutoCast<TCString<TChar>, characters::ConstructionType::ExplicitOnly, std::basic_string<TChar> > : public std::true_type {};
@@ -269,5 +272,5 @@ namespace aworx { namespace lib { namespace strings {
 
 
 
-#endif // ALIB_MODULE_CHARACTERS
+#endif // ALIB_CHARACTERS
 #endif // HPP_ALIB_COMPATIBILITY_STD_CHARACTERS

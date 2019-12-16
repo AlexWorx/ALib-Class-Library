@@ -6,40 +6,30 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/astring.hpp"
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_STRINGS_ASTRING)
+#       include "alib/strings/astring.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-    #include "alib/strings/localstring.hpp"
-#endif
+#   if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#       include "alib/strings/localstring.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_STRINGS_CSTRING)
-#   include "alib/strings/cstring.hpp"
-#endif
+#   if !defined (HPP_ALIB_STRINGS_CSTRING)
+#      include "alib/strings/cstring.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
-#if ALIB_MODULE_STRINGFORMAT
-#   include "alib/stringformat/formatter.hpp"
-#endif
-
-#if defined(_MSC_VER) && !defined(_ALGORITHM_)
+#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
 #   include <algorithm>
 #endif
-
-#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
-#   include <vector>
-#endif
-
-#include <codecvt>
 
 namespace aworx { namespace lib { namespace strings {
 // ####################################################################################################
 // AString::_dbgCheck()
 // ####################################################################################################
 //! @cond NO_DOX
-#if ALIB_STRINGS_DEBUG
-
-#if !ALIB_DEBUG
-    #pragma message "Compiler symbol ALIB_STRINGS_DEBUG_ON set, while ALIB_DEBUG is off. Is this really wanted?"
-#endif
+#if ALIB_DEBUG_STRINGS
 
 template<typename TChar>
 void TAString<TChar>::dbgCheck() const
@@ -50,23 +40,23 @@ void TAString<TChar>::dbgCheck() const
 
     ALIB_ASSERT_ERROR( debugLastAllocRequest == 0
                        ||  TString<TChar>::length <= debugLastAllocRequest
-                       ,"Error: Previous allocation request was too short"         );
+                       ,"Error: Previous allocation request was too short"         )
 
     ALIB_ASSERT_ERROR( TString<TChar>::length <= cap
-                       ,"Error: Length greater than allocation size"               );
+                       ,"Error: Length greater than allocation size"               )
 
     if( TString<TChar>::buffer && HasInternalBuffer() )
     {
-        for (integer i= -16 ; i < 0 ; i++)
+        for (integer i= -16 ; i < 0 ; ++i)
             if ( TString<TChar>::buffer[i] != 2 )
             {
-                ALIB_ERROR( "Magic byte not found at start of buffer." );
+                ALIB_ERROR( "Magic byte not found at start of buffer." )
                 break;
             }
-        for (integer i= 1 ; i <= 16 ; i++)
+        for (integer i= 1 ; i <= 16 ; ++i)
             if ( TString<TChar>::buffer[ cap + i] != 3 )
             {
-                ALIB_ERROR( "Magic byte not found at end of buffer." );
+                ALIB_ERROR( "Magic byte not found at end of buffer." )
                 break;
             }
     }
@@ -92,7 +82,7 @@ void TAString<TChar>::GrowBufferAtLeastBy( integer minimumGrowth )
     if (actCapacity == 0 )
     {
         SetBuffer( minimumGrowth > 16 ? minimumGrowth : 16 );
-        #if ALIB_STRINGS_DEBUG
+        #if ALIB_DEBUG_STRINGS
         debugLastAllocRequest= minimumGrowth;
         #endif
 
@@ -108,7 +98,7 @@ void TAString<TChar>::GrowBufferAtLeastBy( integer minimumGrowth )
         newCapacity= 16;
 
     SetBuffer( newCapacity );
-    #if ALIB_STRINGS_DEBUG
+    #if ALIB_DEBUG_STRINGS
     debugLastAllocRequest= actCapacity + minimumGrowth;
     #endif
 }
@@ -118,13 +108,13 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
 {
     ALIB_STRING_DBG_CHK(this)
 
-    ALIB_ASSERT( newCapacity >= 0 );
+    ALIB_ASSERT( newCapacity >= 0 )
 
     // do nothing if life-cycle is managed by us and same size,
     if ( capacity >= 0 && capacity == newCapacity )
         return;
 
-    #if ALIB_STRINGS_DEBUG
+    #if ALIB_DEBUG_STRINGS
         debugLastAllocRequest= newCapacity;
     #endif
 
@@ -137,7 +127,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
 
         if ( capacity > 0 )
             std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
-                                              #if ALIB_STRINGS_DEBUG
+                                              #if ALIB_DEBUG_STRINGS
                                                                         - 16
                                               #endif
                                                                                                )) );
@@ -155,7 +145,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
     // extend or shrink an existing buffer (and return)
     if( capacity > 0 )
     {
-        #if !ALIB_STRINGS_DEBUG
+        #if !ALIB_DEBUG_STRINGS
             TString<TChar>::buffer= static_cast<TChar*>( std::realloc(  TString<TChar>::vbuffer,
                                                                            static_cast<size_t>(newCapacity  + 1)
                                                                            * sizeof( TChar )                       ) );
@@ -183,7 +173,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
     }
 
     // create new Buffer
-    #if !ALIB_STRINGS_DEBUG
+    #if !ALIB_DEBUG_STRINGS
         TChar* newBuffer= static_cast<TChar*>( std::malloc(  static_cast<size_t>(newCapacity  + 1)
                                                            * sizeof( TChar )                       ) );
         #if ALIB_AVOID_ANALYZER_WARNINGS
@@ -207,7 +197,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
                                             newBuffer );
         if ( capacity > 0 )
             std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
-                                                                #if ALIB_STRINGS_DEBUG
+                                                                #if ALIB_DEBUG_STRINGS
                                                                         - 16
                                                                 #endif
                                                                                                )) );
@@ -215,7 +205,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
     }
     else
     {
-        ALIB_ASSERT( TString<TChar>::length == 0 );
+        ALIB_ASSERT( TString<TChar>::length == 0 )
     }
 
     // set new Buffer and adjust length
@@ -237,7 +227,7 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
     // delete any existing
     if ( capacity > 0 )
         std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
-                                                            #if ALIB_STRINGS_DEBUG
+                                                            #if ALIB_DEBUG_STRINGS
                                                                     - 16
                                                             #endif
                                                                                                )) );
@@ -245,14 +235,14 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
     // too small? treat as if a nullptr was given.
     if ( extBufferSize < 1 )
     {
-        ALIB_ERROR( "allocation size < 1" );
+        ALIB_ERROR( "allocation size < 1" )
         extBuffer= nullptr;
     }
 
     // null buffer?
     if ( (TString<TChar>::buffer= extBuffer) == nullptr )
     {
-        #if ALIB_STRINGS_DEBUG
+        #if ALIB_DEBUG_STRINGS
             debugLastAllocRequest=
         #endif
         capacity=
@@ -263,16 +253,16 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
 
     if ( extLength >= extBufferSize  )
     {
-        ALIB_ERROR( "ext length >= ext allocation size" );
+        ALIB_ERROR( "ext length >= ext allocation size" )
         extLength= extBufferSize -1;
     }
 
 
     // save given buffer
-    extBufferSize--;     // we count one less
+    --extBufferSize;     // we count one less
     capacity=   responsibility==Responsibility::Transfer ?  extBufferSize
                                                          : -extBufferSize;
-    #if ALIB_STRINGS_DEBUG
+    #if ALIB_DEBUG_STRINGS
         debugLastAllocRequest= extBufferSize;
     #endif
     TString<TChar>::length=     extLength;
@@ -349,7 +339,7 @@ integer TAString<TChar>::SearchAndReplace(  TChar      needle,
         if ( startIdx == TString<TChar>::length  )
             break;
         TString<TChar>::vbuffer[ startIdx ]= replacement;
-        cntReplacements++;
+        ++cntReplacements;
     }
     while(  ++startIdx < TString<TChar>::length ) ;
     return cntReplacements;
@@ -403,7 +393,7 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
         startIdx= idx + rLen;
 
         // next
-        cntReplacements++;
+        ++cntReplacements;
     }
 
 
@@ -411,25 +401,10 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
     return cntReplacements;
 }
 
-// #################################################################################################
-// Format() and formatting constructor (only for aworx::character)
-// #################################################################################################
-#if ALIB_MODULE_STRINGFORMAT && !ALIB_DOCUMENTATION_PARSER
-template<>
-TAString<character>&  TAString<character>::FormatArgs( const lib::boxing::Boxes& args )
-{
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
-        formatter->FormatArgs( *this, args );
-    formatter->Release();
-    return *this;
-}
-#endif
 
+#if !defined(ALIB_DOX)
 
-#if !ALIB_DOCUMENTATION_PARSER
-
-#if ALIB_STRINGS_DEBUG
+#if ALIB_DEBUG_STRINGS
 template   void TAString<nchar>::dbgCheck() const;
 template   void TAString<wchar>::dbgCheck() const;
 template   void TAString<xchar>::dbgCheck() const;
@@ -544,7 +519,7 @@ TAString<char>& TAString<char>::Append<false>( const wchar_t* src, integer srcLe
 
         if ( conversionSize < 1 )
         {
-            ALIB_ERROR( "Error converting WCS to MBCS." );
+            ALIB_ERROR( "Error converting WCS to MBCS." )
             return *this;
         }
 
@@ -644,8 +619,8 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
                     // first character that failed?
                     if( srcp == src )
                     {
-                        src++;
-                        srcLength--;
+                        ++src;
+                        --srcLength;
                         *(vbuffer + length++)= '?';
                         break; // break try loop, continue with next character
                     }
@@ -852,7 +827,7 @@ TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const char* src, integer 
 
 #undef CHARXX_T
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 
 
 

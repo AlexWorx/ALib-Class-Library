@@ -10,28 +10,26 @@
 
 \tableofcontents
 
-
-
 \~Comment ####################################################################################### \~
 # 1. Class Message # {#alib_results_message}
 
 When measured in source code, the size of class \alib{results,Message} is very short.
-Nevertheless, as the type leverages almost all features of module \alibmod_boxing, it is a quite
+Nevertheless, as the type leverages almost all features of module \alib_boxing, it is a quite
 powerful tool to have.
 
 The type acts as an information object of the central \b throwable type \alib{results,Exception},
-discussed in the next chapter. While class \b Exception stores a whole list of messages, the
-other class that uses this type is \alib{results,Report}, discussed in the final chapter of this
-manual.
+discussed in the next chapter. While class \b Exception stores a whole list of messages, only one
+single object is used with class \alib{results,Report}, which is discussed in the final chapter of
+this small manual.
 
 \~Comment ####################################################################################### \~
 ## 1.1 Source Location ## {#alib_results_message_location}
 Objects of type \alib{results,Message} relate to a source code location, which is reflected by fields
-\alib{results::Message,File}, \alib{results::Message,Line} and \alib{results::Message,Func}.
+\alib{results::Message,File}, \alib{results::Message,Line} and \alib{results::Message,Function}.
 
-The inclusion of the latter, which is of-course redundant, already indicates that this source
-information has a general notion of "debug information" and at least is supposed to be presented
-to experts only.<br>
+The inclusion of the \b Function, which is of-course a redundant piece of information, already
+indicates that this source information has a general notion of "debug information" and at least is
+supposed to be presented to experts only.<br>
 Interface methods that create a \b %Message object and for this expect the caller's source
 information, are usually invoked using a preprocessor macro to provide the three arguments.
 There are two different macros defined for this purpose, \ref ALIB_CALLER and \ref ALIB_CALLER_NULLED.
@@ -56,7 +54,7 @@ may not be wanted.
 
 \~Comment ####################################################################################### \~
 ## 1.2 Message Types ## {#alib_results_message_types}
-To define the type of a message, class \alib{boxing,Enum} provided by module \alibmod_boxing
+To define the type of a message, class \alib{boxing,Enum} provided by module \alib_boxing
 is used, by letting field \alib{results,Message::Type} be of type \b %Enum.
 
 This leads to having a two-level hierarchy for defining message types. What is meant by this,
@@ -76,47 +74,74 @@ accessed with method \alib{boxing,Enum::IsType}. With that it can be determined 
 \alib{boxing,Enum::operator==} can be used.
 
 \note
-  - While this is not recommended in common use cases, method \alib{boxing,Enum::Value} allows to
-    to test only the second level of the hierarchy, which is the underlying enum element
+  - While this is not recommended in common use cases, method \alib{boxing,Enum::Integral} allows to
+    to test only the second level of the hierarchy, which is the underlying enum element's
     integral value.
   - It is also not recommended to use non-scoped (anonymous) enumeration types. While two
     elements of two anonymous enum types are well distinguished with \alib{boxing,Enum::operator==},
     the use of \alib{boxing,Enum::IsType} is rather tricky and not well readable: the declaration
     type of a sample element has to be given as the template parameter to the method.
 
+\~Comment ####################################################################################### \~
+## 1.3 Message Arguments ## {#alib_results_message_args}
+The contents of the message is comprised by a list of boxed objects. For this, class \b Message
+inherits class \alib{boxing,Boxes}, which itself is a container (vector) of objects of type
+\alib{boxing,Box}. The interpretation of the data given in a message is defined by an application.
+As described in a later section of this manual, \alib class \b Exception, which includes a whole
+list of \b Message objects, proposes a certain schematic for the attached data.
+But also in this case, the proposal is just a recommendation, not a mandatory requirement.
 
 \~Comment ####################################################################################### \~
-## 1.3 Argument Lifecycle ## {#alib_results_message_lifecycle}
-The lifecycle of messages that are sent from one code unit to another one, need to span across
-both code unit's life cycle. With type \alib{results,Message} this constraint has to be assured for
-each boxed object listed in \alib{results,Message::Args}.
+## 1.4 Memory Allocation ## {#alib_results_message_alloc}
+As documented with class \alib{boxing,Boxes}, its underlying <c>std::vector</c> may use
+either standard dynamic memory or "monotonic allocation" introduced by module \alib_monomem.
+Such choice is also exposed with class \alib{results,Message} by offering two constructors with the only
+difference that one takes a \alib{monomem,MonoAllocator} in addition to the arguments that the other
+constructor expects.
 
-Especially in the case of C++ exception handling (what the type is used for), this means that none
-of the boxed objects must be stack-allocated, because the stack is "unwinded" with keyword
-\c throw.<br>
-Therefore, stack-allocated objects and all other objects that might not survive the
-lifecycle of the message, need to be copied if they should be used as a message argument.
-
-The solution for this and similar cases is already offered by module \alibmod_boxing with
-built-in box-function \alib{boxing,FClone}.
-
-\see
-  Besides of it's reference documentation, a quick
-  chapter exists (in that module's Programmer's Manual), which gives some more background.
-  For this, see \ref alib_boxing_more_iclone.
-
-Box-function \b FClone expects an object of type \alib{memory,MemoryBlocks} that a function
-implementation might use to clone boxed data to.
-With method \alib{results,Message::CloneArguments}, the invocation of the function on all boxes of
-a message is performed.
+This way, instances of type \b Message may be used as "stand alone" objects
+(with usual dynamic memory allocation) or might be embedded in other objects that may - if using
+monotonic allocation - not only allocate the message itself in memory chunks, but also have the
+message's arguments using that same allocator.
 
 \note
-  The reason why, the allocator object is not a part of class \b Message itself, is that for
-  example class \alib{results,Exception} carries a whole list of messages that then share one
-  block allocator when they are cloned.
+  Later in this manual, class \alib{results,Exception} is discussed, which carries a whole list of
+  messages that share one monotonic allocator.
 
-It is in the responsibility of the user of class \b Message, that all boxed argument types
-are equipped with a type-specific implementation of that box-function - if needed.
+\~Comment ####################################################################################### \~
+## 1.5 Argument Life-Cycle ## {#alib_results_message_lifecycle}
+Restricted life-cycles of a message's arguments is a potential pitfall.
+Because class \alib{results,Message} is a \alib{boxing,Boxes,vector of boxes} (by inheritance),
+for non-trivial arguments, a pointer to the corresponding original object instance is stored.
+
+\note
+  For details on how a value of a certain type is "boxed" when added as an argument to class
+  \b Message, wider parts of the programming manual of module \alib_boxing have to be understood.
+  As a rule of thumb: objects that have a bigger size than 2 x 64 bit (respectively 2 x 32 bit on
+  a 32-bit system) will not be copied, but a pointer to the original is stored.
+
+Especially in the case of C++ exception handling (what the type is used for), this means that
+boxed objects must not be stack-allocated, because the stack is "unwinded" when the exception is
+thrown.<br>
+Therefore, (complex) stack-allocated objects and all other objects that might not survive the
+life-cycle of the message, need to be copied if they should be used as a message argument.
+
+One solution for this and similar cases is already offered by module \alib_boxing with
+built-in box-function \alib{boxing,FClone}.
+This function expects an object of type \alib{monomem,MonoAllocator} that is used to allocate
+memory for cloning the contents of boxed data.
+
+\see
+  For more information, see the \alib{boxing,FClone,reference documentation} of box-function \b FClone
+  and chapter \ref alib_boxing_more_iclone of the Programmer's Manual of module \alib_boxing_nl.
+
+
+In the case that the \b Message object itself uses monotonic allocation for the internal vector
+(see previous section), parameterless method \alib{results,Message::CloneArguments} may be used,
+which is a simple inline that passes the internal allocator to inherited method
+\alib{boxing,Boxes::CloneAll}.
+
+
 
 \~Comment ####################################################################################### \~
 \~Comment ####################################################################################### \~
@@ -128,16 +153,16 @@ are equipped with a type-specific implementation of that box-function - if neede
 Class \alib{results,Exception} is used within \alib as <b>the one and only type</b> thrown with
 C++ keyword \c throw.
 
-Different paradigms or "design pattern" exists for the C++ language, how to implement exception
-handling. There is a lot of discussion about this going on in the community and different styles
-have different advantages. For example, one alternative is to throw one exception object and
+Different paradigms or "design pattern" exists for the C++ language, proposing  how to implement
+exception handling. There is a lot of discussion about this going on in the community and different
+paradigms have different advantages. For example, one alternative is to throw one exception object and
 while the stack is unwinded, this original exception gets replaced (by intermediate exception
 handlers) with a more meaningful one.
 This replacement object might be derived from the original one or belong to a
 different exception hierarchy. For example, if a resource string can not be loaded, a type of
 "resource exception" may be thrown. Then, the caller of this method has different information,
 for example that it can not access a server (because the server name was meant to be read from the
-resource) and now replaces the resource-related throwable with a server-access-related one!
+resource) and now replaces the resource-related throwable with a server-access-related one.
 
 
 \alib adheres to a different pattern and class \alib{results,Exception} supports, respectively
@@ -158,7 +183,7 @@ of type \alib{results,Message} and the exception information passed with the con
 simply becomes the first entry in the list. Each new message, regardless if the message
 changes the meaning of the exception or extends it with detail information, is simply appended
 to the list of entries. The exception just keeps track of the most recent entry that changed
-the meaning, while the overall order of message entries is still kept intact.
+the meaning, while the overall order of message entries is always kept intact.
 
 With this approach, all information "along the call stack" is preserved in the order of the
 information occurrence.
@@ -171,7 +196,7 @@ This allows:
 
 Just to be clear: class \b %Exception is not designed to be a base class for derived exception types.
 The recommended use of the class is that the type itself is the exclusive throwable. Consequently,
-when catching \alib exceptions, only one \c catch block is possible and within this catch block
+when catching \alib exceptions, only one \c catch block is needed (possible) and within this catch block
 code might to perform different actions depending on the exception entries.
 
 Of-course, user programmer might break this rule and derive own exception types, but while this
@@ -198,59 +223,69 @@ this way a two-level hierarchy of exception types is established, where the firs
 run-time type information and hence no clash of exception types may occur, even between different
 code units.
 
-But which of the messages in the collected list now does define the resulting "exception type"?
-The first message added? Or the last one? It is none of them but instead the exception type
-is defined as: <b>"The type of the message that was most recently added and has positive
-enumeration element value."</b>
+There is one question left: Which of the messages in the collected list now does define the resulting
+"exception type"? Is it the first message added? Or the last one?
+In the paradigm \alib uses it might be any of them, or even one in-between.
+
+The exception type is defined as:
+<b>"The type of an exception is defined by the most recently added message, who's enum element's
+integral value is positive."</b>
 
 This definition is implemented with interface method \alib{results,Exception::Type}.
-The method loops from the oldest to the newest message entry and returns the latest type
-found in an entry whose \alib{results,Message::Type} field contains an enum element with a positive
-integer value.
+The method loops from the oldest to the newest message entry and searches the last one
+with a positive integral value in field \alib{results,Message::Type}.
 
-This way, enumeration element values of exception message entries that are considered
+With this definition, enumeration element values of exception message entries that are considered
 "additional information" are to be declared with a negative integral initializer, while
 those that constitute an own exception type, are to be declared with a positive value.
 
 Consequently, if the a catch handler uses method \alib{results,Exception::Type} it does not need to
-switch over just all enumeration elements, but just over those that are defined positively and
-that therefore bring a different meaning to an exception.
+switch over just all possible entry types (aka enumeration elements), but just over those that are
+positive and that therefore bring a different meaning to an exception.
 
 \~Comment ####################################################################################### \~
-## 2.3 Doubly Self-Contained Allocation ## {#alib_results_exception_selfcontained}
+## 2.3 Self-Contained Allocation ## {#alib_results_exception_selfcontained}
 
 When an exception is thrown, something "bad" happened. In that situation a software should not
 perform too many complex things, for example dynamic memory allocations.
 
-Simple exception types, like \c std::exception are therefore very lightweight.
-They are created on the stack and copied by value when the stack is unwinded.
+Simple exception types are therefore very lightweight, as for example class \c std::runtime_error
+which contains a simple, dynamically allocated string message.
 
-The exception type introduced here is in contrast rather heavy! We want to allow to collect
+The exception type introduced here seems in contrast rather heavy! It allows to collect
 many new entries and each entry, as being of type \alib{results,Message} in turn may consist of
-a bigger collection of arguments.
+a bigger collection of message arguments.
 
 To minimize the number of heap allocations, class \alib{results,Exception} implements a quite
 tricky approach. For all allocations (entries and their arguments of type \alib{boxing,Box}),
-an object of type \alib{memory,MemoryBlocks} is used. We had learned in chapter
+an object of type \alib{monomem,MonoAllocator} is used. We had learned in chapter
 \ref alib_results_message_lifecycle that such allocator is used by the messages and thus
 this part of efficient allocations is solved already.
 
-Secondly, class \b MemoryBlocks \alib{memory,MemoryBlocks,allows to locate itself} in a first block
+Secondly, class \b MonoAllocator \alib{monomem,MonoAllocator,allows to locate itself} in a first block
 that it allocates.
-Thirdly, while this self-contained block allocator is a member of class exception,
-the true implementation of the class is then still allocated using the block allocator!
-What remains in class \b Exception is one simple pointer to this implementation.
+Thirdly, while this self-contained monotonic allocator is a member of class exception,
+the true implementation of the class is then still allocated using the monotonic allocator!
+The astonishing result is, that the footprint (<c>sizeof</c>) class \b Exception is just one
+simple pointer! Hence, when the exception is passed (by the C++ compiler) to a next "stack frame"
+while unwinding the stack, only this simple pointer is copied.
 
-When an entry is added with method \alib{results,Exception::Add}, a new message object is
-allocated in the block allocator and the values of the given boxes are
-cloned in that same allocator using \alib{results,Message::CloneArguments}.
-The destructor of class \e Exception does not delete the messages but just invokes their
-destructors "manually". The same then done for the block allocator, who must not be deleted
-as it is contained in it's first allocated block.
+In addition, unless the attachment of many messages and data exceeds the initial allocated
+chunk of memory, only one single dynamic memory allocation is performed for storing the
+exception itself along with it's data.
 
-With that, often only one single heap allocation is performed when creating and throwing
-an <b>%ALib %Exception</b> and likewise one corresponding release of that block with the
-deletion of the exception object.
+Each time an entry is added with method \alib{results,Exception::Add}, a new message object is
+allocated in the monotonic allocator and the values of the given boxes are cloned
+(see previous chapter \ref alib_results_message_lifecycle).
+
+The only operation that the destructor of class \e Exception performs is to delete the allocated
+memory chunks. This is because none of the contained objects needs further destruction calls.
+Neither the boxed objects, nor the vector of such, nor the monotonically allocated list of message entries.
+
+As a result, the rather complex type \b Exception becomes extremely lightweight.
+While it has the same minimum footprint as exceptions found in the standard C++ library, it usually
+also performs only one single memory allocation to store all information collected while
+unwinding the stack.
 
 
 \~Comment ####################################################################################### \~
@@ -271,16 +306,16 @@ In parallel, usually a human readable textual description of the exception is de
 
 To have just both - a human readable textual description and computational values representing the
 state that caused the exception - it is recommended to adhere to the following simple scheme
-for the arbitrary argument list: The first argument is always a string which comprises a
+for the arbitrary argument list: The first argument should be a string which comprises a
 format string containing placeholders and following a syntax usable with
-\ref alib_mod_stringformat "ALib Formatters" (or custom formatter syntax implementations). Then this
+\ref alib_mod_text "ALib Formatters" (or custom formatter syntax implementations). Then this
 string is followed by the "computational" arguments that comprise valuable information about the
 state of the software when an exception was thrown.
 
 Of-course, all exceptions thrown by \alib itself adheres to this scheme. To support the generation
 of human readable exception descriptions, a ready to use formatting feature is given with
 overloaded methods \alib{results,Exception::Format}.<br>
-In addition, when using the debug- and release-logging facilities provided with module \alibmod_alox,
+In addition, when using the debug- and release-logging facilities provided with module \alib_alox,
 exceptions can be comfortably logged with static method \alib{lox,LogTools::Exception}.
 In the latter case, during development, a very helpful and comfortable feature is that
 each exception entry collected during unwinding the call stack is "clickable" in an IDE's output
@@ -296,7 +331,7 @@ and once while analysing the cause of an exception, a small conflict may arise:
 If a catch handler may need some information that should not be used with the description.
 In this case, a corresponding "suppression placeholder" may be added to the format string.
 For example, using the python-style formatter
-(\alib{stringformat,FormatterPythonStyle,FormatterPythonStyle}), placeholder <c>{!X}</c>
+(\alib{text,FormatterPythonStyle,FormatterPythonStyle}), placeholder <c>{!X}</c>
 would suppress an argument completely. (Note: This is an extension to the original python formatter
 syntax.)
 
@@ -305,8 +340,8 @@ syntax.)
 ## 2.5 Catching Exceptions, Adding Information, Rethrowing ## {#alib_results_exceptions_catch}
 
 While objects of type \alib{results,Exception} is extremely lightweight, consisting only of a
-single pointer (remember that all information is stored in an object of type \alib{memory,MemoryBlocks},
-including not only the block allocator itself, but also the whole exception type itself!),
+single pointer (remember that all information is stored in an object of type \alib{monomem,MonoAllocator},
+including not only the monotonic allocator itself, but also the whole exception type itself!),
 they are not copy-constructible.
 
 Therefore, they must be caught only by reference:
@@ -339,103 +374,22 @@ Here is the right way to do it:
 
 \~Comment ####################################################################################### \~
 \~Comment ####################################################################################### \~
-## 2.6. Resourced Exceptions ## {#alib_results_exceptions_res}
+## 2.6 Resourced Exceptions ## {#alib_results_exceptions_res}
 
-\~Comment ####################################################################################### \~
-### 2.6.1  Externalizing Exception Messages ### {#alib_results_exceptions_res_intro}
+To enable the external maintenance of the description strings of exception entries (as explained
+in previous chapters, it is proposed and recommended to add a descriptive, human readable string
+as a first argument to each exception entry), this module uses the concept of
+\ref alib_enums_records "ALib Enum Records".
+This concept in turn allows the definition of records be performed using
+\ref alib_mod_resources "externalized string resources".
 
-The schematic of arguments of an exception's message entry, as proposed in the previous
-chapter of this manual, is simply to have the first argument being a format string that contains
-placeholders for the other, "computational" arguments. This schematic can be allows the argument
-list to be analysed in exception handlers (with omitting the first one) and as well to generate
-human readable string conversions of an exception.
+When custom enum types are associated with <em>ALib Enum Records</em> of type \alib{results,ERException},
+elements of this type become accepted by method
+\alib{results,Exception::Add(const NCString&\,int\,const NCString&\,TEnum\,TArgs&&... args),Exception::Add}
+which internally adds the resourced description string.
 
-Therefore, this format string contains wording in a human language that a user of a library
-that throws such exception might to change. Among others, two obvious rationals for
-the desire to change such strings are:
-- To translate the exception to other human languages.
-- To change the wording of the exception message to better fit to the sort of application that
-  uses a library that may have a more general language.
-
-To enable such change, the obvious solution is provided with library module \alibmod_resources.
-Besides the provision of general \alib{resources,Resources,resourced string data}, this module allows
-to equip C++ enumerations with \alib{resources,T_EnumMetaDataDecl,meta data}.
-
-\note
-   For details, please consult the documentation linked in the paragraph above. In short, this
-   concept allows to assign a fixed scheme of meta data to be assigned to C++ enumeration
-   types. The scheme is a simple record, defined using C++ template <c>std::tuple</c>.
-   The tuple values associated with each element are either hard-coded or may be loaded from
-   resources.
-
-
-To leverage this concept, class \b %Exception defines its "desired" meta data scheme
-with type \alib{results,Exception::TEnumMetaData}. The tuple contains three elements:
-- an <c>int</c> value: This is the usual identification entry denoting the enumeration's element value.
-- a string: This provides the name of the enumeration element. While this string is resourced and
-  can be changed, this usually is equal to the C++ identifier that comprises the enum element.
-- a string: This provides a resource key to another the resource string.
-
-The third element is the interesting one: The same as it is a proposed schematic that the first
-message argument is a string, with this concept it is a similarly proposed schematic that the
-resource string that is receivable with the resource key is a format string!<br>
-Now, this all quickly makes sense with the following fact: Method \alib{results,Exception::Add}
-(which is also used by the constructor of class \b %Exception) has two versions, which are selected
-by the compiler with the condition of available meta data for method parameter \p{type}. If for the
-given enumeration type, enum meta data of exactly type \alib{results,Exception::TEnumMetaData}
-is available, then an alternative version of method \b %Add is selected. This version uses the
-meta information to read the resourced string and appends that string as the first element to
-the message's argument list.
-
-\note
-   While in general, \alib{resources,T_EnumMetaDataDecl,ALib enum meta data} may be defined
-   using resources or can be provided as hard-coded information, with class \b %Exception,
-   <b>only resourced</b> meta data is allowed to be used. This is a consequence from the fact that
-   the enum meta data does not contain the format string itself, but a resource key to it.
-   The string is read from the same resource object that the meta information is read from
-   (which is defined with a specialization of \alib{resources,T_Resourced}.<br>
-
-\note
-   What at first seems like a restriction, isn't one: if the format string should be "hard-coded"
-   or should result from anywhere else, then such string can be used with the invocation of an
-   expression's constructor (or method \b %Expression::Add), by just passing that string as the
-   first of the message arguments.
-
-\~Comment ####################################################################################### \~
-### 2.6.2 Preparing A Custom Enum Type ### {#alib_results_exceptions_res_do}
-
-To equip a custom enumeration type with \alib{resources,T_EnumMetaDataDecl,enum meta data}
-that makes such type an "resourced exception type", macro \ref ALIB_EXCEPTIONS is to be used.
-
-The macro does all that is needed:
-- Given type \p{TEnum} is equipped with meta data following the scheme defined with
-  \alib{results,Exception::TEnumMetaData}.
-- The meta data is \alib{resources,T_Resourced,declared to be loaded} from the resources of the singleton
-  of given type \p{TModule}.
-- The resource key for the meta data is provided with macro parameter \p{ResourceName}.
-- A specialization of method \alib{resources,EnumMetaData::CheckLoad} is provided that
-  parses the meta data tuple table from the resources.
-
-With this macro used in a header file (usually the same header file that declares the enumeration
-type itself), as soon as an enumeration element is used as an \b Exception's \p{type} argument,
-the (format-) string will be loaded from the resources and prepended to the message argument list.
-
-All that is left to do is to define the table of tuples in the resources of the module.
-
-\~Comment ####################################################################################### \~
-### 2.6.3  Sample Code ### {#alib_results_exceptions_res_sample}
-
-A well documented sample of the three simple steps, namely:
-
-1. Define an enum class that lists the exceptions.
-2. Set the (default) values for the externalized resource strings for each exception enum element.
-3. Start throwing!
-
-\ref cpp_alib_lang_T_EnumMetaDataSpecification_exception_sample "is given here".
-
-This link above leads to the documentation of the concept of enum meta data itself.
-\alib \b Exceptions are just a perfect sample for the usefulness of that concept.
-
+Please consult the reference documentation provided with the links in this section for further
+information.
 
  \~Comment ####################################################################################### \~
 # 3. Reports # {#alib_results_reports}
@@ -448,14 +402,14 @@ The concept is implemented with types:
 - \alib{results,ReportWriter}
 - \alib{results,ReportWriterStdIO}
 
-Furthermore, module \alibmod_alox introduces plug-in
+Furthermore, module \alib_alox introduces plug-in
 
 - \alib{lox,ALoxReportWriter}
 
 The concept is not very advanced and might undergo changes in the future.
 Consequently, we do not recommend the use of \b %Reports in custom code outside of \alib and
-therefore, apart from the reference documentation of the classes listed above, no programmer's
-manual exists.
+therefore, apart from the reference documentation of the classes listed above, no Programmer's
+Manual exists.
 
 */
 

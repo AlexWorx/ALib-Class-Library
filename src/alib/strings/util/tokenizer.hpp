@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKENIZER
 #define HPP_ALIB_STRINGS_UTIL_TOKENIZER 1
 
@@ -120,7 +121,8 @@ class TTokenizer
          *                         Optional and defaults to \c false.
          ******************************************************************************************/
         TTokenizer( const TString<TChar>& src, TChar delimiter, bool skipEmptyTokens= false )
-        : Rest(src)
+        : Rest  (src)
+        , Actual(nullptr)
         , TrimChars( TT_StringConstants<TChar>::DefaultWhitespaces() )
         , delim(delimiter)
         , skipEmpty(skipEmptyTokens)
@@ -167,7 +169,7 @@ class TTokenizer
          ******************************************************************************************/
         ALIB_API
         TSubstring<TChar>&  Next( Whitespaces trimming= Whitespaces::Trim,
-                                     TChar       newDelim= '\0' );
+                                  TChar       newDelim= '\0' );
 
         /** ****************************************************************************************
          * Returns the currently remaining string (without searching for further delimiter
@@ -208,13 +210,13 @@ extern template ALIB_API TSubstring<wchar>& TTokenizer<wchar>::Next( Whitespaces
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     Tokenizer=     aworx::lib::strings::util::TTokenizer<character>;
+using     Tokenizer=     lib::strings::util::TTokenizer<character>;
 
 /// Type alias in namespace #aworx.
-using     TokenizerN=    aworx::lib::strings::util::TTokenizer<nchar>;
+using     TokenizerN=    lib::strings::util::TTokenizer<nchar>;
 
 /// Type alias in namespace #aworx.
-using     TokenizerW=    aworx::lib::strings::util::TTokenizer<wchar>;
+using     TokenizerW=    lib::strings::util::TTokenizer<wchar>;
 
 
 

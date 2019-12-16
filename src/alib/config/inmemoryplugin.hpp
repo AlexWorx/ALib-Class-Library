@@ -1,14 +1,21 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_config of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_INMEMORY_PLUGIN
 #define HPP_ALIB_CONFIG_INMEMORY_PLUGIN 1
 
 #if !defined (HPP_ALIB_CONFIG_PLUGINS)
 #   include "alib/config/plugins.hpp"
+#endif
+#if !defined(HPP_ALIB_MONOMEM_HASHMAP)
+#   include "alib/monomem/hashmap.hpp"
+#endif
+#if !defined(HPP_ALIB_MONOMEM_LIST)
+#   include "alib/monomem/list.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace config {
@@ -25,144 +32,283 @@ namespace aworx { namespace lib { namespace config {
  *   which can be used protect configuration values from external changes.
  *
  * This class in addition acts as the parent of class
- * \ref aworx::lib::config::IniFile "IniFile" and potentially other (custom) classes.
- * For this reason, it divides the set of variables into sections (according to the category),
- * allows comment strings for variables and sections, and virtualizes some key methods to
- * allow descendants to take specific actions.
+ * \ref aworx::lib::config::IniFile "IniFile" and may be used likewise as a base of custom plug-ins.
  *
- * This class offers important internal fields and types for public access (Bauhaus code style).
- * However, in standard cases, only the interface methods of this class should be used.
+ * To serve the \b IniFile requirements, this plug-ing divides the set of variables into sections
+ * (according to the category of a variable), allows comment strings for variables and sections,
+ * and virtualizes some key methods to allow descendants to take specific actions.
+ *
+ * ## Monotonic Allocation ##
+ * This type uses monotonic allocation for all internal data, except long name and comment strings.
+ * Nevertheless, due to the recycling facilities of the container types of module
+ * \alib_monomem, it is 100% safe against memory exhaustion, independent from the number
+ * of repeated insert and delete operations.
  **************************************************************************************************/
 class InMemoryPlugin : public ConfigurationPlugin
 {
+    #if !defined(ALIB_DOX)
+        friend class InMemoryPluginIteratorImpl;
+        friend class Configuration;
+    #endif
 
-    private:
-    /** Internal class implementing per section iteration feature. */
-    class InMemoryPluginIteratorImpl;
+    // #############################################################################################
+    // Types
+    // #############################################################################################
+    public:
+        class Section;
+        class Entry;
+
+    protected:
+        /** The list type used by struct \b Section to store entries.    */
+        using TEntryList    = List<Entry   , Recycling::Shared>;
+
+        /** The list type used by struct \b Entry to store additional values of multi-value
+         *  entries.                                                                         */
+        using TValueList    = List<String32, Recycling::Shared>;
+
+    public:
+        /** ****************************************************************************************
+         * A section entry. Corresponds to a configuration \alib{config,Variable}.
+         ******************************************************************************************/
+        class Entry
+        {
+            #if !defined(ALIB_DOX)
+                friend class InMemoryPlugin;
+            #endif
+
+            protected:
+                /** The entry's name  */
+                String32        name;
+
+            public:
+                /** The comments of the section. */
+                AString         Comments;
+
+                /** The delimiter (for splitting output into to multiple lines). */
+                character       Delim                                                        = '\0';
+
+                /** The format hints of the variable */
+                FormatHints     FmtHints                                        = FormatHints::None;
+
+                /** Used to vertically align attributes in multi-line attributes.
+                 * Use cases are "=", ":" or "->".<br>
+                 * Used by \alib{config,IniFile} and potentially by custom derived plug-in types. */
+                String8         FormatAttrAlignment;
+
+                /** The first values of the entry. */
+                String32        Value;
+
+                /** The rest of the values. */
+                TValueList      AdditionalValues;
+
+                /** The value as received from an external source. Derived types may use this
+                 *  "original" value in the case that it was not changed by software.
+                 *  For example in case of INI-files, this approach preserves a user's manual
+                 *  format, when writing back the file. */
+                String32        RawValue;
+
+            /**
+             * Constructs an Entry
+             * @param pName        The name of the entry.
+             * @param pAllocator   The allocator used for the list of additional values.
+             * @param recycler     The recycler for value entries.
+             */
+            Entry( const String&                pName,
+                   MonoAllocator*               pAllocator,
+                   TValueList::TSharedRecycler& recycler     )
+            : AdditionalValues( pAllocator, recycler )
+            {
+                name.DbgDisableBufferReplacementWarning();
+                Value              .DbgDisableBufferReplacementWarning();
+                FormatAttrAlignment.DbgDisableBufferReplacementWarning();
+                RawValue           .DbgDisableBufferReplacementWarning();
+
+                name.Reset(pName);
+            }
+
+            /**
+             * Returns the (unique) name of this entry.
+             * @return The name of this entry
+             */
+            const String&   Name()                                                             const
+            {
+                return name;
+            }
+
+
+            /**
+             * Increases or shrinks the number of elements in #AdditionalValues to match
+             * the given \p{requestedSize} <b>- 1</b>.
+             * @param requestedSize The requested number of values of this entry.
+             * @return An iterator pointing to the first additional value, hence the second
+             *         value of this entry.
+             */
+            TValueList::Iterator SetValueCount( integer requestedSize )
+            {
+                integer valSize= static_cast<integer>( AdditionalValues.Size() + 1  );
+                while (valSize < requestedSize )
+                {
+                    AdditionalValues.EmplaceBack();
+                    AdditionalValues.Back().DbgDisableBufferReplacementWarning();
+                    ++valSize;
+                }
+                while (valSize > requestedSize )
+                {
+                    AdditionalValues.PopBack();
+                    --valSize;
+                }
+
+                return AdditionalValues.begin();
+            }
+        }; // class Entry
+
+
+
+        /** ****************************************************************************************
+         * A configuration section. Corresponds to a configuration category.
+         ******************************************************************************************/
+        class Section
+        {
+            #if !defined(ALIB_DOX)
+                friend class InMemoryPlugin;
+                friend class InMemoryPluginIteratorImpl;
+                friend class Configuration;
+            #endif
+
+            protected:
+                String32        name;         ///< The name of the section.
+                TEntryList      entries;      ///< The list of variables of the section.
+
+            public:
+                mutable AString Comments;     ///< The comments of the section. This object is
+                                              ///< mutable with constant instances.
+
+            /**
+             * Constructs a section.
+             * @param sectionName  The name of the section.
+             * @param pAllocator   The allocator used for the list of entries.
+             * @param recycler     The recycler for the list of entries.
+             */
+            Section(const String&                sectionName,
+                    MonoAllocator*               pAllocator,
+                    TEntryList::TSharedRecycler& recycler        )
+            : entries( pAllocator, recycler )
+            {
+                name.DbgDisableBufferReplacementWarning();
+                name.Reset(sectionName);
+            }
+
+            /**
+             * Returns the (unique) name of this section.
+             * @return The name of this entry.
+             */
+            const String&       Name()                                                         const
+            {
+                return name;
+            }
+
+            /**
+             * Returns the (unique) name of this section.
+             * @return The name of this entry.
+             */
+            const TEntryList&   Entries()                                                      const
+            {
+                return entries;
+            }
+
+        };
+
+    // #############################################################################################
+    // Hashtable for entries
+    // #############################################################################################
+    protected:
+        /** Hash functor for nodes hashed in field #entryTable. */
+        struct EntryKey
+        {
+            const String&     SectionName;  ///< The name of the section.
+            const String&     EntryName;    ///< The name of the entry.
+
+            /** Constructor.
+             *  @param sectionName The section's name of an entry.
+             *  @param entryName   The name of an entry.
+             */
+            EntryKey( const String& sectionName, const String& entryName )
+            : SectionName( sectionName)
+            , EntryName  ( entryName   )
+            {}
+
+            /** Hash functor for nodes hashed in field #entryTable. */
+            struct Hash
+            {
+                /**
+                 * Calculates a hash code for \b NodeKey objects.
+                 * @param key The key to hash.
+                 * @return The hash code.
+                 */
+                std::size_t operator()(const EntryKey& key)                                    const
+                {
+                    return    key.SectionName.HashcodeIgnoreCase()
+                            + key.EntryName  .HashcodeIgnoreCase();
+                }
+            };
+
+            /** Equality functor for nodes in field #entryTable. */
+            struct EqualTo
+            {
+                /**
+                 * Invokes \alib{strings,TString::Equals,String::Equals} on \p{lhs}, passing \p{rhs}
+                 * and returns the result.
+                 * @param lhs The first string object.
+                 * @param rhs The second string object.
+                 * @return The result of the string comparison.
+                 */
+                bool operator()(const EntryKey& lhs,  const EntryKey& rhs )                    const
+                {
+                    return     (     (lhs.SectionName.IsEmpty()          && rhs.SectionName.IsEmpty() )
+                                  ||  lhs.SectionName.Equals<Case::Ignore>( rhs.SectionName ) )
+                            && (     (lhs.EntryName  .IsEmpty()          && rhs.EntryName  .IsEmpty() )
+                                  ||  lhs.EntryName  .Equals<Case::Ignore>( rhs.EntryName   ) );
+                }
+            };
+
+        };
 
     // #############################################################################################
     // protected fields
     // #############################################################################################
     protected:
+        /** A monotonic allocator used for allocating sections and entries.   */
+        MonoAllocator*                      allocator;
+
         /** The name of the plug-in. Provided in constructor, returned with #Name. */
-        String                         name;
+        String                              plugInName;
 
-    // #############################################################################################
-    // inner classes
-    // #############################################################################################
-    public:
-        /** ****************************************************************************************
-         * A configuration section's entry
-         ******************************************************************************************/
-        class Entry
-        {
+        /** The shared recycler for \b Entry list nodes.
+         *  This object is passed to the entry list of each section.      */
+        TEntryList::TSharedRecycler         entryRecycler;
 
-            public:
-                String32               Name;                        ///< The name of the section.
-                AString                Comments;                    ///< The comments of the section.
-                character              Delim = '\0';                ///< The delimiter (for splitting output into to multiple lines).
-                FormatHints            FmtHints= FormatHints::None; ///< The format hints of the variable
-                String16               FormatAttrAlignment;         ///< The format attribute alignment hint of the variable
-                std::vector<AString>   Values;                      ///< The list of values of the entry of the section.
+        /** The shared recycler for value list nodes of struct \b Entry.
+         *  This object is passed to the value list of each entry.        */
+        TValueList::TSharedRecycler         valueRecycler;
 
-                /**
-                 * Constructs an Entry
-                 * @param varName    The name of the section.
-                 */
-                Entry( const String& varName )
-                {
-                    Name.DbgDisableBufferReplacementWarning();
-                    Name._( varName );
-                }
-                /** Destructor. */
-                virtual ~Entry()   {}
+        /**
+         * The entry hash set.
+         * This is used to find entries by section name and entry name.
+         * The set contains all entries of all sections.
+         */
+        monomem::HashMap<EntryKey,  std::pair<Section*, TEntryList::Iterator>,
+                        EntryKey::Hash,
+                        EntryKey::EqualTo>  entryTable;
 
-                /**
-                 * Virtual method that copies the values of an entry to the given \p{variable}.
-                 *
-                 * @param parent    The plug-in we belong to.
-                 * @param variable  The variable to fill with our values.
-                 */
-                ALIB_API
-                virtual void ToVariable( const InMemoryPlugin& parent, Variable& variable );
 
-                /**
-                 * Virtual method that copies the values of the given \p{variable} to us.
-                 *
-                 * @param parent    The plug-in we belong to.
-                 * @param variable  The variable to fill with our values.
-                 */
-                ALIB_API
-                virtual void FromVariable( const InMemoryPlugin& parent, Variable& variable );
-        };
-
-        /** ****************************************************************************************
-         * A configuration section
-         ******************************************************************************************/
-        class Section
-        {
-            public:
-                String32             Name;         ///< The name of the section.
-                AString              Comments;     ///< The comments of the section.
-
-                std::vector<Entry*>  Entries;      ///< The list of variables of the section.
-
-            /**
-             * Constructs a Section
-             * @param sectionName    The name of the section.
-             */
-            Section( const String& sectionName )
-            : Name( sectionName )
-            {
-                Name.DbgDisableBufferReplacementWarning();
-            }
-
-            /** Destructor. */
-            virtual ~Section()
-            {
-                for ( Entry* entry : Entries )
-                    delete entry;
-            }
-
-            /**
-             * Searches an entry with the given name. The search is performed case insensitive
-             * @param entryName      The name of the variable to be searched.
-             * @param create    Denotes if an entry should be created if not found.
-             * @return The variable if found, else \c nullptr.
-             */
-            ALIB_API
-            Entry*     GetEntry ( const String& entryName, bool create );
-
-            /**
-             * Deletes an entry (if exists)
-             * @param entryName      The name of the variable to be searched.
-             * @return \c true if the entry was found and deleted, \c false otherwise.
-             */
-            ALIB_API
-            bool       DeleteEntry ( const String& entryName );
-
-            protected:
-            /** ************************************************************************************
-             * Virtual method to create an Entry.
-             * (Provided to allow descendant classes to created extended versions of an entry. See
-             * also \ref aworx::lib::config::InMemoryPlugin::createSection "InMemoryPlugin::createSection".)
-             *
-             * @param  entryName The name of the entry.
-             * @return An object of type \ref Entry "InMemoryPlugin::Entry".
-             **************************************************************************************/
-            inline
-            virtual Entry*  createEntry( const String& entryName )
-            {
-                return new Entry( entryName );
-            }
-        };
-
-    // #############################################################################################
-    // Public fields
-    // #############################################################################################
-    public:
         /** The list of sections. */
-        std::vector<Section*>            Sections;
+        List<Section>                       sections;
+
+        /**
+         * If a monotonic allocator instance was provided from outside, this flag is \c false.
+         * otherwise \c true.
+         */
+        bool                                isMAOwner;
 
     // #############################################################################################
     // Constructor/destructor
@@ -170,21 +316,41 @@ class InMemoryPlugin : public ConfigurationPlugin
     public:
         /** ****************************************************************************************
          * Constructor.
-         * @param pName The name of the plug-in as returned with #Name.
+         * @param pName      The name of the plug-in as returned with #Name.
+         * @param externalMA External monotonic allocator. If not given, an internal one
+         *                   is created.
+         *                   Optional and defaults to \c nullptr.
          ******************************************************************************************/
-        inline
-        InMemoryPlugin( String pName )
-        : ConfigurationPlugin()
-        , name( pName )
-        {
-            Reset();
-        }
+        ALIB_API
+        InMemoryPlugin( String pName, MonoAllocator* externalMA= nullptr );
 
         /** ****************************************************************************************
          * Virtual Destructor.
          ******************************************************************************************/
         ALIB_API
-        virtual      ~InMemoryPlugin();
+        virtual
+       ~InMemoryPlugin()                                                                   override;
+
+    // #############################################################################################
+    // Conversion of variables to entries and vice versa.
+    // #############################################################################################
+        /**
+         * Virtual method that copies the values of an entry to the given \p{variable}.
+         *
+         * @param entry     The entry to convert.
+         * @param variable  The variable to fill with our values.
+         */
+        ALIB_API
+        virtual void        ToVariable(   Entry& entry, Variable& variable )                  const;
+
+        /**
+         * Virtual method that copies the values of the given \p{variable} to an entry.
+         *
+         * @param entry     The entry to convert.
+         * @param variable  The variable to fill with our values.
+         */
+        ALIB_API
+        virtual void        FromVariable( Entry& entry, Variable& variable )                  const;
 
     // #############################################################################################
     // Interface
@@ -196,28 +362,61 @@ class InMemoryPlugin : public ConfigurationPlugin
          * Clears all configuration data.
          ******************************************************************************************/
         ALIB_API
-        virtual void    Reset();
+        virtual void        Clear();
 
         /** ****************************************************************************************
-         * Searches the \ref aworx::lib::config::InMemoryPlugin::Section "Section" with the given name.
+         * Searches the \ref aworx::lib::config::InMemoryPlugin::Section "Section" with the given
+         * name.
          *
          * @param sectionName      The name of the section to be retrieved.
          * @return Returns the section if it was found, nullptr otherwise.
          ******************************************************************************************/
         ALIB_API
-        Section*        SearchSection( const String& sectionName)  const;
+        const Section*      SearchSection( const String& sectionName );
 
         /** ****************************************************************************************
          * Searches the \ref aworx::lib::config::InMemoryPlugin::Section "Section" with the given
          * name. If the section was not found, it is created.
-         * If the section is found and has no comments, then the provided comments are appended.
+         *
          * @param sectionName The name of the section to be retrieved.
-         * @param comments    The comment lines for the section, in the case the section is not
-         *                    found. If this is \e nulled, no section comments are created.
-         * @return Returns the section if it was found or created. nullptr otherwise.
+         * @return Returns a <c>std::pair</c> with the first element being a pointer to the section
+         *         and the second a boolean that is \c true if the section was created and \c false
+         *         otherwise.
          ******************************************************************************************/
         ALIB_API
-        Section*        SearchOrCreateSection( const String& sectionName, const String& comments );
+        std::pair<Section*, bool>
+                            SearchOrCreateSection( const String& sectionName );
+
+        /** ****************************************************************************************
+         * Searches an entry with the given name.
+         * @param  section  The name of the section.
+         * @param  name     The name of the entry to be searched.
+         * @return The entry if found, else \c nullptr.
+         ******************************************************************************************/
+        Entry*              SearchEntry ( const String& section, const String& name )
+        {
+            return &*searchEntry( section, name );
+        }
+
+        /** ****************************************************************************************
+         * Searches an entry with the given name.
+         * @param  section  The section.
+         * @param  name     The name of the entry to be searched.
+         * @return The entry if found, else \c nullptr.
+         ******************************************************************************************/
+        Entry*              SearchEntry ( Section* section, const String& name )
+        {
+            return &*searchEntry( section->name, name );
+        }
+
+        /** ****************************************************************************************
+         * Returns a constant  reference to the sections of this plug-in.
+         * @return The list of sections.
+         ******************************************************************************************/
+        const List<Section>& Sections()                                                        const
+        {
+            return sections;
+        }
 
     // #############################################################################################
     // ConfigurationPlugin interface implementation
@@ -230,30 +429,31 @@ class InMemoryPlugin : public ConfigurationPlugin
          * loaded a variable containing a syntax error.
          * @return The name of the plug-in.
          ******************************************************************************************/
-        virtual String  Name()  const
+        virtual String      Name()                                                    const override
         {
-            return name;
+            return plugInName;
         }
 
         /** ****************************************************************************************
          * Searches the variable in our storage.
          *
-         * @param variable  The variable to retrieve.
-         * @param searchOnly   If \c true, the variable is not read. Defaults to \c false.
+         * @param variable      The variable to retrieve.
+         * @param searchOnly    If \c true, the variable is not read. Defaults to \c false.
          * @return \c true if variable was found, \c false if not.
          ******************************************************************************************/
         ALIB_API
-        virtual bool    Load( Variable& variable, bool searchOnly= false )  const;
+        virtual bool        Load( Variable& variable, bool searchOnly= false )             override;
 
         /** ****************************************************************************************
          * Creates or replaces existing variable in our storage.
+         * If the variable has no value, an existing entry is deleted.
          *
          * @param variable  The variable to retrieve.
          * @return \c true if the variable was written, \c false if not. The latter might only
          *         happen if the variable given was illegal, e.g. empty name.
          ******************************************************************************************/
         ALIB_API
-        virtual bool    Store( Variable& variable );
+        virtual bool        Store( Variable& variable )                                    override;
 
         /** ****************************************************************************************
          * Creates an iterator object to return all variables within a section.
@@ -268,31 +468,61 @@ class InMemoryPlugin : public ConfigurationPlugin
          * @returns The iterator requested.
          ******************************************************************************************/
         ALIB_API
-        virtual Iterator*       GetIterator( const String& sectionName );
+        virtual Iterator*   GetIterator( const String& sectionName )                       override;
 
     // #############################################################################################
     // Internals
     // #############################################################################################
     protected:
         /** ****************************************************************************************
-         * Virtual method to create a section.
-         * (Provided to allow descendant classes to created extended versions of an entry.)
-         * @param  sectionName The name of the section
-         * @return An object of type \ref Section "InMemoryPlugIn::Section".
+         * Appends a new section to the end of the list.
+         * Must be invoked only if the section does not exist, yet.
+         * @param  sectionName The name of the section.
+         * @return The entry if found, else \c nullptr.
          ******************************************************************************************/
-        inline
-        virtual Section*  createSection( const String& sectionName )
+        virtual Section*        createSection( const String& sectionName )
         {
-            return new InMemoryPlugin::Section( sectionName );
+            return &sections.EmplaceBack( sectionName, allocator, entryRecycler );
         }
 
-};
+        /** ****************************************************************************************
+         * Searches an entry with the given name. The search is performed case insensitive.
+         * @param  section  The name of the section
+         * @param  name     The name of the entry to be searched.
+         * @return The entry if found, else \c nullptr.
+         ******************************************************************************************/
+        Entry*                  searchEntry (const String& section, const String& name )
+        {
+            auto it=  entryTable.Find( EntryKey(section, name ) );
+            if( it != entryTable.end() )
+                return &*it.Mapped().second;
+            return nullptr;
+        }
+
+        /** ****************************************************************************************
+         * Creates a new entry.
+         * Must be invoked only if the entry does not exist, yet.
+         * @param  section  The section.
+         * @param  name     The name of the entry to be created.
+         * @return The entry found or created.
+         ******************************************************************************************/
+        ALIB_API
+        Entry*                  createEntry ( Section* section, const String& name )
+        {
+            auto entryIt= section->entries.Emplace      ( section->entries.end(),
+                                                          name, allocator, valueRecycler );
+            entryTable                    .EmplaceUnique( EntryKey(section->Name(), entryIt->Name()),
+                                                          std::make_pair(section, entryIt) );
+            return &*entryIt;
+        }
+
+}; // InMemoryPlugin
 
 
 }} // namespace lib::config
 
 /// Type alias in namespace #aworx.
-using     InMemoryPlugin=       aworx::lib::config::InMemoryPlugin;
+using     InMemoryPlugin=       lib::config::InMemoryPlugin;
 
 }  // namespace [aworx]
 

@@ -101,9 +101,9 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO_ON;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4652;4505;4711;4458;4459</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -118,9 +118,9 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO_ON;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;ALIB_IDE_VSTUDIO;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4652;4505;4711;4458;4459; 4592</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -138,9 +138,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO_ON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4652;4505;4711;4458;4459</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -159,9 +159,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO_ON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;ALIB_IDE_VSTUDIO;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4652;4505;4711;4458;4459; 4592</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -173,8 +173,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\unittests\alib_test_selection.hpp" />
     <ClInclude Include="..\..\..\src\unittests\alox\ut_alox_log_scopes.hpp" />
     <ClInclude Include="..\..\..\src\unittests\aworx_unittests.hpp" />
+    <ClInclude Include="..\..\..\src\unittests\aworx_unittests_end.hpp" />
     <ClInclude Include="..\..\..\src\unittests\expressions\ut_alib_expr_testfunc.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -196,8 +198,8 @@
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_EXPR_CALCULATOR.cpp" />
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_EXPR_TUTORIAL.cpp" />
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_SINGLETON.cpp" />
-    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_STRINGFORMAT.cpp" />
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_STRINGS.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_TEXT.cpp" />
     <ClCompile Include="..\..\..\src\unittests\docsamples\DOX_ALIB_TOKENIZER.cpp" />
     <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr.cpp" />
     <ClCompile Include="..\..\..\src\unittests\expressions\ut_alib_expr_builtin.cpp" />
@@ -209,6 +211,16 @@
     <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_substring.cpp" />
     <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util.cpp" />
     <ClCompile Include="..\..\..\src\unittests\strings\ut_alib_strings_util_token_consistency.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_boxing.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_compatiblity_qt.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_compatiblity_std.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_config.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_monomem.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_monomem_stringtree.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_resources.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_system.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_threads.cpp" />
+    <ClCompile Include="..\..\..\src\unittests\ut_alib_time.cpp" />
     <ClCompile Include="stdafx_alib_unittests.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

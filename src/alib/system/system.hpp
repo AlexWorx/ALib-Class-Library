@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_system of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_SYSTEM
 #define HPP_ALIB_SYSTEM_SYSTEM 1
 
@@ -13,6 +14,10 @@
 
 ALIB_ASSERT_MODULE(SYSTEM)
 
+#if !defined(HPP_ALIB_FS_MODULES_MODULE)
+#   include "alib/lib/fs_modules/module.hpp"
+#endif
+
 #if defined( __GNUC__ ) && !defined(_ERRNO_H)
 #   include <errno.h>
 #endif
@@ -20,7 +25,7 @@ ALIB_ASSERT_MODULE(SYSTEM)
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
- * Types found in this namespace comprise module \alibmod_nolink_system. This module collects types
+ * Types found in this namespace comprise module \alib_system_nl. This module collects types
  * and functions that are interfacing with the operating system, hardware drivers etc.
  *
  * \note
@@ -32,7 +37,7 @@ namespace aworx { namespace lib {
 namespace system {
 
 /** ************************************************************************************************
- * This is a strict singleton class representing module \alibmod_system.
+ * This is a strict singleton class representing module \alib_system.
  *
  * The only instance is found with namespace variable \ref aworx::lib::SYSTEM.
  *
@@ -41,7 +46,7 @@ namespace system {
  **************************************************************************************************/
 class System : public Module
 {
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
         friend class CalendarDateTime;
     #endif
 
@@ -49,35 +54,28 @@ class System : public Module
         /** ****************************************************************************************
          * Constructor.<br>
          * While this is public, it must not be invoked as this is a strict singleton type.
-         * (See notes in \ref alib_manual_bootstrapping_class_modsingletons).
+         * (See notes in \ref alib_manual_bootstrapping_class_module_singletons).
          ******************************************************************************************/
         System();
-
-    protected:
-        /** Table of string representations of the twelve months. Read from resource string
-            \b "Months". */
-        static String                               months[12];
-
-        /** Table of string representations of the seven days of a week. Read from resource string
-            \b "Days". */
-        static String                               days  [ 7];
 
     protected:
         /** ****************************************************************************************
          * Initializes this module.
          *
-         * @param level  The initialization level to reach.
+         * @param phase  The initialization phase to perform.
          * @param argc   The number of command line arguments. Defaults to \c 0.
          * @param argv   List of command line arguments if given as single byte character strings.
          * @param wargv  List of command line arguments if given as multi-byte character strings.
          ******************************************************************************************/
-        virtual void        init( InitLevels level,
-                                  int argc, const char** argv, const wchar_t** wargv )     override;
+        virtual void    bootstrap( BootstrapPhases phase,
+                                   int argc, const char** argv, const wchar_t** wargv )    override;
 
         /** ****************************************************************************************
-         * Frees resources of this module.
+         * Terminates this module. (Nothing to do.)
+         * @param phase  The shutdown phase to perform.
          ******************************************************************************************/
-        virtual void        terminationCleanUp()                                           override;
+        virtual void    shutdown( ShutdownPhases phase )                                 override
+        { (void) phase; }
 
 }; // class System
 
@@ -87,11 +85,8 @@ class System : public Module
  **************************************************************************************************/
 enum class Exceptions
 {
-    OK,                 ///< Everything is fine.
-    Error,              ///< An unspecified error occurred.
-
-    FileExists,         ///< File or directory already exists. This includes the case where pathname is a symbolic link, dangling or not.
-    InvalidPath,        ///< A directory component in pathname does not exist or is a dangling symbolic link
+    /** Everything is fine. */
+    OK,
 };
 
 /** ************************************************************************************************
@@ -99,7 +94,8 @@ enum class Exceptions
  **************************************************************************************************/
 enum class SystemErrors
 {
-    OK                    , ///< No Error
+        UNKNOWN         = -1              , ///< Unknown Error
+        OK              =  0              , ///< No Error
 
     #if defined (__GLIBC__) || defined(__APPLE__)
 
@@ -340,6 +336,24 @@ enum class SystemErrors
     #endif
 };
 
+/** ************************************************************************************************
+ * Implementation of \alib{text,FFormat} for boxable type \alib{time,DateTime}.<br>
+ * Writes the content of \p{box} (which is of type \b %DateTime) to the given \b %AString
+ * object \p{target} using a local instance of class \alib{system,CalendarDateTime} and its method
+ * \alib{system,CalendarDateTime::Format}.
+ *
+ * \note
+ *   This interface implementation is only available if modules \alib_system and \alib_time
+ *   are included in the library distribution.
+ *
+ * @param self       The box that the function was invoked on.
+ * @param formatSpec The specification of the format (type specific)
+ * @param target     The AString object receiving the formatted string.
+ **************************************************************************************************/
+ALIB_API void
+FFormat_DateTime( const Box & self, const String & formatSpec, AString & target );
+
+
 } // namespace aworx::lib[::system]
 
 /** The singleton of module-class \alib{system,System}. */
@@ -347,12 +361,34 @@ extern ALIB_API system::System SYSTEM;
 
 }} // namespace [aworx::lib]
 
-
 ALIB_BOXING_VTABLE_DECLARE( aworx::lib::system::Exceptions   , vt_system_exceptions   )
+ALIB_ENUMS_ASSIGN_RECORD(   aworx::lib::system::Exceptions   , aworx::lib::results::ERException   )
+ALIB_RESOURCED_IN_MODULE(   aworx::lib::system::Exceptions   , aworx::lib::SYSTEM, "E"   )
+
 ALIB_BOXING_VTABLE_DECLARE( aworx::lib::system::SystemErrors , vt_system_systemerrors )
+ALIB_ENUMS_ASSIGN_RECORD(   aworx::lib::system::SystemErrors , aworx::lib::results::ERException   )
+ALIB_RESOURCED_IN_MODULE(   aworx::lib::system::SystemErrors , aworx::lib::SYSTEM, "SE" )
 
-ALIB_EXCEPTIONS( aworx::lib::system::Exceptions  , aworx::lib::SYSTEM, "Exceptions"  )
-ALIB_EXCEPTIONS( aworx::lib::system::SystemErrors, aworx::lib::SYSTEM, "SystemErrors")
 
+
+namespace aworx { namespace lib { namespace system {
+/**
+ * Namespace function that creates an according \alib{results,Exception} to a corresponding
+ * system error number.
+ *
+ * The small challenge here is that arbitrary error numbers (of unknown) type might occur, that
+ * do not have a corresponding enum record. \alib{system,SystemError::UNKNOWN} is thrown
+ * and only the number is displayed in the description text.
+ *
+ * @param file  File name of the place of exception creation.
+ * @param line  Line number of the place of exception creation.
+ * @param func  Function/method name of the place of exception creation.
+ * @param errNo The system's error number.
+ * @return An exception object.
+ */
+ALIB_API Exception CreateSystemException( const NCString& file, int line, const NCString& func,
+                                          int errNo );
+
+}}} // namespace [aworx::lib::system]
 
 #endif // HPP_ALIB_SYSTEM_SYSTEM

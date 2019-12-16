@@ -1,9 +1,11 @@
-﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALOX_LOGTOOLS
 #define HPP_ALOX_LOGTOOLS 1
 
@@ -15,7 +17,11 @@
 // includes
 // #################################################################################################
 
-namespace aworx { namespace lib { namespace lox {
+namespace aworx { namespace lib {
+
+namespace results { class Exception; }
+
+namespace lox {
 
 /** ************************************************************************************************
  * Simple class with static tool functions.
@@ -59,11 +65,11 @@ class LogTools
          *                      Defaults to <b>"  "</b> (two spaces).
          ******************************************************************************************/
         ALIB_API
-        static void Exception( Lox&                     lox,
-                               const aworx::Exception&  e,
-                               Verbosity                verbosity           = Verbosity::Error,
-                               const NString&           domainPrefix        = "/ERR",
-                               const String&            logPrefix           = A_CHAR("  ")    );
+        static void Exception( Lox&                        lox,
+                               const results::Exception&   e,
+                               Verbosity                   verbosity           = Verbosity::Error,
+                               const NString&              domainPrefix        = "/ERR",
+                               const String&               logPrefix           = A_CHAR("  ")    );
 
 
 }; // class LogTools
@@ -71,7 +77,7 @@ class LogTools
 }} // namespace aworx[::lib::lox]
 
 /// Type alias in namespace #aworx.
-using     LogTools=           aworx::lib::lox::LogTools;
+using     LogTools=           lib::lox::LogTools;
 
 }  // namespace [aworx]
 

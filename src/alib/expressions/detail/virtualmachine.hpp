@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
 #define HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
 
@@ -11,8 +12,8 @@
 #   include "alib/expressions/expression.hpp"
 #endif
 
-#ifndef HPP_ALIB_ENUMS_ENUM_VALUE
-#   include "alib/enums/enumvalue.hpp"
+#ifndef HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL
+#   include "alib/enums/underlyingintegral.hpp"
 #endif
 
 
@@ -21,15 +22,6 @@ namespace aworx { namespace lib { namespace expressions {
 
 struct CompilerPlugin;
 
-/**
- * This is the detail namespace of #aworx::lib::expressions. Among other things, in this namespace,
- * [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html)
- * is used to implement the parsing of \alib{expressions::Expression} trees.
- *
- * Good care is taken to truly separate code that is using \c boost::spirit and that no
- * \alib public header files include this library, because compile times are increasing
- * tremendously due to the use of excessive TMP.
- */
 namespace detail {
 
 class   Program;
@@ -39,7 +31,7 @@ struct  AST;
  * This class implements a very simple stack machine that understands just four commands (!) plus
  * a fifth to execute sub-programs.
  *
- * This class is part of module \alibmod_nolink_expressions. It is not too well documented as it
+ * This class is part of module \alib_expressions_nl. It is not too well documented as it
  * resides in a \c detail namespace and is not to be used from the outside expression API.
  **************************************************************************************************/
 class VirtualMachine
@@ -89,8 +81,8 @@ class VirtualMachine
                 {
                     LiteralConstant,       ///< Command results from a literal constant.
                     OptimizationConstant,  ///< Command results from a constant resulting from an optimization.
-                    UnaryOp,               ///< Command results from an unary operation.
-                    BinaryOp,              ///< Command results from a binary operation.
+                    UnaryOp,               ///< Command results from an unary operator.
+                    BinaryOp,              ///< Command results from a binary operator.
                     Function,              ///< Command results from a function call.
                     AutoCast,              ///< Command results from an automatically inserted cast.
                     Subroutine,            ///< Command results from a nested expression.
@@ -99,7 +91,7 @@ class VirtualMachine
                 #if ALIB_DEBUG
                     /**
                      * Provides additional debug information for a command.
-                     * Available only in debug compilations of the module \alibmod_nolink_expressions
+                     * Available only with debug builds of the module \alib_expressions_nl
                      * library. Used with \alib{expressions::detail,VirtualMachine::DbgList}
                      */
                     struct DbgInformation
@@ -175,7 +167,7 @@ class VirtualMachine
 
             /**
              * The result type of a command. This is only needed during compilation.
-             * In debug compilations of the library, it is furthermore used with
+             * With debug builds of the library, it is furthermore used with
              * \alib{expressions::detail,VirtualMachine::DbgList}. Hence for simplicity and
              * shortness of the library code we keep it here, taking into account that after
              * compilation each command is equipped with a then unnecessary box.
@@ -199,7 +191,7 @@ class VirtualMachine
 
 
             #if ALIB_DEBUG
-                /** Operation code of this command. Available only in debug compilations. */
+                /** Operation code of this command. Available only with debug builds. */
                 DbgInformation      DbgInfo;
             #endif
 
@@ -254,16 +246,17 @@ class VirtualMachine
             /**
              * Constructor creating a subroutine call.
              * @param program         The program to call.
+             * @param resultType      The result type of the program.
              * @param functionOrOp    The function or operator that created the nested call.
              * @param idxOriginal     Expression string index that imposed command.
              * @param idxNormalized   Normalized expression string index that imposed command.
              */
-            Command( Program* program, const String& functionOrOp,
+            Command( Program* program, const Box& resultType, const String& functionOrOp,
                      integer idxOriginal, integer idxNormalized          );
 
             /**
              * Constructor creating a jump. Note, the address is usually not known yet, hence not
-             * provided. In debug compilations, this constructor asserts that it is used for jump
+             * provided. With debug builds, this constructor asserts that it is used for jump
              * commands only.
              * @param jumpType        The type of jump.
              * @param idxOriginal     Expression string index that imposed command.
@@ -282,7 +275,7 @@ class VirtualMachine
              * Returns \c true if the command represents a constant value.
              * @return  \c true if the command represents a constant value, \c false otherwise.
              */
-            inline bool IsConstant()                                                           const
+            bool IsConstant()                                                                  const
             {
                 // this excludes OpCodes::Constant with FlagEOC set.
                 return  opcode == OpCodes::Constant;
@@ -292,7 +285,7 @@ class VirtualMachine
              * Returns \c true if the command represents a jump.
              * @return  \c true if the command represents a jump, \c false otherwise.
              */
-            inline bool IsConditionalJump()                                                    const
+            bool IsConditionalJump()                                                           const
             {
                 return     opcode == OpCodes::JumpIfFalse
                         || opcode == OpCodes::Jump         ;
@@ -301,18 +294,18 @@ class VirtualMachine
             /**
              * Marks the command as the end of an conditional term.
              */
-            inline void SetEndOfConditionalFlag()
+            void SetEndOfConditionalFlag()
             {
-                opcode = OpCodes( EnumValue(opcode) | EnumValue(OpCodes::FlagEOC) );
+                opcode = OpCodes( UnderlyingIntegral(opcode) | UnderlyingIntegral(OpCodes::FlagEOC) );
             }
 
             /**
              * Returns the masked command part of the opcode.
              * @return  The masked command part of the opcode.
              */
-            inline OpCodes  Which()                                                            const
+            OpCodes  Which()                                                                   const
             {
-                return OpCodes( EnumValue(opcode) & EnumValue(OpCodes::CmdMask) );
+                return OpCodes( UnderlyingIntegral(opcode) & UnderlyingIntegral(OpCodes::CmdMask) );
             }
         }; // inner struct Command
 
@@ -329,18 +322,19 @@ class VirtualMachine
     /** ********************************************************************************************
      * Static method that decompiles a program into an abstract syntax tree.
      * Used to generate optimized, normalized, parsable expression strings.
-     * @param program  The program to decompile.
+     * @param program   The program to decompile.
+     * @param allocator Allocator for AST objects (and their data).
      * @return The abstract syntax tree as a result of decompilation.
      **********************************************************************************************/
     ALIB_API static
-    AST*        Decompile( Program& program );
+    AST*        Decompile( Program& program, MonoAllocator& allocator );
 
 
     #if ALIB_DEBUG
         /** ****************************************************************************************
          * Lists a virtual machine program.
          *
-         * Note: This method is available only in debug compilations of the library.
+         * Note: This method is available only with debug builds of the library.
          * @param program  The program to list.
          * @return The program listing.
          ******************************************************************************************/
@@ -353,27 +347,19 @@ class VirtualMachine
      * The implementation of #Run, which itself is just initialization code
      * @param program      The program to run.
      * @param scope        The scope to use.
-     * @param stack        The evaluation stack.
-     * @param nestedCalls  A stack of nested calls currently performed. Used to detect circular
-     *                     dependencies.
      **********************************************************************************************/
     ALIB_API static
-    void  run( Program& program, Scope& scope,
-               std::vector<Box        >& stack,
-               std::vector<Expression*>& nestedCalls );
+    void  run( Program& program, Scope& scope );
 
 
 };
 
-}}}}; // namespace [aworx::lib::expressions::detail]
+}}}} // namespace [aworx::lib::expressions::detail]
 
-ALIB_BOXING_VTABLE_DECLARE( aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
-
-ALIB_ENUM_IS_BITWISE(   aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
+ALIB_BOXING_VTABLE_DECLARE(       aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
+ALIB_ENUMS_MAKE_BITWISE(             aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
 #if ALIB_DEBUG
-    ALIB_ENUM_NAMED(    aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
-    ALIB_RESOURCED_IN_MODULE(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes,
-                             aworx::lib::EXPRESSIONS, "VM_CMD_OPCODES" )
+    ALIB_ENUMS_ASSIGN_RECORD(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, ERSerializable )
 #endif
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE

@@ -1,17 +1,20 @@
-﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALIB_ALOX_REPORT_WRITER
 #define HPP_ALIB_ALOX_REPORT_WRITER 1
 
-#if !defined (HPP_ALIB_ALOX)
-#   include "alib/alox/alox.hpp"
+#if !defined (HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
 #endif
-
 namespace aworx { namespace lib { namespace lox {
+
+class Lox;
 
 /** ************************************************************************************************
  * The \b %ReportWriter for \alib when using \alox. An instance of this class is created
@@ -36,9 +39,9 @@ class    ALoxReportWriter : public aworx::lib::results::ReportWriter
      ALIB_API
      ALoxReportWriter ( Lox* lox );
 
-    /** ****************************************************************************************
+    /** ********************************************************************************************
      * Virtual destructor
-     ******************************************************************************************/
+     **********************************************************************************************/
     virtual ~ALoxReportWriter()              {}
 
     /** ********************************************************************************************
@@ -64,7 +67,7 @@ class    ALoxReportWriter : public aworx::lib::results::ReportWriter
 }} // namespace aworx[::lib::lox]
 
 /// Type alias in namespace #aworx.
-using   ALoxReportWriter= aworx::lib::lox::ALoxReportWriter;
+using   ALoxReportWriter= lib::lox::ALoxReportWriter;
 
 }  // namespace [aworx]
 

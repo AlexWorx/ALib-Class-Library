@@ -443,11 +443,11 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:27] == "TLocalString<char":
+                elif type[:17] == "TLocalString<char":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) +"(PA)"
+                        result+=  str(-capacity) +"(LS)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
                     result+= '] "'  + getASString( value, 1 ) + '"'
@@ -488,11 +488,11 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:30] == "TLocalString<wchar_t":
+                elif type[:20] == "TLocalString<wchar_t":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) +"(PA)"
+                        result+=  str(-capacity) +"(LS)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
                     result+= '] "'  + getASString( value, -1 ) + '"'
@@ -533,11 +533,11 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:30] == "TLocalString<char16_t":
+                elif type[:20] == "TLocalString<char16_t":
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) +"(PA)"
+                        result+=  str(-capacity) +"(LS)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
                     result+= '] "'  + getASString( value, 2 ) + '"'
@@ -582,7 +582,7 @@ def lookup_pp_alib_and_alox( value  ):
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) +"(PA)"
+                        result+=  str(-capacity) +"(LS)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
                     result+= '] "'  + getASString( value, 4 ) + '"'
@@ -743,13 +743,13 @@ def lookup_pp_alib_and_alox( value  ):
 
                     result+= "  [" + str(value["CntLogCalls"]) + "]"
 
-                    children= [   #("Name"              , value["Name"]              ) ,
-                                   ("Parent"            , value["Parent"]            ) ,
-                                   ("SubDomains"        , value["SubDomains"]        ) ,
-                                   ("Data"              , value["Data"]              ) ,
-                                   ("FullPath"          , value["FullPath"]          ) ,
-                                   ("CntLogCalls"       , value["CntLogCalls"]       ) ,
-                                   ("ConfigurationRead" , value["ConfigurationRead"] )   ]
+                    children= [   #("Name"                     , value["Name"]              ) ,
+                                   ("Parent"                   , value["Parent"]            ) ,
+                                   ("SubDomains"               , value["SubDomains"]        ) ,
+                                   ("Data"                     , value["Data"]              ) ,
+                                   ("FullPath"                 , value["FullPath"]          ) ,
+                                   ("CntLogCalls"              , value["CntLogCalls"]       ) ,
+                                   ("ConfigurationAlreadyRead" , value["ConfigurationAlreadyRead"] )   ]
 
 
                 #---------------------------- Domain::LoggerData ------------------------------
@@ -759,13 +759,13 @@ def lookup_pp_alib_and_alox( value  ):
                     result+= ", priority="  + str(                  value["Priority"]          )
                     result+= ">["           + str(                  value["LogCallsPerDomain"] ) + "]"
 
-                    #children= [ ("Name"              , value["Name"]              ) ,
-                    #            ("Parent"            , value["Parent"]            ) ,
-                    #            ("SubDomains"        , value["SubDomains"]        ) ,
-                    #            ("Data"              , value["Data"]              ) ,
-                    #            ("FullPath"          , value["FullPath"]          ) ,
-                    #            ("CntLogCalls"       , value["CntLogCalls"]       ) ,
-                    #            ("ConfigurationRead" , value["ConfigurationRead"] )   ];
+                    #children= [ ("Name"                     , value["Name"]              ) ,
+                    #            ("Parent"                   , value["Parent"]            ) ,
+                    #            ("SubDomains"               , value["SubDomains"]        ) ,
+                    #            ("Data"                     , value["Data"]              ) ,
+                    #            ("FullPath"                 , value["FullPath"]          ) ,
+                    #            ("CntLogCalls"              , value["CntLogCalls"]       ) ,
+                    #            ("ConfigurationAlreadyRead" , value["ConfigurationAlreadyRead"] )   ];
 
 
     except Exception as e:

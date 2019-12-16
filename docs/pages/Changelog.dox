@@ -7,6 +7,378 @@
 
 /**
 \page alib_changelog         Change Log
+
+
+\~Comment ####################################################################################### \~
+\~Comment #####################        Version 1912 R0       #################################### \~
+\~Comment ####################################################################################### \~
+
+# Version 1912, Revision 0, released December 16th, 2019 #
+
+### Main Achievements Of This Release: ###
+
+1. After the massive restructuring of the library with previous version 1903, some more refactoring
+   had to be done to adopt the module concept everywhere and fine tune it.<br>
+   Therefore, with this release, various incompatibilities are again expected. We (still) have hopes
+   that \alib becomes more stable over time.
+2. The concept of "ALib Enum Meta Data"
+   - has been renamed to <b>ALib Enum Records</b> and was rewritten from scratch.
+     It is now much more simple in use and yet more powerful.
+   - was formerly spread between modules \alib_enums_nl and \alib_resources_nl,
+     and is now 100% located in \alib_enums.
+   - Its documentation had been spread over reference documentation of various types and is now
+     concentrated in chapter \ref alib_enums_records "4. Enum Records" of the now available
+     \ref alib_mod_enums "Programmer's Manual" of that module.
+3. Module \alib_resources has been revised. Resources are now more strictly defined to be \e static data.
+   While the core principles remained intact, almost every entity in the module has been
+   refactored to be simpler and faster.
+4. \ref alib_manual_bootstrapping "Bootstrapping of ALib" and custom modules was slightly revised.
+5. The most important new feature: Module <em>Memory</em> (which was almost empty before) has been
+   renamed to \alib_monomem and filled. Its new functionality has been documented with a new
+   \ref alib_mod_monomem "Programmer's Manual" and it is used with almost every other module.<br>
+   This reduced the number of memory allocations made during the unit test by around 80%
+   and the time to execute all test by around 25% in debug builds and more than 15% in release!<br>
+   Depending on a user's application's nature (in respect to memory consumption) the use of this
+   module has <b>a huge potential for a performance boost</b> for many applications.
+6. The former separation between <em>"compiler symbols"</em>, aka definitions passed to the
+   compiler and <em>"code selection symbols"</em> has been dropped. While it was motivated
+   by "good intentions", we realized that it complicates things too much and the industry
+   is used to not have this separation.<br>
+   When using \https{CMake,cmake.org/} to build the library, this should not have much impact
+   on existing user's code base.
+7. Finally, we tried to reduce header file dependencies, which results in faster compilation but
+   unfortunately also further incompatibilities when switching to this version.
+
+As a summary, existing user code will need various changes to adopt - and we again excuse for that.
+We hope that during the process of adopting your code, you will see the benefits of all changes.
+
+#### General Changes: ####
+- Dropped the concept of "compiler symbols". If not explicitly documented otherwise,
+  code selection symbols (that formerly where derived from compiler symbols passed with option <b>-D</b> )
+  are now directly passible to the compiler with the same option name instead of using postfixes
+  <b>_ON</b> or <b>_OFF</b>.
+- Cleaned header file inclusion across \alib to improve compilation speed.<br>
+  Moving to this version will likely impose the need to include some specific headers in a
+  using software, which previously had been included internally.
+- Removed all redundant semicolons from the source
+  (I.e. to allow compiler warning "-Wextra-semi" set with \b GCC or \b Clang).
+- Removed all redundant keywords <c>inline</c> from the source.
+- Corrected many typos in manuals.
+- Updated documentation to be compatible to new doxygen release 1.8.16.
+- Added header inclusion diagrams to the documentation. Also added documentation pages for
+  each \alib source folder and header file and a link from almost each C++ entity to the
+  corresponding header file of its declaration.
+- All variadic template types that had been named \p{Args} have been renamed to \p{TArgs} for
+  consistency with \alib naming conventions.
+- Renamed all code selection symbol for modules from \b ALIB_MODULE_XYZ to \b ALIB_XYZ, for example
+  \b ALIB_MODULE_THREADS to \ref ALIB_THREADS.<br>
+  On the same token added macros \b ALIB_IF_XYZ and \b ALIB_IFN_XYZ for each module.
+  (For example \ref ALIB_IF_THREADS and \ref ALIB_IFN_THREADS.)
+  Those are useful to reduce <c>\#if</c>/<c>\#endif</c> clutter in the code.
+- Renamed symbol \b ALIB_DOCUMENTATION_PARSER to \ref ALIB_DOX and changed it from being
+  defined to \c 0  to being undefined with compiler runs.
+
+#### CMake Build System / Filesets / Sources: ####
+- Removed former filesets <b>PREDEF_PF</b> and <b>PREDEF_TMP</b>, and defined the associated
+  mostly preprocessor-related header files to be included in any \alibdist.
+- Moved sources of filesets to sub-directories named <b>src/lib/fs_XYZ</b>.
+- Added dependency to filesets "INTEGERS" and "DEBUG" for micro module \alib_singletons.
+- Removed fileset "TYPEMAP".
+- Added new fileset "LISTS" containing generic node types and iterators for internal use with
+  single and doubly-linked lists.
+- Prior to the invocation of \b ALib.cmake, entry <em>"ALIB_SUPPRESS_COMPILER_WARNINGS"</em>
+  can now be added to list variable \b ALIB_COMPILER_WARNINGS. If so, this entry is removed and
+  the script will not add any warning settings to the symbol.
+- Fixed bug in CMake script that prevented cached variable \b ALIB_PRECOMPILED_HEADER_DISABLED
+  to disable precompiled header \alibheader{alib_precompile.hpp}.
+  Renamed the variable to be \b ALIB_PRECOMPILED_HEADER, defaulting it to \b Off.
+- The CMake script now searches the target system's thread library independent from the inclusion of
+  module \alib_threads. Instead, new CMake variable
+  \ref alib_manual_build_cmake_3 "ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH" controls the search and
+  may be used to disable this.
+- Renamed CMake variable \b ALIB_MODULE_SOURCE_COPY_DIR to
+  \ref alib_manual_build_more_copysources "ALIB_SOURCE_COPY_TARGET_DIR".
+- Renamed CMake variable list \b ALIB_MODULES to \ref alib_manual_build_cmake_1 "ALIB_DISTRIBUTION".
+
+#### Preprocessor Symbols: ####
+- C++ version macros:
+  - Added macro \ref ALIB_CPPVER which contains one of C++ version numbers \c 11 to \c 20.
+  - Added macro \ref ALIB_CPP11 which is set if exactly C++ 11 is used.
+  - Added macro \ref ALIB_CPP20 which is set if exactly C++ 20 is used (never set, yet).
+  - Changed meaning of macro \ref ALIB_CPP14, which now is unset if a C++ version higher than
+    \c 14 is used.
+  - Removed macro \b ALIB_REL_CONSTEXPR. It was replaced in a former release already by
+    macros \ref ALIB_CPP14_REL_CONSTEXPR and \ref ALIB_CPP17_REL_CONSTEXPR
+
+
+#### Fileset "Modules": ####
+Revised bootstrapping which is implemented mainly with class \alib{Module}
+Various changes have been made, for example:
+- The point of creation of a resource pool and configuration object, and their distribution during
+  the course of bootstrapping was slightly revised.
+- A new contract rule now disallows multi-threaded access during bootstrap, which relieves
+  bootstrap code from using locks (mutexes).
+- Module termination is now a phased process too: The first phase, \alib{Module,ShutdownPhases::Announce},
+  was added to give each module the chance to perform tasks while the library is still 100% intact
+  and initialized.
+- Methods \b Init and \b TerminationCleanUp have been renamed to \alib{Module::Bootstrap} and
+  \alib{Module::Shutdown}. Likewise, all interfaces throughout \alib that are deemed to be used
+  exclusively during bootstrap, have also been renamed and prefixed by the term <b>Bootstrap</b>.
+  (For example \alib{resources,ResourcePool::BootstrapBulk}.)
+
+#### Fileset "Common Enums": ####
+- Added common enumeration \alib{Side}.
+- Added common enumeration \alib{Caching}.
+- Most types now use underlying type <c>bool</c>.
+
+#### Fileset "Plugins": ####
+- Class \alib{PluginContainer} does not inherit from \alib{threads,ThreadLock} any more.
+
+#### Fileset "Lists" (new): ####
+This new fileset starts with providing types
+\alib{ForwardNode},
+\alib{ForwardList},
+\alib{ForwardListIterator},
+\alib{BidiNode},
+\alib{BidiList} and
+\alib{BidiListIterator}, which are considered "internal types" when implementing single- or
+doubly-linked lists.
+
+#### Module Characters: ####
+- Added methods \alib{characters,CharArray::ToUpper(TChar*, integer)} and
+  \alib{characters,CharArray::ToLower(TChar*, integer)}.
+
+#### Module Boxing: ####
+- It is now allowed to invoke \alib{boxing,Box::TypeID} on uninitialized boxes.
+  For those, <c>typeid(void)</c> is returned.
+- The constraint to box a type by default "as value" was extended to types being trivially
+  destructible.
+- Class \alib{boxing,Boxes}:
+  - Now optionally accepts a \alib{monomem,MonoAllocator} with construction
+  - The constructor taking variadic arguments was removed.
+    This intentionally disables implicit construction of an instance of the class with the invocation
+    of methods that expect a parameter of type <b>const Boxes&</b>.
+  - Methods \alib{boxing,Boxes::Add} now return a reference to the invoked object.
+- Renamed namespace function \b EnumValue to \alib{enums,UnderlyingIntegral}.
+- Renamed method \b Enum::Value to \alib{boxing,Enum::Integral}.
+- Fixed a minor memory leak with custom box-functions that were not deleted on program termination.
+  (This was only an issue for mem checking tools like \http{Valgrind,valgrind.org}.)
+- Added compilation symbol \ref ALIB_DEBUG_BOXING. Without this being given,
+  \ref alib_boxing_more_debug_general "debug features of the module" are no longer available in
+  debug-builds.
+- Renamed macro \b ALIB_BOXING_VTABLE_REGISTER to \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER.
+- Removed debug tables \b DBG_KNOWN_VTABLES and \b DBG_KNOWN_VTABLES.
+  Instead, method \alib{boxing,DbgBoxing::GetKnownVTables} was added and along with that, method
+  \alib{boxing,DbgBoxing::GetKnownFunctionTypes} is now available also in \alibdists that only
+  contain module \b Boxing.
+- Changed management of custom box functions to using one global hash table instead of
+  many linked lists. This might slightly decrease performance with small applications
+  (not noticeable) but scales in an average of O(1) when many different custom function types are
+  declared.
+
+
+#### Module Strings: ####
+- \b Attention: The default constructor of class \alib{strings,TString,String} now is default-implemented
+  and leaves an instance in uninitialized state. (Formerly the instance was in <em>nulled</em> state
+  with default construction.)<br>
+  The rational for this is to avoid redundant initializations and with that, type \b String is now
+  a <em>POD type</em>. Consequently it is now a user's obligation to assure strings used
+  are initialized.<br>
+  (Note: within all of \alib, only a handful of explicit initializations had
+  to be added. By using analyzer tool \http{Valgrind,valgrind.org/}, those could be detected with
+  little effort.)
+- Fixed a bug in  method \alib{strings,TString::indexOfString}, which could cause illegal memory
+  access and other undefined behavior in seldom cases.
+- Removed class <b>strings::util::StringTable</b>. Its only use was in module boxing to implement
+  debug output and consequently was moved to \alib{boxing::detail,DbgStringTable}.
+- Removed the simple templated inline namespace functions <b>strings::util::FindStringInTupleVector</b> and
+  <b>strings::util::FindStringStartInTupleVector</b>.
+  They got replaced by anonymous (local) definitions.
+- Removed constructor and methods \b Format and \b FormatArgs from class \alib{strings,TAString,AString}.
+  Those methods and constructors had formerly allowed to use an \b AString as an interface to string
+  format operations which used the default formatter. The rational to remove this functionality
+  is to reduce module dependencies, construction parameter ambiguities and to have a more explicit
+  API.
+- Moved class \alib{monomem,StringTree} from module \alib_strings_nl to module \alib_monomem_nl
+  and completely overhauled its implementation, aiming to optimize memory consumption, performance,
+  flexibility and ease of use.
+  This overhaul implies a complete change in its interface, public inner types, etc, which are not
+  listed here one by one.<br>
+- Added inline namespace method \alib{strings,AllocateCopy} and \alib{strings,DeleteString}.
+- Moved methods \b ConsumeEnum, \b ConsumeEnumBitwise and \b ConsumeEnumOrBool from
+  class \alib{strings,TSubstring,Substring} to corresponding functions in namespace
+  \ref aworx::lib::enums.
+
+
+#### Module Threads: ####
+- This module can now be excluded from any permutation of modules of an \alibdist, which turns
+  such distribution into a <em>"single threaded"</em> version of \alib.
+  This is considered a new feature (as formerly, module \alib_alox_nl had a strict dependency).
+  More on that topic is found in the new manual section \ref alib_manual_modules_impact_singlethreaded.
+- The module is now independent of module \alib_time (the prior minimal use pieces, exclusively in
+  debug-builds, were re-implemented)
+- Uses \ref alib_mod_monomem "monotonic allocation" for thread management.
+- Already in previous versions, macros \ref ALIB_LOCK and \ref ALIB_LOCK_WITH remained defined
+  if module \alib_threads was \b not included in an \alibdist. Now in addition these macros will
+  invoke test function \alib{DbgCheckSingleThreaded} in debug-compilations, that asserts
+  if a second thread visits library code that needs protection.
+- Re-implemented bigger parts of \alib{threads,ThreadLock} with slight changes in its interface.
+
+#### Module Monomem (formerly Memory): ####
+- Renamed module \b Memory to \b Monomem, which is now found in namespace \ref aworx::lib::monomem
+  and received an own \ref alib_mod_monomem "Programmer's Manual".
+- Class \b MemoryBlocks was renamed to \alib{monomem,MonoAllocator} and received tons of changes
+  and extensions. Among them:
+    - Renamed method MonoAllocator::Construct to \alib{monomem,MonoAllocator::Emplace}.
+    - Changed (simplified) the internal allocation code of object \alib{monomem,MonoAllocator::Chunk}.
+    - Added overloaded methods \alib{monomem,MonoAllocator::TakeSnapshot} and
+      \alib{monomem,MonoAllocator::Reset(const Snapshot&)} which allow to reset the allocator
+      to a certain state and dispose intermediate objects.
+- Added struct \alib{monomem,SelfContained}.
+- Added class \alib{monomem,List}.
+- Moved class \alib{monomem,StringTree} from module \alib_strings_nl, performing a 100% overhaul.
+- Added class \alib{monomem,HashTable} and with it type definitions
+  - \alib{monomem,HashSet} and
+  - \alib{monomem,HashMap}.
+- Added class \alib{monomem,TMAString}.
+- Added classes \alib{monomem,StdContMA}, \alib{monomem,StdContMAOptional} and
+  \alib{monomem,StdContMARecycling} to support monotonic allocation with C++ standard containers.
+- Added allocator instance \alib{monomem,GlobalAllocator}, which is used during bootstrap by
+  various modules.
+- Added compiler symbol \ref ALIB_DEBUG_MONOMEM to enable debug-features for this module.
+- Added a verbose \ref alib_mod_monomem "Programmer's Manual" for this module.
+
+#### Module Resources: ####
+- Overhauled resource management:
+  - \ref alib_mod_resources "Programmer's Manual" was rewritten.
+  - Renamed type \b Resources to \alib{resources,ResourcePool} and made it pure abstract interface type.
+  - Renamed methods of \alib{resources,ResourcePool} to more precise and better readable names.
+  - Removed ability to store non-static resource strings.
+  - Added new type \alib{resources,LocalResourcePool} as the default interface implementation
+  - Added new type \alib{resources,ConfigResourcePool } an optional interface implementation.
+  - Adopted changes in type \alib{Module}.
+  - Adopted changes in library's Programmer's manual, chapter \ref alib_manual_bootstrapping.
+- Removed all previously included functionality of former concept <em>"ALib Enum Meta Data"</em>,
+  which was completely rewritten to new concept \ref alib_enums_records "ALib Enum Records"
+  and located in module \alib_enums.
+- Uses \ref alib_mod_monomem "monotonic allocation" for resource management.
+- Removed class \b ResourceString.
+- Fixed a bug that prevented to add resources for common enum types, if module \alib_config_nl
+  was not included in the \alibdist.
+
+
+#### Module Results: ####
+- Adopted concept \ref alib_enums_records "ALib Enum Records".
+- Changed class \alib{results,Message} to derive from class \alib{boxing,Boxes}, instead of
+  owning a field \b Args of that type.
+- With the change of class \b Boxes as documented above, a message may optionally now use monotonic
+  allocation.
+- Changed class \alib{results,Exception} to derive from new struct \alib{monomem,SelfContained}
+  (and removed corresponding proprietary code that previously stored the type's fields inside the
+  allocator). Together with the above, this fulfills a former promise to have a typical
+  \alib exception perform only one single memory allocation.
+
+#### Module Text: (Formerly Stringformat) ####
+- Renamed module \b Stringformat to \alib_text.
+- Method \alib{text,Formatter::Acquire} now returns an internal container of type \b Boxes,
+  which optionally can be used to collect formatting arguments.
+  If it is used, new method\alib{text,Formatter::FormatArgs(AString&)} allows using this list.
+- Overloaded methods method\alib{text,Formatter::FormatArgs} to not acquire the formatter
+  anymore. Acquirement and a corresponding release of the formatter object, has to be performed
+  explicitly by the calling code. In case of formatting exceptions, those have to be caught
+  to release the formatter and eventually be rethrown or otherwise processed.
+- Fixed method  \alib{text,FormatterStdImpl::writeStdArgument} to write raw integral box
+  contents with binary, octal and hexadecimal output formats.
+  (This was broken since the most recent release only)<br>
+  On the same token, the method was changed to use the full (platform-dependent) output width for
+  pointer and array types, in the case no output width specifier had been given. E.g. if a pointer
+  is given with hexadecimal output, 16 digits are printed on a 64-bit platform.
+- Extended conversion option <b>{!Quote}</b> of formatter \alib{text,FormatterPythonStyle}
+  to optionally specify the quote character(s) that an argument should be surrounded by.
+- Removed creation of class \alib{boxing,Boxes} with method
+  \alib{text,Formatter::Format(AString, const TArgs&...)}.
+  (This was accidentally inserted and totally superfluous.)
+
+#### Module Configuration: ####
+- Adopted concept \ref alib_enums_records "ALib Enum Records".
+- Class \alib{config,Variable} now inherits new struct \alib{monomem,SelfContained} and thus
+  is very memory efficient. This caused various interface changes in the area of getting and
+  setting variable attributes and values.
+- Constructors of class \alib{config,Variable} as well as method \alib{config,Variable::Declare}
+  now accepts a single \alib{boxing,Box} instead of variadic template arguments to define
+  replacement information. In the case that more than one replacement object should be passed,
+  those have to be encapsulated in an instance of class \alib{boxing,Boxes}.
+- Class \alib{config,InMemoryPlugin} was rewritten and changes adopted by derived type
+  \alib{config,IniFile}.
+  It now uses \ref alib_mod_monomem "monotonic allocation" and shows better performance.
+  Various changes in the rather internal interface are not listed here.
+- Added method \alib{config,IniFile::AddResourcedSectionComments}, which replaces a former
+  less flexible approach to add resourced (externalized) comments to sections, when they
+  get created programatically.
+- Added field \alib{config,IniFile::LineWidth}, which may be used to adjust the preferred line
+  width when formatting comments of sections and entries.
+
+#### Module ALox: ####
+- This module is now independent from the availability of module \alib_threads. If not
+  available, the library is deemed to be a
+  \ref alib_manual_modules_impact_singlethreaded "single-threaded version", which was formerly
+  not possible when module \alib_alox_nl was included in an \alibdist.
+- Reorganized code structure to reduce header dependencies. Header file \alibheader{alox.hpp}
+  is now a shortcut to \alibheader{alox/alox.hpp}, which now only includes
+  things needed to perform basic debug- and release-log operations.<br>
+  Class \alib{lox,ALox} is not included by default anymore. If needed (e.g. for
+  initialization of the module or for registration of instances of \b %Lox), header file
+  \alibheader{alox/aloxmodule.hpp} has to be explicitly included.<br>
+  To allow the reduction, class \alib{lox,Lox} was implemented using the
+  \https{Pimpl Idiom,en.cppreference.com/w/cpp/language/pimpl}.
+- Header file \b alib/alox.hpp is now included in all \alibdists, even those that do \b not
+  include module \alib_alox_nl. If \b ALox is not available, this header will define the logging
+  macros empty. This simplifies the insertion of logging code into sources that are only optionally
+  used in combination with \b ALox.
+- Text formatters now duly catch exceptions raised by their internal \alib{text,Formatter}
+  instances, e.g. when  malformed placeholder syntax occurs in logging code.
+  In this case the originally intended log message is extended with information on the exception
+  that was raised.
+- Uses \ref alib_mod_monomem "monotonic allocation" in various places and this way a further
+  reduced use dynamic memory allocations was achieved.
+- Moved field \b ALox::InternalDomains to \alib{lox,Lox::InternalDomains}.
+
+#### Module Expressions: ####
+- Dropped the support of using
+  \https{boost::spirit,www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html} for parsing.
+  To maintain the option to alternatively use this library caused reasonable problems and is
+  considered not important due to the huge constraints this library is subject to.
+- Various internal changes to replace dynamic memory allocations with
+  \ref alib_mod_monomem "monotonic allocation", by adding
+  \alib{monomem,MonoAllocator} to type \alib{expressions,Compiler} and by using
+  new container types of module \alib_monomem wherever possible.
+- Changed method name \b Scope::Clear to \alib{expressions,Scope::Reset}.
+- Renamed field \b Scope::nestedExpressionStack to \alib{expressions,Scope::NestedExpressions}
+- Moved the compile-time scope object from class \alib{expressions,detail::Program} to
+  \alib{expressions,Expression::ctScope}.
+- Simplified class \alib{expressions::plugins,Calculus}, which now treats unary and binary
+  operators merely the same. As a consequence, almost all fields and methods of the class that
+  formerly had the words "unary" or "binary" in their name are replaced by generically named
+  version that now handle both operator types.
+- Fixed documentation chapter \ref alib_expressions_details_concurrency. The restrictions on
+  parallel method invocation (multi-threading) were defined too weak.
+  Now, with the optimizations in respect to memory consumption, the restrictions became even
+  stronger. Nevertheless, this should not impose a major difficulty in implementing multi-threaded
+  expression usage.
+- On the same token, removed all internal thread-locking mechanics. Consequently, those are now
+  an obligation of the using code to be performed. This is a much easier and clearer design.
+- Removed class \b ScopeString and replaced with new class \alib{monomem,TMAString}.
+- Renamed enum flag \b AllowBitwiseBooleanOperations to
+  \alib{expressions::Compilation,AllowBitwiseBooleanOperators}.
+- Resourced (externalized) names of built-in types \alib{expressions,Types}.
+
+#### Compatibility Headers: ####
+- Moved overloads of <c>operator<<</c> given with \alibheader{compatibility/std_strings_iostream.hpp}
+  from namespace \ref aworx to the global namespace. Documentation still resides in "fake namespace"
+  \ref aworx::lib::strings::compatibility::std.
+- Various minor changes not listed here.
+
+
 \~Comment ####################################################################################### \~
 \~Comment #####################         Version 1903         #################################### \~
 \~Comment ####################################################################################### \~
@@ -28,7 +400,7 @@ As a result, <b>ALib for C++ is now 100% modern C++!</b>
 (To the extent that the authors of this library "think modern".)
 
 With that new freedom, the changes that have been performed in the recent 10 month are too
-many to be listed and documented in each detail. (Only for module \alibmod_nolink_expressions,
+many to be listed and documented in each detail. (Only for module \alib_expressions_nl,
 a detail list is given below.)
 Consequently, the adoption of user code might become a little more effort than with previous \alib updates,
 as many entities have been moved to a different place.
@@ -54,20 +426,20 @@ The following provides a high level list of changes.
   (Two small modules do not have a dedicated programming manual, hence only reference documentation
   is available for those.)
 
-- New module \alibmod_characters was extracted from both, module \alibmod_strings and
-  \alibmod_boxing. While it is rather small, it provides a good abstraction layer to mitigate
+- New module \alib_characters was extracted from both, module \alib_strings and
+  \alib_boxing. While it is rather small, it provides a good abstraction layer to mitigate
   general challenges when using characters, character arrays, string literals and 3rd-party string
   types with C++.<br>
   A dedicated \ref alib_mod_characters "Programmer's Manual" is available for this module.
 
-- Module \alibmod_boxing was completely rewritten. While the API for boxing and unboxing values
+- Module \alib_boxing was completely rewritten. While the API for boxing and unboxing values
   remained almost unchanged, in the area of
   \ref alib_boxing_customizing "customization of boxing for user types" as well as of the definition of
   \ref alib_boxing_functions "box-functions", existing user code needs to be revised.
   Along with the code, the dedicated \ref alib_mod_boxing "Programmer's Manual" of module
-  \alibmod_nolink_boxing was completely rewritten.
+  \alib_boxing_nl was completely rewritten.
 
-- Module \alibmod_strings was refactored in respect to now building on \alibmod_nolink_characters.
+- Module \alib_strings was refactored in respect to now building on \alib_characters_nl.
   Apart from the former terminated string type \b %TString, which is now named \c %CString,
   code adoptions should be required mostly in the fields of adopting 3rd-party types to
   be transparently accepted as strings and to make 3rd-party types compatible (appendable) to
@@ -79,7 +451,7 @@ The following provides a high level list of changes.
 
 #### Module Expressions: ####
 Apart from the many changes due to refactoring the library, explicit change information
-this time is only given for module \alibmod_expressions:
+this time is only given for module \alib_expressions:
 
 - Added auto-cast option for casting arguments of unary operators (which was available only to
   binary operator and ternary operator <c>Q ? T : F</c> only).
@@ -89,8 +461,8 @@ this time is only given for module \alibmod_expressions:
   \ref alib_expressions_tut_ffext_autocasts_using_calculus "6.5.2 Implementing Auto-Casts Using Class Calculus"
   to sample the use of this feature.
 - Changed name of ternary operator <c>Q ? T : F</c> when given with
-  \alib{expressions::CompilerPlugin,CIAutoCast::Op}
-  from \b "?:" to \b "Q?T:F" to make it distinguishable from the binary "Elvis-operator".
+  \b CompilerPlugin::CIAutoCast::Op from \b "?:" to \b "Q?T:F" to make it distinguishable from the
+  binary "Elvis-operator".
 - Renamed fields \b DbgCallBackName and \b DbgCallBackNameRhs in \alib{expressions,CompilerPlugin},
   respectively in derived types, to use a lower case letter \b 'b'.
 - Changed field \alib{expressions::plugins,Calculus::FunctionEntry::ResultType} to being a pointer
@@ -113,7 +485,7 @@ this time is only given for module \alibmod_expressions:
   - Many built-in function abbreviations have changed to support abbreviation of single
     camel-case humps.
 - Added class \alib{expressions::util,ExpressionFormatter} which is similar to existing
-  \alib{stringformat,PropertyFormatter}, but supports the use of expressions instead of just
+  \alib{text,PropertyFormatter}, but supports the use of expressions instead of just
   simple property callbacks.
 - Removed division and modulo operators from compiler plug-in \alib{expressions::plugins,Arithmetics}
   with boolean divisor type (not useful and dangerous in respect to division by zero exceptions).
@@ -125,7 +497,7 @@ this time is only given for module \alibmod_expressions:
 We very much hope that this overhaul and "refactoring orgy" now finally led to a stable structure
 that will not dramatically change in the future. The foundation set in this release allows
 growth and extension of the library by new independent and optional \alibmods, similar to
-modules \alibmod_alox, \alibmod_expressions and \alibmod_cli.
+modules \alib_alox, \alib_expressions and \alib_cli.
 
 We think that the library is now well prepared to support the future C++ language feature
 of modularization (see for example the [current clang draft](https://clang.llvm.org/docs/Modules.html))
@@ -171,7 +543,7 @@ Support for preconfigured QTCreator project files was dropped.
 - Removed virtual base class \b %Ownable. Instead, class \b Owner now is templated.
   This allowed several classes to be non-virtual, for example \alib{threads,ThreadLock} or
   \alox{Lox}.
-- Added method \alib{threads,ThreadLock::Owner}.
+- Added method \b ThreadLock::Owner.
 - Renamed method \b %DbgCountAcquirements to \alib{threads,ThreadLock::CountAcquirements}, removed
   its former parameter. The former behaviour can be accomplished using by comparing result of
   new method \b ThreadLock::Owner with \b Threads::CurrentThread.
@@ -202,7 +574,7 @@ Support for preconfigured QTCreator project files was dropped.
 
 #### Module ALox: ####
 
-As explained above, \alibmod_alox has been made a module of \alib. (Before this release, the
+As explained above, \alib_alox has been made a module of \alib. (Before this release, the
 relationship was quite reverse: \alib then was the "underlying utility library" of \alox).<br>
 With this, the namespace of \alox types has been renamed (moved) as well: from former \b "aworx::lox" to
 \ref aworx::lib::lox.
@@ -212,11 +584,11 @@ internal data in respect to the "language scopes" of \alox.
 
 #### Module Expressions: ####
 
-This release introduces new module \alibmod_expressions.
+This release introduces new module \alib_expressions.
 
 #### Module CLI: ####
 
-This release introduces new module \alibmod_cli. However the programmer's manual of that module was
+This release introduces new module \alib_cli. However the programmer's manual of that module was
 not written, yet. Due to the lack of documentation, we can not really recommend to use this module.
 As we are using it with other projects already, the code itself is considered stable and tested.
 
@@ -237,3 +609,4 @@ Please consult this project's [Change-Log](http://alexworx.github.io/ALox-Loggin
 for information on changes since the initial release in May 2013.
 
 */
+

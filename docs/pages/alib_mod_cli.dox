@@ -36,8 +36,8 @@ any unforeseen tweak a user want to implement. (At least we were not able to imp
 way.)
 
 Therefore, the software found in this module:
-- Uses "Bauhaus code style" that is often typical for \alib. For example, fields are mostly public
-  and the interface methods allow data modifications between the several steps of their invocation.
+- Uses an open, pragmatic code style. For example, fields are mostly public and the interface
+  methods allow data modifications between the several steps of their invocation.
 
 - Is incomplete and even partly inconsistent in respect to what can be defined as commands,
   parameters, etc. and what action can be "automated" with the information provided.
@@ -48,12 +48,13 @@ Positively spoken: The implementable syntax of the CLI interface is completely o
 and not limited when this module is used.
 
 \~Comment ####################################################################################### \~
-## 1.1 Enum Meta Data # {#alib_cli_intro_enum}
+## 1.1 ALib Enum Records And ALib Resources # {#alib_cli_intro_enum_records}
 The classes found in this namespace make a lot of use of
-\alib{resources,T_EnumMetaDataDecl,ALib enum meta data} retrieved from an instance of type
-\alib{resources,Resources}, usually the one found in the singleton of the associated \alib{Module}.
+\ref alib_enums_records "ALib Enum Records" retrieved from an instance of type
+\alib{resources,ResourcePool}, usually the one found in the singleton of the associated \alib{Module}.
+
 Therefore, it is a good advice to get familiar with the features provided by module
-\alibmod_resources before using this class.
+\alib_resources before using this class.
 
 \~Comment ####################################################################################### \~
 # 2. Defining Commands, Parameters, Options and ExitCodes # {#alib_cli_defines}
@@ -62,22 +63,22 @@ Objects of the structs
 \alib{cli,ParameterDecl},
 \alib{cli,OptionDecl} and
 \alib{cli,ExitCodeDecl},
-are all defined using \alib{resources,T_EnumMetaDataDecl,resourced ALib enum meta data}.
-The type definition of the meta data for these object types has to strictly follow
-a fixed scheme which is documented with the types.
-Make a custom enumeration defining one of the types, specific macros provided by this module have
-to be used.
-(As suggested in the \alib{resources,T_EnumMetaDataDecl,documentation of enum meta data}, the macros
-in turn use macro \ref ALIB_ENUM_SPECIFICATION_DECL.)
+are all defined using resourced \ref alib_enums_records "ALib Enum Records" demanding a specific
+record type to be associated to a custom enumeration.
 
-The following table summarizes the types and corresponding macros:
+In addition, a custom enum types need to have a specialization of \alib{resources,T_Resourced},
+which is used to load further resource strings.
 
-|Object Type               | Macro To Use
-|--------------------------|----------------------------------------------------
-|\alib{cli,CommandDecl}    | \ref ALIB_CLI_COMMANDS   "ALIB_CLI_COMMANDS( TEnum, ResourceModule, ResourceName )"
-|\alib{cli,ParameterDecl}  | \ref ALIB_CLI_PARAMETERS "ALIB_CLI_PARAMETERS( TEnum, ResourceModule, ResourceName )"
-|\alib{cli,OptionDecl}     | \ref ALIB_CLI_OPTIONS    "ALIB_CLI_OPTIONS( TEnum, ResourceModule, ResourceName )"
-|\alib{cli,ExitCodeDecl}   | \ref ALIB_CLI_EXIT_CODES "ALIB_CLI_EXIT_CODES( TEnum, ResourceModule, ResourceName )"
+The following table summarizes the types,
+the necessary <em>ALib Enum Record</em> type and
+the additional resource strings that need to be available:
+
+|Object Type               | Record Type To Use          | Additional Resource Strings
+|--------------------------|---------------------------|-----------------------------------------------------
+|\alib{cli,CommandDecl}    | \alib{cli,ERCommandDecl}  |  <b>"THlpCmdSht_NN"</b>: Short version of help text for each parameter.<br><b>"THlpCmdLng_NN"</b>: Long version of help text for each parameter
+|\alib{cli,ParameterDecl}  | \alib{cli,ERParameterDecl}| <b>"THlpParSht_NN"</b>: Short version of help text for each parameter.<br><b>"THlpParLng_NN"</b>: Long version of help text for each parameter.
+|\alib{cli,OptionDecl}     | \alib{cli,EROptionDecl}   | <b>"TOptUsg_NN"</b>: Help text for each option describing its usage.<br><b>"TOptHlp_NN"</b>: Help text for each Option.
+|\alib{cli,ExitCodeDecl}   | \alib{cli,ERExitCodeDecl} | <b>"TExit_NN"</b>: A format string returned by method \alib{cli,ExitCodeDecl::FormatString}-
 
 \~Comment ####################################################################################### \~
 # 3. Allowing Other Parts Of The Software To Access CLI Arguments # {#alib_cli_arg_sharing}
@@ -90,7 +91,7 @@ In addition, this class exposes field \alib{cli::CLIApp,OptionArgsIgnored},
 that hold all CLI arguments that start with a hyphen <c>'-'</c> and are not recognized
 by \alib{cli,OptionDecl}. A software might use this shortened list to look for options.
 
-With the use of module \alibmod_config such use of CLI arguments outside of this module already
+With the use of module \alib_config such use of CLI arguments outside of this module already
 occurs: \alib{config,Variable,Configuration variables} can be defined using CLI parameters
 the same as by using environment variables, configuration files or other data sources.
 And such use should still be possible, independent from the CLI interface.

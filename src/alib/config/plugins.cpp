@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_CONFIG_PLUGINS)
 #   include "alib/config/plugins.hpp"
 #endif
@@ -13,40 +14,46 @@
 #if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
 #   include "alib/system/environment.hpp"
 #endif
+#if !defined (HPP_ALIB_CONFIG_CONFIG)
+#   include "alib/config/config.hpp"
+#endif
+
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace config {
 
 // #################################################################################################
 // XTernalizer
 // #################################################################################################
-void XTernalizer::InternalizeValue( Substring& src, AString& dest )
+void XTernalizer::InternalizeValue( const String& src, AString& dest )
 {
-    src.Trim();
-    if(src.CharAtStart() == '"'  && src.CharAtEnd() == '"')
+    Substring parser(src);
+    parser.Trim();
+    if( parser.CharAtStart() == '"' && parser.CharAtEnd() == '"')
     {
-        src.ConsumeChar       <false>();
-        src.ConsumeCharFromEnd<false>();
+        parser.ConsumeChar       <false>();
+        parser.ConsumeCharFromEnd<false>();
     }
     bool lastWasSlash= false;
 
-    while( src.IsNotEmpty() )
+    while( parser.IsNotEmpty() )
     {
-        character c= src.ConsumeChar<false>();
+        character c= parser.ConsumeChar<false>();
 
         if( lastWasSlash )
         {
             lastWasSlash= false;
             character escChr= c == '\\' ? '\\' :
-                          c == '"'  ? '"'  :
-                          c == 'n'  ? '\n' :
-                          c == 'r'  ? '\r' :
-                          c == 't'  ? '\t' :
-                          c == 'a'  ? '\a' :
-                          c == 'b'  ? '\b' :
-                          c == 'v'  ? '\v' :
-                          c == 'f'  ? '\f' :
-                          c == 'e'  ? '\033' :
-                          c;
+                              c == '"'  ? '"'  :
+                              c == 'n'  ? '\n' :
+                              c == 'r'  ? '\r' :
+                              c == 't'  ? '\t' :
+                              c == 'a'  ? '\a' :
+                              c == 'b'  ? '\b' :
+                              c == 'v'  ? '\v' :
+                              c == 'f'  ? '\f' :
+                              c == 'e'  ? '\033' :
+                              c;
 
             dest._<false>(escChr);
             continue;
@@ -62,19 +69,20 @@ void XTernalizer::InternalizeValue( Substring& src, AString& dest )
     }
 }
 
-void XTernalizer::ExternalizeValue( Substring& src, AString& dest, character delim )
+void XTernalizer::ExternalizeValue( const String& src, AString& dest, character delim )
 {
-    bool needsQuotes=       src.CharAtStart() == ' '
-                        ||  src.CharAtStart() == '\t'
-                        ||  src.CharAtEnd()   == ' '
-                        ||  src.CharAtEnd()   == '\t'
-                        ||  src.IndexOf( delim ) >= 0;
+    Substring parser(src);
+    bool needsQuotes=    parser.CharAtStart() == ' '
+                      || parser.CharAtStart() == '\t'
+                      || parser.CharAtEnd()   == ' '
+                      || parser.CharAtEnd()   == '\t'
+                      || parser.IndexOf( delim ) >= 0;
     if ( needsQuotes )
         dest._<false>('"');
 
-    while( src.IsNotEmpty() )
+    while( parser.IsNotEmpty() )
     {
-        character c= src.ConsumeChar();
+        character c= parser.ConsumeChar();
 
         switch(c)
         {
@@ -100,12 +108,13 @@ void XTernalizer::ExternalizeValue( Substring& src, AString& dest, character del
 void XTernalizer::LoadFromString( Variable& variable, const String& value )
 {
     variable.ClearValues();
-    AString* varValue= &variable.Add();
+    String512 tempBuf; tempBuf.DbgDisableBufferReplacementWarning();
     Substring src( value );
 
-    if( variable.Delim == '\0' )
+    if( variable.Delim() == '\0' )
     {
-        InternalizeValue( src, *varValue );
+        InternalizeValue( src, tempBuf );
+        variable.Add( tempBuf );
         return;
     }
 
@@ -135,11 +144,12 @@ void XTernalizer::LoadFromString( Variable& variable, const String& value )
             continue;
         }
 
-        if( !inQuote && c == variable.Delim )
+        if( !inQuote && c == variable.Delim() )
         {
             Substring tok= src.Substring<false>( 0, idx - 1 );
-            InternalizeValue( tok, *varValue );
-            varValue= &variable.Add();
+            InternalizeValue( tok, tempBuf );
+            variable.Add(tempBuf);
+            tempBuf.Reset();
             src.ConsumeChars( idx );
             src.TrimStart();
             idx= 0;
@@ -148,33 +158,50 @@ void XTernalizer::LoadFromString( Variable& variable, const String& value )
 
     if ( src.IsNotEmpty() )
     {
-        InternalizeValue( src, *varValue );
+        InternalizeValue( src, tempBuf );
+        variable.Add( tempBuf );
     }
 }
 
 // #################################################################################################
 // CLIArgs
 // #################################################################################################
-bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
+String CLIArgs::Name()                                                                         const
+{
+   return CONFIG.GetResource( "CfgPlgCLI" );
+}
+
+bool  CLIArgs::Load( Variable& variable, bool searchOnly )
 {
     // check if category may me left out
     bool allowWithoutCategory= false;
     for (auto& defaultCategory : DefaultCategories )
-        if( (allowWithoutCategory= variable.Category.Equals( defaultCategory )) == true )
+        if( (allowWithoutCategory= variable.Category().Equals( defaultCategory )) == true )
             break;
 
     String256   stringConverter;
     stringConverter.DbgDisableBufferReplacementWarning();
 
-    size_t qtyArgs= args != nullptr ?  args->size()
-                                    :  argCount;
-    for ( size_t i= args != nullptr ? 0 : 1 ; i < qtyArgs ; i++ )
+
+    size_t qtyArgs=  argCount;
+    std::vector<AString>::iterator argsIt;
+    if( !AlternativeArgs.empty() )
+    {
+        argCount= AlternativeArgs.size();
+        argsIt  = AlternativeArgs.begin();
+    }
+
+
+    for ( size_t i= !AlternativeArgs.empty() ? 0 : 1 ; i < qtyArgs ; ++i )
     {
         // create sub-string on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
 
-        if( args != nullptr )
-            cliArg= (*args)[i];
+        if( !AlternativeArgs.empty() )
+        {
+            cliArg= *argsIt;
+            ++argsIt;
+        }
         else
         {
             if (!wArgs)
@@ -208,11 +235,11 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
 
         // try names
 
-        if (    !                          cliArg.ConsumeString<Case::Ignore>( variable.Fullname )
-             && !( allowWithoutCategory && cliArg.ConsumeString<Case::Ignore>( variable.Name     )  )
+        if (    !                          cliArg.ConsumeString<Case::Ignore>( variable.Fullname() )
+             && !( allowWithoutCategory && cliArg.ConsumeString<Case::Ignore>( variable.Name()     )  )
              && !(    AllowedMinimumShortCut > 0
-                   && (                            cliArg.ConsumePartOf( variable.Fullname, AllowedMinimumShortCut + 1 + static_cast<int>(variable.Category.Length()) )
-                       ||( allowWithoutCategory && cliArg.ConsumePartOf( variable.Name    , AllowedMinimumShortCut ) )
+                   && (                            cliArg.ConsumePartOf( variable.Fullname(), AllowedMinimumShortCut + 1 + static_cast<int>(variable.Category().Length()) )
+                       ||( allowWithoutCategory && cliArg.ConsumePartOf( variable.Name()    , AllowedMinimumShortCut ) )
                       )
                  )
            )
@@ -222,7 +249,7 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )  const
         if ( cliArg.IsEmpty() )
         {
             if ( !searchOnly )
-                variable.Add();
+                variable.Add(A_CHAR(""));
             return true;
         }
 
@@ -275,16 +302,20 @@ namespace detail {
 
 bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName, Variable& variable )
 {
-    // clear variable name at least. Values remain, until something was found. The caller has
-    // to check the result anyhow!
-    variable.Name.Reset();
+    variable.Reset(CurrentData::Clear);
 
-    size_t qtyArgs= cliArgs.args != nullptr ?  cliArgs.args->size()
-                                            :  cliArgs.argCount;
+    size_t qtyArgs=  cliArgs.argCount;
+    std::vector<AString>::iterator argsIt;
+    if( !cliArgs.AlternativeArgs.empty() )
+    {
+        qtyArgs= cliArgs.AlternativeArgs.size();
+        argsIt= cliArgs.AlternativeArgs.begin();
+    }
+
     if( nextArgNo >= qtyArgs )
         return false;
 
-    // check if category may me left out
+    // check if category may have been left out
     bool allowWithoutCategory= false;
     for (auto& defaultCategory : cliArgs.DefaultCategories )
         if( (allowWithoutCategory= sectionName.Equals( defaultCategory )) == true )
@@ -294,14 +325,17 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
     stringConverter.DbgDisableBufferReplacementWarning();
 
     // skip index 0 (command name) if not special args string vector set.
-    if( nextArgNo == 0 && cliArgs.args == nullptr )
+    if( nextArgNo == 0 && cliArgs.AlternativeArgs.empty() )
         nextArgNo= 1;
     while( nextArgNo < qtyArgs )
     {
         // create sub-string on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
-        if( cliArgs.args != nullptr )
-            cliArg= (*cliArgs.args)[nextArgNo];
+        if( !cliArgs.AlternativeArgs.empty() )
+        {
+            cliArg= *argsIt;
+            ++argsIt;
+        }
         else
         {
             if (!cliArgs.wArgs)
@@ -326,7 +360,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
             }
         }
         cliArg.Trim();
-        nextArgNo++;
+        ++nextArgNo;
 
         // request '-' and allow a second '-'
         if ( !cliArg.ConsumeChar('-') )
@@ -372,11 +406,17 @@ Environment::Environment()
 {
 }
 
-bool  Environment::Load( Variable& variable, bool searchOnly )  const
+String  Environment::Name()                                                                    const
 {
-    String256 value;
-    value.DbgDisableBufferReplacementWarning();
-    system::GetEnvironmentVariable( variable.Fullname, value, CurrentData::Keep );
+   return CONFIG.GetResource( "CfgPlgEnv" );
+}
+
+bool  Environment::Load( Variable& variable, bool searchOnly )
+{
+    String256 value;                value             .DbgDisableBufferReplacementWarning();
+    String256 nameZeroTerminated;   nameZeroTerminated.DbgDisableBufferReplacementWarning();
+    nameZeroTerminated << variable.Fullname();
+    system::GetEnvironmentVariable( nameZeroTerminated, value, CurrentData::Keep );
     if ( value.IsEmpty() )
         return false;
 

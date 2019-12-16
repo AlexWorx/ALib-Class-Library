@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_threads of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCK
 #define HPP_ALIB_THREADS_THREADLOCK 1
 
@@ -15,20 +16,21 @@
     #include <condition_variable>
 #endif
 
+#if !defined (_GLIBCXX_THREAD) && !defined (_THREAD_ )
+#   include <thread>
+#endif
 
-namespace aworx {
 
+namespace aworx { namespace lib { namespace threads {
 
-namespace lib { namespace threads { class Thread; }}
-
-using Thread = aworx::lib::threads::Thread;
-namespace lib { namespace threads {
+// forwards
+class     Thread;
+namespace detail { ALIB_API Thread* getThread(std::thread::id c11ID ); }
 
 /** ************************************************************************************************
  * While this class does not inherit from \alib{threads,ThreadLockNR}, it copies and extends its
  * interface and functionality.
- * Repeated acquisitions without prior invocations of #Release are supported with this type.
- *
+ * With this lock, nested acquisitions are supported with this type.
  * An instance of this class is released when an equal amount of invocations to #Acquire and
  * #Release have been performed.
  *
@@ -38,10 +40,14 @@ namespace lib { namespace threads {
  * In other words, a software's algorithmic logic should by principle never use information about
  * the thread that currently owns a lock.
  *
- * In debug compilations, a warning threshold for the number of repeated acquisitions can be
- * defined with public member #RecursionWarningThreshold. As the member's name indicates, it
+ * With debug builds, a warning threshold for the number of repeated acquisitions can be
+ * defined with public member #DbgRecursionWarningThreshold. As the member's name indicates, it
  * is \e assumed that too many repeated locks are caused by a recursive calls. Usually, locking
- * data access should not be done in recursive code.
+ * data access should not be done in recursive code.<br>
+ * Furthermore, field #DbgWarningAfterWaitTimeInMillis enables the raise of \alib warnings in case
+ * certain wait time is exceeded. Along with the warning, the owner and waiting threads' names
+ * and IDs are given, along with both source code location of the acquisition, respectively, the
+ * failed acquistion.
  **************************************************************************************************/
 class ThreadLock
 {
@@ -49,47 +55,54 @@ class ThreadLock
     // Protected fields
     // #############################################################################################
     protected:
-        /** Counter for the number of Acquire() calls of the current thread. */
-        int                         cntAcquirements                                              =0;
-
         /** Thread ID of the current owner. */
-        Thread*                     owner;
+        std::thread::id             owner;
 
         /** The internal object to lock on. */
+        mutable
         std::mutex                  mutex;
 
         /** The internal object to lock on. */
         std::condition_variable     mutexNotifier;
 
+        /** Counter for the number of Acquire() calls of the current thread. */
+        uint16_t                    cntAcquirements                                              =0;
+
+        /** The safeness setting. */
+        Safeness                    safeness;
+
     // #############################################################################################
     // Public fields
     // #############################################################################################
     public:
-        /**
-         * This is a threshold that causes Acquire() to send a warning to
-         * \alib{results,ReportWriter} if
-         * acquiring the access takes longer than the given number of milliseconds.
-         * To disable such messages, set this value to 0. Default is 1 second.
-         */
-        integer                     WaitWarningTimeLimitInMillis                             =1000L;
-
         #if ALIB_DEBUG
-            /** Debug information on acquirement location. */
-            NCString                acquirementSourcefile                                  =nullptr;
+            /**
+             * This is a threshold that causes Acquire() to raise an \alib warning in debug builds,
+             * if acquiring this lock takes longer than the given number of milliseconds.
+             * Such warning is often a quick first hint for a racing condition.
+             *
+             * To disable such messages, set this value to 0.
+             * The default value is <b>2,000</b> (two seconds), which seems "very long", but can
+             * happen on systems with heavy load.
+             */
+            integer                 DbgWarningAfterWaitTimeInMillis                          =2000L;
 
-            /** Debug information on acquirement location. */
-            int                     acquirementLineNumber;
+            /** Location of acquirement. (Available only in debug-builds.). */
+            NCString                DbgOwnerFile                                           =nullptr;
 
-            /** Debug information on acquirement location. */
-            NCString                acquirementMethodName                                  =nullptr;
+            /** Location of acquirement. (Available only in debug-builds.). */
+            int                     DbgOwnerLine;
+
+            /** Location of acquirement. (Available only in debug-builds.). */
+            NCString                DbgOwnerFunc                                           =nullptr;
 
             /**
-             * Limit of recursions. If limit is reached or a multiple of it, an error is is passed
-             * to \alib{results,ReportWriter}. Defaults is \c 10 in case of recursive instances,
-             * to \c 1 otherwise.
+             * Limit of recursions. If limit is reached or a multiple of it, an error is passed
+             * to \alib{results,ReportWriter}.
+             * Defaults is \c 10. To disable, set to \c 0.
              * Available only in debug versions of \alib.
              */
-            int                     RecursionWarningThreshold                                   =10;
+            uint16_t               DbgRecursionWarningThreshold                                 =10;
         #endif
 
     // #############################################################################################
@@ -131,32 +144,38 @@ class ThreadLock
          *
          *          sample.Acquire( ALIB_CALLER_PRUNED );
          *
-         * @param file  Caller information. Available only in debug compilations.
-         * @param line  Caller information. Available only in debug compilations.
-         * @param func  Caller information. Available only in debug compilations.
+         * @param dbgFile  Caller information. Available only with debug builds.
+         * @param dbgLine  Caller information. Available only with debug builds.
+         * @param dbgFunc  Caller information. Available only with debug builds.
          ******************************************************************************************/
          ALIB_API
          #if ALIB_DEBUG
-                  void          Acquire( const NCString& file, int line, const NCString& func );
+            void        Acquire( const NCString& dbgFile, int dbgLine, const NCString& dbgFunc );
          #else
-                  void          Acquire();
+            void        Acquire();
          #endif
 
         /** ****************************************************************************************
          * Releases ownership of this object. If #Acquire was called multiple times before, the same
          * number of calls to this method have to be performed to release ownership.
          ******************************************************************************************/
-        ALIB_API  void          Release();
+        ALIB_API
+        void            Release();
 
         /** ****************************************************************************************
          * Returns \c true if the next invocation of #Release will release the lock, otherwise
          * \c false. In other words, returns \c true if this lock is \ref Acquire "acquired" exactly
-         * once.
-         * and \c 1.
+         * \c 1.
+         *
+         * \note
+         *   This method is not (and can not) be synchronized. Consequently, a reliable result
+         *   is only guaranteed if #IsOwnedByCurrentThread returns \c true.
+         *   This method is therefore deemed to be used only in situations where it is assured
+         *   that this lock is owned by the current thread.
          *
          * @return \c true if locked exactly once.
          ******************************************************************************************/
-        inline    bool          WillRelease()   const
+        bool            WillRelease()                                                          const
         {
             return cntAcquirements == 1;
         }
@@ -167,10 +186,23 @@ class ThreadLock
          *
          * @return The thread that owns this lock.
          ******************************************************************************************/
-        inline    Thread*       Owner()         const
+        bool            IsOwnedByCurrentThread()                                              const
         {
-            return reinterpret_cast<integer>(owner) == 1   ?  nullptr
-                                                           :  owner;
+            return owner == std::this_thread::get_id();
+        }
+
+        /** ****************************************************************************************
+         * Returns the current owner of this lock. If not acquired, \c nullptr is returned.
+         *
+         * \see Method #IsOwnedByCurrentThread.
+         * @return The thread that owns this lock.
+         ******************************************************************************************/
+        Thread*         GetOwner()                                                            const
+        {
+            std::thread::id id= owner; // this makes this method sort of "thread safe"
+            if( id == std::thread::id() )
+                return nullptr;
+            return detail::getThread( id );
         }
 
         /** ****************************************************************************************
@@ -178,7 +210,7 @@ class ThreadLock
          *
          * @return The number of (recursive) acquirements.
          ******************************************************************************************/
-        inline int              CountAcquirements()   const
+        int           CountAcquirements()                                                      const
         {
             return cntAcquirements;
         }
@@ -195,17 +227,16 @@ class ThreadLock
          * @param safeness  Determines if this object should use a mutex (\c Safeness::Safe)
          *                  or just do nothing (\c Safeness::Unsafe).
          ******************************************************************************************/
-        ALIB_API  void          SetSafeness( Safeness safeness );
+        ALIB_API
+        void          SetSafeness( Safeness safeness );
 
         /** ****************************************************************************************
          *  Query if this instance was set to unsafe mode.
          * @return A value of type aworx::lib::Safeness "Safeness"
          ******************************************************************************************/
-        inline
-        Safeness                GetSafeness()  const
+        Safeness      GetSafeness()                                                            const
         {
-            return reinterpret_cast<integer>(owner) == 1 ? Safeness::Unsafe
-                                                         : Safeness::Safe;
+            return safeness;
         }
 };
 
@@ -213,7 +244,7 @@ class ThreadLock
 }} // namespace aworx[::lib::threads]
 
 /// Type alias in namespace #aworx.
-using     ThreadLock=   aworx::lib::threads::ThreadLock;
+using     ThreadLock=   lib::threads::ThreadLock;
 
 }  // namespace [aworx]
 

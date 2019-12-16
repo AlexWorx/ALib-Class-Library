@@ -6,29 +6,29 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_RESULTS_RESULTS)
-#   include "alib/results/results.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESULTS_ICLONEMESSAGEARGUMENT)
-#   include "alib/results/iclonemessageargument.hpp"
-#endif
-
-#if !defined (HPP_ALIB_BOXING_ENUM)
-#    include "alib/boxing/enum.hpp"
-#endif
-
-#if !defined (HPP_ALIB_LIB_ALIBMODULES)
-#    include "alib/lib/alibmodules.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#    include "alib/resources/resources.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGFORMAT_STRINGFORMAT)
-#   include "alib/stringformat/stringformat.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_RESULTS_RESULTS)
+#      include "alib/results/results.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESULTS_ICLONEMESSAGEARGUMENT)
+#      include "alib/results/iclonemessageargument.hpp"
+#   endif
+#   if !defined (HPP_ALIB_BOXING_ENUM)
+#      include "alib/boxing/enum.hpp"
+#   endif
+#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
+#      include "alib/lib/fs_modules/distribution.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
+#      include "alib/resources/resources.hpp"
+#   endif
+#   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
+#      include "alib/enums/recordbootstrap.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESULTS_REPORT)
+#      include "alib/results/report.hpp"
+#   endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib {
 
@@ -43,18 +43,16 @@ results::Results RESULTS;
  */
 namespace results {
 
-
 // #################################################################################################
 // Replacement method for ALib Essential Reports
 // #################################################################################################
-
 #if ALIB_DEBUG
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 namespace {
 #endif
     /**
      * This method is installed with \alib{DBG_SIMPLE_ALIB_MSG_PLUGIN} in method
-     * \alib{Module::init}.
+     * \alib{Module::bootstrap}.
      *
      * The message strings are simply passed to the default \alib{results,Report}.
      * This way, the essential assert, error and message macros are using the \alib report system
@@ -73,33 +71,28 @@ namespace {
     {
         Message message( file,line,method, Report::Types(type), msgs[0] );
         for (int i= 1; i< qtyMsgs; ++i )
-            message.Args.Add( msgs[i] );
+            message.Add( msgs[i] );
         Report::GetDefault().DoReport( message );
     }
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 } // anonymous namespace
 #endif
 #endif // ALIB_DEBUG
-
 
 // #################################################################################################
 // Module class Messages
 // #################################################################################################
 Results::Results()
-: Module( ALIB_VERSION, ALIB_REVISION, "ALIB_RESULTS" )
+: Module( ALIB_VERSION, ALIB_REVISION, "RSLTS" )
 {
     ALIB_ASSERT_ERROR( this == &RESULTS,
         "Instances of class Results must not be created. Use singleton aworx::lib::RESULTS" )
-
-    auto& moduleStringFormat= lib::STRINGFORMAT;
-    Dependencies.emplace_back( &moduleStringFormat );
-    moduleStringFormat.Dependencies.emplace_back( this );
 }
 
 
-void Results::init( InitLevels level, int, const char**, const wchar_t** )
+void Results::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
 {
-    if( level == InitLevels::PrepareResources )
+    if( phase == BootstrapPhases::PrepareResources )
     {
         ALIB.CheckDistribution();
 
@@ -109,33 +102,46 @@ void Results::init( InitLevels level, int, const char**, const wchar_t** )
 
 
 
-        Resources->AddBulk( ResourceCategory,
+#if !ALIB_RESOURCES_OMIT_DEFAULTS
+        resourcePool->BootstrapBulk( ResourceCategory,
 
-        // aworx::lib::results::Exceptions
-        "ExceptionsPrefix"  , A_CHAR("") ,
-        "ExceptionsPostfix" , A_CHAR("")       ,
-        "Exceptions"        , A_CHAR("1,ErrorWritingReport,EX1") ,
+        //#####################   aworx::lib::results::Exceptions   ################################
+        "E<", A_CHAR("results::") ,
+        "E" , A_CHAR("1,ErrorWritingReport,E1") ,
 
-        "EX1"  , A_CHAR("Error writing ALib report."),
+        "E1", A_CHAR("Error writing ALib report."),
 
-        // end of AddBulk()
+        //#####################################    Various    ######################################
+        "ExcFmtExc",       A_CHAR("\nAn exception occurred while formatting another (!) exception:\n" ),
+        "RepFmtExc",       A_CHAR("\nAn exception occurred while formatting an ALib report (!):\n" ),
+
+
+        // end of BootstrapBulk()
         nullptr );
+#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
+    }
+
+    else if( phase == BootstrapPhases::PrepareConfig )
+    {
+        EnumRecords<Exceptions>::Bootstrap();
     }
 
 }
 
-void Results::terminationCleanUp()
+void Results::shutdown( ShutdownPhases phase )
 {
-    Report::TerminationCleanUp();
-}
+    if( phase == ShutdownPhases::Destruct )
+    {
+        #if ALIB_DEBUG
+            lib::DBG_SIMPLE_ALIB_MSG_PLUGIN= nullptr;
+        #endif
 
+        if ( Report::defaultReport != nullptr )
+            delete Report::defaultReport;
 
-// #################################################################################################
-// class Message
-// #################################################################################################
-void   Message::CloneArguments( memory::MemoryBlocks& memoryBlocks )
-{
-    Args.CallAll<boxing::FClone>( memoryBlocks );
+        if( ReportWriterStdIO::singleton )
+            delete ReportWriterStdIO::singleton;
+    }
 }
 
 

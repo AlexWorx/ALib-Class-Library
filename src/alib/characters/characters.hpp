@@ -1,47 +1,58 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Essential ALib types needed by every module
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_characters of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARACTERS
 #define HPP_ALIB_CHARACTERS_CHARACTERS 1
 
-#if !defined(HPP_ALIB_CHARACTERS_PREDEF)
-#   include "alib/characters/characters_predef.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CHARACTERS)
 
-#if !defined(HPP_ALIB_LIB_PREDEF_COMPILER)
-#   include "alib/lib/predef_compiler.hpp"
+#if !defined(HPP_ALIB_TOOLS) && !defined(ALIB_DOX)
+#   include "alib/lib/tools.hpp"
 #endif
 
-#if !defined(HPP_ALIB_LIB_PREDEF_PLATFORM)
-#   include "alib/lib/predef_platform.hpp"
+#if !defined(HPP_ALIB_FEATURES) && !defined(ALIB_DOX)
+#   include "alib/lib/features.hpp"
 #endif
 
-#if !defined(HPP_ALIB_LIB_PREDEF_TOOLS)
-#   include "alib/lib/predef_tools.hpp"
+#if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
+#   include "alib/lib/tmp.hpp"
 #endif
 
-#if !defined(HPP_ALIB_LIB_PREDEF_FEATURES)
-#   include "alib/lib/predef_features.hpp"
-#endif
-
-#if !defined(HPP_ALIB_LIB_PREDEF_TMP)
-#   include "alib/lib/predef_tmp.hpp"
-#endif
-
-#if !defined(HPP_ALIB_LIB_INTEGERS)
-#   include "alib/lib/integers.hpp"
+#if !defined(HPP_ALIB_FS_INTEGERS_INTEGERS)
+#   include "alib/lib/fs_integers/integers.hpp"
 #endif
 
 #if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
 #   include <string>
 #endif
+
+
+//##################################################################################################
+// Compiler Symbols
+//##################################################################################################
+
+#if !defined(ALIB_CHARACTERS_WIDE)
+#   if defined(_MSC_VER)
+#      define ALIB_CHARACTERS_WIDE 1
+#   else
+#      define ALIB_CHARACTERS_WIDE 0
+#   endif
+#endif
+
+#if !defined(ALIB_CHARACTERS_SIZEOF_WCHAR)
+#   define ALIB_CHARACTERS_SIZEOF_WCHAR   ALIB_SIZEOF_WCHAR_T
+#elif  (ALIB_CHARACTERS_SIZEOF_WCHAR != 2) && (ALIB_CHARACTERS_SIZEOF_WCHAR != 4 )
+#   error "Illegal value for symbol ALIB_CHARACTERS_SIZEOF_WCHAR given. Allowed is 2 or 4."
+#endif
+
 
 namespace aworx { namespace lib { namespace characters {
 
@@ -56,25 +67,31 @@ namespace aworx { namespace lib { namespace characters {
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using nchar=    char;
 
 // #################################################################################################
 // Wide types: wchar, xchar
 // #################################################################################################
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_CHARACTERS_NATIVE_WCHAR)
+#   error "Preprocessor symbol ALIB_CHARACTERS_NATIVE_WCHAR must not be passed to the compiler. It is deduced in ALib headers."
+#endif
+
+
+
+#if defined(ALIB_DOX)
 /**
  * This type represents a wide character in \alib.
  * Usually this is an alias for built-in C++ type \c wchar_t.
- * As the width of the latter is compiler-specific (the width may vary with compilers even on the
- * same platform), compilation symobls \ref ALIB_CHARACTERS_FORCE_WIDE_2_BYTES_ON or
- * \ref ALIB_CHARACTERS_FORCE_WIDE_4_BYTES_ON, are provided to manipulate its width.
+ * As the width of the latter is compiler-specific (the width may vary with different compilers even
+ * on the same platform), compiler symobls \ref ALIB_CHARACTERS_SIZEOF_WCHAR may be used to
+ * manipulate its width.
  *
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using wchar=    PLATFORM_SPECIFIC;
 
@@ -89,11 +106,11 @@ using wchar=    PLATFORM_SPECIFIC;
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using xchar     =  PLATFORM_SPECIFIC;
 
-#else // !ALIB_DOCUMENTATION_PARSER
+#else // !defined(ALIB_DOX)
 
     #define A_NCHAR(STR)  STR
 
@@ -137,14 +154,14 @@ using xchar     =  PLATFORM_SPECIFIC;
     #endif
 
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 
 
 // #################################################################################################
 // Logical types: character, complementChar and strangeChar
 // #################################################################################################
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 /**
  * This type represents a standard \alib character.
  * The width (size) of a character is dependent on the platform and compilation flags.
@@ -154,7 +171,7 @@ using xchar     =  PLATFORM_SPECIFIC;
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using character= PLATFORM_SPECIFIC;
 
@@ -170,23 +187,23 @@ using character= PLATFORM_SPECIFIC;
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using complementChar= PLATFORM_SPECIFIC;
 
 /**
  * Besides types \ref aworx::character and \ref aworx::complementChar, this is the third
  * logical character type defined by \alib.<br>
- * Independent from compiler defaults and compilation symbols provided, this type always
+ * Independent from compiler defaults and optional compiler symbols provided, this type always
  * is equivalent to type \alib{characters,xchar}
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alibmod_nolink_characters.
+ *   Programmer's Manual of module \alib_characters_nl.
  */
 using strangeChar= PLATFORM_SPECIFIC;
 
-#elif ALIB_CHARACTERS_ARE_NARROW
+#elif !ALIB_CHARACTERS_WIDE
     using character=        nchar;
     using complementChar=   wchar;
     using strangeChar=      xchar;
@@ -266,7 +283,7 @@ enum class ConstructionType
  *
  * \see
  *   For detailed information, see chapter \ref alib_characters_arrays "4. Character Arrays" of
- *   the Programmer's Manual of module \alibmod_characters.
+ *   the Programmer's Manual of module \alib_characters.
  *
  * @tparam TString     The type for which specializations of this struct provide array type traits.
  * @tparam TChar       The character type of the character array that specializations provide
@@ -284,7 +301,7 @@ struct T_CharArray
      *  character array data.*/
     static constexpr    ConstructionType   Construction=   ConstructionType::NONE;
 
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** ********************************************************************************************
      * In specialized versions, this method has to be provided in case that field #Access is
      * not equal to \alib{characters,AccessType::NONE}.
@@ -301,7 +318,7 @@ struct T_CharArray
      * @returns Specializatins have to return a pointer to the start of the character array
      *          represented by the given object \p{src} of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     const TChar* Buffer( const TString& src );
 
     /** ********************************************************************************************
@@ -320,7 +337,7 @@ struct T_CharArray
      * @returns Specializatins have to return the length of the character array
      *          represented by the given object \p{src} of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     integer Length( const TString& src );
 
     /** ********************************************************************************************
@@ -334,7 +351,7 @@ struct T_CharArray
      * @param  length The length of the external array.
      * @returns A new instance (value) of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     TString      Construct(  const TChar* array, integer length );
 #endif
 };
@@ -348,7 +365,7 @@ struct T_CharArray
  *
  * \see
  *   For detailed information, see chapter \ref alib_characters_arrays "4. Character Arrays" of
- *   the Programmer's Manual of module \alibmod_characters.
+ *   the Programmer's Manual of module \alib_characters.
  *
  * @tparam TString     The type for which specializations of this struct provide array type traits.
  * @tparam TChar       The character type of the character array that specializations provide
@@ -358,7 +375,7 @@ struct T_CharArray
 template<typename TString, typename TChar, typename TEnableIf= void>
 struct T_ZTCharArray
 {
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
         static constexpr    AccessType         Access      =   AccessType::NONE;
         static constexpr    ConstructionType   Construction=   ConstructionType::NONE;
     #else
@@ -370,7 +387,7 @@ struct T_ZTCharArray
      * @returns Specializatins have to return a pointer to the start of the zero-terminated
      *          character array represented by the given object \p{src} of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     const TChar* Buffer( const TString& src );
 
     /** ********************************************************************************************
@@ -381,7 +398,7 @@ struct T_ZTCharArray
      * @returns Specializatins have to return the length of the character array
      *          represented by the given object \p{src} of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     integer Length( const TString& src );
 
     /** ********************************************************************************************
@@ -392,7 +409,7 @@ struct T_ZTCharArray
      * @param  length The length of the external array.
      * @returns A new instance (value) of type \p{TString}.
      **********************************************************************************************/
-    static inline
+    static
     TString      Construct(  const TChar* array, integer length );
 #endif
 
@@ -444,7 +461,7 @@ struct TT_ZTCharArrayType : std::false_type
     using TChar= void;
 };
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,nchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= nchar; };
 template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,wchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= wchar; };
 template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,xchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= xchar; };
@@ -458,7 +475,7 @@ template<typename T> struct TT_ZTCharArrayType<T, typename std::enable_if<charac
 // Helper macros to specialize T_CharArray/T_ZTCharArray
 // #################################################################################################
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 #define ALIB_CHARACTER_ARRAY_internal( C_ZTC, TString, TChar, Const, pAccess, pConstruction)       \
 template<>  struct     T_ ## C_ZTC ## harArray<TString, TChar>                                     \
@@ -490,96 +507,96 @@ ALIB_CHARACTER_ARRAY_internal(    ZTC,   TString, TChar,      , MutableOnly, Con
 
 
 #define ALIB_CHARACTER_ARRAY_IMPL_BUFFER(           TString, TChar, ... )                         \
-inline const TChar*  T_CharArray<TString,TChar>::Buffer(TString const&  src ) { __VA_ARGS__ }
+const TChar*  T_CharArray<TString,TChar>::Buffer(TString const&  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ARRAY_IMPL_LENGTH(           TString, TChar, ... )                         \
-inline integer       T_CharArray<TString,TChar>::Length(TString const&  src ) { __VA_ARGS__ }
+integer       T_CharArray<TString,TChar>::Length(TString const&  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE(   TString, TChar, ... )                          \
-inline const TChar*  T_CharArray<TString,TChar>::Buffer(TString      &  src ) { __VA_ARGS__ }
+const TChar*  T_CharArray<TString,TChar>::Buffer(TString      &  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ARRAY_IMPL_LENGTH_MUTABLE(   TString, TChar, ... )                          \
-inline integer       T_CharArray<TString,TChar>::Length(TString      &  src ) { __VA_ARGS__ }
+integer       T_CharArray<TString,TChar>::Length(TString      &  src ) { __VA_ARGS__ }
 
-#define ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT(        TString, TChar, ... )                      \
-inline     TString  T_CharArray  <TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
+#define ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT(        TString, TChar, ... )                          \
+    TString  T_CharArray  <TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER(        TString, TChar, ... )                          \
-inline const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString const&  src ) { __VA_ARGS__ }
+const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString const&  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH(        TString, TChar, ... )                          \
-inline integer      T_ZTCharArray<TString,TChar>::Length( TString const&  src ) { __VA_ARGS__ }
+integer      T_ZTCharArray<TString,TChar>::Length( TString const&  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER_MUTABLE(TString, TChar, ... )                          \
-inline const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString      &  src ) { __VA_ARGS__ }
+const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString      &  src ) { __VA_ARGS__ }
 
 #define ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH_MUTABLE(TString, TChar, ... )                          \
-inline integer      T_ZTCharArray<TString,TChar>::Length( TString      &  src ) { __VA_ARGS__ }
+integer      T_ZTCharArray<TString,TChar>::Length( TString      &  src ) { __VA_ARGS__ }
 
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT(     TString, TChar, ... )                      \
-inline     TString  T_ZTCharArray<TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
+#define ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT(     TString, TChar, ... )                          \
+    TString  T_ZTCharArray<TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
 
 
 // #################################################################################################
 // Specializations of T_CharArray and T_ZTCharArray for const and non-const character pointer types
 // #################################################################################################
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 // Fixed length arrays
 template<size_t TCapacity, typename TChar>
 struct T_CharArray<TChar[TCapacity], TChar>
 {
-    static        constexpr AccessType     Access       =       AccessType::Implicit;
-    static inline constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static inline constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
+    static constexpr AccessType     Access       =       AccessType::Implicit;
+    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
+    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
 };
 
 
 template<size_t TCapacity, typename TChar>
 struct T_ZTCharArray<TChar[TCapacity], TChar>
 {
-    static        constexpr AccessType     Access       =       AccessType::Implicit;
-    static inline constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static inline constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
+    static constexpr AccessType     Access       =       AccessType::Implicit;
+    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
+    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
 };
 
 // constant character pointers
 template<typename TChar> struct T_CharArray<TChar const*, TChar>
 {
-    static        constexpr AccessType        Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static inline constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
-    static inline constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static inline constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
+    static constexpr AccessType        Access       =       AccessType::Implicit;
+    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
+    static constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
+    static constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
+    static constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
 };
 
 template<typename TChar> struct T_ZTCharArray<TChar const*, TChar>
 {
-    static        constexpr AccessType        Access       =       AccessType::Implicit;
-    static        constexpr ConstructionType  Construction = ConstructionType::Implicit;
-    static inline constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
-    static inline constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static inline constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
+    static constexpr AccessType        Access       =       AccessType::Implicit;
+    static constexpr ConstructionType  Construction = ConstructionType::Implicit;
+    static constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
+    static constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
+    static constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
 };
 
 // mutable character pointers:
 template<typename TChar> struct T_CharArray<TChar*, TChar>
 {
-    static        constexpr AccessType        Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static inline constexpr const TChar*      Buffer(      TChar* const & src       ) { return src;  }
-    static inline constexpr integer           Length(      TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static inline constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
+    static constexpr AccessType        Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
+    static constexpr const TChar*      Buffer(      TChar* const & src       ) { return src;  }
+    static constexpr integer           Length(      TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
+    static constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
 };
 
 // mutable character pointers:
 template<typename TChar> struct T_ZTCharArray<TChar*, TChar>
 {
-    static        constexpr AccessType        Access       =       AccessType::ExplicitOnly;
-    static        constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static inline constexpr const TChar*      Buffer(     TChar* const & src        ) { return src;  }
-    static inline constexpr integer           Length(     TChar* const & src        ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static inline constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
+    static constexpr AccessType        Access       =       AccessType::ExplicitOnly;
+    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
+    static constexpr const TChar*      Buffer(     TChar* const & src        ) { return src;  }
+    static constexpr integer           Length(     TChar* const & src        ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
+    static constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
 };
 
 #endif
@@ -604,7 +621,7 @@ template<typename>  struct TT_ComplementChar
     using type=  void;        ///< Default is void
 };
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 template<>          struct TT_ComplementChar<nchar> { using type=  wchar; };
 template<>          struct TT_ComplementChar<wchar> { using type=  nchar; };
 
@@ -620,7 +637,7 @@ template<>          struct TT_ComplementChar<wchar> { using type=  nchar; };
  * a fixed size of characters is required. Specializations for size values \c 1, \c 2 and \c 4
  * exists.
  *
- * As an example, the [QT Class Library](https://www.qt.io) uses a 2-byte character width,
+ * As an example, the \https{QT Class Library,www.qt.io} uses a 2-byte character width,
  * independent from compiler and platform. Therefore, to convert a \b QT character value to
  * an \alib character value, the destination type is:
  *
@@ -630,14 +647,14 @@ template<>          struct TT_ComplementChar<wchar> { using type=  nchar; };
  */
 template<int TCharSize> struct TT_CharOfSize : public std::false_type
 {
-    #if ALIB_DOCUMENTATION_PARSER
+    #if defined(ALIB_DOX)
     /** One of the \alib character types, \alib{characters,nchar}, \alib{characters,wchar} or
      *  \alib{characters,xchar}. */
     using type= void;
     #endif
 };
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 template<>   struct TT_CharOfSize<sizeof(nchar)> : public std::true_type     { using type= nchar; };
 template<>   struct TT_CharOfSize<sizeof(wchar)> : public std::true_type     { using type= wchar; };
 template<>   struct TT_CharOfSize<sizeof(xchar)> : public std::true_type     { using type= xchar; };
@@ -656,7 +673,7 @@ template<>   struct TT_CharOfSize<sizeof(xchar)> : public std::true_type     { u
  */
 template<typename TChar> struct TT_IsChar : public std::false_type {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 template<>   struct TT_IsChar<nchar> : public std::true_type {};
 template<>   struct TT_IsChar<wchar> : public std::true_type {};
 template<>   struct TT_IsChar<xchar> : public std::true_type {};
@@ -666,22 +683,22 @@ template<>   struct TT_IsChar<xchar> : public std::true_type {};
 
 
 /// Type alias in namespace #aworx.
-using  nchar         = aworx::lib::characters::nchar;
+using  nchar         = lib::characters::nchar;
 
 /// Type alias in namespace #aworx.
-using  wchar         = aworx::lib::characters::wchar;
+using  wchar         = lib::characters::wchar;
 
 /// Type alias in namespace #aworx.
-using  xchar         = aworx::lib::characters::xchar;
+using  xchar         = lib::characters::xchar;
 
 /// Type alias in namespace #aworx.
-using  character     = aworx::lib::characters::character;
+using  character     = lib::characters::character;
 
 /// Type alias in namespace #aworx.
-using  complementChar= aworx::lib::characters::complementChar;
+using  complementChar= lib::characters::complementChar;
 
 /// Type alias in namespace #aworx.
-using  strangeChar   = aworx::lib::characters::strangeChar;
+using  strangeChar   = lib::characters::strangeChar;
 
 } // namespace [aworx]
 

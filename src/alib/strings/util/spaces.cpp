@@ -6,10 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/spaces.hpp"
-#include "alib/strings/astring.hpp"
+#if !defined(ALIB_DOX)
+#if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
+    #include "alib/strings/util/spaces.hpp"
+#endif
+#if !defined (HPP_ALIB_STRINGS_ASTRING)
+    #include "alib/strings/astring.hpp"
+#endif
 
 #include <ostream>
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 

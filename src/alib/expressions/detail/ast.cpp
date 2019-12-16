@@ -6,17 +6,24 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
-#   include "alib/expressions/detail/ast.hpp"
-#endif
+#if !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
+#      include "alib/expressions/detail/ast.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
-#   include "alib/expressions/compilerplugin.hpp"
-#endif
+#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
+#      include "alib/expressions/compilerplugin.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
-#   include "alib/expressions/detail/program.hpp"
-#endif
+#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
+#      include "alib/expressions/detail/program.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
@@ -33,8 +40,8 @@ const String normSpace(A_CHAR(" "));
 const String normBracketOpen[4]  {A_CHAR("("), A_CHAR("( "), A_CHAR(" ("), A_CHAR(" ( ")};
 const String normBracketClose[4] {A_CHAR(")"), A_CHAR(" )"), A_CHAR(") "), A_CHAR(" ) ")};
 
-#define      SPACE(flag)          ( EnumContains(format, Normalization::flag ) ? normSpace : EmptyString() )
-#define COND_SPACE(flag, force) if( EnumContains(format, Normalization::flag ) || force ) normalized << ' '
+#define      SPACE(flag)          ( HasBits(format, Normalization::flag ) ? normSpace : EmptyString() )
+#define COND_SPACE(flag, force) if( HasBits(format, Normalization::flag ) || force ) normalized << ' '
 
 void checkForbiddenStrings( Compiler& compiler, AString& normalized, integer positionToCheck, integer spaceInsertionPos )
 {
@@ -47,16 +54,6 @@ void checkForbiddenStrings( Compiler& compiler, AString& normalized, integer pos
 }
 } // anonymous namespace
 //! @endcond
-
-// #################################################################################################
-// Destructors
-// #################################################################################################
-
-   ASTFunction::~ASTFunction()  { for( auto it: Arguments ) delete it; }
-    ASTUnaryOp::~ASTUnaryOp()   { delete Argument;                     }
-   ASTBinaryOp::~ASTBinaryOp()  { delete Lhs; delete Rhs;              }
-ASTConditional::~ASTConditional() { delete Q; if(T) delete T; delete F;  }
-
 
 // #################################################################################################
 // Optimize implementations
@@ -91,7 +88,7 @@ AST* ASTUnaryOp::Optimize( Normalization normalization )
 {
     Argument= Argument->Optimize( normalization );
 
-    if( EnumContains( normalization, Normalization::RemoveRedundantUnaryOpsOnNumberLiterals ) )
+    if( HasBits( normalization, Normalization::RemoveRedundantUnaryOpsOnNumberLiterals ) )
     {
         if( Argument->NodeType == Types::Literal && (Operator == A_CHAR("+") || Operator == A_CHAR("-")) )
         {
@@ -102,7 +99,6 @@ AST* ASTUnaryOp::Optimize( Normalization normalization )
                 if( Operator.CharAtStart<false>() == '-'  )
                     astLiteral->Value= - astLiteral->Value.Unbox<integer>();
                 Argument= nullptr;
-                delete this;
                 return astLiteral;
             }
 
@@ -111,7 +107,6 @@ AST* ASTUnaryOp::Optimize( Normalization normalization )
                 if( Operator.CharAtStart<false>() == '-'  )
                     astLiteral->Value= - astLiteral->Value.Unbox<double>();
                 Argument= nullptr;
-                delete this;
                 return astLiteral;
             }
         }
@@ -126,7 +121,7 @@ AST* ASTUnaryOp::Optimize( Normalization normalization )
 // Assemble implementations
 // #################################################################################################
 
-void ASTLiteral::Assemble( Program& program, AString & normalized )
+void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalized )
 {
     integer idxInNormalized= normalized.Length();
 
@@ -149,7 +144,7 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
         bool oldState= nf->ForceScientific;
         nf->ForceScientific=     nf->ForceScientific
                              ||(   Format == NFHint::Scientific
-                                && EnumContains(program.compiler.CfgNormalization, Normalization::KeepScientificFormat ) );
+                                && HasBits(program.compiler.CfgNormalization, Normalization::KeepScientificFormat ) );
 
         normalized <<   aworx::Format( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
         nf->ForceScientific=     oldState;
@@ -157,11 +152,11 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
     else if( Value.IsType<integer>() )
     {
         NFHint format= Format;
-             if( EnumContains(program.compiler.CfgNormalization, Normalization::ForceHexadecimal ) )
+             if( HasBits(program.compiler.CfgNormalization, Normalization::ForceHexadecimal ) )
             format= NFHint::Hexadecimal;
-        else if( EnumContains(program.compiler.CfgNormalization, Normalization::ForceOctal       ) )
+        else if( HasBits(program.compiler.CfgNormalization, Normalization::ForceOctal       ) )
             format= NFHint::Octal;
-        else if( EnumContains(program.compiler.CfgNormalization, Normalization::ForceBinary      ) )
+        else if( HasBits(program.compiler.CfgNormalization, Normalization::ForceBinary      ) )
             format= NFHint::Binary;
 
         NumberFormat* nf   = &program.compiler.CfgFormatter->DefaultNumberFormat;
@@ -177,7 +172,7 @@ void ASTLiteral::Assemble( Program& program, AString & normalized )
     program.AssembleConstant( Value, Position, idxInNormalized );
 }
 
-void ASTIdentifier::Assemble( Program& program, AString & normalized )
+void ASTIdentifier::Assemble( Program& program, MonoAllocator&, AString & normalized )
 {
     auto format= program.compiler.CfgNormalization;
 
@@ -188,17 +183,17 @@ void ASTIdentifier::Assemble( Program& program, AString & normalized )
     // -1 indicates that not even parentheses were given
     program.AssembleFunction( identifier, -1, Position, normalized.Length() );
 
-    normalized << (EnumContains( format, Normalization::ReplaceFunctionNames ) ? identifier : Name);
+    normalized << (HasBits( format, Normalization::ReplaceFunctionNames ) ? identifier : Name);
 }
 
 
-void ASTFunction::Assemble( Program& program, AString & normalized )
+void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString& normalized )
 {
     auto format= program.compiler.CfgNormalization;
     String64 functionName;
     functionName.DbgDisableBufferReplacementWarning();
 
-    bool completeIdentifierNames= EnumContains( format, Normalization::ReplaceFunctionNames );
+    bool completeIdentifierNames= HasBits( format, Normalization::ReplaceFunctionNames );
     functionName << Name;
 
     integer namePos= normalized.Length();
@@ -206,12 +201,14 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
     integer nameLen= normalized.Length() - namePos;
     normalized  << SPACE(FunctionSpaceBeforeOpeningBracket);
 
+    auto qtyArgs= Arguments.Size();
+
     // the function used for nested expressions?
     bool replacedNestedExpressionIdentifierByLiteral= false;
     bool thirdArgumentIsThrowIdentifier= false;
     if( program.compiler.CfgNestedExpressionFunction.Match( Name ) )
     {
-        if( Arguments.size() < 1 ||  Arguments.size() > 3 )
+        if( qtyArgs < 1 ||  qtyArgs > 3 )
         {
             throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
                              program.compiler.CfgNestedExpressionFunction );
@@ -219,21 +216,23 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
 
         // if an identifier is given for the first argument, we optionally convert the identifier
         // to a string value.
-        if(     EnumContains( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions)
-            &&  Arguments[0]->NodeType == Types::Identifier                                    )
+        if(     HasBits( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions)
+            &&  (*Arguments.begin())->NodeType == Types::Identifier                                    )
         {
-            ASTIdentifier* astIdentifier= dynamic_cast<ASTIdentifier*>( Arguments[0] );
-            ASTLiteral*    astLiteral   = new ASTLiteral( astIdentifier->Name, astIdentifier->Position );
-            delete astIdentifier;
-            Arguments[0]= astLiteral;
+            ASTIdentifier* astIdentifier= dynamic_cast<ASTIdentifier*>( *Arguments.begin() );
+            ASTLiteral*    astLiteral   = allocator.Emplace<ASTLiteral>( astIdentifier->Name, astIdentifier->Position );
+            *Arguments.begin()= astLiteral;
             replacedNestedExpressionIdentifierByLiteral= true;
         }
 
         // if third parameter given it must be an identifier and equal to "throw"
-        if( Arguments.size() == 3 )
+        if( qtyArgs == 3 )
         {
-            if(    Arguments[2]->NodeType != Types::Identifier
-                || !dynamic_cast<ASTIdentifier*>( Arguments[2] )->Name.Equals<Case::Ignore>(
+            auto argIt= Arguments.begin();
+            ++argIt;
+            ++argIt;
+            if(    (*argIt)->NodeType != Types::Identifier
+                || !dynamic_cast<ASTIdentifier*>( (*argIt) )->Name.Equals<Case::Ignore>(
                                              program.compiler.CfgNestedExpressionThrowIdentifier) )
             {
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
@@ -244,46 +243,48 @@ void ASTFunction::Assemble( Program& program, AString & normalized )
     }
 
 
-    if( !Arguments.empty() )
+    if( qtyArgs > 0 )
     {
         normalized  << '(' << SPACE(FunctionInnerBracketSpace);
-        for( size_t i= 0; i < Arguments.size() ; ++i )
+        int no= -1;
+        for( auto* argAst : Arguments )
         {
-            if( i==0 )
+            ++no;
+            if( no==0 )
             {
                 // optionally remove quotes if we previously converted an identifier to string type
                 if(    replacedNestedExpressionIdentifierByLiteral
-                    && !EnumContains(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
+                    && !HasBits(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
                 {
                     integer lenBeforeArgument= normalized.Length();
-                    Arguments[i]->Assemble( program, normalized );
+                    argAst->Assemble( program, allocator, normalized );
                     normalized.ShortenTo( lenBeforeArgument );
-                    normalized << dynamic_cast<ASTLiteral*>( Arguments[0] )->stringValue;
+                    normalized << dynamic_cast<ASTLiteral*>(argAst)->Value.Unbox<String>();
                     continue;
                 }
             }
             else
                 normalized << SPACE(FunctionSpaceBeforeComma) << ',' << SPACE(FunctionSpaceAfterComma);
 
-            if( i != 2 || !thirdArgumentIsThrowIdentifier )
-                Arguments[i]->Assemble( program, normalized );
+            if( no != 2 || !thirdArgumentIsThrowIdentifier )
+                argAst->Assemble( program, allocator, normalized );
             else
                 normalized << program.compiler.CfgNestedExpressionThrowIdentifier;
         }
         normalized  << SPACE(FunctionInnerBracketSpace) << ')';
     }
     else
-        normalized  << (EnumContains(format, Normalization::FunctionInnerBracketSpaceIfNoArguments )
+        normalized  << (HasBits(format, Normalization::FunctionInnerBracketSpaceIfNoArguments )
                         ? A_CHAR("()") : A_CHAR("( )") );
 
 
-    program.AssembleFunction( functionName, static_cast<int>(Arguments.size()), Position, namePos );
+    program.AssembleFunction( functionName, static_cast<int>(qtyArgs), Position, namePos );
     if( completeIdentifierNames )
         normalized.ReplaceSubstring<false>( functionName, namePos, nameLen );
 }
 
 
-void ASTUnaryOp::Assemble( Program& program, AString & normalized )
+void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
 {
     auto format= program.compiler.CfgNormalization;
     String op= Operator;
@@ -295,17 +296,28 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
     // and b) an identifier terminal follows, we optionally convert the identifier to a string
     // value.
     bool replacedNestedExpressionIdentifierByLiteral= false;
-    if(     EnumContains( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions)
-        &&  ( program.compiler.CfgNestedExpressionOperator
-              == ( !isVerbalOp  ? op
-                                : program.compiler.AlphabeticUnaryOperatorAliases[op] ) )
-        &&  Argument->NodeType == Types::Identifier )
+    if( HasBits( program.compiler.CfgCompilation, Compilation::AllowIdentifiersForNestedExpressions) )
     {
-        ASTIdentifier* astIdentifier= dynamic_cast<ASTIdentifier*>( Argument );
-        ASTLiteral*    astLiteral   = new ASTLiteral( astIdentifier->Name, astIdentifier->Position );
-        delete astIdentifier;
-        Argument= astLiteral;
-        replacedNestedExpressionIdentifierByLiteral= true;
+        String nonVerbalOp;
+        if( !isVerbalOp )
+            nonVerbalOp= op;
+        else
+        {
+            auto it=   program.compiler.AlphabeticUnaryOperatorAliases.Find(op);
+            if(  it != program.compiler.AlphabeticUnaryOperatorAliases.end() )
+                nonVerbalOp= it.Mapped();
+            else
+                nonVerbalOp= EmptyString();
+        }
+
+        if( program.compiler.CfgNestedExpressionOperator == nonVerbalOp
+            &&  Argument->NodeType == Types::Identifier )
+        {
+            ASTIdentifier* astIdentifier= dynamic_cast<ASTIdentifier*>( Argument );
+            ASTLiteral*    astLiteral   = allocator.Emplace<ASTLiteral>( astIdentifier->Name, astIdentifier->Position );
+            Argument= astLiteral;
+            replacedNestedExpressionIdentifierByLiteral= true;
+        }
     }
 
     //--------- normal unary operators -------
@@ -314,34 +326,34 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
     auto opLen= normalized.Length() - opIdx;
 
     // args in brackets if its a binary or ternary expression (-> if it has lower precedence)
-    bool brackets=       EnumContains(format, Normalization::RedundantUnaryOpBrackets)
+    bool brackets=       HasBits(format, Normalization::RedundantUnaryOpBrackets)
                     || ( Argument->NodeType == Types::UnaryOp
-                         && EnumContains(format, Normalization::RedundantBracketsBetweenTwoUnaryOps)  )
+                         && HasBits(format, Normalization::RedundantBracketsBetweenTwoUnaryOps)  )
                     ||   Argument->NodeType == Types::BinaryOp
                     ||   Argument->NodeType == Types::TernaryOp;
 
     bool opSpaceIfNotVerbal=    !brackets
-                             && ( Argument->NodeType == Types::UnaryOp   ? EnumContains(format, Normalization::UnaryOpSpaceIfUnaryFollows)
-                                                                         : EnumContains(format, Normalization::UnaryOpSpace              ) );
+                             && ( Argument->NodeType == Types::UnaryOp   ? HasBits(format, Normalization::UnaryOpSpaceIfUnaryFollows)
+                                                                         : HasBits(format, Normalization::UnaryOpSpace              ) );
     normalized << ( brackets
-                    ? normBracketOpen[   EnumContains(format, Normalization::UnaryOpInnerBracketSpace    )
-                                       + EnumContains(format, Normalization::UnaryOpSpaceIfBracketFollows) * 2]
+                    ? normBracketOpen[   HasBits(format, Normalization::UnaryOpInnerBracketSpace    )
+                                       + HasBits(format, Normalization::UnaryOpSpaceIfBracketFollows) * 2]
                     : String( (opSpaceIfNotVerbal || isVerbalOp ) ? A_CHAR(" ") : A_CHAR("") )
                   );
 
     // recursion
     integer lenBeforeArgument= normalized.Length();
-    Argument->Assemble( program, normalized );
+    Argument->Assemble( program, allocator, normalized );
 
     // optionally remove quotes if we previously converted an identifier to string type
     if(    replacedNestedExpressionIdentifierByLiteral
-        && !EnumContains(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
+        && !HasBits(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
     {
         normalized.ShortenTo( lenBeforeArgument );
-        normalized << dynamic_cast<ASTLiteral*>( Argument )->stringValue;
+        normalized << dynamic_cast<ASTLiteral*>( Argument )->Value.Unbox<String>();
     }
 
-    if( brackets ) normalized << normBracketClose[EnumContains(format, Normalization::UnaryOpInnerBracketSpace )];
+    if( brackets ) normalized << normBracketClose[HasBits(format, Normalization::UnaryOpInnerBracketSpace )];
 
     // check plugins
     program.AssembleUnaryOp( op, Position, opIdx );
@@ -361,9 +373,9 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
                                                         +  Normalization::ReplaceVerbalOperatorsToUpperCase  ) )
                 != Normalization::NONE)
                 for( integer i= opIdx ; i < opIdx + opLen ; ++i )
-                    normalized[i] = EnumContains(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
-                                    ? static_cast<character>( tolower( static_cast<int>(normalized[i]) ) )
-                                    : static_cast<character>( toupper( static_cast<int>(normalized[i]) ) );
+                    normalized[i] = HasBits(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
+                                    ? characters::CharArray<character>::ToLower( normalized[i] )
+                                    : characters::CharArray<character>::ToUpper( normalized[i] );
 
             // remove space that was inserted for non-verbal op, if op is now symbolic
             if( !opSpaceIfNotVerbal && !isalpha(op.CharAtStart() ) )
@@ -371,7 +383,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
 
         }
 
-        else if( EnumContains(format, Normalization::ReplaceAliasOperators ) )
+        else if( HasBits(format, Normalization::ReplaceAliasOperators ) )
         {
             normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
@@ -385,7 +397,7 @@ void ASTUnaryOp::Assemble( Program& program, AString & normalized )
 }
 
 
-void ASTBinaryOp::Assemble( Program& program, AString & normalized )
+void ASTBinaryOp::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
 {
     auto format= program.compiler.CfgNormalization;
     String op=    Operator;
@@ -394,7 +406,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
     if( op == A_CHAR("[]") )
     {
         // LHS recursion
-        Lhs->Assemble( program, normalized );
+        Lhs->Assemble( program, allocator, normalized );
 
         COND_SPACE(SubscriptSpaceBeforeBrackets, false);
         normalized << '[';
@@ -403,7 +415,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
         // RHS recursion
         COND_SPACE(SubscriptInnerBracketSpace, false );
         auto opIdx= normalized.Length();
-        Rhs->Assemble( program, normalized );
+        Rhs->Assemble( program, allocator, normalized );
         COND_SPACE(SubscriptInnerBracketSpace, false );
         normalized << ']';
 
@@ -429,19 +441,19 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 
     bool lhsBrackets=         Lhs->NodeType == Types::TernaryOp
                        || (   lhsBinaryPrecedence
-                           && (    EnumContains(format, Normalization::RedundantBinaryOpBrackets )
+                           && (    HasBits(format, Normalization::RedundantBinaryOpBrackets )
                                 || precedence > lhsBinaryPrecedence
-                                ||  (    EnumContains(format, Normalization::RedundantBracketsIfLhsAndRhsAreBinaryOps )
+                                ||  (    HasBits(format, Normalization::RedundantBracketsIfLhsAndRhsAreBinaryOps )
                                       && rhsBinaryPrecedence )
                               )
                           );
 
-    int bracketStringIdx=  (EnumContains(format, Normalization::InnerBracketSpace   ) +
-                            EnumContains(format, Normalization::OuterBracketSpace   ) *2 );
+    int bracketStringIdx=  (HasBits(format, Normalization::InnerBracketSpace   ) +
+                            HasBits(format, Normalization::OuterBracketSpace   ) *2 );
 
     // LHS recursion
     if( lhsBrackets ) normalized << normBracketOpen[bracketStringIdx];
-    Lhs->Assemble( program, normalized );
+    Lhs->Assemble( program, allocator, normalized );
     if( lhsBrackets ) normalized << normBracketClose[bracketStringIdx];
 
     bool isVerbalOp= isalpha(op.CharAtStart());
@@ -465,11 +477,11 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 
     bool rhsBrackets=     Rhs->NodeType == Types::TernaryOp
                        || (    rhsBinaryPrecedence
-                            && (    EnumContains(format, Normalization::RedundantBinaryOpBrackets )
+                            && (    HasBits(format, Normalization::RedundantBinaryOpBrackets )
                                  || ( precedence >= rhsBinaryPrecedence )
-                                 || (    EnumContains(format, Normalization::RedundantRhsBracketsIfRhsIsStrongerBinaryOp )
+                                 || (    HasBits(format, Normalization::RedundantRhsBracketsIfRhsIsStrongerBinaryOp )
                                       && precedence < rhsBinaryPrecedence )
-                                 || (    EnumContains(format, Normalization::RedundantBracketsIfLhsAndRhsAreBinaryOps )
+                                 || (    HasBits(format, Normalization::RedundantBracketsIfLhsAndRhsAreBinaryOps )
                                       && lhsBinaryPrecedence )
                                )
                           );
@@ -477,7 +489,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 
     // RHS recursion
     if( rhsBrackets )  normalized << normBracketOpen[bracketStringIdx];
-    Rhs->Assemble( program, normalized );
+    Rhs->Assemble( program, allocator, normalized );
     if( rhsBrackets )  normalized << normBracketClose[bracketStringIdx];
 
     // check plugins
@@ -498,12 +510,12 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
                                                         +  Normalization::ReplaceVerbalOperatorsToUpperCase  ) )
                 != Normalization::NONE)
                 for( integer i= opIdx ; i < opIdx + opLen ; ++i )
-                    normalized[i] = EnumContains(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
-                                    ? static_cast<character>( tolower(static_cast<int>(normalized[i]) ) )
-                                    : static_cast<character>( toupper(static_cast<int>(normalized[i]) ) );
+                    normalized[i] = HasBits(program.compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToLowerCase)
+                                    ? characters::CharArray<character>::ToLower( normalized[i] )
+                                    : characters::CharArray<character>::ToUpper( normalized[i] );
 
             // remove operator spaces if they were inserted for non-verbal op, if op is now symbolic
-            if( !EnumContains(format, Normalization::BinaryOpSpaces) && !isalpha(op.CharAtStart() ) )
+            if( !HasBits(format, Normalization::BinaryOpSpaces) && !isalpha(op.CharAtStart() ) )
             {
                 normalized.Delete( opIdx + opLen, 1 );
                 normalized.Delete( opIdx - 1    , 1 );
@@ -511,7 +523,7 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 
         }
 
-        else if( EnumContains(format, Normalization::ReplaceAliasOperators ) )
+        else if( HasBits(format, Normalization::ReplaceAliasOperators ) )
         {
             normalized.ReplaceSubstring<false>( op, opIdx, opLen );
             opLen=  op.Length();
@@ -524,16 +536,16 @@ void ASTBinaryOp::Assemble( Program& program, AString & normalized )
 }
 
 
-void ASTConditional::Assemble( Program& program, AString & normalized )
+void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AString & normalized )
 {
     auto format= program.compiler.CfgNormalization;
 
-    int bracketStringIdx=  (EnumContains(format,  Normalization::InnerBracketSpace   ) +
-                            EnumContains(format,  Normalization::OuterBracketSpace   ) *2 );
+    int bracketStringIdx=  (HasBits(format,  Normalization::InnerBracketSpace   ) +
+                            HasBits(format,  Normalization::OuterBracketSpace   ) *2 );
 
 
     // Q
-    Q->Assemble( program, normalized );
+    Q->Assemble( program, allocator, normalized );
     normalized << SPACE(ConditionalOpSpaceBeforeQM);
     program.AssembleCondFinalize_Q( Position, normalized.Length() );
     normalized << A_CHAR("?") << SPACE(ConditionalOpSpaceAfterQM);
@@ -542,10 +554,10 @@ void ASTConditional::Assemble( Program& program, AString & normalized )
     integer idxInNormalized= normalized.Length();
 
     bool brackets=    T->NodeType == Types::TernaryOp
-                   && EnumContains( format, Normalization::RedundantConditionalOpBrackets);
+                   && HasBits( format, Normalization::RedundantConditionalOpBrackets);
 
     if( brackets ) normalized << normBracketOpen[bracketStringIdx];
-        T->Assemble( program, normalized );
+        T->Assemble( program, allocator, normalized );
     if( brackets ) normalized << normBracketClose[bracketStringIdx];
 
     // :
@@ -558,10 +570,10 @@ void ASTConditional::Assemble( Program& program, AString & normalized )
 
     // F
     brackets=         F->NodeType == Types::TernaryOp
-                   && EnumContains( format, Normalization::RedundantConditionalOpBrackets);
+                   && HasBits( format, Normalization::RedundantConditionalOpBrackets);
 
     if( brackets ) normalized << normBracketOpen[bracketStringIdx];
-        F->Assemble( program, normalized );
+        F->Assemble( program, allocator, normalized );
     if( brackets ) normalized << normBracketClose[bracketStringIdx];
 
     program.AssembleCondFinalize_F( Position, idxInNormalized );

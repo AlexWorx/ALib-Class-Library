@@ -6,20 +6,20 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_MATH)
 #   include "alib/expressions/plugins/math.hpp"
 #endif
-
-//! @cond NO_DOX
-
 #if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
 #   include <cmath>
 #endif
-
 #if defined(_MSC_VER)
 #   define _USE_MATH_DEFINES
 #   include <math.h>
 #endif
+#endif // !defined(ALIB_DOX)
+
+//! @cond NO_DOX
 
 #define INT(box)       (box).Unbox<integer>()
 #define FLT(box)       (box).Unbox<double   >()
@@ -73,7 +73,7 @@ FUNC(  atanh     , return  ::atanh    (FLT(*args)); )
 
 FUNC(   exp      , return  ::exp      (FLT(*args)); )
 FUNC(   exp2     , return  ::exp2     (FLT(*args)); )
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__APPLE__)
    FUNC(exp10    , return  ::pow      (10.0 ,FLT(*args)); )
 #else
    FUNC(exp10    , return  ::exp10    (FLT(*args)); )
@@ -89,7 +89,7 @@ FUNC(   log2     , return  ::log2     (FLT(*args)); )
 #endif
 
 FUNC(   pow      , return  ::pow      (FLT(*args++),FLT(*args)); )
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__APPLE__)
    FUNC(pow10    , return  ::pow      (10.0        ,FLT(*args)); )
 #else
    FUNC(pow10    , return  ::exp10    (FLT(*args)); )
@@ -114,7 +114,7 @@ Math::Math( Compiler& compiler )
     // load identifier/function names from resources
     constexpr int tableSize= 34;
     Token functionNames[tableSize];
-    Token::LoadResourcedTokens( EXPRESSIONS, "Math", functionNames
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPM", functionNames
                                 ALIB_DBG(,tableSize)                               );
     Token* descriptor= functionNames;
 
@@ -167,7 +167,7 @@ Math::Math( Compiler& compiler )
     ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize                                     )
-};
+}
 
 
 }}}} // namespace [aworx::lib::expressions::detail]

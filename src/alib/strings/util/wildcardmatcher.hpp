@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER
 #define HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER 1
 
@@ -47,7 +48,6 @@ class TWildcardMatcher
          *                      Defaults to \b NullString() to allow parameterless construction,
          *                      with later invocation of #Compile.
          ******************************************************************************************/
-        inline
         TWildcardMatcher( const TString<TChar>& pattern= NullString() )
         {
             Compile( pattern );
@@ -85,13 +85,13 @@ extern template ALIB_API bool TWildcardMatcher<wchar>::Match  ( const TString<wc
 }}} // namespace aworx[::lib::strings::util]
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcher=     aworx::lib::strings::util::TWildcardMatcher<character>;
+using     WildcardMatcher=     lib::strings::util::TWildcardMatcher<character>;
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcherN=    aworx::lib::strings::util::TWildcardMatcher<nchar>;
+using     WildcardMatcherN=    lib::strings::util::TWildcardMatcher<nchar>;
 
 /// Type alias in namespace #aworx.
-using     WildcardMatcherW=    aworx::lib::strings::util::TWildcardMatcher<wchar>;
+using     WildcardMatcherW=    lib::strings::util::TWildcardMatcher<wchar>;
 
 }  // namespace [aworx]
 

@@ -6,13 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALOX_LOGTOOLS)
     #include "alib/alox/logtools.hpp"
 #endif
 
-#if !defined (HPP_ALIB_STRINGFORMAT_FORMATTER)
-    #include "alib/stringformat/formatter.hpp"
+#if !defined (HPP_ALIB_TEXT_FORMATTER)
+    #include "alib/text/formatter.hpp"
 #endif
+
+#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#   include "alib/strings/util/tokenizer.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace lox {
 
@@ -26,44 +32,52 @@ void LogTools::Exception( Lox&                      lox,
 {
     Tokenizer tknzr;
     tknzr.TrimChars= "\r";
-    String256 buf;
+    String1K buf;
     buf.DbgDisableBufferReplacementWarning();
-    SPFormatter formatter= GetDefaultFormatter();
-    formatter->Acquire(ALIB_CALLER_PRUNED);
+    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    try
+    {
+        size_t entryNo= 1;
+        lox.Acquire( ALIB_CALLER_NULLED );
 
-    size_t entryNo= 1;
-    lox.Acquire( ALIB_CALLER_NULLED );
+            if( domainPrefix.IsNotNull() ) lox.SetDomain( domainPrefix, Scope::ThreadOuter );
+            if( logPrefix   .IsNotNull() ) lox.SetPrefix( logPrefix   , Scope::ThreadOuter );
+            for ( auto& entry :  e )
+            {
+                formatter->FormatArgs( buf.Reset(), entry );
 
-        if( domainPrefix.IsNotNull() ) lox.SetDomain( domainPrefix, Scope::ThreadOuter );
-        if( logPrefix   .IsNotNull() ) lox.SetPrefix( logPrefix   , Scope::ThreadOuter );
-        for ( auto entry :  e )
-        {
-            lox.Acquire( entry.File, entry.Line, entry.Func );
+                lox.Acquire( entry.File, entry.Line, entry.Function );
 
-                formatter->FormatArgs( buf.Reset(), entry.Args );
+                    tknzr.Set( buf, '\n' );
+                    bool firstLine= true;
+                    while( tknzr.HasNext() )
+                    {
+                        auto& logables= lox.GetLogableContainer();
+                        if( firstLine )
+                            logables.Add( "{}{}: {!Q[]}", (entry.Type.Integral() >= 0 ? 'E' : 'I'),
+                                                          entryNo, entry.Type );
+                        else
+                            logables.Add( "    {}"         , tknzr.Next()                    );
 
-                tknzr.Set( buf, '\n' );
-                bool firstLine= true;
-                while( tknzr.HasNext() )
-                {
-                    auto& logables= lox.GetLogableContainer();
-                    if( firstLine )
-                        logables.Add( "{}{}: [{}]", (entry.Type.Value() >= 0 ? 'E' : 'I'), entryNo, entry.Type );
-                    else
-                        logables.Add( "    {}"         , tknzr.Next()                    );
-
-                    lox.Entry( "", verbosity );
-                    firstLine= false;
-                }
-            lox.Release();
-            entryNo++;
-        }
-        if( domainPrefix.IsNotNull() ) lox.SetDomain( nullptr, Scope::ThreadOuter );
-        if( logPrefix   .IsNotNull() ) lox.SetPrefix( nullptr, Scope::ThreadOuter );
-    lox.Release();
+                        lox.Entry( "", verbosity );
+                        firstLine= false;
+                    }
+                lox.Release();
+                ++entryNo;
+            }
+            if( domainPrefix.IsNotNull() ) lox.SetDomain( nullptr, Scope::ThreadOuter );
+            if( logPrefix   .IsNotNull() ) lox.SetPrefix( nullptr, Scope::ThreadOuter );
+        lox.Release();
+    }
+    catch(aworx::Exception& e)
+    {
+        lox.Error("Format exception caught while creating formatted output of another exception!\n"
+                  "Format exception information follows:\n" );
+        e.Format( buf.Reset() );
+        lox.Error(buf);
+    }
 
     formatter->Release();
-
 }
 
 

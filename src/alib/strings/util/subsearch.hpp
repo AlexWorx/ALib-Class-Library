@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_SUBSEARCH
 #define HPP_ALIB_STRINGS_UTIL_SUBSEARCH 1
 
@@ -25,7 +26,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * - \ref aworx::NSubstringSearch and
  * - \ref aworx::WSubstringSearch.
  *
- * @tparam TChar     The character type of the haystack and needle strings.
+ * @tparam TChar        The character type of the haystack and needle strings.
  * @tparam TSensitivity The letter case sensitivity of the search..
  **************************************************************************************************/
 template<typename TChar, Case TSensitivity= Case::Sensitive>
@@ -49,7 +50,6 @@ class TSubstringSearch
          *                Defaults to \b NullString() to allow parameterless construction with later
          *                invocation of #Compile.
          ******************************************************************************************/
-        inline
         TSubstringSearch( const TString<TChar>& pNeedle= nullptr )
         {
             Compile( pNeedle );
@@ -105,15 +105,15 @@ extern template ALIB_API integer TSubstringSearch<wchar, Case::Ignore   >::Searc
 
 /// Type alias in namespace #aworx.
 template<Case TSensitivity>
-using  NSubstringSearch =  aworx::lib::strings::util::TSubstringSearch<nchar>;
+using  NSubstringSearch =  lib::strings::util::TSubstringSearch<nchar>;
 
 /// Type alias in namespace #aworx.
 template<Case TSensitivity>
-using  WSubstringSearch =  aworx::lib::strings::util::TSubstringSearch<wchar>;
+using  WSubstringSearch =  lib::strings::util::TSubstringSearch<wchar>;
 
 /// Type alias in namespace #aworx.
 template<Case TSensitivity>
-using   SubstringSearch =  aworx::lib::strings::util::TSubstringSearch<character>;
+using   SubstringSearch =  lib::strings::util::TSubstringSearch<character>;
 
 
 } // namespace aworx

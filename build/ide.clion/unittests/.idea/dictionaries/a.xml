@@ -3,31 +3,44 @@
     <words>
       <w>abbreviatable</w>
       <w>alib</w>
+      <w>alibdist</w>
+      <w>alibmod</w>
+      <w>alibmods</w>
       <w>alox</w>
       <w>applyto</w>
       <w>bitflags</w>
       <w>boxable</w>
       <w>brainer</w>
+      <w>cbegin</w>
+      <w>cend</w>
       <w>constructible</w>
+      <w>crbegin</w>
+      <w>crend</w>
       <w>deallocates</w>
       <w>declarators</w>
       <w>demangle</w>
       <w>doxed</w>
       <w>emplacing</w>
       <w>endverbatim</w>
+      <w>executables</w>
+      <w>extern</w>
       <w>formattable</w>
+      <w>hashmap</w>
       <w>istream</w>
       <w>iteratable</w>
+      <w>monomem</w>
       <w>omitable</w>
       <w>ored</w>
       <w>ostream</w>
       <w>overrideable</w>
       <w>postfixed</w>
       <w>preallocated</w>
+      <w>rbegin</w>
       <w>roadmaps</w>
       <w>shortenable</w>
       <w>signedness</w>
       <w>specializable</w>
+      <w>subchapters</w>
       <w>surjective</w>
       <w>toolchains</w>
       <w>tparam</w>

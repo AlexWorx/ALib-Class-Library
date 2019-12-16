@@ -6,7 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/tokenizer.hpp"
+#if !defined(ALIB_DOX)
+#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#   include "alib/strings/util/tokenizer.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 

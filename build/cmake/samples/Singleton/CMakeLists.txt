@@ -25,9 +25,8 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    project("ALib.Singleton.Sample")
-
     cmake_minimum_required( VERSION 3.3.0 )
+    project("ALib.Singleton.Sample")
 
 
 ## -------------------------------------------------------------------------------------------------
@@ -35,7 +34,10 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_MODULES             "SINGLETONS"     )
+    list( APPEND  ALIB_DISTRIBUTION             "SINGLETONS"     )
+
+    # set mapped mode
+    set( ALIB_FEAT_SINGLETON_MAPPED      "On" )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )

@@ -9,100 +9,385 @@
 \page alib_mod_resources   ALib Module Resources - Programmer's Manual
 
 
-# Contents #
-
-<br>\ref                   alib_resources_intro                 "1. Introduction"
-<br>\ref                   alib_resources_classresources        "2. Class Resources"
-<br>\ref                   alib_resources_modules               "3. Resources and Modules"
-<br>\ref                   alib_resources_emd                   "4. Resourced Meta Data For C++ Enumerations"
-
+\tableofcontents
 
 
  \~Comment ###################################################################################### \~
 # 1. Introduction # {#alib_resources_intro}
 
-What is called "resources" with \alib is (as of today) exclusively consisting of string data.
-In similar contexts, resourced strings are often referred to as "externalized strings".
+\alib uses the term <em>"resources"</em> for string data that technically may be defined in a
+constant and static fashion, but that a software volunteers to make configurable.
+Typical samples of data that a software exposes for external management are "themes" (
+color and font schemes),  or so called <em>"externalized strings"</em>, which mostly may be used to
+translate a software into a different "locale" and human language.
 
-Externalized strings are not only helpful if a software is to be translated to a different
-human language. The strings also often contain encoded data (like colors, width, server names, etc.)
-and with the externalization, also this data can be changed without changing (recompiling) the
-a software.
+While the conceptual definition of \e resources is very similar to the concept of
+<em>configuration data</em>, it is good practice to thoroughly decide for each specific
+piece of data that is deemed to be made configurable, whether it is \e resource or \e configuration
+data. While the mentioned samples of language translation strings and color schemes are
+typically \e resources, a server name that a software attaches to is typically
+<em>configuration data</em>. End users commonly know and understand the difference between the
+two intuitively and appreciate if the corresponding data sources are separated, especially as
+this way, <em>resource data</em> does not "clutter" the definitions of <em>configuration</em>
+sources.
 
+The best rule of thumb to differentiate \e resource from \e configuration data is to check if
+it is possible to distribute a software without turning the data in question into either of the
+two externalization concepts, thus "hard coding" the data.
+If so, the data more likely is \e resource data. In the sample of the "server address" above, this
+is not possible if such server address targets a machine that is under the control of an end user.
+However, if it is a machine provided by the distributor of the software which is the same with any
+installation, then the concept of resourced data rather fits.
 
-\~Comment ####################################################################################### \~
-# 2. Class Resources # {#alib_resources_classresources}
-The central class of the module is \alib{resources,Resources}.
-The class has a simple interface to receive strings using a pair of strings as the resource identifier.
-The pair denotes a "category" and a "name", which allows a bit of sorting of the entries.
-(Technically, a simple single key string would have been enough, but computer history showed
-that a two-level hierarchy is very helpful in many respects. See for example INI-files...).
-
-Now, the class as it is implemented and used with other \alibmods, does \b not externalize the
-strings: All data is still "hard-coded" and stored in the data-segment of a compiled executable
-or library.<br>
-Instead, three things can be done:
-- A 3rd party system (library) for managing externalized string resources may be used to
-  feed resource data into a process, maybe replacing that data that was statically defined.
-- A derived class might be used that accesses a such 3rd party system in the moment a resource
-  is requested.
-- If a 3rd-party software uses the same mechanism for managing externalized strings
-  as for managing application configuration data and if furthermore that
-  3rd-party software has written (or plans to write) a plug-in for \alib class \alib{config,Configuration}
-  to access such system, then a third obvious option is to use the same plug-in for the optional
-  configuration object found with member \alib{resources,Resources::Config}.
-  This way, with one adoption (the plug-in) both \alib systems become compatible: Resources and
-  configuration data.
-
-All options are well supported with the accurately defined
-\ref alib_manual_bootstrapping "bootstrapping procedure" of the \aliblong.
-
-For details on class \b %Resources, please consult the class's
-\alib{resources,Resources,reference documentation}.
-
+\note
+  The concept of <em>configuration data</em> is implemented with module \alib_config.
 
 \~Comment ####################################################################################### \~
-# 3. Resources and Modules # {#alib_resources_modules}
+# 2. Resources and Modules # {#alib_resources_modules}
 
 As documented in chapter \ref alib_manual_modules "2. ALib Modules" of the \alib Programmer's Manual,
-the various \alibmods can be separated into "full" modules and the rest which are not. In this
+the various \alibmods can be separated into "full" modules and those which are not. In this
 \ref alib_manual_modules_dependency_graph "module dependency graph" it could be noted that
-all "full modules" (dark blue) are dependent on this module "Resources".
+all "full modules" (dark blue) are dependent on module \alib_resources_nl, discussed in this manual.
 
 This relation is explained as follows:
-- All high-level \alib modules need resources (e.g. for exceptions, enumeration meta data, etc.).
-- Resources need a controlled process of bootstrapping of a software.
-- Library class \alib{Module} holds a pointer to an object of type \alib{resources,Resources}.
-- Class \b %Module provides a controlled (phased) bootstrapping mechanics, especially designed
-  to support customization of resource management.
+- All high-level \alib modules need externalized string resources
+  (e.g. for \ref alib_results_exceptions "ALib Exceptions",
+  \ref alib_enums_records "ALib Enum Records",  etc.).
+- Resources need a controlled process of bootstrapping a software.
+- Library class \alib{Module} holds a pointer to an object of type \alib{resources,ResourcePool}.
+- Class \b %Module provides strictly defined and phased bootstrapping mechanics, especially
+  designed to support the customization of resource management.
 
-Therefore, all "full" \alib modules depend on this module "Resources" and dispose about a
-singleton type derived from core library class \b %Module.
+Therefore, all "full" \alib modules not only depend on module \alib_resources_nl, but also dispose
+about a singleton type derived from core library class \b %Module.
 
-This also means, that when looking at the
-\ref alib_manual_modules_dependency_graph "module dependency graph", it must not be misunderstood
-that the high-level modules are dependent on this module only indirectly (through modules
-\b Messages and \b Stringformat), but in contrast, these modules usually are actively using
-resources for their own purposes.
+
+
+
+\~Comment ###################################################################################### \~
+# 3. Data Contract / Conceptual Invariants # {#alib_resources_intro_contract}
+\alib resources implemented with this module, conceptually impose a set of rules which may be named
+a  "contract", "invariants" or just "determinations". These rules are given in the following
+subchapters.
+
+\~Comment ###################################################################################### \~
+## 3.1 Resource Keys ## {#alib_resources_intro_contract_keys}
+Key values to resources are defined as a two level hierarchy of a \e category and a \e name.
+This determination complies with how <em>configuration data</em> is addressed with module
+\alib_config. This is also in alignment with common 3rd-party resource management systems
+established in the industry.
+
+Independent from the compilation options of \alib in respect to
+\ref alib_characters_prepro "choosing the default character width", the string type of the
+\e category and \e name is fixed to \aworx{NString}, hence using the narrow \alib{characters,nchar}
+type. This is \b not in alignment with <em>configuration data</em> as defined in \alib_config.
+The rational for this is that while configuration data categories and names may be translated
+themselves to localized versions (by defining those strings as \e resources!), the category and
+name strings of the resources are deemed to be hard-coded in the source code that accesses resources.
+As such, they are not shared with end-users, are never localized and should be using the plain
+<em>7-bit printable ASCII character set</em>.
+
+\~Comment ###################################################################################### \~
+## 3.2 Restricted To String Type ## {#alib_resources_intro_contract_strings}
+All resource data is of \alib{strings,TString,String} type (of compilation-dependent
+character width).
+
+This restriction imposes that any other data type (for example color codes) has to be
+de-serialized (decoded) when resourced.
+
+\~Comment ###################################################################################### \~
+## 3.3 Static Data ## {#alib_resources_intro_contract_static}
+Although resource data technically is non static data, conceptually with this implementation
+it is.
+
+This determination has the following impacts:
+- Resources do not have to be "acquired" and "released" when accessed, which tremendously simplifies
+  the use of resources.
+- A using code can rely on the fact that the life-cycle of the string buffers of accessed resources
+  is infinite. No local copies of the string data is required. (Note, that due to the missing option of
+  acquisition/release of resources, copying a resource string would not even be possible.)
+- Resource data does not dynamically change during the life-cycle of a software process.
+  In other words, accessing resource data of a specific \e category and \e name, will
+  always result in the same returned value.
+- Consequently, an implementation of abstract interface type \alib{resources,ResourcePool} that attaches to a
+  3rd-party resource system which supports dynamic resources, usually has to create a copy of
+  the data returned from the 3rd-party system and return this copy instead of the original
+  value.
+
+\note
+  The latter point is implemented with built-in, alternative resource type
+  \alib{resources,ConfigResourcePool}, which relies on module \alib_config to maintain the
+  resources externally. <em>Configuration data</em> implemented with this module is not static and
+  thus may change during the life-cycle of a software. Consequently, this type uses monotonic
+  allocation with type \alib{monomem,HashTable} to store persistent copies of each resource, at the
+  moment it is accessed the first time. With subsequent requests, the same cached data is returned.
+
+\~Comment ###################################################################################### \~
+## 3.4 Thread Safeness ## {#alib_resources_intro_contract_threadsafeness}
+Accessing resources using abstract interface method \alib{resources,ResourcePool::Get}
+is a thread-safe operation.
+
+In contrast to this, an invocation to any of the methods that define resources, namely
+\alib{resources,ResourcePool::Bootstrap} and \alib{resources,ResourcePool::BootstrapBulk}
+is \b not a thread-safe operation. This is true in respect to each other as well - and most important -
+also in respect to parallel resource access with method \alib{resources::ResourcePool,Get}.
+
+This determination has the following impacts:
+- Interface methods prefixed with the term <b>Bootstrap</b> of abstract type \alib{resources,ResourcePool}
+  are deemed to exclusively being invoked during \ref alib_manual_bootstrapping "bootstraping"
+  of \alib as well as the of the according software using \alib.
+  Such bootstrapping has to be performed prior to starting any threads that potentially
+  modify \e resources.
+- Interface method \alib{resources::ResourcePool,Get} of abstract type \alib{resources,ResourcePool}
+  may be called in parallel from different execution threads, without the need of locking
+  a specified \alib{threads,ThreadLock,mutex}.
+- An implementation of interface \alib{resources,ResourcePool} may need to impose an internal
+  protection in respect to race conditions of multi-threaded access.
+
+\note
+  Class \alib{resources,LocalResourcePool}, which is used by default if bootstrapping of
+  \alib is not \ref alib_manual_bootstrapping_customize "customized"
+  accordingly, is not in the need of using an internal mutex. This arises from the fact that after
+  the single-threaded bootstrap finished, only read-operations on the resource pool are performed.
+  The type just does not provide any other feature.
+
+\note
+  In contrast, class \alib{resources,ConfigResourcePool}, which relies on module \alib_config to manage
+  the resources, takes internal precautions against race conditions of multi-threaded access,
+  because <em>configuration data</em> may change during the life-cycle of a software.
+  Changes are imposed by the (custom) plug-ins that are attached to its configuration object
+  or by other code entities that are allowed to access the public configuration object directly.
+
+\~Comment ####################################################################################### \~
+# 4. Interface Class ResourcePool # {#alib_resources_interface}
+The central type of the module, class \alib{resources,ResourcePool} was already mentioned several
+times. It constitutes a pure abstract interface. Due to the determinations of the concept
+given in previous chapter \ref alib_resources_intro_contract "3. Data Contract / Conceptual Invariants",
+its interface is very simple especially in respect to accessing resources, which is exclusively done
+with method \alib{resources,ResourcePool::Get}.
+
+A user of \alib should have no bigger effort to implement this interface and adopt her own or
+any 3rd-party "backend" that performs the resource management and the externalization of strings.
+
+Apart from that, two implementations of the interface are provided with \alib. Those are
+quickly introduced in the following sections.
+
+\~Comment ####################################################################################### \~
+## 4.1 Class LocalResourcePool ## {#alib_resources_interface_default}
+As explained above, an implementation of interface \b ResourcePool has to be constructed during
+bootstrap of \alib and distributed among the modules.
+
+In case the bootstrap process is not \ref alib_manual_bootstrapping_customize "customized", an
+instance of class \alib{resources,LocalResourcePool} is created and shared.
+
+This class does not allow any externalization of resources and simply stores the given pointers
+to the static data in a \alib{monomem,HashTable}, using \ref alib_mod_monomem "monotonic allocation".
+
 
 
 \~Comment ####################################################################################### \~
-# 4. Resourced Meta Data For C++ Enumerations # {#alib_resources_emd}
+## 4.2 Class ConfigResourcePool ## {#alib_resources_interface_config}
+A second built-in implementation of class \b ResourcePool which can be created and shared among
+the modules of \alib by
+\ref alib_manual_bootstrapping_customize "customizing the bootstrap process"
+of the library, is given with class \alib{resources,ConfigResourcePool}.
 
-A powerful concept that plays an important role in in various \alibmods, is called
-"resourced enumeration meta data". This is all about associating C++ 11 scoped enumeration elements
-with tuples of externally defined (resourced) data.
+The type externalizes resources by using entities found with module \alib_config.
+For this, it disposes about a public member of type \alib{config,Configuration} and installs one
+\alib{config,InMemoryPlugin} with \alib{config,Priorities::DefaultValues,default priority}.
+This plug-in fetches all resources fed with methods \alib{resources::ResourcePool,Bootstrap} and
+\alib{resources::ResourcePool,BootstrapBulk}.
 
-In combination with class \alib{boxing,Enum} (found in module \alibmod_boxing),
-different enum types that are enriched with the same tuple-scheme, can be treated as if they
-were of a same type, or rather as if they had been derived from the same base type (while
-unfortunately, enum types can not be derived types in C++).
+If after creation of an instance of the type, this instance is not changed and just used, then
+it behaves in an identical way as type \b LocalResourcePool (with only weaker performance and
+increased memory overhead).
 
-This concept is for example used with classes \alib{results,Exception} and \alib{config,Variable}
-and especially widely used with module \alibmod_cli.
+Externalization is achieved when a custom plug-in is attached to the configuration object found
+with field \alib{resources,ConfigResourcePool::Config}. For example, this could be of type
+\alib{config,IniFile} and be attached with priority \alib{config,Priorities::Standard}.
 
-An introductory tutorial on "resourced enumeration meta data" is provided with the documentation
-of TMP-type \alib{resources,T_EnumMetaDataDecl}.
+With that, any entries made in that \b INI-file, would simply overwrite the corresponding
+resource values which use the lower default priority.
+
+With this type a very simple but yet powerful way of externalizing resource data is given.
+The type is suitable in any situation where no other ("more professional") 3rd-party "backend"
+for resource management is available.<br>
+Here are some tips for the usage:
+- Method \alib{config,Configuration::FetchFromDefault} may be used to create (for example) an
+  INI-file that contains all resources that have been defined during bootstrap of a software.
+- Such INI-file could then be used as a "jump-start" for translating a software from its
+  (hard-coded ) default language into a different one.
+- With the prioritization mechanics of class \alib{config,Configuration} it is allowed to attach
+  two or more INI-files, in parallel. This allows for example to have language translations of
+  resources in place, which - if only sparsely defined - automatically fallback through the
+  different configuration plug-ins until a translation is found, or - if none is found - fall back
+  to the defaults stored in the \b InMemoryPlugin and initially fed with
+  \alib{resources,ResourcePool::BootstrapBulk}.<br>
+  In other words, language translations can be stacked and software might allow to
+  use not only specify a preferred language but a prioritized list of preferred languages.
+- Similar to the previous point two different configuration plug-ins (e.g. INI-files) could be
+  used and have one storing only translated resources, the second all resources relevant for an
+  application's color scheme ("Theme"). This way, language and color scheme can be chosen independency
+  from each other.
+- Finally, this class also provides an alternative to implementing an own version of
+  interface class \b ResourcePool from scratch. Precisely, instead of implementing interface
+  \b ResourcePool, a may implement interface \alib{config,ConfigurationPlugin} and attach this to
+  field \alib{resources,ConfigResourcePool::Config}.<br>
+  One of the advantages of this approach would be that not all resource data needs to reside in the
+  attached "backend". Some data might also reside in a different backend (with a next plug-in), or
+  again in an INI-file.
+
+\note
+  Despite its flexibility, type \alib{resources,ConfigResourcePool} is provided for convenience.
+  It was just a "low hanging fruit" of implementation making use of sibling module
+  \alib_config_nl.<br>
+  There are no plans on the road map of \alib to impose a more sophisticated implementation
+  for externalized string resources. It is simply not in the domain of this library to provide
+  a higher level of functionality. The whole purpose of this module itself ist to have an
+  abstract and very simple interface into \b any sort of "resources backend" and its choice
+  is completely independent from the choice of using \alib with a software!
+
+
+\~Comment ####################################################################################### \~
+# 5. Indirect Resource Access # {#alib_resources_t_resourced}
+
+\~Comment ####################################################################################### \~
+## 5.1 TMP Struct T_Resourced ## {#alib_resources_t_resourced_t_resourced}
+
+Sometimes it is required to define resource information, namely
+- the \alib{resources,ResourcePool} instance,
+- the resource category and
+- the resource name
+
+for use by other components. TMP struct \alib{resources,T_Resourced} may be specialized to do such
+definition for C++ types.
+A specialization of the struct can be easily implemented using macro \ref ALIB_RESOURCED.
+
+A sample for the use of this struct is given with module \alib_config: To load and store configuration
+data, this module exposes a type of \ref alib_enums_records "ALib Enum Records" and accepts custom enumeration
+types in various interface methods, if they just have this specific record type associated.
+
+Now, if an element of a custom enumeration type that disposes about a specialization of \b T_Resourced
+is passed to such interface method, internally this information is used to load further
+details of the variable from the resource pool.
+
+
+\~Comment ####################################################################################### \~
+## 5.2 Helper Struct Resourced ## {#alib_resources_t_resourced_resourced}
+
+As soon as struct \alib{resources,T_Resourced} is specialized for a type, helper struct
+static struct \alib{resources,ResourcedType} becomes available.
+
+The type has two overloaded methods \alib{resources::ResourcedType,Get}: The first is parameterless
+and simply receives the resource string associated to a type with the specialization of
+\b T_Resourced. The second takes a replacement for the resource name. This may be used to
+retrieve resource strings which are likewise associated to the type.
+
+Furthermore, the struct provides methods \alib{resources::ResourcedType,TypeNamePrefix} and
+\alib{resources::ResourcedType,TypeNamePostfix} which are meant to provide a standardized way
+to define a type's name using resources. The methods are for example used with
+specializations \alib{strings::APPENDABLES,T_Append<TEnum\,TChar>,T_Append<TEnum\,TChar>}
+and \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}
+which write enum element names into instances of type \alib{strings,TAString,AString}.
+
+\~Comment ####################################################################################### \~
+## 5.3 Helper Struct ResourceInfo ## {#alib_resources_t_resourced_resourceinfo}
+
+A next helper struct is given with \alib{resources,ResourceInfo} which first of all is a simple
+struct that stores  resourcing information (the resource pool and category and name strings)
+for later use.
+
+While this struct is usable without a specialization of \alib{resources,T_Resourced}, in most
+use cases it is, because it allows to convert the compile-time information given by
+\b T_Resourced into run-time information.
+
+\~Comment ####################################################################################### \~
+# 6. Further Details # {#alib_resources_details}
+
+\~Comment ####################################################################################### \~
+## 6.1 Resourced Data Records And Tables ## {#alib_resources_details_data}
+
+Besides just externalizing strings, many use cases require to access externalized data sets
+or even whole tables of this.
+
+\alib module \alib_enums provides a solution for this with its
+concept \ref alib_enums_records "ALib Enum Records". There a table of data is addressed
+using the C++ type information of enum types. Single records of a table may (or may not) be
+addressed by elements of the corresponding enumeration.
+The module provides convenient facilities the fields of the records and whole tables from
+resourced strings.
+
+Before you go ahead and implement your "own" solution for externalized static data, it might be
+worthwhile to check out if \ref alib_enums_records "ALib Enum Records" meet your requirements.
+
+\~Comment ####################################################################################### \~
+## 6.2 Exporting Resources For Externalization ## {#alib_resources_details_export}
+When resources are externalized, for example for translation to different human languages,
+the list of resources have to be imported to the external "backend". To do so all resources
+have to be queried from the library.
+
+Here is a sample program that performs this task:
+
+ \snippet "../tools/ResourceExport/main.cpp"     DOX_ALIB_RESOURCES_EXPORT
+
+
+The output of this sample can directly be loaded by class \alib{config,IniFile}, hence with a plug-in
+attached to an instance of built-in resource pool implementation
+\alib{resources,ConfigResourcePool}. The sample might be adopted accordingly to write a
+format suitable to be imported to the backend of choice.
+
+With every update of the library, changes of the resource strings have to be determined.
+This might be done for example with a custom unit test that compares the default entries
+with the ones currently stored in an external backend. New resources might be added, others might
+disappear, and worst: existing ones might change their content format. In the latter case, an
+externalized resource might be errorneous and lead to undefined behavior.
+
+Starting with library version \b 1912, to support the detection of changes, the version history is found in
+
+        ALIB_BASE_DIR/docs/pages/resource-exports/
+
+\releasetask{Run export tool, create file, make diff, add link to new pages, add new page at the end of this file}
+The following exports are available:
+- \ref alib_resources_exported_resources_1912
+- \ref alib_resources_exported_resources_1903
+
+\~Comment ####################################################################################### \~
+## 6.3 Debug- And Usage Statistics  ## {#alib_resources_details_debug}
+
+With the provision of compiler symbol \ref ALIB_DEBUG_RESOURCES, virtual method
+\alib{resources,ResourcePool::DbgGetList} becomes available, which returns a list of all
+resources defined, including a usage counter. The method is only implemented by class
+\alib{resources,LocalResourcePool}. Alternative type \alib{resources,ConfigResourcePool} does not
+implement it.
+
+Furthermore, convenience method \alib{resources,ResourcePool::DbgDump} becomes available which
+simply writes the list of symbols into an \b %AString, sorted by category and in an alphabetical
+order.
+
+
+The usage counter included in the list may be used to identify two groups of
+resource strings:
+- Resource strings that never have been loaded, and
+- Resource strings that have been loaded very often during the actual execution of a software.
+
+While entries of the first type may have become obsolete and are candidates for removal,
+those of the second type, a software might consider to "cache" the symbol in a variable instead
+of repeatedly retrieving it from the resource pool.
+
+Remember: While trivial implementation class \b LocalResourcePool is very fast and resource access
+is not really noticeable, other implementations might not be.
+
+
+\~Comment ####################################################################################### \~
+\~Comment Resource export pages  \~
+\~Comment ####################################################################################### \~
+
+\page alib_resources_exported_resources_1903           Export of Resourced Strings - V 1903
+\verbinclude "pages/resource-exports/resources-1903.txt"
+
+\page alib_resources_exported_resources_1912           Export of Resourced Strings - V 1912
+\verbinclude "pages/resource-exports/resources-1912.txt"
 
 */
 

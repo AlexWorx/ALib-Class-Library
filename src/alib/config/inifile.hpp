@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_config of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_INI_FILE
 #define HPP_ALIB_CONFIG_INI_FILE 1
 
@@ -38,8 +39,14 @@ namespace aworx { namespace lib { namespace config {
  *     and are not overwritten by comments set in the code. However, variables without
  *     comments which are overwritten in code including comments, get such comment appended.
  *   - Comments can not reside in the same line together with section names or variables.
- *   - Commented variables receive a blank line before the comment.
- *   - Commented Sections receive two blank lines before the comment. One if they are not commented.
+ *   - Commented variables receive a blank line before the comment on writing.
+ *   - Commented Sections receive two blank lines before the comment on writing.
+ *     One if they are not commented.
+ *   - Before a file is written, new sections (those that have been created during the use of
+ *     the object) can be identified by a \e nulled comment variable, while the string is
+ *     not \e nulled (but maybe empty) when read from the file. This information may be used
+ *     to add comments to new sections, prior to writing the file, while preventing to restore
+ *     comments that have been deleted by the user.
  *
  * - Sections:
  *   - Sections names are enclosed by brackets \c '[' and \c ']'.
@@ -93,95 +100,33 @@ namespace aworx { namespace lib { namespace config {
  **************************************************************************************************/
  class IniFile : public InMemoryPlugin
 {
-
     // #############################################################################################
     // Public fields
     // #############################################################################################
     public:
-        /** ****************************************************************************************
-         * A configuration section entry (a variable)
-         ******************************************************************************************/
-        class Entry : public InMemoryPlugin::Entry
-        {
-            public:
-                /** The raw string as read from the INI file. Ready to be written back when
-                 * variable is untouched. */
-                AString             RawValue;
-
-                /**
-                 * Constructs an Entry
-                 * @param name    The name of the section.
-                 */
-                Entry( const String& name ) : InMemoryPlugin::Entry( name ) {}
-
-                /** Destructor. */
-                virtual ~Entry()    override
-                {}
-
-                /**
-                 * Overrides default method. If we have not parsed the INI file text value, yet,
-                 * we do this now.
-                 *
-                 * @param parent    The plug-in we belong to.
-                 * @param variable  The variable to fill with our values.
-                 */
-                ALIB_API
-                virtual void ToVariable( const InMemoryPlugin& parent, Variable& variable ) override;
-
-                /**
-                 * Overrides default method. Clears the raw value, and calls base method.
-                 *
-                 * @param parent    The plug-in we belong to.
-                 * @param variable  The variable to fill with our values.
-                 */
-                ALIB_API
-                virtual void FromVariable( const InMemoryPlugin& parent, Variable& variable ) override;
-        };
-
-        /** ****************************************************************************************
-         * A configuration section entry (a variable)
-         ******************************************************************************************/
-        class Section: public InMemoryPlugin::Section
-        {
-            /**
-             * Constructs a Section
-             * @param name    The name of the section.
-             */
-            public :
-            Section( const String& name ) : InMemoryPlugin::Section( name ) {}
-            /**
-             * Overrides base classes method to create an entry of our type.
-             * @param name    The name of the entry.
-             * @return An object of type \ref Entry "IniFile::Entry".
-             */
-            protected:
-            inline
-            virtual Entry*  createEntry(const String& name )
-            {
-                return new IniFile::Entry( name );
-            }
-
-        };
-
 
         /** If this is set to \c true, any variable change will lead to writing the file immediately
             by invoking #WriteFile. Defaults to false */
-        bool                             AutoSave                                           = false;
+        bool                    AutoSave                                                    = false;
 
         /** The standard file extension used for \alib configuration files.
          *  Defaults to <em>".ini"</em>. */
-        static String                    DefaultFileExtension;
+        static String           DefaultFileExtension;
 
         /** The file name. This might include a path or not. Should be set properly before
             the file is read. */
-        AString                          FileName;
+        AString                 FileName;
 
         /** The file header which will be written out as a comment lines with "# " prefixes */
-        AString                          FileComments;
+        AString                 FileComments;
+
+        /** The desired maximum width of the INI-file. Defaults to <c>100</c>.
+         *  This value is used with utility method #AddResourcedSectionComments   */
+        int                     LineWidth                                                     = 100;
 
         /** Is cleared and filled with faulty line numbers when reading the file. (E.g. when a
             line is no section and no comment but still has no equal sign ('=').  */
-        std::vector<int>                 LinesWithReadErrors;
+        List<integer>           LinesWithReadErrors;
 
         /**
          * The prefix that is used for comment lines of sections or variables that have been
@@ -189,18 +134,18 @@ namespace aworx { namespace lib { namespace config {
          * Comments that were read from the file preserve their prefix.
          * If comments including one of the valid prefixes are added to a variable or section
          * 'in code', such prefix is preserved. */
-        String                           DefaultCommentPrefix                           =A_CHAR("# ");
+        String                  DefaultCommentPrefix                                  =A_CHAR("# ");
 
         /** Denotes if a space should be written before a delimiter. */
-        bool                             FormatSpaceBeforeDelim                             = false;
+        bool                    FormatSpaceBeforeDelim                                      = false;
 
         /** Denotes if a space should be written after a delimiter. (Applies only to single
             line mode of writing attributes.)  */
-        bool                             FormatSpaceAfterDelim                              =  true;
+        bool                    FormatSpaceAfterDelim                                       =  true;
 
         /** Denotes whether the spaces that are inserted when aligning attributes are
          *  located before or behind the delimiter. */
-        bool                             FormatIncludeDelimInAttrAlignment                  = false;
+        bool                    FormatIncludeDelimInAttrAlignment                           = false;
 
     // #############################################################################################
     // Constructor/destructor
@@ -214,29 +159,35 @@ namespace aworx { namespace lib { namespace config {
          * If the given file name equals <c>'*'</c>, no file is read and field #AutoSave is set
          * to \c false.
          *
-         * If the given name does not start with a path separation character,
-         * \alib{system,Directory::SpecialFolder::HomeConfig} is prepended.
+         * If the given name does not start with either a path separation character or a
+         * dot character <c>.</c>, then  \alib{system,Directory::SpecialFolder::HomeConfig} is
+         * prepended to the given name.
          *
          * @param filePathAndName  The name (and path) of the file to read and write.
          *                         Provide "*" to suppress reading a file.
          *                         Defaults to nullptr.
          ******************************************************************************************/
-        ALIB_API               IniFile( const String& filePathAndName= nullptr );
+        ALIB_API            IniFile( const String&   filePathAndName= nullptr   );
 
         /** ****************************************************************************************
          * Virtual Destructor.
          ******************************************************************************************/
-        virtual               ~IniFile()   {}
+        virtual             ~IniFile()                                                      override
+        {
+            #if ALIB_DEBUG
+            for( auto& section : sections )
+                if( section.Name().IsNotEmpty() && section.Comments.IsNull() )
+                    ALIB_WARNING( NString1K()
+                       << "Hint: New section \"" << section.Name()
+                       << "\", which was programatically added to\n    "
+                          "INI-file \"" << FileName << "\", has no comments.\n    "
+                          "The use of method IniFile::AddResourcedSectionComments() is recommened." )
+            #endif
+        }
 
     // #############################################################################################
-    // Interface
+    // Specific (new) Interface
     // #############################################################################################
-        /** ****************************************************************************************
-         * Clears all configuration data.
-         ******************************************************************************************/
-        ALIB_API
-        virtual void           Reset();
-
         /** ****************************************************************************************
          * Clears all configuration data and reads the file. It might happen that lines are
          * ignored or otherwise marked as faulty. All numbers of such lines get collected in
@@ -244,30 +195,63 @@ namespace aworx { namespace lib { namespace config {
          * @throws Exception( \alib{config,Exceptions,config::Exceptions::ErrorOpeningFile} ).
          ******************************************************************************************/
         ALIB_API
-        void     ReadFile();
+        void                ReadFile();
 
         /** ****************************************************************************************
          * Write all configuration data into the file.
          * @throws Exception( \alib{config,Exceptions,config::Exceptions::ErrorOpeningFile} ).
          ******************************************************************************************/
         ALIB_API
-        void     WriteFile();
+        void                WriteFile();
+
+        /** ****************************************************************************************
+         * This is a static utility function that reads section comments from
+         * \ref alib_mod_resources "externalized string resources".
+         *
+         * All sections of all INI-files of given \p{config} are processed, but resourced comments
+         * are only added in the case that a section's comment string is \c nulled. This is not the
+         * case if a section was read from from an INI-file, as even if no comments are given,
+         * the field is empty, but not \e nulled. In other words, only sections that have been
+         * programatically added during the run of a software are changed<br>
+         * This approach allows a user to remove the comments, without the software restoring them.
+         *
+         * The resource names are assembled from given \p{resourceNamePrefix} and the section
+         * name.
+         * The resource strings found are processed using method
+         * \alib{text,Paragraphs.AddMarked}. This allows to use text macros like <b>'\@HL'</b>
+         * to format the text.
+         *
+         * This method is best be invoked in phase \alib{Module,ShutdownPhases::Announce} of
+         * method \alib{Module::shutdown}.
+         *
+         * \see
+         *  Field #LineWidth, which is respected when formatting comment lines.
+         * @param config                The configuration that is searched for INI-file plug-ins.
+         * @param resourcePool          The resource pool to use.
+         * @param resourceCategory      The category of the resourced comments.
+         * @param resourceNamePrefix    A prefix of the resource name.
+         ******************************************************************************************/
+        ALIB_API static
+        void                AddResourcedSectionComments( Configuration&   config,
+                                                         ResourcePool&    resourcePool,
+                                                         const NString&   resourceCategory,
+                                                         const NString&   resourceNamePrefix  );
 
     // #############################################################################################
-    // ConfigurationPlugin interface implementation
+    // ConfigurationPlugin overrides
     // #############################################################################################
     public:
+         using InMemoryPlugin::Load;
+         using InMemoryPlugin::Store;
+
          /** ****************************************************************************************
           * Return the plug-in name, in this case, the file name.
           * @return The name of the plug-in.
           ******************************************************************************************/
-         virtual String  Name()   const
+         virtual String     Name()                                                    const override
          {
             return FileName;
          }
-
-        using InMemoryPlugin::Load;
-        using InMemoryPlugin::Store;
 
         /** ****************************************************************************************
          * Creates or replaces existing variable in our storage. If #AutoSave is set, the file
@@ -277,8 +261,7 @@ namespace aworx { namespace lib { namespace config {
          * @return \c true if the variable was written, \c false if not. The latter might only
          *         happen if the variable given was illegal, e.g. empty name.
          ******************************************************************************************/
-        inline
-        virtual bool  Store( Variable& variable )
+        virtual bool        Store( Variable& variable )                                     override
         {
             InMemoryPlugin::Store( variable );
             if ( AutoSave )
@@ -287,26 +270,37 @@ namespace aworx { namespace lib { namespace config {
         }
 
     // #############################################################################################
-    // Protected methods
+    // InMemoryPlugin overrides
     // #############################################################################################
-    protected:
-
         /** ****************************************************************************************
-         * Overrides base class's method to create a section of our type.
-         *
-         * Checks for resource string <c>"INI_CMT_sectionName"</c> in module singleton
-         * \alib{config,Config}. If found, the comment is added. Therefore, to add a default
-         * comment, in the bootstrap section of the software, such resources may be added to
-         * field \alib{Module::Resources} of singleton \alib{config,Config}.<br>
-         * The comment string read from the resources is formatted using method
-         * \alib{stringformat,Text::AddMarked} of a text formatting helper.
-         *
-         * @param sectionName    The name of the section.
-         * @return An object of type \ref Section "IniFile::Section".
+         * Clears all configuration data.
          ******************************************************************************************/
         ALIB_API
-        virtual Section*    createSection( const String& sectionName );
+        virtual void        Clear()                                                        override;
 
+        /**
+         * Overrides default method. If we have not parsed the INI file's text value, yet,
+         * we do this now.
+         *
+         * @param entry     The entry to convert.
+         * @param variable  The variable to fill with our values.
+         */
+        ALIB_API
+        virtual void        ToVariable(   Entry& entry, Variable& variable )         const override;
+
+        /**
+         * Overrides default method. Clears the raw value, and calls base method.
+         *
+         * @param entry     The entry to convert.
+         * @param variable  The variable to fill with our values.
+         */
+        ALIB_API
+        virtual void        FromVariable( Entry& entry, Variable& variable )         const override;
+
+    protected:
+    // #############################################################################################
+    // Protected methods
+    // #############################################################################################
         /** ****************************************************************************************
          * Writes a list of comments to the file. Comment lines are started with '#'.
          * @param os       The encapsulated output stream to write to.
@@ -322,7 +316,7 @@ namespace aworx { namespace lib { namespace config {
 }} // namespace lib::config
 
 /// Type alias in namespace #aworx.
-using     IniFile=       aworx::lib::config::IniFile;
+using     IniFile=       lib::config::IniFile;
 
 }  // namespace [aworx]
 

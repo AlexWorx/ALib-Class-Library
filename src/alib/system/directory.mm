@@ -17,7 +17,7 @@ namespace aworx { namespace lib { namespace system  { namespace macos {
 
 void ALIB_APPLE_OC_NSTemporaryDirectory( AString& target)
 {
-    target.Clear();
+    target.Reset();
     NSString* tempDir = NSTemporaryDirectory();
     if( tempDir )
         target <<  [tempDir UTF8String];
@@ -25,7 +25,7 @@ void ALIB_APPLE_OC_NSTemporaryDirectory( AString& target)
 
 void ALIB_APPLE_OC_NSHomeDirectory( AString& target)
 {
-    target.Clear();
+    target.Reset();
     NSString* tempDir = NSHomeDirectory();
     if( tempDir )
         target <<  [tempDir UTF8String];

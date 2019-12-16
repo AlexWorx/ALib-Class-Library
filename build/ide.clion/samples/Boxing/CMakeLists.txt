@@ -11,12 +11,13 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
+project("ALib.Boxing.Sample")
 cmake_minimum_required( VERSION 3.3.0 )
 
 #
 # For testing module distribution, create directory "/tmp/alib-module-test" and uncomment this:
 #
-# set( ALIB_MODULE_SOURCE_COPY_DIR      "/tmp/alib-module-test" )
+# set( ALIB_SOURCE_COPY_TARGET_DIR      "/tmp/alib-module-test" )
 
 # set( ALIB_CMAKE_VERBOSE               "On" )
 

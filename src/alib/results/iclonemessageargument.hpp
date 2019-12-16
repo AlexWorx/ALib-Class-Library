@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_results of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_ICLONEMESSAGEARGUMENT
 #define HPP_ALIB_RESULTS_ICLONEMESSAGEARGUMENT 1
 
@@ -14,7 +15,7 @@
 
 namespace aworx { namespace lib {
 
-namespace memory  { class MemoryBlocks; }
+namespace monomem  { class MonoAllocator; }
 
 namespace results  {
 

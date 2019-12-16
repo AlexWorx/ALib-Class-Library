@@ -7,7 +7,7 @@ Please find all about the **ALib For C++**, including
 * **Project setup guide**
 * **Version History / Change log**
 
-at the [ALib Homepage](http://alexworx.github.io/ALib-Class-Library).
+at the [ALib Homepage](https://alib.dev).
 
 ## Abstract ##
 
@@ -54,7 +54,7 @@ The following documentation is provided.
 4. A separated **General Manual** is available describing the library structure,
    project setup, bootstrapping, etc.
 
-5. A reference to C++ macros and compilation symbols is given.
+5. Reference documentation to C++ compiler symbols and macros.
 
 6. Tutorial and reference documentation's <b> code samples</b> are implemented as unit tests and
    are integrated as source and output text snippets into the documentation.
@@ -69,17 +69,18 @@ The following documentation is provided.
 ## IDE / Build System Setup ##
 The C++ Version got tested on the following platform combinations:
 - GNU/Linux (Arch Linux)
-    - [GNU Compiler Collection 8.2.1](https://gcc.gnu.org/)
-    - [clang compiler 7.0.1](http://llvm.org/)
-    - [CMake 3.13.4](https://cmake.org/)
-    - [CLion 2019.1 EAP](https://www.jetbrains.com/cpp)
-    - [Valgrind V. 3.14.0](http://valgrind.org/)
+    - [GNU Compiler Collection 9.2.0](https://gcc.gnu.org/)
+    - [clang compiler 9.0.0](http://llvm.org/)
+    - [CMake 3.16](https://cmake.org/)
+    - [CLion 2019.3](https://www.jetbrains.com/cpp)
+    - [Valgrind V. 3.15.0](http://valgrind.org/)
 
 - Windows 10
-    - Visual Studio 2017, Version 15.9.4
+    - Visual Studio 2017, Version 15.9.18
 
-- macOS Sierra: <em>The current release is not tested and most probably does not compile!</em>.<br>
-  <b>Please volunteer for help!</b>
+- macOS Catalina 10.15.1
+    - Apple Clang Version 11.0.0
+    - [CLion 2019.3.1](https://www.jetbrains.com/cpp)
 
 The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
 C++ environment.
@@ -117,16 +118,16 @@ to just all of these millions of supporters of *free software*, including:
 - The [CMake](https://cmake.org/) project,
 - The [QT Creator](http://doc.qt.io/qtcreator) team,
 - Microsoft for providing [Visual Studio Community Edition](https://www.visualstudio.com/vs/community/) project,
-- To company [JetBrains](https://www.jetbrains.com) for providing a free
-  [Open Source License](https://www.jetbrains.com/buy/opensource/)
+- To company [JetBrains](https://www.jetbrains.com) for providing a 
+  [free license to open source developers](https://www.jetbrains.com/buy/opensource/)
   of their absolutely superb and unrivalled set of IDEs for various programming languages.
 - To <b>Dimitri van Heesch</b> for providing marvelous documentation software [Doxygen](http://doxygen.nl).
 
 Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
-until he - when things became too crazy - passed away in 1882.
+until he - when things became too crazy - disappeared in 1882.
 
 
 ## More Information... ##
-Please visit the [ALib Homepage](http://alexworx.github.io/ALib-Class-Library)!
+Please visit the [ALib Homepage](https://alib.dev)!
 
 

@@ -1,13 +1,15 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+
 #ifndef HPP_ALOX_CONSOLE_LOGGER
 #define HPP_ALOX_CONSOLE_LOGGER 1
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
@@ -84,7 +86,6 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
-        inline
         virtual void        notifyMultiLineOp( Phase )    {}
 
 }; // class ConsoleLogger
@@ -93,7 +94,7 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
 }}}// namespace aworx[::lib::lox::loggers]
 
 /// Type alias in namespace #aworx.
-using     ConsoleLogger=           aworx::lib::lox::loggers::ConsoleLogger;
+using     ConsoleLogger=           lib::lox::loggers::ConsoleLogger;
 
 }  // namespace [aworx]
 

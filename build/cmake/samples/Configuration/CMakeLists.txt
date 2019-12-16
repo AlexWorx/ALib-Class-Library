@@ -25,9 +25,8 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    project("ALib.Configuration.Sample")
-
     cmake_minimum_required( VERSION 3.3.0 )
+    project("ALib.Configuration.Sample")
 
 
 ## -------------------------------------------------------------------------------------------------
@@ -35,7 +34,7 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_MODULES             "CONFIGURATION" )
+    list( APPEND  ALIB_DISTRIBUTION             "CONFIGURATION" )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )

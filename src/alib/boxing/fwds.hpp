@@ -1,14 +1,15 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_boxing of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_FWDS
 #define HPP_ALIB_BOXING_FWDS 1
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -27,46 +28,45 @@ struct FIsEmpty;
 struct FEquals;
 struct FIsLess;
 struct FIsTrue;
-#if ALIB_MODULE_STRINGS
+ALIB_IF_STRINGS(
 template<typename TChar>
-struct FAppend;
-#endif
+struct FAppend;             )
 
 
 }}// namespace [aworx::lib::boxing]
 
 
 /// Type alias in namespace #aworx.
-using     Box=         aworx::lib::boxing::Box;
+using     Box           =   lib::boxing::Box;
 
 /// Type alias in namespace #aworx.
-using     Boxes=       aworx::lib::boxing::Boxes;
+using     Boxes         =   lib::boxing::Boxes;
 
 /// Type alias in namespace #aworx.
-using     Enum=        aworx::lib::boxing::Enum;
+using     Enum          =   lib::boxing::Enum;
 
 /// Type alias in namespace #aworx.
-using     FHashcode             =   aworx::lib::boxing::FHashcode;
+using     FHashcode     =   lib::boxing::FHashcode;
 
 /// Type alias in namespace #aworx.
-using     FClone                =   aworx::lib::boxing::FClone;
+using     FClone        =   lib::boxing::FClone;
 
 /// Type alias in namespace #aworx.
-using     FEquals               =   aworx::lib::boxing::FEquals;
+using     FEquals       =   lib::boxing::FEquals;
 
 /// Type alias in namespace #aworx.
-using     FIsNotNull            =   aworx::lib::boxing::FIsNotNull;
+using     FIsNotNull    =   lib::boxing::FIsNotNull;
 
 /// Type alias in namespace #aworx.
-using     FIsLess               =   aworx::lib::boxing::FIsLess;
+using     FIsLess       =   lib::boxing::FIsLess;
 
 /// Type alias in namespace #aworx.
-using     FIsTrue               =   aworx::lib::boxing::FIsTrue;
+using     FIsTrue       =   lib::boxing::FIsTrue;
 
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
 /// Type alias in namespace #aworx.
 template<typename TChar>
-using     FAppend   =   aworx::lib::boxing::FAppend<TChar>;
+using     FAppend       =   lib::boxing::FAppend<TChar>;
 #endif
 } // namespace aworx
 

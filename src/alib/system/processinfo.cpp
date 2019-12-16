@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined(HPP_ALIB_SYSTEM_PROCESSINFO)
     #include "alib/system/processinfo.hpp"
 #endif
@@ -14,9 +15,11 @@
     #include "alib/strings/util/tokenizer.hpp"
 #endif
 
-
-#if ALIB_MODULE_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCKNR)
+#if ALIB_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCKNR)
     #include "alib/threads/threadlocknr.hpp"
+#endif
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
 #endif
 
 #if defined(__GLIBCXX__)
@@ -35,6 +38,7 @@
 #if !defined(_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
     #include <fstream>
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 
@@ -46,16 +50,14 @@ ProcessInfo    ProcessInfo::current;
 
 const ProcessInfo&    ProcessInfo::Current()
 {
-    #if ALIB_MODULE_THREADS
-    static ThreadLockNR   lock;
-    #endif
+    ALIB_IF_THREADS( static ThreadLockNR   lock; )
     if( current.PID == 0 )
     {
         // Own global lock and check if still nulled.
         // (If not, this is a very unlikely parallel access )
         ALIB_LOCK_WITH( lock )
         if ( ProcessInfo::current.PID == 0 )
-            ProcessInfo::current.get( 0 );
+             ProcessInfo::current.get( 0 );
     }
     return current;
 }

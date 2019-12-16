@@ -4,11 +4,8 @@
 //  Copyright 2013-2019 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
-
 /**
 \mainpage    Overview
-
 
 ## Abstract ##
 
@@ -18,7 +15,7 @@ Its mission is to provide foundational concepts, types and idioms relevant to an
 As of today, \alib consists of \ref alib_manual_modules_dependencies "16 modules", each addressing
 different topics like for example
 \"\ref alib_mod_boxing "boxing arbitrary values"\",
-\"\ref alib_mod_stringformat "character string formatting"\", or
+\"\ref alib_mod_text "character string formatting"\", or
 \"\ref alib_mod_expressions "regular expression parsing"\".<br>
 A subset of the available modules can be selectively included in a custom library build.
 
@@ -36,10 +33,10 @@ A subset of the available modules can be selectively included in a custom librar
 ## Library Dependencies ##
 
 \alib compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
-Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
-\alibmod_nolink_strings are using its regex search.<br>
+Optional dependencies exist. For example if \https{boost,www.boost.org} is available,
+\alib_strings_nl are using its regex search.<br>
 In contrast, \alib provides optional compatibility headers for 3rd-party libraries
-(e.g. [QT Class Library](https://www.qt.io)), which for example provide adoptions of \alib type-traits
+(e.g. \https{QT Class Library,www.qt.io}), which for example provide adoptions of \alib type-traits
 for QT-types.
 
 ## Documentation ##
@@ -50,7 +47,7 @@ The following documentation is provided.
    and other C++ entities.
 
 2. \ref alib_manual_modules_overview "Programmer's Manuals" are available for (almost)
-   each \alibmod_nolink.<br>
+   each \alibmod_nl.<br>
    Together more than <b>450 pages</b> of well structured in-depth discussion of library
    features as well as <b>step by step tutorials</b> are available.
 
@@ -59,34 +56,35 @@ The following documentation is provided.
 4. A separated \ref alib_manual_modules "General Manual" is available describing the library structure,
    project setup, bootstrapping, etc.
 
-5. A reference to C++ macros and compilation symbols is given with \ref alib_ref_prepro.
+5. Reference documentation of C++ \ref alib_ref_prepro "compiler symbols and macros".
 
 6. Tutorial and reference documentation's <b> code samples</b> are implemented as unit tests and
    are integrated as source and output text snippets into the documentation.
-   (As for example shown \alib{resources,T_EnumMetaDataDecl,here}).
+   (As for example as \ref alib_enums_records "done here").
 
-7. For module \alibmod_alox, a separated website exists. This includes plenty of \alox specific
-   documentation, a lengthy
-   [tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html), definitions of
-   [configuration/environment variables](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
+7. For module \alib_alox, a
+   \https{separated website,alexworx.github.io/ALox-Logging-Library/index.html} exists.
+   This includes plenty of \alox specific documentation, a lengthy
+   \https{tutorial,alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html}, definitions of
+   \https{configuration/environment variables,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
    and more.
-
 
 
 ## IDE / Build System Setup ##
 The C++ Version got tested on the following platform combinations:
 - GNU/Linux (Arch Linux)
-    - [GNU Compiler Collection 8.2.1](https://gcc.gnu.org/)
-    - [clang compiler 7.0.1](http://llvm.org/)
-    - [CMake 3.13.4](https://cmake.org/)
-    - [CLion 2019.1 EAP](https://www.jetbrains.com/cpp)
-    - [Valgrind V. 3.14.0](http://valgrind.org/)
+    - \https{GNU Compiler Collection 9.2.0,gcc.gnu.org/}
+    - \https{clang compiler 9.0.0,llvm.org/}
+    - \https{CMake 3.16,cmake.org/}
+    - \https{CLion 2019.3,www.jetbrains.com/cpp}
+    - \http{Valgrind V. 3.15.0,valgrind.org/}
 
 - Windows 10
-    - Visual Studio 2017, Version 15.9.4
+    - Visual Studio 2017, Version 15.9.18
 
-- macOS Sierra: <em>The current release is not tested and most probably does not compile!</em>.<br>
-  <b>Please volunteer for help!</b>
+- macOS Catalina 10.15.1
+    - Apple Clang Version 11.0.0
+    - \https{CLion 2019.3.1,www.jetbrains.com/cpp}
 
 Check out chapter \ref alib_manual_build "4. Building The Library" for details of how to compile
 and use ALib in your C++ environment.
@@ -99,15 +97,15 @@ Parts of \alib have sibling incarnations in programming languages C# and JAVA. H
 in favour to be able to independently develop <b>ALib for C++</b>.
 
 <b>ALib for C#</b> and <b>ALib for Java</b> are included in and distributed with the
-cross platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Library/).
+cross platform \https{ALox Logging Library,alexworx.github.io/ALox-Logging-Library/}.
 
 For C++, since May 2018 release, the situation was inverted: Instead of having \alib bundled
 with \alox, the logging library is now an \alibmod.
 
-
+\anchor mainpage_license
 ## License ##
 
-\alib is free software, can be [downloaded at Github](https://github.com/AlexWorx/ALib-Class-Library)
+\alib is free software, can be \https{downloaded at Github,github.com/AlexWorx/ALib-Class-Library}
 and sources are published under Boost Software License:
 
 \verbinclude "../../LICENSE.txt"
@@ -124,18 +122,21 @@ Please do not even contact us with your ideas/code in that case.
 
 Our thanks go to all supporters that did and do help realizing this project. Furthermore
 to just all of these millions of supporters of *free software*, including:
-- The [GNU/Linux](https://gnu.org) project and community,
-- The [LLVM/Clang](http://llvm.org/) project,
-- The [CMake](https://cmake.org/) project,
-- The [QT Creator](http://doc.qt.io/qtcreator) team,
-- Microsoft for providing [Visual Studio Community Edition](https://www.visualstudio.com/vs/community/) project,
-- To company [JetBrains](https://www.jetbrains.com) for providing a free
-  [Open Source License](https://www.jetbrains.com/buy/opensource/)
+- The \https{GNU/Linux,gnu.org} project and community,
+- The \https{LLVM/Clang,llvm.org/} project,
+- The \https{CMake,cmake.org/} project,
+- To <b>Dimitri van Heesch</b> for providing marvelous documentation software \https{Doxygen,doxygen.nl}.
+- To company \https{JetBrains,www.jetbrains.com} for providing a free
+  \https{Open Source License,www.jetbrains.com/buy/opensource/}
   of their absolutely superb and unrivalled set of IDEs for various programming languages.
-- To <b>Dimitri van Heesch</b> for providing marvelous documentation software [Doxygen](http://doxygen.nl).
+- The \https{QT Creator,doc.qt.io/qtcreator} team,
+- Microsoft for providing \https{Visual Studio Community Edition,www.visualstudio.com/vs/community/} project,
 
 Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
-until he - when things became too crazy - passed away in 1882.
+until he - when things became too crazy - disappeared in 1882.
 
+
+\page alib_legal_notice Legal Notice
+<IMG SRC="legal-notice.png"/>
 */
 

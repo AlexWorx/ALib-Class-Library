@@ -1,20 +1,21 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
 
-#if !defined(HPP_ALIB_LIB_PREDEF_MODULES)
-#   include "alib/lib/predef_modules.hpp"
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
+#   include "alib/lib/modules.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 ALIB_ASSERT_MODULE(SYSTEM)
 
-#if ALIB_MODULE_SYSTEM
+#if ALIB_SYSTEM
 
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
 #   include "alib/expressions/plugins/calculus.hpp"
@@ -29,7 +30,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *
  * The identifiers, functions and operators offered by this compiler plug-in introduce \alib
  * types \alib{time,DateTime} and \alib{time,TimePointBase::Duration} to be used with
- * module \alibmod_nolink_expressions.
+ * module \alib_expressions_nl.
  *
  * All identifier and function names are defined case insensitive.
  *
@@ -167,15 +168,15 @@ struct DateAndTime   : public plugins::Calculus
 
     /** ********************************************************************************************
      * Static initialization function.
-     * Called once during \alib{expressions,Expressions::init,library initialization}.
+     * Called once during \alib{expressions,Expressions::bootstrap,library initialization}.
      **********************************************************************************************/
     static ALIB_API
-    void        Init();
+    void        Bootstrap();
 };
 
 
 }}}} // namespace [aworx::lib::expressions::detail]
 
-#endif // ALIB_MODULE_SYSTEM
+#endif // ALIB_SYSTEM
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
 

@@ -1,11 +1,12 @@
-﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#ifndef HPP_ALOX_CORE_SCOPEINFO
-#define HPP_ALOX_CORE_SCOPEINFO 1
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_alox of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALOX_DETAIL_SCOPEINFO
+#define HPP_ALOX_DETAIL_SCOPEINFO 1
 
 #if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
 #   error "ALib sources with ending '.inl' must not be included from outside."
@@ -22,16 +23,24 @@
     #include "alib/system/directory.hpp"
 #endif
 
-#if !defined (HPP_ALIB_THREADS_THREAD)
+#if ALIB_THREADS && !defined (HPP_ALIB_THREADS_THREAD)
     #include "alib/threads/thread.hpp"
 #endif
 
-
-#if !defined (_GLIBCXX_MAP) && !defined(_MAP_)
-    #include <map>
+#if !defined (HPP_ALIB_MONOMEM_HASHMAP)
+#   include "alib/monomem/hashmap.hpp"
+#endif
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace aworx { namespace lib {
+
+namespace config { class Variable; }
+namespace lox    { namespace detail {
+
+
+struct LoxImpl;
 
 /** ************************************************************************************************
  * Encapsulates information of the caller that can be collected. This is platform specific, in
@@ -50,17 +59,20 @@ namespace aworx { namespace lib { namespace lox { namespace detail {
  **************************************************************************************************/
 class ScopeInfo
 {
-    #if !ALIB_DOCUMENTATION_PARSER
-        // Class \b %Lox uses and controls this class.
-        friend class aworx::lib::lox::Lox;
+    #if !defined(ALIB_DOX)
+        friend void  LI::Reset(LoxImpl*, bool);
+        friend void  LI::MapThreadName(LoxImpl*, const String&, threads::ThreadID);
+        friend void  LI::GetState( LoxImpl*, NAString&, StateInfo);
     #endif
 
     // #############################################################################################
     // Types exposed
     // #############################################################################################
     public:
+#if ALIB_THREADS
         /** A std::map we use to translate thread IDs to thread names */
-        using ThreadDictionary=   std::map<ThreadID, String32>;
+        using ThreadDictionary=   HashMap<threads::ThreadID, String32>;
+#endif
 
         /**
          * The number of source file path and corresponding, evaluated derived values.
@@ -70,8 +82,11 @@ class ScopeInfo
         ALIB_API
         static  int             DefaultCacheSize;
 
+        /** The name of the Lox we are attached to. */
+        NString                 loxName;
+
     // #############################################################################################
-    // Protected members
+    // Protected fields
     // #############################################################################################
     protected:
         /** Defines portions of source paths to be ignored. */
@@ -107,13 +122,7 @@ class ScopeInfo
         bool                                     AutoDetectTrimableSourcePath                = true;
 
 
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
-    protected:
-        /** The name of the Lox we are attached to. */
-        NString32                               loxName;
-
+#if ALIB_THREADS
         /** The thread passed with #Set. */
         Thread*                                 thread                                    = nullptr;
 
@@ -125,37 +134,35 @@ class ScopeInfo
          * The dictionary may be filled by the user of the library using \alox{Lox.MapThreadName}.
          */
         ThreadDictionary                        threadDictionary;
+#endif
 
         /** Information of a single source file. Stored in field #cache. */
         struct SourceFile
         {
             /** 'Timestamp' for LRU overwriting (not a time, but using field #cacheRun). */
-            uint64_t                            timeStamp       = 0;
+            uint64_t        timeStamp                                                           = 0;
 
             /** Path and name of source file (given by the C++ preprocessor). */
-            NCString                            origFile;
+            NCString        origFile                                                      = nullptr;
 
             /** Full path of source file  (evaluated). */
-            NString                             fullPath;
+            NString         fullPath                                                      = nullptr;
 
             /** Trimmed path of source file  (evaluated). */
-            NString                             trimmedPath;
+            NString         trimmedPath                                                   = nullptr;
 
             /** Prefix for the trimmed path taken from trim rule. Has to be added on writing
              *  the trimmed path **/
-            NString                             trimmedPathPrefix;
+            NString         trimmedPathPrefix                                             = nullptr;
 
             /** File name (evaluated).  */
-            NString                             name;
+            NString         name                                                          = nullptr;
 
             /** File name without extension (evaluated). */
-            NString                             nameWOExt;
+            NString         nameWOExt                                                     = nullptr;
 
             /** Index of last path separator in #origFile. */
-            integer                            origFilePathLength;
-
-            /** Constructor. */
-            SourceFile() {  origFile= nullptr; Clear(); }
+            integer         origFilePathLength                                                 = -2;
 
             /** Clears calculated values. Keeps #origFile intact. */
             void Clear()
@@ -166,7 +173,6 @@ class ScopeInfo
                 name=               nullptr;
                 nameWOExt=          nullptr;
             }
-
         };
 
 
@@ -180,7 +186,7 @@ class ScopeInfo
           */
         int                                     cacheSize;
 
-        /** A list of source files. The its size is dependent on static field #DefaultCacheSize. */
+        /** An array of source files. Its size is dependent on static field #DefaultCacheSize. */
         SourceFile*                             cache;
 
         /**
@@ -204,7 +210,7 @@ class ScopeInfo
         };
 
         /** A stack of scopes (allows recursive calls/nested logging). */
-        std::vector<Scope>                      scopes;
+        std::vector<Scope,StdContMA<Scope>>     scopes;
 
         /** The current depth of recursive invocations. */
         int                                     actScopeDepth                                  = -1;
@@ -220,19 +226,19 @@ class ScopeInfo
     public:
         /** ****************************************************************************************
          * Constructs a scope info.
-         * @param name              The name of the Lox we belong to.
-         *                          Will be converted to upper case.
+         * @param name       The name of the Lox that this object belongs to.
+         *                   Will be converted to upper case.
+         * @param allocator  The monotonic allocator of "our" \b %Lox, used for long-term allocations
+         * @param tempVar    A temporary variable for internal use.
          ******************************************************************************************/
         ALIB_API
-         ScopeInfo( const NString& name );
-
-        ALIB_API
-        ~ScopeInfo();
+        ScopeInfo( const NString& name, MonoAllocator* allocator, config::Variable& tempVar);
 
      // #############################################################################################
      // public interface
      // #############################################################################################
     public:
+    #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Stores C++ specific caller parameters and some other values like the time stamp.
          * Also, flags thread information as not received, yet.
@@ -246,15 +252,20 @@ class ScopeInfo
          * @param thread      The thread. If \c nullptr, it will be determined if needed.
          ******************************************************************************************/
         ALIB_API
-        void Set( const NCString& source, int lineNumber, const NCString& method, Thread* thread );
+        void Set( const NCString&  source, int lineNumber, const NCString& method,
+                  threads::Thread* thread                                            );
+    #else
+        void Set( const NCString& source, int lineNumber, const NCString& method
+                  ALIB_IF_THREADS( , threads::Thread* thread )                       );
+    #endif
 
         /** ****************************************************************************************
          * Releases latest scope information.
          ******************************************************************************************/
         void Release()
         {
-            lastSourceFile= scopes[static_cast<size_t>( actScopeDepth )].sourceFile;
-            actScopeDepth--;
+            lastSourceFile= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
+            --actScopeDepth;
             ALIB_ASSERT( actScopeDepth >= -1 )
         }
 
@@ -289,8 +300,7 @@ class ScopeInfo
          * Receives the name of the \b Lox we are belonging to (this is a 1:1 relationship).
          * @return The name of the \b Lox.
          ******************************************************************************************/
-        inline
-        const NCString  GetLoxName()
+        const NString   GetLoxName()
         {
             return loxName;
         }
@@ -300,7 +310,6 @@ class ScopeInfo
          * (usually provided by the preprocessor).
          * @return The full path and filename of the source file.
          ******************************************************************************************/
-        inline
         const NCString& GetOrigFile()
         {
             return scopes[static_cast<size_t>(actScopeDepth)].sourceFile->origFile;
@@ -310,7 +319,6 @@ class ScopeInfo
          * Receives the path of the source file (not trimmed, see #GetTrimmedPath).
          * @return The path of the source file.
          ******************************************************************************************/
-        inline
         const NString   GetFullPath()
         {
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
@@ -331,7 +339,6 @@ class ScopeInfo
          * with #SetSourcePathTrimRule or detected according to #AutoDetectTrimableSourcePath.
          * @param target The target string to append the trimmed path to.
          ******************************************************************************************/
-        inline
         void            GetTrimmedPath( AString& target )
         {
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
@@ -339,14 +346,13 @@ class ScopeInfo
                 trimPath();
 
             target._( actual->trimmedPathPrefix )
-                  ._(actual->trimmedPath );
+                  ._( actual->trimmedPath );
         }
 
         /** ****************************************************************************************
          * Receives the source file name excluding the path (usually provided by the preprocessor).
          * @return The source file name excluding the path
          ******************************************************************************************/
-        inline
         const NString   GetFileName()
         {
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
@@ -367,7 +373,6 @@ class ScopeInfo
          * (usually provided by the preprocessor).
          * @return The source file name excluding the path and extension.
          ******************************************************************************************/
-        inline
         const NString   GetFileNameWithoutExtension()
         {
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
@@ -386,7 +391,6 @@ class ScopeInfo
          * Receives the method name (usually provided by the preprocessor).
          * @return The method name.
          ******************************************************************************************/
-        inline
         const NCString   GetMethod()
         {
             return scopes[static_cast<size_t>(actScopeDepth)].origMethod;
@@ -396,7 +400,6 @@ class ScopeInfo
          * Receives the source file line number (usually provided by the preprocessor).
          * @return The source file line number.
          ******************************************************************************************/
-        inline
         int             GetLineNumber()
         {
             return scopes[static_cast<size_t>(actScopeDepth)].origLine;
@@ -406,18 +409,17 @@ class ScopeInfo
          * The timestamp of the last invocation of #Set.
          * @return The latest timestamp.
          ******************************************************************************************/
-        inline
         Ticks           GetTimeStamp()
         {
             return scopes[static_cast<size_t>(actScopeDepth)].timeStamp;
         }
 
+#if ALIB_THREADS
         /** ************************************************************************************
          * Receives the thread ID of the caller.
          * @returns The thread ID.
          **************************************************************************************/
-        inline
-        ThreadID        GetThreadID()
+        threads::ThreadID  GetThreadID()
         {
             if( thread == nullptr )
                 thread= Thread::GetCurrent();
@@ -426,13 +428,12 @@ class ScopeInfo
 
         /** ************************************************************************************
          * Receives information about the thread that the current call was invoked with.
-         * @param id  Output parameter receiving the ALIB thread ID. If nullptr, it will be
+         * @param id  Output parameter receiving the \alib thread ID. If nullptr, it will be
          *            ignored.
          * @returns The name of the current thread. The id is stored within the provided
          *          pointer.
          **************************************************************************************/
-        inline
-        const aworx::String& GetThreadNameAndID( ThreadID* id )
+        const aworx::String& GetThreadNameAndID( threads::ThreadID* id )
         {
             if ( threadName.IsNull() )
             {
@@ -444,7 +445,7 @@ class ScopeInfo
                     *id=    thread->GetId();
 
                 // do we have a dictionary entry?
-                auto it= threadDictionary.find( thread->GetId() );
+                auto it= threadDictionary.Find( thread->GetId() );
                 if (it != threadDictionary.end() )
                     threadName= it->second;
                 else
@@ -453,6 +454,7 @@ class ScopeInfo
 
             return    threadName;
         }
+#endif
 
     // #############################################################################################
     // Internals
@@ -472,7 +474,6 @@ class ScopeInfo
          * invocation of #Set.
          * @return The index of the path separator in SourceFile::origFile.
          **************************************************************************************/
-        inline
         integer        getPathLength()
         {
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
@@ -484,4 +485,4 @@ class ScopeInfo
 
 }}}}// namespace [aworx::lib::lox::detail]
 
-#endif // HPP_ALOX_CORE_SCOPEINFO
+#endif // HPP_ALOX_DETAIL_SCOPEINFO

@@ -13,7 +13,7 @@
 \tableofcontents
 
 
- \~Comment ####################################################################################### \~
+\~Comment ####################################################################################### \~
 # 1. Introduction # {#alib_singleton_intro}
 This namespace is the home of the very tiny and low-level \alibmod "Singleton". While the
 scope is almost too small to be named a module, for organizing the library as "orthogonal" as
@@ -29,7 +29,7 @@ Consequently, experienced programmers might want to read sections \ref alib_sing
 and \ref alib_singleton_uao_alt first!
 
 
- \~Comment ####################################################################################### \~
+\~Comment ####################################################################################### \~
 # 2. C++ Singletons # {#alib_singleton_background}
 
 The only class found in this module is \alib{singletons,Singleton}, which implements the well known
@@ -77,20 +77,20 @@ uses different data segments for different portions of the code, for example pro
 DLLs on Windows OS.
 As this effort imposes a (small) overhead, the implementation of this class can be switched to
 a simple implementation version, which just stores the singletons in a static field of the class.
-The implementation is controlled by code selection symbol \ref ALIB_FEAT_SINGLETON_MAPPED.
+The implementation is controlled by compiler symbol \ref ALIB_FEAT_SINGLETON_MAPPED.
 On Windows OS the symbol defaults to \c true, otherwise to false.<br>
-Now, Compiler symbols \ref ALIB_FEAT_SINGLETON_MAPPED_ON and \ref ALIB_FEAT_SINGLETON_MAPPED_OFF
-can be used to overwrite this default settings. This could be done for the following reasons:
+
+Changing these defaults could be done for the following reasons:
 - \alib is used on Windows OS, but not compiled as a DLL and the code that is using \alib
   is restricted to one DLL or the main application exclusively. In this case, symbol
-  \ref ALIB_FEAT_SINGLETON_MAPPED_OFF may be passed to the compiler to switch compilation
+  <b>ALIB_FEAT_SINGLETON_MAPPED=0</b> may be passed to the compiler to switch compilation
   to the simple mode.
 - \alib is used on GNU/Linux, but the debug features for listing all singletons created
-  (described below) should be used. In this case, for the purpose of debugging, symbol
-  \ref ALIB_FEAT_SINGLETON_MAPPED_ON may be passed to the compiler to switch compilation
+  (described below) should be used. In this case, for the purpose of debugging,
+  <b>ALIB_FEAT_SINGLETON_MAPPED=1</b> may be passed to the compiler to switch compilation
   to use the hash map, even though this is otherwise not needed for that platform.
 
- \~Comment ####################################################################################### \~
+\~Comment ####################################################################################### \~
 # 4. Usage # {#alib_singleton_usage}
 The implementation details described above are transparent in respect to using the class.
 
@@ -130,12 +130,12 @@ This is shown in the following sample:
 \~Comment ####################################################################################### \~
 # 6. Memory Cleanup #  {#alib_singleton_termination}
 Prior to terminating the process, the singletons collected in the global map, can be destructed and
-deleted using namespace function \alib{singletons,DeleteSingletons}.
+deleted using namespace function \alib{singletons,Shutdown}.
 See this method's description for more information.
 
 Especially note that \ref alib_manual_bootstrapping "default module termination" (namely invoking
-method \alib{Module,TerminationCleanUp} on singleton \alib{ALibModules}) invokes this method
-already.
+method \alib{Module,Shutdown} on singleton \ref aworx::ALIB of type \alib{ALibDistribution})
+invokes this method already.
 
 
 \~Comment ####################################################################################### \~
@@ -160,7 +160,7 @@ already.
 - The memory penalty is also quite minimal and imposed by the creation of a static hash table,
   which holds a pointer to each Singleton.
 - Upon exit of the process, programmers might want to explicitly free the hash table to avoid
-  the detection of memory leaks by metrics tools like [Valgrind](http://valgrind.org/).
+  the detection of memory leaks by metrics tools like \http{Valgrind,valgrind.org/}.
   (Otherwise this can be omitted, as the memory is cleaned by the OS probably much faster when a
   process exits).
 - In general, it is advised to think twice before implementing the singleton design pattern.
@@ -168,15 +168,15 @@ already.
   singletons in software.
   And do not be frustrated if "very wise people" tell you that you must never use a singleton.
   Your answer to them is: Each and every created instance of a virtual C++ class contains
-  a pointer to a singleton, namely the [vtable](https://en.wikipedia.org/wiki/Virtual_method_table)!
+  a pointer to a singleton, namely the \https{vtable,en.wikipedia.org/wiki/Virtual_method_table}!
 
 \~Comment ####################################################################################### \~
 # 8. Listing Types in Debug Compilations #  {#alib_singleton_debug}
 As described above, to extend the singleton concept across DLL bounds, a static hash map is
-needed. Now, in debug compilations (see compilation symbol \ref ALIB_DEBUG), this map can be
-accessed with method \alib{singletons,DbgGetSingletons}.
+needed. Now, with debug builds (see compiler symbol \ref ALIB_DEBUG), this map can be
+accessed with namespace function  \alib{singletons,DbgGetSingletons}.
 
-If the \alibdist includes module \alibmod_strings, then an overloaded version exists with
+If the \alibdist includes module \alib_strings, then an overloaded version exists with
 \alib{singletons,DbgGetSingletons(NAString&)}.
 This function performs a simple dump of all singleton types into the given \b %AString.
 
@@ -197,7 +197,7 @@ In other words: The ultimate goal of this module was to allow a library to prese
 using code. When the using code created a custom instantiation of the type, no need for a parallel
 definition of a global singleton instance for this template instantiation should be needed.
 
-This might be explained with a quick sample. Module \alibmod_boxing provides type \b Box that
+This might be explained with a quick sample. Module \alib_boxing provides type \b Box that
 is a container for any sort of object. For example:
 
         Box box= 42;
@@ -240,7 +240,7 @@ in the following situations:
 ## 9.3 Optimization With Mixed Approach ##  {#alib_singleton_uao_opt}
 
 It is possible to "optimize" the creation of singletons, when using this module, by providing
-specializations of dedicated "forseeable" instantiations of the custom template type that is
+specializations of dedicated "foreseeable" instantiations of the custom template type that is
 derived from class \alib{singletons,Singleton}.
 
 As a sample, we stick to the one presented in section \ref alib_singleton_uao_usecase.
@@ -256,17 +256,17 @@ is allowed to create global objects of type \b Box that are initialized with val
 
 \note
   Due to the potential hashtable access of method \b Singleton::GetSingleton, the initialization
-  of a global instance of class \b Box is otherwise undefined behaviour, as it is not guaranteed
+  of a global instance of class \b Box is otherwise undefined behavior, as it is not guaranteed
   that the likewise global hashmap is yet initialized at this point in time!
 
 In contrast to what was proposed above, namely by giving specializations of the templated
-\b VTable type, module \alibmod_nolink_boxing takes a slightly modified approach: The \b VTable
+\b VTable type, module \alib_boxing_nl takes a slightly modified approach: The \b VTable
 singletons are exclusively received through a next template type \alib{boxing::detail,T_VTableFactory}
 Instead of specializing the \b VTable, this type is specialized for "frequently used boxed types".
 
 For further details on this implementation, consult chapter
-\ref alib_boxing_more_opt_staticvt of the Programmer's Manual of module \alibmod_nolink_boxing
-and feel free to review relevant source code found in <b>alib/boxing/detail/vtable.inl</b>
+\ref alib_boxing_more_opt_staticvt of the Programmer's Manual of module \alib_boxing_nl
+and feel free to review relevant source code found in \alibheader{boxing/detail/vtable.inl}.
 
 
 */

@@ -6,26 +6,32 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
 #   include "alib/strings/localstring.hpp"
+#endif
+
+#if !defined (HPP_ALIB_STRINGS_FORMAT)
+#   include "alib/strings/format.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
 
-#if ALIB_DEBUG && !defined (HPP_ALIB_LIB_TYPEDEMANGLER)
-#   include "alib/lib/typedemangler.hpp"
+#if ALIB_DEBUG && !defined (HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
+#   include "alib/lib/fs_debug/typedemangler.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace strings {
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 /**
  * \attention
  *   This is a non-existing namespace! It is exclusively defined for the
- *   [documentation parser](http://www.stack.nl/~dimitri/doxygen).
+ *   \https{documentation parser,www.stack.nl/~dimitri/doxygen}.
  *
  * In this <b>"documentation namespace"</b>, you will find specializations of functor
  * \alib{strings,T_Append} which in reality are implemented in parent
@@ -38,7 +44,7 @@ namespace APPENDABLES {
 #endif
 
 // #################################################################################################
-// bool, std::type_info
+// Integrals
 // #################################################################################################
 template<typename TChar>
 void T_Append<bool,TChar>::operator()( TAString<TChar>& target, bool b )
@@ -46,16 +52,67 @@ void T_Append<bool,TChar>::operator()( TAString<TChar>& target, bool b )
     target.template _<false>( b ? "true" : "false" );
 }
 
-#if ALIB_DEBUG
 template<typename TChar>
-void T_Append<std::type_info, TChar>::operator()( TAString<TChar>& target, const std::type_info& type )
+void T_Append<int64_t,TChar>::operator()( TAString<TChar>& target,  int64_t value )
 {
-    target.template _<false>( DbgTypeDemangler( type ).Get() );
+    target.EnsureRemainingCapacity(28);//   20 digits, grouping symbol, sign and what have you
+    integer length=      target.Length();
+    length=  detail::WriteDecSigned ( value, target.VBuffer(), length, 0, TNumberFormat<TChar>::Computational );
+    target.SetLength( length );
 }
+
+template<typename TChar>
+void T_Append<uint64_t,TChar>::operator()( TAString<TChar>& target,  uint64_t value )
+{
+    target.EnsureRemainingCapacity(28);//   20 digits, grouping symbol, sign and what have you
+    integer length=      target.Length();
+    length=  detail::WriteDecUnsigned ( value, target.VBuffer(), length, 0, TNumberFormat<TChar>::Computational );
+    target.SetLength( length );
+}
+
+
+template<typename TChar>
+void T_Append<double,TChar>::operator()( TAString<TChar>& target,  double value )
+{
+    target.EnsureRemainingCapacity(48);  // float: 2x15 + '.' + ',' + sign + fear
+    integer length=      target.Length();
+    length=  detail::WriteFloat( value, target.VBuffer(), length, 0, TNumberFormat<TChar>::Computational );
+    target.SetLength( length );
+}
+
+template void T_Append<bool     , nchar>::operator()( TAString<nchar>&, bool      );
+template void T_Append<bool     , wchar>::operator()( TAString<wchar>&, bool      );
+template void T_Append<bool     , xchar>::operator()( TAString<xchar>&, bool      );
+template void T_Append<  int64_t, nchar>::operator()( TAString<nchar>&,   int64_t );
+template void T_Append<  int64_t, wchar>::operator()( TAString<wchar>&,   int64_t );
+template void T_Append<  int64_t, xchar>::operator()( TAString<xchar>&,   int64_t );
+template void T_Append< uint64_t, nchar>::operator()( TAString<nchar>&,  uint64_t );
+template void T_Append< uint64_t, wchar>::operator()( TAString<wchar>&,  uint64_t );
+template void T_Append< uint64_t, xchar>::operator()( TAString<xchar>&,  uint64_t );
+template void T_Append<float    , nchar>::operator()( TAString<nchar>&, float     );
+template void T_Append<float    , wchar>::operator()( TAString<wchar>&, float     );
+template void T_Append<float    , xchar>::operator()( TAString<xchar>&, float     );
+template void T_Append<double   , nchar>::operator()( TAString<nchar>&, double    );
+template void T_Append<double   , wchar>::operator()( TAString<wchar>&, double    );
+template void T_Append<double   , xchar>::operator()( TAString<xchar>&, double    );
+
+
+// #################################################################################################
+// std::type_info
+// #################################################################################################
+#if ALIB_DEBUG
+    template<typename TChar>
+    void T_Append<std::type_info, TChar>::operator()( TAString<TChar>& target, const std::type_info& type )
+    {
+        target.template _<false>( DbgTypeDemangler( type ).Get() );
+    }
+    template void T_Append<std::type_info , nchar>::operator()( TAString<nchar>&, const std::type_info& );
+    template void T_Append<std::type_info , wchar>::operator()( TAString<wchar>&, const std::type_info& );
+    template void T_Append<std::type_info , xchar>::operator()( TAString<xchar>&, const std::type_info& );
 #endif
 
 // #################################################################################################
-// Tab()
+// TFormat::Tab()
 // #################################################################################################
 template<typename TChar>
 void T_Append<typename TFormat<TChar>::Tab, TChar>::operator()( TAString<TChar>& target, const typename TFormat<TChar>::Tab& tab)
@@ -89,13 +146,13 @@ void T_Append<typename TFormat<TChar>::Tab, TChar>::operator()( TAString<TChar>&
 
 
 // #################################################################################################
-// Field()
+// TFormat::Field()
 // #################################################################################################
 template<typename TChar>
 void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar>& target, const typename TFormat<TChar>::Field& field)
 {
 
-#if ALIB_MODULE_BOXING
+#if ALIB_BOXING
     TString<TChar> theContent;
 
     // buffer used for conversion (if none string)
@@ -116,11 +173,11 @@ void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar
     TString<TChar> theContent= field.theContent;
 #endif
 
-    integer padSize=  field.theWidth
-                       - theContent.WStringLength();
+    integer padSize=  field.fieldWidth
+                    - theContent.WStringLength();
 
     // check pad field.width
-    if (padSize <= 0 || field.theAlignment == Alignment::Left )
+    if (padSize <= 0 || field.alignment == Alignment::Left )
     {
                                 target.template _          <false>( theContent );
         if (padSize > 0 )       target.template InsertChars<false>( field.padChar, padSize );
@@ -128,7 +185,7 @@ void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar
     }
 
     // align Right
-    if ( field.theAlignment == Alignment::Right )
+    if ( field.alignment == Alignment::Right )
     {
         if( padSize > 0 )
             target.template InsertChars<false>( field.padChar, padSize );
@@ -145,7 +202,7 @@ void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar
 }
 
 // #################################################################################################
-// Escape()
+// TFormat::Escape()
 // #################################################################################################
 template<typename TChar>
 void T_Append<typename TFormat<TChar>::Escape, TChar>::operator()( TAString<TChar>& target, const typename TFormat<TChar>::Escape& escape)
@@ -186,7 +243,7 @@ void T_Append<typename TFormat<TChar>::Escape, TChar>::operator()( TAString<TCha
             {
                 target.template InsertChars<false>('\\', 1, idx);
                 target[++idx]= resultChar;
-                regionEnd++;
+                ++regionEnd;
             }
         }
     }
@@ -196,7 +253,7 @@ void T_Append<typename TFormat<TChar>::Escape, TChar>::operator()( TAString<TCha
     //
     else
     {
-        regionEnd--; // we can go 1 over it!
+        --regionEnd; // we can go 1 over it!
         for( integer idx= escape.startIdx; idx < regionEnd ; ++idx )
         {
             TChar c= target.CharAt(idx);
@@ -226,14 +283,14 @@ void T_Append<typename TFormat<TChar>::Escape, TChar>::operator()( TAString<TCha
             {
                 target.Delete( idx, 1);
                 target[idx]= resultChar;
-                regionEnd--;
+                --regionEnd;
             }
         }
     }
 }
 
 // #################################################################################################
-// Integers
+// TFormat Integers
 // #################################################################################################
 template<typename TChar>
 void T_Append<TFormat<TChar>, TChar>::operator()( TAString<TChar>& target, const TFormat<TChar>& fmt )
@@ -248,9 +305,10 @@ void T_Append<TFormat<TChar>, TChar>::operator()( TAString<TChar>& target, const
 
     integer length=      target.Length();
 
-    length=  fmt.valueType == 1 ?  detail::WriteDecSigned  ( fmt.v.sInt, target.VBuffer(), length, fmt.theWidth, *nf  ) :
-             fmt.valueType == 2 ?  detail::WriteDecUnsigned( fmt.v.uInt, target.VBuffer(), length, fmt.theWidth, *nf  ) :
-                                   detail::WriteFloat      ( fmt.v.fp,   target.VBuffer(), length, fmt.theWidth, *nf  );
+    length=
+    fmt.valueType == 1 ?  detail::WriteDecSigned  (                       fmt.v.value  , target.VBuffer(), length, fmt.width   , *nf  ) :
+    fmt.valueType == 2 ?  detail::WriteDecUnsigned( static_cast<uint64_t>(fmt.v.value) , target.VBuffer(), length, fmt.width   , *nf  ) :
+                          detail::WriteFloat      (                       fmt.v.fpValue, target.VBuffer(), length, fmt.width   , *nf  );
 
     target.SetLength( length );
 }
@@ -306,15 +364,14 @@ void T_Append<typename TFormat<TChar>::Oct, TChar>::operator()( TAString<TChar>&
 }
 
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
 } // APPENDABLES documentation fake namespace
 #endif
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 // #################################################################################################
 // NAString instantiations
 // #################################################################################################
-template void T_Append<bool                  , nchar>::operator()( TAString<nchar>&,       bool                    );
 template void T_Append<TFormat<nchar>        , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>&         );
 template void T_Append<TFormat<nchar>::Tab   , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>::Tab&    );
 template void T_Append<TFormat<nchar>::Field , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>::Field&  );
@@ -322,15 +379,11 @@ template void T_Append<TFormat<nchar>::Escape, nchar>::operator()( TAString<ncha
 template void T_Append<TFormat<nchar>::Bin   , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>::Bin&    );
 template void T_Append<TFormat<nchar>::Hex   , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>::Hex&    );
 template void T_Append<TFormat<nchar>::Oct   , nchar>::operator()( TAString<nchar>&, const TFormat<nchar>::Oct&    );
-#if  ALIB_DEBUG
-template void T_Append<std::type_info        , nchar>::operator()( TAString<nchar>&, const std::type_info&         );
-#endif
 
 
 // #################################################################################################
 // WAString instantiations
 // #################################################################################################
-template void T_Append<bool                  , wchar>::operator()( TAString<wchar>&,       bool                    );
 template void T_Append<TFormat<wchar>        , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>&         );
 template void T_Append<TFormat<wchar>::Tab   , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>::Tab&    );
 template void T_Append<TFormat<wchar>::Field , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>::Field&  );
@@ -338,14 +391,10 @@ template void T_Append<TFormat<wchar>::Escape, wchar>::operator()( TAString<wcha
 template void T_Append<TFormat<wchar>::Bin   , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>::Bin&    );
 template void T_Append<TFormat<wchar>::Hex   , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>::Hex&    );
 template void T_Append<TFormat<wchar>::Oct   , wchar>::operator()( TAString<wchar>&, const TFormat<wchar>::Oct&    );
-#if  ALIB_DEBUG
-template void T_Append<std::type_info        , wchar>::operator()( TAString<wchar>&, const std::type_info&         );
-#endif
 
 // #################################################################################################
 // XAString instantiations
 // #################################################################################################
-template void T_Append<bool                  , xchar>::operator()( TAString<xchar>&,       bool                    );
 template void T_Append<TFormat<xchar>        , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>&         );
 template void T_Append<TFormat<xchar>::Tab   , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>::Tab&    );
 template void T_Append<TFormat<xchar>::Field , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>::Field&  );
@@ -353,11 +402,8 @@ template void T_Append<TFormat<xchar>::Escape, xchar>::operator()( TAString<xcha
 template void T_Append<TFormat<xchar>::Bin   , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>::Bin&    );
 template void T_Append<TFormat<xchar>::Hex   , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>::Hex&    );
 template void T_Append<TFormat<xchar>::Oct   , xchar>::operator()( TAString<xchar>&, const TFormat<xchar>::Oct&    );
-#if  ALIB_DEBUG
-template void T_Append<std::type_info        , xchar>::operator()( TAString<xchar>&, const std::type_info&         );
-#endif
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 
 
 }}}// namespace [aworx::lib::strings]

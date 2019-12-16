@@ -6,7 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#if ALIB_UT_STRINGS
 
 
 #include "alib/alox.hpp"
@@ -41,7 +41,7 @@ class MyStringImplicit
     public:
         ALIB_CPP14_CONSTEXPR MyStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringImplicit"; }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
-        inline     integer          GetMyLength() const { return theString.Length(); }
+                   integer          GetMyLength() const { return theString.Length(); }
 };
 
 template <typename TChar>
@@ -53,7 +53,7 @@ class MyStringExplicit
     public:
         ALIB_CPP14_CONSTEXPR MyStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringExplicit"; }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
-        inline     integer          GetMyLength() const { return theString.Length(); }
+                   integer          GetMyLength() const { return theString.Length(); }
 };
 
 template <typename TChar>
@@ -65,7 +65,7 @@ class MyStringMutable
     public:
         ALIB_CPP14_CONSTEXPR MyStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyStringMutable"; }
         ALIB_CPP14_CONSTEXPR  const TChar*     GetMyBuffer()       { return theString.Buffer();   }
-        inline                integer          GetMyLength()       { return theString.Length(); }
+                              integer          GetMyLength()       { return theString.Length(); }
 };
 
 template <typename TChar>
@@ -77,7 +77,7 @@ class MyCStringImplicit
     public:
         ALIB_CPP14_CONSTEXPR MyCStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringImplicit"; theString.Terminate(); }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
-        inline     integer          GetMyLength() const { return theString.Length(); }
+                   integer          GetMyLength() const { return theString.Length(); }
 };
 
 template <typename TChar>
@@ -89,7 +89,7 @@ class MyCStringExplicit
     public:
         ALIB_CPP14_CONSTEXPR MyCStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringExplicit"; theString.Terminate(); }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
-        inline     integer          GetMyLength() const { return theString.Length(); }
+                   integer          GetMyLength() const { return theString.Length(); }
 };
 
 template <typename TChar>
@@ -101,7 +101,7 @@ class MyCStringMutable
     public:
         ALIB_CPP14_CONSTEXPR MyCStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyCStringMutable"; theString.Terminate(); }
         ALIB_CPP14_CONSTEXPR const TChar*     GetMyBuffer()       { return theString.Buffer();   }
-        inline               integer          GetMyLength()       { return theString.Length(); }
+                             integer          GetMyLength()       { return theString.Length(); }
 };
 
 
@@ -364,10 +364,10 @@ void testAccept( ut_aworx::AWorxUnitTesting& ut,
                  T& object, bool  SImplicitAllowed, bool  SExplicitAllowed,
                             bool CSImplicitAllowed, bool CSExplicitAllowed )
 {
-    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value );  accept_S_implicit<TChar>( object );
-    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value );  accept_S_explicit<TChar>( object );
-    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ); accept_CS_implicit<TChar>( object );
-    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ); accept_CS_explicit<TChar>( object );
+    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value )  accept_S_implicit<TChar>( object );
+    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value )  accept_S_explicit<TChar>( object );
+    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ) accept_CS_implicit<TChar>( object );
+    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ) accept_CS_explicit<TChar>( object );
 }
 
 template<typename TChar, typename T>
@@ -375,10 +375,10 @@ void testAccept( ut_aworx::AWorxUnitTesting& ut,
                  T* object, bool  SImplicitAllowed, bool  SExplicitAllowed,
                             bool CSImplicitAllowed, bool CSExplicitAllowed )
 {
-    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value );  accept_S_implicit<TChar>( object );
-    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value );  accept_S_explicit<TChar>( object );
-    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ); accept_CS_implicit<TChar>( object );
-    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ); accept_CS_explicit<TChar>( object );
+    UT_EQ( SImplicitAllowed,  t_accepts_S_implicit<TChar ALIB_COMMA T>::value )  accept_S_implicit<TChar>( object );
+    UT_EQ( SExplicitAllowed,  t_accepts_S_explicit<TChar ALIB_COMMA T>::value )  accept_S_explicit<TChar>( object );
+    UT_EQ(CSImplicitAllowed, t_accepts_CS_implicit<TChar ALIB_COMMA T>::value ) accept_CS_implicit<TChar>( object );
+    UT_EQ(CSExplicitAllowed, t_accepts_CS_explicit<TChar ALIB_COMMA T>::value ) accept_CS_explicit<TChar>( object );
 }
 
 
@@ -396,98 +396,98 @@ UT_CLASS()
 //--------------------------------------------------------------------------------------------------
 UT_METHOD( CustomTypes )
 {
-    UT_INIT();
+    UT_INIT()
 
-    UT_PRINT( "\nImplicit constructible String (nchar):" );
+    UT_PRINT( "\nImplicit constructible String (nchar):" )
           MyStringImplicit<nchar>    mysNImplicit("mutable");
     testAccept<nchar>(ut,            mysNImplicit       , true , true , false, false );
     testAccept<nchar>(ut,           &mysNImplicit       , true , true , false, false );
 
-    UT_PRINT( "\nImplicit constructible String (wchar):" );
+    UT_PRINT( "\nImplicit constructible String (wchar):" )
           MyStringImplicit<wchar>    mysWImplicit("mutable");
     testAccept<wchar>(ut,            mysWImplicit       , true , true , false, false );
     testAccept<wchar>(ut,           &mysWImplicit       , true , true , false, false );
 
-    UT_PRINT( "\nImplicit constructible String (xchar):" );
+    UT_PRINT( "\nImplicit constructible String (xchar):" )
           MyStringImplicit<xchar>    mysXImplicit("mutable");
     testAccept<xchar>(ut,            mysXImplicit       , true , true , false, false );
     testAccept<xchar>(ut,           &mysXImplicit       , true , true , false, false );
 
-    UT_PRINT( "\nImplicit constructible String (nchar) const:" );
+    UT_PRINT( "\nImplicit constructible String (nchar) const:" )
     const MyStringImplicit<nchar>    mysConstNImplicit("const");
     testAccept<nchar>(ut,            mysConstNImplicit  , true , true , false, false );
     testAccept<nchar>(ut,           &mysConstNImplicit  , true , true , false, false );
 
-    UT_PRINT( "\nImplicit constructible String (wchar) const:" );
+    UT_PRINT( "\nImplicit constructible String (wchar) const:" )
     const MyStringImplicit<wchar>    mysConstWImplicit("const");
     testAccept<wchar>(ut,            mysConstWImplicit  , true , true , false, false );
     testAccept<wchar>(ut,           &mysConstWImplicit  , true , true , false, false );
 
-    UT_PRINT( "\nImplicit constructible String (xchar) const:" );
+    UT_PRINT( "\nImplicit constructible String (xchar) const:" )
     const MyStringImplicit<xchar>    mysConstXImplicit("const");
     testAccept<xchar>(ut,            mysConstXImplicit  , true , true , false, false );
     testAccept<xchar>(ut,           &mysConstXImplicit  , true , true , false, false );
 
 
     //--- Explicit ----
-    UT_PRINT( "\nExplicit constructible String (nchar):" );
+    UT_PRINT( "\nExplicit constructible String (nchar):" )
           MyStringExplicit<nchar>    mysNExplicit("mutable");
     testAccept<nchar>(ut,            mysNExplicit       , false , true , false, false );
     testAccept<nchar>(ut,           &mysNExplicit       , false , true , false, false );
 
-    UT_PRINT( "\nExplicit constructible String (wchar):" );
+    UT_PRINT( "\nExplicit constructible String (wchar):" )
           MyStringExplicit<wchar>    mysWExplicit("mutable");
     testAccept<wchar>(ut,            mysWExplicit       , false , true , false, false );
     testAccept<wchar>(ut,           &mysWExplicit       , false , true , false, false );
 
-    UT_PRINT( "\nExplicit constructible String (xchar):" );
+    UT_PRINT( "\nExplicit constructible String (xchar):" )
           MyStringExplicit<xchar>    mysXExplicit("mutable");
     testAccept<xchar>(ut,            mysXExplicit       , false , true , false, false );
     testAccept<xchar>(ut,           &mysXExplicit       , false , true , false, false );
 
-    UT_PRINT( "\nExplicit constructible String (nchar) const:" );
+    UT_PRINT( "\nExplicit constructible String (nchar) const:" )
     const MyStringExplicit<nchar>    mysConstNExplicit("const");
     testAccept<nchar>(ut,            mysConstNExplicit  , false , true , false, false );
     testAccept<nchar>(ut,           &mysConstNExplicit  , false , true , false, false );
 
-    UT_PRINT( "\nExplicit constructible String (wchar) const:" );
+    UT_PRINT( "\nExplicit constructible String (wchar) const:" )
     const MyStringExplicit<wchar>    mysConstWExplicit("const");
     testAccept<wchar>(ut,            mysConstWExplicit  , false , true , false, false );
     testAccept<wchar>(ut,           &mysConstWExplicit  , false , true , false, false );
 
-    UT_PRINT( "\nExplicit constructible String (xchar) const:" );
+    UT_PRINT( "\nExplicit constructible String (xchar) const:" )
     const MyStringExplicit<xchar>    mysConstXExplicit("const");
     testAccept<xchar>(ut,            mysConstXExplicit  , false , true , false, false );
     testAccept<xchar>(ut,           &mysConstXExplicit  , false , true , false, false );
 
 
     //--- Mutable Only ----
-    UT_PRINT( "\nMutable constructible String (nchar):" );
+    UT_PRINT( "\nMutable constructible String (nchar):" )
           MyStringMutable<nchar>    mysNMutable("mutable");
     testAccept<nchar>(ut,            mysNMutable       , false , true , false, false );
     testAccept<nchar>(ut,           &mysNMutable       , false , true , false, false );
 
-    UT_PRINT( "\nMutable constructible String (wchar):" );
+    UT_PRINT( "\nMutable constructible String (wchar):" )
           MyStringMutable<wchar>    mysWMutable("mutable");
     testAccept<wchar>(ut,            mysWMutable       , false , true , false, false );
     testAccept<wchar>(ut,           &mysWMutable       , false , true , false, false );
 
-    UT_PRINT( "\nMutable constructible String (xchar):" );
+    UT_PRINT( "\nMutable constructible String (xchar):" )
           MyStringMutable<xchar>    mysXMutable("mutable");
     testAccept<xchar>(ut,            mysXMutable       , false , true , false, false );
     testAccept<xchar>(ut,           &mysXMutable       , false , true , false, false );
 
-    UT_PRINT( "\nMutable constructible String (nchar) const:" );
+    UT_PRINT( "\nMutable constructible String (nchar) const:" )
     const MyStringMutable<nchar>    mysConstNMutable("const");
     testAccept<nchar>(ut,            mysConstNMutable  , false , false , false, false );
     testAccept<nchar>(ut,           &mysConstNMutable  , false , false , false, false );
 
-    UT_PRINT( "\nMutable constructible String (wchar) const:" );
+    UT_PRINT( "\nMutable constructible String (wchar) const:" )
     const MyStringMutable<wchar>    mysConstWMutable("const");
     testAccept<wchar>(ut,            mysConstWMutable  , false , false , false, false );
     testAccept<wchar>(ut,           &mysConstWMutable  , false , false , false, false );
 
-    UT_PRINT( "\nMutable constructible String (xchar) const:" );
+    UT_PRINT( "\nMutable constructible String (xchar) const:" )
     const MyStringMutable<xchar>    mysConstXMutable("const");
     testAccept<xchar>(ut,            mysConstXMutable  , false , false , false, false );
     testAccept<xchar>(ut,           &mysConstXMutable  , false , false , false, false );
@@ -495,105 +495,105 @@ UT_METHOD( CustomTypes )
 
     //---------------------------------- CStrings -----------------------------------
     //--- Implicit ----
-    UT_PRINT( "\nImplicit constructible CString (nchar):" );
+    UT_PRINT( "\nImplicit constructible CString (nchar):" )
           MyCStringImplicit<nchar>   myCsNImplicit("mutable");
     testAccept<nchar>(ut,            myCsNImplicit       , true , true , true, true );
     testAccept<nchar>(ut,           &myCsNImplicit       , true , true , true, true );
 
-    UT_PRINT( "\nImplicit constructible CString (wchar):" );
+    UT_PRINT( "\nImplicit constructible CString (wchar):" )
           MyCStringImplicit<wchar>   myCsWImplicit("mutable");
     testAccept<wchar>(ut,            myCsWImplicit       , true , true , true, true );
     testAccept<wchar>(ut,           &myCsWImplicit       , true , true , true, true );
 
-    UT_PRINT( "\nImplicit constructible CString (xchar):" );
+    UT_PRINT( "\nImplicit constructible CString (xchar):" )
           MyCStringImplicit<xchar>   myCsXImplicit("mutable");
     testAccept<xchar>(ut,            myCsXImplicit       , true , true , true, true );
     testAccept<xchar>(ut,           &myCsXImplicit       , true , true , true, true );
 
-    UT_PRINT( "\nImplicit constructible CString (nchar) const:" );
+    UT_PRINT( "\nImplicit constructible CString (nchar) const:" )
     const MyCStringImplicit<nchar>   myCsConstNImplicit("const");
     testAccept<nchar>(ut,            myCsConstNImplicit  , true , true , true, true );
     testAccept<nchar>(ut,           &myCsConstNImplicit  , true , true , true, true );
 
-    UT_PRINT( "\nImplicit constructible CString (wchar) const:" );
+    UT_PRINT( "\nImplicit constructible CString (wchar) const:" )
     const MyCStringImplicit<wchar>   myCsConstWImplicit("const");
     testAccept<wchar>(ut,            myCsConstWImplicit  , true , true , true, true );
     testAccept<wchar>(ut,           &myCsConstWImplicit  , true , true , true, true );
 
-    UT_PRINT( "\nImplicit constructible CString (xchar) const:" );
+    UT_PRINT( "\nImplicit constructible CString (xchar) const:" )
     const MyCStringImplicit<xchar>   myCsConstXImplicit("const");
     testAccept<xchar>(ut,            myCsConstXImplicit  , true , true , true, true );
     testAccept<xchar>(ut,           &myCsConstXImplicit  , true , true , true, true );
 
 
     //--- Explicit ----
-    UT_PRINT( "\nExplicit constructible CString (nchar):" );
+    UT_PRINT( "\nExplicit constructible CString (nchar):" )
           MyCStringExplicit<nchar>   myCsNExplicit("mutable");
     testAccept<nchar>(ut,            myCsNExplicit       , false , true , false, true );
     testAccept<nchar>(ut,           &myCsNExplicit       , false , true , false, true );
 
-    UT_PRINT( "\nExplicit constructible CString (wchar):" );
+    UT_PRINT( "\nExplicit constructible CString (wchar):" )
           MyCStringExplicit<wchar>   myCsWExplicit("mutable");
     testAccept<wchar>(ut,            myCsWExplicit       , false , true , false, true );
     testAccept<wchar>(ut,           &myCsWExplicit       , false , true , false, true );
 
-    UT_PRINT( "\nExplicit constructible CString (xchar):" );
+    UT_PRINT( "\nExplicit constructible CString (xchar):" )
           MyCStringExplicit<xchar>   myCsXExplicit("mutable");
     testAccept<xchar>(ut,            myCsXExplicit       , false , true , false, true );
     testAccept<xchar>(ut,           &myCsXExplicit       , false , true , false, true );
 
-    UT_PRINT( "\nExplicit constructible CString (nchar) const:" );
+    UT_PRINT( "\nExplicit constructible CString (nchar) const:" )
     const MyCStringExplicit<nchar>   myCsConstNExplicit("const");
     testAccept<nchar>(ut,            myCsConstNExplicit  , false , true , false, true );
     testAccept<nchar>(ut,           &myCsConstNExplicit  , false , true , false, true );
 
-    UT_PRINT( "\nExplicit constructible CString (wchar) const:" );
+    UT_PRINT( "\nExplicit constructible CString (wchar) const:" )
     const MyCStringExplicit<wchar>   myCsConstWExplicit("const");
     testAccept<wchar>(ut,            myCsConstWExplicit  , false , true , false, true );
     testAccept<wchar>(ut,           &myCsConstWExplicit  , false , true , false, true );
 
-    UT_PRINT( "\nExplicit constructible CString (xchar) const:" );
+    UT_PRINT( "\nExplicit constructible CString (xchar) const:" )
     const MyCStringExplicit<xchar>   myCsConstXExplicit("const");
     testAccept<xchar>(ut,            myCsConstXExplicit  , false , true , false, true );
     testAccept<xchar>(ut,           &myCsConstXExplicit  , false , true , false, true );
 
 
     //--- Mutable Only ----
-    UT_PRINT( "\nMutable constructible CString (nchar):" );
+    UT_PRINT( "\nMutable constructible CString (nchar):" )
           MyCStringMutable<nchar>   myCsNMutable("mutable");
     testAccept<nchar>(ut,            myCsNMutable       , false , true , false, true );
     testAccept<nchar>(ut,           &myCsNMutable       , false , true , false, true );
 
-    UT_PRINT( "\nMutable constructible CString (wchar):" );
+    UT_PRINT( "\nMutable constructible CString (wchar):" )
           MyCStringMutable<wchar>   myCsWMutable("mutable");
     testAccept<wchar>(ut,            myCsWMutable       , false , true , false, true );
     testAccept<wchar>(ut,           &myCsWMutable       , false , true , false, true );
 
-    UT_PRINT( "\nMutable constructible CString (xchar):" );
+    UT_PRINT( "\nMutable constructible CString (xchar):" )
           MyCStringMutable<xchar>   myCsXMutable("mutable");
     testAccept<xchar>(ut,            myCsXMutable       , false , true , false, true );
     testAccept<xchar>(ut,           &myCsXMutable       , false , true , false, true );
 
 
-    UT_PRINT( "\nMutable constructible CString (nchar) const:" );
+    UT_PRINT( "\nMutable constructible CString (nchar) const:" )
     const MyCStringMutable<nchar>   myCsConstNMutable("const");
     testAccept<nchar>(ut,            myCsConstNMutable  , false , false , false, false );
     testAccept<nchar>(ut,           &myCsConstNMutable  , false , false , false, false );
 
-    UT_PRINT( "\nMutable constructible CString (wchar) const:" );
+    UT_PRINT( "\nMutable constructible CString (wchar) const:" )
     const MyCStringMutable<wchar>   myCsConstWMutable("const");
     testAccept<wchar>(ut,            myCsConstWMutable  , false , false , false, false );
     testAccept<wchar>(ut,           &myCsConstWMutable  , false , false , false, false );
 
-    UT_PRINT( "\nMutable constructible CString (xchar) const:" );
+    UT_PRINT( "\nMutable constructible CString (xchar) const:" )
     const MyCStringMutable<xchar>   myCsConstXMutable("const");
     testAccept<xchar>(ut,            myCsConstXMutable  , false , false , false, false );
     testAccept<xchar>(ut,           &myCsConstXMutable  , false , false , false, false );
 }
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif // !defined(ALIB_UT_SELECT) || defined(ALIB_UT_STRINGS)
+#endif // ALIB_UT_STRINGS

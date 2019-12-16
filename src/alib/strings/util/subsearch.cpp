@@ -6,13 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/strings/util/subsearch.hpp"
-
-
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_UTIL_SUBSEARCH)
-
 #   include "alib/strings/util/subsearch.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
@@ -51,8 +49,8 @@ void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedl
     {
         while ((pfxLen != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
 	        pfxLen= kmpTable[pfxLen];
-        needleIdx++;
-        pfxLen++;
+        ++needleIdx;
+        ++pfxLen;
         kmpTable[needleIdx]=     characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]) ? kmpTable[pfxLen] : pfxLen;
     }
 }
@@ -74,8 +72,8 @@ integer TSubstringSearch<TChar,TSensitivity>::Search( const TString<TChar>& hays
         while ((needleIdx != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(haystack.Buffer()[haystackIdx],
                                                                                                  needle  .Buffer()[needleIdx] ) )
 	        needleIdx= kmpTable[needleIdx];
-        haystackIdx++;
-        needleIdx++;
+        ++haystackIdx;
+        ++needleIdx;
         if ( needleIdx >= needle.Length() )
 	        return (haystackIdx - needleIdx);
     }

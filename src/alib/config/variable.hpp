@@ -1,28 +1,143 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_config of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_VARIABLE
 #define HPP_ALIB_CONFIG_VARIABLE 1
 
-#if !defined(HPP_ALIB_CONFIG_CONFIG)
-#   include "alib/config/config.hpp"
+#if !defined (HPP_ALIB_CONFIG_PRIORITIES)
+    #include "alib/config/priorities.hpp"
 #endif
 
-ALIB_ASSERT_MODULE(CONFIGURATION)
+#if !defined (HPP_ALIB_STRINGS_STRING)
+    #include "alib/strings/string.hpp"
+#endif
+
+#if !defined (HPP_ALIB_C)
+#   include "alib/config/variabledecl.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_SELF_CONTAINED)
+#   include "alib/monomem/selfcontained.hpp"
+#endif
+#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
+#   include "alib/monomem/stdcontainerma.hpp"
+#endif
+
+#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+#   include <vector>
+#endif
 
 namespace aworx { namespace lib { namespace config {
 
-// Forward declarations
-class Configuration;
+// forward declarations
+class  Configuration;
 
+namespace detail {
+
+/**
+ * Fields of class \alib{config,Variable}, which is monotonically allocated and derived from
+ * \alib{monomem,SelfContained} and as such needs this special struct for field definition.
+ */
+struct VariableFields
+{
+    /** The \b %Configuration that was recently used to request or store the value. */
+    Configuration*                  Config;
+
+    /** The configuration variable category. */
+    String                          Category;
+
+    /** The configuration variable name. */
+    String                          Name;
+
+    /**
+     * The delimiter used for parsing and storing values by simple textual plug-ins which
+     * use the default version of \alib{config,XTernalizer} for in- and externalizing variables.
+     */
+    character                       Delim;
+
+    /**
+     * Hints for formatting textual configuration files. (Used by class
+     * \alib{config,IniFile} and potentially by custom plug-ins.
+     */
+    FormatHints                     FmtHints;
+
+    /**
+     * If set, attributes written in multi-lines are vertically aligned by this character or
+     * string. Use cases are "=", ":" or "->".<br> Used by \alib{config,IniFile} and
+     * potentially by custom plug-ins.
+     */
+    String                          FormatAttrAlignment                               = nullptr;
+
+    /** The configuration variable comments with placeholders replaced. */
+    String                          Comments                                          = nullptr;
+
+    /** The configuration variable category and name concatenated with an underscore
+     *  character \c '_'. This is useful e.g. for naming variables in log messages. */
+    String                          Fullname;
+
+    /**
+     * The default value provided as an externalized string.
+     *
+     * The only occasion that this value is used is with method
+     * \alib{config,Configuration::Load}.
+     * If no plug-in has this variable defined and this field is not \e nulled, then the value
+     * is written into plug-in of priority \alib{config,Priorities::DefaultValues},
+     * respectively - if this default plug-in was replaced by the user - into a plug-in found at
+     * or below this priority.
+     *
+     * In this case, the value is parsed using method
+     * \alib{config,XTernalizer::LoadFromString} of field
+     * \alib{config,ConfigurationPlugin::StringConverter} of the plug-in writing the value.
+     *
+     * \note
+     *   The field is ignored when using the plug-in interface
+     *   \alib{config,ConfigurationPlugin::Load} directly.
+     *   To store this value 'manually' directly to a plug-in, invoke
+     *   \alib{config,ConfigurationPlugin::Store} with providing value explicitly.
+     */
+    String                          DefaultValue                                      = nullptr;
+
+    /**
+     * A value related to the priority of a configuration plug-in.
+     * The following values apply:
+     * - \alib{config,Priorities::NONE} after creation or declaration (reuse).
+     * - The priority of the plug-in that loaded the value (after calling
+     *   \alib{config,Configuration::Load}).
+     * - The priority of the plug-in that stored the value (after calling
+     *   \alib{config,Configuration::Store}).
+     * - \c 0, if the last load or store operation failed.
+     * In addition prior to storing a variable, the value might be manually set. See
+     * documentation of \alib{config,Configuration::Store}) for details.
+     */
+    Priorities                      Priority;
+
+    /** The values. */
+    std::vector<String, StdContMA<String>>  values;
+
+    /**
+     * Constructor.
+     * @param fields Pointer to the fields pointer of the self-contained object.
+     *               \note This is a pointer to the pointer, as at the point of invocation,
+     *                     the self-contained fields are not fully initialized, yet. This
+     *                     object itself is missing. However the allocator within the struct
+     *                     is initialized already If the pointer was given directly, the compiler
+     *                     would complain.
+     */
+    VariableFields( lib::monomem::SelfContained<VariableFields>::Fields** fields)
+    : values( (*fields)->allocator )
+    {}
+
+}; // struct VariableFields
+
+} // namespace detail
 
 /** ************************************************************************************************
  * This class is used to load and store external configuration data with objects of class
- * \ref aworx::lib::config::Configuration       "Configuration" and its plug-ins
- * \ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin".
+ * \alib{config,Configuration} and its plug-ins \alib{config,ConfigurationPlugin}.
  *
  * \note
  *   For general information about external configuration variables, see namespace documentation
@@ -31,169 +146,99 @@ class Configuration;
  * <b>Construction/Redeclaration:</b><br>
  * While constructors accepting attributes of a variable exist, it is recommended to
  * declare all external configuration variables in a central place, using statically or dynamically
- * allocated objects of type
- * \ref aworx::lib::config::VariableDecl "VariableDecl" and pass such record
- * to the constructor of a variable.
+ * allocated objects of type \alib{config,VariableDecl} and pass such record to the constructor of
+ * a variable.
  *
- * The class is designed to be 'reused' to avoid repeated allocation/de-allocation of memory.
+ * The class is \alib{monomem,SelfContained,self-contained} in a \alib{monomem,MonoAllocator}
+ * and supports is designed to be 'reused'. This is implementation is chosen to avoid repeated
+ * allocation/de-allocation of dynamic memory when a larger amount of variables are read or written.
  * After invoking one of the overloaded methods #Declare, which share the same signatures as
- * the overloaded constructors, a variable is freshly initialized. Internally, the memory
- * allocated for values remains allocated.
- *
+ * the overloaded constructors, a variable is freshly initialized and its monotonic allocator is reseet.
+ *  *
  * <b>Values:</b><br>
  * A variable can contain zero, one or several values. If zero, then the variable was either not
  * loaded, yet or the load operation failed (no configuration plug-in defined the variable).
  * Method #Size reports the currently available values and methods #GetString(int), #GetInteger(int)
  * and #GetFloat(int) return a value. Internally all values are stored as strings. If
- * field #Config is set, its field
- * \ref aworx::lib::config::Configuration::NumberFormat "Configuration::NumberFormat"
- * is used for floating point conversion.
+ * field #Config is set, its field \alib{config,Configuration::NumberFormat} is used for floating
+ * point conversion.
  *
  * When storing a variable that contains more than one value, field #Delim has to be set.
  * Conversely, when reading a variable that contains multiple values, the delimiter has to be set
  * prior to the load operation.
  * \note
  *   This is not true when loading/storing a variable directly in a plug-in of type
- *   \ref aworx::lib::config::InMemoryPlugin "InMemoryPlugin"   or might also not be true
- *   with custom configuration plug-in types which
- *   for example might store the values in a database.<br>
- *   However, with the default plug-ins
- *   \ref aworx::lib::config::CLIArgs "CLIArgs",
- *   \ref aworx::lib::config::Environment "Environment" and
- *   \ref aworx::lib::config::IniFile "IniFile"
- *   the delimiter is needed! Therefore, it is best practice to always define a proper delimiter if
- *   a variable is multi-valued.
+ *   \alib{config,InMemoryPlugin} or might also not be true with custom configuration plug-in types
+ *   which for example might store the values in a database.<br>
+ *   However, with the default plug-ins \alib{config,CLIArgs}, \alib{config,Environment} and
+ *   \alib{config,IniFile}, the delimiter is needed!
+ *   Therefore, it is best practice to always define a proper delimiter if a variable contains
+ *   multiple values.
+ *
+ * To set the contents of various fields, methods whose name is prefixed with <b>Replace</b> are
+ * given. Each of these methods allocates new storage in the internal monotonic allocator, which is
+ * freed only with method #Reset, which is internally called with each overloaded #Declare method.
+ * The using software has to ensure that #Reset is invoked on a regular basis, to not generate
+ * a "memory leak" by increasing the allocated space in the monotonic allocator.
+ * In common use-cases of the class, this is not an issue.
  *
  * <b>Loading and Storing:</b><br>
  * There are two ways of loading and storing a variable:
- * - Using the interface of class \ref aworx::lib::config::Configuration "Configuration"
- *   which allows to load and store variables from different sources (plug-ins) in a prioritized
- *   way.
- * - Using the interface of class \ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin"
- *   which may be used if the decision about the source or drain of a load/store operation is
- *   explicitly made by a code unit - instead of by the configuration.
+ * - Using the interface of class \alib{config,Configuration} which allows to load and store
+ *   variables from different sources (plug-ins) in a prioritized way.
+ * - Using the interface of class \alib{config,ConfigurationPlugin} which may be used if the
+ *   decision about the source or drain of a load/store operation is explicitly made by a code
+ *   unit - instead of by the configuration.
  *
  * Storing empty variables (method #Size returns \c 0) deletes a variable from the those
  * configuration plug-ins that are write enabled.
  **************************************************************************************************/
-class Variable
+class Variable : protected monomem::SelfContained<detail::VariableFields>
 {
     // #############################################################################################
-    // Public fields
-    // #############################################################################################
-    public:
-
-        /** The \b %Configuration that was recently used to request or store the value. */
-        Configuration*  Config;
-
-        /** The configuration variable category. */
-        String64        Category;
-
-        /** The configuration variable name. */
-        String64        Name;
-
-        /**
-         *  The delimiter used for parsing and storing values by simple textual plug-ins which
-         *  use the default version of
-         *  \ref aworx::lib::config::XTernalizer "XTernalizer"
-         *  for in- and externalizing variables.
-         */
-        character       Delim;
-
-        /** Hints for formatting textual configuration files. (Used by class
-            \ref aworx::lib::config::IniFile "IniFile" and potentially by custom plug-ins.*/
-        FormatHints     FmtHints;
-
-        /** If set, attributes written in multi-lines are vertically aligned by this character or
-         *  string. Use cases are "=", ":" or "->".<br> Used by
-         *  \ref aworx::lib::config::IniFile "IniFile" and potentially by custom plug-ins. */
-        String16        FormatAttrAlignment;
-
-        /** The configuration variable comments with placeholders replaced. */
-        AString         Comments;
-
-
-
-        /** The configuration variable category and name concatenated with an underscore
-         *  character \c '_'. This is useful e.g. for naming variables in log messages. */
-        String64        Fullname;
-
-        /**
-         * The default value provided as an externalized string.
-         *
-         * The only occasion that this value is used is with method
-         * \ref aworx::lib::config::Configuration::Load   "Configuration::Load".
-         * If no plug-in has this variable defined and this field is not \e nulled, then the value
-         * is written into plug-in of priority \alib{config,Priorities::DefaultValues},
-         * respectively - if this default plug-in was replaced by the user - into a plug-in found at
-         * or below this priority.
-         *
-         * In this case, the value is parsed using method
-         * \ref aworx::lib::config::XTernalizer::LoadFromString  "XTernalizer::LoadFromString"
-         * of field
-         * \ref aworx::lib::config::ConfigurationPlugin::StringConverter  "ConfigurationPlugin::StringConverter"
-         * of the plug-in writing the value.
-         *
-         * \note
-         *   The field is ignored when using the plug-in interface
-         *   \ref aworx::lib::config::ConfigurationPlugin::Load "ConfigurationPlugin::Load"
-         *   directly. To store this value 'manually' directly to a plug-in, invoke
-         *   \ref aworx::lib::config::ConfigurationPlugin::Store "ConfigurationPlugin::Store"
-         *   with providing value explicitly.
-         */
-        AString         DefaultValue;
-
-        /**
-         * A value related to the priority of a configuration plug-in.
-         * The following values apply:
-         * - \alib{config,Priorities::NONE} after creation or declaration (reuse).
-         * - The priority of the plug-in that loaded the value (after calling
-         *   \ref aworx::lib::config::Configuration::Load   "Configuration::Load").
-         * - The priority of the plug-in that stored the value (after calling
-         *   \ref aworx::lib::config::Configuration::Store "Configuration::Store").
-         * - \c 0, if the last load or store operation failed.
-         * In addition prior to storing a variable, the value might be manually set. See
-         * documentation of
-         * \ref aworx::lib::config::Configuration::Store "Configuration::Store") for details.
-         */
-        Priorities   Priority;
-
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
-    protected:
-        /** The values. */
-        std::vector<AString> values;
-
-        /** The number of values currently stored. This may be less than items found in #values
-            as those are reused objects. */
-        int qtyValues=   0;
-
-
-    // #############################################################################################
-    // Constructors and Define
+    // Constructors and Declaration
     // #############################################################################################
     public:
         /** ****************************************************************************************
+         * Move constructor moves the entries and deletes them in source object.
+         * @param src The object to move.
+         ******************************************************************************************/
+        Variable(Variable&& src) noexcept
+        : SelfContained( std::move(src) )
+        {}
+
+        /** ****************************************************************************************
          * Constructs an undefined Variable. Prior to using this, #Declare has to be invoked.
          ******************************************************************************************/
-         Variable()    { clear(); }
+        Variable()
+        : SelfContained( 4 * 1024, &fields )
+        {
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
+
+            Reset();
+        }
 
         /** ****************************************************************************************
          * Constructs a variable from a declaration.
          * Strings named \c "%1", \c "%2" ... \c "%N" found in the fields #Category, #Name,
-         * #Comments and #DefaultValue are replaced with given replacement strings found
-         * in variadic argument list \p{replacements}.
+         * #Comments and #DefaultValue are replaced with given replacement values found
+         * in boxed argument (list) \p{replacements}.
          *
          * @param declaration    The declaration data of the variable.
-         * @param replacements   List of arguments. Must be of types that are accepted by constructor
-         *                       of class \alib{strings,TString,String}.
-         * @tparam StringTypes   The variadic argument types.
+         * @param replacements   List of replacement values. Must be of boxed types that are
+         *                       \alib{strings,T_Append,appendable} to class \b AString.
+         *                       To provide more than one object, pass an object of class
+         *                       \alib{boxing,Boxes} or a boxed array.
          ******************************************************************************************/
-        template<typename... StringTypes>
-        Variable( const VariableDecl& declaration,  const StringTypes&... replacements )
+        Variable( const VariableDecl& declaration,  const Box& replacements )
+        : SelfContained( 2048, &fields )
         {
-            Declare( declaration, replacements... );
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
+            Declare( declaration, replacements );
         }
 
         /** ****************************************************************************************
@@ -204,7 +249,11 @@ class Variable
          *                  #Category, #Name, #Fullname, #Delim, #Comments and #DefaultValue) from.
          ******************************************************************************************/
         Variable( const Variable& variable )
+        : SelfContained( 2048, &fields )
         {
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
             Declare( variable );
         }
 
@@ -220,178 +269,129 @@ class Variable
          ******************************************************************************************/
         Variable( const String& category,  const String& name,  character delim= '\0',
                   const String& comments  = nullptr      )
+        : SelfContained( 2048, &fields )
         {
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
             Declare( category, name, delim, comments );
         }
 
-#if ALIB_DOCUMENTATION_PARSER
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * Constructs a variable from a \ref ALIB_CONFIG_VARIABLES "resourced variable declaration".
+         * Constructs a variable from an enum element equipped with
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{config,VariableDecl}.
          *
-         * \see Description of class \alib{config,VariableDecl} and
-         *      macro \ref ALIB_CONFIG_VARIABLES.
-         *
-         * @param declaration    Element of an enum class that is representing configuration
-         *                       variables.
          * @tparam TEnum         The type of parameter \p{declaration}
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
          *                       constructor only for associated custom C++ enum types.
+         * @param declaration    Element of an enum class that is representing configuration
+         *                       variables.
          ******************************************************************************************/
         template<typename TEnum, typename TEnableIf=void>
         inline
         Variable( TEnum declaration );
-#else
+        #else
         template<typename TEnum, typename TEnableIf=
-        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
-        inline
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<VariableDecl>() ) >
         Variable( TEnum declaration )
+        : SelfContained( 2048, &fields )
         {
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
             Declare( declaration );
         }
-#endif
+        #endif
 
-#if ALIB_DOCUMENTATION_PARSER
+#if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * Constructs a variable from a \ref ALIB_CONFIG_VARIABLES "resourced variable declaration".
+         * Constructs a variable from an enum element equipped with
+         * \ref alib_enums_records "ALib Enum Records" of type \alib{config,VariableDecl}.
          *
          * Strings named \c "%1", \c "%2" ... \c "%N" found in the fields #Category, #Name,
-         * #Comments and #DefaultValue are replaced with given replacement strings found
-         * in variadic argument list \p{replacements}.
+         * #Comments and #DefaultValue are replaced with given replacement values found
+         * in boxed argument (list) \p{replacements}.
          *
-         * @param declaration    Element of an enum class that is representing configuration
-         *                       variables.
-         * @param replacements   List of arguments. Must be of types that are accepted by constructor
-         *                       of class \alib{strings,TString,String}.
          * @tparam TEnum         The type of parameter \p{declaration}
          * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
          *                       constructor only for associated custom C++ enum types.
+         * @param declaration    Element of an enum class that is representing configuration
+         *                       variables.
+         * @param replacements   List of replacement values. Must be of boxed types that are
+         *                       \alib{strings,T_Append,appendable} to class \b AString.
+         *                       To provide more than one object, pass an object of class
+         *                       \alib{boxing,Boxes} or a boxed array of boxes.
          ******************************************************************************************/
-        template<typename TEnum, typename... StringTypes, typename TEnableIf= void>
-        Variable( TEnum declaration,  const StringTypes&... replacements );
+        template<typename TEnum, typename TEnableIf= void>
+        Variable( TEnum declaration,  const Box& replacements );
 #else
-        template<typename TEnum, typename... StringTypes, typename TEnableIf=
-        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
-        Variable( TEnum declaration,  const StringTypes&... replacements )
+        template<typename TEnum, typename TEnableIf=
+        ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<VariableDecl>() ) >
+        Variable( TEnum declaration,  const Box& replacements )
+        : SelfContained( 2048, &fields )
         {
-            Declare( declaration, replacements... );
+            #if ALIB_DEBUG_MONOMEM
+                Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
+            #endif
+            Declare( declaration, replacements );
         }
 #endif
 
         /** ****************************************************************************************
-         * Re-initializes a variable from a declaration. Strings named \c "%1", \c "%2" ... \c "%N"
-         * found in the fields  #Category, #Name, #Comments and #DefaultValue are replaced with
-         * given replacement string arguments in vector \p{replacements}.
+         * Re-initializes this variable from a given declaration.
+         * Placeholders \c "%1", \c "%2" ... \c "%N" found in fields #Category, #Name, #Comments
+         * and #DefaultValue are replaced with the replacement values given with boxed argument
+         * (list) \p{replacements}.
          *
          * @param declaration    The declaration data of the variable.
-         * @param replacements   List of replacement strings.
+         * @param replacements   List of replacement values. Must be of boxed types that are
+         *                       \alib{strings,T_Append,appendable} to class \b AString.
+         *                       To provide more than one object, pass an object of class
+         *                       \alib{boxing,Boxes} or a boxed array.
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
         ALIB_API
-        Variable&   Declare( const  VariableDecl&   declaration, Boxes&   replacements );
+        Variable&   Declare( const  VariableDecl& declaration,  const Box& replacements );
 
+
+        #if defined(ALIB_DOX)
         /** ****************************************************************************************
-         * Re-initializes a variable from a declaration.
-         *
-         * Strings named \c "%1", \c "%2" ... \c "%N" found in fields #Category, #Name,
-         * #Comments and #DefaultValue are replaced with given replacement string arguments in
-         * variadic argument list \p{replacements}.
-         *
-         * @param declaration    The declaration data of the variable.
-         * @param replacements   Replacement values. Must be of types that are
-         *                       \alib{strings,T_Append,appendable} to \b %AString objects.
-         * @tparam TArgs         The variadic argument types.
-         * @return \c *this to allow concatenated operations.
-         ******************************************************************************************/
-        template<typename... TArgs>
-        Variable&   Declare( const VariableDecl& declaration, const TArgs&... replacements )
-        {
-            Boxes argsAsVector= {replacements...};
-
-            return Declare( declaration, argsAsVector );
-        }
-
-#if ALIB_DOCUMENTATION_PARSER
-        /** ****************************************************************************************
-         * \ref clear "Clears" the variable resets its declaration.
+         * Re-initializes this variable and resets its declaration.
          * Internally uses an instance of class \alib{config,VariableDecl} constructed with
          * enum element \p{declaration}.
          *
          * @param declaration    Element of an enum class that is representing configuration
          *                       variables.
          * @tparam TEnum         The type of parameter \p{declaration}
-         * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
-         *                       method only for associated custom C++ enum types.
-         *
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
-        template<typename TEnum, typename TEnableIf= void>
+        template<typename TEnum>
         Variable&   Declare( TEnum declaration );
-#else
-        template<typename TEnum,typename TEnableIf=
-        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
-        Variable&   Declare( TEnum declaration )
+        #else
+        template<typename TEnum>
+        ATMP_T_IF( Variable&, EnumRecords<TEnum>::template AreOfType<VariableDecl>() )
+        Declare( TEnum declaration )
         {
             VariableDecl decl( declaration );
-            return Declare( decl );
+            return Declare( decl, nullptr );
         }
-#endif
+        #endif
 
-
-#if ALIB_DOCUMENTATION_PARSER
-        /** ****************************************************************************************
-         * \ref clear "Clears" the variable resets its declaration.
-         * Internally uses an instance of class \alib{config,VariableDecl} constructed with
-         * enum element \p{declaration}.
-         *
-         * Strings named \c "%1", \c "%2" ... \c "%N" found in fields #Category, #Name,
-         * #Comments and #DefaultValue are replaced with given replacement values in
-         * variadic argument list \p{replacements}.
-         *
-         * @param declaration    Element of an enum class that is representing configuration
-         *                       variables.
-         * @param replacements   Replacement values. Must be of types that are
-         *                       \alib{strings,T_Append,appendable} to \b %AString objects.
-         * @tparam TEnum         The type of parameter \p{declaration}
-         * @tparam TEnableIf     Not to be specified. Used by the compiler to select this
-         *                       method only for associated custom C++ enum types.
-         *
-         * @return \c *this to allow concatenated operations.
-         ******************************************************************************************/
-        template<typename TEnum, typename... TArgs, typename TEnableIf= void>
-        Variable&   Declare( TEnum declaration, const TArgs&... replacements );
-#else
-        template<typename TEnum, typename... TArgs, typename TEnableIf=
-        ATMP_VOID_IF(ATMP_EQ(VariableDecl::TTuple, typename T_EnumMetaDataDecl<TEnum>::TTuple)) >
-        Variable&   Declare( TEnum declaration, const TArgs&... replacements )
-        {
-            VariableDecl decl( declaration );
-            Boxes argsAsVector= {replacements...};
-            return Declare( decl, argsAsVector );
-        }
-#endif
 
         /** ****************************************************************************************
-         * Constructs a variable using the declaration of another variable. The values are not
-         * copied.
+         * Declares a variable using the declaration of another variable.
+         * The values are not copied.
          *
          * @param variable  A variable to copy the declaration (which is comprised with fields
          *                  #Category, #Name, #Fullname, #Delim, #Comments and #DefaultValue) from.
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
-        Variable& Declare ( const Variable& variable )
-        {
-            clear();
-
-            Category._(variable.Category);
-            Name    ._(variable.Name);
-            Fullname._(variable.Fullname);
-            Comments._(variable.Comments);
-            Delim=     variable.Delim;
-            return *this;
-        }
+        ALIB_API
+        Variable& Declare ( const Variable& variable );
 
         /** ****************************************************************************************
-         * Re-initializes the variable using resources.
+         * Re-initializes the variable using the specific values given.
          *
          * @param category  The category of the variable.
          * @param name      The name of the variable
@@ -405,23 +405,309 @@ class Variable
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
         ALIB_API
-        Variable&   Declare( const String& category,  const String& name,
-                             character         delim    = '\0',
+        Variable&   Declare( const String& category,
+                             const String& name,
+                             character     delim    = '\0',
                              const String& comments = nullptr                  );
+
+
+        /** ****************************************************************************************
+         * Re-initializes the variable using the specific values given.
+         * This overload accepts complementary string character types for each argument.
+         *
+         * @param category  The category of the variable.
+         * @param name      The name of the variable
+         * @param delim     A proposal for a delimiter that might be used by some plug-ins
+         *                  to delimit different values from each other (e.g. INI files).
+         *                  Defaults to \c '\0'.
+         * @param comments  Comment lines that might be added in the configuration storage
+         *                  (plug-in implementation dependent).
+         *                  Defaults to \c nullptr.
+         *
+         * @return \c *this to allow concatenated operations.
+         ******************************************************************************************/
+        ALIB_API
+        Variable&   Declare( const ComplementString&  category,
+                             const ComplementString&  name,
+                             complementChar           delim    = '\0',
+                             const ComplementString&  comments = nullptr                  );
+
+        /** ****************************************************************************************
+         * Clears all fields and resets internal monotonic allocator.
+         *
+         * @param nameAndCategory If <b>CurrentData::CurrentData::Keep</b> is given, the
+         *                        name and category of the variable will be restored after
+         *                        the reset.<br>
+         *                        Defaults to <b>CurrentData::Clear</b>.
+         *
+         * @return \c *this to allow concatenated operations.
+         ******************************************************************************************/
+        ALIB_API
+        Variable&   Reset( CurrentData nameAndCategory= CurrentData::Clear );
 
 
     // #############################################################################################
     // Interface
+    // #############################################################################################
+    public:
+        /**
+         * The \b %Configuration that was recently used to request or store the value.
+         * @return The associated configuration object or \c nullptr if no configuration is
+         *         assigned.
+         */
+        const Configuration*    Config()                                                       const
+        {
+            return  Self().Config;
+        }
+
+        /**
+         * The \b %Configuration that was recently used to request or store the value.
+         * @return The associated configuration object or \c nullptr if no configuration is
+         *         assigned.
+         */
+        Configuration*          Config()
+        {
+            return  Self().Config;
+        }
+
+        /**
+         * Sets the \b %Configuration to load or store the value.
+         * @param config The configuration to use.
+         */
+        void                    SetConfig( Configuration* config )
+        {
+            Self().Config= config;
+        }
+
+
+        /**
+         * Returns this configuration variable's category.
+         * @return The category of this variable.
+         */
+        const String&           Category()                                                     const
+        {
+            return  Self().Category;
+        }
+
+        /**
+         * Returns this configuration variable's name.
+         * @return The name of this variable.
+         */
+        const String&           Name()                                                         const
+        {
+            return  Self().Name;
+        }
+
+        /**
+         * The delimiter used for parsing and storing values by simple textual plug-ins which
+         * use the default version of \alib{config,XTernalizer} for in- and externalizing variables.
+         * @return The delimiter character of this variable.
+         */
+        character               Delim()                                                        const
+        {
+            return  Self().Delim;
+        }
+
+        /**
+         * Sets the delimiter used for parsing and storing values.
+         * \see
+         *   Method #Delim for more informaiton.
+         * @param delim The configuration to use.
+         */
+        void                    SetDelim( character delim )
+        {
+            Self().Delim= delim;
+        }
+
+        /**
+         * Hints for formatting textual configuration files. (Used by class \alib{config,IniFile}
+         * and potentially by custom plug-ins.
+         * @return The format hints.
+         */
+        FormatHints             FmtHints()                                                     const
+        {
+            return  Self().FmtHints;
+        }
+
+        /**
+         * Sets the hints for formatting textual configuration files.
+         * (Used by class \alib{config,IniFile} and potentially by custom plug-ins.
+         *
+         * @param hints The hints to be used.
+         */
+        void                    SetFmtHints( FormatHints hints)
+        {
+            Self().FmtHints= hints;
+        }
+
+        /**
+         * If set, attributes written in multi-lines are vertically aligned by this character or
+         * string. Use cases are "=", ":" or "->".<br>
+         * Used by \alib{config,IniFile} and potentially by custom plug-ins.
+         * @return The alignment of attributes.
+         */
+        const String&           FormatAttrAlignment()                                          const
+        {
+            return  Self().FormatAttrAlignment;
+        }
+
+        /**
+         * Returns this configuration variable's comments.
+         * @return The comments of this variable.
+         */
+        const String&           Comments()                                                     const
+        {
+            return  Self().Comments;
+        }
+
+        /**
+         * The configuration variable category and name concatenated with an underscore
+         * character \c '_'. This is useful e.g. for naming variables in log messages.
+         *
+         * \note
+         *   This method is not declared <c>const</c>, as the full name might be assembled
+         *   with the invocation of this method.
+         *
+         * @return The name and category  of this variable separated by \c '_'.
+         */
+        ALIB_API const String&  Fullname();
+
+        /**
+         * The default value provided as an externalized string.
+         *
+         * The only occasion that this value is used is with method
+         * \alib{config,Configuration::Load}.
+         * If no plug-in has this variable defined and this field is not \e nulled, then the value
+         * is written into plug-in of priority \alib{config,Priorities::DefaultValues},
+         * respectively - if this default plug-in was replaced by the user - into a plug-in found at
+         * or below this priority.
+         *
+         * In this case, the value is parsed using method
+         * \alib{config,XTernalizer::LoadFromString} of field
+         * \alib{config,ConfigurationPlugin::StringConverter} of the plug-in writing the value.
+         *
+         * \note
+         *   The field is ignored when using the plug-in interface
+         *   \alib{config,ConfigurationPlugin::Load} directly.
+         *   To store this value 'manually' directly to a plug-in, invoke
+         *   \alib{config,ConfigurationPlugin::Store} with providing value explicitly.
+         *
+         * @return The default value of this variagble.
+         */
+        const String&           DefaultValue()                                                 const
+        {
+            return  Self().DefaultValue;
+        }
+
+        /**
+         * A value related to the priority of a configuration plug-in.
+         * The following values apply:
+         * - \alib{config,Priorities::NONE} after creation or declaration (reuse).
+         * - The priority of the plug-in that loaded the value (after calling
+         *   \alib{config,Configuration::Load}).
+         * - The priority of the plug-in that stored the value (after calling
+         *   \alib{config,Configuration::Store}).
+         * - \c 0, if the last load or store operation failed.
+         * In addition prior to storing a variable, the value might be manually set. See
+         * documentation of
+         * \alib{config,Configuration::Store}) for details.
+         *
+         * @return The priority setting for this variable.
+         */
+        Priorities              Priority()                                                     const
+        {
+            return  Self().Priority;
+        }
+
+        /**
+         * Sets the priority.
+         * \see
+         *   Method #Priority for more information.
+         * @param priority The priority to use.
+         */
+        void                    SetPriority( Priorities priority )
+        {
+            Self().Priority= priority;
+        }
+
+
+        /**
+         * Sets the value received by #Category.
+         * \note
+         *   This method allocates a new string object in the internal \alib{monomem,MonoAllocator}
+         *   which will only be released with resetting this variable instance.
+         *
+         * @param newValue The new category to set.
+         */
+        void                    ReplaceCategory( const String& newValue )
+        {
+            Self().Category           = Allocator().EmplaceString( newValue );
+        }
+
+        /**
+         * Sets the value received by #Name.
+         * \note
+         *   This method allocates a new string object in the internal \alib{monomem,MonoAllocator}
+         *   which will only be released with resetting this variable instance.
+         *
+         * @param newValue The new name to set.
+         */
+        void                    ReplaceName( const String& newValue )
+        {
+            Self().Name               = Allocator().EmplaceString( newValue );
+        }
+
+        /**
+         * Sets the value received by #Comments.
+         * \note
+         *   This method allocates a new string object in the internal \alib{monomem,MonoAllocator}
+         *   which will only be released with resetting this variable instance.
+         *
+         * @param newValue The new comments to set.
+         */
+        void                    ReplaceComments( const String& newValue )
+        {
+            Self().Comments           = Allocator().EmplaceString( newValue );
+        }
+
+        /**
+         * Sets the value received by #DefaultValue.
+         * \note
+         *   This method allocates a new string object in the internal \alib{monomem,MonoAllocator}
+         *   which will only be released with resetting this variable instance.
+         *
+         * @param newValue The new default value to set.
+         */
+        void                    ReplaceDefaultValue( const String& newValue )
+        {
+            Self().DefaultValue       = Allocator().EmplaceString( newValue );
+        }
+
+        /**
+         * Sets the value received by #FormatAttrAlignment.
+         * \note
+         *   This method allocates a new string object in the internal \alib{monomem,MonoAllocator}
+         *   which will only be released with resetting this variable instance.
+         *
+         * @param newValue The new alignment to set.
+         */
+        void                    ReplaceFormatAttrAlignment( const String& newValue )
+        {
+            Self().FormatAttrAlignment= Allocator().EmplaceString( newValue );
+        }
+
+
+    // #############################################################################################
+    // Value access
     // #############################################################################################
         /** ****************************************************************************************
          * Returns the number of values set in this object.
          *
          * @return The number of values set.
          ******************************************************************************************/
-        inline
-        int         Size() const
+        integer                 Size() const
         {
-            return qtyValues;
+            return static_cast<integer>(Self().values.size());
         }
 
         /** ****************************************************************************************
@@ -432,37 +718,48 @@ class Variable
          * @param  startIdx  The index of the first value to be cleared. Defaults to \c 0.
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
-        inline
-        Variable&   ClearValues(int startIdx= 0)
+        Variable&               ClearValues(int startIdx= 0)
         {
-            qtyValues= startIdx;
+            auto& vector= Self().values;
+
+            if( startIdx == 0 )
+                vector.clear();
+            else
+                vector.erase( vector.begin() + startIdx, vector.end() );
             return *this;
         }
 
         /** ****************************************************************************************
          * Adds a value to the end of the list of values.
-         * @return A reference to the string which can be manipulated to set the value.
+         * @param  value  The string value to add.
          ******************************************************************************************/
-        ALIB_API
-        AString&    Add();
+        ALIB_API void           Add(const String& value);
 
         /** ****************************************************************************************
-         * Adds the given value to the end of the list of values.
-         * Template type \p{TAppendable} needs to be a type which is
-         * \ref alib_strings_assembly_ttostring "appendable" to objects of type \b %AString.
-         *
-         * If a different format is desired (minimum digits, etc.), then
-         * #Add is to be used and conversion done proprietary on the returned string objects.
-         *
-         * @param  value  The value to set.
-         * @return A reference to the string representing the integer value.
+         * Adds an integral value to the end of the list of values.
+         * @param  value  The value to add.
          ******************************************************************************************/
-        template<typename TAppendable>
-        inline
-        AString&  Add( const TAppendable& value )
-        {
-            return Add()._( value );
-        }
+        ALIB_API void           Add(int64_t value);
+
+        /** ****************************************************************************************
+         * Adds an integral value to the end of the list of values.
+         * @param  value  The value to add.
+         ******************************************************************************************/
+          void                  Add(int32_t value) { Add( static_cast<int64_t>(value) );  }
+
+        /** ****************************************************************************************
+         * Adds a floating point value to the end of the list of values.
+         * @param  value  The value to add.
+         ******************************************************************************************/
+        ALIB_API void           Add(double value);
+
+        /** ****************************************************************************************
+         * Replaces the value at \p{idx} with the given string.
+         *
+         * @param  idx          The index of the value to replace.
+         * @param  replacement  The string value to set.
+         ******************************************************************************************/
+        ALIB_API void           ReplaceValue( int idx, const String& replacement );
 
         /** ****************************************************************************************
          * Replaces the value at \p{idx} with the values of the given other variable.
@@ -470,36 +767,30 @@ class Variable
          * @param  idx          The index of the value to replace.
          * @param  replVariable The variable providing the replacement values.
          ******************************************************************************************/
-        ALIB_API
-        void ReplaceValue( int idx, Variable& replVariable );
+        ALIB_API void           ReplaceValue( int idx, Variable& replVariable );
 
         /** ****************************************************************************************
-         * Returns the value with the given index. Valid values for parameter \p{idx} are
-         * between \b 0 and #Size <b> - 1</b>.<br>
+         * Returns the stored value with the given index.
+         * Valid values for parameter \p{idx} are between \b 0 and #Size <b> - 1</b>.<br>
          * In debug-compilations an error is raised if the given \p{idx} is out of range.
-         *
-         * \note
-         *  It is explicitly allowed to change the contents of the \b %AString object returned,
-         *  e.g. for a subsequent store operation.
          *
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
          * @return The value at \p{idx}.
          ******************************************************************************************/
-        inline
-        AString&    GetString( int idx= 0 )
+        const String&           GetString( int idx= 0 )
         {
-            ALIB_ASSERT_ERROR( idx >= 0  &&  idx < qtyValues, "Index out of range: ", idx );
-            return values[static_cast<size_t>(idx)];
+            ALIB_ASSERT_ERROR( idx >= 0  &&  idx < Size(),
+                               "Index {} is out of range.", idx )
+            return Self().values[static_cast<size_t>(idx)];
         }
 
         /** ****************************************************************************************
          * Returns the value at \p{idx} interpreted as an integer.
          * If the index is invalid, \c 0 is returned.
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
-         * @return The value at \p{idx} interpreted as an integer value.
+         * @return The value at \p{idx} interpreted as an integral value.
          ******************************************************************************************/
-        ALIB_API
-        integer GetInteger(int idx= 0);
+        ALIB_API integer        GetInteger(int idx= 0);
 
         /** ****************************************************************************************
          * Returns the value at \p{idx} interpreted as a double value.
@@ -510,8 +801,7 @@ class Variable
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
          * @return The value at \p{idx} interpreted as a double value.
          ******************************************************************************************/
-        ALIB_API
-        double  GetFloat(int idx= 0);
+        ALIB_API double         GetFloat(int idx= 0);
 
         /** ****************************************************************************************
          * Returns \c true if the first value represents a boolean 'true'.
@@ -521,8 +811,7 @@ class Variable
          * @param  idx  The index of the value to be retrieved.  Defaults to \c 0.
          * @return The value at \p{idx} interpreted as a boolean value.
          ******************************************************************************************/
-        ALIB_API
-        bool    IsTrue(int idx= 0);
+        ALIB_API bool           IsTrue(int idx= 0);
 
         /** ****************************************************************************************
          * Searches in the values of this variable for the pattern <c>attrName = result</c> and
@@ -532,27 +821,22 @@ class Variable
          * @param[out] result       A sub-string with the result.
          * @param      attrDelim    The delimiter to search for. Defaults to '='.
          * @return \c true if the attribute was found, \c false otherwise.
+         *         In the latter case, output argument \p{result} will be a \e nulled string.
          ******************************************************************************************/
-        ALIB_API
-        bool    GetAttribute( const String& attrName, Substring& result, character attrDelim= A_CHAR('=') );
-
+        ALIB_API bool           GetAttribute( const String& attrName  , Substring& result,
+                                              character     attrDelim= A_CHAR('=') );
 
     // #############################################################################################
     // protected methods
     // #############################################################################################
     protected:
-        /** Clears all values. */
-        ALIB_API
-        void    clear();
 
 };  // class Variable
 
 }} // namespace aworx[::lib::config]
 
-
-
-// /// Type alias in namespace #aworx.
-using     Variable=           aworx::lib::config::Variable;
+/// Type alias in namespace #aworx.
+using     Variable=           lib::config::Variable;
 
 }  // namespace [aworx]
 

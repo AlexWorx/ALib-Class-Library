@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST
 
@@ -15,14 +16,14 @@
 namespace aworx { namespace lib { namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
- * This built-in compiler plug-in of \alibmod_nolink_expressions, performs auto-casts only if two
+ * This built-in compiler plug-in of \alib_expressions_nl, performs auto-casts only if two
  * different types are given. In this case, the following casts are performed:
  *
  * 1. If one argument is of type \alib{expressions,Types::String}, the other is converted to
  *    string. The expression function returned for (optional) decompilation is \b "String()".
  *
  * 2. If one argument is of type \alib{expressions,Types::Float} and the other of type
- *    \alib{expressions,Types::Integer}, the integer value is casted to floating point.
+ *    \alib{expressions,Types::Integer}, the integral value is casted to floating point.
  *    The expression function returned for (optional) decompilation is \b "Float()".
  *
  * 3. If one argument is of type \alib{expressions,Types::Float} and the other of type

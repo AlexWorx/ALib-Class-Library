@@ -1,11 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-
-// include guard
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_AUTOSIZES
 #define HPP_ALIB_STRINGS_UTIL_AUTOSIZES 1
 
@@ -28,7 +27,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * This class stores and manages tabulator positions and field sizes. The class supports a
  * simple session handling, by storing each value once for the actual output session and a
  * second time for a future session. The motivation for writing this class came from the
- * requirements of logging library \alibmod_alox. The goals here are:
+ * requirements of logging library \alib_alox. The goals here are:
  *
  * - During a logging session, log output should be as much tabular as possible.
  * - On the same time, the log output should be as "narrow" as possible.
@@ -54,7 +53,7 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * it's information from and to string representations which can be stored in configuration files.
  *
  * As the use case of this class is not restricted to log output, this class is exposed
- * as a general utility class of \alibmod_nolink_strings.
+ * as a general utility class of \alib_strings_nl.
  **************************************************************************************************/
 class AutoSizes
 {
@@ -96,7 +95,7 @@ class AutoSizes
              * @param v Value for field #actual.
              * @param s Value for field #session.
              */
-            inline Entry( Types t, integer v, integer s )
+            Entry( Types t, integer v, integer s )
             : type(t), actual(v), session(s)
             {}
         };
@@ -111,7 +110,6 @@ class AutoSizes
         /** ****************************************************************************************
          * Resets the all values, current ones and the once of the currently measured session.
          ******************************************************************************************/
-        inline
         void        Reset ()                 {   data.clear(); Start();  }
 
         /** ****************************************************************************************
@@ -130,7 +128,6 @@ class AutoSizes
         /** ****************************************************************************************
          * Initializes a new query sequence, which is a series of invocations of method #Next.
          ******************************************************************************************/
-        inline
         void        Start ()                 {   ActualIndex=   0; }
 
         /** ****************************************************************************************
@@ -164,11 +161,10 @@ class AutoSizes
          *
          * @return The (new) size of the auto field.
          ******************************************************************************************/
-        inline
         integer     Next  ( Types type, integer requestedSize, integer growthPadding )
         {
             auto result= Actual( type, requestedSize, growthPadding );
-            ActualIndex++;
+            ++ActualIndex;
             return result;
         }
 
@@ -185,7 +181,7 @@ class AutoSizes
          *   (see method #Export), then only a part or just nothing is imported.
          *   This is due to the purpose of this class, which is to allow nicer, tabbed output.
          *   If this is not possible due to import problems, the system should work normally still.<br>
-         *   In debug compilations, an \ref ALIB_WARNING is written.
+         *   With debug builds, an \ref ALIB_WARNING is written.
          *
          *
          * @param source    The \b %String that is parsed for the exported data.
@@ -214,7 +210,7 @@ class AutoSizes
 
 
 /// Type alias in namespace #aworx.
-using     AutoSizes=            aworx::lib::strings::util::AutoSizes;
+using     AutoSizes=            lib::strings::util::AutoSizes;
 
 }  // namespace [aworx]
 

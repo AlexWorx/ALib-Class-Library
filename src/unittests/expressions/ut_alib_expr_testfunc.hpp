@@ -1,9 +1,10 @@
-// #################################################################################################
-//  aworx - Unit Tests
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of the unit tests of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_UT_ALIB_EXPR_TESTFUNC
 #define HPP_UT_ALIB_EXPR_TESTFUNC
 
@@ -35,6 +36,10 @@ void       testNormalizaton( const NCString& file, int line, const NCString& fun
                              Compiler&             compiler,
                              const String&         expressionString,
                              const String&         expected           );
+
+extern
+void        log_exception ( AWorxUnitTesting& ut, Exception& e );
+
 
 #if !ALIB_DEBUG
     #define      PRINTPRGRM(expr)

@@ -5,11 +5,11 @@
 //  Copyright 2019 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
+#include "alib/distribution.hpp"
 #include "alib/config/configuration.hpp"
 #include "alib/config/inifile.hpp"
 #include "alib/system/directory.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/lib/alibmodules.hpp"
 
 #include <fstream>
 
@@ -20,7 +20,7 @@ int main(  int argc, char *argv[]  )
     //
     // Initialize ALib and pass command line arguments to the default configuration instance
     //
-    ALIB.Init( argc, argv );
+    ALIB.Bootstrap( argc, argv );
 
     //
     // first, lets write a simple INI-file
@@ -75,7 +75,7 @@ int main(  int argc, char *argv[]  )
     //
     // Now we attach the INI-File to the configuration and read the same variables once more
     //
-    ALIB.Config->InsertPlugin( &iniFile, Priorities::Standard );
+    ALIB.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
     std::cout << std::endl;
     std::cout << "Reading Variables from Configuration: " << std::endl;
@@ -83,13 +83,13 @@ int main(  int argc, char *argv[]  )
     std::cout << "then these will overwrite the values from the INI-file)" <<std::endl;
 
 
-    ALIB.Config->Load( var.Declare( "",           "Test"        ) );
+    ALIB.GetConfig().Load( var.Declare( "",           "Test"        ) );
     std::cout << "  Test:        " << var.GetString() << std::endl;
 
-    ALIB.Config->Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
+    ALIB.GetConfig().Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
     std::cout << "  SectionVar:  " << var.GetString() << std::endl;
 
-    ALIB.Config->Load( var.Declare( "MY_SECTION", "PI"          ) );
+    ALIB.GetConfig().Load( var.Declare( "MY_SECTION", "PI"          ) );
     std::cout << "  PI:          " << var.GetString() << std::endl;
     std::cout << "  PI as float: " << var.GetFloat()  << std::endl;
 
@@ -99,13 +99,18 @@ int main(  int argc, char *argv[]  )
     //
     var.Declare( "New_Section",  "programatically", 0, "This variable was written by the test program"   );
     var.Add("written");
-    ALIB.Config->Store( var );
+    ALIB.GetConfig().Store( var );
 
     //
     // Copy programatically set default values to the INI-file
     //
-    ALIB.Config->FetchFromDefault( iniFile );
+    ALIB.GetConfig().FetchFromDefault( iniFile );
     iniFile.WriteFile();
 
+
+    //
+    // Shutdown and exit
+    //
+    ALIB.Shutdown();
     return 0;
 }

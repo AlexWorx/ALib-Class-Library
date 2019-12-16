@@ -6,29 +6,62 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(HPP_ALIB_SYSTEM_SYSTEM)
-#   include "alib/system/system.hpp"
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_SYSTEM_SYSTEM)
+#      include "alib/system/system.hpp"
+#   endif
+#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
+#      include "alib/lib/fs_modules/distribution.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
+#      include "alib/strings/numberformat.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#   if !defined (HPP_ALIB_STRINGS_SUBSTRING)
+#      include "alib/strings/substring.hpp"
+#   endif
+#   if !defined(HPP_ALIB_TIME_TIME)
+#      include "alib/time/time.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
+#      include "alib/resources/resources.hpp"
+#   endif
+#   if !defined (HPP_ALIB_RESULTS_RESULTS)
+#      include "alib/results/results.hpp"
+#   endif
+#   if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
+#      include "alib/system/directory.hpp"
+#   endif
+#   if !defined (HPP_ALIB_SYSTEM_CALENDAR)
+#      include "alib/system/calendar.hpp"
+#   endif
+#   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
+#      include "alib/enums/recordbootstrap.hpp"
+#   endif
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+#if !defined(HPP_ALIB_TEXT_FWDS)
+#   include "alib/text/fwds.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
+
+// For code compatibility with ALox Java/C++
+// We have to use underscore as the start of the name and for this have to disable a compiler
+// warning. But this is a local code (cpp file) anyhow.
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wreserved-id-macro"
 #endif
 
-#if !defined (HPP_ALIB_LIB_ALIBMODULES)
-#    include "alib/lib/alibmodules.hpp"
+    #define _NC _<false>
+
+#if defined(__clang__)
+    #pragma clang diagnostic pop
 #endif
 
-#if !defined(HPP_ALIB_TIME_TIME)
-#   include "alib/time/time.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#    include "alib/resources/resources.hpp"
-#endif
-
-#if !defined (HPP_ALIB_RESULTS_RESULTS)
-#    include "alib/results/results.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-#    include "alib/strings/substring.hpp"
-#endif
 
 using namespace aworx::lib;
 
@@ -39,70 +72,113 @@ namespace aworx { namespace lib {
 
 system::System SYSTEM;
 
-
-String   system::System::months[12];
-String   system::System::days  [ 7];
-
 namespace system {
 
+
+
+
+#if !defined(ALIB_DOX)
+namespace
+{
+    String months[12];
+    String days[7];
+
+    enum Units
+    {
+        TS_ZERO,
+        DayPlural,
+        DaySingular,
+        HourPlural,
+        HourSingular,
+        MinPlural,
+        MinSingular,
+        SecPlural,
+        SecSingular,
+        MlSecPlural,
+        MlSecSingular,
+        McSecPlural,
+        McSecSingular,
+        NSecPlural,
+        NSecSingular,        SIZE_OF_UNITS
+    };
+
+    String units[SIZE_OF_UNITS];
+
+}
+#endif // defined(ALIB_DOX)
+
 System::System()
-: Module( ALIB_VERSION, ALIB_REVISION, "ALIB_SYSTEM" )
+: Module( ALIB_VERSION, ALIB_REVISION, "SYS" )
 {
     ALIB_ASSERT_ERROR( this == &SYSTEM,
         "Instances of class System must not be created. Use singleton aworx::lib::SYSTEM" )
-
-    Dependencies.emplace_back( &lib::RESULTS );
 }
 
 
-void System::init( InitLevels level, int, const char**, const wchar_t** )
+void System::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
 {
-    if( level == InitLevels::PrepareResources )
+    if( phase == BootstrapPhases::PrepareResources )
     {
         ALIB.CheckDistribution();
 
-        ALIB_BOXING_VTABLE_REGISTER( vt_system_exceptions   )
-        ALIB_BOXING_VTABLE_REGISTER( vt_system_systemerrors )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_exceptions   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_systemerrors )
 
 
         #define EOS ,
-        Resources->AddBulk( ResourceCategory,
+#if !ALIB_RESOURCES_OMIT_DEFAULTS
+        resourcePool->BootstrapBulk( ResourceCategory,
 
         // Calendar
           "Months"  , A_CHAR("January,February,March,April,May,June,July,August,September,October,November,December")
         , "Days"    , A_CHAR("Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,")     EOS
 
-        // Exceptions
-        "ExceptionsPrefix" , "system::" ,
-        "ExceptionsPostfix", ""         ,
-        "Exceptions",      "0,OK"               "NIY,"
-                           "1,Error"            "NIY,"
-                           "2,FileExists"       "NIY,"
-                           "3,InvalidPath"      "NIY"  EOS
+          "DurUnts" , A_CHAR("zero time"   ","     //  0  TS_ZERO
+                             " days"       ","     //  1  DayP
+                             " day"        ","     //  2  DayS
+                             " hours"      ","     //  3  HourP
+                             " hour"       ","     //  4  HourS
+                             " minutes"    ","     //  5  MinP
+                             " minute"     ","     //  6  MinS
+                             " seconds"    ","     //  7  SecP
+                             " second"     ","     //  8  SecS
+                             " ms"         ","     //  9  MlSecP
+                             " ms"         ","     // 10  MlSecS
+                             " \u00B5s"    ","     // 11  McSecP
+                             " \u00B5s"    ","     // 12  McSecS
+                             " ns"         ","     // 13  NSecP
+                             " ns"            ),   // 14  NSecS
 
-        "SpecialFolder",   "0,Root"        ",1,"
-                           "1,Current"     ",1,"
-                           "3,HomeConfig"  ",5,"
-                           "2,Home"        ",1,"
-                           "4,Module"      ",1,"
-                           "5,Temp"        ",1,"
-                           "6,VarTemp"     ",1"        EOS
+        // Exceptions
+        "E<", A_CHAR("system::"),
+        "E",  A_CHAR("0,OK"               ",NON"  ) EOS
+
+        "SpecialFolder", A_CHAR("0,Root"        ",1,"
+                                "1,Current"     ",1,"
+                                "3,HomeConfig"  ",5,"
+                                "2,Home"        ",1,"
+                                "4,Module"      ",1,"
+                                "5,Temp"        ",1,"
+                                "6,VarTemp"     ",1"  )      EOS
 
 
             // System errors
         #if defined (__GLIBC__) || defined(__APPLE__)
-            "SystemErrorsPrefix" , "glibc::"                                 ,
-            "OSERR"              , "GNU-C Library call returned {!Q} ({})."  ,
+            "SE<"                , A_CHAR("glibc::"                               ),
+            "OSERR"              , A_CHAR("GNU-C Library call returned {!Q} ({})."),
+            "UknSE"              , A_CHAR("GNU-C Library call returned ({}). (Unknown error number)"),
         #elif defined(_WIN32)
-            "SystemErrorsPrefix" , "Windows::"                               ,
-            "OSERR"              , "Windows system call returned {!Q} ({})." ,
+            "SE<"                , A_CHAR("WindowsOS::"                            ),
+            "OSERR"              , A_CHAR("Windows system call returned {!Q} ({})."),
+            "UknSE"              , A_CHAR("Windows system call returned ({}). (Unknown error number)"),
         #endif
-        "SystemErrorsPostfix"    , "",
-        "SystemErrors",
-          "0"    ","    "OK"                ","     ","
+        "SE",
+
+   A_CHAR("-1"   ","    "UNKNOWN"           ","  "UknSE"  "," )
+   A_CHAR("0"    ","    "OK"                ","           "," )
 
 #if defined (__GLIBC__) || defined(__APPLE__)
-          "1"    ","    "EPERM"             ","  "OSERR"  ","
+   A_CHAR("1"    ","    "EPERM"             ","  "OSERR"  ","
           "2"    ","    "ENOENT"            ","  "OSERR"  ","
           "3"    ","    "ESRCH"             ","  "OSERR"  ","
           "4"    ","    "EINTR"             ","  "OSERR"  ","
@@ -143,9 +219,9 @@ void System::init( InitLevels level, int, const char**, const wchar_t** )
          "39"    ","    "ENOTEMPTY"         ","  "OSERR"  ","
          "40"    ","    "ELOOP"             ","  "OSERR"  ","
          "42"    ","    "ENOMSG"            ","  "OSERR"  ","
-         "43"    ","    "EIDRM"             ","  "OSERR"  ","
+         "43"    ","    "EIDRM"             ","  "OSERR"  "," )
 #if !defined(__APPLE__)
-         "44"    ","    "ECHRNG"            ","  "OSERR"  ","
+  A_CHAR("44"    ","    "ECHRNG"            ","  "OSERR"  ","
          "45"    ","    "EL2NSYNC"          ","  "OSERR"  ","
          "46"    ","    "EL3HLT"            ","  "OSERR"  ","
          "47"    ","    "EL3RST"            ","  "OSERR"  ","
@@ -159,46 +235,46 @@ void System::init( InitLevels level, int, const char**, const wchar_t** )
          "55"    ","    "ENOANO"            ","  "OSERR"  ","
          "56"    ","    "EBADRQC"           ","  "OSERR"  ","
          "57"    ","    "EBADSLT"           ","  "OSERR"  ","
-         "59"    ","    "EBFONT"            ","  "OSERR"  ","
+         "59"    ","    "EBFONT"            ","  "OSERR"  ",")
 #endif
-         "60"    ","    "ENOSTR"            ","  "OSERR"  ","
+  A_CHAR("60"    ","    "ENOSTR"            ","  "OSERR"  ","
          "61"    ","    "ENODATA"           ","  "OSERR"  ","
          "62"    ","    "ETIME"             ","  "OSERR"  ","
-         "63"    ","    "ENOSR"             ","  "OSERR"  ","
+         "63"    ","    "ENOSR"             ","  "OSERR"  ",")
 #if !defined(__APPLE__)
-         "64"    ","    "ENONET"            ","  "OSERR"  ","
-         "65"    ","    "ENOPKG"            ","  "OSERR"  ","
+  A_CHAR("64"    ","    "ENONET"            ","  "OSERR"  ","
+         "65"    ","    "ENOPKG"            ","  "OSERR"  ",")
 #endif
-         "66"    ","    "EREMOTE"           ","  "OSERR"  ","
-         "67"    ","    "ENOLINK"           ","  "OSERR"  ","
+  A_CHAR("66"    ","    "EREMOTE"           ","  "OSERR"  ","
+         "67"    ","    "ENOLINK"           ","  "OSERR"  ",")
 #if !defined(__APPLE__)
-         "68"    ","    "EADV"              ","  "OSERR"  ","
+  A_CHAR("68"    ","    "EADV"              ","  "OSERR"  ","
          "69"    ","    "ESRMNT"            ","  "OSERR"  ","
-         "70"    ","    "ECOMM"             ","  "OSERR"  ","
+         "70"    ","    "ECOMM"             ","  "OSERR"  ",")
 #endif
-         "71"    ","    "EPROTO"            ","  "OSERR"  ","
-         "72"    ","    "EMULTIHOP"         ","  "OSERR"  ","
+  A_CHAR("71"    ","    "EPROTO"            ","  "OSERR"  ","
+         "72"    ","    "EMULTIHOP"         ","  "OSERR"  ",")
 #if !defined(__APPLE__)
-         "73"    ","    "EDOTDOT"           ","  "OSERR"  ","
+  A_CHAR("73"    ","    "EDOTDOT"           ","  "OSERR"  ",")
 #endif
-         "74"    ","    "EBADMSG"           ","  "OSERR"  ","
-         "75"    ","    "EOVERFLOW"         ","  "OSERR"  ","
+  A_CHAR("74"    ","    "EBADMSG"           ","  "OSERR"  ","
+         "75"    ","    "EOVERFLOW"         ","  "OSERR"  ",")
 #if !defined(__APPLE__)
-         "76"    ","    "ENOTUNIQ"          ","  "OSERR"  ","
+  A_CHAR("76"    ","    "ENOTUNIQ"          ","  "OSERR"  ","
          "77"    ","    "EBADFD"            ","  "OSERR"  ","
          "78"    ","    "EREMCHG"           ","  "OSERR"  ","
          "79"    ","    "ELIBACC"           ","  "OSERR"  ","
          "80"    ","    "ELIBBAD"           ","  "OSERR"  ","
          "81"    ","    "ELIBSCN"           ","  "OSERR"  ","
          "82"    ","    "ELIBMAX"           ","  "OSERR"  ","
-         "83"    ","    "ELIBEXEC"          ","  "OSERR"  ","
+         "83"    ","    "ELIBEXEC"          ","  "OSERR"  ",")
 #endif
-         "84"    ","    "EILSEQ"            ","  "OSERR"  ","
+  A_CHAR("84"    ","    "EILSEQ"            ","  "OSERR"  ",")
 #if !defined(__APPLE__)
-         "85"    ","    "ERESTART"          ","  "OSERR"  ","
-         "86"    ","    "ESTRPIPE"          ","  "OSERR"  ","
+  A_CHAR("85"    ","    "ERESTART"          ","  "OSERR"  ","
+         "86"    ","    "ESTRPIPE"          ","  "OSERR"  ",")
 #endif
-         "87"    ","    "EUSERS"            ","  "OSERR"  ","
+  A_CHAR("87"    ","    "EUSERS"            ","  "OSERR"  ","
          "88"    ","    "ENOTSOCK"          ","  "OSERR"  ","
          "89"    ","    "EDESTADDRREQ"      ","  "OSERR"  ","
          "90"    ","    "EMSGSIZE"          ","  "OSERR"  ","
@@ -227,37 +303,37 @@ void System::init( InitLevels level, int, const char**, const wchar_t** )
         "113"    ","    "EHOSTUNREACH"      ","  "OSERR"  ","
         "114"    ","    "EALREADY"          ","  "OSERR"  ","
         "115"    ","    "EINPROGRESS"       ","  "OSERR"  ","
-        "116"    ","    "ESTALE"            ","  "OSERR"  ","
+        "116"    ","    "ESTALE"            ","  "OSERR"  "," )
 #if !defined(__APPLE__)
-        "117"    ","    "EUCLEAN"           ","  "OSERR"  ","
+ A_CHAR("117"    ","    "EUCLEAN"           ","  "OSERR"  ","
         "118"    ","    "ENOTNAM"           ","  "OSERR"  ","
         "119"    ","    "ENAVAIL"           ","  "OSERR"  ","
         "120"    ","    "EISNAM"            ","  "OSERR"  ","
-        "121"    ","    "EREMOTEIO"         ","  "OSERR"  ","
+        "121"    ","    "EREMOTEIO"         ","  "OSERR"  "," )
 #endif
-        "122"    ","    "EDQUOT"            ","  "OSERR"  ","
+ A_CHAR("122"    ","    "EDQUOT"            ","  "OSERR"  "," )
 #if !defined(__APPLE__)
-        "123"    ","    "ENOMEDIUM"         ","  "OSERR"  ","
-        "124"    ","    "EMEDIUMTYPE"       ","  "OSERR"  ","
+ A_CHAR("123"    ","    "ENOMEDIUM"         ","  "OSERR"  ","
+        "124"    ","    "EMEDIUMTYPE"       ","  "OSERR"  "," )
 #endif
-        "125"    ","    "ECANCELED"         ","  "OSERR"  ","
+ A_CHAR("125"    ","    "ECANCELED"         ","  "OSERR"  "," )
 #if !defined(__APPLE__)
-        "126"    ","    "ENOKEY"            ","  "OSERR"  ","
+ A_CHAR("126"    ","    "ENOKEY"            ","  "OSERR"  ","
         "127"    ","    "EKEYEXPIRED"       ","  "OSERR"  ","
         "128"    ","    "EKEYREVOKED"       ","  "OSERR"  ","
-        "129"    ","    "EKEYREJECTED"      ","  "OSERR"  ","
+        "129"    ","    "EKEYREJECTED"      ","  "OSERR"  "," )
 #endif
-        "130"    ","    "EOWNERDEAD"        ","  "OSERR"  ","
-        "131"    ","    "ENOTRECOVERABLE"   ","  "OSERR"
+ A_CHAR("130"    ","    "EOWNERDEAD"        ","  "OSERR"  ","
+        "131"    ","    "ENOTRECOVERABLE"   ","  "OSERR"     )
 #if !defined(__APPLE__)
-                                                          ","
+ A_CHAR(                                                  ","
         "132"    ","    "ERFKILL"           ","  "OSERR"  ","
-        "133"    ","    "EHWPOISON"         ","  "OSERR"
+        "133"    ","    "EHWPOISON"         ","  "OSERR"       )
 #endif
                                                            EOS
 
 #elif defined(_WIN32)
-          "1"    ","    "EPERM"             ","  "OSERR"  ","
+ A_CHAR(  "1"    ","    "EPERM"             ","  "OSERR"  ","
           "2"    ","    "ENOENT"            ","  "OSERR"  ","
           "3"    ","    "ESRCH"             ","  "OSERR"  ","
           "4"    ","    "EINTR"             ","  "OSERR"  ","
@@ -336,34 +412,460 @@ void System::init( InitLevels level, int, const char**, const wchar_t** )
         "137"    ","    "ETIME"             ","  "OSERR"  ","
         "138"    ","    "ETIMEDOUT"         ","  "OSERR"  ","
         "139"    ","    "ETXTBSY"           ","  "OSERR"  ","
-        "140"    ","    "EWOULDBLOCK"       ","  "OSERR"  EOS
+        "140"    ","    "EWOULDBLOCK"       ","  "OSERR"      ) EOS
+
+
 #endif
 
-        // end of AddBulk()
+        // end of BootstrapBulk()
         nullptr );
+#endif // !ALIB_RESOURCES_OMIT_DEFAULTS
 
 
-        #if ALIB_MODULE_BOXING && ALIB_MODULE_STRINGS
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( system::SystemErrors   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( system::Exceptions     )
 
-            ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::system::SystemErrors   )
-            ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::system::Exceptions     )
+        lib::boxing::BootstrapRegister<text::FFormat, lib::boxing::TMappedTo<time::DateTime>>(FFormat_DateTime);
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N( time::DateTime::Duration )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W( time::DateTime::Duration )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X( time::DateTime::Duration )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N( time::Ticks   ::Duration )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W( time::Ticks   ::Duration )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X( time::Ticks   ::Duration )
 
-        #endif
 
     }
 
-    else if( level == InitLevels::Final )
+    else if( phase == BootstrapPhases::PrepareConfig )
+    {
+        EnumRecords<Exceptions              >::Bootstrap();
+        EnumRecords<SystemErrors            >::Bootstrap();
+        EnumRecords<Directory::SpecialFolder>::Bootstrap( *this, "SpecialFolder" );
+
+    }
+    else if( phase == BootstrapPhases::Final )
     {
         Substring parser;
         parser= GetResource( "Months" ); for( int i= 0 ; i < 12 ; ++i ) { months[i]= parser.ConsumeToken(','); }
         parser= GetResource( "Days"   ); for( int i= 0 ; i <  7 ; ++i ) {   days[i]= parser.ConsumeToken(','); }
+
+        parser= GetResource( "DurUnts" );
+        for( int i= 0 ; i < Units::SIZE_OF_UNITS ; ++i )
+            units[i]= parser.ConsumeToken(',');
+
+        ALIB_ASSERT( units[Units::SIZE_OF_UNITS-1].IsNotEmpty() )
+        ALIB_ASSERT( parser.IsEmpty() )
+    }
+}
+
+Exception CreateSystemException( const NCString& file, int line, const NCString& func, int errNo )
+{
+    auto* enumRecord= enums::TryRecord( system::SystemErrors(errNo) );
+    if( enumRecord == nullptr )
+        return Exception( file, line, func, SystemErrors::UNKNOWN, errNo );
+
+    return Exception( file, line, func, SystemErrors(errNo),  // as exception
+                                        SystemErrors(errNo),  // boxing the exception's name (!)
+                                        errNo                    );
+}
+
+
+// #################################################################################################
+// CalendarDateTime
+// #################################################################################################
+
+void CalendarDateTime::Clear()
+{
+    Year=
+    Month=
+    Day=
+    DayOfWeek=
+    Hour=
+    Minute=
+    Second=
+    Millisecond=    0;
+}
+
+void CalendarDateTime::Set( const DateTime& timeStamp, Timezone timezone )
+{
+    Clear();
+
+    #if defined (__GLIBCXX__) || defined(__APPLE__)
+        struct tm  tm;
+        time_t tt= timeStamp.InEpochSeconds();
+        if ( timezone == Timezone::UTC )
+        {
+            tm.tm_isdst=      0; // daylight saving off
+            gmtime_r( &tt, &tm );
+        }
+        else
+        {
+            tm.tm_isdst=     -1; // daylight saving auto
+            localtime_r( &tt, &tm );
+        }
+
+        Year=       tm.tm_year + 1900;
+        Day=        tm.tm_mday;
+        DayOfWeek=  tm.tm_wday;
+        Month=      tm.tm_mon + 1;
+        Second=     tm.tm_sec;
+        Hour=       tm.tm_hour;
+        Minute=     tm.tm_min;
+
+    #elif defined( _WIN32 )
+        SYSTEMTIME st= timeStamp.ToSystemTime( timezone );
+
+        Year=       st.wYear;
+        Day=        st.wDay;
+        DayOfWeek=  st.wDayOfWeek;
+        Month=      st.wMonth;
+        Hour=       st.wHour;
+        Minute=     st.wMinute;
+        Second=     st.wSecond;
+
+    #else
+        #pragma message ("Unknown Platform in file: " __FILE__ )
+    #endif
+}
+
+DateTime  CalendarDateTime::Get( Timezone timezone )
+{
+    DateTime result(Initialization::Suppress);
+
+    #if defined (__GLIBCXX__) || defined(__APPLE__)
+        struct tm  tm;
+        tm.tm_year=       Year - 1900;
+        tm.tm_mday=       Day;
+        tm.tm_mon=        Month -1;
+        tm.tm_hour=       Hour;
+        tm.tm_min=        Minute;
+        tm.tm_sec=        Second;
+
+        time_t tt;
+        if ( timezone == Timezone::UTC )
+        {
+            tm.tm_isdst=      0; // daylight saving off
+            tt= timegm( &tm );
+        }
+        else
+        {
+            tm.tm_isdst=     -1; // daylight saving auto
+            tt= mktime( &tm );
+        }
+
+        result= DateTime::FromEpochSeconds( tt );
+
+
+    #elif defined( _WIN32 )
+
+        SYSTEMTIME st;
+        st.wYear=           (WORD) Year;
+        st.wDay=            (WORD) Day;
+        st.wDayOfWeek=      (WORD) DayOfWeek;
+        st.wMonth=          (WORD) Month;
+        st.wHour=           (WORD) Hour;
+        st.wMinute=         (WORD) Minute;
+        st.wSecond=         (WORD) Second;
+        st.wMilliseconds=   0;
+
+        result= DateTime::FromSystemTime( st, timezone );
+
+    #else
+        #pragma message ("Unknown Platform in file: " __FILE__ )
+    #endif
+
+    return result;
+}
+
+
+AString& CalendarDateTime::Format( Substring format, AString& target, CurrentData targetData )
+{
+    if ( targetData == CurrentData::Clear )
+        target.Reset();
+
+    // this ensures that target is not nulled, as all other appends are NC-versions
+    target._("");
+    NumberFormat* nf= &NumberFormat::Computational;
+
+    while ( format.IsNotEmpty() )
+    {
+        // read n equal characters
+        int   n=  1;
+        character c=  format.ConsumeChar();
+        while ( format.ConsumeChar(c) )
+            ++n;
+
+        switch (c)
+        {
+            case '\'': // single quotes
+            {
+                // one or more pairs of single quotes?
+                if ( n > 1 )
+                {
+                    int pairs= n >> 1;
+                    target.InsertChars<false>( '\'', pairs );
+                    n-= (pairs << 1);
+                }
+
+                // one single quote?
+                if ( n == 1 )
+                {
+                    // search end
+                    integer end= format.IndexOf( '\'' );
+                    if ( end < 1 )
+                    {
+                        ALIB_WARNING( "Format Error: Missing single Quote" )
+                        target <<     "Format Error: Missing single Quote" ;
+                        return target;
+                    }
+
+                    target._NC( format, 0, end );
+                    format.ConsumeChars<false>( end + 1 );
+                }
+
+            } break;
+
+            case 's': // second
+                target.template _<false>( aworx::Format( Second, n, nf ) );
+                break;
+
+            case 'm': //minute
+                target._NC( aworx::Format( Minute, n, nf ) );
+                break;
+
+            case 'K': // hour 0..11
+                target._NC( aworx::Format( Hour % 12, n, nf ) );
+                target._NC( Hour < 12 ? " am" : " pm" );
+                break;
+
+            case 'H': // hour 0..23
+                target._NC( aworx::Format( Hour,   n, nf ) );
+                break;
+
+            case 'd': // day
+                     if ( n <= 2 )     target._NC( aworx::Format( Day, n, nf) );
+                else if ( n == 3 )     target._NC( days[DayOfWeek], 0, 3 );
+                else                   target._NC( days[DayOfWeek]    );
+                break;
+
+            case 'M': // month
+                     if ( n <= 2 )     target._NC( aworx::Format( Month, n, nf ) );
+                else if ( n == 3 )     target._NC( months[Month-1], 0, 3 );
+                else                   target._NC( months[Month-1]     );
+                break;
+
+            case 'y': // year
+                     if ( n == 1 )     target._NC( aworx::Format(Year,        1, nf) );
+                else if ( n == 2 )     target._NC( aworx::Format(Year %  100, 2, nf) );
+                else                   target._NC( aworx::Format(Year,        n, nf) );
+                break;
+
+            default: // otherwise: copy what was in
+                target.InsertChars<false>( c, n );
+                break;
+        }
+
     }
 
+    return target;
 }
 
-void System::terminationCleanUp()
+// #################################################################################################
+// CalendarDuration
+// #################################################################################################
+void CalendarDuration::Clear()
 {
+    Days=
+    Hours=
+    Minutes=
+    Seconds=
+    Milliseconds=
+    Microseconds=
+    Nanoseconds=    0;
+}
+#define  NanosPerDay           INT64_C( 86400000000000 ) ///< Constant denoting number of nanoseconds of a day.
+#define  NanosPerHour          INT64_C(  3600000000000 ) ///< Constant denoting number of nanoseconds of an hour.
+#define  NanosPerMinute        INT64_C(    60000000000 ) ///< Constant denoting number of nanoseconds of a minute.
+#define  NanosPerSecond        INT64_C(     1000000000 ) ///< Constant denoting number of nanoseconds of a second.
+#define  NanosPerMillisecond   INT64_C(        1000000 ) ///< Constant denoting number of nanoseconds of a millisecond.
+#define  NanosPerMicrosecond   INT64_C(           1000 ) ///< Constant denoting number of nanoseconds of a microsecond.
+
+
+void CalendarDuration::FromNanoSeconds( int64_t nanos )
+{
+    Clear();
+    decltype(nanos) fract;
+    if ( nanos > NanosPerDay )          { Days=         static_cast<int>( fract= nanos / NanosPerDay         );  nanos-= fract * NanosPerDay;         }
+    if ( nanos > NanosPerHour )         { Hours=        static_cast<int>( fract= nanos / NanosPerHour        );  nanos-= fract * NanosPerHour;        }
+    if ( nanos > NanosPerMinute )       { Minutes=      static_cast<int>( fract= nanos / NanosPerMinute      );  nanos-= fract * NanosPerMinute;      }
+    if ( nanos > NanosPerSecond )       { Seconds=      static_cast<int>( fract= nanos / NanosPerSecond      );  nanos-= fract * NanosPerSecond;      }
+    if ( nanos > NanosPerMillisecond )  { Milliseconds= static_cast<int>( fract= nanos / NanosPerMillisecond );  nanos-= fract * NanosPerMillisecond; }
+    if ( nanos > NanosPerMicrosecond )  { Microseconds= static_cast<int>( fract= nanos / NanosPerMicrosecond );                                       }
 }
 
-}}}// namespace [aworx::lib::system]
+int64_t     CalendarDuration::ToNanoSeconds()
+{
+    return      Days          * NanosPerDay
+             +  Hours         * NanosPerHour
+             +  Minutes       * NanosPerMinute
+             +  Seconds       * NanosPerSecond
+             +  Milliseconds  * NanosPerMillisecond
+             +  Microseconds  * NanosPerMicrosecond
+             +  Nanoseconds;
+}
+
+// #################################################################################################
+// FFormat_DateTime
+// #################################################################################################
+#if !defined(ALIB_DOX)
+DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
+void FFormat_DateTime( const Box& box, const String& formatSpec, AString& target )
+{
+    system::CalendarDateTime tct( box.Unbox<DateTime>() );
+    tct.Format( formatSpec, target );
+}
+DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
+#endif
+
+
+
+} // namespace aworx::lib[::system]
+
+#if !defined(ALIB_DOX)
+namespace strings {
+
+// #################################################################################################
+// T_Append<DateTime::Duration>
+// #################################################################################################
+using namespace system;
+
+namespace {
+
+
+
+    template<typename TChar>
+    void appendDateTime(TAString<TChar>& target, const DateTime::Duration pSrc)
+    {
+        using Duration= DateTime::Duration;
+        Duration src= pSrc;
+        auto nanos= src.InNanoseconds();
+        if( nanos == 0 )
+        {
+            target << units[Units::TS_ZERO];
+            return;
+        }
+
+        if( nanos < 0 )
+        {
+            target << A_CHAR("- ");
+            src= Duration() - src;
+        }
+
+        TNumberFormat<TChar> nf( TNumberFormat<TChar>::Global );
+        nf.FractionalPartWidth= 2;
+        int64_t v= src.InAbsoluteDays();
+        if( v >= 10 )
+        {
+            target << TFormat<TChar>( src.InDays(), &nf ) << units[Units::DayPlural];
+            return;
+        }
+
+        if( v >  0 )
+        {
+            target << v << ( v != 1 ?  units[Units::DayPlural]
+                                    :  units[Units::DaySingular] );
+
+            Duration cpy= src - ( Duration::FromAbsoluteDays(v) );
+
+            target << ' ' << TFormat<TChar>( cpy.InHours(), &nf ) << units[Units::HourPlural];
+            return;
+        }
+
+        v= src.InAbsoluteHours();
+        if( v >  0 )
+        {
+            target << v << ( v != 1 ?  units[Units::HourPlural]
+                                    :  units[Units::HourSingular]  );
+
+            Duration cpy= src - ( Duration::FromAbsoluteHours(v) );
+
+            auto minutes= cpy.InAbsoluteMinutes();
+            target << ' ' << minutes <<  (minutes!= 1 ?  units[Units::MinPlural]
+                                                      :  units[Units::MinSingular] );
+            return;
+        }
+
+        v= src.InAbsoluteMinutes();
+        if( v > 0 )
+        {
+            target << v << ( v != 1 ?  units[Units::MinPlural]
+                                    :  units[Units::MinSingular] );
+
+            Duration cpy= src - ( Duration::FromAbsoluteMinutes(v) );
+
+            auto seconds= cpy.InAbsoluteSeconds();
+            target << ' ' << seconds <<  (seconds!= 1 ?  units[Units::SecPlural]
+                                                      :  units[Units::SecSingular] );
+            return;
+        }
+
+        v= src.InAbsoluteSeconds();
+        if( v > 0 )
+        {
+            target << TFormat<TChar>( src.InSeconds(), &nf ) << units[Units::SecPlural];
+            return;
+        }
+
+        nf.DecMinimumFieldWidth= 3;
+
+        auto val= src.InAbsoluteMilliseconds();
+        if( val >= 1 )
+        {
+            target << TFormat<TChar>(val,&nf) << ( val!= 1  ?  units[Units::MlSecPlural]
+                                                            :  units[Units::MlSecSingular] );
+            return;
+        }
+
+        val= src.InAbsoluteMicroseconds();
+        if( val >= 1 )
+        {
+            target << TFormat<TChar>(val,&nf) << ( val!= 1  ?  units[Units::McSecPlural]
+                                                            :  units[Units::McSecSingular] );
+            return;
+        }
+
+        val= src.InNanoseconds();
+        target << TFormat<TChar>(val,&nf) << ( val!= 1  ?  units[Units::NSecPlural]
+                                                        :  units[Units::NSecSingular] );
+        return;
+    }
+} //anonymous namespace
+
+
+template<typename TChar>
+void T_Append<time::DateTime::Duration,TChar>::operator()( TAString<TChar>& target, const time::DateTime::Duration src )
+{
+    appendDateTime( target, src );
+}
+
+template<typename TChar>
+void T_Append<time::Ticks::Duration,TChar>::operator()( TAString<TChar>& target, const time::Ticks::Duration src)
+{
+    // simply convert the ticks-duration to a DateTime duration and use its append function
+    appendDateTime( target, time::DateTime::Duration::FromNanoseconds( src.InNanoseconds() ));
+}
+
+// Instantiations
+template void T_Append<time::DateTime::Duration, nchar>::operator()( TAString<nchar>&, const time::DateTime::Duration   );
+template void T_Append<time::DateTime::Duration, wchar>::operator()( TAString<wchar>&, const time::DateTime::Duration   );
+template void T_Append<time::DateTime::Duration, xchar>::operator()( TAString<xchar>&, const time::DateTime::Duration   );
+template void T_Append<time::Ticks::   Duration, nchar>::operator()( TAString<nchar>&, const time::Ticks   ::Duration   );
+template void T_Append<time::Ticks::   Duration, wchar>::operator()( TAString<wchar>&, const time::Ticks   ::Duration   );
+template void T_Append<time::Ticks::   Duration, xchar>::operator()( TAString<xchar>&, const time::Ticks   ::Duration   );
+
+} // namespace aworx::lib[::strings]
+#endif  //!defined(ALIB_DOX)
+
+
+}}// namespace [aworx::lib]
 

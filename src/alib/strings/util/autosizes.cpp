@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_UTIL_AUTOSIZES)
 #include "alib/strings/util/autosizes.hpp"
 #endif
@@ -21,7 +22,7 @@
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
 #   include "alib/strings/substring.hpp"
 #endif
-
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 

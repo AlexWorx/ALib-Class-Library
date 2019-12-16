@@ -1,18 +1,23 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_config of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_PLUGINS
 #define HPP_ALIB_CONFIG_PLUGINS 1
 
 #if !defined (HPP_ALIB_CONFIG_VARIABLE)
-    #include "alib/config/variable.hpp"
+#   include "alib/config/variable.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-    #include "alib/strings/substring.hpp"
+#   include "alib/strings/substring.hpp"
+#endif
+
+#if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
+#   include <vector>
 #endif
 
 namespace aworx { namespace lib { namespace config {
@@ -85,7 +90,7 @@ class XTernalizer
      **********************************************************************************************/
     ALIB_API
     virtual
-    void InternalizeValue( Substring& src, AString& dest );
+    void    InternalizeValue( const String& src, AString& dest );
 
     /** ********************************************************************************************
      * Converts the given \p{src} string to an external representation.
@@ -96,7 +101,7 @@ class XTernalizer
      **********************************************************************************************/
     ALIB_API
     virtual
-    void ExternalizeValue( Substring& src, AString& dest, character delim );
+    void    ExternalizeValue( const String& src, AString& dest, character delim );
 };
 
 /** ************************************************************************************************
@@ -131,7 +136,7 @@ class ConfigurationPlugin
     // #############################################################################################
     public:
         /** The external string converter.
-         *  By default this points to field #defaultStringConverter.                 */
+         *  By default this points to field #defaultStringConverter.     */
         XTernalizer*            StringConverter;
 
     // #############################################################################################
@@ -175,7 +180,7 @@ class ConfigurationPlugin
          * @return \c true if variable was found within this configuration source, \c false if not.
          ******************************************************************************************/
         ALIB_API
-        virtual bool  Load( Variable& variable, bool searchOnly= false )  const                  =0;
+        virtual bool  Load( Variable& variable, bool searchOnly= false )                         =0;
 
         /** ****************************************************************************************
          * Writes a variable to the configuration.
@@ -316,7 +321,7 @@ namespace detail
  **************************************************************************************************/
 class CLIArgs : public ConfigurationPlugin
 {
-    #if !ALIB_DOCUMENTATION_PARSER
+    #if !defined(ALIB_DOX)
         // Friend detail function used for implementation of iterator.
         friend bool detail::nextCLIArg( CLIArgs&, size_t&, const String&, Variable&);
     #endif
@@ -327,20 +332,29 @@ class CLIArgs : public ConfigurationPlugin
         bool          wArgs     = false;    ///< Determines if argv is of type '<em>wchar **</em>'
                                             ///< or '<em>nchar **</em>'
 
-        /**
-         * This vector may be set with method #SetArgs(std::vector<String>*). If set, it is used
-         * as the source of options instead of using fields #argCount and #argVector.
-         */
-        std::vector<String>*                args                                          = nullptr;
-
     public:
+
+        /**
+         * If any value is added to this vector, its values are used as the source of command line
+         * arguments instead of using fields #argCount and #argVector.<br>
+         * This mechanic provides an alternative method to set the command line argument list.
+         *
+         * Applications that have a dedicated (more sophisticated) CLI interface which performs
+         * more complex processing of CLI arguments, may collect any unrecognized
+         * CLI argument here to be duly recognized as a configuration variable instead
+         *
+         */
+        std::vector<AString>    AlternativeArgs;
 
         /**
          * An application can specify one or more "default categories" by adding the category names
          * here. Variables of these categories are recognized by the plug-in
          * also when given without the prefix of <c>category_</c>.
+         *
+         * \note This list uses the global allocator.
+         *       Additions may only be made during bootstrap.
          */
-        std::vector<String>                 DefaultCategories;
+        std::vector<AString>    DefaultCategories;
 
         /**
          * If this field is set to a value greater than \c 0, this plug-in recognizes variables in
@@ -348,13 +362,15 @@ class CLIArgs : public ConfigurationPlugin
          * If the remaining part of the argument string is either empty or continues with an equal
          * sign \c '=', then the variable is recognized.
          */
-        int                                 AllowedMinimumShortCut                              = 0;
+        int                     AllowedMinimumShortCut                                          = 0;
 
         /** ****************************************************************************************
          * Constructor. After creation, method #SetArgs should be called to equip this instance
          * with the command line arguments.
          ******************************************************************************************/
-                 CLIArgs() : ConfigurationPlugin() {}
+        CLIArgs()
+        : ConfigurationPlugin()
+        {}
 
         /** ****************************************************************************************
          * Virtual Destructor.
@@ -368,7 +384,7 @@ class CLIArgs : public ConfigurationPlugin
          *
          *\note
          *   In standard application scenarios, this method is invoked with corresponding
-         *   \aworx{lib,Module::Init,module initialization} during
+         *   \aworx{lib,Module::Bootstrap,module initialization} during
          *   \ref alib_manual_bootstrapping "library bootstrap".
          *
          * <p>
@@ -383,7 +399,7 @@ class CLIArgs : public ConfigurationPlugin
          *                      otherwise of type <c>char **</c>.
          *                      Defaults to \c false.
          ******************************************************************************************/
-        void SetArgs( int argc, const void** argv= nullptr, bool areWideChar= false )
+        void                SetArgs( int argc, const void** argv= nullptr, bool areWideChar= false )
         {
             this->argCount= static_cast<size_t>( argc );
             this->argVector=    argv;
@@ -391,33 +407,11 @@ class CLIArgs : public ConfigurationPlugin
         }
 
         /** ****************************************************************************************
-         * Alternative method to set the command line argument list. This version can be used
-         * by applications that have a dedicated (more sophisticated) CLI interface that
-         * do more complex processing of CLI arguments. Such processing might detect which
-         * CLI arguments are remaining as potential configuration variables in the overall list
-         * of options. In this case, only those arguments should be processed by this class.
-         *
-         * If this method is invoked (and parameter \p{unrecognizedOptions} is not \c nullptr), then
-         * the arguments that previously had been set with overloaded method
-         * #SetArgs(int,const void**,bool) are ignored.
-         *
-         * @param unrecognizedOptions  A vector of argument strings that were not recognized by a
-         *                             CLI argument processor and thus left to this class to
-         *                             be consume as potential configuration variables.
+         * Return the plug-in name, in this case, we read resource variable "CfgPlgCLI".
+         * @return The name of the plug-in.
          ******************************************************************************************/
-        void                    SetArgs( std::vector<String>* unrecognizedOptions )
-        {
-            this->args=     unrecognizedOptions;
-        }
-
-         /** ****************************************************************************************
-          * Return the plug-in name, in this case, we read resource variable "CfgPlgCLI".
-          * @return The name of the plug-in.
-          ******************************************************************************************/
-         virtual String         Name()   const
-         {
-            return CONFIG.GetResource( "CfgPlgCLI" );
-         }
+        ALIB_API
+        virtual String      Name()                                                            const;
 
         /** ****************************************************************************************
          * Searches the variable in the command line parameters.
@@ -426,7 +420,8 @@ class CLIArgs : public ConfigurationPlugin
          * @param searchOnly   If \c true, the variable is not set. Defaults to \c false.
          * @return \c true if variable was found, \c false if not.
          ******************************************************************************************/
-        ALIB_API virtual bool   Load( Variable& variable, bool searchOnly= false ) const;
+        ALIB_API
+        virtual bool        Load( Variable& variable, bool searchOnly= false );
 
         /** ****************************************************************************************
          * Creates an iterator object to return all variables within a section.
@@ -441,7 +436,7 @@ class CLIArgs : public ConfigurationPlugin
          * @returns The iterator requested.
          ******************************************************************************************/
         ALIB_API
-        virtual Iterator*       GetIterator( const String& sectionName );
+        virtual Iterator*   GetIterator( const String& sectionName );
 };
 
 /** ************************************************************************************************
@@ -473,14 +468,12 @@ class Environment : public ConfigurationPlugin
          ******************************************************************************************/
         virtual ~Environment() {}
 
-         /** ****************************************************************************************
-          * Return the plug-in name, in this case, we read resource variable CfgPlgEnv.
-          * @return The name of the plug-in.
-          ******************************************************************************************/
-         virtual String  Name()   const
-         {
-            return CONFIG.GetResource( "CfgPlgEnv" );
-         }
+        /** ****************************************************************************************
+         * Return the plug-in name, in this case, we read resource variable CfgPlgEnv.
+         * @return The name of the plug-in.
+         ******************************************************************************************/
+        ALIB_API
+        virtual String  Name()                                                               const;
 
         /** ****************************************************************************************
          * Searches the variable in the environment.
@@ -489,7 +482,7 @@ class Environment : public ConfigurationPlugin
          * @param searchOnly   If \c true, the variable is not set. Defaults to \c false.
          * @return \c true if variable was found, \c false if not.
          ******************************************************************************************/
-        ALIB_API virtual bool  Load( Variable& variable, bool searchOnly= false  ) const;
+        ALIB_API virtual bool  Load( Variable& variable, bool searchOnly= false  );
 };
 
 

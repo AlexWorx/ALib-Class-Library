@@ -6,51 +6,66 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(HPP_ALIB_BOXING_BOXING)
-#   include "alib/boxing/boxing.hpp"
-#endif
-
-#if !defined(HPP_ALIB_CHARACTERS_CHARARRAY)
-#   include "alib/characters/chararray.hpp"
-#endif
-
-#if ALIB_MODULE_MEMORY && !defined(HPP_ALIB_MEMORY_MEMORYBLOCKS)
-    #include "alib/memory/memoryblocks.hpp"
-#endif
-
-#if ALIB_MODULE_STRINGFORMAT && ALIB_DEBUG && !defined (HPP_ALIB_BOXING_DBGBOXING)
-#   include "alib/boxing/dbgboxing.hpp"
-#endif
-
-
-#if ALIB_MODULE_STRINGS
-#   if  !defined (HPP_ALIB_STRINGS_ASTRING)
-#      include "alib/strings/astring.hpp"
+#if !defined(ALIB_DOX)
+#   if !defined(HPP_ALIB_BOXING_BOXING)
+#      include "alib/boxing/boxing.hpp"
 #   endif
 
-#   if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
-#      include "alib/strings/numberformat.hpp"
+#   if !defined(HPP_ALIB_CHARACTERS_CHARARRAY)
+#      include "alib/characters/chararray.hpp"
 #   endif
 
-#   if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
-#      include "alib/strings/util/token.hpp"
+#   if ALIB_MONOMEM && !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
+#       include "alib/monomem/monoallocator.hpp"
 #   endif
-#endif
 
-#if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
-#   include <cmath>
-#endif
+#   if ALIB_DEBUG && !defined (HPP_ALIB_BOXING_DBGBOXING)
+#      include "alib/boxing/dbgboxing.hpp"
+#   endif
 
-#if !defined(_GLIBCXX_FUNCTIONAL) && !defined(_FUNCTIONAL_)
-    #include <functional>
-#endif
+#   if ALIB_ENUMS && ALIB_STRINGS
+#       if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#           include "alib/enums/serialization.hpp"
+#       endif
+#   endif
+
+
+#   if ALIB_STRINGS
+#      if  !defined (HPP_ALIB_STRINGS_ASTRING)
+#         include "alib/strings/astring.hpp"
+#      endif
+#      if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
+#         include "alib/strings/numberformat.hpp"
+#      endif
+#   if !defined (HPP_ALIB_STRINGS_FORMAT)
+#       include "alib/strings/format.hpp"
+#   endif
+#      if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
+#         include "alib/strings/util/token.hpp"
+#      endif
+#   endif
+
+#   if ALIB_TEXT
+#      if !defined(HPP_ALIB_FS_COMMONENUMS)
+#           include "alib/lib/fs_commonenums/commonenums.hpp"
+#      endif
+#   endif
+
+#   if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
+#      include <cmath>
+#   endif
+
+#   if !defined(_GLIBCXX_FUNCTIONAL) && !defined(_FUNCTIONAL_)
+       #include <functional>
+#   endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
  * This is the reference documentation of sub-namespace \b boxing of the \aliblink which
- * holds types of library module \alibmod_boxing.
+ * holds types of library module \alib_boxing.
  *
  * Extensive documentation for this module is provided with
  * \ref alib_mod_boxing "ALib Module Boxing - Programmer's Manual".
@@ -63,7 +78,7 @@ namespace boxing {
 // #################################################################################################
 // #################################################################################################
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#if ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
     bool    Box::IsSignedIntegral() const
     {
         #if  ALIB_SIZEOF_INTEGER == 8
@@ -96,14 +111,14 @@ namespace boxing {
     {
         #if  ALIB_SIZEOF_INTEGER == 8
             return     IsType< int64_t >()  ?                      ( Unbox< int64_t >() )
-                    :  IsType< int32_t >()  ? static_cast< int64_t>( Unbox< int32_t >() )
+                    :  IsType< int32_t >()  ? static_cast< integer>( Unbox< int32_t >() )
         #else
             return     IsType< int32_t >()  ?                      ( Unbox< int32_t >() )
-                    :  IsType< int64_t >()  ? static_cast< int64_t>( Unbox< int64_t >() )
+                    :  IsType< int64_t >()  ? static_cast< integer>( Unbox< int64_t >() )
         #endif
-                    :  IsType< int8_t  >()  ? static_cast< int64_t>( Unbox< int8_t  >() )
-                    :  IsType< int16_t >()  ? static_cast< int64_t>( Unbox< int16_t >() )
-                    :                         static_cast< int64_t>( Unbox< intGap_t>() );
+                    :  IsType< int8_t  >()  ? static_cast< integer>( Unbox< int8_t  >() )
+                    :  IsType< int16_t >()  ? static_cast< integer>( Unbox< int16_t >() )
+                    :                         static_cast< integer>( Unbox< intGap_t>() );
     }
 
 
@@ -111,18 +126,18 @@ namespace boxing {
     {
         #if  ALIB_SIZEOF_INTEGER == 8
             return     IsType<uint64_t >() ?                       ( Unbox<uint64_t >() )
-                    :  IsType<uint32_t >() ?  static_cast<uint64_t>( Unbox<uint32_t >() )
+                    :  IsType<uint32_t >() ?  static_cast<uinteger>( Unbox<uint32_t >() )
         #else
             return     IsType<uint32_t >() ?                       ( Unbox<uint32_t >() )
-                    :  IsType<uint64_t >() ?  static_cast<uint64_t>( Unbox<uint64_t >() )
+                    :  IsType<uint64_t >() ?  static_cast<uinteger>( Unbox<uint64_t >() )
         #endif
-                    :  IsType<uint8_t  >() ?  static_cast<uint64_t>( Unbox<uint8_t  >() )
-                    :  IsType<uint16_t >() ?  static_cast<uint64_t>( Unbox<uint16_t >() )
-                    :                         static_cast<uint64_t>( Unbox<uintGap_t>() );
+                    :  IsType<uint8_t  >() ?  static_cast<uinteger>( Unbox<uint8_t  >() )
+                    :  IsType<uint16_t >() ?  static_cast<uinteger>( Unbox<uint16_t >() )
+                    :                         static_cast<uinteger>( Unbox<uintGap_t>() );
     }
 #endif
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
+#if ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
 bool    Box::IsCharacter()                                                                     const
 {
     return    IsType<char    >()
@@ -143,7 +158,7 @@ wchar   Box::UnboxCharacter()                                                   
 bool    Box::IsFloatingPoint()                                                                 const
 {
     return    IsType<     double>()
-        #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+        #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
            || IsType<     float >()
         #endif
         #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
@@ -154,7 +169,7 @@ bool    Box::IsFloatingPoint()                                                  
 
 double  Box::UnboxFloatingPoint()                                                              const
 {
-  #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+  #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     if( IsType<     float >() ) return   static_cast<double>( Unbox<float      >() );
   #endif
 
@@ -165,15 +180,14 @@ double  Box::UnboxFloatingPoint()                                               
   return Unbox<double>();
 }
 
-       Box::operator bool()            const     { return  Call<FIsTrue    >();          }
-bool   Box::IsNotNull ()               const     { return  Call<FIsNotNull >();          }
-size_t Box::Hashcode  ()               const     { return  Call<FHashcode  >();          }
-#if ALIB_MODULE_MEMORY
-void   Box::Clone( memory::MemoryBlocks& memory) {         Call<FClone     >( memory );  }
-#endif
+       Box::operator bool()              const     { return  Call<FIsTrue    >();          }
+bool   Box::IsNotNull ()                 const     { return  Call<FIsNotNull >();          }
+size_t Box::Hashcode  ()                 const     { return  Call<FHashcode  >();          }
+ALIB_IF_MONOMEM(
+void   Box::Clone( monomem::MonoAllocator& memory) {         Call<FClone     >( memory );  } )
 
 
-}}} // namespace aworx[aworx::lib::boxing]
+}}} // namespace [aworx::lib::boxing]
 
 using namespace aworx::lib::boxing;
 bool   Box::operator==(const Box& rhs) const { return  Call<FEquals>( rhs );                            }
@@ -188,15 +202,15 @@ namespace aworx { namespace lib { namespace boxing {
 // class Boxes
 // #################################################################################################
 // #################################################################################################
-#if ALIB_MODULE_MEMORY
-    void Boxes::CloneAll(memory::MemoryBlocks& memory)
+#if ALIB_MONOMEM
+    void Boxes::CloneAll(monomem::MonoAllocator& memory)
     {
         for( auto& box : *this )
             box.Clone( memory );
     }
 #endif
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 namespace {
 
@@ -375,29 +389,6 @@ bool FEquals_Default( const Box& self, const Box& rhs )
     return  self.Data().GetUInteger(1)  ==  rhs.Data().GetUInteger(1);
 }
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    bool FEquals_float ( const Box& lhs, const Box& rhs )
-    {
-        if( !rhs.IsType<float>() )
-            return false;
-        float d1= lhs.Unbox<float>();
-        float d2= rhs.Unbox<float>();
-
-        // we can ignore this warning, because we fixed it with the second test
-        #if defined(__clang__)
-            #pragma clang diagnostic push
-            #pragma clang diagnostic ignored "-Wfloat-equal"
-        #endif
-
-        return      d1 == d2
-                // take rounding errors into account.
-                ||  std::fabs( d1 - d2 ) <= static_cast<float>( 2.0f * std::numeric_limits<float>::epsilon() );
-
-        #if defined(__clang__)
-            #pragma clang diagnostic pop
-        #endif
-    }
-#endif
 
 bool FEquals_double( const Box& self, const Box& rhsBox )
 {
@@ -488,7 +479,7 @@ bool FIsLess_Default( const Box& box, const Box& comp )
 
 }
 
-#if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+#if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 bool FIsLess_integer( const Box& self, const Box& rhs )
 {
     auto lhs= self.Data().GetInteger(0);
@@ -531,17 +522,17 @@ bool helperBijectiveLessU( uinteger selfVal, const Box& selfType, const Box& rhs
     return std::type_index( selfType.TypeID() ) < std::type_index( rhs.TypeID() );
 }
 
-bool FIsLess_int8_t   ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< int64_t>( self.Unbox< int8_t  >() ), self, rhs ); }
-bool FIsLess_int16_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< int64_t>( self.Unbox< int16_t >() ), self, rhs ); }
-bool FIsLess_int32_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< int64_t>( self.Unbox< int32_t >() ), self, rhs ); }
-bool FIsLess_int64_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS(                        self.Unbox< int64_t >()  , self, rhs ); }
-bool FIsLess_intGap_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< int64_t>( self.Unbox< intGap_t>() ), self, rhs ); }
+bool FIsLess_int8_t   ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< integer>( self.Unbox< int8_t  >() ), self, rhs ); }
+bool FIsLess_int16_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< integer>( self.Unbox< int16_t >() ), self, rhs ); }
+bool FIsLess_int32_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< integer>( self.Unbox< int32_t >() ), self, rhs ); }
+bool FIsLess_int64_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< integer>( self.Unbox< int64_t >() ), self, rhs ); }
+bool FIsLess_intGap_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< integer>( self.Unbox< intGap_t>() ), self, rhs ); }
 
-bool FIsLess_uint8_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uint64_t>( self.Unbox<uint8_t  >() ), self, rhs ); }
-bool FIsLess_uint16_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uint64_t>( self.Unbox<uint16_t >() ), self, rhs ); }
-bool FIsLess_uint32_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uint64_t>( self.Unbox<uint32_t >() ), self, rhs ); }
-bool FIsLess_uint64_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU(                        self.Unbox<uint64_t >()  , self, rhs ); }
-bool FIsLess_uintGap_t( const Box& self, const Box& rhs )  { return helperBijectiveLessS( static_cast< int64_t>( self.Unbox<uintGap_t>() ), self, rhs ); }
+bool FIsLess_uint8_t  ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uinteger>( self.Unbox<uint8_t  >() ), self, rhs ); }
+bool FIsLess_uint16_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uinteger>( self.Unbox<uint16_t >() ), self, rhs ); }
+bool FIsLess_uint32_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uinteger>( self.Unbox<uint32_t >() ), self, rhs ); }
+bool FIsLess_uint64_t ( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uinteger>( self.Unbox<uint64_t >() ), self, rhs ); }
+bool FIsLess_uintGap_t( const Box& self, const Box& rhs )  { return helperBijectiveLessU( static_cast<uinteger>( self.Unbox<uintGap_t>() ), self, rhs ); }
 
 #endif
 
@@ -565,7 +556,7 @@ bool FIsLess_double( const Box& self, const Box& rhs )
     return std::type_index( self.TypeID() ) < std::type_index( rhs.TypeID() );
 }
 
-#if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
+#if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
     bool FIsLess_float( const Box& self, const Box& rhs )
     {
         float lhs= self.Unbox<float>();
@@ -583,11 +574,11 @@ bool FIsLess_double( const Box& self, const Box& rhs )
 // #################################################################################################
 // FClone
 // #################################################################################################
-#if ALIB_MODULE_MEMORY
+#if ALIB_MONOMEM
 
-void FClone_Default( Box& self, memory::MemoryBlocks& memory)
+void FClone_Default( Box& self, monomem::MonoAllocator& memory)
 {
-    if ( !self.IsArray() )
+    if ( !self.IsArray() || self.UnboxLength() == 0)
         return;
 
     Placeholder& placeHolder= self.Data();
@@ -600,8 +591,8 @@ void FClone_Default( Box& self, memory::MemoryBlocks& memory)
         alignment=  sizeof(std::ptrdiff_t);
 
 
-    placeHolder.Pointer( memory.AllocRaw( self.ArrayElementSize() * placeHolder.GetUInteger(1) ,
-                                          alignment ) );
+    placeHolder.Pointer( memory.Alloc( self.ArrayElementSize() * placeHolder.GetUInteger(1) ,
+                                       alignment ) );
     memcpy( placeHolder.Pointer<char>(), src, self.ArrayElementSize() * placeHolder.GetUInteger(1) );
 }
 
@@ -645,7 +636,7 @@ bool FIsTrue_Default( const Box& self )
 // #################################################################################################
 // ############################       Strings And Boxing       #####################################
 // #################################################################################################
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
 
 template<typename TChar>
 bool FIsLess_TChar_arr( const Box& lhs, const Box& rhs )
@@ -697,7 +688,7 @@ void FAppend_TcharArr( const Box& box, strings::TAString<TChar>& target )
 
 } // anonymous namespace
 
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 
 
 // #################################################################################################
@@ -707,19 +698,19 @@ void FAppend_TcharArr( const Box& box, strings::TAString<TChar>& target )
 bool FIsNotNull::ConstantTrue( const aworx::Box & )
 {
     return false;
-};
+}
 
 
 // static member definition
 
 // #################################################################################################
-// Init()
+// Bootstrap()
 // #################################################################################################
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 namespace{ unsigned int initFlag= 0; }
-#endif // !ALIB_DOCUMENTATION_PARSER
+#endif // !defined(ALIB_DOX)
 
-void Init()
+void Bootstrap()
 {
     assert( initFlag != 2 ); // can't reinitialize after termination
     if( initFlag == 0x92A3EF61 )
@@ -740,299 +731,327 @@ void Init()
         }
     #endif
 
-    //#############################     Register Static VTables    #################################
-      ALIB_BOXING_VTABLE_REGISTER( vt_voidP    )
-      ALIB_BOXING_VTABLE_REGISTER( vt_boxes    )
-      ALIB_BOXING_VTABLE_REGISTER( vt_boxarray )
+    //#############################     BootstrapRegister Static VTables    #################################
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_voidP    )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxes    )
+      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxarray )
 
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_1])
-ALIB_BOXING_VTABLE_REGISTER( vt_bool )
+ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_bool )
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_1])
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-        ALIB_BOXING_VTABLE_REGISTER(  vt_integer    )
-        ALIB_BOXING_VTABLE_REGISTER( vt_uinteger    )
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(  vt_integer    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_uinteger    )
     #else
-        ALIB_BOXING_VTABLE_REGISTER(    vt_int8_t   )
-        ALIB_BOXING_VTABLE_REGISTER(   vt_uint8_t   )
-        ALIB_BOXING_VTABLE_REGISTER(   vt_int16_t   )
-        ALIB_BOXING_VTABLE_REGISTER(  vt_uint16_t   )
-        ALIB_BOXING_VTABLE_REGISTER(  vt_intGap_t   )
-        ALIB_BOXING_VTABLE_REGISTER( vt_uintGap_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(    vt_int8_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(   vt_uint8_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(   vt_int16_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(  vt_uint16_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(   vt_int32_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(  vt_uint32_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(  vt_intGap_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_uintGap_t   )
       #if ALIB_SIZEOF_INTEGER == 8
-        ALIB_BOXING_VTABLE_REGISTER(   vt_int32_t   )
-        ALIB_BOXING_VTABLE_REGISTER(  vt_uint32_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(   vt_int64_t   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER(  vt_uint64_t   )
       #endif
-    #endif // ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
+    #endif // !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 
 
-        ALIB_BOXING_VTABLE_REGISTER( vt_double )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_double )
        #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
-        ALIB_BOXING_VTABLE_REGISTER( vt_long_double )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_long_double )
       #endif
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-        ALIB_BOXING_VTABLE_REGISTER( vt_float  )
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_float  )
     #endif
 
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-        ALIB_BOXING_VTABLE_REGISTER( vt_wchar       )
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_wchar       )
     #else
-        ALIB_BOXING_VTABLE_REGISTER( vt_char        )
-        ALIB_BOXING_VTABLE_REGISTER( vt_wchar_t     )
-        ALIB_BOXING_VTABLE_REGISTER( vt_char16_t    )
-        ALIB_BOXING_VTABLE_REGISTER( vt_char32_t    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_char        )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_wchar_t     )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_char16_t    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_char32_t    )
     #endif
 
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_2])
-ALIB_BOXING_VTABLE_REGISTER( vt_arr_char )
+ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char )
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_2])
-    ALIB_BOXING_VTABLE_REGISTER( vt_arr_wchar_t   )
-    ALIB_BOXING_VTABLE_REGISTER( vt_arr_char16_t  )
-    ALIB_BOXING_VTABLE_REGISTER( vt_arr_char32_t  )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_wchar_t   )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char16_t  )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char32_t  )
 
 
     //########################       Register default implementations        #######################
-    RegisterDefault<FIsTrue    >( FIsTrue_Default    );
-    RegisterDefault<FIsNotNull >( FIsNotNull_Default );
-    RegisterDefault<FIsLess    >( FIsLess_Default    );
-    RegisterDefault<FHashcode  >( FHashcode_Default  );
-    RegisterDefault<FEquals    >( FEquals_Default    );
-#if ALIB_MODULE_MEMORY
-    RegisterDefault<FClone     >( FClone_Default     );
-#endif
+    BootstrapRegisterDefault<FIsTrue    >( FIsTrue_Default    );
+    BootstrapRegisterDefault<FIsNotNull >( FIsNotNull_Default );
+    BootstrapRegisterDefault<FIsLess    >( FIsLess_Default    );
+    BootstrapRegisterDefault<FHashcode  >( FHashcode_Default  );
+    BootstrapRegisterDefault<FEquals    >( FEquals_Default    );
+ALIB_IF_MONOMEM(
+    BootstrapRegisterDefault<FClone     >( FClone_Default     ); )
 
     // ################################      IsNotNull    ##########################################
-    Register<FIsNotNull, TMappedTo<bool      >>( FIsNotNull::ConstantTrue  );
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-    Register<FIsNotNull, TMappedTo< integer  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uinteger  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<bool      >>( FIsNotNull::ConstantTrue  );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    BootstrapRegister<FIsNotNull, TMappedTo< integer  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uinteger  >>( FIsNotNull::ConstantTrue  );
     #else
-    Register<FIsNotNull, TMappedTo< int8_t   >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uint8_t   >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo< int16_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uint16_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo< int32_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uint32_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo< int64_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uint64_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo< intGap_t >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<uintGap_t >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo< int8_t   >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uint8_t   >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo< int16_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uint16_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo< int32_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uint32_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo< int64_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uint64_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo< intGap_t >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<uintGap_t >>( FIsNotNull::ConstantTrue  );
     #endif
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-    Register<FIsNotNull, TMappedTo<wchar     >>( FIsNotNull::ConstantTrue  );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+    BootstrapRegister<FIsNotNull, TMappedTo<wchar     >>( FIsNotNull::ConstantTrue  );
     #else
-    Register<FIsNotNull, TMappedTo<char      >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<wchar_t   >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<char16_t  >>( FIsNotNull::ConstantTrue  );
-    Register<FIsNotNull, TMappedTo<char32_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<char      >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<wchar_t   >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<char16_t  >>( FIsNotNull::ConstantTrue  );
+    BootstrapRegister<FIsNotNull, TMappedTo<char32_t  >>( FIsNotNull::ConstantTrue  );
     #endif
 
 
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    Register<FIsNotNull, TMappedTo<float     >>( FIsNotNull::ConstantTrue   );
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+    BootstrapRegister<FIsNotNull, TMappedTo<float     >>( FIsNotNull::ConstantTrue   );
     #endif
-    Register<FIsNotNull, TMappedTo<double    >>( FIsNotNull::ConstantTrue   );
+    BootstrapRegister<FIsNotNull, TMappedTo<double    >>( FIsNotNull::ConstantTrue   );
 
     // ################################      Hashcode     ##########################################
-    Register<FHashcode, TMappedTo<bool       >>( FHashcode::UsePlaceholderBytes<sizeof(bool     )>  );
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-    Register<FHashcode, TMappedTo< integer   >>( FHashcode::UsePlaceholderBytes<sizeof( integer )>  );
-    Register<FHashcode, TMappedTo<uinteger   >>( FHashcode::UsePlaceholderBytes<sizeof(uinteger )>  );
+    BootstrapRegister<FHashcode, TMappedTo<bool       >>( FHashcode::UsePlaceholderBytes<sizeof(bool     )>  );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    BootstrapRegister<FHashcode, TMappedTo< integer   >>( FHashcode::UsePlaceholderBytes<sizeof( integer )>  );
+    BootstrapRegister<FHashcode, TMappedTo<uinteger   >>( FHashcode::UsePlaceholderBytes<sizeof(uinteger )>  );
     #else
-    Register<FHashcode, TMappedTo< int8_t    >>( FHashcode::UsePlaceholderBytes<sizeof( int8_t  )>  );
-    Register<FHashcode, TMappedTo<uint8_t    >>( FHashcode::UsePlaceholderBytes<sizeof(uint8_t  )>  );
-    Register<FHashcode, TMappedTo< int16_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int16_t )>  );
-    Register<FHashcode, TMappedTo<uint16_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint16_t )>  );
-    Register<FHashcode, TMappedTo< int32_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int32_t )>  );
-    Register<FHashcode, TMappedTo<uint32_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint32_t )>  );
-    Register<FHashcode, TMappedTo< int64_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int64_t )>  );
-    Register<FHashcode, TMappedTo<uint64_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint64_t )>  );
-    Register<FHashcode, TMappedTo< intGap_t  >>( FHashcode::UsePlaceholderBytes<sizeof( intGap_t)>  );
-    Register<FHashcode, TMappedTo<uintGap_t  >>( FHashcode::UsePlaceholderBytes<sizeof(uintGap_t)>  );
+    BootstrapRegister<FHashcode, TMappedTo< int8_t    >>( FHashcode::UsePlaceholderBytes<sizeof( int8_t  )>  );
+    BootstrapRegister<FHashcode, TMappedTo<uint8_t    >>( FHashcode::UsePlaceholderBytes<sizeof(uint8_t  )>  );
+    BootstrapRegister<FHashcode, TMappedTo< int16_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int16_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo<uint16_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint16_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo< int32_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int32_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo<uint32_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint32_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo< int64_t   >>( FHashcode::UsePlaceholderBytes<sizeof( int64_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo<uint64_t   >>( FHashcode::UsePlaceholderBytes<sizeof(uint64_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo< intGap_t  >>( FHashcode::UsePlaceholderBytes<sizeof( intGap_t)>  );
+    BootstrapRegister<FHashcode, TMappedTo<uintGap_t  >>( FHashcode::UsePlaceholderBytes<sizeof(uintGap_t)>  );
     #endif
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-    Register<FHashcode, TMappedTo<wchar      >>( FHashcode::UsePlaceholderBytes<sizeof(wchar    )>  );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+    BootstrapRegister<FHashcode, TMappedTo<wchar      >>( FHashcode::UsePlaceholderBytes<sizeof(wchar    )>  );
     #else
-    Register<FHashcode, TMappedTo<char       >>( FHashcode::UsePlaceholderBytes<sizeof(char     )>  );
-    Register<FHashcode, TMappedTo<wchar_t    >>( FHashcode::UsePlaceholderBytes<sizeof(wchar_t  )>  );
-    Register<FHashcode, TMappedTo<char16_t   >>( FHashcode::UsePlaceholderBytes<sizeof(char16_t )>  );
-    Register<FHashcode, TMappedTo<char32_t   >>( FHashcode::UsePlaceholderBytes<sizeof(char32_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo<char       >>( FHashcode::UsePlaceholderBytes<sizeof(char     )>  );
+    BootstrapRegister<FHashcode, TMappedTo<wchar_t    >>( FHashcode::UsePlaceholderBytes<sizeof(wchar_t  )>  );
+    BootstrapRegister<FHashcode, TMappedTo<char16_t   >>( FHashcode::UsePlaceholderBytes<sizeof(char16_t )>  );
+    BootstrapRegister<FHashcode, TMappedTo<char32_t   >>( FHashcode::UsePlaceholderBytes<sizeof(char32_t )>  );
     #endif
 
 
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    Register<FHashcode, TMappedTo<float      >>( FHashcode::UsePlaceholderBytes<sizeof(float    )>  );
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+    BootstrapRegister<FHashcode, TMappedTo<float      >>( FHashcode::UsePlaceholderBytes<sizeof(float    )>  );
     #endif
-    Register<FHashcode, TMappedTo<double     >>( FHashcode::UsePlaceholderBytes<sizeof(double   )>  );
-    Register<FHashcode, TMappedTo<long double>>( FHashcode::UsePlaceholderBytes<
+    BootstrapRegister<FHashcode, TMappedTo<double     >>( FHashcode::UsePlaceholderBytes<sizeof(double   )>  );
+    BootstrapRegister<FHashcode, TMappedTo<long double>>( FHashcode::UsePlaceholderBytes<
                                                         T_SizeInPlaceholder<long double>::value >  );
 
 
     // ################################      Equals      ###########################################
-    Register<FEquals  , TMappedTo<bool       >>( FEquals::ComparableTypes<bool> );
+    BootstrapRegister<FEquals  , TMappedTo<bool       >>( FEquals::ComparableTypes<bool> );
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-    Register<FEquals  , TMappedTo< integer   >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uinteger   >>( FEquals_uinteger );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    BootstrapRegister<FEquals  , TMappedTo< integer   >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uinteger   >>( FEquals_uinteger );
     #else
-    Register<FEquals  , TMappedTo< int8_t    >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uint8_t    >>( FEquals_uinteger );
-    Register<FEquals  , TMappedTo< int16_t   >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uint16_t   >>( FEquals_uinteger );
-    Register<FEquals  , TMappedTo< int32_t   >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uint32_t   >>( FEquals_uinteger );
-    Register<FEquals  , TMappedTo< int64_t   >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uint64_t   >>( FEquals_uinteger );
-    Register<FEquals  , TMappedTo< intGap_t  >>( FEquals_integer  );
-    Register<FEquals  , TMappedTo<uintGap_t  >>( FEquals_uinteger );
+    BootstrapRegister<FEquals  , TMappedTo< int8_t    >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uint8_t    >>( FEquals_uinteger );
+    BootstrapRegister<FEquals  , TMappedTo< int16_t   >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uint16_t   >>( FEquals_uinteger );
+    BootstrapRegister<FEquals  , TMappedTo< int32_t   >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uint32_t   >>( FEquals_uinteger );
+    BootstrapRegister<FEquals  , TMappedTo< int64_t   >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uint64_t   >>( FEquals_uinteger );
+    BootstrapRegister<FEquals  , TMappedTo< intGap_t  >>( FEquals_integer  );
+    BootstrapRegister<FEquals  , TMappedTo<uintGap_t  >>( FEquals_uinteger );
     #endif
 
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    Register<FEquals  , TMappedTo<float      >>( FEquals_double   );
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+    BootstrapRegister<FEquals  , TMappedTo<float      >>( FEquals_double   );
     #endif
-    Register<FEquals  , TMappedTo<double     >>( FEquals_double   );
-    Register<FEquals  , TMappedTo<long double>>( FEquals_double   );
+    BootstrapRegister<FEquals  , TMappedTo<double     >>( FEquals_double   );
+    BootstrapRegister<FEquals  , TMappedTo<long double>>( FEquals_double   );
 
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-    Register<FEquals  , TMappedTo<wchar      >>( FEquals_char );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+    BootstrapRegister<FEquals  , TMappedTo<wchar      >>( FEquals_char );
     #else
-    Register<FEquals  , TMappedTo<char       >>( FEquals_char );
-    Register<FEquals  , TMappedTo<wchar_t    >>( FEquals_char );
-    Register<FEquals  , TMappedTo<char16_t   >>( FEquals_char );
-    Register<FEquals  , TMappedTo<char32_t   >>( FEquals_char );
+    BootstrapRegister<FEquals  , TMappedTo<char       >>( FEquals_char );
+    BootstrapRegister<FEquals  , TMappedTo<wchar_t    >>( FEquals_char );
+    BootstrapRegister<FEquals  , TMappedTo<char16_t   >>( FEquals_char );
+    BootstrapRegister<FEquals  , TMappedTo<char32_t   >>( FEquals_char );
     #endif
 
-    Register<FEquals  , TMappedToArrayOf<nchar>>( FEquals_TChar_Arr<nchar>);
-    Register<FEquals  , TMappedToArrayOf<wchar>>( FEquals_TChar_Arr<wchar>);
-    Register<FEquals  , TMappedToArrayOf<xchar>>( FEquals_TChar_Arr<xchar>);
+    BootstrapRegister<FEquals  , TMappedToArrayOf<nchar>>( FEquals_TChar_Arr<nchar>);
+    BootstrapRegister<FEquals  , TMappedToArrayOf<wchar>>( FEquals_TChar_Arr<wchar>);
+    BootstrapRegister<FEquals  , TMappedToArrayOf<xchar>>( FEquals_TChar_Arr<xchar>);
 
     // ################################       IsLess     ###########################################
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-    Register<FIsLess  , TMappedTo< integer   >>( FIsLess_integer );
-    Register<FIsLess  , TMappedTo<uinteger   >>( FIsLess_uinteger);
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    BootstrapRegister<FIsLess  , TMappedTo< integer   >>( FIsLess_integer );
+    BootstrapRegister<FIsLess  , TMappedTo<uinteger   >>( FIsLess_uinteger);
     #else
-    Register<FIsLess  , TMappedTo< int8_t    >>( FIsLess_int8_t   );
-    Register<FIsLess  , TMappedTo<uint8_t    >>( FIsLess_uint8_t  );
-    Register<FIsLess  , TMappedTo< int16_t   >>( FIsLess_int16_t  );
-    Register<FIsLess  , TMappedTo<uint16_t   >>( FIsLess_uint16_t );
-    Register<FIsLess  , TMappedTo< int32_t   >>( FIsLess_int32_t  );
-    Register<FIsLess  , TMappedTo<uint32_t   >>( FIsLess_uint32_t );
-    Register<FIsLess  , TMappedTo< int64_t   >>( FIsLess_int64_t  );
-    Register<FIsLess  , TMappedTo<uint64_t   >>( FIsLess_uint64_t );
-    Register<FIsLess  , TMappedTo< intGap_t  >>( FIsLess_intGap_t );
-    Register<FIsLess  , TMappedTo<uintGap_t  >>( FIsLess_uintGap_t);
+    BootstrapRegister<FIsLess  , TMappedTo< int8_t    >>( FIsLess_int8_t   );
+    BootstrapRegister<FIsLess  , TMappedTo<uint8_t    >>( FIsLess_uint8_t  );
+    BootstrapRegister<FIsLess  , TMappedTo< int16_t   >>( FIsLess_int16_t  );
+    BootstrapRegister<FIsLess  , TMappedTo<uint16_t   >>( FIsLess_uint16_t );
+    BootstrapRegister<FIsLess  , TMappedTo< int32_t   >>( FIsLess_int32_t  );
+    BootstrapRegister<FIsLess  , TMappedTo<uint32_t   >>( FIsLess_uint32_t );
+    BootstrapRegister<FIsLess  , TMappedTo< int64_t   >>( FIsLess_int64_t  );
+    BootstrapRegister<FIsLess  , TMappedTo<uint64_t   >>( FIsLess_uint64_t );
+    BootstrapRegister<FIsLess  , TMappedTo< intGap_t  >>( FIsLess_intGap_t );
+    BootstrapRegister<FIsLess  , TMappedTo<uintGap_t  >>( FIsLess_uintGap_t);
     #endif
 
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    Register<FIsLess  , TMappedTo<float      >>( FIsLess_float   );
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+    BootstrapRegister<FIsLess  , TMappedTo<float      >>( FIsLess_float   );
     #endif
-    Register<FIsLess  , TMappedTo<double     >>( FIsLess_double  );
-    Register<FIsLess  , TMappedTo<long double>>( FIsLess_double  );
+    BootstrapRegister<FIsLess  , TMappedTo<double     >>( FIsLess_double  );
+    BootstrapRegister<FIsLess  , TMappedTo<long double>>( FIsLess_double  );
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-    Register<FIsLess  , TMappedTo<wchar      >>( FIsLess_char );
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+    BootstrapRegister<FIsLess  , TMappedTo<wchar      >>( FIsLess_char );
     #else
-    Register<FIsLess  , TMappedTo<char       >>( FIsLess_char );
-    Register<FIsLess  , TMappedTo<wchar_t    >>( FIsLess_char );
-    Register<FIsLess  , TMappedTo<char16_t   >>( FIsLess_char );
-    Register<FIsLess  , TMappedTo<char32_t   >>( FIsLess_char );
+    BootstrapRegister<FIsLess  , TMappedTo<char       >>( FIsLess_char );
+    BootstrapRegister<FIsLess  , TMappedTo<wchar_t    >>( FIsLess_char );
+    BootstrapRegister<FIsLess  , TMappedTo<char16_t   >>( FIsLess_char );
+    BootstrapRegister<FIsLess  , TMappedTo<char32_t   >>( FIsLess_char );
     #endif
 
 
     // #############################################################################################
     // ##########################       Strings And Boxing       ###################################
     // #############################################################################################
-#if ALIB_MODULE_STRINGS
+#if ALIB_STRINGS
     // register functions interface implementations
-    Register<FIsLess, TMappedToArrayOf<nchar>>( FIsLess_TChar_arr<nchar> );
-    Register<FIsLess, TMappedToArrayOf<wchar>>( FIsLess_TChar_arr<wchar> );
-    Register<FIsLess, TMappedToArrayOf<xchar>>( FIsLess_TChar_arr<xchar> );
+    BootstrapRegister<FIsLess, TMappedToArrayOf<nchar>>( FIsLess_TChar_arr<nchar> );
+    BootstrapRegister<FIsLess, TMappedToArrayOf<wchar>>( FIsLess_TChar_arr<wchar> );
+    BootstrapRegister<FIsLess, TMappedToArrayOf<xchar>>( FIsLess_TChar_arr<xchar> );
 
     // register functions of type FAppend
-    RegisterDefault<FAppend<character     >>( FAppend_Default<character     > );
-    RegisterDefault<FAppend<complementChar>>( FAppend_Default<complementChar> );
-    RegisterDefault<FAppend<strangeChar   >>( FAppend_Default<strangeChar   > );
+    BootstrapRegisterDefault<FAppend<character     >>( FAppend_Default<character     > );
+    BootstrapRegisterDefault<FAppend<complementChar>>( FAppend_Default<complementChar> );
+    BootstrapRegisterDefault<FAppend<strangeChar   >>( FAppend_Default<strangeChar   > );
 
-DOX_MARKER([DOX_ALIB_BOXING_SAMPLE_TEMPLATED_INTERFACE])
-    Register<FAppend<nchar>, TMappedTo<bool     >>(FAppend<nchar>::Appendable<  bool   >);
-    Register<FAppend<wchar>, TMappedTo<bool     >>(FAppend<wchar>::Appendable<  bool   >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<bool     >>(FAppend<nchar>::Appendable<  bool   >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<bool     >>(FAppend<wchar>::Appendable<  bool   >);
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_CHARACTERS
-    Register<FAppend<nchar>, TMappedTo<wchar    >>(FAppend<nchar>::Appendable<  wchar  >);
-    Register<FAppend<wchar>, TMappedTo<wchar    >>(FAppend<wchar>::Appendable<  wchar  >);
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
+    BootstrapRegister<FAppend<nchar>, TMappedTo<wchar    >>(FAppend<nchar>::Appendable<  wchar  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<wchar    >>(FAppend<wchar>::Appendable<  wchar  >);
     #else
-    Register<FAppend<nchar>, TMappedTo<nchar    >>(FAppend<nchar>::Appendable<  nchar  >);
-    Register<FAppend<wchar>, TMappedTo<nchar    >>(FAppend<wchar>::Appendable<  nchar  >);
-    Register<FAppend<nchar>, TMappedTo<wchar    >>(FAppend<nchar>::Appendable<  wchar  >);
-    Register<FAppend<wchar>, TMappedTo<wchar    >>(FAppend<wchar>::Appendable<  wchar  >);
-    Register<FAppend<nchar>, TMappedTo<xchar    >>(FAppend<nchar>::Appendable<  xchar  >);
-    Register<FAppend<wchar>, TMappedTo<xchar    >>(FAppend<wchar>::Appendable<  xchar  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<nchar    >>(FAppend<nchar>::Appendable<  nchar  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<nchar    >>(FAppend<wchar>::Appendable<  nchar  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<wchar    >>(FAppend<nchar>::Appendable<  wchar  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<wchar    >>(FAppend<wchar>::Appendable<  wchar  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<xchar    >>(FAppend<nchar>::Appendable<  xchar  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<xchar    >>(FAppend<wchar>::Appendable<  xchar  >);
     #endif
 
-    #if ALIB_FEAT_BOXING_NON_BIJECTIVE_INTEGRALS
-    Register<FAppend<nchar>, TMappedTo<integer  >>(FAppend<nchar>::Appendable<integer  >);
-    Register<FAppend<wchar>, TMappedTo<integer  >>(FAppend<wchar>::Appendable<integer  >);
-    Register<FAppend<nchar>, TMappedTo<uinteger >>(FAppend<nchar>::Appendable<uinteger >);
-    Register<FAppend<wchar>, TMappedTo<uinteger >>(FAppend<wchar>::Appendable<uinteger >);
+    #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
+    BootstrapRegister<FAppend<nchar>, TMappedTo<integer  >>(FAppend<nchar>::Appendable<integer  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<integer  >>(FAppend<wchar>::Appendable<integer  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uinteger >>(FAppend<nchar>::Appendable<uinteger >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uinteger >>(FAppend<wchar>::Appendable<uinteger >);
     #else
-    Register<FAppend<nchar>, TMappedTo< int8_t  >>(FAppend<nchar>::Appendable< int8_t  >);
-    Register<FAppend<wchar>, TMappedTo< int8_t  >>(FAppend<wchar>::Appendable< int8_t  >);
-    Register<FAppend<nchar>, TMappedTo< int16_t >>(FAppend<nchar>::Appendable< int16_t >);
-    Register<FAppend<wchar>, TMappedTo< int16_t >>(FAppend<wchar>::Appendable< int16_t >);
-    Register<FAppend<nchar>, TMappedTo< int32_t >>(FAppend<nchar>::Appendable< int32_t >);
-    Register<FAppend<wchar>, TMappedTo< int32_t >>(FAppend<wchar>::Appendable< int32_t >);
-    Register<FAppend<nchar>, TMappedTo< int64_t >>(FAppend<nchar>::Appendable< int64_t >);
-    Register<FAppend<wchar>, TMappedTo< int64_t >>(FAppend<wchar>::Appendable< int64_t >);
-    Register<FAppend<nchar>, TMappedTo< intGap_t>>(FAppend<nchar>::Appendable< intGap_t>);
-    Register<FAppend<wchar>, TMappedTo< intGap_t>>(FAppend<wchar>::Appendable< intGap_t>);
-    Register<FAppend<nchar>, TMappedTo<uint8_t  >>(FAppend<nchar>::Appendable<uint8_t  >);
-    Register<FAppend<wchar>, TMappedTo<uint8_t  >>(FAppend<wchar>::Appendable<uint8_t  >);
-    Register<FAppend<nchar>, TMappedTo<uint16_t >>(FAppend<nchar>::Appendable<uint16_t >);
-    Register<FAppend<wchar>, TMappedTo<uint16_t >>(FAppend<wchar>::Appendable<uint16_t >);
-    Register<FAppend<nchar>, TMappedTo<uint32_t >>(FAppend<nchar>::Appendable<uint32_t >);
-    Register<FAppend<wchar>, TMappedTo<uint32_t >>(FAppend<wchar>::Appendable<uint32_t >);
-    Register<FAppend<nchar>, TMappedTo<uint64_t >>(FAppend<nchar>::Appendable<uint64_t >);
-    Register<FAppend<wchar>, TMappedTo<uint64_t >>(FAppend<wchar>::Appendable<uint64_t >);
-    Register<FAppend<nchar>, TMappedTo<uintGap_t>>(FAppend<nchar>::Appendable<uintGap_t>);
-    Register<FAppend<wchar>, TMappedTo<uintGap_t>>(FAppend<wchar>::Appendable<uintGap_t>);
+    BootstrapRegister<FAppend<nchar>, TMappedTo< int8_t  >>(FAppend<nchar>::Appendable< int8_t  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo< int8_t  >>(FAppend<wchar>::Appendable< int8_t  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo< int16_t >>(FAppend<nchar>::Appendable< int16_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo< int16_t >>(FAppend<wchar>::Appendable< int16_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo< int32_t >>(FAppend<nchar>::Appendable< int32_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo< int32_t >>(FAppend<wchar>::Appendable< int32_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo< int64_t >>(FAppend<nchar>::Appendable< int64_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo< int64_t >>(FAppend<wchar>::Appendable< int64_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo< intGap_t>>(FAppend<nchar>::Appendable< intGap_t>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo< intGap_t>>(FAppend<wchar>::Appendable< intGap_t>);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uint8_t  >>(FAppend<nchar>::Appendable<uint8_t  >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uint8_t  >>(FAppend<wchar>::Appendable<uint8_t  >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uint16_t >>(FAppend<nchar>::Appendable<uint16_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uint16_t >>(FAppend<wchar>::Appendable<uint16_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uint32_t >>(FAppend<nchar>::Appendable<uint32_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uint32_t >>(FAppend<wchar>::Appendable<uint32_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uint64_t >>(FAppend<nchar>::Appendable<uint64_t >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uint64_t >>(FAppend<wchar>::Appendable<uint64_t >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<uintGap_t>>(FAppend<nchar>::Appendable<uintGap_t>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<uintGap_t>>(FAppend<wchar>::Appendable<uintGap_t>);
     #endif
 
-    Register<FAppend<nchar>, TMappedTo<double>>(FAppend<nchar>::Appendable<double>);
-    Register<FAppend<wchar>, TMappedTo<double>>(FAppend<wchar>::Appendable<double>);
-    #if !ALIB_FEAT_BOXING_NON_BIJECTIVE_FLOATS
-    Register<FAppend<nchar>, TMappedTo<float >>(FAppend<nchar>::Appendable<float >);
-    Register<FAppend<wchar>, TMappedTo<float >>(FAppend<wchar>::Appendable<float >);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<double>>(FAppend<nchar>::Appendable<double>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<double>>(FAppend<wchar>::Appendable<double>);
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+    BootstrapRegister<FAppend<nchar>, TMappedTo<float >>(FAppend<nchar>::Appendable<float >);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<float >>(FAppend<wchar>::Appendable<float >);
     #endif
-DOX_MARKER([DOX_ALIB_BOXING_SAMPLE_TEMPLATED_INTERFACE])
 
-    Register<FAppend<nchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, nchar>);
-    Register<FAppend<nchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, nchar>);
-    Register<FAppend<nchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, nchar>);
-    Register<FAppend<wchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, wchar>);
-    Register<FAppend<wchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, wchar>);
-    Register<FAppend<wchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, wchar>);
-    Register<FAppend<xchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, xchar>);
-    Register<FAppend<xchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, xchar>);
-    Register<FAppend<xchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, xchar>);
+    BootstrapRegister<FAppend<nchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, nchar>);
+    BootstrapRegister<FAppend<nchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, nchar>);
+    BootstrapRegister<FAppend<nchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, nchar>);
+    BootstrapRegister<FAppend<wchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, wchar>);
+    BootstrapRegister<FAppend<wchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, wchar>);
+    BootstrapRegister<FAppend<wchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, wchar>);
+    BootstrapRegister<FAppend<xchar>, TMappedToArrayOf<nchar     >>(FAppend_TcharArr<nchar, xchar>);
+    BootstrapRegister<FAppend<xchar>, TMappedToArrayOf<wchar     >>(FAppend_TcharArr<wchar, xchar>);
+    BootstrapRegister<FAppend<xchar>, TMappedToArrayOf<xchar     >>(FAppend_TcharArr<xchar, xchar>);
 
-    Register<FAppend<nchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<nchar>::WrappedAppendable<NAString>);
-    Register<FAppend<nchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<nchar>::WrappedAppendable<WAString>);
-    Register<FAppend<nchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<nchar>::WrappedAppendable<XAString>);
-    Register<FAppend<wchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<wchar>::WrappedAppendable<NAString>);
-    Register<FAppend<wchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<wchar>::WrappedAppendable<WAString>);
-    Register<FAppend<wchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<wchar>::WrappedAppendable<XAString>);
-    Register<FAppend<xchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<xchar>::WrappedAppendable<NAString>);
-    Register<FAppend<xchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<xchar>::WrappedAppendable<WAString>);
-    Register<FAppend<xchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<xchar>::WrappedAppendable<XAString>);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<nchar>::WrappedAppendable<NAString>);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<nchar>::WrappedAppendable<WAString>);
+    BootstrapRegister<FAppend<nchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<nchar>::WrappedAppendable<XAString>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<wchar>::WrappedAppendable<NAString>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<wchar>::WrappedAppendable<WAString>);
+    BootstrapRegister<FAppend<wchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<wchar>::WrappedAppendable<XAString>);
+    BootstrapRegister<FAppend<xchar>, TMappedTo<std::reference_wrapper<NAString>>>(FAppend<xchar>::WrappedAppendable<NAString>);
+    BootstrapRegister<FAppend<xchar>, TMappedTo<std::reference_wrapper<WAString>>>(FAppend<xchar>::WrappedAppendable<WAString>);
+    BootstrapRegister<FAppend<xchar>, TMappedTo<std::reference_wrapper<XAString>>>(FAppend<xchar>::WrappedAppendable<XAString>);
 
-    ALIB_BOXING_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( strings::util::Token* )
+    // CodeMarker_CommonEnums
+    #if ALIB_TEXT
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Bool             )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Switch           )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Alignment        )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SortOrder        )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Inclusion        )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Reach            )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CurrentData      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SourceData       )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Safeness         )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Responsibility   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Side             )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timezone         )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Whitespaces      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateIfNotExists)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateDefaults   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Propagation      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Phase            )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::ContainerOp      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Initialization   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timing           )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Caching          )
+    #endif
 
-#endif // ALIB_MODULE_STRINGS
+    ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( strings::util::Token* )
 
+    #if ALIB_DEBUG
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( std::type_info* )
+    #endif
+
+
+#endif // ALIB_STRINGS
 
 }
 
@@ -1040,39 +1059,44 @@ DOX_MARKER([DOX_ALIB_BOXING_SAMPLE_TEMPLATED_INTERFACE])
 // Box::dbgCheckRegistration
 // Note: this method has to go here, to be able to check if boxing was bootstrapped already.
 //       If not, no check is performed.
-#if ALIB_DEBUG && !ALIB_DOCUMENTATION_PARSER
-    void detail::DbgCheckIsInitialized()
+#if ALIB_DEBUG_BOXING
+
+void detail::DbgCheckIsInitialized()
+{
+    // ERROR: A global or static instance of class Box is created and initialized to a
+    //        mapped type  that uses a dynamic vtable. This is forbidden.
+    //        See chapter "12.4 Global And Static Box Instances" of the Programmer's Manual
+    //        of module ALib Boxing, for more information.
+    assert( initFlag == 0x92A3EF61 ); // magic number
+}
+
+void detail::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCounter )
+{
+    if( vtable==nullptr)
+        return;
+
+    if( increaseUsageCounter )
+        ++vtable->DbgCntUsage;
+
+    if( initFlag== 0 || vtable->DbgProduction != detail::VTable::DbgFactoryType::Unregistered )
+        return;
+
+    if( !vtable->IsArray() )
     {
-        // ERROR: A global or static instance of class Box is created and initialized to a
-        //        mapped type  that uses a dynamic vtable. This is forbidden.
-        //        See chapter "12.4 Global And Static Box Instances" of the Programmer's Manual
-        //        of module ALib Boxing, for more information.
-        assert( initFlag == 0x92A3EF61 ); // magic number
+        DbgTypeDemangler type( vtable->Type );
+        ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
+         "> not registered. Use Macro ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER with bootstrapping." )
     }
-
-    void detail::DbgCheckRegistration( detail::VTable* vtable )
+    else
     {
-        if( initFlag== 0 || vtable->DbgProduction != detail::VTable::DbgFactoryType::Unregistered )
-            return;
-
-        if( !vtable->IsArray() )
-        {
-            DbgTypeDemangler type( vtable->Type );
-            ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
-             "> not registered. Use Macro ALIB_BOXING_VTABLE_REGISTER with bootstrapping." )
-        }
-        else
-        {
-            DbgTypeDemangler type( vtable->ElementType );
-            ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
-             "[]> not registered. Use Macro ALIB_BOXING_REGISTER_MAPPED_ARRAY_TYPE with bootstrapping." )
-        }
+        DbgTypeDemangler type( vtable->ElementType );
+        ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
+         "[]> not registered. Use Macro ALIB_BOXING_REGISTER_MAPPED_ARRAY_TYPE with bootstrapping." )
     }
-
-
+}
 
 #endif
 
 
 
-}}} // namespace aworx[aworx::lib::boxing]
+}}} // namespace [aworx::lib::boxing]

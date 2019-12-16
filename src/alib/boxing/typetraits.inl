@@ -1,10 +1,14 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
-#if !defined(HPP_ALIB_BOXING_PROPPERINCLUDE)
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_boxing of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
+#ifndef HPP_ALIB_BOXING_TYPETRAITS
+#define HPP_ALIB_BOXING_TYPETRAITS 1
+
+#if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
@@ -45,7 +49,7 @@ struct TDefaultBoxing  {};
 
 /**
  * This is an empty type used to denote that a type must not be boxed.
- * To disable \alibmod_nolink_boxing for a custom type, a specialization of type traits
+ * To disable \alib_boxing_nl for a custom type, a specialization of type traits
  * struct \alib{boxing,T_Boxer} must use this type (wrapped in \alib{boxing,TMappedTo}), to
  * define type member \alib{boxing,T_Boxer::Mapping}.
  *
@@ -62,7 +66,7 @@ struct TNotBoxable     {};
  * Type mappings using either this or sibling struct \alib{boxing,TMappedToArrayOf}, have
  * to be provided with
  * - Specializations of \alib{boxing,T_Boxer}, and
- * - Namespace function \alib{boxing,Register} used to associated box-function implementations
+ * - Namespace function \alib{boxing,BootstrapRegister} used to associated box-function implementations
  *   with mapped types.
  *
  * \see
@@ -113,7 +117,7 @@ struct TMappedToArrayOf
 };
 
 /** ************************************************************************************************
- * This template struct is used to define customized behaviour for boxing C++ type
+ * This template struct is used to define customized behavior for boxing C++ type
  * \p{TBoxable}.
  *
  * ### Default Boxing: ###
@@ -121,7 +125,8 @@ struct TMappedToArrayOf
  * default boxing applies.
  * With that, values \b and pointers of a type are boxed in the same way:
  * - They are both boxed to a pointer of \p{TBoxable} if a value of the type does not "fit" into
- *   a box's \alib{boxing,Placeholder} or if the type is not copy-constructible.
+ *   a box's \alib{boxing,Placeholder} or if the type is not copy-constructible or not
+ *   trivially destructible.
  * - Otherwise, both are boxed as values, hence if a pointer is given to the constructor or
  *   assign \c operator= of class \alib{boxing,Box}, indirection \c operator* is applied.
  *
@@ -186,7 +191,7 @@ struct TMappedToArrayOf
  * A set of macros for defining specializations exist.
  * The use of the macro is recommended, as besides being less error prone, their use make the code
  * more readable. Finally, chances are good that code that uses the macros remains compatible
- * with future versions of module \alibmod_nolink_boxing.
+ * with future versions of module \alib_boxing_nl.
  *
  * All macros expect this struct's template type \p{TBoxable} as the first parameter, and most
  * expect the mapped type as the second parameter. The latter must not be wrapped in
@@ -227,7 +232,7 @@ struct TMappedToArrayOf
  * <br><p>
  * \see More explanation and sample code is given in chapter
  *      \ref alib_boxing_customizing "7. Customizing Boxing" of the
- *      \ref alib_mod_boxing "Programmer's Manual" of module \alibmod_nolink_boxing.
+ *      \ref alib_mod_boxing "Programmer's Manual" of module \alib_boxing_nl.
  *
  * @tparam TBoxable    The source type to customize boxing for.
  * @tparam TEnableIf   Optional TMP parameter to allow conditional specializations.
@@ -239,7 +244,7 @@ struct T_Boxer
      * Defines the mapped type. With specializations, that type has to be wrapped in either
      * \alib{boxing,TMappedTo,TMappedTo<T>} or \alib{boxing,TMappedTo,TMappedToArrayOf<T>}.
      * Special designator types \alib{boxing,detail::TDefaultBoxing} and \alib{boxing,detail::TNotBoxable}
-     * may be wrapped, to denote corresponding behaviour.
+     * may be wrapped, to denote corresponding behavior.
      *
      * The default implementation specifies designator type \b TDefaultBoxing, which
      * disables custom boxing.
@@ -281,7 +286,7 @@ struct T_Boxer
      * and is often all that is needed with custom specializations.
      *
      * If a different type than \p{TBoxable} is returned, then that source type is not unboxable.
-     * To intend such behaviour, for example because \p{TBoxable} is mapped to a reduced type
+     * To intend such behavior, for example because \p{TBoxable} is mapped to a reduced type
      * and therefore unboxing is not possible, specializations may declare return type
      * \c void and omit a definition of this method.<br>
      * With TMP enabled customizations, also other return types may given, which likewise denote
@@ -304,7 +309,7 @@ DOX_MARKER([DOX_ALIB_BOXING_T_BOXER_READ])
 }; // T_Boxer
 
 // ########################      critical  T_Boxer  specializations     ###########################
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 // This is necessary for types that can't be used as return type in any way, for example
 // types with extents, functions, etc.
@@ -344,15 +349,17 @@ template<> struct T_Boxer<void>
  * While for array types, the value is set to the overall size of union \alib{boxing,Placeholder},
  * for non-array types, the value of this TMP struct is used.
  *
- * It might be surprising, but one built-in specialization exists for C++ fundamental type
+ * It might be surprising, but a built-in specialization exists for even a C++ fundamental type
  * <c>long double</c>, which is dependent on the compiler/platform.
  * For example, on GNU/Linux 64-bit, GCC reports \c 16 with <c>sizeof(long double)</c>.
  * However, if a <c>long double</c> value is copied, e.g with:
  *
  *      *pointerToLongDouble= 3.14L;
  *
- * then only 10 bytes are written! In the case of \alibmod_nolink_boxing, 6 bytes of the placeholder
- * remain random and therefore must not be used for hashing or testing values on equality.
+ * then only 10 bytes are written. The reason for this is that <c>sizeof</c> reports the size
+ * needed for alignment when placed in an array of that type.
+ * In the case of \alib_boxing_nl, 6 bytes of the placeholder remain random and therefore
+ * must not be used for hashing or testing values on equality.
  *
  * @tparam TMappedPlain The mapped type to modify relevant placeholder length for \b FHashcode
  *                      and \b FEquals implementation.
@@ -363,19 +370,29 @@ template<typename TMappedPlain> struct T_SizeInPlaceholder
     static constexpr unsigned int value= sizeof(TMappedPlain);
 };
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 #if defined (_MSC_VER)
+    static_assert( sizeof(long double) ==  8, "Unexpected size of long double" );
     template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 8;  };
 #elif defined (__GNUC__) || defined (__clang__)
-    template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 10; };
+
+    #if   (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8 ) || defined(_WIN64)
+
+        template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 10; };
+
+    #elif (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 4 ) || defined(_WIN32)
+
+        template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 10; };
+
+    #else
+        #error "Unknown platform"
+    #endif
 #else
     #error "Unknown platform"
 #endif
 
 #endif
-
-
 
 
 /** ************************************************************************************************
@@ -391,7 +408,7 @@ template<typename TMappedPlain> struct T_SizeInPlaceholder
  * ************************************************************************************************/
 template<typename T, typename TEnableIf= void> struct TT_IsCustomized          : std::true_type  {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 // besides checking T_Boxer<T>, in the case a pointer is given, we also have to check
 // T_Boxer for the type that results when
@@ -435,7 +452,7 @@ template<typename T> struct TT_IsCustomized  <T, ATMP_VOID_IF(
  * ************************************************************************************************/
 template<typename T, typename TEnableIf= void> struct TT_IsLocked              : std::false_type {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 template<typename T                          > struct TT_IsLocked<T,
 ATMP_VOID_IF( !ATMP_EQ(T, ATMP_RR(decltype(T_Boxer<T>::Read(std::declval<Placeholder>())) ) ) )
@@ -445,8 +462,8 @@ ATMP_VOID_IF( !ATMP_EQ(T, ATMP_RR(decltype(T_Boxer<T>::Read(std::declval<Placeho
 /** ************************************************************************************************
  * Helper struct that inherits \c std::true_type, if
  *
- * - boxing was customized for the given type and \alib{boxing,detail::TNotBoxable} was given as mapped
- *   type, or
+ * - boxing was customized for the given type and \alib{boxing,detail::TNotBoxable} was given as
+ *   mapped type, or
  * - given type is a value type, no customization is given for it, while the corresponding
  *   pointer type has customized boxing with mapped type being \alib{boxing,detail::TNotBoxable}, or
  * - given type is a pointer  type, no customization is given for it, while the corresponding
@@ -463,7 +480,7 @@ ATMP_VOID_IF( !ATMP_EQ(T, ATMP_RR(decltype(T_Boxer<T>::Read(std::declval<Placeho
  * ************************************************************************************************/
 template<typename T, typename TEnableIf= void> struct TT_IsNotBoxable          : std::false_type {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 template<typename T>
 struct TT_IsNotBoxable<T, typename std::enable_if<
@@ -485,7 +502,7 @@ struct TT_IsNotBoxable<T, typename std::enable_if<
  * \alib{boxing,Box::IsType} and \alib{boxing,Box::Unbox} will fail to compile with that type.
  *
  * With default boxing, one of the types \b T and \b T* are unboxable (depending on value type
- * size and whether the type is copy constructible).
+ * size and whether the type is copy constructible and trivially destructible).
  *
  * If custom boxing for either or both of types \b T and \b T* is in place, then the given type is
  * not unboxable if:
@@ -504,7 +521,7 @@ struct TT_IsNotBoxable<T, typename std::enable_if<
 template<typename T, typename TEnableIf=void>
 struct   TT_IsUnboxable                                                        : std::false_type {};
 
-#if !ALIB_DOCUMENTATION_PARSER
+#if !defined(ALIB_DOX)
 
 // default boxing
 template<typename T>
@@ -513,8 +530,9 @@ struct   TT_IsUnboxable<T, typename std::enable_if<
    !TT_IsCustomized<ATMP_RP(T) >::value
 && !TT_IsCustomized<ATMP_RP(T)*>::value
 &&    static_cast<bool>(  ATMP_IS_PTR(T) )
-   == static_cast<bool>(     (sizeof(ATMP_RCVP(T)) > sizeof(Placeholder) )
-                         ||  !std::is_copy_constructible<ATMP_RCVP(T)>::value )
+   == static_cast<bool>(     ( sizeof(Placeholder) <  sizeof(ATMP_RCVP(T))  )
+                         ||  !std::is_copy_constructible    <ATMP_RCVP(T)>::value
+                         ||  !std::is_trivially_destructible<ATMP_RCVP(T)>::value )
 
                                                   >::type>                     : std::true_type  {};
 
@@ -603,4 +621,5 @@ template<>  struct T_Boxer<TSource>                                             
   static void                   Read ( const Placeholder& src);                                    \
 }; }}}
 
+#endif // HPP_ALIB_BOXING_TYPETRAITS
 

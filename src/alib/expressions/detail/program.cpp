@@ -5,6 +5,8 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
+
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
 #   include "alib/expressions/detail/program.hpp"
 #endif
@@ -12,7 +14,7 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
 #   include "alib/expressions/compilerplugin.hpp"
 #endif
-
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace expressions { namespace detail {
 
@@ -25,85 +27,264 @@ using Command= VirtualMachine::Command;
 // #################################################################################################
 
 #if ALIB_DEBUG
-#define DBG_CALLBACK_INFO(cmd)                                                                  \
-     cmd.DbgInfo.Callback= cInfo.DbgCallbackName;                                                  \
-     cmd.DbgInfo.Plugin  = ppp.plugin;
+#   define DBG_SET_CALLBACK_INFO                                                                   \
+        prg.act().DbgInfo.Callback= cInfo.DbgCallbackName;                                             \
+        prg.act().DbgInfo.Plugin  = ppp.plugin;
 #else
-#define DBG_CALLBACK_INFO(cmd)
+#   define DBG_SET_CALLBACK_INFO
 #endif
+
+// Use temporary allocator for program vector construction.
+// In method AssembleFinalize, this will be re-allocated into ctScope
+Program::Program( Compiler& pCompiler, Expression&  pExpression, MonoAllocator* compileTimeAlloc)
+: compiler           ( pCompiler   )
+, expression         ( pExpression )
+, ctNestedExpressions( pExpression.ctScope->Allocator )
+, qtyOptimizations   ( HasBits( compiler.CfgCompilation, Compilation::NoOptimization )
+                       ? -1 : 0 )
+, compileStorage     ( compileTimeAlloc ? compileTimeAlloc->Emplace<CompileStorage>( *compileTimeAlloc )
+                                        : nullptr )
+{}
 
 Program::~Program()
 {
-    if( ctScope )
-        delete ctScope;
     if( compileStorage )
-        delete compileStorage;
+        monomem::Destruct( compileStorage );
 }
 
 const Box& Program::ResultType() const
 {
-    return back()     .ResultType;
+    return commands[commandsCount-1].ResultType;
 }
 
+// #################################################################################################
+// Helpers used during compilation
+// #################################################################################################
+#if !defined(ALIB_DOX)
+namespace {
+struct Assembly
+{
+    using VM= VirtualMachine;
+
+    std::vector<VirtualMachine::Command*, StdContMA<VirtualMachine::Command*>>& assembly;
+    std::vector<VM::PC                  , StdContMA<VM::PC                  >>& resultStack;
+
+    ALIB_FORCE_INLINE
+    Assembly( std::vector<VirtualMachine::Command*, StdContMA<VirtualMachine::Command*>>& pAssembly,
+              std::vector<VM::PC                  , StdContMA<VM::PC                  >>& pResultStack )
+    : assembly   ( pAssembly )
+    , resultStack( pResultStack)
+    {}
+
+    /**
+     * Returns the current last command.
+     * @return A reference to the last command.
+     */
+    ALIB_FORCE_INLINE
+    integer length()
+    {
+        return static_cast<integer>(assembly.size());
+    }
+
+    /**
+     * Returns the command at the given program counter \p{pc}.
+     * @param  pc  The program counter of the command to get.
+     * @return A reference to the requested command.
+     */
+    ALIB_FORCE_INLINE
+    VM::Command& at( VM::PC pc )
+    {
+        return *assembly[static_cast<size_t>(pc)];
+    }
+
+    /**
+     * Returns the current last command.
+     * @return A reference to the last command.
+     */
+    ALIB_FORCE_INLINE
+    VM::Command& act()
+    {
+        return *assembly.back();
+    }
+
+    /**
+     * Returns the current last command.
+     * @return A reference to the last command.
+     */
+    ALIB_FORCE_INLINE
+    VM::Command& prev()
+    {
+        return **( assembly.end() - 2 );
+    }
+
+    /**
+     * Returns the number of the last command.
+     * @return The current size of the program minus \c 1.
+     */
+    ALIB_FORCE_INLINE
+    VM::PC actPC()
+    {
+        return static_cast<VM::PC>( assembly.size() - 1);
+    }
+
+    /**
+     * Removes the last command.
+     */
+    ALIB_FORCE_INLINE
+    void eraseLast()
+    {
+        assembly.pop_back();
+    }
+
+    /**
+     * Removes a command.
+     * @param pc The command to remove.
+     */
+    ALIB_FORCE_INLINE
+    void erase( VM::PC pc )
+    {
+        assembly.erase( assembly.begin() + pc );
+
+    }
+
+    /**
+     * Removes range of commands.
+     * @param begin The first command to remove.
+     * @param end   The first command that is not removed.
+     */
+    ALIB_FORCE_INLINE
+    void erase( VM::PC begin, VM::PC end )
+    {
+        assembly.erase( assembly.begin() + begin,
+                        assembly.begin() + end );
+    }
+
+
+    /**
+     * Inserts a command at the given position.
+     * @tparam TArgs   Types of the variadic arguments \p{args}.
+     * @param  pc      The position of insertion.
+     * @param  args    Variadic arguments forwarded to the command's constructor.
+     * @return The command inserted.
+     */
+    template<typename... TArgs>
+    ALIB_FORCE_INLINE
+    VM::Command&  insertAt( VM::PC pc, TArgs && ... args )
+    {
+        auto* cmd= assembly.get_allocator().allocator.Emplace<VM::Command>( std::forward<TArgs>( args )... );
+        assembly.emplace( assembly.begin() + pc,  cmd );
+        return *cmd;
+    }
+
+    /**
+     * Inserts a command at the end of the program.
+     * @tparam TArgs   Types of the variadic arguments \p{args}.
+     * @param  args    Variadic arguments forwarded to the command's constructor.
+     * @return The command inserted.
+     */
+    template<typename... TArgs>
+    ALIB_FORCE_INLINE
+    VM::Command& add( TArgs && ... args )
+    {
+        assembly.emplace_back( assembly.get_allocator().allocator.Emplace<VM::Command>(std::forward<TArgs>( args )... ) );
+        return *assembly.back();
+    }
+
+
+    /** Pushes the current PC to the result stack.  */
+    ALIB_FORCE_INLINE
+    void pushResultPC()
+    {
+        resultStack.push_back( actPC() );
+    }
+
+    /** Pops one from the result stack.  */
+    ALIB_FORCE_INLINE
+    void popResultPC()
+    {
+        resultStack.pop_back();
+    }
+
+    /** Returns a mutable reference to the top of the stack of result positions.  */
+    ALIB_FORCE_INLINE
+    VM::PC & resultPC()
+    {
+        return resultStack.back();
+    }
+
+    /** Returns a mutable reference to the 2nd.-top of the stack of result positions.  */
+    ALIB_FORCE_INLINE
+    VM::PC & lhsResultPC()
+    {
+        return resultStack[resultStack.size() - 2];
+    }
+
+    /** Returns the program counter that identifies the start of the range that results in the
+     *  current LHS value.  */
+    ALIB_FORCE_INLINE
+    VM::PC lhsResultStartPC()
+    {
+        auto qtyResults = resultStack.size();
+        return qtyResults == 2 ? 0
+                               : resultStack[qtyResults - 3] + 1; // one after the previous
+    }
+};
+} // anonymous namespace
+#endif // ALIB_DOX
 
 // #################################################################################################
 // Assemble commands
 // #################################################################################################
-#define TypeStr(box)            compiler.TypeName(box)
-#define AddCommand(...)         emplace_back(__VA_ARGS__)
-#define RemoveLastCommand       pop_back()
-#define LastCommandNo           Length() -1
-#define LastCommand             back()
-#define PushResult              compileStorage->resultStack.emplace_back( LastCommandNo )
-#define PopResult               compileStorage->resultStack.pop_back()
-#define ResultPos               compileStorage->resultStack.back()
-#define LHSResultPos            (*(compileStorage->resultStack.end() - 2))
-#define RHSResultPos            ResultPos
-#define LHSCodeStart            (compileStorage->resultStack.size() == 2 ? 0  :  *(compileStorage->resultStack.end() - 3 ) + 1 )
-//#define RHSCodeStart          (LHSResultPos + 1 )
 
 #define ASSERT_ASSEMBLE                                                                            \
-    if( compileStorage == nullptr )  return;                                                       \
-    ALIB_ASSERT_ERROR(    compileStorage->resultStack.empty()                                      \
-                       || ResultPos == LastCommandNo                                               \
-                       || back().IsConditionalJump()                   ,                           \
-                       "Internal error: Last in result stack is not last command." )               \
+    ALIB_ASSERT_ERROR(    prg.resultStack.empty()                                                  \
+                       || prg.resultPC() == prg.actPC()                                            \
+                       || prg.act().IsConditionalJump() ,                                          \
+                       "Internal error: Last in result stack is not last command." )
 
 bool Program::collectArgs( integer qty )
 {
-    ALIB_ASSERT_ERROR( compileStorage->resultStack.size() >= static_cast<size_t>( qty < 0 ? 0 : qty ),
+    ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() >= static_cast<size_t>( qty < 0 ? 0 : qty ),
                        "Not enough arguments on the stack. This should never happen (internal error)." )
 
-    ctScope->Stack.clear();
+    expression.ctScope->Stack.clear();
+    if( qty > 0 )
+        expression.ctScope->Stack.reserve( static_cast<size_t>( qty ));
 
     bool allAreConst= true;
     for( integer i= qty; i > 0 ; --i )
     {
-        Command& cmd=  At(*(compileStorage->resultStack.end() - i));
+        Command& cmd=  *compileStorage->Assembly[static_cast<size_t>(*(compileStorage->ResultStack.end() - i))];
         bool     isConstant=  cmd.IsConstant();
-        ctScope->Stack.emplace_back( isConstant ? cmd.Operation.Value
+        expression.ctScope->Stack.emplace_back( isConstant ? cmd.Operation.Value
                                                 : cmd.ResultType      );
         allAreConst&= isConstant;
     }
 
-    return allAreConst && !EnumContains(compiler.CfgCompilation, Compilation::NoOptimization );
+    return allAreConst && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization );
 }
 
 
 void Program::AssembleConstant( Box& value, integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
-    AddCommand( VM::Command(  value.IsType<String>() ?  Box( ctScope->Memory.Clone(value.Unbox<String>()) )
-                                                     :  value
-                              , false, idxInOriginal, idxInNormalized  )  );
-    PushResult;
+    prg.add( VM::Command( value.IsType<String>() ?  Box( expression.ctScope->Allocator.EmplaceString(value.Unbox<String>()) )
+                                                 :  value,
+                          false, idxInOriginal, idxInNormalized  )  );
+    prg.pushResultPC();
 }
 
 
 void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParentheses,
                                 integer  idxInOriginal, integer idxInNormalized  )
 {
+    if( compileStorage == nullptr )
+        return;
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
     // Nested expressions
@@ -112,9 +293,9 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
     {
         functionName.Reset( compiler.CfgNestedExpressionFunction );
 
-        if(    qtyArgsOrNoParentheses < (EnumContains( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
+        if(    qtyArgsOrNoParentheses < (HasBits( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
                                          ? 1 : 2 )
-            || !At(*(compileStorage->resultStack.end() - ( qtyArgsOrNoParentheses == 3 ? 2 : qtyArgsOrNoParentheses) ) )
+            || !prg.at( *(prg.resultStack.end() - ( qtyArgsOrNoParentheses == 3 ? 2 : qtyArgsOrNoParentheses) ) )
                 .ResultType.IsType<String>() )
         {
             throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
@@ -125,7 +306,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
         // single argument? -> we have to get the expression now
         if( qtyArgsOrNoParentheses == 1 )
         {
-            if( !At(compileStorage->resultStack.back()).IsConstant() ) // must not use bool allAreConstant here!
+            if( !prg.at(compileStorage->ResultStack.back()).IsConstant() ) // must not use bool allAreConstant here!
             {
                 Exception e( ALIB_CALLER_NULLED, Exceptions::NamedExpressionNotConstant );
                 e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
@@ -134,50 +315,53 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
             }
 
             SPExpression nested;
-            String nestedExpressionName= At(compileStorage->resultStack.back()).ResultType.Unbox<String>();
+            String nestedExpressionName= prg.at(prg.resultStack.back()).ResultType.Unbox<String>();
             try
             {
                 nested= compiler.GetNamed( nestedExpressionName );
             }
             catch( Exception& e )
             {
-                if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+                if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
                 {
                     e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT ,
                            nestedExpressionName );
                 }
                 else
                 {
-                    ALIB_ERROR( "Unknown exception {!Q}.", e.Type() );
+                    ALIB_ERROR( "Unknown exception {!Q}.", e.Type() )
                 }
                 throw;
             }
 
             ctNestedExpressions.emplace_back(nested);
 
-            LastCommand= VM::Command( dynamic_cast<Program*>( nested->GetProgram() ),
-                                      compiler.CfgNestedExpressionFunction.GetRawName(),
-                                      idxInOriginal, idxInNormalized                       );
+            prg.act()= VM::Command( nested->GetProgram(),
+                                    nested->ResultType(),
+                                    compiler.CfgNestedExpressionFunction.GetRawName(),
+                                    idxInOriginal, idxInNormalized                       );
             return;
         }
 
         // If two arguments, we send nullptr to indicate that 2nd argument is replacement
         if( qtyArgsOrNoParentheses == 2 )
         {
-            AddCommand( static_cast<Program*>( nullptr ),
-                        compiler.CfgNestedExpressionFunction.GetRawName(),
-                        idxInOriginal, idxInNormalized                     );
-            back().ResultType= (end()-2)->ResultType;
+            prg.add( static_cast<Program*>( nullptr ),  Box( nullptr ),
+                     compiler.CfgNestedExpressionFunction.GetRawName(),
+                     idxInOriginal, idxInNormalized                     );
+            prg.act().ResultType= prg.prev().ResultType;
         }
 
-        // 3rd argument given (throw): we send "this" which indicates to throw in expression is not found.
+        // 3rd argument given (throw): we send "this" which indicates to throw if an
+        // expression is not found.
         else
-            AddCommand( dynamic_cast<Program*>( this ),
-                        compiler.CfgNestedExpressionFunction.GetRawName(),
-                        idxInOriginal, idxInNormalized                     );
+            prg.add( dynamic_cast<Program*>( this ),
+                     prg.act().ResultType,
+                     compiler.CfgNestedExpressionFunction.GetRawName(),
+                     idxInOriginal, idxInNormalized                     );
 
-        PopResult;
-        ResultPos= LastCommandNo;
+        prg.popResultPC();
+        prg.resultPC()= prg.actPC();
         return;
     }
 
@@ -185,16 +369,17 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
     // collect arguments
     bool allAreConstant= collectArgs(qtyArgsOrNoParentheses);
 
-    compileStorage->functionsWithNonMatchingArguments.clear();
-    CompilerPlugin::CIFunction cInfo( *ctScope,
+    compileStorage->FunctionsWithNonMatchingArguments.Clear();
+    CompilerPlugin::CIFunction cInfo( *expression.ctScope,
+                                      compileStorage->ConditionalStack.get_allocator().allocator,
                                       functionName,
                                       (qtyArgsOrNoParentheses < 0), //no parentheses?
                                       allAreConstant,
-                                      compileStorage->functionsWithNonMatchingArguments );
+                                      compileStorage->FunctionsWithNonMatchingArguments );
 
     try
     {
-        for( auto& ppp : compileStorage->plugins )
+        for( auto& ppp : compiler.plugins )
         {
             if( !ppp.plugin->TryCompilation( cInfo ) )
                 continue;
@@ -203,66 +388,61 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
             if( cInfo.Callback == nullptr )
             {
                 if( qtyArgsOrNoParentheses > 0 )
-                    qtyOptimizations++;
+                    ++qtyOptimizations;
 
                 // remove constant vm commands, add new and update result stack
-                if( ctScope->Stack.size() == 0 )
+                if( expression.ctScope->Stack.size() == 0 )
                 {
-                    AddCommand( VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized ) );
-                    PushResult;
+                    prg.add( VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized ) );
+                    prg.pushResultPC();
                 }
                 else
                 {
-                    for( auto i= ctScope->Stack.size() - 1; i > 0 ; --i )
+                    for( auto i= expression.ctScope->Stack.size() - 1; i > 0 ; --i )
                     {
-                        RemoveLastCommand;
-                        PopResult;
+                        prg.eraseLast();
+                        prg.popResultPC();
                     }
-                    ResultPos= LastCommandNo;
-                    LastCommand= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
+                    prg.resultPC()= prg.actPC();
+                    prg.act()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
                 }
 
-                #if ALIB_DEBUG
-                    DBG_CALLBACK_INFO(back())
-                #endif
+                DBG_SET_CALLBACK_INFO
 
                 return;
             }
 
             // function
-            AddCommand( cInfo.Callback, qtyArgsOrNoParentheses, cInfo.TypeOrValue,
-                        ctScope->Memory.Clone( functionName ), false,
-                        idxInOriginal, idxInNormalized                                  );
+            prg.add( cInfo.Callback, qtyArgsOrNoParentheses, cInfo.TypeOrValue,
+                     expression.ctScope->Allocator.EmplaceString( functionName ), false,
+                     idxInOriginal, idxInNormalized                                  );
 
             // update result type stack
-            if( ctScope->Stack.size()== 0 )
-                PushResult;
+            if( expression.ctScope->Stack.size()== 0 )
+                prg.pushResultPC();
             else
             {
-                for( auto i= ctScope->Stack.size() - 1; i > 0 ; --i )
-                    PopResult;
-                ResultPos= LastCommandNo;
+                for( auto i= expression.ctScope->Stack.size() - 1; i > 0 ; --i )
+                    prg.popResultPC();
+                prg.resultPC()= prg.actPC();
             }
 
-
-            #if ALIB_DEBUG
-                DBG_CALLBACK_INFO(back())
-            #endif
+            DBG_SET_CALLBACK_INFO
             return;
         }
     }
     catch( Exception& e )
     {
-        if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
-            && !e.Type().IsEnumType<Exceptions>()                                                    )
+        if(    !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
+            && !e.Type().IsEnumType<Exceptions>()                                                 )
             e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
 
-        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
+        e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
         throw;
     }
     catch( std::exception& stdException )
     {
-        if( !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
+        if( !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name()   );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
@@ -281,7 +461,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
     // create function exception
     String128 arguments;
     arguments.DbgDisableBufferReplacementWarning();
-    compiler.WriteFunctionSignature( ctScope->Stack.begin(), ctScope->Stack.end(), arguments );
+    compiler.WriteFunctionSignature( expression.ctScope->Stack.begin(), expression.ctScope->Stack.end(), arguments );
 
     Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownFunction, functionName, arguments );
 
@@ -293,27 +473,30 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
 
 void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
     // If we have a global operator replacement, this will be used. However, in this case changes
     // of it must not be passed back to the caller as long certain normalization flags are set.
     String  opReference= op;
     bool    aliased= false;
-    auto globalAliasIt=  compiler.AlphabeticUnaryOperatorAliases.find(op);
+    auto globalAliasIt=  compiler.AlphabeticUnaryOperatorAliases.Find(op);
     if( globalAliasIt != compiler.AlphabeticUnaryOperatorAliases.end() )
     {
         aliased= true;
-        opReference= globalAliasIt->second;
+        opReference= globalAliasIt.Mapped();
     }
 
     bool isConstant= collectArgs(1);
 
     // Nested expressions
-    if(    EnumContains( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
+    if(    HasBits( compiler.CfgCompilation, Compilation::AllowCompileTimeNestedExpressions )
         && opReference == compiler.CfgNestedExpressionOperator
-        && ctScope->Stack.back().IsType<String>() )
+        && expression.ctScope->Stack.back().IsType<String>() )
     {
-        if( !At(compileStorage->resultStack.back()).IsConstant() ) // must not use bool allAreConstant here!
+        if( !prg.at(compileStorage->ResultStack.back()).IsConstant() ) // must not use bool allAreConstant here!
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::NamedExpressionNotConstant );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,
@@ -321,7 +504,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
             throw e;
         }
 
-        String expressionName= ctScope->Stack.back().Unbox<String>();
+        String expressionName= expression.ctScope->Stack.back().Unbox<String>();
         SPExpression nested;
         try
         {
@@ -329,25 +512,27 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         }
         catch( Exception& e )
         {
-            if( e.Type().Value() == EnumValue( Exceptions::NamedExpressionNotFound ) )
+            if( e.Type().Integral() == UnderlyingIntegral( Exceptions::NamedExpressionNotFound ) )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::NestedExpressionNotFoundCT,
                        expressionName );
             else
             {
-                ALIB_ERROR( "Unknown exception {!Q}.", e.Type() );
+                ALIB_ERROR( "Unknown exception {!Q}.", e.Type() )
             }
             throw;
         }
 
-        if( !aliased || EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
+        if( !aliased || HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
             op= opReference;
         else
-            if( EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
+            if( HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
                 op= globalAliasIt->first;
 
         ctNestedExpressions.emplace_back(nested);
-        LastCommand= VM::Command( dynamic_cast<Program*>( nested->GetProgram() ), op,
-                                  idxInOriginal, idxInNormalized  );
+        prg.act()= VM::Command( nested->GetProgram(),
+                               nested->ResultType(),
+                               op,
+                               idxInOriginal, idxInNormalized  );
         return;
     }
 
@@ -357,38 +542,40 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
         for( int pass= 0; pass < 2 ; ++pass )
         {
             isConstant= collectArgs(1);
-            CompilerPlugin::CIUnaryOp cInfo( *ctScope, opReference, isConstant );
+            CompilerPlugin::CIUnaryOp cInfo( *expression.ctScope,
+                                             compileStorage->ConditionalStack.get_allocator().allocator,
+                                             opReference, isConstant );
 
             // search plug-ins
-            for( auto& ppp : compileStorage->plugins )
+            for( auto& ppp : compiler.plugins )
             {
                 if( !ppp.plugin->TryCompilation( cInfo ) )
                     continue;
 
-                if( !aliased || EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
+                if( !aliased || HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
                     op= opReference;
                 else
-                    if( EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
+                    if( HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
                         op= globalAliasIt->first;
 
                 // constant?
                 if( !cInfo.Callback )
                 {
-                    qtyOptimizations++;
+                    ++qtyOptimizations;
 
                     // replace last command (unary op arg is always the last)
-                    back()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
+                    prg.act()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
 
-                    DBG_CALLBACK_INFO(back())
+                    DBG_SET_CALLBACK_INFO
 
                     return;
                 }
 
                 // callback
-                AddCommand( cInfo.Callback, 1, cInfo.TypeOrValue, op, true, idxInOriginal, idxInNormalized );
-                ResultPos++;
+                prg.add( cInfo.Callback, 1, cInfo.TypeOrValue, op, true, idxInOriginal, idxInNormalized );
+                ++prg.resultPC();
 
-                DBG_CALLBACK_INFO(back())
+                DBG_SET_CALLBACK_INFO
                 return;
             }
 
@@ -397,8 +584,11 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                 break;
 
             // try auto cast
-            CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, op, At( ResultPos ).IsConstant(), false );
-            for( auto& pppAutoCast : compileStorage->plugins )
+            CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+                                                   compileStorage->ConditionalStack.get_allocator().allocator,
+                                                   op,
+                                                   prg.at( prg.resultPC() ).IsConstant(), false );
+            for( auto& pppAutoCast : compiler.plugins )
             {
                 if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
                     continue;
@@ -410,7 +600,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                     if( ciAutoCast.Callback == nullptr )
                     {
                         // change constant value conversion
-                        VM::Command& cmdToPatch= *( begin() + ResultPos );
+                        VM::Command& cmdToPatch= prg.at(prg.resultPC());
                         cmdToPatch.Operation.Value= ciAutoCast.TypeOrValue;
                         ALIB_DBG( cmdToPatch.DbgInfo.Plugin= pppAutoCast.plugin; )
                     }
@@ -419,16 +609,15 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                     else
                     {
                         // insert conversion
-                        ALIB_DBG( auto insertIt= )
-                        emplace( begin() + ResultPos + 1,
-                                 ciAutoCast.Callback, 1,
-                                 ciAutoCast.TypeOrValue,
-                                 ciAutoCast.ReverseCastFunctionName, false,
-                                 idxInOriginal, idxInNormalized                      );
+                        ALIB_DBG( auto& newCmd= )
+                        prg.insertAt( prg.resultPC() + 1, ciAutoCast.Callback, 1,
+                                                          ciAutoCast.TypeOrValue,
+                                                          ciAutoCast.ReverseCastFunctionName, false,
+                                                          idxInOriginal, idxInNormalized                   );
 
-                        (ResultPos) ++;
-                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
-                                  insertIt->DbgInfo.Plugin= pppAutoCast.plugin;            )
+                        ++prg.resultPC();
+                        ALIB_DBG( newCmd.DbgInfo.Callback= ciAutoCast.DbgCallbackName;
+                                  newCmd.DbgInfo.Plugin  = pppAutoCast.plugin;            )
                     }
                 }
 
@@ -440,7 +629,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
     }
     catch( Exception& e )
     {
-        if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
+        if(    !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
             && !e.Type().IsEnumType<Exceptions>()                                                    )
             e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
         e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
@@ -448,7 +637,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
     }
     catch( std::exception& stdException )
     {
-        if( !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
+        if( !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name()   );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,     expression.GetOriginalString(), idxInOriginal );
@@ -460,7 +649,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
 
 
     // not found
-    Exception e( ALIB_CALLER_NULLED, Exceptions::UnaryOperatorNotDefined, op, TypeStr( ctScope->Stack[0] )  );
+    Exception e( ALIB_CALLER_NULLED, Exceptions::UnaryOperatorNotDefined, op, compiler.TypeName( expression.ctScope->Stack[0] )  );
     e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal );
     throw e;
 }
@@ -468,61 +657,66 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
 
 void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
     // If we have a global operator replacement, this will be used. However, in this case changes
     // of it must not be passed back to the caller as long certain normalization flags are set.
     String  opReference= op;
     bool    aliased= false;
-    auto globalAliasIt= compiler.AlphabeticBinaryOperatorAliases.find(op);
+    auto globalAliasIt=  compiler.AlphabeticBinaryOperatorAliases.Find(op);
     if( globalAliasIt != compiler.AlphabeticBinaryOperatorAliases.end() )
     {
         aliased= true;
-        opReference= globalAliasIt->second;
+        opReference= globalAliasIt.Mapped();
     }
 
     bool foundOperator=   false; // die Variable kann wohl raus. Stattdessen dort wo sie gesetzt wird ein "return" machen.
     bool triedToAutoCast= false;
 
-    Box lhsOrigType= At(LHSResultPos).ResultType;
-    Box rhsOrigType= At(RHSResultPos).ResultType;
+    Box lhsOrigType= prg.at(prg.lhsResultPC()).ResultType;
+    Box rhsOrigType= prg.at(prg.   resultPC()).ResultType;
 
 
     for(;;)
     {
         collectArgs(2);
-        bool lhsIsConstant= At(LHSResultPos).IsConstant() && !EnumContains(compiler.CfgCompilation, Compilation::NoOptimization );
-        bool rhsIsConstant= At(RHSResultPos).IsConstant() && !EnumContains(compiler.CfgCompilation, Compilation::NoOptimization );
+        bool lhsIsConstant= prg.at(prg.lhsResultPC()).IsConstant() && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization );
+        bool rhsIsConstant= prg.at(prg.   resultPC()).IsConstant() && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization );
 
-        CompilerPlugin::CIBinaryOp cInfo( *ctScope, opReference, lhsIsConstant, rhsIsConstant );
+        CompilerPlugin::CIBinaryOp cInfo( *expression.ctScope,
+                                           compileStorage->ConditionalStack.get_allocator().allocator,
+                                           opReference, lhsIsConstant, rhsIsConstant );
 
         try
         {
-            for( auto& ppp : compileStorage->plugins )
+            for( auto& ppp : compiler.plugins )
             {
                 if( !ppp.plugin->TryCompilation( cInfo ) )
                     continue;
 
-                if( !aliased || EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
+                if( !aliased || HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToSymbolic ) )
                     op= opReference;
                 else
-                    if( EnumContains(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
+                    if( HasBits(compiler.CfgNormalization, Normalization::ReplaceVerbalOperatorsToDefinedLetterCase ) )
                         op= globalAliasIt->first;
 
 
                 // --- identity? (like "a * 1" or "x && true")  ---
                 if( cInfo.NonConstArgIsResult )
                 {
-                    qtyOptimizations++;
+                    ++qtyOptimizations;
 
                     // lhs or rhs to remove?
                     if( lhsIsConstant )
-                        erase( begin() + LHSCodeStart );
+                        prg.erase( prg.lhsResultStartPC() );
                     else
-                        RemoveLastCommand;
+                        prg.eraseLast();
 
-                    PopResult;
-                    ResultPos= LastCommandNo;
+                    prg.popResultPC();
+                    prg.resultPC()= prg.actPC();
 
                     foundOperator= true;
                     break;
@@ -531,14 +725,14 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                 // --- constant? ---
                 if( cInfo.Callback == nullptr )
                 {
-                    qtyOptimizations++;
+                    ++qtyOptimizations;
 
                     // remove lhs, rhs and correct result stack
-                    erase( begin() + LHSCodeStart, begin() + RHSResultPos     );
+                    prg.erase( prg.lhsResultStartPC(), prg.resultPC()     );
 
-                    PopResult;
-                    ResultPos= LastCommandNo;
-                    LastCommand= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
+                    prg.popResultPC();
+                    prg.resultPC()= prg.actPC();
+                    prg.act()= VM::Command( cInfo.TypeOrValue, true, idxInOriginal, idxInNormalized );
 
                     foundOperator= true;
                     break;
@@ -547,12 +741,11 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                 //--- Callback ---
 
                 // found correct result type stack
-                PopResult;
-                AddCommand( cInfo.Callback, 2, cInfo.TypeOrValue, op, true,
-                            idxInOriginal, idxInNormalized  );
-                ResultPos= LastCommandNo;
+                prg.popResultPC();
+                prg.add( cInfo.Callback, 2, cInfo.TypeOrValue, op, true, idxInOriginal, idxInNormalized );
+                prg.resultPC()= prg.actPC();
 
-                DBG_CALLBACK_INFO(back())
+                DBG_SET_CALLBACK_INFO
 
                 // done!
                 foundOperator= true;
@@ -567,19 +760,21 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
             {
                 Exception e( ALIB_CALLER_NULLED, Exceptions::BinaryOperatorNotDefined,
                              op,
-                             TypeStr( lhsOrigType ),
-                             TypeStr( rhsOrigType )           );
+                             compiler.TypeName( lhsOrigType ),
+                             compiler.TypeName( rhsOrigType )           );
 
                 throw e;
             }
 
             // try auto cast (we do this even if types are equal )
             triedToAutoCast= true;
-            CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, op,
-                                                   At( LHSResultPos ).IsConstant(),
-                                                   At( RHSResultPos ).IsConstant()   );
+            CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+                                                   compileStorage->ConditionalStack.get_allocator().allocator,
+                                                   op,
+                                                   prg.at( prg.lhsResultPC() ).IsConstant(),
+                                                   prg.at( prg.   resultPC() ).IsConstant()   );
 
-            for( auto& pppAutoCast : compileStorage->plugins )
+            for( auto& pppAutoCast : compiler.plugins )
             {
                 if( !pppAutoCast.plugin->TryCompilation( ciAutoCast ) )
                     continue;
@@ -591,7 +786,7 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                     if( ciAutoCast.Callback == nullptr )
                     {
                         // change constant value conversion
-                        VM::Command& cmdToPatch= *( begin() + LHSResultPos );
+                        VM::Command& cmdToPatch= prg.at( prg.lhsResultPC() );
                         cmdToPatch.Operation.Value= ciAutoCast.TypeOrValue;
                         ALIB_DBG( cmdToPatch.DbgInfo.Plugin= pppAutoCast.plugin;                 )
                     }
@@ -600,17 +795,16 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                     else
                     {
                         // insert conversion
-                        ALIB_DBG( auto insertIt= )
-                        emplace( begin() + LHSResultPos + 1,
-                                 ciAutoCast.Callback, 1,
-                                 ciAutoCast.TypeOrValue,
-                                 ciAutoCast.ReverseCastFunctionName, false,
-                                 idxInOriginal, idxInNormalized                      );
+                        ALIB_DBG( auto& newCmd= )
+                        prg.insertAt( prg.lhsResultPC() + 1, ciAutoCast.Callback, 1,
+                                                             ciAutoCast.TypeOrValue,
+                                                             ciAutoCast.ReverseCastFunctionName, false,
+                                                             idxInOriginal, idxInNormalized                );
 
-                        (LHSResultPos) ++;
-                        (RHSResultPos) ++;
-                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
-                                  insertIt->DbgInfo.Plugin=   pppAutoCast.plugin;               )
+                        ++prg.lhsResultPC();
+                        ++prg.resultPC();
+                        ALIB_DBG( newCmd.DbgInfo.Callback= ciAutoCast.DbgCallbackName;
+                                  newCmd.DbgInfo.Plugin=   pppAutoCast.plugin;               )
                     }
                 }
 
@@ -621,24 +815,23 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
                     if( ciAutoCast.CallbackRhs == nullptr )
                     {
                         // change constant value conversion
-                        back().Operation.Value= ciAutoCast.TypeOrValueRhs;
-                        ALIB_DBG( back().DbgInfo.Plugin= pppAutoCast.plugin;                 )
+                        prg.act().Operation.Value= ciAutoCast.TypeOrValueRhs;
+                        ALIB_DBG( prg.act().DbgInfo.Plugin= pppAutoCast.plugin;                 )
                     }
 
                     // cast function upgrade for rhs?
                     else
                     {
                         // insert conversion
-                        ALIB_DBG( auto insertIt= )
-                        emplace( begin() + RHSResultPos + 1,
-                                 ciAutoCast.CallbackRhs, 1,
-                                 ciAutoCast.TypeOrValueRhs,
-                                 ciAutoCast.ReverseCastFunctionNameRhs, false,
-                                 idxInOriginal, idxInNormalized                     );
-                        (RHSResultPos)++;
+                        ALIB_DBG( auto& newCmd= )
+                        prg.insertAt( prg.resultPC() + 1, ciAutoCast.CallbackRhs, 1,
+                                                          ciAutoCast.TypeOrValueRhs,
+                                                          ciAutoCast.ReverseCastFunctionNameRhs, false,
+                                                          idxInOriginal, idxInNormalized                );
+                        ++prg.resultPC();
 
-                        ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
-                                  insertIt->DbgInfo.Plugin= pppAutoCast.plugin;               )
+                        ALIB_DBG( newCmd.DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
+                                  newCmd.DbgInfo.Plugin= pppAutoCast.plugin;               )
                     }
                 }
                 break;
@@ -647,7 +840,7 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
         }
         catch( Exception& e )
         {
-            if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
+            if(    !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
                 && !e.Type().IsEnumType<Exceptions>()                                                    )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
             e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,    expression.GetOriginalString(), idxInOriginal  );
@@ -655,7 +848,7 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
         }
         catch( std::exception& stdException )
         {
-            if( !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
+            if( !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
             {
                 Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name()   );
                 e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo   , expression.GetOriginalString(), idxInOriginal );
@@ -668,79 +861,91 @@ void Program::AssembleBinaryOp( String& op, integer idxInOriginal, integer idxIn
     } // formally endless loop (max 2)
 }
 
-// flags to access values on the info-stack used to compile conditionals
-#define QJumpPos    std::get<0>( compileStorage->conditionalStack.top() )
-#define TJumpPos    std::get<1>( compileStorage->conditionalStack.top() )
-#define QConstFlags std::get<2>( compileStorage->conditionalStack.top() )
-
 
 void   Program::AssembleCondFinalize_Q( integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
+
     // Note:
     // The "conditional stack" of tuples stores for each nested condition, three values:
     // 1. The position of the lhs result,
     // 2. The position of the jump command between T and F
     // 3. An integer with two bits: bit 1 tells us whether Q was constant and bit 0 which value
     //    the constant Q had. "Had" because it is removed right away.
-    // But even if Q ist constant, both
 
     // Q constant?
     int constQ= 0;
-    if( back().IsConstant() && !EnumContains(compiler.CfgCompilation, Compilation::NoOptimization ) )
+    if( prg.act().IsConstant() && !HasBits(compiler.CfgCompilation, Compilation::NoOptimization ) )
     {
-        qtyOptimizations++;
+        ++qtyOptimizations;
 
-        Box& condition= back().Operation.Value;
+        Box& condition= prg.act().Operation.Value;
         constQ= 2 + ( condition.Call<FIsTrue>()  ?  1 :  0 );
-        pop_back(); // remove constant Q
+        prg.eraseLast(); // remove constant Q
     }
 
     // insert Q-Jump
-    AddCommand( Command::JumpType::Conditional, idxInOriginal, idxInNormalized );
-    compileStorage->conditionalStack.emplace( LastCommandNo, 0, constQ );
+    prg.add( Command::JumpType::Conditional, idxInOriginal, idxInNormalized );
+    compileStorage->ConditionalStack.emplace_back( prg.actPC(), 0, constQ );
 }
 
 
 void    Program::AssembleCondFinalize_T( integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
 
     // insert T-Jump
-    AddCommand( Command::JumpType::Unconditional, idxInOriginal, idxInNormalized );
-    ResultPos++; // for the time being this points to the jump command.
-                 // Otherwise upcoming F optimizations don't know where to find the start of F!
+    prg.add( Command::JumpType::Unconditional, idxInOriginal, idxInNormalized );
+    ++prg.resultPC(); // for the time being this points to the jump command.
+                      // Otherwise upcoming F optimizations don't know where to find the start of F!
+
+    auto& actCond= compileStorage->ConditionalStack.back();
 
     // patch Q-Jump to command after T-Jump
-    At(QJumpPos).Operation.Distance= Length() - QJumpPos;
+    prg.at(actCond.QJumpPos).Operation.Distance= prg.length() - actCond.QJumpPos;
 
     // store T-Jump address on conditional stack
-    TJumpPos= LastCommandNo;
+    actCond.TJumpPos= prg.actPC();
 }
 
 void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNormalized )
 {
+    if( compileStorage == nullptr )
+        return;
+
+    Assembly prg( compileStorage->Assembly, compileStorage->ResultStack);
     ASSERT_ASSEMBLE
+
+    auto& actCond= compileStorage->ConditionalStack.back();
 
     // patch result stack position of T one back (in Finalize_T we had increased it by one to
     // point to the jump command, to protect it from being deleted with an lhs-delete
-    LHSResultPos--;
+    --prg.lhsResultPC();
 
-    At( TJumpPos ).Operation.Distance= Length() - TJumpPos;
+    prg.at( actCond.TJumpPos ).Operation.Distance= prg.length() - actCond.TJumpPos;
 
 
     // needs type alignment?
-    if( !At( LHSResultPos ).ResultType.IsSameType( At( RHSResultPos ).ResultType )    )
+    if( !prg.at( prg.lhsResultPC() ).ResultType.IsSameType( prg.at( prg.resultPC() ).ResultType )    )
     {
         collectArgs(2);
         String condOp= A_CHAR("Q?T:F");
-        CompilerPlugin::CIAutoCast ciAutoCast( *ctScope, condOp,
-                                                At( LHSResultPos ).IsConstant(),
-                                                At( RHSResultPos ).IsConstant()   );
+        CompilerPlugin::CIAutoCast ciAutoCast( *expression.ctScope,
+                                               compileStorage->ConditionalStack.get_allocator().allocator,
+                                               condOp,
+                                               prg.at( prg.lhsResultPC() ).IsConstant(),
+                                               prg.at( prg.   resultPC() ).IsConstant()   );
         bool found= false;
         try
         {
-            for( auto& ppp : compileStorage->plugins )
+            for( auto& ppp : compiler.plugins )
                 if( ppp.plugin->TryCompilation( ciAutoCast ) )
                 {
                     if( !ciAutoCast.TypeOrValue.IsType<void>() )
@@ -749,29 +954,29 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
                         if(  ciAutoCast.Callback == nullptr )
                         {
                             // change constant value conversion and patch type in jump command
-                            At(LHSResultPos).Operation.Value=
-                            At(LHSResultPos).ResultType     = ciAutoCast.TypeOrValue;
+                            prg.at(prg.lhsResultPC()).Operation.Value=
+                            prg.at(prg.lhsResultPC()).ResultType     = ciAutoCast.TypeOrValue;
 
-                            ALIB_DBG( At(LHSResultPos).DbgInfo.Plugin= ppp.plugin;    )
+                            ALIB_DBG( prg.at(prg.lhsResultPC()).DbgInfo.Plugin= ppp.plugin;    )
                         }
 
                         // upgrade function for T?
                         else if( ciAutoCast.Callback )
                         {
                             // jump one more (the other as well)
-                            At(QJumpPos).Operation.Distance++;
-                            At(TJumpPos).Operation.Distance++;
+                            ++prg.at(actCond.QJumpPos).Operation.Distance;
+                            ++prg.at(actCond.TJumpPos).Operation.Distance;
 
                             // insert conversion
-                            ALIB_DBG( auto insertIt= )
-                            emplace( begin() + TJumpPos++,
-                                     ciAutoCast.Callback, 1,
-                                     ciAutoCast.TypeOrValue,
-                                     ciAutoCast.ReverseCastFunctionName, false,
-                                     idxInOriginal, idxInNormalized                     );
-                            ALIB_DBG( insertIt->DbgInfo.Callback= ciAutoCast.DbgCallbackName;
-                                      insertIt->DbgInfo.Plugin= ppp.plugin;               )
-                            LHSResultPos++;
+                            ALIB_DBG( auto& newCmd= )
+                            prg.insertAt( actCond.TJumpPos++, ciAutoCast.Callback, 1,
+                                                              ciAutoCast.TypeOrValue,
+                                                              ciAutoCast.ReverseCastFunctionName,
+                                                              false,
+                                                              idxInOriginal, idxInNormalized      );
+                            ALIB_DBG( newCmd.DbgInfo.Callback= ciAutoCast.DbgCallbackName;
+                                      newCmd.DbgInfo.Plugin= ppp.plugin;               )
+                            ++prg.lhsResultPC();
                         }
                     }
 
@@ -781,26 +986,26 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
                         if( ciAutoCast.Callback == nullptr )
                         {
                             // change constant value
-                            back().Operation.Value=
-                            back().ResultType     =  ciAutoCast.TypeOrValueRhs;
+                            prg.act().Operation.Value=
+                            prg.act().ResultType     =  ciAutoCast.TypeOrValueRhs;
 
-                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
-                                      back().DbgInfo.Plugin= ppp.plugin;                    )
+                            ALIB_DBG( prg.act().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
+                                      prg.act().DbgInfo.Plugin= ppp.plugin;                    )
                         }
 
                         // upgrade function for T?
                         else
                         {
                             // insert conversion
-                            AddCommand( ciAutoCast.CallbackRhs, 1,
-                                        ciAutoCast.TypeOrValueRhs,
-                                        ciAutoCast.ReverseCastFunctionNameRhs, false,
-                                        idxInOriginal, idxInNormalized                    );
-                            RHSResultPos++;
-                            At(TJumpPos).Operation.Distance++;
+                            prg.add( ciAutoCast.CallbackRhs, 1,
+                                     ciAutoCast.TypeOrValueRhs,
+                                     ciAutoCast.ReverseCastFunctionNameRhs, false,
+                                     idxInOriginal, idxInNormalized                    );
+                            ++prg.resultPC();
+                            ++prg.at(actCond.TJumpPos).Operation.Distance;
 
-                            ALIB_DBG( back().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
-                                      back().DbgInfo.Plugin= ppp.plugin;                    )
+                            ALIB_DBG( prg.act().DbgInfo.Callback= ciAutoCast.DbgCallbackNameRhs;
+                                      prg.act().DbgInfo.Plugin= ppp.plugin;                    )
                         }
                     }
 
@@ -810,7 +1015,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
         }
         catch( Exception& e )
         {
-            if(    !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
+            if(    !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough)
                 && !e.Type().IsEnumType<Exceptions>()                                                    )
                 e.Add( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name() );
             e.Add    ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
@@ -818,7 +1023,7 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
         }
         catch( std::exception& stdException )
         {
-            if( !EnumContains(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
+            if( !HasBits(compiler.CfgCompilation, Compilation::PluginExceptionFallThrough) )
             {
                 Exception e( ALIB_CALLER_NULLED, Exceptions::ExceptionInPlugin, expression.Name()   );
                 e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo,     expression.GetOriginalString(), idxInOriginal );
@@ -832,8 +1037,8 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
         if(!found)
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::IncompatibleTypesInConditional,
-                         TypeStr( * ciAutoCast.ArgsBegin   ),
-                         TypeStr( *(ciAutoCast.ArgsBegin+1))            );
+                         compiler.TypeName( * ciAutoCast.ArgsBegin   ),
+                         compiler.TypeName( *(ciAutoCast.ArgsBegin+1))            );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression.GetOriginalString(), idxInOriginal  );
 
             throw e;
@@ -841,66 +1046,66 @@ void    Program::AssembleCondFinalize_F( integer idxInOriginal, integer idxInNor
     }
 
     // was this a constant conditional to be optimized out?
-    if( QConstFlags  )
+    if( actCond.ConstFlags  )
     {
         // eliminate T?
-        if( (QConstFlags & 1) == 0  )
+        if( (actCond.ConstFlags & 1) == 0  )
         {
-            erase( begin() + QJumpPos,  begin() + TJumpPos + 1 );
+            prg.erase( actCond.QJumpPos,  actCond.TJumpPos + 1 );
         }
 
         // eliminate F?
         else
         {
-            erase( begin() + TJumpPos,  end()  );
-            erase( begin() + QJumpPos );
+            prg.erase( actCond.TJumpPos,  prg.actPC() + 1 );
+            prg.erase( actCond.QJumpPos );
         }
     }
     else
         // mark last command as part of conditional. Otherwise constant F-terms become optimized
-        back().SetEndOfConditionalFlag();
+        prg.act().SetEndOfConditionalFlag();
 
 
     // clean the conditional stack
-    compileStorage->conditionalStack.pop();
+    compileStorage->ConditionalStack.pop_back();
 
     // remove results Q [? T : F]
-    PopResult;
-    PopResult;
-    ResultPos= LastCommandNo;
+    prg.popResultPC();
+    prg.popResultPC();
+    prg.resultPC()= prg.actPC();
 }
 
 
 void Program::AssembleFinalize()
 {
+    if( compileStorage == nullptr )
+        return;
+
+    ALIB_DBG(Assembly prg( compileStorage->Assembly, compileStorage->ResultStack); )
     ASSERT_ASSEMBLE
 
-    ALIB_ASSERT_ERROR( compileStorage->conditionalStack.size() == 0,
+    ALIB_ASSERT_ERROR( compileStorage->ConditionalStack.size() == 0,
                        "Finalizing program, while conditional stack is of size {}.",
-                       compileStorage->conditionalStack.size()                             )
-    ALIB_ASSERT_ERROR( compileStorage->resultStack.size() == 1,
+                       compileStorage->ConditionalStack.size()                             )
+    ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() == 1,
                        "Finalizing program, while result stack is of size {}.",
-                       compileStorage->resultStack.size()                                  )
-    if( compileStorage )
-    {
-        delete compileStorage;
-        compileStorage= nullptr;
-    }
+                       compileStorage->ResultStack.size()                                  )
+
+
+    // copy the program from the temporary vector to a simple array, allocated with the
+    // compile-time scope's allocator.
+    commandsCount= static_cast<integer>( compileStorage->Assembly.size() );
+    commands= expression.ctScope->Allocator.AllocArray<VM::Command>( compileStorage->Assembly.size() );
+    auto* cmd= commands;
+    for( auto* it : compileStorage->Assembly )
+        new ( cmd++ ) VM::Command(*it);
+
+    compileStorage= nullptr;
+
 }
 
-
-#undef TypeStr
-#undef AddCommand
-#undef RemoveLastCommand
-#undef LastCommandNo
-#undef LastCommand
-#undef PushResult
-#undef PopResult
-#undef ResultPos
-#undef LHSResultPos
-#undef RHSResultPos
-#undef LHSCodeStart
-//#undef RHSCodeStart
+#undef ASSERT_ASSEMBLE
+#undef DBG_SET_CALLBACK_INFO
 
 }}}} // namespace [aworx::lib::expressions::detail]
 

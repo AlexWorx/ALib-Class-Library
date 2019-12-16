@@ -6,11 +6,12 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if !defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#if ALIB_UT_DOCS
 
 
 //! [DOX_ALIB_APPEND_DEFINITION]
 #include "alib/strings/astring.hpp"
+#include "alib/strings/format.hpp"
 #include "alib/time/datetime.hpp"
 #include "alib/system/calendar.hpp"
 
@@ -18,7 +19,7 @@ namespace aworx { namespace lib { namespace strings {
 
     template<> struct T_Append<aworx::lib::time::DateTime>
     {
-        inline void operator()( AString& target, const aworx::lib::time::DateTime& appendable )
+        void operator()( AString& target, const aworx::lib::time::DateTime& appendable )
         {
             aworx::lib::system::CalendarDateTime calendarTime;
             calendarTime.Set( appendable, Timezone::UTC );
@@ -31,7 +32,13 @@ namespace aworx { namespace lib { namespace strings {
 
 
 //----------------------------------- main inclusion -------------------------------
-#include "alib/alox.hpp"
+#include "alib/compatibility/std_strings_iostream.hpp"
+#if !defined (HPP_ALOX)
+#   include "alib/alox.hpp"
+#endif
+#if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
+    #include "alib/strings/numberformat.hpp"
+#endif
 
 #define TESTCLASSNAME       CPP_ALib_Dox_AppendTo
 
@@ -73,9 +80,9 @@ void FormatSample2();
 void FormatSample2()
 {
     character oldDecPointChar= NumberFormat::Global.DecimalPointChar;
-    character oldTGroupChar=   NumberFormat::Global.ThousandsGroupChar;
-                           NumberFormat::Global.DecimalPointChar    =',';
-                           NumberFormat::Global.ThousandsGroupChar  ='.';
+    character oldTGroupChar  = NumberFormat::Global.ThousandsGroupChar;
+                               NumberFormat::Global.DecimalPointChar    =',';
+                               NumberFormat::Global.ThousandsGroupChar  ='.';
 
 //! [DOX_ALIB_APPEND_FORMAT2]
 AString sample;
@@ -112,7 +119,7 @@ UT_CLASS()
 
 UT_METHOD( DOX_ALIB_APPEND )
 {
-    UT_INIT();
+    UT_INIT()
 
     AppendToSample();
     ut.WriteResultFile( "DOX_ALIB_ASTRING_APPEND.txt", sample_os.str() );
@@ -132,8 +139,8 @@ UT_METHOD( DOX_ALIB_APPEND )
 }
 
 
-UT_CLASS_END
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 
-#endif //!defined(ALIB_UT_SELECT) || defined(ALIB_UT_DOCS)
+#endif // ALIB_UT_DOCS

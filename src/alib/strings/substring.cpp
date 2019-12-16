@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
 #   include "alib/strings/substring.hpp"
 #endif
@@ -13,6 +14,7 @@
 #if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
+#endif // !defined(ALIB_DOX)
 
 // Windows.h might bring in max/min macros
 #if defined( max )

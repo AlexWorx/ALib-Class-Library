@@ -6,6 +6,7 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined(HPP_ALIB_THREADS_SMARTLOCK)
 #   include "alib/threads/smartlock.hpp"
 #endif
@@ -13,7 +14,7 @@
 #if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
 #   include <algorithm>
 #endif
-
+#endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib { namespace threads {
 
@@ -55,7 +56,7 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
                     firstAcquirer->Acquire( ALIB_CALLER_PRUNED);
                         SetSafeness( Safeness::Safe );
                         acquirers.emplace_back( newAcquirer );
-                        count++;
+                        ++count;
                     firstAcquirer->Release();
                 }
 
@@ -72,7 +73,7 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
 
                     SetSafeness( Safeness::Safe );
                     acquirers.emplace_back( newAcquirer );
-                    count++;
+                    ++count;
                 }
             }
             else

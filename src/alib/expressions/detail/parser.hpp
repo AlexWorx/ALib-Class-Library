@@ -1,9 +1,10 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_expressions of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PARSER
 #define HPP_ALIB_EXPRESSIONS_DETAIL_PARSER
 
@@ -14,8 +15,11 @@
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 
 
+namespace aworx { namespace lib {
 
-namespace aworx { namespace lib { namespace expressions {
+namespace monomem { class MonoAllocator; }
+
+namespace expressions {
 
 class Compiler;
 
@@ -39,22 +43,21 @@ struct Parser
      * Parses the given expression string.
      * \note
      *   The return value is hidden by using <c>void*</c>. This is to allow avoid flooding
-     *   of \c boost header includes files to the code entities using module \alibmod_nolink_expressions.
+     *   of \c boost header includes files to the code entities using module \alib_expressions_nl.
      *
      * @param expressionString The string to parse.
      * @param numberFormat     Used to parse literal numbers.
+     * @param allocator        Used for temporary objects, including AST nodes, converted string
+     *                         data, etc.
      * @return  The abstract syntax tree representing the expression.
      */
-    virtual detail::AST* Parse( const String&   expressionString,
-                                NumberFormat*   numberFormat                      ) = 0;
+    virtual detail::AST* Parse( const String&           expressionString,
+                                NumberFormat*           numberFormat,
+                                monomem::MonoAllocator* allocator                     ) = 0;
 
 
     /**
      * Static method to create a parser object.
-     *
-     * \note
-     *   This library provides two implementations of parsers. See the according
-     *   \ref alib_expressions_appendix_boostspirit "manual section" for more information.
      *
      * @param compiler The compiler that needs a parser.
      * @return The parser.
@@ -63,7 +66,7 @@ struct Parser
     Parser*     Create( Compiler& compiler );
 };
 
-}}}}; // namespace [aworx::lib::expressions::detail]
+}}}} // namespace [aworx::lib::expressions::detail]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_PARSER

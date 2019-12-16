@@ -1,9 +1,10 @@
-﻿// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+﻿/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_strings of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_NUMBERFORMAT
 #define HPP_ALIB_STRINGS_NUMBERFORMAT 1
 
@@ -25,11 +26,11 @@ namespace aworx { namespace lib { namespace strings {
  *    \alib{strings,TString,String},
  *    \alib{strings,TSubstring,Substring},
  *    \alib{strings,TAString,AString} or
- *    \alib{stringformat,Formatter}
+ *    \alib{text,Formatter}
  * are preferred to write and parse numbers. Also those accept an object of this type as parameters.
  *
  * <b>Defined Singletons and User-Defined Instances:</b><br>
- * Two static singletons of this class, both initialized with method \alib{ALibModules::Init},
+ * Two static singletons of this class, both initialized with method \alib{ALibDistribution::Bootstrap},
  * are defined which can be used wherever a number format object is needed as a parameter:
  * - #Global: Reflects locale-specific settings.
  *
@@ -140,7 +141,7 @@ struct TNumberFormat
      * The default static number format object that acts as the
      * default settings of the currently running process.<br>
      * Method
-     * \alib{ALibModules::Init} invokes #SetFromLocale() on this object and
+     * \alib{ALibDistribution::Bootstrap} invokes #SetFromLocale() on this object and
      * switches grouping on.
      *
      * Classes providing functionality based on this class, might use this as a default
@@ -153,7 +154,7 @@ struct TNumberFormat
      * use, which means, that grouping is switched off and decimal point character
      * is \c '.'.<br>
      * Method
-     * \alib{ALibModules::Init} invokes #SetComputational on this object.
+     * \alib{ALibDistribution::Bootstrap} invokes #SetComputational on this object.
      * Note that using code that use this field without having invoked <b>ALIB.init</b> may
      * behave wrongly.
      *
@@ -191,7 +192,7 @@ struct TNumberFormat
     /** Defines what is written and parsed for double values that represent "not a number". */
     TCString<TChar>     NANLiteral;
 
-    /** Used by function \alib{strings::detail,ParseInt} to detect binary format of integer values.
+    /** Used by function \alib{strings::detail,ParseInt} to detect binary format of integral values.
      * If \e nulled, no binary format is detected.
      * Functions provided with \alib are not writing the prefix. If this is desired, it has to
      * be performed explicitly by the user code.<br>
@@ -207,7 +208,7 @@ struct TNumberFormat
     TCString<TChar>     HexLiteralPrefix;
 
     /**
-     * Used by function \alib{strings::detail,ParseInt} to detect octal format of integer values.
+     * Used by function \alib{strings::detail,ParseInt} to detect octal format of integral values.
      * If \e nulled, no octal format is detected.
      * Functions provided with \alib are not writing the prefix. If this is desired, it has to
      * be performed explicitly by the user code.<br>
@@ -430,7 +431,10 @@ struct TNumberFormat
     /** ********************************************************************************************
      * Constructor. Invokes #SetComputational to reset all fields to their default values.
      **********************************************************************************************/
-    inline   TNumberFormat() { SetComputational(); }
+    TNumberFormat()
+    {
+        SetComputational();
+    }
 
     /** ********************************************************************************************
      * Copies all fields (settings) from the given object. If no object is provided, values of
@@ -504,7 +508,7 @@ struct TNumberFormat
      *   Static (global) object
      *   \ref aworx::lib::strings::TNumberFormat::Global "TNumberFormat::Global",
      *   implements an instance which has the right locale set (provided that
-     *   \alib{ALibModules::Init}
+     *   \alib{ALibDistribution::Bootstrap}
      *   was duly invoked by the process).
      *   Otherwise, this method might be used to initialize a custom object with default values
      *   to afterwards make some specific changes.

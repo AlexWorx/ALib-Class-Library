@@ -93,7 +93,7 @@ after the creation of the converter are not reflected. The converter can be upda
 current system clock setting by invoking \alib{time,TickConverter::SyncClocks}.
 
 
-To provide an understanding for this whole issue, a sample may help: Module \alibmod_alox provides tools to
+To provide an understanding for this whole issue, a sample may help: Module \alib_alox provides tools to
 implement application logging. As it is important to have a steady monotonic relationship
 between each log entry in respect to the moment of their occurrence, the module stores a
 \b %Ticks value with each entry. In many cases, end-users are in fact just interested in two pieces
@@ -128,9 +128,9 @@ system's clock setting that the first log-entry showed.
 # 5. Further Support With Module System # {#alib_time_system}
 
 Two utility classes that are directly concerned to the types of this module have \b not been
-implemented with this module but with module \alibmod_system. The rational for this is that these
-utility classes make use of other \alib functionality, especially modules \alibmod_stringformat
-and \alibmod_resources and the goal was to keep this module a lean and very low level module.
+implemented with this module but with module \alib_system. The rational for this is that these
+utility classes make use of other \alib functionality, especially modules \alib_text
+and \alib_resources and the goal was to keep this module a lean and very low level module.
 
 The classes are:
 

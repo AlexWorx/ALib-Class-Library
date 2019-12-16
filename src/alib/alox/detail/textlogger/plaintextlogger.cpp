@@ -6,7 +6,8 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined (HPP_ALOX_CORE_TEXTLOGGER_PLAINTEXTLOGGER)
+#if !defined(ALIB_DOX)
+#if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
 #   include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
 
@@ -23,6 +24,7 @@
 #endif
 
 #include "alib/strings/util/spaces.hpp"
+#endif // !defined(ALIB_DOX)
 
 
 using namespace aworx;
@@ -68,7 +70,7 @@ void PlainTextLogger::logText( Domain&          ,   Verbosity  ,
             // auto tab or end of meta info part
             if ( c == 't' || c == 'A')
             {
-                end++;
+                ++end;
                 c=  msg[end++];
                 int extraSpace=  c >= '0' && c <= '9' ?   c - '0'
                                                       :   c - 'A'  + 10;

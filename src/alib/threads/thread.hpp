@@ -1,49 +1,34 @@
-// #################################################################################################
-//  ALib C++ Library
-//
-//  Copyright 2013-2019 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
-// #################################################################################################
+/** ************************************************************************************************
+ * \file
+ * This header file is part of module \alib_threads of the \aliblong.
+ *
+ * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".
+ **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREAD
 #define HPP_ALIB_THREADS_THREAD 1
-
 
 #ifndef HPP_ALIB_STRINGS_ASTRING
 #   include "alib/strings/astring.hpp"
 #endif
 
-#ifndef HPP_ALIB_STRINGS_CSTRING
-#   include "alib/strings/cstring.hpp"
+#if !defined (_GLIBCXX_THREAD) && !defined (_THREAD_ )
+#   include <thread>
 #endif
+
 
 ALIB_ASSERT_MODULE(THREADS)
 
-
-// #################################################################################################
-// includes
-// #################################################################################################
-#if !defined (_GLIBCXX_MAP) && !defined(_MAP_)
-    #include <map>
-#endif
-
-#if !defined (_GLIBCXX_MUTEX) && !defined(_MUTEX_)
-    #include <mutex>
-#endif
-
-#if !defined (_GLIBCXX_CONDITION_VARIABLE) && !defined(_CONDITION_VARIABLE_)
-    #include <condition_variable>
-#endif
-
-#if !defined (_GLIBCXX_THREAD) && !defined (_THREAD_ )
-    #include <thread>
-#endif
-
-
 namespace aworx { namespace lib { namespace threads {
 
+// forwards
+class     Thread;
+namespace detail
+{
+    ALIB_API Thread* getThread(std::thread::id c11ID );
+               void  threadStart( Thread* t );
+}
 
-// forward declarations
-class Thread;
 
 /** Type to store thread identifiers.  */
 using ThreadID=    integer;
@@ -58,20 +43,24 @@ static constexpr   ThreadID  UNDEFINED = 0;
  * Initializes \alib thread logic.
  * Multiple invocations of this method are ignored.
  *
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib will invoke this function.
+ * Only if fileset \alibfs_modules is not included in the \alibdist_nl, this
+ * function has to be invoked "manually".
+ *
  * \see
  *   For information about using this method, consult chapter
  *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
  **************************************************************************************************/
-void        Init();
+void        Bootstrap();
 
 /** ************************************************************************************************
  * Frees resources and shuts down \alib thread logic.
  * Multiple invocations of this method are ignored.
  *
  * \see
- *   Sibling function \alib{threads,Init}.
+ *   Sibling function \alib{threads,Bootstrap}.
  **************************************************************************************************/
-void        TerminationCleanUp();
+void        Shutdown();
 
 /** ************************************************************************************************
  * This is a virtual abstract (interface) type that provides the executable method
@@ -103,15 +92,16 @@ class Runnable
  * the \ref alib_mod_threads.
  *
  * ## Friends ##
- * function \alib{threads,Init}
- * function \alib{threads,TerminationCleanUp}
+ * function \alib{threads,Bootstrap}
+ * function \alib{threads,Shutdown}
  **************************************************************************************************/
 class Thread : public Runnable
 {
-    #if !ALIB_DOCUMENTATION_PARSER
-        friend void Init();
-        friend void TerminationCleanUp();
-        friend    void _Thread__Start( Thread* t );
+    #if !defined(ALIB_DOX)
+        friend void    Bootstrap        ();
+        friend void    Shutdown         ();
+        friend void    detail::threadStart( Thread* t );
+        friend Thread* detail::getThread  (std::thread::id c11ID );
     #endif
 
     // #############################################################################################
@@ -142,33 +132,27 @@ class Thread : public Runnable
     // #############################################################################################
     public:
         /** ****************************************************************************************
-         *  Constructor without parameters. As no runnable was provided, such thread will not
-         *  execute any code unless a specialized class is derived that overrides virtual method
-         *  #Run.
-         *  The name of the thread will be set to match a string representation of the thread id.
-         ******************************************************************************************/
-        ALIB_API             Thread();
-
-        /** ****************************************************************************************
-         *  Constructor without a parameter specifying a Runnable. Such thread will not execute any
-         *  code unless a specialized class is derived that overrides virtual method #Run.
+         * Constructor without a parameter specifying a Runnable. Such thread will not execute any
+         * code unless a specialized class is derived that overrides virtual method #Run.
          *
-         * @param threadName The designated name of the thread. If the name provided is empty or,
-         *                   \c nullptr, the name of the thread will be set to match a string
-         *                   representation of the thread id.
+         * @param pName  (Optional) The designated name of the thread. If the name provided is,
+         *               empty the name of the thread will be set to match a string representation
+         *               of the thread id.
          ******************************************************************************************/
-        ALIB_API             Thread( const String& threadName );
+        ALIB_API            Thread( const String& pName= EmptyString() )
+        : Thread( nullptr, pName )
+        {}
 
         /** ****************************************************************************************
-         *  Constructor with provision of a Runnable 'target'. The Run method of 'target' will be
-         *  executed upon thread start, unless this class is specialized an its own Run() method is
-         *  overwritten.
-         * @param target  The target to execute when the thread runs.
-         * @param name    (Optional) The designated name of the thread. If the name provided is,
-         *                empty the name of the thread will be set to match a string representation
-         *                of the thread id.
+         * Constructor with provision of a Runnable 'target'. The Run method of 'target' will be
+         * executed upon thread start, unless this class is specialized an its own Run() method is
+         * overwritten.
+         * @param target The target to execute when the thread runs.
+         * @param pName  (Optional) The designated name of the thread. If the name provided is,
+         *               empty the name of the thread will be set to match a string representation
+         *               of the thread id.
          ******************************************************************************************/
-        ALIB_API            Thread(Runnable* target , const String& name= EmptyString() );
+        ALIB_API            Thread(Runnable* target, const String& pName= EmptyString() );
 
 
         /** ****************************************************************************************
@@ -176,7 +160,7 @@ class Thread : public Runnable
          *  until the thread's end of execution.
          *  Declared virtual, as inherited from Runnable.
          ******************************************************************************************/
-        ALIB_API  virtual   ~Thread();
+        ALIB_API  virtual  ~Thread();
 
 
     // #############################################################################################
@@ -202,7 +186,6 @@ class Thread : public Runnable
          *
          * @return    The \alib id of the thread.
          ******************************************************************************************/
-        inline
         ThreadID        GetId()                              { return id;          }
 
         /** ****************************************************************************************
@@ -212,7 +195,6 @@ class Thread : public Runnable
          *
          * @return  Returns the name of the thread.
          ******************************************************************************************/
-        inline
         const CString   GetName()                            { return name; }
 
         /** ****************************************************************************************
@@ -222,7 +204,6 @@ class Thread : public Runnable
          *
          * @param newName    The name that the Thread should hold.
          ******************************************************************************************/
-         inline
          void           SetName( const String& newName )     { name.Reset( newName);   }
 
         /** ****************************************************************************************
@@ -235,7 +216,6 @@ class Thread : public Runnable
          *
          * @return \c true if this thread was started previously and is still running.
          ******************************************************************************************/
-         inline
          bool           IsAlive()                            { return isAliveFlag; }
 
         /** ****************************************************************************************
@@ -256,8 +236,11 @@ class Thread : public Runnable
          *
          * @return A pointer to the current thread.
          ******************************************************************************************/
-        ALIB_API static
-        Thread*             GetCurrent();
+        static
+        Thread*             GetCurrent()
+        {
+            return detail::getThread( std::this_thread::get_id() );
+        }
 
         /** ****************************************************************************************
          * Static method that returns the thread that initialized the library.
@@ -275,7 +258,7 @@ class Thread : public Runnable
          *
          *  @param milliseconds    Sleep time in milliseconds.
          ******************************************************************************************/
-        inline  static
+        static
         void                SleepMillis( int milliseconds )
         {
             std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
@@ -288,7 +271,7 @@ class Thread : public Runnable
          *
          * @param microseconds    Sleep time in microseconds.
          ******************************************************************************************/
-        inline  static
+        static
         void                SleepMicros( int64_t microseconds )
         {
             std::this_thread::sleep_for( std::chrono::microseconds( microseconds ) );
@@ -300,7 +283,7 @@ class Thread : public Runnable
          *
          * @param nanoseconds    Sleep time in nanoseconds.
          ******************************************************************************************/
-        inline  static
+        static
         void                SleepNanos( int64_t nanoseconds )
         {
             std::this_thread::sleep_for( std::chrono::nanoseconds( nanoseconds ) );
@@ -310,13 +293,13 @@ class Thread : public Runnable
 }} // namespace aworx[::lib::threads]
 
 /// Type alias in namespace #aworx.
-using     Runnable=     aworx::lib::threads::Runnable;
+using     Runnable=     lib::threads::Runnable;
 
 /// Type alias in namespace #aworx.
-using     Thread=       aworx::lib::threads::Thread;
+using     Thread=       lib::threads::Thread;
 
 /** Type to store thread identifiers.  */
-using     ThreadID=     aworx::lib::threads::ThreadID;
+using     ThreadID=     lib::threads::ThreadID;
 
 }  // namespace [aworx]
 

@@ -24,8 +24,8 @@
 # -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_1]
-    project("ALox.Samples")
     cmake_minimum_required( VERSION 3.3.0 )
+    project("ALox.Samples")
 #! [DOXYGEN_CMAKE_INCLUDE_1]
 
 
@@ -34,7 +34,7 @@
 ## -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_2]
-    list( APPEND  ALIB_MODULES             "ALOX"       )
+    list( APPEND  ALIB_DISTRIBUTION             "ALOX"       )
 #! [DOXYGEN_CMAKE_INCLUDE_2]
 
 #! [DOXYGEN_CMAKE_INCLUDE_3]

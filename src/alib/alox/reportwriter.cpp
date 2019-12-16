@@ -6,9 +6,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
+#if !defined(ALIB_DOX)
 #if !defined (HPP_ALIB_ALOX_REPORT_WRITER)
 #   include "alib/alox/reportwriter.hpp"
 #endif
+
+#if !defined (HPP_ALIB_ALOXMODULE)
+#   include "alib/alox/aloxmodule.hpp"
+#endif
+#endif // !defined(ALIB_DOX)
 
 
 namespace aworx { namespace lib { namespace lox {
@@ -32,14 +38,16 @@ ALoxReportWriter::ALoxReportWriter ( Lox* pLox )
 void ALoxReportWriter::Report( const lib::results::Message& msg )
 {
     #if ALIB_DEBUG
-        lox->Acquire( msg.File, msg.Line, msg.Func );
+        lox->Acquire( msg.File, msg.Line, msg.Function );
 
-            lox->GetLogableContainer().Add( msg.Args );
+            auto& logables= lox->GetLogableContainer();
+            logables.Add( msg );
+
             lox->Entry( ALoxReportWriter::LogDomain(),
                         msg.Type == results::Report::Types::Error    ? Verbosity::Error   :
                         msg.Type == results::Report::Types::Warning  ? Verbosity::Warning :
                         msg.Type == results::Report::Types::Message  ? Verbosity::Info    :
-                                                                     Verbosity::Verbose     );
+                                                                       Verbosity::Verbose     );
 
         lox->Release ();
     #else
@@ -52,7 +60,7 @@ NString16 ALoxReportWriter::reportDomain;
 NString& ALoxReportWriter::LogDomain()
 {
     if( reportDomain.IsEmpty() )
-        reportDomain << ALox::InternalDomains << "REPORT";
+        reportDomain << Lox::InternalDomains << "REPORT";
     return reportDomain;
 }
 

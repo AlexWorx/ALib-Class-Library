@@ -23,9 +23,9 @@ evaluated at \e run-time by that software.
 Usually, to achieve this, it is needed to
 - Think about the expression \e grammar and specify such.
 - Use programming tools like
-  [bison](https://savannah.gnu.org/projects/bison/),
-  [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html) or alike
-  ([Wikipedia: Comparison of parser generators](https://en.wikipedia.org/wiki/Comparison_of_parser_generators)).
+  \https{bison,savannah.gnu.org/projects/bison/},
+  \https{boost::spirit,www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html} or alike
+  (\https{Wikipedia: Comparison of parser generators,en.wikipedia.org/wiki/Comparison_of_parser_generators}).
 - Write custom code that evaluates parsed expressions.
 
 This is of-course a lot of work and a month of programming time quickly is consumed, unless
@@ -61,7 +61,7 @@ The areas where the expressions of the two samples differ is:
   results as well as results of the expression.
 - The operators and functions used are eventually defined (\e "overloaded") for custom types.
 
-With this said, we can much better explain what module \alibmod_nolink_expressions offers:
+With this said, we can much better explain what module \alib_expressions_nl offers:
 
 \par
    <em><b>"%ALib %Expressions provide an expression string parser, formatter and evaluator using
@@ -73,7 +73,7 @@ functionality like given in the samples above is <b>surprisingly</b> low.
 
 \~Comment ####################################################################################### \~
 ## 1.2 Pros and Cons: When To Use ALib Expressions ## {#alib_expressions_intro_procon}
-To give you some help in deciding whether module \alibmod_nolink_expressions suits your needs, the
+To give you some help in deciding whether module \alib_expressions_nl suits your needs, the
 "pros" and "cons" should be listed in bullets.
  We start with the cons:
 
@@ -87,7 +87,7 @@ To give you some help in deciding whether module \alibmod_nolink_expressions sui
   Why is this a disadvantage? Well, if you are used to \alib it is absolutely not.
   If not, you may have to learn also some basics of "underlying" \alibmods that this module builds
   on.<br>
-  Especially important modules to name are \alibmod_boxing and \alibmod_strings.
+  Especially important modules to name are \alib_boxing and \alib_strings.
 
 The pros should be given as a feature list:
 
@@ -163,7 +163,7 @@ The pros should be given as a feature list:
 - "Seamless" support of <b>arbitrary custom types</b> within expressions. %Types digested by
   expressions can be any C++ type (class).<br>
   \note
-    Custom types are "introduced" to module \alibmod_nolink_expressions just by having
+    Custom types are "introduced" to module \alib_expressions_nl just by having
     custom identifiers, functions and/or operators return them!<br>
     To then further "support" these types,  operators and functions can to be added (or overloaded)
     to work with the types.  Of-course, the result of expressions can be of such arbitrary types
@@ -240,19 +240,6 @@ The pros should be given as a feature list:
   eager to view the simplistic beauty of a stack machine.)
 
 <p>
-- Provision of an <b>alternative parser</b> that builds on
-  [boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html).<br>
-  This parser and the compilation of its code is switched off by default. In case that the library
-  should be extended to support custom syntax paradigms, there are two options:
-  1. Customize the built-in, "hand written" parser.
-  2. Enable the compilation and integration of the provided alternative parser based on
-     \e boost::spirit and do you customizations based on this parser - which by definition is
-     meant to be customized. (Good luck!)
-
-  For more information on this alternative parser, see chapter
-  \ref alib_expressions_appendix_boostspirit "A.5 Using Built-In Alternative Parser Based On boost::spirit".
-
-<p>
 - <b>Extensive documentation</b>.
   (Please excuse verbosity, writing docs inspires us to do better code.)
 
@@ -263,7 +250,7 @@ This documentation switches between in-depth informational sections and tutorial
 sections. Let's start with a quick tutorial section!
 
 What is "hello world" for each new programming language is a "simple calculator" for expression
-compilers. Here is the code for implementing one using module \alibmod_nolink_expressions:
+compilers. Here is the code for implementing one using module \alib_expressions_nl:
 
   \snippet "docsamples/DOX_ALIB_EXPR_CALCULATOR.cpp"  DOX_ALIB_EXPR_TUT_CALC_MAIN
 
@@ -279,7 +266,7 @@ in the what we call "normalized" expression string. Compare this to the next sam
 
 Why are the brackets gone here, while in the first case they had been redundant anyhow?
 The answer is, that human beings could easily misunderstand the first version,
-so module \alibmod_nolink_expressions feels
+so module \alib_expressions_nl feels
 free to help making an expression more readable.<br>
 You think this is childish? Ok, then what do you think about this expression:
 
@@ -308,7 +295,7 @@ or with string processing:
 
   \snippet "DOX_ALIB_EXPR_TUT_CALC_MAIN-5.txt"     OUTPUT
 
-"tolo()" and "toup()"? Well, \alibmod_nolink_expressions support shortcuts for function names.
+"tolo()" and "toup()"? Well, \alib_expressions_nl support shortcuts for function names.
 Normalization optionally replaces abbreviated names.
 
 Finally, a more complex string function sample:
@@ -340,10 +327,10 @@ some underlying library and principles is helpful.
 \~Comment ####################################################################################### \~
 ## 3.1 ALib Boxing ## {#alib_expressions_prereq_boxing}
 
-As mentioned in the introduction, module \alibmod_nolink_expressions make intensive use of underlying
-module \alibmod_boxing.
+As mentioned in the introduction, module \alib_expressions_nl make intensive use of underlying
+module \alib_boxing.
 
-For the time being, lets quickly summarize what module \alibmod_boxing provides:
+For the time being, lets quickly summarize what module \alib_boxing provides:
 - Encapsulates any C++ value or pointer in an object of type \alib{boxing,Box}.
 - A box is very lightweight (3 x 8 bytes on a 64-bit system) and contains a copy of the value
   (if possible) or a pointer to the object that it capsules.
@@ -352,9 +339,9 @@ For the time being, lets quickly summarize what module \alibmod_boxing provides:
 - Similar features in other programming languages are called auto-boxing. It is especially useful
   if function arguments or return types are of type \b %Box: Such function can be invoked with
   (almost) any parameter, without providing explicit conversions.
-- \alibmod_nolink_boxing is 100% type-safe: The boxed type can be queried and trying to unbox a
-  wrong type, raises a run-time assertion (in debug compilations).
-- \alibmod_nolink_boxing  supports a sort of "virtual function" invocation on boxes. This means,
+- \alib_boxing_nl is 100% type-safe: The boxed type can be queried and trying to unbox a
+  wrong type, raises a run-time assertion (with debug builds).
+- \alib_boxing_nl  supports a sort of "virtual function" invocation on boxes. This means,
   that functions can be invoked on boxes without prior type-checking and/or unboxing of values.
   Such functions can simply be implemented (according to the required function signature)
   and then registered for a boxed-type.
@@ -367,7 +354,7 @@ available.
 ## 3.2 Type Definitions With "Sample Boxes" ## {#alib_expressions_prereq_sb}
 
 The type-safety mechanisms and the possibilities of querying the type encapsulated in a box
-is used by module \alibmod_nolink_expressions in an inarguably lazy fashion: Wherever this expression
+is used by module \alib_expressions_nl in an inarguably lazy fashion: Wherever this expression
 library needs type information, such information is given as a <b>"sample box"</b> which
 is created with a sample value of the corresponding C++ type.
 
@@ -405,7 +392,7 @@ For custom types, there is no need for more efforts, as this code snippet demons
 
        Box samplePerson= Person();
 
-By default, with \alibmod_boxing, non-trivial C++ types that do not fit into the small placeholder
+By default, with \alib_boxing, non-trivial C++ types that do not fit into the small placeholder
 embedded in the box are \ref alib_boxing_classes "boxed as pointers". This means that even as a
 value of a custom type was assigned to the box, a pointer to it is stored.
 In the sample above, the pointer will be invalid in the next line, but that is OK, as only the
@@ -419,7 +406,7 @@ Besides the advantage that this omits the creation of an otherwise unused object
 this approach is the only way, to get sample boxes of <b>abstract C++ types</b>!
 
 
-The magic of module \alibmod_boxing makes life as simple as this! Let us preempt what is explained in the
+The magic of module \alib_boxing makes life as simple as this! Let us preempt what is explained in the
 following chapters: All native callback functions to be implemented for custom operators,
 identifiers and functions are defined to return an object of type \b %Box. Thus, these functions
 can return values of arbitrary custom type. The type of the returned (boxed) value has to correspond
@@ -446,7 +433,7 @@ Once understood, this is all very simple!
    If sample boxes for custom types should be globally defined <b>and initialized</b>,
    likewise the built-in ones found in \alib{expressions,Types}, an "optimization step" has to be
    performed. Details are given in chapter \ref alib_boxing_more_opt_staticvt of the
-   Programmer's Manual of \alibmod_boxing.<br>
+   Programmer's Manual of \alib_boxing.<br>
    Note that this is required only if your custom code has to be able to reside in read-only memory,
    e.g. with embedded systems.
    (It can of-course also be done by enthusiasts to minimize an executables code size, or just for
@@ -479,12 +466,8 @@ the previous two chapters about:
 - (Mis-)using class \b %Box for just type propagation, and
 - Imposing contract rules with specialized types, instead of templating things.
 
-In addition to that, it is notable, that a lot of the types of module \alibmod_nolink_expressions are
-\e structs rather than classes. Hence, fields and methods are exposed publicly. The library does not take
-a lot of effort to be duly abstract and minimal in exposure.
-Of-course, such design this neither suitable nor preferred in most situations.
-While we are far from feeling that we need to excuse for obviously doing even more "Bauhaus" here
-than usually, we rather want to convince and explain, why this design was chosen.
+In addition to that, it is notable, that a lot of the types of module \alib_expressions_nl are
+\e structs rather than classes. Hence, fields and methods are exposed publicly.
 
 The goal of this library is to allow other software (libraries or internal units of a software)
 to expose an interface that has two main functions:
@@ -506,11 +489,11 @@ Using this custom class could look like this:
            ...
        }
 
-As it is easily understood, really just nothing of library module \alibmod_nolink_expressions needs to be
+As it is easily understood, really just nothing of library module \alib_expressions_nl needs to be
 exposed to the "end user" of the code. Especially:
 - Only the sources (compilation units) that implement class \b %FileFilter need to include headers
-  of module \alibmod_nolink_expressions
-- Consequently, not only details of module \alibmod_nolink_expressions, like
+  of module \alib_expressions_nl
+- Consequently, not only details of module \alib_expressions_nl, like
   \alib{expressions,detail::Parser},
   \alib{expressions,detail::Program} or
   \alib{expressions,detail::VirtualMachine},
@@ -523,7 +506,7 @@ exposed to the "end user" of the code. Especially:
 - The same is true for custom derived types and therefore also for the "contract rules"
   (see previous chapter) between these types.
 
-This all means, that the "natural way" of using module \alibmod_nolink_expressions automatically hides away
+This all means, that the "natural way" of using module \alib_expressions_nl automatically hides away
 all internals, which on the other side gives this module the freedom to generously use Bauhaus
 style, what here then finally translates to:
 - Generously exposing types and their internals.
@@ -541,7 +524,7 @@ custom expression logic. The sample application that we use to demonstrate how t
 implements expressions to filter files of directories, as it may be required by a simple file
 search software or otherwise be used by a third party application.
 
-As a foundation, we are using the [Filesystem Library](https://en.cppreference.com/w/cpp/filesystem)
+As a foundation, we are using the \https{Filesystem Library,en.cppreference.com/w/cpp/filesystem}
 of <b>C++ 17</b>. Note that this, as of the time of writing this documentation, is an upcoming
 feature and with some compilers it might not be available today, or instead of including header
 
@@ -552,10 +535,10 @@ header
        #include <experimental/filesystem>
 
 needs to be used. This library originates from a development of the
-[boost C++ Libraries](https://www.boost.org) and even if you have never used it, this should not
+\https{boost C++ Libraries,www.boost.org} and even if you have never used it, this should not
 introduce more burden to understand this sample, as it is very straight forward.
 
-For example, the following three lines of code:
+For example, the following few lines of code:
 
   \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_TUT_FF_1
 
@@ -596,13 +579,13 @@ which is anyhow ignored by the filter skeleton. The loop then looks as follows:
 Of-course, the output of this loop remains the same, because constant \c true is returned by
 the filter skeleton's method \b %Includes.
 
-What we nevertheless have achieved: The interface of how \alibmod_nolink_expressions will be used
+What we nevertheless have achieved: The interface of how \alib_expressions_nl will be used
 is already defined!<br>
 This is a good point in time to quickly sort out the different perspectives on "interfaces",
 "libraries" or "APIs" explicitly:
-1. Library module \alibmod_nolink_expressions exposes an interface/API to compile and evaluate
+1. Library module \alib_expressions_nl exposes an interface/API to compile and evaluate
    expression strings.
-2. The software that uses \alibmod_nolink_expressions usually exposes an own interface/API, either
+2. The software that uses \alib_expressions_nl usually exposes an own interface/API, either
    - to other parts of the same software, or
    - to other software - in case that this 2nd level is a library itself.
 3. The "end user" that uses a software of-course does not know about any software interface or
@@ -610,7 +593,7 @@ This is a good point in time to quickly sort out the different perspectives on "
    the software!
 
 The goal should be that on the 2nd level, the API of the 1st level
-(which is this \alibmod_nolink_expressions library), is \b not visible any more.<br>
+(which is this \alib_expressions_nl library), is \b not visible any more.<br>
 Well, and with the simple skeleton code above, this goal is already achieved!
 
  \~Comment ####################################################################################### \~
@@ -672,12 +655,12 @@ to "express herself" by passing expression strings to a software. Besides wrong 
 whole expression might be malformed, for example by omitting a closing bracket or any other breach
 of the expression syntax rules.
 
-The good news however is, that with the use of module \alibmod_nolink_expressions, most - if not all -
+The good news however is, that with the use of module \alib_expressions_nl, most - if not all -
 of the errors can be handled already at compile-time! Once an expression is compiled, not much can
 happen when an expression is later evaluated.
 
 And this is also true for our current thread of facing a wrong result type: Due to the fact that module
-\alibmod_nolink_expressions implements a <em>type-safe compiler</em>, we can detect the result
+\alib_expressions_nl implements a <em>type-safe compiler</em>, we can detect the result
 type at compile-time.
 
 Consequently, we revert our most recent code changes and rather check the result type already
@@ -773,12 +756,12 @@ expected result type of that callback function.
 
 The final step, before we can test the code is to implement the callback function. This is usually
 done in an anonymous namespace at the start of the compilation unit of the plug-in itself.
-The signature of any callback function that \alibmod_nolink_expressions expects, is given with
+The signature of any callback function that \alib_expressions_nl expects, is given with
 \alib{expressions,CallbackDecl}. The documentation shows, that it has three parameters, the
 scope and the begin- and end-iterators for the input parameters. The input parameters are
 boxed in objects of class \alib{boxing,Box} and the same type is expected to be returned.
 
-Because \alibmod_nolink_boxing makes a programmer's life extremely easy, especially when used
+Because \alib_boxing_nl makes a programmer's life extremely easy, especially when used
 with various kinds of strings, and because we are not reading any input parameters, the
 implementation of the callback function is done with just one line of code:
 
@@ -802,7 +785,7 @@ implementation of the callback function is done with just one line of code:
   to implement classes like \b %FileFilter in our sample, this responsibility to keep the contracts
   is only shared within a few implementation units. What we previously called,
   "the custom 2nd level api", hides these constraints completely away, along with all other
-  parts of \alibmod_nolink_expressions.
+  parts of \alib_expressions_nl.
 
 We are set! Our first "real" filter expressions should work. Here are some filter loops and
 their output:
@@ -846,7 +829,7 @@ We could now easily continue implementing further identifiers, for example:
 - \b Size: Returns the size of the file built-in type \alib{expressions,Types::Integer}.
 - \b Date: Returns the date of the entry as built-in type \alib{expressions,Types::DateTime}.
 - \b Permissions: Returns the access rights of the file or folder. For this, we would probably
-  return an integer value and introduce further identifiers like \b GroupRead, \b GroupWrite,
+  return an integral value and introduce further identifiers like \b GroupRead, \b GroupWrite,
   \b OwnerRead,... and so forth that return constants.
 
 This would lead to inserting further <c>if</c>-statements to the custom plug-in, similar to
@@ -871,10 +854,6 @@ retrieval of a string value from an object found in a custom specialization of c
 ## 5.1 The Compilation Process ## {#alib_expressions_cpcc_process}
 When an expression string gets compiled, such compilation is done in two phases. The first step
 is called <b>"parsing"</b>.
-\note
-  \alibmod_nolink_expressions provides two choices of parsers, which are selectable via a
-  preprocessor compilation symbol. For more details on this see
-  \ref alib_expressions_appendix_boostspirit "A.5 Using Built-In Alternative Parser Based On boost::spirit".
 
 The result of the parsing process is a recursive data structure called <em>"abstract syntax tree"</em>.
 The nodes of this tree can represent one of the following types:
@@ -920,7 +899,7 @@ do and in fact, many similar libraries stop at this point. What needs to be done
 an expression is to recursively walk the \e AST in a so called "depths first search" manner, and perform
 the operations. The result of the evaluation would be the result of the root node of the tree.
 
-\alibmod_nolink_expressions goes one step further, performing a <b>second phase</b> of compilation.
+\alib_expressions_nl goes one step further, performing a <b>second phase</b> of compilation.
 In this phase, the recursive walk over the \e AST is done. The result of the walk is an expression
 \alib{expressions::detail,Program}. Such program is a flat (non-recursive) list of "commands" which are later, when
 the expression is evaluated, executed on a virtual stack machine.
@@ -939,7 +918,7 @@ the <em>ternary operator</em>. What remains is
 - Unary operators and
 - Binary operators.
 
-It was mentioned before, that \alibmod_nolink_expressions is type-safe. To achieve this, the
+It was mentioned before, that \alib_expressions_nl is type-safe. To achieve this, the
 result type of each node is identified (deepest nodes first). Whenever a node with child nodes
 is compiled, the result types of each child node has already been identified.
 
@@ -1016,7 +995,7 @@ The use of the built-in plug-ins is optional and configurable. Configuration is 
 tweaking member \alib{expressions,Compiler::CfgBuiltInPlugins} prior to invoking method
 \alib{expressions,Compiler::SetupDefaults}. But a use-case to do so, is not so easy to find,
 also due to the fact that custom plug-ins default to a higher priority and this way might
-replace selected built-in behaviour.
+replace selected built-in behavior.
 
 To implement a custom compiler plug-in, the following "bottom-up" approach is recommended:
 
@@ -1107,12 +1086,12 @@ The trick with that type is that permutations of operators, identifiers, functio
 and argument types are provided as static table data, together with the information of how
 to compile the permutations.
 
-Then in a custom constructor, these static tables are fed into hash tables that allow a performant
+Then in a custom constructor, these static tables are fed into a hash table that allow a performant
 search. The custom plug-in does not need to furthermore override any \b %TryCompilation method,
-as class \b %Calculus provides a default implementation that simply searches the hash tables.
+as class \b %Calculus provides a default implementation that simply searches the hash table.
 
 Consequently, all that these built-in plug-ins do is feeding their keys and corresponding callback
-methods to these hash tables during construction.
+methods to the hash table during construction.
 This is not just very efficient in respect to this library's code size and in respect to
 the compilation performance of expressions, it also makes the creation of a plug-in an even more
 simple and straight-forward task.
@@ -1125,7 +1104,7 @@ simple and straight-forward task.
 The permutations of function arguments that class \b %Calculus uses to identify static
 compilation information, includes an option to keep a trailing portion of such arguments
 variadic. A sample of such variadic function implemented using this helper class is expression function
-\ref cpp_alib_expressions_Strings_Formatting "Format".
+\ref alib_expressions_Strings_Formatting "Format".
 
 We now go back to our tutorial sample and add more file filter functionality, by using this
 helper class \b Calculus.
@@ -1173,9 +1152,9 @@ just as the callback functions are:
 
  \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_TUT_FF_MoreIdentifiersConstants
 
-We are doing two casts here: The first is to get the underlying integer value from the
+We are doing two casts here: The first is to get the underlying integral value from the
 filesystem library's constants. If we did not do this, we would introduce a new type to
-\alibmod_nolink_expressions. In principle, this would not be a bad thing! The advantages and
+\alib_expressions_nl. In principle, this would not be a bad thing! The advantages and
 disadvantages will be explained in a later chapter.<br>
 The second cast is to convert the signed integral value to an \c unsigned one. Again, if we did not do this,
 this would introduce a new type, namely \alib{uinteger}. Note that this library does
@@ -1219,7 +1198,7 @@ Our file filter is already quite powerful. Here are some sample expressions and 
 \note
   Looking at the last sample: If you are wondering why file \c expressionslib.cpp is so huge, the
   answer is: it contains this whole manual and tutorial that you are just reading, created with
-  marvelous [Doxygen](http://www.doxygen.org)!
+  marvelous \https{Doxygen,www.doxygen.org}!
 
 
 \~Comment ###################################################################################### \~
@@ -1236,7 +1215,7 @@ Ok, let us add three functions. Here are the callbacks:
   \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_TUT_FF_Functions
 
 The functions unbox the first parameter. For this, due to the <em>type-safe compilation</em> of
-\alibmod_nolink_expressions, neither the availability nor the type of the given argument needs
+\alib_expressions_nl, neither the availability nor the type of the given argument needs
 to be checked.
 
 Next we need to define the function "signature", which is defining the number and types of
@@ -1305,7 +1284,7 @@ Next, some binary operator definitions are to be showcased.
 
 We had implemented identifier \b Permissions to return a value of  \alib{expressions,Types::Integer}
 instead of returning the C++ 17 filesystem library's internal type. The advantage of this was
-that the built-in bitwise-boolean operators defined for integer values, could instantly be used
+that the built-in bitwise-boolean operators defined for integral values, could instantly be used
 with expressions. This was demonstrated in above sample expression:
 
        (permissions & OwnerExecute) != 0
@@ -1315,7 +1294,7 @@ An end-user could pass the expression:
 
        (permissions & 42) != 0
 
-without receiving an error. While this is a design decision when using \alibmod_nolink_expressions,
+without receiving an error. While this is a design decision when using \alib_expressions_nl,
 in most cases, type-safeness has definite advantages.
 To achieve type-safeness, we now change the definition of the callback function of identifier
 \b Permission as follows:
@@ -1330,15 +1309,15 @@ choose one enumeration element and assign it to a new variable of type \b Box.
 
 A next small change needed, results from a requirement of class \b Box: Global (or static) objects
 must not be initialized with custom types (in this case with elements of enum \c fs::perms).
-Such initialization has to happen after module \alibmod_boxing is duly bootstrapped.
+Such initialization has to happen after module \alib_boxing is duly bootstrapped.
 Therefore, the initializations of all constant boxes, as well as of the sample box, is now moved to
 the constructor of the compiler plug-in.
 
 \note
-  It is possible to customize \alibmod_nolink_boxing to support the initialization of global
+  It is possible to customize \alib_boxing_nl to support the initialization of global
   boxes with custom types, but we do not do this exercise here.<br>
   Details are explained in the Programmer's Manual of
-  \alibmod_nolink_boxing with chapter \ref alib_boxing_more_opt_staticvt.
+  \alib_boxing_nl with chapter \ref alib_boxing_more_opt_staticvt.
 
 
 The new code for the compiler plug-in's constructor now is:
@@ -1381,14 +1360,14 @@ We do this for a bunch of operators at once. Firstly, we need the callbacks for 
 This is the first time that two parameters are read in the callbacks. It is done using simple
 iterator arithmetics.
 
-Struct \alib{expressions::plugins,Calculus} organizes compilation information on unary and binary operators
-in nested hash maps. Filling in these maps is rather complicated. Therefore, a convenience
-function is available that fills the map using a given simple array of information entries.
+Struct \alib{expressions::plugins,Calculus} organizes compilation information on unary and binary
+operators in a hash map. For filling the map, a convenience function is available that accepts
+a simple array of information entries.
 This array usually is defined in the anonymous namespace of the compilation unit:
   \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_TUT_FF_PermTypeOperatorTable
 
 For information about the meaning of the values of the table, consult the documentation of
-\alib{expressions::plugins,Calculus::BinaryOpTableEntry}. But looking at the code, and reflecting
+\alib{expressions::plugins,Calculus::OperatorTableEntry}. But looking at the code, and reflecting
 what was already presented in this tutorial, the meaning should be is quite self-explanatory.
 It just should be noted, that also for operators, flags \alib{expressions::plugins,Calculus::CTI}
 or \alib{expressions::plugins,Calculus::ETI} may be given.
@@ -1404,7 +1383,6 @@ identifiers returns a constant value.
 Finally, in the constructor of the plug-in we now add the following line of code:
   \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_TUT_FF_PermTypeFeedTable
 
-
 With this in place, the expression now compiles in a type-safe way:
   \snippet "DOX_ALIB_EXPR_TUT_FF_Func-3.txt"     OUTPUT
 
@@ -1419,7 +1397,7 @@ With this in place, the expression now compiles in a type-safe way:
        (permissions & OwnerExecute) == OwnerExecute
 
 \note
-  which is logically the same. To allow the first version, a replacement identifier for integer value
+  which is logically the same. To allow the first version, a replacement identifier for integral value
   \c 0, e.g. \b NoPermission had to be inserted to the plug-in.
 
 
@@ -1427,7 +1405,7 @@ With this in place, the expression now compiles in a type-safe way:
 \~Comment ###################################################################################### \~
 ## 6.5 Implementing Auto-Casts ## {#alib_expressions_tut_ffext_autocasts}
 To finalize this tutorial part of the documentation, a last quite powerful feature of
-\alibmod_nolink_expressions is presented. We re-think again what we did in the previous
+\alib_expressions_nl is presented. We re-think again what we did in the previous
 section:
 - We changed identifier \b Permissions to return values of custom type \c fs::perms.
 - Because of this, the built-in bitwise boolean operators are not applicable any more and therefore,
@@ -1452,15 +1430,15 @@ This approach obviously has the following consequences:
   For example expression <c>{ Permissions == 0 }</c> is well compiled and evaluated.
 
 \note
-  It is a design decision of \alibmod_nolink_expressions that auto-cats are performed only once
+  It is a design decision of \alib_expressions_nl that auto-cats are performed only once
   per expression operator and not a second or third time:
   If after one plug-in performed auto-casts, still no matching operator is found, then compilation
   fails.<br>
-  One rationale for this behaviour is that repeated auto-casts would undermine the "type safeness"
-  of \alibmod_nolink_expressions too much by leading to maybe unforeseen effects.<br>
+  One rationale for this behavior is that repeated auto-casts would undermine the "type safeness"
+  of \alib_expressions_nl too much by leading to maybe unforeseen effects.<br>
   For example, consider a custom application supposed over two different enum types, which both are
   exposed by expression function result values. Now, the application programmer might want to allow
-  built-in bitwise boolean operators that are defined on integer values to become compatible
+  built-in bitwise boolean operators that are defined on integral values to become compatible
   with both types. For both types she would implement an auto-cast to integer type.
   The effect is that the operators work, but also combinations of the custom enum types and integer
   literals. So far, so good. Now, if the library would do repetitive
@@ -1566,7 +1544,7 @@ Here are some rationals for this statement:
 \~Comment ####################################################################################### \~
 ## 7.1 Completeness Of Built-In Functionality ## {#alib_expressions_builtin_completeness}
 
-In the default setup (all built-in plug-ins are active), \alibmod_nolink_expressions is considered
+In the default setup (all built-in plug-ins are active), \alib_expressions_nl is considered
 to be \e "complete" in respect to providing all reasonable operators for permutations of arguments
 of all built-in types.
 
@@ -1581,7 +1559,7 @@ to code size, a custom build-process has to be set up.
 \~Comment ####################################################################################### \~
 ## 7.2 Types ## {#alib_expressions_builtin_types}
 
-As explained in previous sections of this manual, the introduction of types to \alibmod_nolink_expressions is
+As explained in previous sections of this manual, the introduction of types to \alib_expressions_nl is
 performed in an implicit fashion: New types are introduced in the moment a callback function
 chooses to return one and consequently, the corresponding compiler plug-in announces this return
 type of such callback to the compiler during the compilation process.
@@ -1627,7 +1605,7 @@ implemented and documented with plug-in \alib{expressions::plugins,Math}.
 \~Comment ####################################################################################### \~
 ## 7.5 String Expressions ## {#alib_expressions_builtin_string}
 Plug-In \alib{expressions::plugins,Strings} provides quite powerful string operations.
-The library here benefits tremendously from underling modules \alibmod_strings and \alibmod_boxing.
+The library here benefits tremendously from underling modules \alib_strings and \alib_boxing.
 
 For example, operator \alib{expressions::DefaultBinaryOperators,Add} (<c>'+'</c>) allows to concatenate
 two strings, but also a string with "any" other built-in or custom type.
@@ -1652,7 +1630,7 @@ name.
 The corresponding %Expression functionality is implemented with plug-in
 \alib{expressions::plugins,DateAndTime}.
 
-If a user of \alibmod_nolink_expressions prefers to use different, own or 3rd-party types, then
+If a user of \alib_expressions_nl prefers to use different, own or 3rd-party types, then
 support for such type needs to be implemented by a custom plug-in. Such implementation may
 be created by copying the source code of built-in plug-in \b %DateAndTime and replacing
 all corresponding code lines to work with the desired date and time types. If wanted, some or all
@@ -1696,7 +1674,7 @@ same type.
 
 Similar to the conditional operator, the default
 implementation invokes box-function \alib{boxing,FIsTrue} on argument \c 'A' and decides
-whether \c 'A' or \c 'B' is chosen. This default behaviour can be changed by just
+whether \c 'A' or \c 'B' is chosen. This default behavior can be changed by just
 implementing the elvis operator, likewise any other operator would be implemented.
 
 
@@ -1721,7 +1699,7 @@ a customized (derived) version of struct \alib{expressions,Scope} is passed to m
 functions, when the expression program is executed by the built-in virtual machine.
 As a result, a custom callback function can rely on the fact that it is possible to
 dynamically cast parameter \c scope back to the custom type and access <em>"scoped data"</em>
-which exposes an interface into the application that uses \alibmod_nolink_expressions.
+which exposes an interface into the application that uses \alib_expressions_nl.
 
 This is the most obvious and also intuitively well understandable role of struct \b %Scope.
 But there are other important things that this class provides.
@@ -1729,7 +1707,7 @@ But there are other important things that this class provides.
 \note
   Struct \b %Scope is a good (or bad!) sample of this library's design principle discussed
   in chapter \ref alib_expressions_prereq_bauhaus "3.4 Bauhaus Code Style". Remember,
-  that the software that uses \alibmod_nolink_expressions is supposed to hide struct
+  that the software that uses \alib_expressions_nl is supposed to hide struct
   \b %Scope with all it's publicly accessible members, same as all other details of this library.<br>
   In other words: not all members that are accessible should be accessed. Some care has to
   be taken.
@@ -1770,24 +1748,24 @@ However, an expression with string operations like this:
        "Hello " + "beautiful " + "world!"
 
 incorporates intermediate results (in this case <c>"Hello beautiful "</c>).
-Such intermediate results have to be allocated somewhere, because the \b %Box object stores only a
-pointer to a character array, together with its length. In fact, the final result string has as
-well be allocated, because again, the result of the expression is a boxed string which needs
-allocation.
+Space for such intermediate results has to be allocated somewhere, because the \b %Box object
+stores only a pointer to a character array, together with its length. In fact, the final result
+string has as well be allocated, because again, the result of the expression is a boxed string which
+needs allocation.
 
 For this reason, struct \b %Scope incorporates some built-in "facilities" to allocate data.
 Those are briefly:
-- \alib{expressions,Scope::Memory}<br>
-  This is a simple but powerful "block memory allocator" of type \alib{memory,MemoryBlocks}.
+- \alib{expressions,Scope::Allocator}<br>
+  This is a simple but powerful "monotonic memory allocator" of type \alib{monomem,MonoAllocator}.
   As it name indicates, it allocates chunks of memory and thus leads to high run-time performance,
   because it reduces allocation costs in contrast to the repeated allocations for each needed.
   And even better: the allocated chunks remain allocated and are reused, when an expression is
   evaluated against a next scope. This usually reduces the need for memory allocations to
   zero, starting with the second evaluation!<br>
-  Its templated methods \alib{memory::MemoryBlocks,Alloc} and \alib{memory::MemoryBlocks,Construct}
+  Its templated methods \alib{monomem::MonoAllocator,Alloc} and \alib{monomem::MonoAllocator,Emplace}
   allow the creation of custom object types.<br>
-  Furthermore, this allocator is useful to allocate string data. This purpose is supported by
-  helper class \alib{expressions::plugins,ScopeString} which uses this allocator internally.
+  Furthermore, this allocator is useful to allocate string data, when used in combination with
+  type \alib{monomem,TMAString}.
 
 - \alib{expressions,Scope::Resources}<br>
   A simple vector of pointers to objects of type \alib{expressions,ScopeResource}. This type is
@@ -1798,15 +1776,13 @@ Those are briefly:
   A hash map of pointers to objects of type\alib{expressions,ScopeResource}. Its purpose and
   use will be discussed in a later section.
 
-
-All objects allocated are deleted with method \alib{expressions,Scope::Clear}, which is internally
+All objects allocated are deleted with method \alib{expressions,Scope::Reset}, which is internally
 invoked when appropriate.
-
 
 Of-course, custom specializations of the class, which anyway have to be created for the purposes
 discussed before, may provide other fields that can be used to allocate memory resources, tailored
 to the type of objects needed. But it has to be made sure, that method
-\alib{expressions,Scope::Clear} is overridden to free all resources. And: when overriding this
+\alib{expressions,Scope::Reset} is overridden to free all resources. And: when overriding this
 method, it has to be assured that the original virtual function of the base class is invoked
 as well, because built-in plug-ins allocate resources by using the built-in features of
 struct \b %Scope.
@@ -1859,16 +1835,16 @@ So far, things had been still quite straight forward. Let us quickly recap what 
 scopes:
 - Scopes are used to provide evaluation time data from the application.
 - Scopes are used to allocate data for intermediate and final expression result objects.
-- Due to the fact that \alibmod_nolink_expressions provides the feature of compile-time optimization,
+- Due to the fact that \alib_expressions_nl provides the feature of compile-time optimization,
   a compile-time scope is created with the compilation of the expression.
 - Of-course, any evaluation specific field of custom scopes which provide access to the application
-  data are \e nulled in the compile-time scope and accessing them is unspecified behaviour
+  data are \e nulled in the compile-time scope and accessing them is unspecified behavior
   (usually the program crashes).
 - The life-cycle of the compile-time scope is bound to the life-cycle of a compiled expression.
-  Its method \alib{expressions,Scope::Clear} is only called with destruction.
+  Its method \alib{expressions,Scope::Reset} is only called with destruction.
 - The life-cycle of the evaluation-time scope is user dependent. It is strongly recommended to
   create one object and reuse this object for each evaluation (as sampled in the tutorial).
-  Its \b %Clear method is automatically (internally) called at the beginning of method
+  Its \b %Reset method is automatically (internally) called at the beginning of method
   \alib{expressions,Expression::Evaluate}. This also means, that the expression result object
   of the previous call to \b %Evaluate becomes invalid (if it is relies on evaluation-time
   allocated data).
@@ -1910,7 +1886,7 @@ evaluates to \c true.
            "MyPhoto.jpg" * "*.jpg"
 
 To implement this function, internally helper class \alib{strings::util,TWildcardMatcher,WildcardMatcher}
-provided by underlying library module \alibmod_strings is used. For performance reasons,
+provided by underlying library module \alib_strings is used. For performance reasons,
 this class implements a two-phased approach: First, the "pattern" string (here <c>"*.jpg"</c>)
 is parsed and translated into a set of internal information. Then, for a performing a
 single match, this internal information is used, which is much faster than if the pattern
@@ -1991,7 +1967,7 @@ argument is not constant), the match is performed using a local, one-time matche
 \~Comment ####################################################################################### \~
 ## 9.1 Built-In And Custom Operators And ## {#alib_expressions_operators_default}
 
-In its default configuration, module \alibmod_nolink_expressions parses and compiles an
+In its default configuration, module \alib_expressions_nl parses and compiles an
 almost complete set of operators known from the C++ language. Not supported by default are
 for example assignment operators like e.g. <c>'+='</c> or increments <c>'++'</c>.
 Operators included are:
@@ -2039,7 +2015,7 @@ The built-in operators are set by method \alib{expressions,Compiler::SetupDefaul
 \alib{expressions,Compiler::CfgCompilation}.
 
 Internally the following approach is taken:
-- The \alib{resources,T_EnumMetaDataDecl,resourced enum meta data} of enumeration class
+- The \e resourced \ref alib_enums_records "ALib Enum Records" of enumeration class
   \alib{expressions,DefaultUnaryOperators} respectively
   \alib{expressions,DefaultBinaryOperators} is loaded.
 - For each enumeration element, the information is passed to a call to
@@ -2058,10 +2034,10 @@ might be wanted. This is exercised in the next section.
 ## 9.2 Tutorial: Adding A Custom Operator ## {#alib_expressions_operators_custom}
 
 With what was described in the previous chapter, the following options of customizing the operators
-parsed and compiled by module \alibmod_nolink_expressions can be taken:
+parsed and compiled by module \alib_expressions_nl can be taken:
 - Built-in operators can be completely disabled by just clearing the flags in field
   <b>%Compiler::CfgCompilation</b>.
-- \alib{resources,Resources} of library class \alib{expressions,Expressions}
+- \alib{resources,ResourcePool} of library class \alib{expressions,Expressions}
   can be altered to change operator symbols or precedences.
 - Methods \alib{expressions,Compiler::AddUnaryOperator}, respectively
   \alib{expressions,Compiler::AddBinaryOperator} may be called prior or after
@@ -2111,7 +2087,7 @@ The expression compiles and results in:
   - Any changes in respect to operator setup has to be made prior to invoking method
     \alib{expressions,Compiler::Compile} for the first time, because with that, the internal
     parser is created (once) and configured according to these settings.
-    Later changes will have no effect or result in undefined  behaviour.
+    Later changes will have no effect or result in undefined  behavior.
   - The registration of custom compiler plug-ins may be done before or after modifying the operator
     setup of the compiler.
 
@@ -2156,8 +2132,8 @@ The default built-in (resourced) verbal operator aliases are:
  | \b Neq               | Binary operator <c>'!='</c>
  | \b Not_equals        | Binary operator <c>'!='</c>
 
-Likewise the operators themselves, \alibmod_nolink_expressions defines the names and alias
-operators using \alib{resources,T_EnumMetaDataDecl,resourced enum meta data} assigned to
+Likewise the operators themselves, \alib_expressions_nl defines the names and alias
+operators using \e resourced \ref alib_enums_records "ALib Enum Records" assigned to
 enumeration class \alib{expressions,DefaultAlphabeticBinaryOperatorAliases}.<br>
 The resource data is processed by method \alib{expressions::Compiler,SetupDefaults} dependent
 on flag
@@ -2182,8 +2158,7 @@ after the invocation of \b %SetupDefaults, but before a first expression is comp
   it is allowed to set single names of the predefined enum element names to empty strings.
   These will be ignored with method \b %SetupDefaults. On the same token, when changing the
   resources, completely different values and meanings may be used, because the enum class
-  \b %DefaultAlphabeticBinaryOperatorAliases is exclusively used for accessing its meta
-  information.
+  \b %DefaultAlphabeticBinaryOperatorAliases is exclusively used for accessing its enum records.
 - The concept of <em>verbal operator aliases</em> must not be confused with the concept
   of <em>operator aliases</em> performed with compiler plug-ins (explained in next section).
   Verbal aliases are defined globally and a compiler plug-in will never "see" the alias names as
@@ -2219,15 +2194,12 @@ The following parts of the library's API are involved in operator aliasing:
 - Inner structs \alib{expressions::CompilerPlugin,CIUnaryOp} and
   \alib{expressions::CompilerPlugin,CIBinaryOp} of class \b %CompilerPlugin:<br>
   Both structs provide string field \b %Operator by reference and thus allow a compiler plug-in to change
-  the operator to that one that it wants the given one to be an alias for.
-- Helper class \b %Calculus with methods:
-  - \alib{expressions::plugins::Calculus,AddUnaryOpAlias},
-  - \alib{expressions::plugins::Calculus,AddUnaryOpAliases},
-  - \alib{expressions::plugins::Calculus,AddBinaryOpAlias} and
-  - \alib{expressions::plugins::Calculus,AddBinaryOpAliases}
-
-  which simplify operator alias definitions and avoid to denote the same compilation
-  information twice.
+  the operator string one aliased by the given one.
+- Helper class \b %Calculus with methods
+  \alib{expressions::plugins::Calculus,AddOperatorAlias} and
+  \alib{expressions::plugins::Calculus,AddOperatorAliases},
+  which simplify feeding entries of operator alias definitions stored in hash map
+  \alib{expressions::plugins::Calculus,OperatorAliases}.
 - Normalization flag \alib{expressions::Normalization,ReplaceAliasOperators} which controls
   if alias operators are replaced in the normalized expression string.
 
@@ -2299,7 +2271,7 @@ still the following works:
 When changing the nested expression operator, some thinking about the consequences is advised.
 Other candidates for nested expression operators may be <c>'$'</c>, <c>'%'</c> or
 <c>'@'</c>, which are more commonly used to denote variables or other "scoped" or "nested"
-entities. But exactly for this reason, module \alibmod_nolink_expressions opted to default
+entities. But exactly for this reason, module \alib_expressions_nl opted to default
 the operator to <c>'*'</c>.  Often, applications offer to provide expressions via a command
 line interface, which in turn allows using <b>%bash CLI</b> and any scripting language.
 The asterisk character <c>'*'</c> seems to be least clashing with such external environments.<br>
@@ -2334,7 +2306,7 @@ retrieve them back using a key value.
 \~Comment ####################################################################################### \~
 ## 10.1 Named Expressions ## {#alib_expressions_nested_named}
 
-Module \alibmod_nolink_expressions provides a built-in container to store compiled expressions.
+Module \alib_expressions_nl provides a built-in container to store compiled expressions.
 In the moment an expression is stored, a name has to be given and that is all that makes an
 expression a named expression.
 
@@ -2356,10 +2328,10 @@ for removal method \alib{expressions::Compiler,RemoveNamed}.
 
 By default, <b>letter case is ignored</b> when using the given name as a storage key.
 Hence adding \c "MYEXPRESSION" after adding \c "MyExpression" replaces the previous instance.
-This behaviour can be changed using compilation flag
+This behavior can be changed using compilation flag
 \alib{expressions::CompilationFlag,CaseSensitiveNamedExpressions}. Changes of this flag
 must be done only prior to adding a first named expression. Later changes leads to is undefined
-behaviour.
+behavior.
 
 Named expressions is not too much of a great thing if viewed as a feature by itself.
 But it is the important prerequisite for <em>nested expressions</em> explained in the following
@@ -2379,7 +2351,7 @@ The operator expects a string providing the name, but for convenience, this stri
 need to be quoted, but may be given like identifiers are.
 
 \note
-   This behaviour is configurable with compilation flag
+   This behavior is configurable with compilation flag
    \alib{expressions::Compilation,AllowIdentifiersForNestedExpressions} and enabled by default.
    If the name of an expression does not conform to the
    \ref alib_expressions_details_identifiers "11.3 Identifiers/Functions",
@@ -2403,7 +2375,7 @@ evaluates to true in parallel.
 
 One might think that this is all that has to be said about nested expressions. But unfortunately
 this is not. An attentive reader might have noticed some important restriction with nesting
-expressions like this: Because \alibmod_nolink_expressions is a type-safe library, the compiler
+expressions like this: Because \alib_expressions_nl is a type-safe library, the compiler
 can compile operator <c>&&</c> in the above sample only if it knows the result type of
 \c "MyNestedExpression". As a consequence, we have to state the following rule:
 
@@ -2447,7 +2419,7 @@ This expression does not work:
 as it throws:
   \snippet "DOX_ALIB_EXPR_NESTED_OP_5.txt"     OUTPUT
 
-While - due to the compile-time optimization of \alibmod_nolink_expressions - the constant
+While - due to the compile-time optimization of \alib_expressions_nl - the constant
 concatenation term <c>"MyNested" + "Expression"</c> is still accepted, the compiler complains
 if we use the function \c random. The compiler does not have the information that
 <c>random>=0</c> evaluates to constant true, and hence the term is not optimized and not
@@ -2577,7 +2549,7 @@ be rather in her interest, that an expression just fails to evaluate in the case
 nested expression is not found. For example, if this indicates a configuration error of a
 software.
 
-Such behaviour can be achieved by adding a third parameter to <b>Expression()</b>. This third
+Such behavior can be achieved by adding a third parameter to <b>Expression()</b>. This third
 parameter is keyword \c "throw".
 
 We take the sample of the previous section where the expression was not defined, which resulted
@@ -2598,7 +2570,7 @@ omitted. An end-user simply should be noted to put a constant "sample value" for
 A user that uses this third version of the nested expression function, is supposed to be a "pro"
 and understand the impacts.
 
-\note "throw" is the only keyword of \alibmod_nolink_expressions!
+\note "throw" is the only keyword of \alib_expressions_nl!
 
 
 
@@ -2625,7 +2597,7 @@ introduced. This method is invoked by \b %GetNamed in the moment no expression w
 name is found. If then, \b %getExpressionString returns an expression string, the expression
 is compiled and added just on the fly.
 
-If module \alibmod_nolink_expressions is compiled together with module \alibmod_nolink_config,
+If module \alib_expressions_nl is compiled together with module \alib_config_nl,
 code for leveraging \alib configuration features with \alib expressions becomes available:
 A default implementation of aforementioned virtual method \b %getExpressionString that
 makes use of now also available pointer member \alib{expressions,Compiler::Config}.<br>
@@ -2640,10 +2612,10 @@ added by command line parameters.
 
 For information about to use class \b %Configuration, which likewise the compiler itself supports
 "plug-ins" for data sources, see the documentation of module
-\alibmod_config.
+\alib_config.
 
 Other members of class \b %Compiler that become available with compiling this library together with
-\alibmod_nolink_config are
+\alib_config_nl are
 \alib{expressions::Compiler,DefaultCategories},
 \alib{expressions::Compiler,VariablesLoaded} and
 \alib{expressions::Compiler,StoreLoadedExpressions}. See its documentations to learn about the
@@ -2652,7 +2624,7 @@ details of their use.
 \~Comment ####################################################################################### \~
 ## 10.6 Summary and Final Notes On Nested Expressions {#alib_expressions_nested_summary}
 
-Nested expressions is a powerful feature of \alibmod_nolink_expressions, but also needs some
+Nested expressions is a powerful feature of \alib_expressions_nl, but also needs some
 thoughtful and knowledgeable user because of the different approaches of compile-time and
 evaluation-time defined nested expressions.<br>
 If a software offers an end-user to "express herself", a certain level of understanding is
@@ -2672,7 +2644,7 @@ To end this chapter about nested expressions, some final hints and notes should 
 - To disallow nested expressions, simply fields
   \alib{expressions::Compiler,CfgNestedExpressionOperator} and
   \alib{expressions::Compiler,CfgNestedExpressionFunction} of class \b %Compiler are to be cleared.
-- It is undefined behaviour if a nested expression that is successfully identified at compile-time
+- It is undefined behavior if a nested expression that is successfully identified at compile-time
   is deleted and the referring expression still evaluated afterwards.
 - To disallow compile-time nested expressions only, compilation flag
   \alib{expressions::Compilation,AllowCompileTimeNestedExpressions} is to be cleared.
@@ -2691,15 +2663,15 @@ To end this chapter about nested expressions, some final hints and notes should 
 
 \~Comment ####################################################################################### \~
 # 11. Detail Topics # {#alib_expressions_details}
-In the previous chapters of this manual, most features of module \alibmod_nolink_expressions
+In the previous chapters of this manual, most features of module \alib_expressions_nl
 have been touched, either as tutorial sample code or in a more theoretic fashion.
 This chapter now provides a list of in-depth discussions on different dedicated topics.
 
 \~Comment ####################################################################################### \~
 ## 11.1 Types  # {#alib_expressions_details_types}
 It was a lot said about the intermediate or final result types of expressions in various
-sections of this manual. The use of underlying run-time type information library \alibmod_boxing
-with its very "seamless" nature, helped to implement \alibmod_nolink_expressions tremendously.
+sections of this manual. The use of underlying run-time type information library \alib_boxing
+with its very "seamless" nature, helped to implement \alib_expressions_nl tremendously.
 
 But being so seamless, it is not so easy to understand all aspects of its use and meaning
 in this library. Therefore, this quick chapter tries to review various aspects of the library
@@ -2707,7 +2679,7 @@ from the angle of types. For simplification of writing and reading this chapter,
 with a list of bullet points.
 
 - A prerequisite to fully understand how type information is handled by this library, is to
-  read and understand the documentation of \alibmod_boxing.
+  read and understand the documentation of \alib_boxing.
   <p>
 
 - This library often uses "sample boxes" that just transport type information. This concept is
@@ -2730,10 +2702,10 @@ with a list of bullet points.
     in boxed intermediate result values can mostly be completely ignored in that respect that a
     callback function does not need to perform checks on its input values in respect to their type:
     Their implementation just unbox values without doing type checking.<br>
-    In this matter, it might be hinted to the fact that library \alibmod_nolink_boxing is designed
+    In this matter, it might be hinted to the fact that library \alib_boxing_nl is designed
     to not throw run-time exceptions. It rather raises assertions in debug-compilation, e.g. if
-    inconsistent types are tried to be unboxed. In non-debug compilation, a software simply
-    has undefined behaviour (crashes).
+    inconsistent types are tried to be unboxed. In release builds, a software simply
+    has undefined behavior (crashes).
   - Overloaded versions of one operator (or function) can be implemented in very separated
     software units, not "knowing" each other and not interfering with each other.
   <br><br><p>
@@ -2785,8 +2757,8 @@ with a list of bullet points.
   <p>
 
 - The variety of built-in types has been reduced to a bare minimum needed.
-  While module \alibmod_boxing (by default!) already drops the distinction of C++ integral type of
-  different size (\c short, \c long, \c int, etc.), module \alibmod_nolink_expressions in addition
+  While module \alib_boxing (by default!) already drops the distinction of C++ integral type of
+  different size (\c short, \c long, \c int, etc.), module \alib_expressions_nl in addition
   drops the distinction between  \e signed and \e unsigned integral types. All integral types are
   \e signed. (Given that the "complete" JAVA programming language dropped unsigned integers, we
   thought it might not be too problematic).
@@ -2800,12 +2772,12 @@ with a list of bullet points.
   custom operators and function definitions have to be added.
   <p>
 
-- For technical reasons, \alibmod_nolink_boxing is not "aware" of type inheritance relations.
+- For technical reasons, \alib_boxing_nl is not "aware" of type inheritance relations.
   It is not possible to detect if a type of one box inherits a different type in another box.
-  Usually it is sufficient to expose only the base type to \alibmod_nolink_expressions.
+  Usually it is sufficient to expose only the base type to \alib_expressions_nl.
   It is important to note, that in this case callback functions have to perform a
   \c dynamic_cast prior to returning derived types. If they do not do that, the derived type
-  becomes introduced to \alibmod_nolink_expressions!<br>
+  becomes introduced to \alib_expressions_nl!<br>
   Finally, if the common base type is abstract, and therefore no sample value can be
   created, the trick to create a sample box is to use <c>reinterpret_cast<>()</c> like this:
 
@@ -2818,7 +2790,7 @@ with a list of bullet points.
   to allow nicely formatted string output of custom data using built-in expression function
   \alib{expressions,plugins::Strings,Format(formatString\,...)}, box-function
   \alib{boxing,FAppend} and/or
-  \alib{stringformat,FFormat} have to be implemented for the custom type.
+  \alib{text,FFormat} have to be implemented for the custom type.
   <p>
 
 
@@ -2836,13 +2808,12 @@ With the current version of the library it is not possible to change the interna
 which result from "parsing" a literal. The term "parsing" denotes the first phase of the
 compilation of an expression string. Changes on how literals are parsed and in what types such
 parsing results can only be made by touching the library code, which is not further documented
-here, but with some explanations in chapter
-\ref alib_expressions_appendix_boostspirit "A.5 Using Built-In Alternative Parser Based On boost::spirit"
+here.
 
 \~Comment ############################################################################## \~
 ### 11.2.1 Numerical Literals ### {#alib_expressions_details_literals_1}
 The parsing of numerical constants found in expression strings is done with the help of
-member \alib{stringformat,Formatter::DefaultNumberFormat} which in turn is found in
+member \alib{text,Formatter::DefaultNumberFormat} which in turn is found in
 member \alib{expressions,Compiler::CfgFormatter}.
 
 The use of this helper type, allows to influence how numerical literals are parsed. For example,
@@ -2878,7 +2849,7 @@ software that english standards are to be used.
 
 In general, all flags and options in respect to parsing and formatting (normalizing) number
 literals that are available through class \alib{strings,TNumberFormat,NumberFormat} are compatible with
-\alibmod_nolink_expressions. This includes even to set character <c>' '</c> (space) as a grouping
+\alib_expressions_nl. This includes even to set character <c>' '</c> (space) as a grouping
 character for any number format! This might be used to allow quite nicely readable numbers in
 expression strings.
 
@@ -2918,7 +2889,7 @@ strings at appropriate places only if the following rules apply:
 - The rest of the name consists of letters, underscore character <c>'_'</c> and numbers
   <c>'0'</c> to <c>'9'</c>.
 
-In the current version of module \alibmod_nolink_expressions, this is hard-coded and not
+In the current version of module \alib_expressions_nl, this is hard-coded and not
 configurable.
 
 \~Comment ####################################################################################### \~
@@ -2929,7 +2900,7 @@ expression strings and their output as a normalized expression, was already give
 
 A second area, where localization may become an obvious requirement is the naming of built-in and
 custom expression functions.
-The built-in compiler plug-in use mechanics provided by \alib classes \alib{resources,Resources}
+The built-in compiler plug-in use mechanics provided by \alib classes \alib{resources,ResourcePool}
 and \alib{Module} to externalize the names, letter case sensitivity and optional
 minimum abbreviation length of identifiers and functions. The matching of identifier and
 function names found in expression strings is performed using class
@@ -2937,20 +2908,20 @@ function names found in expression strings is performed using class
 "CamelCase" and "snake_case" specific abbreviations.
 
 These mechanics allow to replace such resources using an arbitrary custom
-"string/data resource system": The one that your application uses!
+"string/data resource backend": The one that your application uses!
 With this, it is possible for example to translate certain identifiers (e.g. \b Minutes or \b True)
 to different locales and languages.
 
 While there is no detailed documentation or step-by-step sample on how to perform such
-localization in detail is given, investigating the documentation and optionaly the to the simple
-source code and of the entities named above, should enable a user of this library to quite quickly
+localization in detail is given, investigating the documentation and optionally the simple
+source code of the entities named above, should enable a user of this library to quite quickly
 succeed in integrating any custom localization mechanics used otherwise with her software.
-For using the resources in your own plug-in, the way to go is of-course to copy the setup code
+For creating a custom plug-in, the way to go is of-course to copy the setup code
 from the built-in plug-ins of this library.
 
 A third area where localization might become a need are callback functions
 processing expression data. Again, for formatting and parsing, an instance of \alib class
-\alib{stringformat,Formatter}, which has (as was explained above) an instance of
+\alib{text,Formatter}, which has (as was explained above) an instance of
 \alib{strings,TNumberFormat,NumberFormat} attached.<br>
 A compile-time scope (used with optimizations) is created with virtual method
 \alib{expressions::Compiler,getCompileTimeScope} which in its default implementation attaches
@@ -3055,7 +3026,7 @@ Consult the struct's \alib{expressions,plugins::Calculus,documentation} for furt
 
 \~Comment ############################################################################## \~
 ### 11.5.4 Compile- And Evaluation-Time Optimization Of The Conditional Operator ### {#alib_expressions_details_optimizations_conditional}
-In the current version of \alibmod_nolink_expressions there is only one evaluation-time
+In the current version of \alib_expressions_nl there is only one evaluation-time
 optimization performed. This considers built-in ternary operator <c>Q ? T : F</c>
 (conditional operator).
 
@@ -3112,7 +3083,7 @@ is less effectively optimized to
 
 
 In a more abstract way, it could be stated that a C++ compiler does such optimization, because
-it "knows" about the rules of the multiply operator of integer values.
+it "knows" about the rules of the multiply operator of integral values.
 The compiler of this library does not know about that and hence can not perform these kind
 of operations. If in the case of C++, the operands were custom types with overloaded operator
 <c>'*'</c>, the C++ code would also not be optimized, because in this case, the compiler
@@ -3163,7 +3134,7 @@ Once done, the AST and the compiled (second) program are disposed, while the opt
 is stored.
 
 It is questionable if the result is worth the effort! The decision if a software using
-library \alibmod_nolink_expressions presents "optimized normalized expression strings" to the
+library \alib_expressions_nl presents "optimized normalized expression strings" to the
 end-user is highly use-case dependent. In case of doubt our recommendation is to \e not do it.
 The feature may be helpful during development of custom compiler plug-ins.
 
@@ -3237,30 +3208,32 @@ Consequently, it is up to the user of the library to assure some rules and poten
 implement semaphores if needed. This goes well along with the design principle proposed
 in chapter \ref alib_expressions_prereq_bauhaus.
 
+\attention
+  While class \alib{expressions,Compiler} indirectly inherits class \alib{threads,ThreadLock}
+  (by inheriting \alib{PluginContainer}), the destructor disables its semaphore
+  (by invoking \alib{threads,ThreadLock::SetSafeness,SetSafeness(Safeness::Unsafe)}) and furthermore
+  its interface methods do not acquire the lock. The latter fact implies that reverting the
+  locking mode to \b Safeness::Safe does not enable thread-safeness with this class!
+
 Therefore, this chapter lists the rules of allowed and denied parallel actions:
 
-- Changes of compiler properties, for example the use of method \alib{expressions,Compiler::AddType}
-  is forbidden as a parallel task of compilation (with the same compiler object).
+- Any use of the same expression compiler instance in multi-threaded software, has to be locked
+  by the using software. This includes changes of compiler properties, addition and removal of
+  plug-ins, addition and removal of named expressions and the compilation of expressions.
   <p>
 
-- Addition and removal of named expressions must not be performed in parallel and during parallel
-  compilation of expressions that use nested expressions.
+- Instances of compiler plug-ins may be shared between different compiler instances.
+  The parallel compilation using compilers that use shared instances of plug-ins is allowed.
+  This is true for all built-in plug-ins. The concurrent use of custom plug-ins depend
+  on their implementation.
   <p>
 
-- The parallel compilation of one or more expressions using the same compiler object is allowed,
-  as long custom compiler-plugins allow concurrent use.
-  (All built-in compiler plug-ins do allow this.)
-  <p>
+- The parallel evaluation of one single expression object, is not allowed.
 
-- The parallel evaluation of a set of different expressions originating from the same compiler is
-  allowed, if:
+- The parallel of a set of different expressions originating from either the same or different
+  compiler instances, is allowed, if:
   - different evaluation scope objects are used.
-  - custom callback functions allow parallel invocation (the built-in callbacks do allow this).
-
-  The parallel evaluation of one single expression is allowed, if besides the previous conditions,
-  it is assured that:
-  - \ref alib_expressions_scopes_ctresources "Compile-time resources used at evaluation time"
-    allow such use.
+  - all custom callback functions allow parallel invocation (the built-in callbacks do allow this).
 
 
 \~Comment ####################################################################################### \~
@@ -3270,7 +3243,7 @@ Therefore, this chapter lists the rules of allowed and denied parallel actions:
 ### 11.7.1 Catching Exceptions ### {#alib_expressions_details_exceptions_1}
 In the moment end-users are allowed to provide expression strings, some error handling
 to deal with malformed expression strings is unavoidable.
-Module \alibmod_nolink_expressions chooses to implement error handling using C++ exceptions.
+Module \alib_expressions_nl chooses to implement error handling using C++ exceptions.
 
 One of the design goals of this library is to allow to recognize erroneous expressions at
 compile-time if possible. The advantage of this is that compilation is often performed at a point
@@ -3369,7 +3342,7 @@ can be created quite easily. For example:
 could be such an output expression.
 
 However, there is a more comfortable and powerful way to do this! The key to that is the use
-of format strings as processed by \ref #aworx::lib::stringformat "ALib Formatters" in a
+of format strings as processed by \ref #aworx::lib::text "ALib Formatters" in a
 combination with expression strings that comprise the placeholder values found in the format
 strings.
 
@@ -3390,7 +3363,7 @@ A very simple "stack machine" that has only just <b>five commands</b>!
 For people who are interested in how the machine works, besides investigating into its source
 code a look at some sample programs for it, leads to a quick understanding.
 
-In debug compilations of this library, static method
+With debug builds of this library, static method
 \alib{expressions::detail,VirtualMachine::DbgList} may be invoked to generate a listing of an
 expression's program. Because the originating expression string itself is given with these listings,
 in this chapter, we just sample the listing output, without sampling the expressions explicitly.
@@ -3469,7 +3442,7 @@ are covered.
 ## A.4 Notes On The Architecture Of The Library ## {#alib_expressions_appendix_architecture}
 
 This quick chapter is not needed to be read. We just felt to write it for those people
-who want to take the source code and understand how module \alibmod_nolink_expressions was implemented,
+who want to take the source code and understand how module \alib_expressions_nl was implemented,
 and maybe want to extend it or add internal features.
 
 Often, there are two different perspectives needed when you think about the architecture of a
@@ -3504,82 +3477,22 @@ what this chapter aimed to say:
   abstract concept is technically needed. (While it reduces compile time for a user's software)
 - To keep class \alib{expressions,Compiler} clean, it just contains configuration options and
   holds the plug-ins, while
-- the compilation itself is implemented in class \alib{expressions,detail::Program}!
-  From the implementers perspective (that we willingly ignored) a class named "Program" should
-  please not compile and assemble itself. Well, but it does. If it didn't, the class would
-  probably not exist: It would be just a \c std::vector of virtual machine commands residing in
-  the expression. Therefore, it just was a nice empty thing that we put the assembly stuff in
-  to keep class %Compiler free of that.
+- the compilation itself is implemented in class \alib{expressions,detail::Program}.
+  Maybe a class named "Program" should not compile and assemble itself. Well, but it does.
+  If it didn't, the class would probably not exist: It would be just a \c std::vector of virtual
+  machine commands residing in the expression. Therefore, it just was a nice empty thing that we put
+  the assembly stuff in  to keep class %Compiler free of that.
 - Well, and we admit: to keep the program concentrating on just assembly, the virtual machine has
   besides its duty to run programs, two other responsibilities: The first can be almost considered
   "OK": In debug-compilations of the library, it creates program listings. But then:
 - The virtual machine decompiles programs back to ASTs!
 
-Have you ever seen a virtual machine that does decompilation? And that therefore knows about ASTs,
-which otherwise constitute the intermediate data layer between a parser and a compiler?
+This design and structure might be questionable. Probably, a virtual machine should not perform
+decompilation and should not "know" about ASTs, which otherwise constitute the intermediate data
+layer between a parser and a compiler.
 Please do not blame us. We do not foresee bigger feature updates of this library. If such were
-needed, this code design certainly would quickly fail and needed due refactoring. But as we did
+needed, this current code design may fail and need some refactoring. But as we did
 it, its a compromise strongly towards simplicity of the API as well of internal code.
-Again, we love "Bauhaus Code Style".
-
-\~Comment ####################################################################################### \~
-## A.5 Using Built-In Alternative Parser Based On boost::spirit ## {#alib_expressions_appendix_boostspirit}
-
-With the first implementation of this library, we relied on third-party library
-[boost::spirit](http://www.boost.org/doc/libs/1_66_0/libs/spirit/doc/html/index.html) to do the
-job of parsing the expression string into an abstract syntax tree.
-
-However, there were two  some downsides involved using the spirit parser, those are:
-- High compilation time of the library code.
-- Huge increase of code size of the library (x 10 in debug, x 3 in release mode).
-- Strong exponential growth rate of parsing time of expressions according to their length and
-  complexity, which quite quickly is in the range of seconds and minutes.
-
-While the first two points might be acceptable in most cases, the third is definitely not for
-production systems.
-The following sample expression of the unit tests:
-   \snippet "ut_alib_expr_builtin.cpp"  DOX_ALIB_EXPR_BOOST_LONG
-
-takes already several minutes to be parsed in debug compilations and still 23 seconds with
-optimized release code.
-On the same machine, the hand-written parser does the job in around 70 micro seconds in debug
-version and just 20 micro seconds with optimized release code (which is one millionth of the time!).
-
-\note
-  This should not diminish the value of that library. Especially, we think it is a master piece
-  of art-work in respect what can be achieved using C++ template meta programming.<br>
-  We love that library and we adore the mind-boggling programming skills of its creators.
-  We just were not able to use it in a performant way. Maybe we did something wrong?
-
-Therefore, we dropped the code and replaced it by a hand written parser that is dedicated to this
-single job and this way is much smaller in code this and performs very well. The effort was
-around two days of work, while it took us probably six or seven days to understand the syntax and
-make the boost version work.
-
-But we have kept the \b boost::spirit code inside. It is switchable using compiler symbol
-\ref ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON. For example, when using \e CMake, it is sufficient
-to add:
-
-        list( APPEND   ALIB_COMPILATION_SYMBOLS   "ALIB_FEAT_EXPRESSIONS_SPIRIT_PARSER_ON")
-
-into a project's <em>CMake</em>-script, right before the inclusion of script <c>ALib.cmake</c>.
-
-Nevertheless, not all features of this library have been updated, which means with the activation
-of the alternative \c boost::spirit parser, some features silently (!) disappear. Those are
-among others:
-- Changes of literal number format (localization)
-- String escape sequences
-- Less accurate and verbose exception messages with malformed expression strings.
-
-Even more, the support for built-in boost::spirit parser might be completely dropped with a future
-version of this library.
-
-The main reason for providing the alternative implementation is to allow people to play
-around with it. It could well be the case that we just not used \c boost::spirit in the way it is
-meant to be. There is quite some contrary discussion going on in the internet and some people
-say that performance it is all about intelligent rule design. However - we just gave up!
-
-The activation and use of \c boost::spirit is therefore considered \b experimental!
 
 
 */
