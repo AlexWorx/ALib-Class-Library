@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -29,10 +29,13 @@
 #   endif
 #endif
 
+#if ALIB_DEBUG_RESOURCES &&  !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#   include "alib/compatibility/std_strings_iostream.hpp"
+#endif
 namespace aworx { namespace lib {
 
 /**
- * This is the reference documentation of sub-namespace \b resources of the \aliblink which
+ * This is the reference documentation of sub-namespace \c resources of the \aliblink, which
  * holds types of library module \alib_resources.
  *
  * Extensive documentation for this module is provided with
@@ -40,11 +43,9 @@ namespace aworx { namespace lib {
  */
 namespace resources {
 
-// Constructor/destructor. Needs to stay in cpp file as class Configuration is not know in header
-LocalResourcePool::LocalResourcePool()
-: data( &monomem::GlobalAllocator )
-{}
-
+#if ALIB_DEBUG_RESOURCES
+std::ostream* LocalResourcePool::DbgResourceLoadObserver= nullptr;
+#endif
 
 bool LocalResourcePool::BootstrapAddOrReplace( const NString& category,
                                                const NString& name,
@@ -55,11 +56,16 @@ bool LocalResourcePool::BootstrapAddOrReplace( const NString& category,
     auto it= data.InsertOrAssign( detail::Key {category, name},   resource      );
 #else
     auto it= data.InsertOrAssign( detail::Key {category, name}, { resource, 0 } );
+    if( DbgResourceLoadObserver )
+    {
+        (*DbgResourceLoadObserver) << (it.second ? "Adding Resource: " : "Replacing Resource: " )
+                                   << category
+                                   << "/"              << name << "=" << resource << std::endl;
+    }
 #endif
 
     return !it.second;
 }
-
 
 void LocalResourcePool::BootstrapBulk( const nchar* category, ... )
 {
@@ -75,20 +81,28 @@ void LocalResourcePool::BootstrapBulk( const nchar* category, ... )
             break;
 
         String val = va_arg( args, const character* );
+#if ALIB_DEBUG_RESOURCES
+        if( DbgResourceLoadObserver )
+            (*DbgResourceLoadObserver) << "Bulk Resource: "  << category
+                                       << "/"           << key.Name << "=" << val << std::endl;
+#endif
+
 ALIB_DBG( auto result=)
 #if !ALIB_DEBUG_RESOURCES
         data.EmplaceOrAssign( key, val );
 #else
         data.EmplaceOrAssign( key, std::make_pair(val,0) );
 #endif
-ALIB_ASSERT_WARNING( result.second, NString4K () << "Replacing resource with BootstrapBulk: "
-                                    << category << "/" << key.Name << "=" << val )
+
+ALIB_ASSERT_WARNING( result.second, "RESOURCES",
+                     NString4K () << "Replacing resource with BootstrapBulk: "
+                                  << category << "/" << key.Name << "=" << val )
         // \checkpromise: when typed ALib assertions and warnings are available, then
         // raise a warning if the result of above EmplaceOrAssign is an assign, aka the
         // bulk data existed already.
     }
     va_end(args);
-}
+    }
 
 
 const String& LocalResourcePool::Get( const NString& category, const NString& name   ALIB_DBG(, bool dbgAssert ) )
@@ -104,7 +118,8 @@ const String& LocalResourcePool::Get( const NString& category, const NString& na
         return dataIt.Mapped().first;
 #endif
     }
-    ALIB_ASSERT_ERROR( !dbgAssert, NString1K() << "Unknown resource! Category: \"" << category
+    ALIB_ASSERT_ERROR( !dbgAssert, "RESOURCES",
+                                   NString1K() << "Unknown resource! Category: \"" << category
                                                <<                   "\", Name: \"" << name
                                                << "\"."  )
     return NULL_STRING;
@@ -116,8 +131,9 @@ const String& LocalResourcePool::Get( const NString& category, const NString& na
 std::vector<std::tuple<NString, NString, String, integer>>
 ResourcePool::DbgGetList()
 {
-    ALIB_WARNING( "ResourcePool::DbgGetList was not overridden by the ResourcePool type set. "
-                  "Note that type LocalResourcePool does provide an implementation." )
+    ALIB_WARNING( "STRINGS",
+                  "ResourcePool::DbgGetList was not overridden by the ResourcePool type set. "
+                  "Note that type built-in ALib type LocalResourcePool does provide an implementation." )
 
     return std::vector<std::tuple<NString, NString, String, integer>>();
 }
@@ -126,8 +142,9 @@ ResourcePool::DbgGetList()
 std::vector<std::pair<NString, integer>>
 ResourcePool::DbgGetCategories()
 {
-    ALIB_WARNING( "ResourcePool::DbgGetCategories was not overridden by the ResourcePool type set. "
-                  "Note that type LocalResourcePool does provide an implementation." )
+    ALIB_WARNING( "STRINGS",
+                  "ResourcePool::DbgGetCategories was not overridden by the ResourcePool type set. "
+                  "Note that type built-in ALib type LocalResourcePool does provide an implementation." )
 
     return std::vector<std::pair<NString, integer>>();
 }

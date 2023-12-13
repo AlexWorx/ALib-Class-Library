@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,6 +10,11 @@
 #if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
+
+#if !defined(HPP_ALIB_BITS)
+#   include "alib/lib/bits.hpp"
+#endif
+
 
 #if defined( _WIN32 ) || defined(__APPLE__)
 #   include <clocale>
@@ -63,7 +68,6 @@ constexpr const uint64_t pow10_0to19[]=
 };
 
 
-#if defined(__GNUC__) || defined(_WIN64)
 constexpr const uint8_t binSizeToDecSize[]
 {
     20, 19, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16, 16, 16, 15,
@@ -71,7 +75,7 @@ constexpr const uint8_t binSizeToDecSize[]
     10, 10, 10,  9,  9,  9,  8,  8,  8,  7,  7,  7,  7,  6,  6,  6,
     05,  5,  5,  4,  4,  4,  4,  3,  3,  3,  2,  2,  2,  1,  1,  1
 };
-#endif
+
 }// anonymous namespace
 
 
@@ -86,7 +90,9 @@ uint64_t ParseDecDigits( const TString<TChar>& src, integer& idx )
     if( idx < 0  || idx >= length )
         return 0;
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=    src.Buffer();
+    ALIB_WARNINGS_RESTORE
 
     // read number
     while ( idx < length )
@@ -117,8 +123,9 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
         return 0;
 
     // get buffer and index behind whitespaces
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buffer= src.Buffer();
-
+    ALIB_WARNINGS_RESTORE
 
     integer idx= src. template IndexOfAny<Inclusion::Exclude, false>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
@@ -201,9 +208,11 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
         return 0;
 
     // read number
-    bool        charFound=  false;
-    integer    length=     src.Length();
+    bool         charFound=  false;
+    integer      length=     src.Length();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
+    ALIB_WARNINGS_RESTORE
     while ( idx < length )
     {
         const TChar c= buf[idx];
@@ -241,7 +250,9 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
     // read number
     bool        charFound=  false;
     integer    length=     src.Length();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
+    ALIB_WARNINGS_RESTORE
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -293,9 +304,11 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
         return 0;
 
     // read number
-    bool        charFound=  false;
-    integer    length=     src.Length();
+    bool         charFound=  false;
+    integer      length=     src.Length();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
+    ALIB_WARNINGS_RESTORE
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -357,9 +370,11 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
         return 0;
 
     // read number
-    bool        charFound=  false;
-    integer    length=     src.Length();
+    bool         charFound=  false;
+    integer      length=     src.Length();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=        src.Buffer();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     while ( idx < length )
     {
         TChar c= buf[idx];
@@ -397,8 +412,10 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         return 0.0;
 
     // get pointers
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar* buf=    src.Buffer() + startIdx;
     const TChar* bufEnd= src.Buffer() + src.Length();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
     // read whitespaces
     {
@@ -454,7 +471,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         }
 
         // end?
-        ALIB_ASSERT_ERROR( buf <= bufEnd, "Error in float parsing algorithm." )
+        ALIB_ASSERT_ERROR( buf <= bufEnd, "STRINGS", "Error in float parsing algorithm." )
         if ( buf == bufEnd )
         {
             startIdx= buf - src.Buffer();
@@ -474,7 +491,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
             integer intIdx= 0;
             double intValue= static_cast<double>( ParseDecDigits( TString<TChar>(buf, bufEnd - buf), intIdx) );
             buf+= intIdx;
-            result+= ( intValue / pow( 10, intIdx ) );
+            result+= ( intValue / pow( 10, static_cast<double>(intIdx) ) );
         }
     }
     else if( !integralPartFound )
@@ -545,61 +562,20 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     // get the number of dec digits in value
     int digitsInValue;
     {
-        if( value == 0 )
+        if( value < 10 )
             digitsInValue = 1;
         else
         {
-            #if defined(__GNUC__) || defined(_WIN64)
+            int leadingBinaryZeros= CLZ(value);
+            digitsInValue= binSizeToDecSize[leadingBinaryZeros];
 
-                int leadingBinaryZeros;
-                #if defined(__GNUC__)
-                {
-                         if( sizeof(uint64_t) == sizeof( unsigned int       ) )  leadingBinaryZeros= __builtin_clz  ( static_cast<unsigned int      >( value ) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long      ) )  leadingBinaryZeros= __builtin_clzl ( static_cast<unsigned long     >( value ) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long long ) )  leadingBinaryZeros= __builtin_clzll( static_cast<unsigned long long>( value ) );
-                }
-                #else
-                {
-                    if( value != 0 )
-                    {
-                        unsigned long bitScanReverse;
-                        _BitScanReverse64( &bitScanReverse, value );
-                        leadingBinaryZeros= 63 - bitScanReverse;
-                    }
-                    else
-                        leadingBinaryZeros= 0;
-                }
-                #endif
+            // could be one lower due to the rest after the most significant bit
+            if( value < pow10_0to19[digitsInValue-1] )
+                --digitsInValue;
 
-                digitsInValue= binSizeToDecSize[leadingBinaryZeros];
-                // could be one lower due to the rest after the most significant bit
-                if( value < pow10_0to19[digitsInValue-1] )
-                    --digitsInValue;
-
-            #else
-                // we have to treat the 0, so let's treat 0 to 9 then
-                if( value < 10 )
-                    digitsInValue= 1;
-
-                // binary search
-                else
-                {
-                    int lower=  1;
-                    int upper= 19;
-                    digitsInValue=    4;
-                    while( lower < upper  )
-                    {
-                        if( value < pow10_0to19[digitsInValue] )
-                            upper= digitsInValue -1;
-                        else
-                            lower= digitsInValue;
-                        digitsInValue= ( lower + upper ) / 2 + 1;
-                    }
-                }
-            #endif
             ALIB_ASSERT_ERROR(                            value >= pow10_0to19[ digitsInValue - 1 ]
                               && ( digitsInValue == 20 || value <  pow10_0to19[ digitsInValue     ] ),
-                              "Error in digitsInValue calculation"   )
+                              "STRINGS", "Error in digitsInValue calculation"   )
         }
     }
 
@@ -625,7 +601,8 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
 
 
         // starts with group character? -> write space instead
-        ALIB_ASSERT_ERROR( width - 1 <= printDigits + (printDigits - 1) / 3 , "Invariant broken" )
+        ALIB_ASSERT_ERROR( width - 1 <= printDigits + (printDigits - 1) / 3 ,
+                           "STRINGS", "Internal error, false assumption" )
         if( printDigits >1  && width > printDigits + (printDigits - 1) / 3 )
             buffer[idx++]= nf.LeadingGroupCharReplacement;
     }
@@ -713,55 +690,16 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
 
             digits-= digits / (groupWidth + 1); // subtract needed separators from digits
         }
+
+        // still oversized?
+        if ( digits > 64 )
+               digits= 64;
     }
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-    {
-        // zero value?
-        if (value == 0)
-            digits= 1;
-
-        // calc
-        else
-        {
-            #if defined(__GNUC__) || defined(_WIN64)
-
-                #if defined(__GNUC__)
-                {
-                         if( sizeof(uint64_t) == sizeof( unsigned int       ) )  digits= 64 - __builtin_clz  ( static_cast<unsigned int      >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long      ) )  digits= 64 - __builtin_clzl ( static_cast<unsigned long     >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long long ) )  digits= 64 - __builtin_clzll( static_cast<unsigned long long>(value) );
-                }
-                #else
-                {
-                    unsigned long Index;
-                    _BitScanReverse64( &Index, value );
-                    digits= Index + 1;
-                }
-                #endif
-
-            #else
-                // rough
-                digits =    value < (((uint64_t)1) <<  8) ? 8
-                          : value < (((uint64_t)1) << 16) ? 16
-                          : value < (((uint64_t)1) << 32) ? 32
-                          : value < (((uint64_t)1) << 48) ? 48  : 64;
-
-                // fine with loop
-                uint64_t actSize=  ((uint64_t)1) << (digits - 1);
-                while( value < actSize )
-                {
-                    --digits;
-                    actSize >>= 1;
-                }
-            #endif
-        }
-    }
-
-    // check now for oversize
-    if ( digits > 64 )
-           digits= 64;
+        digits=  value != 0 ? MSB(value)
+                            : 1;
 
     uint64_t testValue= static_cast<uint64_t>(1) << (digits - 1);
     while ( digits > 0)
@@ -793,7 +731,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
                   const TNumberFormat<TChar>& nf )
 {
     // how many digits in a grouping block?
-    int groupWidth=   !nf.WriteGroupChars            ? 0
+    int groupWidth=  !nf.WriteGroupChars             ? 0
                     : nf.HexByteGroupChar    != '\0' ? 2
                     : nf.HexWordGroupChar    != '\0' ? 4
                     : nf.HexWord32GroupChar  != '\0' ? 8    :    0;
@@ -819,51 +757,8 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-    {
-        // zero value?
-        if (value == 0)
-            digits= 1;
-
-        // calc
-        else
-        {
-            #if defined(__GNUC__) || defined(_WIN64)
-
-                int binDigits;
-                #if defined(__GNUC__)
-                {
-                         if( sizeof(uint64_t) == sizeof( unsigned int       ) )  binDigits= 64 - __builtin_clz  ( static_cast<unsigned int      >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long      ) )  binDigits= 64 - __builtin_clzl ( static_cast<unsigned long     >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long long ) )  binDigits= 64 - __builtin_clzll( static_cast<unsigned long long>(value) );
-                }
-                #else
-                {
-                    unsigned long Index;
-                    _BitScanReverse64( &Index, value );
-                    binDigits= Index + 1;
-                }
-                #endif
-
-                digits= (binDigits-1)/4 + 1;
-
-            #else
-                if ( value >= 0x8000000000000000 )
-                    digits= 16;
-                else
-                {
-                    // loop
-                    digits= 1;
-
-                    uint64_t testValue= 0xF;
-                    while( value > testValue )
-                    {
-                        ++digits;
-                        testValue= (testValue << 4 ) | 0xF;
-                    }
-                }
-            #endif
-        }
-    }
+        digits=  value != 0 ? (MSB(value)-1) / 4 + 1
+                            : 1;
 
     // check now for oversize
     if ( digits > 16 )
@@ -925,50 +820,8 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-    {
-        // zero value?
-        if (value == 0)
-            digits= 1;
-
-        // calc
-        else
-        {
-            #if defined(__GNUC__) || defined(_WIN64)
-
-                int binDigits;
-                #if defined(__GNUC__)
-                {
-                         if( sizeof(uint64_t) == sizeof( unsigned int       ) )  binDigits= 64 - __builtin_clz  ( static_cast<unsigned int      >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long      ) )  binDigits= 64 - __builtin_clzl ( static_cast<unsigned long     >(value) );
-                    else if( sizeof(uint64_t) == sizeof( unsigned long long ) )  binDigits= 64 - __builtin_clzll( static_cast<unsigned long long>(value) );
-                }
-                #else
-                {
-                    unsigned long Index;
-                    _BitScanReverse64( &Index, value );
-                    binDigits= Index + 1;
-                }
-                #endif
-
-                digits= (binDigits-1)/3 + 1;
-
-            #else
-                if ( value >= 01000000000000000000000 )
-                    digits= 22;
-                else
-                {
-                    //  loop
-                    digits= 1;
-                    uint64_t testValue= 0x7;
-                    while( value > testValue )
-                    {
-                        ++digits;
-                        testValue= (testValue << 3 ) | 0x7;
-                    }
-               }
-            #endif
-        }
-    }
+        digits=  value != 0 ? (MSB(value)-1) / 3 + 1
+                            : 1;
 
     // check now for oversize
     if ( digits > 22 )
@@ -1091,7 +944,6 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         firstNonZero= 0;
         if ( fractPart > 0 )
         {
-            ALIB_ASSERT( intPartSize - firstNonZero < 20 )
             while ( fractPart < pow10_0to19[ intPartSize - firstNonZero - 1 ] )
                 ++firstNonZero;
             ALIB_ASSERT( intPartSize - firstNonZero > 0 )
@@ -1134,7 +986,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
             if ( overflow )
             {
-                if ( overflowDigit == fractionalDigits )
+                if ( overflowDigit == (fractionalDigits >= 0 ? fractionalDigits : 15) )
                 {
                     fractPart= 0;
                     ++intPart;

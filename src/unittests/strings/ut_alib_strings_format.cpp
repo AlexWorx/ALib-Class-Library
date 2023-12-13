@@ -1,12 +1,16 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
 #if ALIB_UT_STRINGS
+
+#if defined(QT_CORE_LIB) // needed here for unity builds to be included before boxing (!)
+#   include "alib/compatibility/qt_characters.hpp"
+#endif
 
 #include "alib/alox.hpp"
 
@@ -55,7 +59,7 @@ using namespace aworx::lib::text;
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 
 
@@ -534,7 +538,7 @@ void floatTest( AWorxUnitTesting& ut, double d, character decimalPoint, int8_t m
         #endif
     }
 
-    double precision= digitsAfterDot < 0 ?  pow ( 10, (d != 0.0 ? static_cast<int>( floor((log10( d ) )) ) : 0 )   - 14 )
+    double precision= digitsAfterDot < 0 ?  pow ( 10, (d != 0.0 ? int( floor(log10(abs(d)))) : 0 )   - 14 )
                                          :  pow ( 10, digitsAfterDot ) / 2.0;
 
     // check with system parsing (only if system specific decimal point format was given)
@@ -620,6 +624,7 @@ UT_METHOD( ConvertFloats )
     // write and parse doubles
     {
         NumberFormat nf;
+
         nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345.789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0 + as.Length() , pos )
         nf.DecimalPointChar= '@';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.789,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  0 + as.Length() , pos )
         nf.DecimalPointChar= '.';  as.Reset( A_CHAR("12345@789"));      UT_EQ( 12345.0  ,  as.ParseFloat( 0, &nf, &pos ) )   UT_EQ(  5               , pos )
@@ -658,23 +663,38 @@ UT_METHOD( ConvertFloats )
     // write and parse doubles, non scientific mode
     {
         // digits after dot: -1
-        floatTest( ut,     3.0              ,'.' , -1, -1 ,      "3.0"                  );
-        floatTest( ut,     3.1              ,'.' , -1, -1 ,      "3.1"                  );
-        floatTest( ut,     3.14             ,'.' , -1, -1 ,      "3.14"                 );
-        floatTest( ut,     3.145            ,'.' , -1, -1 ,      "3.145"                );
-        floatTest( ut,     3.02             ,'.' , -1, -1 ,      "3.02"                 );
-        floatTest( ut,     3.001            ,'.' , -1, -1 ,      "3.001"                );
-        floatTest( ut,     3.09             ,'.' , -1, -1 ,      "3.09"                 );
-        floatTest( ut,     3.009            ,'.' , -1, -1 ,      "3.009"                );
+        floatTest( ut,     3.0                ,'.' , -1, -1 ,      "3.0"                  );
+        floatTest( ut,     3.1                ,'.' , -1, -1 ,      "3.1"                  );
+        floatTest( ut,     3.14               ,'.' , -1, -1 ,      "3.14"                 );
+        floatTest( ut,     3.145              ,'.' , -1, -1 ,      "3.145"                );
+        floatTest( ut,     3.02               ,'.' , -1, -1 ,      "3.02"                 );
+        floatTest( ut,     3.001              ,'.' , -1, -1 ,      "3.001"                );
+        floatTest( ut,     3.09               ,'.' , -1, -1 ,      "3.09"                 );
+        floatTest( ut,     3.009              ,'.' , -1, -1 ,      "3.009"                );
 
-        floatTest( ut,     0.               ,'.' , -1, -1 ,      "0.0"                  );
-        floatTest( ut,     0.1              ,'.' , -1, -1 ,      "0.1"                  );
-        floatTest( ut,     0.14             ,'.' , -1, -1 ,      "0.14"                 );
-        floatTest( ut,     0.145            ,'.' , -1, -1 ,      "0.145"                );
-        floatTest( ut,     0.02             ,'.' , -1, -1 ,      "0.02"                 );
-        floatTest( ut,     0.001            ,'.' , -1, -1 ,      "0.001"                );
-        floatTest( ut,     0.09             ,'.' , -1, -1 ,      "0.09"                 );
-        floatTest( ut,     0.009            ,'.' , -1, -1 ,      "0.009"                );
+        floatTest( ut,     0.                 ,'.' , -1, -1 ,      "0.0"                  );
+        floatTest( ut,     0.1                ,'.' , -1, -1 ,      "0.1"                  );
+        floatTest( ut,     0.14               ,'.' , -1, -1 ,      "0.14"                 );
+        floatTest( ut,     0.145              ,'.' , -1, -1 ,      "0.145"                );
+        floatTest( ut,     0.02               ,'.' , -1, -1 ,      "0.02"                 );
+        floatTest( ut,     0.001              ,'.' , -1, -1 ,      "0.001"                );
+        floatTest( ut,     0.09               ,'.' , -1, -1 ,      "0.09"                 );
+        floatTest( ut,     0.009              ,'.' , -1, -1 ,      "0.009"                );
+
+        // ATTENTION: This may fail on different platforms. As it can bee seen, our
+        //            rounding seems unprecise, as already with 999...4! our code rounds up to 3.0
+        //            Internally this double constant however is 9999...6! (at least as the debugger shows!)
+        //            std::io gives simply "3.0" for each of these numbers. They decided not to trust
+        //            that last digit. It might be the right decision, because probably their approach
+        //            is more platform consistent. Our approach is more precise, but who cares
+        //            at digit 16?
+        floatTest( ut,     2.9999999999999990 ,'.' , -1, -1 ,      "2.999999999999999"   );
+        floatTest( ut,     2.9999999999999991 ,'.' , -1, -1 ,      "2.999999999999999"   );
+        floatTest( ut,     2.9999999999999992 ,'.' , -1, -1 ,      "2.999999999999999"   );
+        floatTest( ut,     2.9999999999999993 ,'.' , -1, -1 ,      "2.999999999999999"   );
+        floatTest( ut,     2.9999999999999994 ,'.' , -1, -1 ,      "3.0"   );
+        floatTest( ut,     2.9999999999999995 ,'.' , -1, -1 ,      "3.0"   );
+        floatTest( ut,     2.9999999999999996 ,'.' , -1, -1 ,      "3.0"   );
 
         // forces scientific notation
         floatTest( ut,     3.               ,'.' , -1, -1 ,      "3.0E00"              , true );
@@ -1054,14 +1074,6 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut, "repl. percents%%X"   , "repl. percents%%%%%s"             , "X" );
     checkFormat(ut, "repl. X%percents%"   , "repl. %s%%percents%%"             , "X" );
 
-
-    checkFormat(ut, "x\\nxX"                , "x\\nx"                          , "X" ); // not a format string (no replacement)
-    checkFormat(ut, "x\nx%sX"               , "x\nx%s"                         , "X" ); // not a format string (contains \n)
-    #if defined( _WIN32)
-    checkFormat(ut, "y\r\nyX"               , "y%ny%s"                         , "X" ); // a format string (contains \n)
-    #else
-    checkFormat(ut, "y\nyX"                 , "y%ny%s"                         , "X" ); // a format string (contains \n)
-    #endif
     //===== Parameter addressing =========
     checkFormat(ut, "1 1 1END"          , "%<s %<s %<s"   ,'1', "END" );
     checkFormat(ut, "1 1 1END"          , "%<s %<s %<s"   ,'1', "END" );
@@ -1200,17 +1212,20 @@ UT_METHOD( FormatterJavaStyle )
     checkError (ut, Exceptions::NoPrecisionWithConversion    , "%5.2c"   , 'x' );
     checkError (ut, Exceptions::NoAlternateFormOfConversion  , "%#c"     , 'x' );
 
-#if ALIB_SYSTEM // otherwise locale is not set to UTF-8
-    // wchar
-    checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , L'\u03B1'    ); //greek alpha
-    checkFormat(ut,  NString64()._(L"    \u03B1")  , "%5c"        , L'\u03B1'    ); //greek alpha
-    checkFormat(ut,  NString64('a')<<L"\u03B1"<<'b' << L"\u03B2", "a%cb%c"   , L'\u03B1', L'\u03B2'    ); //greek alpha, beta
-    checkFormat(ut,  "@"                           , "%c"         , 64           ); // int   ascii @
-    checkFormat(ut,  "@"                           , "%c"         , 64L          ); // long  ascii @
-    checkFormat(ut,  "@"                           , "%c"         , 64UL         ); // ulong ascii @
-    checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1       ); //greek alpha
-    checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1L      ); //greek alpha
-    checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1UL     ); //greek alpha
+#if ALIB_SYSTEM
+    // wchar (test this only if the LOCALE was properly set)
+    if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+    {
+        checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , L'\u03B1'    ); //greek alpha
+        checkFormat(ut,  NString64()._(L"    \u03B1")  , "%5c"        , L'\u03B1'    ); //greek alpha
+        checkFormat(ut,  NString64('a')<<L"\u03B1"<<'b' << L"\u03B2", "a%cb%c"   , L'\u03B1', L'\u03B2'    ); //greek alpha, beta
+        checkFormat(ut,  "@"                           , "%c"         , 64           ); // int   ascii @
+        checkFormat(ut,  "@"                           , "%c"         , 64L          ); // long  ascii @
+        checkFormat(ut,  "@"                           , "%c"         , 64UL         ); // ulong ascii @
+        checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1       ); //greek alpha
+        checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1L      ); //greek alpha
+        checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , 0x03B1UL     ); //greek alpha
+    }
 #endif
 
 
@@ -1694,10 +1709,6 @@ UT_METHOD( FormatterPythonStyle )
     checkFormat(ut, "repl. X}brackets{"   , "repl. {}}}brackets{{"             , "X" );
 
 
-    checkFormat(ut, "x\\nxX"                , "x\\nx"                          , "X" ); // not a format string (no replacement)
-    checkFormat(ut, "x\nx{}X"               , "x\nx{}"                         , "X" ); // not a format string (contains \n)
-    checkFormat(ut, "y\nyX"                 , "y\\ny{}"                        , "X" ); // a format string (contains \n)
-
     //===== Boolean =========
     checkFormat(ut, "true false true false true", "{:B} {:B} {:B} {:B} {:B}"  , true, false, 1, 0, "Hello"  );
     checkFormat(ut, "true",         "{:.4B}"   , true  );
@@ -1781,15 +1792,19 @@ UT_METHOD( FormatterPythonStyle )
 
     //======================================= Characters ===========================================
 
-#if ALIB_SYSTEM // otherwise locale is not set to UTF-8
-    checkFormat(ut,  "x"                         , "{}"           , 'x'          );
-    checkFormat(ut,  "x    "                     , "{:5c}"        , 'x'          );
-    checkFormat(ut,  NString64()._(L"\u03B1")    , "{:c}"         , L'\u03B1'    ); //greek alpha
-    checkFormat(ut,  NString64()._(L"\u03B1    "), "{:5c}"        , L'\u03B1'    ); //greek alpha
-    checkFormat(ut,  "@"                         , "{:c}"         , 64           ); // int   ascii @
-    checkFormat(ut,  "@"                         , "{:c}"         , 64L          ); // long  ascii @
-    checkFormat(ut,  "@"                         , "{:c}"         , 64UL         ); // ulong ascii @
-#endif
+    // wchar (test this only if the LOCALE was properly set)
+    #if ALIB_SYSTEM
+        if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+        {
+            checkFormat(ut,  "x"                         , "{}"           , 'x'          );
+            checkFormat(ut,  "x    "                     , "{:5c}"        , 'x'          );
+            checkFormat(ut,  NString64()._(L"\u03B1")    , "{:c}"         , L'\u03B1'    ); //greek alpha
+            checkFormat(ut,  NString64()._(L"\u03B1    "), "{:5c}"        , L'\u03B1'    ); //greek alpha
+            checkFormat(ut,  "@"                         , "{:c}"         , 64           ); // int   ascii @
+            checkFormat(ut,  "@"                         , "{:c}"         , 64L          ); // long  ascii @
+            checkFormat(ut,  "@"                         , "{:c}"         , 64UL         ); // ulong ascii @
+        }
+    #endif
 
     // alignment
     checkFormat(ut,  "#x  #"                     , "#{:<3}#"      , 'x'          );

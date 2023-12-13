@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_LOG

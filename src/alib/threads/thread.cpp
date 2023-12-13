@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,8 +15,6 @@
 #   include "alib/strings/localstring.hpp"
 #endif
 
-
-
 #if !defined (_GLIBCXX_CONDITION_VARIABLE) && !defined(_CONDITION_VARIABLE_)
 #   include <condition_variable>
 #endif
@@ -25,12 +23,23 @@
 #   include <atomic>
 #endif
 
+
+#if ALIB_ENUMS
+#   if !defined(HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
+#       include "alib/enums/recordbootstrap.hpp"
+#   endif
+#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
+#      include "alib/enums/serialization.hpp"
+#   endif
+#endif
+
+
 #endif // !defined(ALIB_DOX)
 
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
- * This is the reference documentation of sub-namespace \b threads of the \aliblink which
+ * This is the reference documentation of sub-namespace \c threads of the \aliblink, which
  * holds types of library module \alib_threads.
  *
  * \attention
@@ -79,13 +88,14 @@ namespace detail {
 
 void threadStart( Thread* thread )
 {
+    thread->state           = Thread::State::Running;
     thread->Run();
-    thread->isAliveFlag= false;
+    thread->state           = Thread::State::Stopped;
 }
 
 Thread* getThread(std::thread::id c11ID )
 {
-    ALIB_ASSERT_ERROR( mainThread, "ALib Module Threads not initialized." )
+    ALIB_ASSERT_ERROR( mainThread, "THREADS", "ALib Module Threads not initialized." )
     Thread* result= nullptr;
 
     // search current in map
@@ -104,10 +114,10 @@ Thread* getThread(std::thread::id c11ID )
         // not found, this is a system thread!
         else
         {
-            result              = new Thread( reinterpret_cast<Runnable*>(-1), nullptr );
-            result->id          = nextSystemThreadId--;
-            result->isAliveFlag = true;
-            result->SetName( String64(A_CHAR("SYS_")) << result->id );
+            result                 = new Thread( reinterpret_cast<Runnable*>(-1), nullptr );
+            result->id             = nextSystemThreadId--;
+            result->state          = Thread::State::Running;           // we just "guess" here, as documented
+            result->SetName( String64(A_CHAR("SYS_")) << result->id ); // with method Thread::GetState()
 #if ALIB_MONOMEM
             threadMap.EmplaceUnique( c11ID, result );
 #else
@@ -136,14 +146,33 @@ void Bootstrap()
     mainThread=  new Thread();
     mainThread->id= static_cast<ThreadID>(-1);
     mainThread->SetName(A_CHAR("MAIN_THREAD"));
+    mainThread->state = Thread::State::Running;
+
 #if ALIB_MONOMEM
     threadMap.EmplaceUnique( std::this_thread::get_id(), mainThread );
 #else
     threadMap.insert( std::make_pair( std::this_thread::get_id(), mainThread) );
 #endif
 
-    ALIB_ASSERT_ERROR( mainThread->GetId() == static_cast<ThreadID>(-1),
+    ALIB_ASSERT_ERROR( mainThread->GetId() == static_cast<ThreadID>(-1), "THREADS",
        "Error initializing threads. Probably forbidden repeated initialization from different thread." )
+
+    // Assign enum records (not resourced as threads is not a full module)
+    #if ALIB_ENUMS && ALIB_BOXING && !ALIB_FILESET_MODULES
+        aworx::EnumRecords<aworx::lib::threads::Thread::State>::Bootstrap(
+        {
+            { aworx::lib::threads::Thread::State::Unstarted , A_CHAR("Unstarted" )  },
+            { aworx::lib::threads::Thread::State::Started   , A_CHAR("Started"   )  },
+            { aworx::lib::threads::Thread::State::Running   , A_CHAR("Running"   )  },
+            { aworx::lib::threads::Thread::State::Stopped   , A_CHAR("Stopped"   )  },
+            { aworx::lib::threads::Thread::State::Terminated, A_CHAR("Terminated")  },
+        } );
+
+        #if ALIB_BOXING
+            ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::threads::Thread::State   )
+        #endif
+    #endif
+
 }
 
 
@@ -165,14 +194,29 @@ void Shutdown()
 
         if( qtyThreads != 1 )
         {
+            #if ALIB_DEBUG
+                NString4K dbgThreadList("ALib Termination: More than one thread running: ");
+                dbgThreadList << static_cast<integer>(qtyThreads) << NewLine();
+                int tNr= 0;
+                for( auto it : threadMap  )
+                    dbgThreadList << ++tNr << ": " << it.second->GetName()
+                                           << ",\tState::" <<
+                #if ALIB_ENUMS && ALIB_BOXING
+                                                                it.second->state
+                #else
+                                                                int(it.second->state )
+                #endif
+                                           << NewLine();
+                ALIB_WARNING( dbgThreadList.Terminate() )
+            #endif
+
             delete mainThread;
             mainThread= nullptr;
-            ALIB_WARNING( "ALib Termination: More than one thread running: ", static_cast<integer>(qtyThreads) )
             return;
         }
 
         Thread* lastThread= threadMap.begin()->second;
-        ALIB_ASSERT_WARNING( lastThread->id == static_cast<ThreadID>(-1),
+        ALIB_ASSERT_WARNING( lastThread->id == static_cast<ThreadID>(-1), "THREADS",
                              "threads::Shutdown: last thread is not the main system thread detected "
                              "in threads::Bootstrap" )
         delete lastThread;
@@ -196,10 +240,50 @@ Thread::Thread( Runnable* target , const String& pName )
 
 Thread::~Thread()
 {
-    if (c11Thread)
+    if( c11Thread !=nullptr )
     {
+        NString512 msg;
+        msg << "Thread \"" << GetName()
+            << "\" was not terminated before destruction. Use Thread::Terminate() to "
+               "avoid this message.";
+        ALIB_WARNING( msg.Terminate()  )
+        Terminate();
+    }
+}
+
+void Thread::Terminate()
+{
+    if( c11Thread !=nullptr )
+    {
+        if( state != State::Stopped )
+        {
+            NString512 msg;
+            msg << "Terminating thread \"" << GetName() << "\" which is not in state 'Stopped'. State: '"
+                #if ALIB_ENUMS && ALIB_BOXING
+                    << state        << "'.";
+                #else
+                    << int(state)   << "'.";
+                #endif
+            ALIB_WARNING( "THREADS", msg.Terminate() )
+        }
+
+        // join
         if( c11Thread->joinable() )
             c11Thread->join();
+        else
+        {
+            NString512 msg;
+            msg << "Thread \"" << GetName() << "\" not joinable. State: '"
+                #if ALIB_ENUMS && ALIB_BOXING
+                    << state        << "'.";
+                #else
+                    << int(state)   << "'.";
+                #endif
+
+            ALIB_WARNING( "THREADS", msg.Terminate() )
+        }
+
+        // erase from thread map
         {
             LOCK_THREADS
 
@@ -211,36 +295,52 @@ Thread::~Thread()
         }
 
         delete c11Thread;
+        c11Thread= nullptr;
+        state           = State::Terminated;
+    }
+    else
+    {
+        if( state == State::Terminated )
+            ALIB_WARNING( "THREADS",
+                          "Double invocation of Thread::Terminate for thread {!Q}",
+                          NString256(GetName()) )
+        else
+            ALIB_WARNING( "THREADS",
+                          "Terminating thread {!Q} which is not started or not managed by ALIB",
+                          NString256(GetName()) )
     }
 }
+
 
 
 void  Thread::Start()
 {
     if ( c11Thread != nullptr )
     {
-        ALIB_ERROR( "Thread already started. ID: ", static_cast<integer>(GetId()) )
+        ALIB_ERROR( "THREADS", NString128("Thread already started. ID: ")
+                                << static_cast<integer>(GetId()) )
         return;
     }
 
     if ( id <= 0 )
     {
-        ALIB_ERROR( "System threads can not be started. ID: ", static_cast<integer>(GetId()) )
+        ALIB_ERROR( "THREADS", NString128("System threads can not be started. ID: ")
+                                << static_cast<integer>(GetId()) )
         return;
     }
 
-    isAliveFlag= true;
+    state           = Thread::State::Started;
 
     {
-        LOCK_THREADS
-        c11Thread=    new std::thread( threadStart, this );
-        c11ID=        c11Thread->get_id();
+        LOCK_THREADS // <- locks on monomem::GlobalAllocatorLock or, without memory, on singleton "moduleLock"
+            c11Thread=    new std::thread( threadStart, this );
+            c11ID=        c11Thread->get_id();
 
-        #if ALIB_MONOMEM
-            threadMap.EmplaceUnique( c11ID, this );
-        #else
-            threadMap.insert( std::make_pair( c11ID, this) );
-        #endif
+            #if ALIB_MONOMEM
+                threadMap.EmplaceUnique( c11ID, this );
+            #else
+                threadMap.insert( std::make_pair( c11ID, this) );
+            #endif
     }
 }
 

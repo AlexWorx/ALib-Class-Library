@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
@@ -140,7 +140,7 @@ struct Scope
 
     /** ********************************************************************************************
      * Constructor.<br>
-     * Usually, for parameter formatter field \alib{expressions,Compiler::CfgFormatter} should
+     * Usually, for parameter \p formatter field \alib{expressions,Compiler::CfgFormatter} should
      * be provided.
      *
      * @param formatter A reference to a \c std::shared_ptr holding a formatter.

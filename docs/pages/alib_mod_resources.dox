@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -12,7 +12,7 @@
 \tableofcontents
 
 
- \~Comment ###################################################################################### \~
+ \I{################################################################################################}
 # 1. Introduction # {#alib_resources_intro}
 
 \alib uses the term <em>"resources"</em> for string data that technically may be defined in a
@@ -42,7 +42,7 @@ installation, then the concept of resourced data rather fits.
 \note
   The concept of <em>configuration data</em> is implemented with module \alib_config.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. Resources and Modules # {#alib_resources_modules}
 
 As documented in chapter \ref alib_manual_modules "2. ALib Modules" of the \alib Programmer's Manual,
@@ -65,13 +65,13 @@ about a singleton type derived from core library class \b %Module.
 
 
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 # 3. Data Contract / Conceptual Invariants # {#alib_resources_intro_contract}
 \alib resources implemented with this module, conceptually impose a set of rules which may be named
 a  "contract", "invariants" or just "determinations". These rules are given in the following
 subchapters.
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 ## 3.1 Resource Keys ## {#alib_resources_intro_contract_keys}
 Key values to resources are defined as a two level hierarchy of a \e category and a \e name.
 This determination complies with how <em>configuration data</em> is addressed with module
@@ -88,7 +88,7 @@ name strings of the resources are deemed to be hard-coded in the source code tha
 As such, they are not shared with end-users, are never localized and should be using the plain
 <em>7-bit printable ASCII character set</em>.
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 ## 3.2 Restricted To String Type ## {#alib_resources_intro_contract_strings}
 All resource data is of \alib{strings,TString,String} type (of compilation-dependent
 character width).
@@ -96,7 +96,7 @@ character width).
 This restriction imposes that any other data type (for example color codes) has to be
 de-serialized (decoded) when resourced.
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 ## 3.3 Static Data ## {#alib_resources_intro_contract_static}
 Although resource data technically is non static data, conceptually with this implementation
 it is.
@@ -123,7 +123,7 @@ This determination has the following impacts:
   allocation with type \alib{monomem,HashTable} to store persistent copies of each resource, at the
   moment it is accessed the first time. With subsequent requests, the same cached data is returned.
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 ## 3.4 Thread Safeness ## {#alib_resources_intro_contract_threadsafeness}
 Accessing resources using abstract interface method \alib{resources,ResourcePool::Get}
 is a thread-safe operation.
@@ -159,7 +159,7 @@ This determination has the following impacts:
   Changes are imposed by the (custom) plug-ins that are attached to its configuration object
   or by other code entities that are allowed to access the public configuration object directly.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. Interface Class ResourcePool # {#alib_resources_interface}
 The central type of the module, class \alib{resources,ResourcePool} was already mentioned several
 times. It constitutes a pure abstract interface. Due to the determinations of the concept
@@ -173,7 +173,7 @@ any 3rd-party "backend" that performs the resource management and the externaliz
 Apart from that, two implementations of the interface are provided with \alib. Those are
 quickly introduced in the following sections.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.1 Class LocalResourcePool ## {#alib_resources_interface_default}
 As explained above, an implementation of interface \b ResourcePool has to be constructed during
 bootstrap of \alib and distributed among the modules.
@@ -186,7 +186,7 @@ to the static data in a \alib{monomem,HashTable}, using \ref alib_mod_monomem "m
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.2 Class ConfigResourcePool ## {#alib_resources_interface_config}
 A second built-in implementation of class \b ResourcePool which can be created and shared among
 the modules of \alib by
@@ -249,10 +249,10 @@ Here are some tips for the usage:
   is completely independent from the choice of using \alib with a software!
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Indirect Resource Access # {#alib_resources_t_resourced}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.1 TMP Struct T_Resourced ## {#alib_resources_t_resourced_t_resourced}
 
 Sometimes it is required to define resource information, namely
@@ -273,7 +273,7 @@ is passed to such interface method, internally this information is used to load 
 details of the variable from the resource pool.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.2 Helper Struct Resourced ## {#alib_resources_t_resourced_resourced}
 
 As soon as struct \alib{resources,T_Resourced} is specialized for a type, helper struct
@@ -291,7 +291,7 @@ specializations \alib{strings::APPENDABLES,T_Append<TEnum\,TChar>,T_Append<TEnum
 and \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}
 which write enum element names into instances of type \alib{strings,TAString,AString}.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.3 Helper Struct ResourceInfo ## {#alib_resources_t_resourced_resourceinfo}
 
 A next helper struct is given with \alib{resources,ResourceInfo} which first of all is a simple
@@ -302,10 +302,10 @@ While this struct is usable without a specialization of \alib{resources,T_Resour
 use cases it is, because it allows to convert the compile-time information given by
 \b T_Resourced into run-time information.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 6. Further Details # {#alib_resources_details}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 6.1 Resourced Data Records And Tables ## {#alib_resources_details_data}
 
 Besides just externalizing strings, many use cases require to access externalized data sets
@@ -321,7 +321,7 @@ resourced strings.
 Before you go ahead and implement your "own" solution for externalized static data, it might be
 worthwhile to check out if \ref alib_enums_records "ALib Enum Records" meet your requirements.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 6.2 Exporting Resources For Externalization ## {#alib_resources_details_export}
 When resources are externalized, for example for translation to different human languages,
 the list of resources have to be imported to the external "backend". To do so all resources
@@ -329,7 +329,7 @@ have to be queried from the library.
 
 Here is a sample program that performs this task:
 
- \snippet "../tools/ResourceExport/main.cpp"     DOX_ALIB_RESOURCES_EXPORT
+ \snippet "../tools/ResourceExport/resourceexport.cpp"     DOX_ALIB_RESOURCES_EXPORT
 
 
 The output of this sample can directly be loaded by class \alib{config,IniFile}, hence with a plug-in
@@ -343,28 +343,37 @@ with the ones currently stored in an external backend. New resources might be ad
 disappear, and worst: existing ones might change their content format. In the latter case, an
 externalized resource might be errorneous and lead to undefined behavior.
 
-Starting with library version \b 1912, to support the detection of changes, the version history is found in
+Starting with library version \b 1903, to support the detection of changes, the version history is found in
 
         ALIB_BASE_DIR/docs/pages/resource-exports/
 
-\releasetask{Run export tool, create file, make diff, add link to new pages, add new page at the end of this file}
+\releasetask{Run export tool, create file, (make diff?), add link to new pages below, add new page at the end of this file}
 The following exports are available:
+- \ref alib_resources_exported_resources_2312
 - \ref alib_resources_exported_resources_1912
 - \ref alib_resources_exported_resources_1903
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 6.3 Debug- And Usage Statistics  ## {#alib_resources_details_debug}
 
-With the provision of compiler symbol \ref ALIB_DEBUG_RESOURCES, virtual method
-\alib{resources,ResourcePool::DbgGetList} becomes available, which returns a list of all
-resources defined, including a usage counter. The method is only implemented by class
+With the provision of compiler symbol \ref ALIB_DEBUG_RESOURCES, static field
+\alib{resources,LocalResourcePool::DbgResourceLoadObserver} becomes available. If set to <c>&std::cout</c>
+prior to bootstrapping \alib, the resource load process can be observed on the console, because methods
+\alib{resources,LocalResourcePool::BootstrapBulk} and
+\alib{resources,LocalResourcePool::BootstrapAddOrReplace} will write information on
+bulk and singular resource data definitions.
+This tremendously helps to find errors in resource strings, which often are simple missing commas
+and similar.
+
+Next, virtual method  \alib{resources,ResourcePool::DbgGetCategories} and
+\alib{resources,ResourcePool::DbgGetList} become available. The latter returns a
+list of all resources defined, including a usage counter. The method is only implemented by class
 \alib{resources,LocalResourcePool}. Alternative type \alib{resources,ConfigResourcePool} does not
 implement it.
 
 Furthermore, convenience method \alib{resources,ResourcePool::DbgDump} becomes available which
 simply writes the list of symbols into an \b %AString, sorted by category and in an alphabetical
 order.
-
 
 The usage counter included in the list may be used to identify two groups of
 resource strings:
@@ -378,16 +387,39 @@ of repeatedly retrieving it from the resource pool.
 Remember: While trivial implementation class \b LocalResourcePool is very fast and resource access
 is not really noticeable, other implementations might not be.
 
+The following code snippets taken from the \alib unit tests, demonstrate how to quickly leverage
+these debug features, depending on compiler symbol \ref ALIB_DEBUG_RESOURCES. The snippets
+might be copied to own projects and remain there forever.
 
-\~Comment ####################################################################################### \~
-\~Comment Resource export pages  \~
-\~Comment ####################################################################################### \~
+Bootstrapping may look as follows:
+ \snippet "gtest_main.cpp"     DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP1
+ \snippet "gtest_main.cpp"     DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP2
 
-\page alib_resources_exported_resources_1903           Export of Resourced Strings - V 1903
+Before termination of software (hence, prior to invoking \ref aworx::lib::Module::Shutdown "ALIB.Shutdown()")
+The following code may be placed:
+ \snippet "gtest_main.cpp"     DOX_ALIB_RESOURCES_DEBUG_SHUTDOWN
+
+\I{################################################################################################}
+# 7. Sample  # {#alib_resources_samplehint}
+
+A comprehensive sample of using \alib resources placed in a custom module is provided with the
+\ref alib_cli_tut "tutorial of ALib Module 'CLI'".
+The sample code provided there, can be easily used as a jump start into an own project that
+creates a custom \alib module and leverages the resource features provided.
+
+\I{################################################################################################}
+\I{ Resource export pages   }
+\I{################################################################################################}
+           
+\page alib_resources_exported_resources_1903           Export of Resourced Strings - V. 1903
 \verbinclude "pages/resource-exports/resources-1903.txt"
 
-\page alib_resources_exported_resources_1912           Export of Resourced Strings - V 1912
+\page alib_resources_exported_resources_1912           Export of Resourced Strings - V. 1912
 \verbinclude "pages/resource-exports/resources-1912.txt"
+
+\page alib_resources_exported_resources_2312           Export of Resourced Strings - V. 2312
+\verbinclude "pages/resource-exports/resources-2312.txt"
+
 
 */
 

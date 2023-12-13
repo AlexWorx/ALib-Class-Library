@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
@@ -28,7 +28,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.18.0 )
 
     ### uncomment to force cotire on clean cmake built
 #    set( ALIB_CMAKE_COTIRE   "On" )
@@ -140,12 +140,4 @@ endif()
 # -------------------------------------------------------------------------------------------------
 
 # uncomment for debug
-#ALibDumpCMakeStatus()
-
-
-
-
-
-
-
-
+#ALibDumpCMakeVariables()

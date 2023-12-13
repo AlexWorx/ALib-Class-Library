@@ -2,12 +2,12 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
-#ifndef HPP_ALOX_MONOMEM_LOGGER
-#define HPP_ALOX_MONOMEM_LOGGER 1
+#ifndef HPP_ALOX_MEMORY_LOGGER
+#define HPP_ALOX_MEMORY_LOGGER 1
 
 #if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
@@ -17,7 +17,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
 
 /** ************************************************************************************************
  *  A logger that logs all messages to an in-memory buffer of type AString. The name of the \e Logger
- *  defaults to "MONOMEM".
+ *  defaults to "MEMORY".
  **************************************************************************************************/
 class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
 {
@@ -50,7 +50,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
     public:
         /** ****************************************************************************************
          * Creates a MemoryLogger with the given name.
-         * @param name              (Optional) The name of the \e Logger. Defaults to "MONOMEM".
+         * @param name              (Optional) The name of the \e Logger. Defaults to "MEMORY".
          * @param pruneESCSequences (Optional) Sets the member \ref PruneESCSequences.
          *                          Defaults to \c true.
          * @param useWStringLengthForTabAdjustments (Optional) Sets the member
@@ -60,7 +60,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
         explicit        MemoryLogger( const NString& name                   = nullptr,
                                       bool pruneESCSequences                = true,
                                       bool useWStringLengthForTabAdjustments= true )
-                        : PlainTextLogger( name, "MONOMEM", false )
+                        : PlainTextLogger( name, "MEMORY", false )
                         {
                             MemoryLog.SetBuffer( 8092 );
                             PruneESCSequences                = pruneESCSequences;
@@ -71,7 +71,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
         /** ****************************************************************************************
          * Destructs a MemoryLogger
          ******************************************************************************************/
-        virtual        ~MemoryLogger() {}
+        virtual        ~MemoryLogger()                                                  override  {}
 
     // #############################################################################################
     // Abstract method implementations
@@ -83,7 +83,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
          * @param phase  Indicates the beginning or end of a log line.
          * @return Always returns true.
          ******************************************************************************************/
-        virtual bool notifyLogOp(Phase phase)
+        virtual bool        notifyLogOp(Phase phase)                                        override
         {
             // append new line if buffer has already lines stored
             if ( phase == Phase::Begin && MemoryLog.IsNotEmpty() )
@@ -99,7 +99,8 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
          * @param length   The length of the portion in \p{buffer} to write out.
          * @return The number of characters written, -1 on error.
          ******************************************************************************************/
-        virtual integer logSubstring( const String& buffer, integer start, integer length )
+        virtual integer     logSubstring( const     String& buffer,
+                                          integer   start,           integer length )       override
         {
             MemoryLog._<false>( buffer, start, length );
             return UseWStringLengthForTabAdjustments
@@ -110,7 +111,7 @@ class MemoryLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
-        virtual    void notifyMultiLineOp( Phase )     {}
+        virtual    void     notifyMultiLineOp( Phase )                                  override  {}
 
 }; // class MemoryLogger
 
@@ -121,5 +122,5 @@ using     MemoryLogger=           lib::lox::loggers::MemoryLogger;
 
 }  // namespace [aworx]
 
-#endif // HPP_ALOX_MONOMEM_LOGGER
+#endif // HPP_ALOX_MEMORY_LOGGER
 

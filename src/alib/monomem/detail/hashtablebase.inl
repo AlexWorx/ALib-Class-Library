@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE
@@ -11,16 +11,19 @@
 #if !defined(HPP_ALIB_MONOMEM_HASHTABLE)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
+#if !defined (HPP_ALIB_MONOMEM_FWDS)
+#   include "alib/monomem/fwds.hpp"
+#endif
 #if !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_FORWARDLIST)
-#   include "alib/lib/fs_lists/forwardlist.hpp"
+#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
+#   include "alib/lib/fs_lists/sidilist.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_DETAIL_RECYCLER)
-#   include "alib/monomem/detail/recycler.hpp"
+#   include "alib/monomem/detail/recycler.inl"
 #endif
 
 #if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
@@ -60,7 +63,9 @@ namespace detail {
 
 /** Table of prime numbers. The effective bucket size is chosen to be the first value found in
  *  this table that is equal or higher than the requested size.  */
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 ALIB_API    extern const uinteger primeNumbers[primeTableSize];
+ALIB_WARNINGS_RESTORE
 
 /** A dummy bucket used for nulled hash tables to avoid otherwise necessary checks.  */
 ALIB_API    extern void*    dummyBucket;
@@ -71,9 +76,9 @@ ALIB_API    extern void*    dummyBucket;
 
 /** Type used by \alib{monomem::detail,HashTableBase::Element} if hash codes are cached.  */
 template<typename T, typename TStored>
-struct HashTableElementCached   : public ForwardNode<HashTableElementCached<T,TStored>>
+struct HashTableElementCached   : public lib::detail::SidiNodeBase<HashTableElementCached<T,TStored>>
 {
-    /** Deleted default constructor. (Needed to avoid warning with msc). */
+    /** Deleted default destructor. (Needed to avoid warning with msc). */
     ~HashTableElementCached()                                                              = delete;
 
     /** TMP constant that denotes that hash codes are cached. */
@@ -112,7 +117,7 @@ struct HashTableElementCached   : public ForwardNode<HashTableElementCached<T,TS
 
 /** Type used by \alib{monomem::detail,HashTableBase::Element} if hash codes are \b not cached.  */
 template<typename T, typename TStored>
-struct HashTableElementUncached  : public ForwardNode<HashTableElementUncached<T,TStored>>
+struct HashTableElementUncached  : public lib::detail::SidiNodeBase<HashTableElementUncached<T,TStored>>
 {
     /** Deleted default constructor. (Needed to avoid warning with msc). */
     ~HashTableElementUncached()                                                            = delete;
@@ -201,31 +206,31 @@ struct HashTableRecycler<T,TStored,TKey,THashCaching,Recycling::None   >
  *
  *
  * @tparam T            See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TStored      See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TKey         See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TIfMapped    See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam THash        See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TEqual       See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TAccess      See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam THashCaching See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  * @tparam TRecycling   See
- *                      \ref alib_namespace_monomem_hashtable_referencedoc "reference documentation"
+ *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  **************************************************************************************************/
 template< typename T,
@@ -237,7 +242,7 @@ template< typename T,
           typename TAccess,
           Caching  THashCaching,
           typename TRecycling      >
-struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRecycling>::type
+struct HashTableBase
 {
 // #################################################################################################
 // ### Types and Constants
@@ -250,8 +255,8 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     struct NO_MAPPING
     {};
 
-    /** Type of the recycler that this class is derived from.     */
-    using TRecycler= typename HashTableRecycler<T,TStored,TKey,THashCaching,TRecycling>::type;
+    /** The recycler. Its type depends on template parameter \p{TRecycling}.     */
+    typename HashTableRecycler<T,TStored,TKey,THashCaching,TRecycling>::type recycler;
 
     /** Equals template parameter \p{TIfMapped} in case this is not <c>void</c>, and helper
      *  struct \alib{monomem::detail::HashTableBase,NO_MAPPING} if it is.    */
@@ -261,10 +266,10 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     using  Element= typename HashTableElementType<T,TStored,TKey,THashCaching>::type;
 
     /** Type of a single linked node list.  */
-    using  List=    ForwardList<Element>;
+    using  List=    lib::detail::SidiListHelper<Element>;
 
     /** Type of a node in the \b List.  */
-    using  Node=    ForwardNode<Element>;
+    using  Node=    lib::detail::SidiNodeBase<Element>;
 
 
 // #################################################################################################
@@ -292,7 +297,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      *  @return The hash code of the given element.              */
     static size_t    getHashCode(Element* elem)
     {
-        if ALIB_CONSTEXPR_IF ( Element::CachedHashCodes )
+        if ALIB_CONSTEXPR17 ( Element::CachedHashCodes )
             return elem->getCached();
         else
             return THash() ( keyPortion( elem ) );
@@ -303,7 +308,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      *  @return A pointer to the element created or recycled.    */
     Element* allocElement( const size_t hashCode )
     {
-        Element* elem= TRecycler::get();
+        Element* elem= recycler.get();
         if( elem == nullptr )
             elem=    allocator->Alloc<Element>();
 
@@ -312,11 +317,11 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     }
 
 // #################################################################################################
-// std::iterator types.
+// std::iterator_traits types.
 // #################################################################################################
 
     /** ********************************************************************************************
-     * Templated implementation of \c std::iterator.
+     * Templated implementation of \c std::iterator_traits.
      * Will be exposed by derived class's definitions \alib{monomem::HashTable,Iterator} and
      * \alib{monomem::HashTable,ConstIterator}.
      *
@@ -327,11 +332,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      *                         \p{TMapped}.
      **********************************************************************************************/
     template<typename TConstOrMutable>
-    class TIterator: public std::iterator< std::forward_iterator_tag,  // iterator_category
-                                           TMapped,                    // value_type
-                                           integer,                    // distance type
-                                           TConstOrMutable*,           // pointer
-                                           TConstOrMutable&          > // reference
+    class TIterator
     {
         #if !defined(ALIB_DOX)
             friend struct HashTableBase;
@@ -341,6 +342,11 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         /** Const or mutable version of HashTableBase. */
         using THashtable = ATMP_IF_T_F( !ATMP_IS_CONST(TConstOrMutable),       HashTableBase,
                                                                          const HashTableBase  );
+        using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+        using value_type        = TMapped                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using difference_type   = integer                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using pointer           = TConstOrMutable*         ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using reference         = TConstOrMutable&         ;  ///< Implementation of <c>std::iterator_traits</c>.
 
         protected:
             /** The pointer to the hash table. */
@@ -363,13 +369,15 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
             {
                 while( pBbucketIx < pTable->bucketCount )
                 {
-                    if( pTable->buckets[pBbucketIx].isNotEmpty() )
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+                    if( !pTable->buckets[pBbucketIx].isEmpty() )
                     {
                         bucketIdx= pBbucketIx;
-                        element  = pTable->buckets[pBbucketIx].start();
+                        element  = pTable->buckets[pBbucketIx].first();
                         return;
                     }
                     ++pBbucketIx;
+                    ALIB_WARNINGS_RESTORE
                 }
                 bucketIdx= pBbucketIx;
                 element  = nullptr;
@@ -389,16 +397,14 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
             /** Moves an iterator with a nulled element pointer to the next element.    */
             void    repair()
             {
-                ++bucketIdx;
-                while( bucketIdx < table->bucketCount )
-                {
-                    if( table->buckets[bucketIdx].isNotEmpty() )
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+                while( ++bucketIdx < table->bucketCount )
+                    if( !table->buckets[bucketIdx].isEmpty() )
                     {
-                        element= table->buckets[bucketIdx].start();
+                        element= table->buckets[bucketIdx].first();
                         return;
                     }
-                    ++bucketIdx;
-                }
+                ALIB_WARNINGS_RESTORE
             }
 
 
@@ -441,17 +447,19 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
             {
                 if(element->hasNext())
                 {
-                    Node::moveForward(element);
+                    element= element->next();
                     return *this;
                 }
 
                 while( ++bucketIdx < table->bucketCount )
                 {
-                    if( table->buckets[bucketIdx].isNotEmpty() )
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+                    if( !table->buckets[bucketIdx].isEmpty() )
                     {
-                        element= table->buckets[bucketIdx].start();
+                        element= table->buckets[bucketIdx].first();
                         return *this;
                     }
+                    ALIB_WARNINGS_RESTORE
                 }
 
                 element= nullptr;
@@ -491,7 +499,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A reference to the stored object.                    */
             TConstOrMutable& operator*()                                                       const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return element->valueExternal;
             }
 
@@ -499,7 +507,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A pointer to the stored object.                                  */
             TConstOrMutable* operator->()                                                      const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return &element->valueExternal;
             }
 
@@ -507,7 +515,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A reference to the stored object.                    */
             TConstOrMutable& Value()                                                           const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return element->valueExternal;
             }
 
@@ -515,7 +523,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              *  @return A reference to the key-portion of the stored object. */
             const TKey& Key()                                                                  const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return keyPortion( element );
             }
 
@@ -524,14 +532,14 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              *
              * ## Availability ##
              * This method is only available with
-             * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+             * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
              *
              * @return A reference to the mapped-portion of the stored object. */
             template<typename TEnableIf= TMapped>
             ATMP_T_IF(TMapped&, !ATMP_EQ( TEnableIf, void ))
             Mapped()                                                                           const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return mappedPortion( element );
             }
 
@@ -539,7 +547,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
 
 
     /** ********************************************************************************************
-     * Templated implementation of \c std::iterator.
+     * Templated implementation of \c std::iterator_traits.
      * Will be exposed by derived class's definitions
      * \alib{monomem::HashTable,LocalIterator} and \alib{monomem::HashTable,ConstLocalIterator}.
      *
@@ -551,17 +559,17 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      **********************************************************************************************/
     template<typename TConstOrMutable>
     class TLocalIterator
-        :  public std::iterator< std::forward_iterator_tag,  // iterator_category
-                                 TConstOrMutable,            // value_type
-                                 integer,                    // distance type
-                                 TConstOrMutable*,           // pointer
-                                 TConstOrMutable&          > // reference
-
     {
         #if !defined(ALIB_DOX)
             friend struct HashTableBase;
             friend class  HashTable<T,TStored,TKey,TIfMapped,THash,TEqual,TAccess,THashCaching,TRecycling>;
         #endif
+
+        using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+        using value_type        = TConstOrMutable          ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using difference_type   = integer                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using pointer           = TConstOrMutable*         ;  ///< Implementation of <c>std::iterator_traits</c>.
+        using reference         = TConstOrMutable&         ;  ///< Implementation of <c>std::iterator_traits</c>.
 
         protected:
             /** The pointer to the actual element. */
@@ -614,8 +622,8 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              *  @return A reference to this object. */
             TLocalIterator& operator++()
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
-                Node::moveForward(element);
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
+                element= element->next();
                 return *this;
             }
 
@@ -652,7 +660,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A reference to the stored object.                    */
             TConstOrMutable&    operator*()                                                    const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return element->valueExternal;
             }
 
@@ -660,7 +668,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A pointer to the stored object.                                  */
             TConstOrMutable*    operator->()                                                   const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return &element->valueExternal;
             }
 
@@ -668,7 +676,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              * @return A reference to the stored object.                    */
             TConstOrMutable&        Value()                                                    const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return element->valueExternal;
             }
 
@@ -676,7 +684,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              *  @return A reference to the key-portion of the stored object. */
             const TKey& Key()                                                                  const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return keyPortion( element );
             }
 
@@ -685,14 +693,14 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
              *
              * ## Availability ##
              * This method is only available with
-             * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+             * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
              *
              * @return A reference to the mapped-portion of the stored object. */
             template<typename TEnableIf= TMapped>
             ATMP_T_IF(TMapped&, !ATMP_EQ( TEnableIf, void ))
             Mapped()                                                                           const
             {
-                ALIB_ASSERT_ERROR( element != nullptr, "Illegal iterator." )
+                ALIB_ASSERT_ERROR( element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
                 return mappedPortion( element );
             }
     }; // class TLocalIterator
@@ -750,11 +758,11 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      * @param pBaseLoadFactor  The base load factor.
      * @param pMaxLoadFactor   The maximum load factor.
      **********************************************************************************************/
-    HashTableBase( MonoAllocator*                pAllocator,
-                   ForwardList<Element>& pRecycler,
-                   float                         pBaseLoadFactor = 1.0,
-                   float                         pMaxLoadFactor  = 2.0  )
-    : TRecycler     ( pRecycler       )
+    HashTableBase( MonoAllocator*               pAllocator,
+                   List&                        pRecycler,
+                   float                        pBaseLoadFactor = 1.0,
+                   float                        pMaxLoadFactor  = 2.0  )
+    : recycler      ( pRecycler       )
     , allocator     ( pAllocator      )
     , baseLoadFactor( pBaseLoadFactor )
     , maxLoadFactor ( pMaxLoadFactor  )
@@ -808,10 +816,17 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      */
     Element*    findElement( uinteger bucketIdx,  const TKey& key,  size_t keyHashCode )      const
     {
-        for( auto& it : buckets[bucketIdx] )
-            if( areEqual( &it, key, keyHashCode ) )
-                return &it;
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        Node* result= buckets[bucketIdx].first();
+        while( result)
+        {
+            if( areEqual( static_cast<Element*>(result), key, keyHashCode  ) )
+                return static_cast<Element*>(result);
+
+            result= result->next();
+        }
         return nullptr;
+        ALIB_WARNINGS_RESTORE
     }
 
     /**
@@ -825,9 +840,12 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
      */
     Node*    findElementBefore( uinteger bucketIdx, size_t keyHashCode, const TKey& key )      const
     {
-        Node* result= buckets[bucketIdx].castToNode();
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        Node* result= &buckets[bucketIdx].hook;
+        ALIB_WARNINGS_RESTORE
+
         while( result->hasNext() && !areEqual( result->next(), key, keyHashCode  ) )
-            Node::moveForward(result);
+            result= result->next();
 
         return result->hasNext() ? result : nullptr;
     }
@@ -844,8 +862,10 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     {
         auto bucketIdx= hashCode % bucketCount;
         Node* previous= findElementBefore( bucketIdx, hashCode, keyPortion(element) );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( previous == nullptr )
-            previous= buckets[bucketIdx].castToNode();
+            previous= &buckets[bucketIdx].hook;
+        ALIB_WARNINGS_RESTORE
 
         previous->addBehind( element );
         return bucketIdx;
@@ -863,7 +883,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     {
         size+= increase;
         if( size >=sizeLimitToRehash  )
-            rehash( (std::max)( static_cast<uinteger>( size / baseLoadFactor ), bucketCount + 1 ) );
+            rehash( (std::max)( uinteger( float(size) / baseLoadFactor ), bucketCount + 1 ) );
 
         return hashCode % bucketCount;
     }
@@ -883,19 +903,21 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         // destruct and recycle entries
         for( uinteger bucketIdx= 0 ; bucketIdx < bucketCount ; ++bucketIdx )
         {
-            Element* first= buckets[bucketIdx].start();
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            Element* first= buckets[bucketIdx].first();
             if( first != nullptr )
             {
                 first->destruct();
                 Element* last = first;
                 while( last->hasNext() )
                 {
-                    Node::moveForward(last);
+                    last= last->next();
                     last->destruct();
                 }
-                TRecycler::recycle( first, last );
+                recycler.recycle( first, last );
                 buckets[bucketIdx].reset();
             }
+            ALIB_WARNINGS_RESTORE
         }
 
         size= 0;
@@ -913,7 +935,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         bucketCount      = 1;
         size             = 0;
         sizeLimitToRehash= 0;
-        TRecycler::disposeRecyclablesIfPrivate();
+        recycler.disposeRecyclablesIfPrivate();
     }
 
     /** ********************************************************************************************
@@ -929,20 +951,26 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
     }
 
     /** ********************************************************************************************
-     * Changes the number of buckets to a least \p{newMinBucketCount}.
-     * If the current size of the container divided by #maxLoadFactor leads to a higher number,
-     * then this is chosen.
-     * Finally, a next higher prime value is chosen (from static table #primeNumbers).
+     * Changes the number of buckets to be at least the higher value of
+     * a) the given \p{newMinBucketCount}, and<br>
+     * b) the quotient of the current size and the maximum load factor.
+     *
+     * The result of the above, is increased to the next higher prime number.
+     * Rehash is only performed if bucket size increases. It never is decreased.
      *
      * @param newMinBucketCount The minimum new bucket count requested.
      **********************************************************************************************/
     void            rehash( uinteger newMinBucketCount )
     {
+        // smaller than before?
+        if( newMinBucketCount <= bucketCount )
+            return;
+
         auto oldBucketCount= bucketCount;
 
         // adjust requested bucket count to the maximum load factor
         newMinBucketCount= (std::max)( newMinBucketCount,
-                                       static_cast<uinteger>( size / maxLoadFactor ) );
+                                       static_cast<uinteger>( static_cast<float>(size) / maxLoadFactor ) );
 
         // adjust requested bucket count to next higher prime value
         {
@@ -952,20 +980,21 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
             bucketCount= detail::primeNumbers[idx];
         }
 
-        // same as before?
-        if( bucketCount == oldBucketCount )
-            return;
+        ALIB_ASSERT_ERROR( bucketCount > oldBucketCount, "MONOMEM/HASHTABLE",
+                                    "Internal error: Rehashing to equal or smaller bucket count." )
 
-        sizeLimitToRehash= static_cast<integer>( bucketCount * maxLoadFactor );
-
+        // store new rehash trigger
+        sizeLimitToRehash= integer( float(bucketCount) * maxLoadFactor );
 
         // collect elements
         List elements;
         for( uinteger bucketIdx= 0 ; bucketIdx < oldBucketCount ; ++bucketIdx )
         {
-            Element* first= buckets[bucketIdx].start();
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            Element* first= buckets[bucketIdx].first();
             if( first != nullptr )
                 elements.pushFront( first, buckets[bucketIdx].findLast() );
+            ALIB_WARNINGS_RESTORE
         }
 
 
@@ -975,7 +1004,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         buckets= allocator->EmplaceArray<List>( bucketCount );
 
         // re-insert objects
-        Element* actual= elements.start();
+        Element* actual= elements.first();
         while( actual != nullptr )
         {
             Element* next= actual->next();
@@ -986,7 +1015,7 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         // recycle old data (make future nodes elements out of it)
         if( oldData != reinterpret_cast<List*>( &detail::dummyBucket ) )
         {
-            TRecycler::template recycleChunk<List>( oldData, oldBucketCount );
+            recycler.template recycleChunk<List>( oldData, oldBucketCount );
         }
     }
 
@@ -1045,11 +1074,13 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         if (element != nullptr )
             return std::make_pair(TIterator<T>( this, bucketIdx, element ), false);
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         bucketIdx= increaseSize( 1, hashCode );
 
         Element* newElement= allocElement( hashCode );
         buckets[bucketIdx].pushFront( newElement );
         return std::make_pair(TIterator<T>( this, bucketIdx, newElement ) , true);
+        ALIB_WARNINGS_RESTORE
     }
 
     /** ********************************************************************************************
@@ -1073,7 +1104,9 @@ struct HashTableBase : public HashTableRecycler<T,TStored,TKey,THashCaching,TRec
         // create new element
         bucketIdx= increaseSize( 1, hashCode );
         Element* newElem= allocElement( hashCode );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         buckets[bucketIdx].pushFront( newElem );
+        ALIB_WARNINGS_RESTORE
         return std::make_pair(TIterator<T>( this, bucketIdx, newElem ), true);
     }
 

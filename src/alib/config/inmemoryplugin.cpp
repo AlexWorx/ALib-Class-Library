@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -79,7 +79,7 @@ std::pair<InMemoryPlugin::Section*, bool>
 
 bool  InMemoryPlugin::Load( Variable& variable, bool searchOnly )
 {
-    ALIB_ASSERT_WARNING( variable.Name().IsNotEmpty(), "Empty name given" )
+    ALIB_ASSERT_WARNING( variable.Name().IsNotEmpty(), "CONFIG", "Empty name given" )
     auto* entry=  searchEntry( variable.Category(), variable.Name() );
     if( entry != nullptr && !searchOnly )
         ToVariable( *entry, variable );

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ALox">
+      <UniqueIdentifier>{f8a132e3-12cb-4bfd-adb1-f9a460ee40dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Boxing">
+      <UniqueIdentifier>{dceee098-3e2c-4671-89e9-09eb81ed5650}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\samples\Boxing\sample.cpp">
+      <Filter>Boxing</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

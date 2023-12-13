@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -51,21 +51,6 @@
 #   include "alib/results/report.hpp"
 #endif
 #endif // !defined(ALIB_DOX)
-
-
-// For code compatibility with ALox Java/C++
-// We have to use underscore as the start of the name and for this have to disable a compiler
-// warning. But this is a local code (cpp file) anyhow.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-
-    #define _NC _<false>
-
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
 
 #if ALIB_THREADS
     #define UNDEFINED_THREAD threads::UNDEFINED
@@ -275,7 +260,7 @@ struct LoxImpl
 }; // struct LoxImpl
 
 
-#define ASSERT_ACQUIRED  ALIB_ASSERT_ERROR (  impl->CountAcquirements() > 0, "Lox not acquired" )
+#define ASSERT_ACQUIRED  ALIB_ASSERT_ERROR (  impl->CountAcquirements() > 0, "ALOX", "Lox not acquired" )
 
 // #################################################################################################
 // Constructors/destructor
@@ -384,7 +369,7 @@ void LI::init(LoxImpl* impl)
             else
             {
                 // using alib warning here as we can't do internal logging in the constructor
-                ALIB_WARNING( "Syntax error in variable {!Q}.", variable.Fullname() )
+                ALIB_WARNING( "ALOX", "Syntax error in variable {!Q}.", variable.Fullname() )
             }
         }
     }
@@ -656,7 +641,7 @@ void LI::writeVerbositiesOnLoggerRemoval( LoxImpl* impl, Logger* logger )
         if ( destVarName.IsEmpty() )
         {
             Boxes& logables= LI::acquireInternalLogables(impl);
-            logables.Add( "Argument 'writeback' in variable {!Q}.\\n"
+            logables.Add( "Argument 'writeback' in variable {!Q}.\n"
                           "Error: Wrong destination variable name format: {!Q}",
                           variable.Fullname(), firstArg );
             LI::logInternal( impl, Verbosity::Error, "VAR", logables );
@@ -699,7 +684,7 @@ void LI::writeVerbositiesOnLoggerRemoval( LoxImpl* impl, Logger* logger )
     // internal logging
     {
         Boxes& logables= LI::acquireInternalLogables(impl);
-        logables.Add( "Argument 'writeback' in variable {!Q}:\\n  Verbosities for logger {!Q} written ",
+        logables.Add( "Argument 'writeback' in variable {!Q}:\n  Verbosities for logger {!Q} written ",
                       oldFullName, logger->GetName() );
 
         if( destVarName.IsEmpty() )
@@ -1278,7 +1263,7 @@ void LI::SetPrefix(LoxImpl* impl,  const Box& prefix, const NString& domain, Inc
 }
 
 
-#if defined (__GLIBCXX__) || defined(__APPLE__)
+#if defined (__GLIBCXX__) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
     void LI::SetStartTime(LoxImpl* impl,  time_t startTime, const NString& loggerName )
     {
         TickConverter converter;
@@ -1601,7 +1586,7 @@ void LI::State( LoxImpl* impl,
     NAString buf;
     buf.SetBuffer( 2048 );
     if ( headLine.IsNotEmpty() )
-        buf._NC( headLine ).NewLine();
+        buf._<false>( headLine ).NewLine();
 
     LI::GetState( impl, buf, flags );
 
@@ -1612,8 +1597,8 @@ void LI::State( LoxImpl* impl,
 Boxes&  LI::GetLogableContainer(LoxImpl* impl)
 {
     auto cntAcquirements= impl->CountAcquirements();
-    ALIB_ASSERT_ERROR(   cntAcquirements >= 1, "Lox not acquired." )
-    ALIB_ASSERT_WARNING( cntAcquirements <  5, "Logging recursion depth >= 5" )
+    ALIB_ASSERT_ERROR(   cntAcquirements >= 1, "ALOX", "Lox not acquired." )
+    ALIB_ASSERT_WARNING( cntAcquirements <  5, "ALOX", "Logging recursion depth >= 5" )
     while( static_cast<int>(impl->logableContainers.size()) < cntAcquirements )
         impl->logableContainers.emplace_back( impl->monoAllocator->Emplace<Boxes>(impl->monoAllocator) );
     Boxes& logables= *impl->logableContainers[static_cast<size_t>(cntAcquirements - 1)];
@@ -1633,7 +1618,7 @@ void LI::Entry(LoxImpl* impl, const NString& domain, Verbosity verbosity )
             Log::AddDebugLogger( Log::Get() );
     #endif
 
-    ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALox (ALib) was not properly bootstrapped." )
+    ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALOX", "ALox (ALib) was not properly bootstrapped." )
 
     ++impl->CntLogCalls;
 
@@ -1645,6 +1630,33 @@ void LI::Entry(LoxImpl* impl, const NString& domain, Verbosity verbosity )
              verbosity,
              *impl->logableContainers[static_cast<size_t>(impl->CountAcquirements() - 1)],
              Inclusion::Include );
+}
+
+int LI::IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain )
+{
+    ASSERT_ACQUIRED
+
+    // auto-initialization of debug loggers
+    #if ALOX_DBG_LOG
+        if(   impl == Log::Get()->impl
+           && impl->domains->CountLoggers() == 0
+           && Log::DebugLogger == nullptr )
+            Log::AddDebugLogger( Log::Get() );
+    #endif
+
+    ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALOX", "ALox (ALib) was not properly bootstrapped." )
+
+    if ( impl->domains->CountLoggers() == 0 )
+        return 0;
+
+    Domain* dom= LI::evaluateResultDomain( impl, domain );
+
+    int result= 0;
+    PrefixLogable marker(nullptr);
+    for ( int i= 0; i < dom->CountLoggers() ; ++i )
+        if( dom->IsActive( i, verbosity ) )
+            ++result;
+    return result;
 }
 
 void LI::IncreaseLogCounter( LoxImpl* impl)
@@ -1779,12 +1791,12 @@ void LI::getVerbosityFromConfig(LoxImpl* impl,  Logger*  logger, Domain&  dom )
 
             // log info on this
             NString512 msg;
-            msg._NC( "Logger \"" )._NC( logger->GetName() ) ._NC( "\":" )._(NFormat::Tab(11 + impl->maxLoggerNameLength))
-                ._NC( '\'' )._NC( dom.FullPath )
+            msg._<false>( "Logger \"" )._<false>( logger->GetName() ) ._<false>( "\":" )._(NFormat::Tab(11 + impl->maxLoggerNameLength))
+                ._<false>( '\'' )._<false>( dom.FullPath )
                 ._( '\'' ).InsertChars(' ', impl->maxDomainPathLength - dom.FullPath.Length() + 1 )
                 ._( "= Verbosity::" )
                 ._( std::make_pair(verbosity, dom.GetPriority( loggerNo )) ).TrimEnd()
-                ._NC( '.' );
+                ._<false>( '.' );
 
             LI::logInternal( impl, Verbosity::Info, "LGR", msg );
         }
@@ -1844,10 +1856,10 @@ void LI::getDomainPrefixFromConfig(LoxImpl* impl,  Domain&  dom )
             dom.PrefixLogables.EmplaceBack( new PrefixLogable( prefixStr ), otherPLs );
 
             // log info on this
-            NString128 msg; msg._NC( "String \"" )._NC( prefixStr )._NC ( "\" added as prefix logable for domain \'" )
-                               ._NC( dom.FullPath )
-                               ._NC( "\'. (Retrieved from configuration variable" )
-                               ._NC( variable.Fullname() )._( ".)" );
+            NString128 msg; msg._<false>( "String \"" )._<false>( prefixStr )._<false> ( "\" added as prefix logable for domain \'" )
+                               ._<false>( dom.FullPath )
+                               ._<false>( "\'. (Retrieved from configuration variable" )
+                               ._<false>( variable.Fullname() )._( ".)" );
 
             LI::logInternal( impl, Verbosity::Info, "PFX", msg );
         }
@@ -1894,6 +1906,7 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
             {
                 dom->ConfigurationAlreadyRead= true;
 
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 Box replacements[2];
                 for ( int i= 0; i < dom->CountLoggers(); ++i )
                 {
@@ -1904,6 +1917,7 @@ Domain* LI::findDomain(LoxImpl* impl,  Domain& rootDomain, NString domainPath )
                                                                                  replacements ) ) )
                         LI::getVerbosityFromConfig( impl, logger, *dom );
                 }
+                ALIB_WARNINGS_RESTORE
 
                 LI::getDomainPrefixFromConfig( impl,  *dom );
             }
@@ -2207,7 +2221,7 @@ Boxes&  LI::acquireInternalLogables(LoxImpl* impl)
 
 void LI::logInternal(LoxImpl* impl,  Verbosity verbosity, const NString& subDomain, Boxes& msg )
 {
-    ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALox (ALib) was not properly bootstrapped." )
+    ALIB_ASSERT_ERROR(ALOX.IsBootstrapped(), "ALOX", "ALox (ALib) was not properly bootstrapped." )
     LI::log( impl, LI::findDomain( impl, *impl->internalDomains, subDomain ), verbosity, msg, Inclusion::Exclude );
 
     impl->internalLogables[static_cast<size_t>(--impl->internalLogRecursionCounter)]->clear();
@@ -2270,9 +2284,9 @@ void getStateCollectPrefixes( Domain& dom, integer indentSpaces, NAString& targe
         buffer << Format::Escape( Switch::On, actLen );
         buffer << '"';
         if ( pfl.second == Inclusion::Exclude )
-            buffer._NC( " (Excl.)" );
-        buffer._NC( Format::Tab( 25, -1 ) );
-        buffer._NC( "<domain>           [" )._NC( dom.FullPath )._NC(']').NewLine();
+            buffer._<false>( " (Excl.)" );
+        buffer._<false>( Format::Tab( 25, -1 ) );
+        buffer._<false>( "<domain>           [" )._<false>( dom.FullPath )._<false>(']').NewLine();
     }
     target << buffer;
 
@@ -2294,9 +2308,9 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
     if ( HasBits( flags, StateInfo::CompilationFlags ) )
     {
-        buf._NC( "ALib Version:      " )._NC( ALIB.Version)
-           ._NC(" (Rev. ")                ._( ALIB.Revision)._(')').NewLine();
-        buf._NC( "ALib Comiler Symbols:" ).NewLine();
+        buf._<false>( "ALib Version:      "    )._<false>( ALIB.Version)
+           ._<false>(" (Rev. ")                 ._( ALIB.Revision)._(')').NewLine();
+        buf._<false>( "ALib Compiler Symbols:" ).NewLine();
         {
             for( auto& p : ALIB.CompilationFlagMeanings )
             {
@@ -2311,18 +2325,18 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
 
     // basic lox info
     if( aworx::HasBits( flags,  StateInfo::Basic ) )
-        buf._NC( "Name:            \"" )._( impl->scopeInfo.GetLoxName() )._('\"').NewLine();
+        buf._<false>( "Name:            \"" )._( impl->scopeInfo.GetLoxName() )._('\"').NewLine();
 
     if( HasBits( flags,  StateInfo::Version ) )
     {
-        buf._NC( "Version:         " )._NC( ALOX.Version)
-           ._NC(" (Rev. "            )._(   ALOX.Revision)._(')').NewLine();
+        buf._<false>( "Version:         " )._<false>( ALOX.Version)
+           ._<false>(" (Rev. "            )._(   ALOX.Revision)._(')').NewLine();
         ALIB_IF_THREADS(
-            buf._NC( "Thread Safeness: " )._NC( impl->Lock.GetSafeness() ).NewLine(); )
+            buf._<false>( "Thread Safeness: " )._<false>( impl->Lock.GetSafeness() ).NewLine(); )
     }
 
     if( HasBits( flags,  StateInfo::Basic ) )
-        buf._NC( "#Log Calls:      " )._NC( impl->CntLogCalls     ).NewLine();
+        buf._<false>( "#Log Calls:      " )._<false>( impl->CntLogCalls     ).NewLine();
 
     if(    HasBits( flags,  StateInfo::Basic )
         || HasBits( flags,  StateInfo::Version )  )
@@ -2331,7 +2345,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     //  source path trim info
     if( HasBits( flags,  StateInfo::SPTR ) )
     {
-        buf._NC( "Source Path Trimming Rules: " ).NewLine();
+        buf._<false>( "Source Path Trimming Rules: " ).NewLine();
 
         int cnt= 0;
         // do 2 times, 0== global list, 1 == local list
@@ -2347,28 +2361,28 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
             for ( auto& ti : *trimInfoList )
             {
                 ++cnt;
-                buf._NC( trimInfoNo == 0 ? "  Global: "
+                buf._<false>( trimInfoNo == 0 ? "  Global: "
                                          : "  Local:  " );
-                buf._NC( ti.IsPrefix ?  "\"" : "\"*");
-                buf._NC( ti.Path )._NC( "\", " );
-                buf._NC( ti.IncludeString );
+                buf._<false>( ti.IsPrefix ?  "\"" : "\"*");
+                buf._<false>( ti.Path )._<false>( "\", " );
+                buf._<false>( ti.IncludeString );
                 if ( ti.TrimOffset != 0 )
-                    buf._NC( ti.Path )._NC( "\", Offset: " )._NC( ti.TrimOffset );
-                buf._NC( ", Priority: " )._( ti.Priority );
+                    buf._<false>( ti.Path )._<false>( "\", Offset: " )._<false>( ti.TrimOffset );
+                buf._<false>( ", Priority: " )._( ti.Priority );
                 buf.NewLine();
             }
         }
 
 
         if ( cnt == 0 )
-            buf._NC("  <no rules set>" ).NewLine();
+            buf._<false>("  <no rules set>" ).NewLine();
         buf.NewLine();
     }
 
     //  domain substitutions
     if( HasBits( flags,  StateInfo::DSR ) )
     {
-        buf._NC( "Domain Substitution Rules: " ).NewLine();
+        buf._<false>( "Domain Substitution Rules: " ).NewLine();
         if( !impl->domainSubstitutions.IsEmpty() )
         {
             // get size
@@ -2381,54 +2395,54 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
             // write
             for ( auto& it : impl->domainSubstitutions )
             {
-                buf._NC( "  " );
+                buf._<false>( "  " );
                 if (    it.type == DomainSubstitutionRule::Type::EndsWith
                      || it.type == DomainSubstitutionRule::Type::Substring )
-                    buf._NC( '*' );
+                    buf._<false>( '*' );
 
-                buf._NC( it.Search );
+                buf._<false>( it.Search );
                 if (    it.type == DomainSubstitutionRule::Type::StartsWith
                      || it.type == DomainSubstitutionRule::Type::Substring )
-                    buf._NC( '*' );
+                    buf._<false>( '*' );
 
-                buf._NC( NFormat::Tab( maxWidth, -1, 0 ) )
-                   ._NC( " -> " )
-                   ._NC( it.Replacement );
+                buf._<false>( NFormat::Tab( maxWidth, -1, 0 ) )
+                   ._<false>( " -> " )
+                   ._<false>( it.Replacement );
                 buf.NewLine();
             }
         }
         else
-            buf._NC("  <no rules set>" ).NewLine();
+            buf._<false>("  <no rules set>" ).NewLine();
         buf.NewLine();
     }
 
     // Log Once Counters
     if( HasBits( flags,  StateInfo::Once ) )
     {
-        buf._NC( "Once() Counters: " ).NewLine();
+        buf._<false>( "Once() Counters: " ).NewLine();
         if ( scopeDump.writeStoreMap( &impl->scopeLogOnce ) == 0 )
-            buf._NC("  <no Once() counters set>" ).NewLine();
+            buf._<false>("  <no Once() counters set>" ).NewLine();
         buf.NewLine();
     }
 
     // Log Data
     if( HasBits( flags,  StateInfo::LogData ) )
     {
-        buf._NC( "Log Data: " ).NewLine();
+        buf._<false>( "Log Data: " ).NewLine();
         if ( scopeDump.writeStoreMap( &impl->scopeLogData ) == 0 )
-            buf._NC("  <no data objects stored>" ).NewLine();
+            buf._<false>("  <no data objects stored>" ).NewLine();
         buf.NewLine();
     }
 
     // Prefix Logables
     if( HasBits( flags,  StateInfo::PrefixLogables ) )
     {
-        buf._NC( "Prefix Logables: " ).NewLine();
+        buf._<false>( "Prefix Logables: " ).NewLine();
         integer oldLength= buf.Length();
         scopeDump.writeStore( &impl->scopePrefixes, 2 );
         getStateCollectPrefixes( *impl->domains, 2, buf );
         if ( oldLength == buf.Length() )
-            buf._NC("  <no prefix logables set>" ).NewLine();
+            buf._<false>("  <no prefix logables set>" ).NewLine();
         buf.NewLine();
     }
 
@@ -2436,13 +2450,13 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     if( HasBits( flags,  StateInfo::ThreadMappings ) )
     {
         #if ALIB_THREADS
-            buf._NC( "Named Threads:   " ).NewLine();
+            buf._<false>( "Named Threads:   " ).NewLine();
             if ( impl->scopeInfo.threadDictionary.Size() == 0 )
-                buf._NC("  <no thread name mappings set>" ).NewLine();
+                buf._<false>("  <no thread name mappings set>" ).NewLine();
             else
                 for ( auto& pair : impl->scopeInfo.threadDictionary )
                 {
-                    buf._NC( "  " ) << NFormat::Field( String32() << '(' << pair.first << "):", 7, Alignment::Left )
+                    buf._<false>( "  " ) << NFormat::Field( String32() << '(' << pair.first << "):", 7, Alignment::Left )
                                     << '\"' << pair.second << '\"';
                     buf.NewLine();
                 }
@@ -2453,9 +2467,9 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     // Scope Domains
     if( HasBits( flags,  StateInfo::ScopeDomains ) )
     {
-        buf._NC( "Scope Domains: " ).NewLine();
+        buf._<false>( "Scope Domains: " ).NewLine();
         if ( scopeDump.writeStore( &impl->scopeDomains, 2 ) == 0 )
-            buf._NC("  <no scope domains set>" ).NewLine();
+            buf._<false>("  <no scope domains set>" ).NewLine();
         buf.NewLine();
     }
 
@@ -2471,12 +2485,12 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
             if( treeNo==0 )
             {
                  domTree= impl->domains;
-                 buf._NC( "Loggers:" ).NewLine();
+                 buf._<false>( "Loggers:" ).NewLine();
             }
             else
             {
                  domTree= impl->internalDomains;
-                 buf._NC( "Loggers on Internal Domains:" ).NewLine();
+                 buf._<false>( "Loggers on Internal Domains:" ).NewLine();
             }
 
             for ( int loggerNo= 0; loggerNo< domTree->CountLoggers(); ++loggerNo )
@@ -2486,20 +2500,20 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
                 CalendarDateTime ct(Initialization::Suppress);
 
                 Logger* logger= domTree->GetLogger(loggerNo);
-                buf._NC( "  "  )._NC( *logger  ).NewLine();
-                buf._NC( "    Lines logged:  "     )._NC( logger->CntLogs                                   ).NewLine();
+                buf._<false>( "  "  )._<false>( *logger  ).NewLine();
+                buf._<false>( "    Lines logged:  "     )._<false>( logger->CntLogs                                   ).NewLine();
 
                 ct.Set( dateTimeConverter.ToDateTime(logger->TimeOfCreation) );
-                buf._NC( "    Creation time: "     )._NC( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
+                buf._<false>( "    Creation time: "     )._<false>( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
 
                 ct.Set( dateTimeConverter.ToDateTime(logger->TimeOfLastLog) );
-                buf._NC( "    Last log time: "     )._NC( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
+                buf._<false>( "    Last log time: "     )._<false>( ct.Format( A_CHAR("yyyy-MM-dd HH:mm:ss"), as64.Reset()) ).NewLine();
 
                 domainsWithDiffVerb.clear();
                 getStateDomainsWithDiffVerb( *domTree, loggerNo, domainsWithDiffVerb);
                 for ( Domain* dom : domainsWithDiffVerb )
                 {
-                    buf._NC("    ")
+                    buf._<false>("    ")
                        ._(  dom == *domainsWithDiffVerb.begin() ? "Verbosities:   "
                                                                 : "               " );
 
@@ -2511,7 +2525,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
                 }
             }
             if ( cnt == 0 )
-                buf._NC("  <no loggers attached>" ).NewLine();
+                buf._<false>("  <no loggers attached>" ).NewLine();
             buf.NewLine();
         }
     }
@@ -2519,7 +2533,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     // Internal Domains
     if( HasBits( flags,  StateInfo::InternalDomains ) )
     {
-        buf._NC( "Internal Domains:" ).NewLine();
+        buf._<false>( "Internal Domains:" ).NewLine();
         getStateDomainRecursive( *impl->internalDomains, impl->maxDomainPathLength, buf );
         buf.NewLine();
     }
@@ -2527,7 +2541,7 @@ void LI::GetState( LoxImpl* impl, NAString& buf, StateInfo flags )
     // Domains
     if( HasBits( flags,  StateInfo::Domains ) )
     {
-        buf._NC( "Domains:" ).NewLine();
+        buf._<false>( "Domains:" ).NewLine();
         getStateDomainRecursive( *impl->domains        , impl->maxDomainPathLength, buf );
         buf.NewLine();
     }
@@ -2561,7 +2575,7 @@ TextLogger* Lox::CreateConsoleLogger(const NString& name)
                                                     #endif
 
 
-    ALIB_WARNING( "Unrecognized value in config variable {!Q} = {!Q}.",
+    ALIB_WARNING( "ALOX", "Unrecognized value in config variable {!Q} = {!Q}.",
                   variable.Fullname(), variable.GetString() )
 
     DEFAULT:

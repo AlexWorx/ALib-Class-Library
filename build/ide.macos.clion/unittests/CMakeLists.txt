@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Unit Tests
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -11,7 +11,7 @@
 #  More information is found in ALox documentation.
 # #################################################################################################
 
-cmake_minimum_required( VERSION 3.3.0 )
+cmake_minimum_required( VERSION 3.18.0 )
 
 project("ALib_UnitTests")
 
@@ -33,12 +33,14 @@ project("ALib_UnitTests")
     #list( APPEND ALIB_COMPILER_WARNINGS    "-Wextra-semi" )
 
     # C++ Version selection
-    #list( APPEND CMAKE_CXX_FLAGS           "-std=c++11"    )
-    #list( APPEND CMAKE_CXX_FLAGS           "-std=c++14"    )
-    #list( APPEND CMAKE_CXX_FLAGS           "-std=c++17"    )
+
+    #set(CMAKE_CXX_STANDARD 11)
+    #set(CMAKE_CXX_STANDARD 14)
+    #set(CMAKE_CXX_STANDARD 17)
+    #set(CMAKE_CXX_STANDARD 20)
 
     # 32-bit compilation
-    #list( APPEND CMAKE_CXX_FLAGS           "-m32"    )
+    #add_compile_options(-m32)
 
     #### Module TEXT is mandatory to build the unit tests ####
     #list( APPEND ALIB_DISTRIBUTION         "TEXT"  )
@@ -69,9 +71,21 @@ project("ALib_UnitTests")
     #set( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS      "On" )
 
     #set( ALIB_DEBUG_MONOMEM                "On" )
+    #set( ALIB_DEBUG_ARRAY_COMPRESSION      "Off")
     #set( ALIB_DEBUG_STRINGS                "On" )
     #set( ALIB_DEBUG_RESOURCES              "On" )
     #set(  ALIB_DEBUG_BOXING                "On" ) # has to be switched on to create the documentation
+
+# For UNKNOWN platforms: Try and set the integral sizes as follows.
+
+if(MyPlatform)
+    list( APPEND ALIB_SYMBOLS      "ALIB_SIZEOF_INTEGER=8"             )
+    list( APPEND ALIB_SYMBOLS      "ALIB_SIZEOF_INTGAP=8"              )
+    list( APPEND ALIB_SYMBOLS      "ALIB_INTGAP_TYPE=long"             )
+    list( APPEND ALIB_SYMBOLS      "ALIB_SIZEOF_LONGDOUBLE_REPORTED=8" )
+    list( APPEND ALIB_SYMBOLS      "ALIB_SIZEOF_LONGDOUBLE_WRITTEN=8"  )
+endif ()
+
 
 
 
@@ -81,7 +95,3 @@ project("ALib_UnitTests")
     #set( ALIB_CMAKE_VERBOSE  "On" ) # request details from the main ALib.cmake script
 
     include( ../../cmake/unittests/CMakeLists.txt )
-
-
-
-

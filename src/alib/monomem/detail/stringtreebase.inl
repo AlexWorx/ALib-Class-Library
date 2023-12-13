@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE
@@ -29,8 +29,8 @@
 #      include "alib/results/report.hpp"
 #   endif
 #else
-#   if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#      include "alib/lib/fs_debug/assert.hpp"
+#   if !defined(HPP_ALIB_TOOLS)
+#      include "alib/lib/tools.hpp"
 #   endif
 #endif
 
@@ -57,13 +57,13 @@ namespace detail {
  *   Otherwise, the separation is exclusively supporting source code organization.
  *
  * @tparam T               See
- *                         \ref alib_namespace_monomem_stringtree_referencedoc "template parameters"
+ *                         \ref alib_ns_monomem_stringtree_referencedoc "template parameters"
  *                         of derived public type.
  * @tparam TNodeMaintainer See
- *                         \ref alib_namespace_monomem_stringtree_referencedoc "template parameters"
+ *                         \ref alib_ns_monomem_stringtree_referencedoc "template parameters"
  *                         of derived public type.
  * @tparam TRecycling      See
- *                         \ref alib_namespace_monomem_stringtree_referencedoc "template parameters"
+ *                         \ref alib_ns_monomem_stringtree_referencedoc "template parameters"
  *                         of derived public type.
  */
 template<typename  T, typename TNodeMaintainer, typename TRecycling>
@@ -75,10 +75,7 @@ struct StringTreeBase
     struct Node; // forward declaration
 
     /** Alias shortcut for a bidirectional list of \b Node elements.  */
-    using NodeList     = BidiList<Node>;
-
-    /** Alias shortcut for an iterator of #NodeList.  */
-    using NodeIterator = BidiListIterator<Node>;
+    using NodeList     = lib::detail::BidiListHelper<Node>;
 
     /** The string type of node names and paths.  */
     using ValueType    = typename strings::TString<typename TNodeMaintainer::CharacterType>;
@@ -196,7 +193,7 @@ struct StringTreeBase
      * Note that the templated allocator type \b TAllocator is declared as a friend of this
      * class to be able to access the otherwise protected constructor.
      */
-    struct Node : public BidiNode<Node>,
+    struct Node : public lib::detail::BidiNodeBase<Node>,
                   public NodeKey
     {
         /** The number of children currently stored in this node. */
@@ -290,9 +287,14 @@ struct StringTreeBase
             // are found, each entry of the hashtable is first compared against the full hash code.
             if( qtyChildren <= 5 )
             {
-                for( auto& childIt : children )
-                    if( childIt.name.Equals( childName ) )
-                        return &childIt;
+                Node* childIt= children.first();
+                while( childIt != &children.hook )
+                {
+                    if( childIt->name.Equals( childName ) )
+                        return childIt;
+                    childIt= childIt->next();
+                }
+
                 return nullptr;
             }
 
@@ -341,14 +343,16 @@ struct StringTreeBase
          *   If the given node is not a child of this node, the behavior is undefined.
          *   With debug builds, in this case an \alib assertion is raised.
          *
-         * @param tree         The tree this node belongs to.
-         * @param child        A pointer to a child of this node that is to be deleted.
+         * @param tree   The tree this node belongs to.
+         * @param child  A pointer to a child of this node that is to be deleted.
          * @return The total number of nodes deleted.
          */
-        uinteger  deleteChild( StringTreeBase* tree, NodeIterator child )
+        uinteger  deleteChild( StringTreeBase* tree, Node* child )
         {
-            ALIB_ASSERT_ERROR(qtyChildren   >  0   , "This node has no children to remove")
-            ALIB_ASSERT_ERROR(child->parent == this, "The given node is not a child of this node.")
+            ALIB_ASSERT_ERROR(qtyChildren   >  0   , "MONOMEM/STRINGTREE",
+                              "This node has no children to remove")
+            ALIB_ASSERT_ERROR(child->parent == this, "MONOMEM/STRINGTREE",
+                              "The given node is not a child of this node.")
 
             --qtyChildren;
             child->remove(); // remove from linked list
@@ -371,12 +375,14 @@ struct StringTreeBase
                 return 0;
 
             uinteger     count= qtyChildren;
-            for( auto& child : children )
-            {
-                count+=  child.deleteChildren( tree ); // recursion
 
-                auto handle= tree->nodeTable.Extract( child );    ALIB_ASSERT( !handle.IsEmpty() )
+            auto* child= children.first();
+            while( child != &children.hook )
+            {
+                count+=  child->deleteChildren( tree ); // recursion
+                auto handle= tree->nodeTable.Extract( *child );    ALIB_ASSERT( !handle.IsEmpty() )
                 TNodeMaintainer::FreeNode( *tree, handle.Value() );
+                child= child->next();
             }
 
             children.reset();
@@ -384,7 +390,6 @@ struct StringTreeBase
 
             return count;
         }
-
 
         /**
          * Implementation of \alib{monomem,StringTree::NodePtr::AssemblePath}.
@@ -440,7 +445,7 @@ struct StringTreeBase
                        TRecycling                 > nodeTable;
 
     /** The recycler type. See \alib{monomem,StringTree::TSharedRecycler} which exposes this
-     *  type publically.                                                                     */
+     *  type publicly.                                                                     */
     using TSharedRecycler=  typename decltype(nodeTable)::TSharedRecycler;
 
 
@@ -647,7 +652,12 @@ struct StringTreeBase
     : root     ( nullptr, nullptr, std::forward<TArgs>(args)... )
     , separator( pathSeparator )
     , nodeTable( allocator )
-    {}
+    {
+        // set a minimum size number of buckets to avoid non-recyclable bucket lists on
+        // growth
+        if( allocator )
+            nodeTable.Reserve(64, ValueReference::Absolute);
+    }
 
     /** ********************************************************************************************
      * Constructor taking a shared recycler.
@@ -682,12 +692,7 @@ struct StringTreeBase
                                                && name.Length() == 2 ) )   )
             || name.IndexOf( separator) >=0 )
         {
-            #if ALIB_RESULTS
-                ALIB_WARNING( "Illegal child name: ", name )
-            #else
-                ALIB_WARNING( "Illegal child name" )
-            #endif
-
+            ALIB_WARNING( "STRINGTREE", NString1K("Illegal child name: ") << name )
             return false;
         }
         return true;

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -40,7 +40,9 @@ WString& Spaces::GetW( integer minLength )
 {
     integer spacesLength= wSpaces.Length();
     if ( spacesLength < minLength )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         wSpaces.InsertChars( ' ', minLength - spacesLength );
+        ALIB_WARNINGS_RESTORE
     return wSpaces;
 }
 

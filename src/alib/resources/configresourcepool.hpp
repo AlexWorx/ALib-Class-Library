@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_resources of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESOURCES_CONFIG_RESOURCE_POOL
@@ -117,7 +117,7 @@ class ConfigResourcePool  : public ResourcePool
      **********************************************************************************************/
     ALIB_API
     virtual
-    void BootstrapBulk( const nchar* category, ... )                                         override;
+    void BootstrapBulk( const nchar* category, ... )                                       override;
 
 #if defined(ALIB_DOX)
     /** ********************************************************************************************

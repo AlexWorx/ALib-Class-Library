@@ -1,8 +1,8 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_owner of the \aliblong.
+ * This header file is part of file set \alibfs_owner of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_FS_OWNER_OWNER
@@ -44,11 +44,20 @@ struct Owner
     // Disallow new operations.
     // #############################################################################################
     private:
-        void* operator new  (size_t);        ///< Private declared new, to disallow heap allocation.
-        void* operator new  (size_t, void*); ///< Private declared new, to disallow heap allocation.
-        void* operator new[](size_t);        ///< Private declared new, to disallow heap allocation.
-        void* operator new[](size_t, void*); ///< Private declared new, to disallow heap allocation.
-        void  operator =    (const Owner& ); ///< Private declared assignment operator.
+        /** Private new to disallow heap allocation.
+         *  @return Never called.                        */
+        void* operator new  (size_t);
+        /** Private new to disallow heap allocation.
+         *  @return Never called.                        */
+        void* operator new  (size_t, void*);
+        /** Private new to disallow heap allocation.
+         *  @return Never called.                        */
+        void* operator new[](size_t);
+        /** Private new to disallow heap allocation.
+         *  @return Never called.                        */
+        void* operator new[](size_t, void*);
+        /** Private assignment operator. */
+        void  operator =    (const Owner& );
 
     protected:
         /** All we own is this. */
@@ -112,7 +121,7 @@ struct RecursionDetection                                                       
                                                                                                    \
     void  Acquire( const NCString&, int, const NCString& func )                                    \
     {                                                                                              \
-       ALIB_ASSERT_ERROR( TestMember==false, "Forbidden recursive use of method ", func )          \
+       ALIB_ASSERT_ERROR( TestMember==false, "FSOWNER", "Forbidden recursive use of method ", func )          \
        TestMember= true;                                                                           \
     }                                                                                              \
     void  Release()    { TestMember= false;    }                                                   \

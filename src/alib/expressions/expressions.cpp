@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -13,8 +13,8 @@
 #   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE)
 #      include "alib/expressions/detail/virtualmachine.hpp"
 #   endif
-#   if ALIB_SYSTEM && !defined (HPP_ALIB_SYSTEM_SYSTEM)
-#      include "alib/system/system.hpp"
+#   if ALIB_SYSTEM && !defined(HPP_ALIB_SYSTEM_ERRORS)
+#       include "alib/system/systemerrors.hpp"
 #   endif
 #   if ALIB_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
 #      include "alib/expressions/plugins/dateandtime.hpp"
@@ -44,7 +44,7 @@ namespace aworx { namespace lib {
 expressions::Expressions EXPRESSIONS;
 
 /** ************************************************************************************************
- * This is the reference documentation of sub-namespace \b expressions of the \aliblink which
+ * This is the reference documentation of sub-namespace \c expressions of the \aliblink, which
  * holds types of library module \alib_expressions.
  *
  * Extensive documentation for this module is provided with
@@ -102,7 +102,7 @@ Box* Signatures::DDur[2]  = { &Types::DateTime   ,  &Types::Duration            
 Expressions::Expressions()
 : Module( ALIB_VERSION, ALIB_REVISION, "EXPR" )
 {
-    ALIB_ASSERT_ERROR( this == &EXPRESSIONS,
+    ALIB_ASSERT_ERROR( this == &EXPRESSIONS, "EXPR",
        "Instances of class Expressions must not be created. Use singleton aworx::lib::EXPRESSIONS" )
 }
 
@@ -228,7 +228,7 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
     "E26", A_CHAR("-500,InExpressionFormatter"                 ",ED-500" ),
 
     "ED1",    A_CHAR( "Syntax error parsing expression."                                           ),
-    "ED-1",   A_CHAR( "Expression: {{{}}}\\n"
+    "ED-1",   A_CHAR( "Expression: {{{}}}\n"
                       "             {!F}^->"                                                       ),
     "ED-2",   A_CHAR( "std::exception thrown: {!Q}."                                               ),
 
@@ -262,16 +262,15 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
     "ED53",   A_CHAR( "Erroneous arguments given with nested expression function {!Q}."            ),
     "ED54",   A_CHAR( "Evaluation-time defined nested expression {!Q} not found."                  ),
     "ED-54",  A_CHAR( "Exception evaluating nested expression {!Q}."                               ),
-    "ED55",   A_CHAR( "Nested expression {!Q} returned wrong result type.\\n"
-                      "Type expected: {}\\n"
+    "ED55",   A_CHAR( "Nested expression {!Q} returned wrong result type.\n"
+                      "Type expected: {}\n"
                       "Type returned: {}"                                                          ),
     "ED56",   A_CHAR( "Circular nested expressions detected. Circular evaluation stack follows."   ),
     "ED-56",  A_CHAR( "Expression {!Q} contains nested expression {!Q}."                           ),
-    "ED-500", A_CHAR( "Occured in ExpressionFormatter expression #{}.\\n"
+    "ED-500", A_CHAR( "Occurred in ExpressionFormatter expression #{}.\n"
                       "of formatter string: {!Q}"                                                  ) EOS
 
     // exception "expectation" strings
-
     "EE1",    A_CHAR(": Closing brace ')' expected."                     ),
     "EE2",    A_CHAR(": Closing function parameter brace ')' expected."  ),
     "EE3",    A_CHAR(": Closing subscript brace ']' expected."           ),
@@ -294,13 +293,13 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
                                    "1,Constant"     ",1"    ) EOS
 
     "ProgListHeader",      A_CHAR( "@HL-"
-                                   "ALib Expression Compiler\\n"
-                                   "(c) 2019 AWorx GmbH. Published under MIT License (Open Source).\\n"
-                                   "More Info: https://alib.dev\\n"
+                                   "ALib Expression Compiler\n"
+                                   "(c) 2023 AWorx GmbH. Published under MIT License (Open Source).\n"
+                                   "More Info: https://alib.dev\n"
                                    "@HL-"
-                                   "Expression name: {}\\n"
-                                   "     Normalized: {{{}}}\\n"
-                                   "\\n"                            ) EOS
+                                   "Expression name: {}\n"
+                                   "     Normalized: {{{}}}\n"
+                                   "\n"                            ) EOS
 
 
     "ProgListHdl0",  A_CHAR("PC"                ),
@@ -311,7 +310,7 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
     "ProgListHdl5",  A_CHAR("Description"       ),
     "ProgListHdl6",  A_CHAR("ArgNo{Start..End}" ),
 
-    "ProgListLine",  A_CHAR("{:<02} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} |{!Fill}{}\\n")     EOS
+    "ProgListLine",  A_CHAR("{:<02} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} | {!AW} |{!Fill}{}\n")     EOS
 
 
     "ProgListFooter",A_CHAR("@HL-")        EOS

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -50,30 +50,35 @@ namespace results {
 #if !defined(ALIB_DOX)
 namespace {
 #endif
-    /**
-     * This method is installed with \alib{DBG_SIMPLE_ALIB_MSG_PLUGIN} in method
-     * \alib{Module::bootstrap}.
-     *
-     * The message strings are simply passed to the default \alib{results,Report}.
-     * This way, the essential assert, error and message macros are using the \alib report system
-     * in the moment that the complete %ALib library is in place (instead of only one of the
-     * library's modules.
-     *
-     * @param file    Information about the scope of invocation.
-     * @param line    Information about the scope of invocation.
-     * @param method  Information about the scope of invocation.
-     * @param type    The type of message. See \alib{results,Message}.
-     * @param qtyMsgs The number of messages in \p{msgs}.
-     * @param msgs    A list of strings (this is all that the essential versions of \alib reporting
-     *                macros provide).
-     */
-    void debugReportPlugin(const char* file, int line, const char* method, int type, int qtyMsgs, const nchar** msgs)
-    {
-        Message message( file,line,method, Report::Types(type), msgs[0] );
-        for (int i= 1; i< qtyMsgs; ++i )
-            message.Add( msgs[i] );
-        Report::GetDefault().DoReport( message );
-    }
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+/**
+ * This method is installed with \alib{DBG_SIMPLE_ALIB_MSG_PLUGIN} in method
+ * \alib{Module::bootstrap}.
+ *
+ * The message strings are simply passed to the default \alib{results,Report}.
+ * This way, the essential assert, error and message macros are using the \alib report system
+ * in the moment that the complete %ALib library is in place (instead of only one of the
+ * library's modules.
+ *
+ * @param file    Information about the scope of invocation.
+ * @param line    Information about the scope of invocation.
+ * @param method  Information about the scope of invocation.
+ * @param type    The type of message. See \alib{results,Message}.
+ * @param topic   The topic of message.
+ * @param qtyMsgs The number of messages in \p{msgs}.
+ * @param msgs    A list of strings (this is all that the essential versions of \alib reporting
+ *                macros provide).
+ */
+void debugReportPlugin(const char* file, int line, const char* method,
+                       int type, const char* topic, int qtyMsgs, const nchar** msgs)
+{
+    Message message( file,line,method, Report::Types(type), topic );
+    for (int i= 0; i< qtyMsgs; ++i )
+        message.Add( msgs[i] );
+    Report::GetDefault().DoReport( message );
+}
+ALIB_WARNINGS_RESTORE
+
 #if !defined(ALIB_DOX)
 } // anonymous namespace
 #endif
@@ -85,7 +90,7 @@ namespace {
 Results::Results()
 : Module( ALIB_VERSION, ALIB_REVISION, "RSLTS" )
 {
-    ALIB_ASSERT_ERROR( this == &RESULTS,
+    ALIB_ASSERT_ERROR( this == &RESULTS, "RESULTS",
         "Instances of class Results must not be created. Use singleton aworx::lib::RESULTS" )
 }
 
@@ -95,6 +100,10 @@ void Results::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t
     if( phase == BootstrapPhases::PrepareResources )
     {
         ALIB.CheckDistribution();
+
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_exception )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_report_types )
+
 
         #if ALIB_DEBUG
             lib::DBG_SIMPLE_ALIB_MSG_PLUGIN= debugReportPlugin;

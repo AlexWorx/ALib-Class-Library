@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -26,6 +26,9 @@
 #if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
     #include "alib/config/configuration.hpp"
 #endif
+
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
+
 
 
 
@@ -114,7 +117,7 @@ namespace ut_alox {
 /** ********************************************************************************************
 * UT_CLASS
 **********************************************************************************************/
-UT_CLASS()
+UT_CLASS
 
 
 /** ********************************************************************************************
@@ -312,6 +315,8 @@ UT_METHOD(Log_ColorsAndStyles)
     Log_Prune( if ( wcl != nullptr )  ((WindowsConsoleLogger*) wcl) ->UseLightColors= oldVal2; )
     #endif
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+
     Log_Verbose( testML->MemoryLog.Terminate() + mlPos )
     UT_TRUE( testML->MemoryLog.IndexOf('\033') < 0 ) testML->MemoryLog.Reset();
     Log_Info(    String256("Reset FG/BG: ")
@@ -389,6 +394,8 @@ UT_METHOD(Log_ColorsAndStyles)
     Log_Verbose( testML->MemoryLog.Terminate() + mlPos )
     UT_TRUE( testML->MemoryLog.IndexOf('\033') < 0 ) testML->MemoryLog.Reset();
 
+    ALIB_WARNINGS_RESTORE
+
     Log_RemoveLogger( testML )
     Log_Prune( delete testML; )
 }
@@ -400,7 +407,7 @@ UT_METHOD(Log_ColorsAndStyles)
 #if ALOX_DBG_LOG && ALIB_THREADS
 UT_METHOD(Log_TextLogger_RegisterStdStreamLocks)
 {
-    UT_INIT() // This already registers the uint test logger. Therefore, the console lock in \alib
+    UT_INIT() // This already registers the unittest logger. Therefore, the console lock in \alib
                // is occupied once already, but not in Safe mode, yet
                                UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
     Log_AddDebugLogger()

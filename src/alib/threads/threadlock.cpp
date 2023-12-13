@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -29,7 +29,7 @@ ThreadLock::ThreadLock( Safeness pSafeness )
 
 ThreadLock::~ThreadLock()
 {
-    ALIB_ASSERT_WARNING( cntAcquirements == 0, "Destruction while locked" )
+    ALIB_ASSERT_WARNING( cntAcquirements == 0, "THREADS", "Lcok destruction while locked" )
 }
 
 
@@ -49,7 +49,7 @@ void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& 
         ALIB_ASSERT_WARNING(   cntAcquirements                                   != 0
                             && DbgRecursionWarningThreshold                      != 0
                             && (cntAcquirements % DbgRecursionWarningThreshold)  != 0,
-          "Recursion depth warning.\n"
+          "THREADS", "Recursion depth warning.\n"
           "To prevent this, change ThreadLock.recursionWarningThreshold or fix your code.\n"
           "Depth: ", cntAcquirements )
 
@@ -69,9 +69,11 @@ void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& 
         ALIB_ASSERT_WARNING(   cntAcquirements                                   != 0
                             && DbgRecursionWarningThreshold                      != 0
                             && (cntAcquirements % DbgRecursionWarningThreshold)  != 0,
-          "Recursion depth warning.\n"
+          "THREADS", "Recursion depth warning.\n"
           "To prevent this, change ThreadLock.recursionWarningThreshold or fix your code.\n"
           "Depth: ", cntAcquirements )
+
+        // that's it
         return;
     }
 
@@ -112,9 +114,9 @@ void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& 
                     hasWarned= true;
                     Thread* thisThread = Thread::GetCurrent();
                     Thread* ownerThread= detail::getThread(actualOwner);
-                    ALIB_WARNING( NString1K()
+                    ALIB_WARNING( "THREADS", NString1K()
                         << "Waiting on ThreadLock since " << milliseconds << " ms. Reasons might be "
-                           "a dead lock, an non-optimized critical section \n"
+                           "a dead lock, an non-optimized critical section\n"
                            "or simply too much load on the executing machine. More Info:"
                         << "\n  Owner       : " << ownerThread->GetId() << '/' << ownerThread->GetName()
                         << " at: " << DbgOwnerFile << ':' << DbgOwnerLine << " " << DbgOwnerFunc << "()."
@@ -125,6 +127,7 @@ void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& 
                 }
             }
     #endif
+
         } // while loop
 
         // take control
@@ -149,7 +152,7 @@ void ThreadLock::Release()
         // not locked
         if( cntAcquirements == 0 )
         {
-            ALIB_ERROR( "Release without acquire (unsafe mode)."
+            ALIB_ERROR( "THREADS", "Release without acquire (unsafe mode)."
                         "Note: This must never happen, check your code, set lock to safe mode!" )
         }
 
@@ -165,7 +168,7 @@ void ThreadLock::Release()
         std::unique_lock<std::mutex> lock(mutex);
 
         // not locked?
-        ALIB_ASSERT_ERROR( cntAcquirements != 0, "Illegal release without acquire (safe mode)." )
+        ALIB_ASSERT_ERROR( cntAcquirements != 0, "THREADS", "Illegal release without acquire (safe mode)." )
 
         // decreasing the cntAcquirements
         --cntAcquirements;
@@ -188,7 +191,7 @@ void ThreadLock::SetSafeness( Safeness newSafeness )
         // already locked? ALIB Error
         if( cntAcquirements != 0 )
         {
-            ALIB_ERROR( "Cannot switch safeness mode while already locked.\n"
+            ALIB_ERROR( "THREADS", "Cannot switch safeness mode while already locked.\n"
                         "  Current mode: unsafe, requested mode: ",
                         (newSafeness == Safeness::Safe ? "Safe" : "Unsafe" )
                       )
@@ -209,7 +212,7 @@ void ThreadLock::SetSafeness( Safeness newSafeness )
         {
             lock.unlock();
             ALIB_DBG(Thread* ownerThread= GetOwner() );
-            ALIB_ERROR( NString256() <<
+            ALIB_ERROR( "THREADS", NString256() <<
                "Cannot switch safeness mode while already locked.\n"
                "  Current mode: safe, requested mode: "  <<
                 (safeness == Safeness::Safe ? "Safe" : "Unsafe" )

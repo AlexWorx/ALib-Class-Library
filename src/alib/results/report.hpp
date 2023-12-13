@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_results of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_REPORT
@@ -72,7 +72,9 @@ namespace results {                  class ReportWriter;
  * \note
  *  For debug output statements, it is advised to rather use the
  *  \https{ALox Logging Library,alexworx.github.io/ALox-Logging-Library/index.html}
- *  instead of \alib reports and corresponding macros.
+ *  instead of \alib reports and corresponding macros.<br>
+ *  In addition, \alox itself replaces the standard report writer given with this fileset
+ *  by an instance of type \alib{lox,ALoxReportWriter}, which uses the \alox standard debug logger.
  **************************************************************************************************/
 class Report
 {
@@ -158,7 +160,7 @@ class Report
          * @param message The message to report.
          ******************************************************************************************/
         ALIB_API
-        void     DoReport( const Message& message );
+        void     DoReport( Message& message );
 
         /** ****************************************************************************************
          * Overloaded method that fetches all arguments needed to construct a
@@ -255,7 +257,7 @@ class ReportWriter
          * Report a message. Pure virtual abstract interface method.
          * @param msg  The message to report.
          ******************************************************************************************/
-        virtual void Report          ( const Message& msg )                                      =0;
+        virtual void Report          ( Message& msg )                                            =0;
 };
 
 /** ************************************************************************************************
@@ -281,8 +283,8 @@ class ReportWriterStdIO : public ReportWriter, public Singleton<ReportWriterStdI
      * instance may exist.
      */
     private:
-        ALIB_API            ReportWriterStdIO() {}
-        ALIB_API virtual   ~ReportWriterStdIO() {}
+        ALIB_API            ReportWriterStdIO()             {}
+        ALIB_API virtual   ~ReportWriterStdIO() override    {}
 
     public:
         /** ****************************************************************************************
@@ -290,22 +292,30 @@ class ReportWriterStdIO : public ReportWriter, public Singleton<ReportWriterStdI
          * @param phase     Information if activated or deactivated.
          ******************************************************************************************/
         ALIB_API
-        virtual void NotifyActivation  ( Phase phase );
+        virtual void NotifyActivation  ( Phase phase )                                     override;
 
         /** ****************************************************************************************
-         * Just writes the prefix \"ALib Report (Error):\" (respectively \"ALib Report (Warning):\"
+         * Writes the prefix \"ALib Report (Error):\" (respectively \"ALib Report (Warning):\"
          * and the error message to the cout.
          * On Windows platform, if a debugger is present, the message is also written using
          * <em>OutputDebugStringA</em>.
          *
+         * If the first member of \p msg is of type string and it's contents follow the
+         * rules given with (higher level) module \alib in respect to
+         * \alib{lox,Lox::EntryDetectDomain,valid domain path detection}
+         * then this string is followed by a colon and a space (<c>": "</c>) to separate this
+         * "topic" from the rest of the message.
+         *
          * @param msg  The message to report.
          ******************************************************************************************/
         ALIB_API
-        virtual void Report  ( const Message& msg );
+        virtual void Report  ( Message& msg )                                        override;
 };
 
 
 }}} // namespace [aworx::lib::results]
+
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::results::Report::Types, vt_alib_report_types )
 
 // #################################################################################################
 // Redefine ALIB Debug macros

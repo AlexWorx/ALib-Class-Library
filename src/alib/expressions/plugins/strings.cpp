@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -249,7 +249,7 @@ struct ScopeWildcardMatcher : public ScopeResource
     WildcardMatcher matcher;
 
     // virtual destructor, implicitly deletes the matcher.
-    virtual ~ScopeWildcardMatcher()  {}
+    virtual ~ScopeWildcardMatcher()  override {}
 };
 DOX_MARKER([DOX_ALIB_EXPR_CTRES_1])
 
@@ -293,7 +293,7 @@ struct ScopeRegexMatcher : public ScopeResource
     RegexMatcher matcher;
 
     // virtual destructor, implicitly deletes the matcher.
-    virtual ~ScopeRegexMatcher()  {}
+    virtual ~ScopeRegexMatcher()                                                        override  {}
 };
 
 Box regex( Scope& scope, ArgIterator  args, ArgIterator )
@@ -376,8 +376,8 @@ Strings::Strings( Compiler& compiler )
     Token functionNames[tableSize];
     Token::LoadResourcedTokens( EXPRESSIONS, "CPS", functionNames
                                 ALIB_DBG(,tableSize)                                 );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
-
 
     // Constant identifiers
     ConstantIdentifiers=
@@ -385,7 +385,6 @@ Strings::Strings( Compiler& compiler )
         { *descriptor++, constNL   },
         { *descriptor++, constTAB  },
     };
-
 
     Functions=
     {
@@ -422,14 +421,16 @@ Strings::Strings( Compiler& compiler )
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::II  ), CALCULUS_CALLBACK(bin        ), &Types::String , CTI   },
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::SSS ), CALCULUS_CALLBACK(replace    ), &Types::String , CTI   },
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::SI  ), CALCULUS_CALLBACK(repeat     ), &Types::String , CTI   },
-#if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+
+        #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::SS  ), CALCULUS_CALLBACK(regex      ), &Types::Boolean, CTI   },
-#endif
+        #endif
     };
 
-    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
+    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize                                     )
+    ALIB_WARNINGS_RESTORE
 }
 
 namespace {

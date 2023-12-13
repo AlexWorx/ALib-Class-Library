@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_SUBSEARCH
@@ -83,36 +83,36 @@ class TSubstringSearch
 
 }; // class TSubstringSearch
 
-extern template ALIB_API         TSubstringSearch<nchar, Case::Sensitive>::TSubstringSearch (const TString<nchar>&);
-extern template ALIB_API         TSubstringSearch<nchar, Case::Ignore   >::TSubstringSearch (const TString<nchar>&);
-extern template ALIB_API         TSubstringSearch<wchar, Case::Sensitive>::TSubstringSearch (const TString<wchar>&);
-extern template ALIB_API         TSubstringSearch<wchar, Case::Ignore   >::TSubstringSearch (const TString<wchar>&);
-extern template ALIB_API         TSubstringSearch<nchar, Case::Sensitive>::~TSubstringSearch();
-extern template ALIB_API         TSubstringSearch<nchar, Case::Ignore   >::~TSubstringSearch();
-extern template ALIB_API         TSubstringSearch<wchar, Case::Sensitive>::~TSubstringSearch();
-extern template ALIB_API         TSubstringSearch<wchar, Case::Ignore   >::~TSubstringSearch();
-extern template ALIB_API void    TSubstringSearch<nchar, Case::Sensitive>::Compile             (const TString<nchar>&);
-extern template ALIB_API void    TSubstringSearch<nchar, Case::Ignore   >::Compile             (const TString<nchar>&);
-extern template ALIB_API void    TSubstringSearch<wchar, Case::Sensitive>::Compile             (const TString<wchar>&);
-extern template ALIB_API void    TSubstringSearch<wchar, Case::Ignore   >::Compile             (const TString<wchar>&);
-extern template ALIB_API integer TSubstringSearch<nchar, Case::Sensitive>::Search              (const TString<nchar>&, integer);
-extern template ALIB_API integer TSubstringSearch<nchar, Case::Ignore   >::Search              (const TString<nchar>&, integer);
-extern template ALIB_API integer TSubstringSearch<wchar, Case::Sensitive>::Search              (const TString<wchar>&, integer);
-extern template ALIB_API integer TSubstringSearch<wchar, Case::Ignore   >::Search              (const TString<wchar>&, integer);
+extern template ALIB_API         TSubstringSearch<nchar, lib::Case::Sensitive>::TSubstringSearch (const TString<nchar>&);
+extern template ALIB_API         TSubstringSearch<nchar, lib::Case::Ignore   >::TSubstringSearch (const TString<nchar>&);
+extern template ALIB_API         TSubstringSearch<wchar, lib::Case::Sensitive>::TSubstringSearch (const TString<wchar>&);
+extern template ALIB_API         TSubstringSearch<wchar, lib::Case::Ignore   >::TSubstringSearch (const TString<wchar>&);
+extern template ALIB_API         TSubstringSearch<nchar, lib::Case::Sensitive>::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<nchar, lib::Case::Ignore   >::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<wchar, lib::Case::Sensitive>::~TSubstringSearch();
+extern template ALIB_API         TSubstringSearch<wchar, lib::Case::Ignore   >::~TSubstringSearch();
+extern template ALIB_API void    TSubstringSearch<nchar, lib::Case::Sensitive>::Compile             (const TString<nchar>&);
+extern template ALIB_API void    TSubstringSearch<nchar, lib::Case::Ignore   >::Compile             (const TString<nchar>&);
+extern template ALIB_API void    TSubstringSearch<wchar, lib::Case::Sensitive>::Compile             (const TString<wchar>&);
+extern template ALIB_API void    TSubstringSearch<wchar, lib::Case::Ignore   >::Compile             (const TString<wchar>&);
+extern template ALIB_API integer TSubstringSearch<nchar, lib::Case::Sensitive>::Search              (const TString<nchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<nchar, lib::Case::Ignore   >::Search              (const TString<nchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<wchar, lib::Case::Sensitive>::Search              (const TString<wchar>&, integer);
+extern template ALIB_API integer TSubstringSearch<wchar, lib::Case::Ignore   >::Search              (const TString<wchar>&, integer);
 
 }}} // namespace aworx[::lib::strings::util]
 
 
 /// Type alias in namespace #aworx.
-template<Case TSensitivity>
+template<lib::Case TSensitivity>
 using  NSubstringSearch =  lib::strings::util::TSubstringSearch<nchar>;
 
 /// Type alias in namespace #aworx.
-template<Case TSensitivity>
+template<lib::Case TSensitivity>
 using  WSubstringSearch =  lib::strings::util::TSubstringSearch<wchar>;
 
 /// Type alias in namespace #aworx.
-template<Case TSensitivity>
+template<lib::Case TSensitivity>
 using   SubstringSearch =  lib::strings::util::TSubstringSearch<character>;
 
 

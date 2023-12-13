@@ -3,7 +3,7 @@
  * This header file is part of the \aliblong. It does neither belong to a fileset, nor to a
  * specific module of \alib, but is included in any \alibdist.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * \note

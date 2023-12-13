@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_LOX
@@ -982,8 +982,6 @@ class Lox
             return detail::LI::GetLogableContainer(impl);
         }
 
-
-
         /** ****************************************************************************************
          * Logs the current list of \e Logables that previously have been received using
          * #GetLogableContainer with the given \p{verbosity}.
@@ -1007,18 +1005,17 @@ class Lox
             detail::LI::Entry(impl, domain, verbosity);
         }
 
-
-
         /** ****************************************************************************************
          * Logs a list of \e Logables with the given \e %Verbosity.
          *
          * If more than one \e Logable is given and the first one is of string type and comprises a
-         * valid domain name, then this first argument is interpreted as the domain name!
-         * Valid domain names are strings that consists only of characters of the following set:
+         * valid domain path, then this first argument is interpreted as the domain name!
+         * Valid domain path are strings that consists only of characters of the following set:
          * - upper case letters,
          * - numbers,
-         * - hyphen (\c '-') and
-         * - underscore (\c '_').
+         * - hyphen (\c '-'),
+         * - underscore (\c '_') and
+         * - forward slash (\c '/').
          *
          * If a first \e Logable could be misinterpreted as being a domain name, an empty string
          * (the "neutral" domain) has to be added as a first argument. Alternatively, a character
@@ -1451,6 +1448,23 @@ class Lox
             detail::LI::once( impl, nullptr, Verbosity::Info, logables, group, Scope::Global, quantity );
         }
 
+        /** ****************************************************************************************
+         * Returns the number of loggers attached, which are active in respect to the given
+         * combination of verbosity and log domain.
+         *
+         * This method may be used to avoid the execution of more complex logging code when such
+         * logging would not result in log activity due to the current log level settings.
+         *
+         * @param verbosity     The verbosity to query for activity.
+         * @param domain        The log domain. All rules for resolving the effective log domain
+         *                      apply as with normal log statements.<br>
+         *                      Defaults to \b NullNString.
+         * @return The number of active loggers.
+         ******************************************************************************************/
+        int IsActive( Verbosity verbosity, const NString&  domain= NullNString() )
+        {
+            return detail::LI::IsActive( impl, verbosity, domain );
+        }
 
     // #############################################################################################
     // Debug methods

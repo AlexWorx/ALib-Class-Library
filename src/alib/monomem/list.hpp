@@ -2,18 +2,22 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_LIST
 #define HPP_ALIB_MONOMEM_LIST 1
+
+#if !defined (HPP_ALIB_MONOMEM_FWDS)
+#   include "alib/monomem/fwds.hpp"
+#endif
 
 #if !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_DETAIL_RECYCLER)
-#   include "alib/monomem/detail/recycler.hpp"
+#   include "alib/monomem/detail/recycler.inl"
 #endif
 
 #if !defined(HPP_ALIB_FS_LISTS_BIDILIST)
@@ -24,9 +28,9 @@ namespace aworx { namespace lib { namespace monomem {
 
 namespace detail
 {
-    /** Extents \b BidiNode by an value of type \p{T}.    */
+    /** Extents \b BidiNodeBase by an value of type \p{T}.    */
     template<typename T>
-    struct ListElement : public BidiNode<ListElement<T>>
+    struct ListElement : public lib::detail::BidiNodeBase<ListElement<T>>
     {
         T           data;       ///< The custom data object.
     };
@@ -62,7 +66,7 @@ namespace detail
  *                    \alib{monomem,Recycling::Shared} or \alib{monomem,Recycling::None}.
  **************************************************************************************************/
 template<typename T, typename TRecycling>
-class List : public detail::ListRecycler<T, TRecycling>::type
+class List 
 {
     // #############################################################################################
     // Node/Element type
@@ -72,22 +76,22 @@ class List : public detail::ListRecycler<T, TRecycling>::type
         using Element= detail::ListElement<T>;
 
         /** The allocator assigned.  */
-        MonoAllocator*          allocator;
+        MonoAllocator*                                      allocator;
 
         /** The list.     */
-        BidiList<Element>       list;
+        lib::detail::BidiListHelper<Element>                list;
 
-        /** Shortcut to the recycler that this class is derived from.     */
-        using TRecycler= typename detail::ListRecycler<T, TRecycling>::type;
+        /** The recycler. Its type depends on template parameter \p{TRecycling}.     */
+        typename detail::ListRecycler<T, TRecycling>::type  recycler;
 
     public:
         /** This type definition may be used to define an externally managed shared recycler,
-         *  which can be passed to the alterative constructor of this class when template
+         *  which can be passed to the alternative constructor of this class when template
          *  parameter \p{TRecycling} equals \alib{monomem,Recycling::Shared}.
          *  \see
          *    Chapter \ref alib_monomem_containers_recycling_shared of the Programmer's Manual
          *    for this \alibmod.                                                          */
-        using TSharedRecycler=  ForwardList<Element>;
+        using TSharedRecycler=  lib::detail::SidiListHelper<Element>;
 
     // #############################################################################################
     // Helpers
@@ -97,7 +101,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          *  @return A pointer to the element created or recycled.    */
         Element* allocElement()
         {
-            Element* elem= TRecycler::get();
+            Element* elem= recycler.get();
             if( elem != nullptr )
                 return elem;
 
@@ -105,12 +109,12 @@ class List : public detail::ListRecycler<T, TRecycling>::type
         }
 
     // #############################################################################################
-    // std::iterator
+    // std::iterator_traits
     // #############################################################################################
     protected:
 
         /** ****************************************************************************************
-         * Implementation of \c std::iterator for this container.
+         * Implementation of \c std::iterator_traits for this container.
          *
          * As the name of the class indicates, this iterator satisfies the C++ standard library
          * concept
@@ -120,13 +124,13 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         template<typename TConstOrMutableElement>
         struct TIterator
-                : public std::iterator< std::bidirectional_iterator_tag, // iterator_category
-                                        TConstOrMutableElement,          // value_type
-                                        integer,                         // distance type
-                                        TConstOrMutableElement*,         // pointer
-                                        TConstOrMutableElement&          // reference
-                                      >
         {
+            using iterator_category = std::bidirectional_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+            using value_type        = TConstOrMutableElement         ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using difference_type   = integer                        ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using pointer           = TConstOrMutableElement*        ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using reference         = TConstOrMutableElement&        ;  ///< Implementation of <c>std::iterator_traits</c>.
+
             private:
                 /** The start of the list. */
                 Element*          element;
@@ -250,56 +254,55 @@ class List : public detail::ListRecycler<T, TRecycling>::type
         using ReverseIterator       = std::reverse_iterator<Iterator>;
 
     /** ############################################################################################
-     * @name std::iterator Interface
+     * @name std::iterator_traits Interface
      ##@{ ########################################################################################*/
         /** Returns an iterator pointing to a mutable value at the start of this list.
          *  @return The start of this list.                                         */
-        Iterator               begin()                   { return      Iterator( list.first()   ); }
+        Iterator               begin()              { return             Iterator( list.first() ); }
 
         /** Returns an iterator pointing to the first element behind this list.
          *  @return The end of this list.                                           */
-        Iterator               end()                     { return      Iterator( list.stopper() ); }
+        Iterator               end()                { return             Iterator( list.end() );   }
 
         /** Returns an iterator pointing to a constant value at the start of this list.
          *  @return The start of this list.                                         */
-        ConstIterator          begin()  const            { return ConstIterator( list.first()   ); }
+        ConstIterator          begin()  const       { return        ConstIterator( list.first() ); }
 
         /** Returns an iterator pointing to the first element behind this list.
          *  @return The end of this list.                                           */
-        ConstIterator          end()    const            { return ConstIterator( list.stopper() ); }
+        ConstIterator          end()    const       { return        ConstIterator( list.end() );   }
 
         /** Returns an iterator pointing to a constant value at the start of this list.
          *  @return The start of this list.                                         */
-        ConstIterator         cbegin()  const            { return ConstIterator( list.first()   ); }
+        ConstIterator         cbegin()  const       { return        ConstIterator( list.first() ); }
 
         /** Returns an iterator pointing to the first element behind this list.
          *  @return The end of this list.                                           */
-        ConstIterator         cend()    const            { return ConstIterator( list.stopper() ); }
+        ConstIterator         cend()    const       { return        ConstIterator( list.end() );   }
 
         /** Returns a reverse iterator pointing to a mutable value at the end of this list.
          *  @return The start of this list.                                         */
-        ReverseIterator       rbegin()                   { return      ReverseIterator( end()   ); }
+        ReverseIterator       rbegin()              { return      ReverseIterator( end() );        }
 
         /** Returns a reverse iterator pointing to the first element behind the start of this list.
          * @return The end of this list.                                           */
-        ReverseIterator       rend()                     { return      ReverseIterator( begin() ); }
+        ReverseIterator       rend()                { return      ReverseIterator( begin() );      }
 
         /** Returns a reverse iterator pointing to a constant value at the end of this list.
          *  @return The start of this list.                                        */
-        ConstReverseIterator  rbegin()  const            { return ConstReverseIterator( end()   ); }
+        ConstReverseIterator  rbegin()  const       { return ConstReverseIterator( end() );        }
 
         /** Returns a reverse iterator pointing to the first element behind the start of this list.
          *  @return The end of this list.                                         */
-        ConstReverseIterator  rend()    const            { return ConstReverseIterator( begin() ); }
+        ConstReverseIterator  rend()    const       { return ConstReverseIterator( begin() );      }
 
         /** Returns a reverse iterator pointing to a constant value at the end of this list.
          *  @return The start of this list.                                        */
-        ConstReverseIterator crbegin()  const            { return ConstReverseIterator( end()   ); }
+        ConstReverseIterator crbegin()  const       { return ConstReverseIterator( end() );        }
 
         /** Returns a reverse iterator pointing to the first element behind the start of this list.
          *  @return The end of this list.                                         */
-        ConstReverseIterator crend()    const            { return ConstReverseIterator( begin() ); }
-
+        ConstReverseIterator crend()    const       { return ConstReverseIterator( begin() );      }
 
 
     /** ############################################################################################
@@ -313,8 +316,8 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          *  @param copy The list to copy.
          ******************************************************************************************/
         List( const List& copy)
-        : TRecycler ( copy           )
-        , allocator ( copy.allocator )
+        : allocator ( copy.allocator )
+        , recycler  ( copy.recycler  )
         {
             for( auto& element : copy )
                 PushBack( element );
@@ -327,8 +330,8 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          *  @param move The private recycler to move.
          ******************************************************************************************/
         List( List&& move)
-        : TRecycler ( std::move( move           ) )
-        , allocator ( std::move( move.allocator ) )
+        : allocator ( std::move( move.allocator ) )
+        , recycler  ( std::move( move.recycler  ) )
         , list      ( std::move( move.list      ) )
         {}
 
@@ -361,8 +364,8 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         explicit
         List( MonoAllocator*  pAllocator, TSharedRecycler& pRecycler )
-        : TRecycler( pRecycler  )
-        , allocator( pAllocator )
+        : allocator( pAllocator )
+        , recycler( pRecycler  )
         {}
 
 
@@ -371,7 +374,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         ~List()
         {
-            if ALIB_CONSTEXPR_IF( !std::is_trivially_destructible<T>::value )
+            if ALIB_CONSTEXPR17( !std::is_trivially_destructible<T>::value )
                 Clear();
         }
 
@@ -405,7 +408,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         integer     RecyclablesCount()                                                         const
         {
-            return TRecycler::count();
+            return recycler.count();
         }
 
 
@@ -436,7 +439,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         bool        IsNotEmpty()                                                               const
         {
-            return list.isNotEmpty();
+            return !list.isEmpty();
         }
 
         /** ****************************************************************************************
@@ -451,11 +454,15 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         void        Clear()
         {
-            if( list.isNotEmpty() )
+            if( !list.isEmpty() )
             {
-                for( auto& it : list )
-                    it.data.~T();
-                TRecycler::recycle( list.first(), list.last() );
+                auto* elem= list.first();
+                while( elem != &list.hook )
+                {
+                    elem->data.~T();
+                    elem= elem->next();
+                }
+                recycler.recycle( list.first(), list.last() );
                 list.reset();
             }
         }
@@ -474,7 +481,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
         void        Reset()
         {
             Clear();
-            TRecycler::disposeRecyclablesIfPrivate();
+            recycler.disposeRecyclablesIfPrivate();
         }
 
         /** ****************************************************************************************
@@ -496,11 +503,13 @@ class List : public detail::ListRecycler<T, TRecycling>::type
             auto requiredRecyclables=  (expectedSize - Size()) - RecyclablesCount();
             if( requiredRecyclables > 0 )
             {
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 Element* newElements= allocator->template AllocArray<Element>( requiredRecyclables );
                 for( auto i= requiredRecyclables -2; i >= 0   ; --i )
-                    newElements[i].makePointTo( &newElements[i + 1] );
+                    newElements[i].next( &newElements[i + 1] );
 
-                TRecycler::recycle( &newElements[0], &newElements[requiredRecyclables - 1] );
+                recycler.recycle( &newElements[0], &newElements[requiredRecyclables - 1] );
+                ALIB_WARNINGS_RESTORE
             }
         }
 
@@ -517,14 +526,14 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         T&          ElementAt(integer idx)
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( !list.isEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
 
-            Element* act= list.forward;
-            for( integer i= 1 ; i < idx ; ++i )
+            Element* act= list.first();
+            for( integer i= 0 ; i < idx ; ++i )
             {
-                act= act->forward;
-                ALIB_ASSERT_ERROR( act != nullptr, "Element index out of bounds")
+                act= act->next();
+                ALIB_ASSERT_ERROR( act != nullptr, "MONOMEM/LIST", "Element index out of bounds")
             }
             return act->data;
         }
@@ -538,14 +547,14 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         const T&    ElementAt(integer idx)                                                     const
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( list.isNotEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
 
-            Element* act= list.forward;
-            for( integer i= 1 ; i < idx ; ++i )
+            Element* act= list.first();
+            for( integer i= 0 ; i < idx ; ++i )
             {
-                act= act->forward;
-                ALIB_ASSERT_ERROR( act != nullptr, "Element index out of bounds")
+                act= act->next();
+                ALIB_ASSERT_ERROR( act != nullptr, "MONOMEM/LIST", "Element index out of bounds")
             }
             return act->data;
         }
@@ -556,7 +565,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         T&          Front()
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( !list.isEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
             return list.first()->data;
         }
@@ -568,7 +577,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         const T&    Front()                                                                    const
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( !list.isEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
             return list.first()->data;
         }
@@ -579,7 +588,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         T&          Back()
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( !list.isEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
             return list.last()->data;
         }
@@ -590,7 +599,7 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         const T&    Back()                                                                     const
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(),
+            ALIB_ASSERT_ERROR( list.isNotEmpty(), "MONOMEM/LIST",
                                "Reference to element requested on empty monomem::List")
             return list.last()->data;
         }
@@ -747,14 +756,16 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         Iterator    Erase(ConstIterator position)
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty(), "Erase requested on empty monomem::List")
-            ALIB_ASSERT_ERROR( position != end(), "Iterator end() given with monomem::List::Erase")
+            ALIB_ASSERT_ERROR( !list.isEmpty(), "MONOMEM/LIST",
+                               "Erase requested on empty monomem::List")
+            ALIB_ASSERT_ERROR( position != end(), "MONOMEM/LIST",
+                               "Iterator end() given with monomem::List::Erase")
 
 
             Element*   next   = position.element->next();
             position.element->remove();
             monomem::Destruct(&position.element->data);
-            TRecycler::recycle( position.element );
+            recycler.recycle( position.element );
 
             return Iterator(next);
         }
@@ -768,22 +779,23 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         Iterator    Erase(ConstIterator first, ConstIterator last )
         {
-            ALIB_ASSERT_ERROR( list.isNotEmpty() || ( first == begin() && last == end() ),
-                               "Erase requested on empty monomem::List")
+            ALIB_ASSERT_ERROR( !list.isEmpty() || ( first == begin() && last == end() ),
+                               "MONOMEM/LIST", "Erase requested on empty monomem::List")
             if( first == last )
                 return Iterator(const_cast<Element*>( last.element ));
 
             // destruct objects
             Element*   elem = const_cast<Element*>( first.element );
-            while ( elem != last.element )
+            do
             {
                 monomem::Destruct(&elem->data);
-                Element::moveForward( elem );
+                elem= elem->next();
             }
+            while ( elem != last.element );
 
             Element*   lastElem= last.element->prev();
             first.element->remove( lastElem );
-            TRecycler::recycle( first.element, lastElem );
+            recycler.recycle( first.element, lastElem );
 
             return Iterator( last.element );
         }
@@ -793,10 +805,10 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         void        PopFront()
         {
-            ALIB_ASSERT_ERROR( !IsEmpty(), "PopBack called on empty List instance." )
+            ALIB_ASSERT_ERROR( !IsEmpty(), "MONOMEM/LIST", "PopFront called on empty List instance." )
             Element* element= list.popFront();
             element->data.~T();
-            TRecycler::recycle( element );
+            recycler.recycle( element );
         }
 
         /** ****************************************************************************************
@@ -804,12 +816,12 @@ class List : public detail::ListRecycler<T, TRecycling>::type
          ******************************************************************************************/
         void        PopBack()
         {
-            ALIB_ASSERT_ERROR( !IsEmpty(), "PopBack called on empty List instance." )
+            ALIB_ASSERT_ERROR( !IsEmpty(), "MONOMEM/LIST", "PopBack called on empty List instance." )
             Element* element= list.popEnd();
             monomem::Destruct(&element->data);
-            TRecycler::recycle( element );
+            recycler.recycle( element );
         }
-};
+}; // class List
 
 }}// namespace aworx[::lib::monomem]
 

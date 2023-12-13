@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -53,7 +53,7 @@ The last section provides macros used to include or exclude (prune) code:
 
 @{
 
-\~Comment ##################    ALib Version And Feature Verification       ################################## \~
+\I{#########################    ALib Version And Feature Verification       ##################################  }
 \name ALib Version And Feature Verification
 
 \anchor GrpALibMacros_alib_version
@@ -92,9 +92,13 @@ directly clients of the library.
   @param modulename   The code selection symbol of the fileset (\b ALIB_XXX)
 
 
+\def  ALIB_BASE_DIR
+  String containing the source folder of \alib. Used with unit tests.
+
+
 @}
 
-\~Comment #################    C/C++ Preprocessor Helper Macros   ############################# \~
+\I{########################    C/C++ Preprocessor Helper Macros   #############################  }
 \name C/C++ Preprocessor Helper Macros
 \anchor GrpALibMacros_preprohelper
 
@@ -171,7 +175,7 @@ The following macros are fundamental and building blocks for other macros.
 @}
 
 
-\~Comment ###############    C/C++ Language And Linkage Macros    ############################### \~
+\I{######################    C/C++ Language And Linkage Macros    ###############################  }
 \name C/C++ Language And Linkage Macros
 
 \anchor GrpALibMacros_langlink
@@ -205,7 +209,7 @@ specific utilities.
   This for example is the case when constructors exclusively contain assertion code that exists only
   in debug-compilations, but not in release-compilations.
 
-\def  ALIB_CONSTEXPR_IF
+\def  ALIB_CONSTEXPR17
   Evaluates to to <c>constexpr</c> with <b>C++ 17</b> onwards and is empty below <c>C++ 17</c>.
   Used to phrase the so called <em>constexpr-if</em>.
 
@@ -252,7 +256,7 @@ specific utilities.
 @}
 
 
-\~Comment ##################     C/C++ Compiler Warning Control      ############################ \~
+\I{#########################     C/C++ Compiler Warning Control      ############################  }
 \name C/C++ Compiler Warning Control
 \anchor GrpALibMacros_warnings
 
@@ -271,11 +275,27 @@ this in a compiler agnostic way.
 \def  ALIB_WARNINGS_UNINITIALIZED_OFF
  Preprocessor macro to disable compiler warnings about uninitialized values.
 
+\def  ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
+ Preprocessor macro to disable GCC warning "nonnull". Used for example with template meta
+ programming below C++ 14 standard.
+
+\def  ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+ Preprocessor macro to disable compiler warnings about potentially unsafe buffer usages.
+ (i.e with clang this ignores "-Wunsafe-buffer-usage" )
+
 \def  ALIB_WARNINGS_MACRO_NOT_USED_OFF
  Preprocessor macro to disable compiler warnings about unused preprocessor macros.
 
+\def  ALIB_WARNINGS_RESERVED_MACRO_NAME_OFF
+ Preprocessor macro to disable compiler warnings about reserved macro names.
+ (i.e with clang this ignores "-Wreserved-macro-identifier" )
+
 \def  ALIB_WARNINGS_ALLOW_MACRO_REDEFINITION
  Preprocessor macro to disable compiler warnings on redefining macros without prior un-defining.
+
+\def  ALIB_WARNINGS_ALLOW_UNSAFE_FUNCTION_OR_VARIABLE
+ Preprocessor macro to disable compiler warnings for use of 'unsafe' (depricated) libary
+ functions. Currently used with MSVC 4996 only.
 
 \def  ALIB_WARNINGS_OVERLOAD_VIRTUAL_OFF
  Preprocessor macro to disable compiler warnings about virtual methods that become hidden
@@ -294,11 +314,22 @@ this in a compiler agnostic way.
  Preprocessor macro to disable compiler warnings according to source documentation (as of today
  known to be thrown by \b clang only).
 
+\def  ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
+ Preprocessor macro to disable compiler warnings concerning overflows during bit-shift operations.
+
 \def  ALIB_WARNINGS_IGNORE_UNUSED_PARAMETER
  Preprocessor macro to disable compiler warnings concerning unused parameters.
 
 \def  ALIB_WARNINGS_IGNORE_UNUSED_MACRO
  Preprocessor macro to disable compiler warnings concerning unused macro definitions.
+
+\def  ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+ Preprocessor macro to disable compiler warnings concerning unused function templates.
+
+\def  ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER
+ Preprocessor macro to disable compiler warnings concerning conflicting identifier names.
+ Usually identifiers with double underscore (<c>'_'</c>) are forbidden, but with some
+ preprocessor macros, those are not easily avoidable.
 
 \def  ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
  Preprocessor macro to disable compiler warnings concerning non-void functions that may
@@ -317,10 +348,14 @@ this in a compiler agnostic way.
  Preprocessor macro to disable compiler warnings about code that may cause an overflow of an
  integral constant.
 
+\def ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
+ Preprocessor macro to disable compiler warnings about code that may cause an overflow of an
+ integral value, e.g. with bit-shift operations.
+
 @}
 
 
-\~Comment ##########    Debug Assertions, Warnings and Errors     ########## \~
+\I{#################    Debug Assertions, Warnings and Errors     ##########  }
 \name Debug Assertions, Warnings and Errors
 
 \anchor GrpALibMacros_dbgmessages
@@ -419,7 +454,7 @@ information.
 @}
 
 
-\~Comment ##################     C++ Template Meta Programming      ############################ \~
+\I{#########################     C++ Template Meta Programming      ############################  }
 \name C++ Template Meta Programming
 
 \anchor GrpALibMacros_tmp
@@ -428,7 +463,7 @@ their prefix is \b "ATMP_". This is for reducing their size as they are frequent
 complex type expressions.
 
 @{
-\~Comment ----------------------          Is/Eq          ------------------------------------ \~
+\I{-----------------------------          Is/Eq          ------------------------------------  }
 \def  ATMP_IS_ENUM
  Simple shortcut to <c>typename std::is_pointer<T>::value</c>.
  While it is not so much shorter, due to syntax highlighting of macros of modern
@@ -459,6 +494,28 @@ complex type expressions.
 
  @param T     The type to convert to plain.
 
+\def  ATMP_IS_INT
+ Simple shortcut to <c>typename std::is_integral<T>::value</c>.
+ While it is not so much shorter, due to syntax highlighting of macros of modern
+ editors, it is still better readable.
+
+ @param T     The type to convert to plain.
+
+\def  ATMP_IS_UINT
+ Simple shortcut to
+ <c>(typename std::is_integral<T>::value && typename std::is_unsigned<T>::value)</c>.
+ While it is not so much shorter, due to syntax highlighting of macros of modern
+ editors, it is still better readable.
+
+ @param T     The type to convert to plain.
+
+\def  ATMP_IS_SINT
+ Simple shortcut to
+ <c>(typename std::is_integral<T>::value && typename std::is_signed<T>::value)</c>.
+ While it is not so much shorter, due to syntax highlighting of macros of modern
+ editors, it is still better readable.
+
+ @param T     The type to convert to plain.
 
 \def  ATMP_EQ
  Simple shortcut to <c>std::is_same<T1,T2>::value</c>.
@@ -478,7 +535,7 @@ complex type expressions.
  @return \c true if \p{T} is a (derived) \p{TBase}, \c false otherwise.
 
 
-\~Comment ----------------------          Remove          ------------------------------------ \~
+\I{-----------------------------          Remove          ------------------------------------  }
 \def  ATMP_RC
  Simple shortcut to type modifier <c>typename std::remove_const<T>::type</c>.
  While it is not so much shorter, due to syntax highlighting of macros of modern
@@ -530,7 +587,7 @@ complex type expressions.
 
  @param T     The type to convert to plain.
 
-\~Comment ---------------------    enable_if / conditional    ----------------------------------- \~
+\I{----------------------------    enable_if / conditional    -----------------------------------  }
 \def  ATMP_VOID_IF
  Shortcut to <c>typename std::enable_if<Cond>::type</c>
 
@@ -552,7 +609,7 @@ complex type expressions.
 
 
 
-\~Comment ----------------------    Method Selection      ------------------------------------ \~
+\I{-----------------------------    Method Selection      ------------------------------------  }
 \def  ATMP_SELECT_IF_1TP
  Implements the template specification code of a class member method which has one template parameter
  \p{TParam} and is selected using \c std::enable_if for one further template parameter.
@@ -625,7 +682,7 @@ complex type expressions.
 
 @}
 
-\~Comment #################  Resource Locking and Recursive Programming   ####################### \~
+\I{########################  Resource Locking and Recursive Programming   #######################  }
 \name Macros for Resource Locking and Recursive Programming
 
 \anchor GrpALibMacros_locksandrecursion
@@ -700,7 +757,7 @@ and with their use.
 \def  ALIB_DBG_PREVENT_RECURSIVE_METHOD_CALLS
  This macro may be placed at the beginning of a function to detect and assert recursive
  calls of that function. It is useful when recursion might happen, but must not.<br>
- The internally uses macro \ref ALIB_OWN and hence class \alib{Owner} that uses C++ stack
+ The macro internally uses macro \ref ALIB_OWN and hence class \alib{Owner} that uses C++ stack
  unwinding to be sure to always clear the flag, even if an exception occurs.
 
  In the case that the macro is placed in more than one method, it can be used to assure that none
@@ -721,9 +778,9 @@ and with their use.
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################   ALox Macros For Debug Logging     ############################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###########################   ALox Macros For Debug Logging     ##############################  }
+\I{################################################################################################}
 \name ALox Macros For Debug Logging
 
 \anchor GrpALibMacros_mod_alox_debug
@@ -872,15 +929,22 @@ Changing this macro, might cause these mechanism to fail.
   @param data  The identifier name of the \alib{boxing,Box} object to take the retrieved data.
   @param ...   The parameters to pass.
 
+\def Log_IsActive
+  Invokes \alox{Lox::IsActive} on the object of type Lox defined in macro \ref LOG_LOX.
+  The result value is assigned to given variable \p{result}
+  @param result The name of a variable of type \c int that the return value of \b IsActive() is
+                assigned to.
+  @param ...    The parameters to pass.
+
 \def Log_Exception
   Invokes \alox{LogTools::Exception} providing the debug singleton of class Lox defined in macro \ref LOG_LOX.
   @param ...  The parameters to pass.
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ####################   ALox Macros For Release Logging   ############################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###########################   ALox Macros For Release Logging   ##############################  }
+\I{################################################################################################}
 \name ALox Macros For Release Logging
 
 \anchor GrpALibMacros_mod_alox_release
@@ -1054,14 +1118,22 @@ might be used instead of the macros listed here.
   Invokes \alox{Lox::SetPrefix} on the object of type Lox defined in macro \ref LOX_LOX.
   @param ...  The parameters to pass.
 
+\def Lox_IsActive
+  Invokes \alox{Lox::IsActive} on the object of type Lox defined in macro \ref LOX_LOX.
+  The result value is assigned to given variable \p{result}
+  @param result The name of a variable of type \c int that the return value of \b IsActive() is
+                assigned to.
+  @param ...    The parameters to pass.
+
+
 \def Lox_Exception
   Invokes \alox{LogTools::Exception} providing the object of type Lox defined in macro \ref LOX_LOX.
   @param ...  The parameters to pass.
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ########################    ALox Low Level Macros    ################################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###############################    ALox Low Level Macros    ##################################  }
+\I{################################################################################################}
 \name ALox Low level Macros
 
 \anchor GrpALibMacros_mod_alox_lowlevel
@@ -1124,9 +1196,9 @@ Developers that use \alox in standard use cases do not need to know and use the 
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment ######################      ALib Module Boxing       ################################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{#############################      ALib Module Boxing       ##################################  }
+\I{################################################################################################}
 
 \name ALib Module Boxing
 
@@ -1433,9 +1505,9 @@ The macros in this section are introduced by module \alib_boxing.
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment #########################     ALib Module Characters      ############################# \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################     ALib Module Characters      #############################  }
+\I{################################################################################################}
 
 \name ALib Module Characters
 
@@ -1760,9 +1832,9 @@ The macros in this section are introduced by module \alib_characters.
                       of the method.
 
 @}
-\~Comment ####################################################################################### \~
-\~Comment ######################      ALib Module Enums      #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{#############################      ALib Module Enums      ####################################  }
+\I{################################################################################################}
 \name ALib Module Enums
 
 \anchor GrpALibMacros_mod_enums
@@ -1772,7 +1844,7 @@ type-traits structs
 \alib{enums,T_EnumRecords},
 \alib{enums,T_EnumIsArithmetical},
 \alib{enums,T_EnumIsBitwise} and
-\alib{enums,T_EnumIsIteratable} for scoped or non-scoped enum types.
+\alib{enums,T_EnumIsIterable} for scoped or non-scoped enum types.
 
 \attention
 - All macros in this section have to be placed in global scope (outside of namespaces and types).
@@ -1781,7 +1853,7 @@ type-traits structs
 
 @{
 
-\~Comment #################################################################################### \~
+\I{################################################################################################}
 \def  ALIB_ENUMS_ASSIGN_RECORD
   Macro used to specialize type-traits struct
   \alib{enums,T_EnumRecords,T_EnumRecords<TEnum>} to associate C++ enumeration type \p{TEnum} with
@@ -1790,7 +1862,7 @@ type-traits structs
   @param TEnum    The enumeration type to define data records for.
   @param TRecord  The type of the data record to assign.
 
-\~Comment ######## T_EnumIsArithmetical (has to be doxed here inside this sub-group) ######### \~
+\I{############### T_EnumIsArithmetical (has to be doxed here inside this sub-group) #########  }
 
 \def  ALIB_ENUMS_MAKE_ARITHMETICAL
   Specializes TMP struct \alib{enums,T_EnumIsArithmetical} to inherit \c std::true_type to
@@ -1799,13 +1871,13 @@ type-traits structs
   Usually, this macro is placed in a header file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
-  \see Chapter \ref alib_enums_arithmethic_standard of the Programmer's Manual of module
+  \see Chapter \ref alib_enums_arithmetic_standard of the Programmer's Manual of module
        \alib_enums for more information.
 
   @param TEnum    Type of a scoped or non-scoped enumeration that is to be declared an arithmetical
                   type.
 
-\~Comment ########### T_EnumIsBitwise (has to be doxed here inside this sub-group) ########### \~
+\I{################## T_EnumIsBitwise (has to be doxed here inside this sub-group) ###########  }
 
 \def  ALIB_ENUMS_MAKE_BITWISE
   Specializes TMP struct \alib{enums,T_EnumIsBitwise} to inherit \c std::true_type.
@@ -1813,56 +1885,56 @@ type-traits structs
   Usually, this macro is placed in a header file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
-  \see Chapter \ref alib_enums_arithmethic_bitwise of the Programmer's Manual of module
+  \see Chapter \ref alib_enums_arithmetic_bitwise of the Programmer's Manual of module
        \alib_enums for more information.
 
   @param TEnum    Type of a scoped or non-scoped enumeration that is to be declared a bitwise
                   type.
 
 
-\~Comment ########### T_EnumIsIteratable (has to be doxed here inside this sub-group) ####### \~
+\I{################## T_EnumIsIterable (has to be doxed here inside this sub-group) #######  }
 
-\def  ALIB_ENUMS_MAKE_ITERATABLE
-  Shortcut to \ref ALIB_ENUMS_MAKE_ITERATABLE_BEGIN_END, providing <c>TEnum(0)</c> as macro
+\def  ALIB_ENUMS_MAKE_ITERABLE
+  Shortcut to \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END, providing <c>TEnum(0)</c> as macro
   parameter \p{StartElement}.
 
   Usually, this macro is placed in a header file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
-  \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERATABLE_BEGIN_END and chapter
+  \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END and chapter
        \ref alib_enums_iter "3. Enum Iteration" of the Programmer's Manual of module
        \alib_enums for more information.
 
   @param TEnum         Type of a scoped or non-scoped enumeration that is to be declared an
-                       iteratable enum type.
+                       iterable enum type.
   @param StopElement   The enum element after the last "valid" element in the enumeration.<br>
-                       Will be used as expression for constexpr \alib{T_EnumIsIteratable::End}.
+                       Will be used as expression for constexpr \alib{enums,T_EnumIsIterable::End}.
 
-\def  ALIB_ENUMS_MAKE_ITERATABLE_BEGIN_END
-  Specializes type-traits struct \alib{enums,T_EnumIsIteratable} to implement methods:
+\def  ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END
+  Specializes type-traits struct \alib{enums,T_EnumIsIterable} to implement methods:
   - \b %Begin to return \p{StartElement}
   - \b %End to return \p{StopElement}
 
   Usually, this macro is placed in a header file, probably close to the enum type definition.
   However, it has to be placed <b>in global (no) namespace</b>.
 
-  \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERATABLE and chapter
+  \see Sibling macro \ref ALIB_ENUMS_MAKE_ITERABLE and chapter
        \ref alib_enums_iter "3. Enum Iteration" of the Programmer's Manual of module
        \alib_enums for more information.
   \see
 
   @param TEnum        Type of a scoped or non-scoped enumeration that is to be declared an
-                      iteratable enum type.
+                      iterable enum type.
   @param StartElement The first element of the enumeration.<br>
-                      Will be used as expression for constexpr \alib{T_EnumIsIteratable::End}.
+                      Will be used as expression for constexpr \alib{enums,T_EnumIsIterable::End}.
   @param StopElement  The enum element after the last "valid" element in the enumeration.<br>
-                      Will be used as expression for constexpr \alib{T_EnumIsIteratable::End}.
+                      Will be used as expression for constexpr \alib{enums,T_EnumIsIterable::End}.
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment #####################     ALib Module Expressions     ################################# \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{############################     ALib Module Expressions     #################################  }
+\I{################################################################################################}
 \name ALib Module Expressions
 
 \anchor GrpALibMacros_mod_expressions
@@ -1909,9 +1981,9 @@ The macros in this section are introduced by module \alib_expressions.
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment #####################      ALib Module Strings       ################################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{############################      ALib Module Strings       ##################################  }
+\I{################################################################################################}
 \name ALib Module Strings
 
 \anchor GrpALibMacros_mod_strings
@@ -2129,9 +2201,9 @@ The macros in this section are introduced by module \alib_strings.
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment #########################     ALib Module Resources      ############################## \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################     ALib Module Resources      ##############################  }
+\I{################################################################################################}
 \name ALib Module Resources
 
 \anchor GrpALibMacros_mod_resources
@@ -2165,7 +2237,7 @@ The macros in this section are introduced by module \alib_resources.
 
 
 
-\~Comment #######################    Code Selection / Pruning       ############################# \~
+\I{##############################    Code Selection / Pruning       #############################  }
 
 \name Code Selection
 \anchor GrpALibMacros_pruning

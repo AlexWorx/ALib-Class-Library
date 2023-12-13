@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDS
@@ -22,12 +22,13 @@ ALIB_ASSERT_MODULE(ENUMS)
 #    include "alib/strings/string.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#   include "alib/lib/fs_debug/assert.hpp"
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
+
 #if ALIB_DEBUG
-#   if !defined(HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#       include "alib/lib/fs_debug/typedemangler.hpp"
+#   if !defined (HPP_ALIB_TOOLS)
+#      include "alib/lib/tools.hpp"
 #   endif
 #   if ALIB_STRINGS && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
 #       include "alib/strings/localstring.hpp"
@@ -185,12 +186,12 @@ GetRecord( TEnum element )
     const void* result= detail::getEnumRecord( typeid(TEnum),
                                                static_cast<integer>( UnderlyingIntegral(element) ) );
     #if ALIB_STRINGS
-        ALIB_ASSERT_ERROR( result != nullptr,
+        ALIB_ASSERT_ERROR( result != nullptr, "ENUMS",
                            NString128() << "Enum Record for type <" << DbgTypeDemangler( typeid(TEnum)).Get()
                                         << ">(" << UnderlyingIntegral(element)
                                         << ") not found." )
     #else
-        ALIB_ASSERT_ERROR( result != nullptr, "Enum Record for not found." )
+        ALIB_ASSERT_ERROR( result != nullptr, "ENUMS: Enum Record for not found." )
     #endif
     return *reinterpret_cast<const typename T_EnumRecords<TEnum>::Type*>( result );
 }
@@ -254,7 +255,7 @@ TryRecord( TEnum element )
  * - \alib{enums::TryRecord}.
  *
  * \note
- *   The rational for this is techical: Unsing namespace methods, the compiler can deduce
+ *   The rational for this is techical: Using namespace methods, the compiler can deduce
  *   template parameter \p{TEnum} from the function parameter, which was not possible if the
  *   functions were static methods of this templated type.
  *
@@ -318,7 +319,7 @@ struct EnumRecords
     #endif
 
     /** ****************************************************************************************
-     * Implementation of \c std::iterator for enum records.
+     * Implementation of \c std::iterator_traits for enum records.
      * Begin- and end-iterators can be received with \e static methods
      * \alib{enums,EnumRecords::begin} and \alib{enums,EnumRecords::end}. In ranged base
      * <c>for(:)</c> loops, a local instance of type \b EnumRecords has to be created.
@@ -327,11 +328,6 @@ struct EnumRecords
      * concept \https{ForwardIterator,en.cppreference.com/w/cpp/concept/ForwardIterator}.
      ******************************************************************************************/
     struct ForwardIterator
-            : public std::iterator< std::forward_iterator_tag,     // iterator_category
-                                    const TRecord&,                // value_type
-                                    integer,                       // distance type
-                                    TRecord const*,                // pointer
-                                    const TRecord&   >             // reference
     {
         private:
             #if !defined(ALIB_DOX)
@@ -350,6 +346,12 @@ struct EnumRecords
             ForwardIterator( Node* start )                                                  noexcept
             : node( start )
             {}
+
+            using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+            using value_type        = const TRecord&           ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using difference_type   = integer                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using pointer           = TRecord const*           ;  ///< Implementation of <c>std::iterator_traits</c>.
+            using reference         = const TRecord&           ;  ///< Implementation of <c>std::iterator_traits</c>.
 
         public:
 

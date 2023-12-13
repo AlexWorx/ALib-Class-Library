@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKENIZER
@@ -56,7 +56,7 @@ namespace util  {
  *
  * The output will be:
  *
- * \snippet "DOX_ALIB_TOKENIZER.txt"     OUTPUT
+ * \verbinclude "DOX_ALIB_TOKENIZER.txt"
  *
  * @tparam TChar    The character type. Implementations for \c nchar and \c wchar are provided
  *                  with type definitions \ref aworx::TokenizerN and

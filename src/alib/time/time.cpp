@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -126,7 +126,7 @@ void TickConverter::SyncClocks( int qtyRepeats )
 #if defined( _WIN32 ) && !defined(ALIB_DOX)
 
 // filetime_duration has the same layout as FILETIME; 100ns intervals
-using filetime_duration = duration<int64_t, std::ratio::ratio<1, 10000000>>;
+using filetime_duration = duration<int64_t, std::ratio<1, 10000000> >;
 
 // January 1, 1601 (NT epoch) - January 1, 1970 (Unix epoch):
 constexpr duration<int64_t> nt_to_unix_epoch{INT64_C(-11644473600)};

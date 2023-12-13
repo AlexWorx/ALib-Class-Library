@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_LOCALSTRING
@@ -38,7 +38,7 @@ namespace aworx { namespace lib { namespace strings {
  * With debug builds of \alib, parent class #AString optionally and by default raises a
  * \ref aworx::lib::results::Report::DoReport "warning" if an external buffer is replaced by a
  * new (heap) allocation. (Note that from an \b %AString perspective, this class's internal
- * field #buffer is an external character array). With use cases that do not allow to foresee a
+ * field \b buffer is an external character array). With use cases that do not allow to foresee a
  * maximum buffer size, the warning has to be disabled by invoking
  * \alib{strings::TAString,DbgDisableBufferReplacementWarning}.
  *
@@ -59,7 +59,7 @@ namespace aworx { namespace lib { namespace strings {
  *   \b NLocalString<TCapacity>, \b WLocalString<TCapacity>,
  *   \b XLocalString<TCapacity>, \b ComplementLocalString<TCapacity> and
  *   \b StrangeLocalString<TCapacity>.
- * @tparam TCapacity The capacity of the buffer allocated inside the class with member #buffer.
+ * @tparam TCapacity The capacity of the string buffer allocated locally "inside" the class.
  **************************************************************************************************/
 template <typename TChar, integer TCapacity>
 class TLocalString : public TAString<TChar>
@@ -77,8 +77,8 @@ class TLocalString : public TAString<TChar>
     // #############################################################################################
     public:
         /** ****************************************************************************************
-         * Constructs an empty \b %LocalString. Field #buffer will be set as an the external
-         * buffer of parent \b AString.
+         * Constructs an empty \b %LocalString. Inherited field \alib{strings::TString,buffer}
+         * will be set as an the external buffer of parent \b AString.
          * Unlike all other \alib string classes, objects of this type are not \e nulled
          * after default construction.
          ******************************************************************************************/
@@ -101,7 +101,7 @@ class TLocalString : public TAString<TChar>
 
         /** ****************************************************************************************
          * Move constructor.
-         * See \ref alib_namespace_strings_astring_copymove "Copy/Move Constructor and Assignment"
+         * See \ref alib_ns_strings_astring_copymove "Copy/Move Constructor and Assignment"
          * for details.
          * @param move The object to move.
          ******************************************************************************************/

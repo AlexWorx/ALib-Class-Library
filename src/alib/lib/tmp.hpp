@@ -3,7 +3,7 @@
  * This header file is part of the \aliblong. It does neither belong to a fileset, nor to a
  * specific module of \alib, but is included in any \alibdist.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * \note
@@ -22,12 +22,15 @@
 
 
 // is/eq/isof
-#define ATMP_IS_CONST( T       )   std::is_const  <T        >::value
-#define ATMP_IS_ENUM( T       )    std::is_enum   <T        >::value
-#define ATMP_IS_PTR( T        )    std::is_pointer<T        >::value
-#define ATMP_IS_ARR( T        )    std::is_array  <T        >::value
-#define ATMP_EQ(     T, TEqual)    std::is_same   <T, TEqual>::value
-#define ATMP_ISOF(   T, TBase)     std::is_base_of<TBase, T >::value
+#define ATMP_IS_CONST( T       )   std::is_const   <T>::value
+#define ATMP_IS_ENUM( T       )    std::is_enum    <T>::value
+#define ATMP_IS_PTR( T        )    std::is_pointer <T>::value
+#define ATMP_IS_ARR( T        )    std::is_array   <T>::value
+#define ATMP_IS_INT( T        )    std::is_integral<T>::value
+#define ATMP_IS_UINT( T       )   (std::is_integral<T>::value && std::is_unsigned<T>::value)
+#define ATMP_IS_SINT( T       )   (std::is_integral<T>::value && std::is_signed  <T>::value)
+#define ATMP_EQ(     T, TEqual)    std::is_same    <T, TEqual>::value
+#define ATMP_ISOF(   T, TBase)     std::is_base_of <TBase, T >::value
 
 // remove
 #define ATMP_RC(     T        )    typename std::remove_const    <T>::type

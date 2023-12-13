@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //  Private, not published in git ( I hope! )
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_SINGLETONS
 
 #include "alib/alox.hpp"
 #include "alib/singletons/singleton.hpp"
@@ -75,7 +75,4 @@ JustOne& theOne= JustOne::GetSingleton();
 } //namespace dox_lang_singleton
 
 
-#endif // ALIB_UT_DOCS
-
-
-
+#endif // ALIB_UT_DOCS && ALIB_SINGLETONS

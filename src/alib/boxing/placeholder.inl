@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_PLACEHOLDER
@@ -117,7 +117,7 @@ union  UnionIntegrals
         constexpr UnionIntegrals     ( uintGap_t   value )  : UInt      { value }  {}
         #endif
     #else
-        #error "ALIB_SIZEOF_INTGAP not matched"
+        #error "ALIB_SIZEOF_INTGAP not matched. Supported sizes are 2, 4 and 8."
     #endif
   #endif
 };
@@ -132,7 +132,7 @@ union  UnionFloatingPoints
 {
     float           Float  ;   ///< A \c float value.
     double          Double ;   ///< A \c double value.
-#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
+#if (ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
     long double     LDouble;   ///< A <c>long double</c> value. Available only if sizeof(long double) is smaller or equal than 2 x sizeof(integer), which is for example not true with GCC on Linux 32 -bit.
 #endif
 
@@ -142,7 +142,7 @@ union  UnionFloatingPoints
   #if !defined(ALIB_DOX)
     constexpr UnionFloatingPoints( float       value )     : Float     { value }  {}
     constexpr UnionFloatingPoints( double      value )     : Double    { value }  {}
-#if (ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
+#if (ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER ) || defined(ALIB_DOX)
     constexpr UnionFloatingPoints( long double value )     : LDouble   { value }  {}
 #endif
   #endif
@@ -326,7 +326,7 @@ union Placeholder
     // Float construction
     constexpr Placeholder( float       value )  : FloatingPoints ( value )  {}
     constexpr Placeholder( double      value )  : FloatingPoints ( value )  {}
-#if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+#if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
     constexpr Placeholder( long double value )  : FloatingPoints ( value )  {}
 #endif
 
@@ -376,6 +376,7 @@ union Placeholder
      */
     constexpr uinteger   ULength ()                       const { return GetUInteger(1); }
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     /**
      * Returns the signed integral at index \p{idx}.
      * @param idx The index requested. Only \c 0 and \c 1 is allowed.
@@ -411,6 +412,7 @@ union Placeholder
     {
         Integrals.UArray[idx]= value;
     }
+    ALIB_WARNINGS_RESTORE
 
 
     /** ********************************************************************************************
@@ -428,14 +430,16 @@ union Placeholder
     template<unsigned int UsageLength>
     ALIB_CPP14_CONSTEXPR void    Clear()
     {
-ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
+        ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         static_assert( UsageLength > 0 && ( UsageLength <= 2 * sizeof(uinteger) ),
                        "Invalid usage length given" );
 
             Integrals.Array[0]= 0;
-            if ALIB_CONSTEXPR_IF( UsageLength > sizeof(integer) )
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            if ALIB_CONSTEXPR17( UsageLength > sizeof(integer) )
                 Integrals.Array[1]= 0;
-ALIB_WARNINGS_RESTORE
+            ALIB_WARNINGS_RESTORE
+        ALIB_WARNINGS_RESTORE
     }
 
     // #############################################################################################

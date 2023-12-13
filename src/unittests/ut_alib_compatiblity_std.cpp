@@ -1,11 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
+
 #if ALIB_UT_COMPATIBILITY
 
 #include "alib/alox.hpp"
@@ -34,7 +35,7 @@ using namespace aworx;
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- Std_String
@@ -51,9 +52,7 @@ UT_METHOD( Std_String )
     UT_PRINT( String256() << "  std::wstring: Smileys: " << std::wstring( L"\U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E * "
                                                                           L"\U00000361\U000000b0\U0000035c\U00000296\U00000361\U000000b0") )
 
-#if !defined(_MSC_VER)
-        std::string       str(   "Test \u03B1\u03B2\u03B3\u03B4\u03B5 * \U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E" );
-#endif
+    std::string       str(   "Test \u03B1\u03B2\u03B3\u03B4\u03B5 * \U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E" );
     std::wstring     wStr(  L"Test \u03B1\u03B2\u03B3\u03B4\u03B5 * \U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E" );
     std::u16string u16Str(  u"Test \u03B1\u03B2\u03B3\u03B4\u03B5 * \U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E" );
     std::u32string u32Str(  U"Test \u03B1\u03B2\u03B3\u03B4\u03B5 * \U0001F609 * \U0001F607 * \U0001F603 * \U0001F60E" );
@@ -68,21 +67,26 @@ UT_METHOD( Std_String )
     test._()._<false>  ( str);                                                   UT_EQ( compare , test )
 #endif
 
-    test._().Append<true>( wStr.c_str(), static_cast<integer>( wStr.length()));  UT_EQ( compare , test )
-    test._() <<         wStr;                                                    UT_EQ( compare , test )
-    test._()._<true>  ( wStr);                                                   UT_EQ( compare , test )
-    test._()._<false> ( wStr);                                                   UT_EQ( compare , test )
-
-#if ALIB_SIZEOF_WCHAR_T == 4
-    test._().Append(  u16Str.c_str(), static_cast<integer>( u16Str.length()));   UT_EQ( compare, test )
-    test._() <<       u16Str;                                                    UT_EQ( compare, test )
-    test._()._<true> (u16Str);                                                   UT_EQ( compare, test )
-    test._()._<false>(u16Str);                                                   UT_EQ( compare, test )
-#else
-    test._().Append(  u32Str.c_str(), static_cast<integer>( u32Str.length()));   UT_EQ( compare, test );
-    test._() <<       u32Str;                                                    UT_EQ( compare, test );
-    test._()._<true> (u32Str);                                                   UT_EQ( compare, test );
-    test._()._<false>(u32Str);                                                   UT_EQ( compare, test );
+// wide string (test this only if the LOCALE was properly set)
+#if ALIB_SYSTEM
+    if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+    {
+        test._().Append<true>( wStr.c_str(), static_cast<integer>( wStr.length()));  UT_EQ( compare , test )
+        test._() <<         wStr;                                                    UT_EQ( compare , test )
+        test._()._<true>  ( wStr);                                                   UT_EQ( compare , test )
+        test._()._<false> ( wStr);                                                   UT_EQ( compare , test )
+    #if ALIB_SIZEOF_WCHAR_T == 4
+        test._().Append(  u16Str.c_str(), static_cast<integer>( u16Str.length()));   UT_EQ( compare, test )
+        test._() <<       u16Str;                                                    UT_EQ( compare, test )
+        test._()._<true> (u16Str);                                                   UT_EQ( compare, test )
+        test._()._<false>(u16Str);                                                   UT_EQ( compare, test )
+    #else
+        test._().Append(  u32Str.c_str(), static_cast<integer>( u32Str.length()));   UT_EQ( compare, test );
+        test._() <<       u32Str;                                                    UT_EQ( compare, test );
+        test._()._<true> (u32Str);                                                   UT_EQ( compare, test );
+        test._()._<false>(u32Str);                                                   UT_EQ( compare, test );
+    #endif
+    }
 #endif
 
 }

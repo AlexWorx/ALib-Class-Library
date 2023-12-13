@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -25,21 +25,6 @@
 #       include "alib/strings/format.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
-
-
-// For code compatibility with ALox Java/C++
-// We have to use underscore as the start of the name and for this have to disable a compiler
-// warning. But this is a local code (cpp file) anyhow.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-
-    #define _NC _<false>
-
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
 
 
 using namespace aworx;
@@ -94,18 +79,18 @@ NAString& ScopeDump::storeKeyToScope( String key )
     integer fileNameEnd= key.IndexOf('#');
     integer methodEnd=   fileNameEnd >= 0 ? key.IndexOf('#', fileNameEnd + 1)  : -1;
 
-    targetBuffer._NC("Scope::");
-         if ( methodEnd   >= 0 )  targetBuffer._NC( "Method      [" );
-    else if ( fileNameEnd >= 0 )  targetBuffer._NC( "FileName    [" );
-    else                          targetBuffer._NC( "Path        [" );
+    targetBuffer._<false>("Scope::");
+         if ( methodEnd   >= 0 )  targetBuffer._<false>( "Method      [" );
+    else if ( fileNameEnd >= 0 )  targetBuffer._<false>( "FileName    [" );
+    else                          targetBuffer._<false>( "Path        [" );
 
     integer targetStart= targetBuffer.Length();
-    targetBuffer._NC( key );
+    targetBuffer._<false>( key );
 
     if ( methodEnd >= 0 )
     {
         targetBuffer.ReplaceSubstring<false>( " @", targetStart + fileNameEnd +1, 2 ); // characters: "/#"
-        targetBuffer._NC( "()" );
+        targetBuffer._<false>( "()" );
     }
 
     if ( fileNameEnd >= 0 )
@@ -134,18 +119,18 @@ integer ScopeDump::writeStoreMapHelper( std::map<NString, T>& map, const NString
 {
     for ( auto& it : map )
     {
-        targetBuffer._NC( prefix );
+        targetBuffer._<false>( prefix );
 
         String64 keyString;
 
         if ( it.first.Equals( noKey ) )
-            keyString._NC( "<global>" );
+            keyString._<false>( "<global>" );
         else
-            keyString._NC( '"' )._( it.first )._( '"' );
+            keyString._<false>( '"' )._( it.first )._( '"' );
         if ( maximumKeyLength < keyString.Length() + 1 )
             maximumKeyLength= keyString.Length() + 1;
 
-        targetBuffer._NC(NFormat::Field(keyString, maximumKeyLength, Alignment::Left))._NC( '=' );
+        targetBuffer._<false>(NFormat::Field(keyString, maximumKeyLength, Alignment::Left))._<false>( '=' );
 
 
         write( it.second, targetBuffer);
@@ -166,7 +151,7 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
     {
         cnt+=  static_cast<int>( store->globalStore->size() );
         firstEntry= false;
-        targetBuffer._NC( "  Scope::Global:" ).NewLine();
+        targetBuffer._<false>( "  Scope::Global:" ).NewLine();
         maximumKeyLength= writeStoreMapHelper( *store->globalStore, "    " );
     }
 
@@ -176,7 +161,7 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
         if ( thread->first.first== false )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._NC("  Scope::ThreadOuter ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
+        targetBuffer._<false>("  Scope::ThreadOuter ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
         cnt+= static_cast<int>( thread->second->size() );
         maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
@@ -193,7 +178,7 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
             continue;
         cnt+= static_cast<int>( iterator.Node().Value()->size() );
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._NC( "  " );
+        targetBuffer._<false>( "  " );
         storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
         maximumKeyLength= writeStoreMapHelper( *iterator.Node().Value(), "    " );
     }
@@ -204,7 +189,7 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
         if ( thread->first.first == true )
             continue;
         if( firstEntry ) firstEntry= false; else   targetBuffer.NewLine();
-        targetBuffer._NC("  Scope::ThreadInner ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
+        targetBuffer._<false>("  Scope::ThreadInner ");  storeThreadToScope( thread->first.second )._( ':' ).NewLine();
         cnt+= static_cast<int>( thread->second->size() );
         maximumKeyLength= writeStoreMapHelper( *thread->second, "    " );
     }
@@ -223,7 +208,7 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
         ++cnt;
         targetBuffer.InsertChars( ' ', indentSpaces );
         write( store->globalStore, targetBuffer );
-        targetBuffer._NC(NFormat::Tab( 25, -1 ) )._NC( "Scope::Global " ).NewLine();
+        targetBuffer._<false>(NFormat::Tab( 25, -1 ) )._<false>( "Scope::Global " ).NewLine();
     }
 
     // outer thread store
@@ -235,8 +220,8 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
-                targetBuffer._NC( NFormat::Tab( 25, -1 ) )
-                      ._NC( "Scope::ThreadOuter " );
+                targetBuffer._<false>( NFormat::Tab( 25, -1 ) )
+                      ._<false>( "Scope::ThreadOuter " );
                 storeThreadToScope( thread->first.second ).NewLine();
             }
 #endif
@@ -254,7 +239,7 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
             ++cnt;
             targetBuffer.InsertChars( ' ', indentSpaces );
             write( iterator.Node().Value(), targetBuffer );
-            targetBuffer._NC(NFormat::Tab( 25, -1 ) );
+            targetBuffer._<false>(NFormat::Tab( 25, -1 ) );
             storeKeyToScope( iterator.FullPath( keyStr) ).NewLine();
         }
     }
@@ -268,8 +253,8 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
                 ++cnt;
                 targetBuffer.InsertChars( ' ', indentSpaces );
                 write(it, targetBuffer);
-                targetBuffer._NC( NFormat::Tab( 25, -1 ) )
-                      ._NC( "Scope::ThreadInner " );
+                targetBuffer._<false>( NFormat::Tab( 25, -1 ) )
+                      ._<false>( "Scope::ThreadInner " );
                 storeThreadToScope( thread->first.second ).NewLine();
             }
 #endif
@@ -278,3 +263,4 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
 
 //! @endcond
 }}}}// namespace [aworx::lib::lox::detail]
+

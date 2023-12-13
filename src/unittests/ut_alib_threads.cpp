@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,13 +10,14 @@
 
 #include "alib/alox.hpp"
 
+#if ALIB_TIME
+    #if !defined (HPP_ALIB_TIME_TIMEPOINTBASE)
+        #include "alib/time/timepointbase.hpp"
+    #endif
 
-#if !defined (HPP_ALIB_TIME_TIMEPOINTBASE)
-    #include "alib/time/timepointbase.hpp"
-#endif
-
-#if !defined (HPP_ALIB_TIME_TICKS)
-    #include "alib/time/ticks.hpp"
+    #if !defined (HPP_ALIB_TIME_TICKS)
+        #include "alib/time/ticks.hpp"
+    #endif
 #endif
 
 #if !defined (HPP_ALIB_THREADS_SMARTLOCK)
@@ -27,6 +28,7 @@
 #   include "alib/threads/thread.hpp"
 #endif
 
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 using namespace aworx;
 
@@ -39,7 +41,7 @@ using namespace std;
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- helper classes
@@ -72,7 +74,7 @@ class Test_ThreadLock_TestThread : public Thread
         this->Shared=    shared;
     }
 
-    public: void Run()
+    public: void Run()                                                                      override
     {
         AWorxUnitTesting &ut= *UT;
         UT_EQ( GetId(), Thread::GetCurrent()->GetId() )
@@ -111,17 +113,20 @@ UT_METHOD( ThreadSimple )
     // create and delete
     {
         Thread t;
-        UT_PRINT( "Thread object on stack, not started. Alive= ", t.IsAlive() )
+        UT_PRINT( "Thread object on stack, not started. State= ", t.GetState() )
     }
     {
         Thread* t= new Thread();
-        UT_PRINT( "Thread object on heap, not started. Alive= ", t->IsAlive() )
+        UT_PRINT( "Thread object on heap, not started. State= ", t->GetState() )
+        UT_PRINT( "Terminating unstarted thread. One warning should follow in debug compilations" )
+        t->Terminate();
         delete t;
     }
     {
         Thread* t= new Thread();
         t->Start();
-        UT_PRINT( "Empty Thread object, started. Alive= ", t->IsAlive() )
+        UT_PRINT( "Empty Thread object, started. State= ", t->GetState() )
+        t->Terminate();
         delete t;
     }
 
@@ -136,7 +141,7 @@ UT_METHOD( ThreadSimple )
         AWorxUnitTesting *pUT;
         int a= 0;
         runner(AWorxUnitTesting *put) { this->pUT= put; }
-        virtual void Run()
+        virtual void Run()                                                                  override
         {
             AWorxUnitTesting& ut= *pUT;
             UT_PRINT( "Runnable running in thread ", Thread::GetCurrent()->GetId() )  Thread::SleepMillis(1); ++a;
@@ -151,30 +156,39 @@ UT_METHOD( ThreadSimple )
         {
             Thread t(&r);
             t.Start();
+            t.Terminate();
         }
 
         UT_EQ( 1, r.a ) // thread is deleted, runner should have executed here
         {
-
             Thread t(&r);
             t.Start();
-            UT_EQ( 1, r.a ) // runner waits a millisec, we should be quicker
+            UT_EQ( 1, r.a ) // runner waits a millisec, we should be faster
             int cntWait= 0;
             auto* currentThread= Thread::GetCurrent();
             while( t.IsAlive() )
             {
-
-                UT_PRINT( "  Thread {!Q}({}) is waiting for thread {!Q}({}) to finish",
-                           currentThread->GetName(),
-                           currentThread->GetId  (),
-                           t             .GetName(),
-                           t             .GetId  ()   )
-                Thread::SleepMicros(250);
+                #if defined(_WIN32)
+                    Thread::SleepMillis(1);   // strange: SleepMicros does not seem to work under
+                                              //          windows. At least not while waiting for
+                                              //          a new thread...
+                #else
+                    Thread::SleepMicros(250);
+                #endif
                 ++cntWait;
             }
+            UT_PRINT( "  Thread {!Q}({}) was waiting {} x 250 micros for thread {!Q}({}) to finish",
+                         currentThread->GetName(),
+                         currentThread->GetId  (),
+                         cntWait,
+                         t             .GetName(),
+                         t             .GetId  ()   )
+
             UT_TRUE( cntWait < 10 )
+            
             UT_PRINT( "  Result should be 2: ", r.a  )
             UT_EQ( 2, r.a )
+            t.Terminate();
         }
     }
 }
@@ -274,6 +288,7 @@ UT_METHOD( ThreadLockWarning )
         UT_PRINT( "Raising ThreadLock::DbgWarningAfterWaitTimeInMillis to only 2 seconds" )
         aLock.DbgWarningAfterWaitTimeInMillis= 2000;
         aLock.Acquire(ALIB_CALLER_PRUNED);
+        t->Terminate();
         delete t;
         t= new Test_ThreadLock_TestThread( &ut, A_CHAR("A Thread"), &aLock, 10, 1, true, shared );
         t->Start();
@@ -284,6 +299,7 @@ UT_METHOD( ThreadLockWarning )
         // wait until t ended
         while (t->IsAlive())
             Thread::SleepMillis( 1 );
+        t->Terminate();
         delete t;
         delete shared;
 
@@ -399,6 +415,9 @@ UT_METHOD( HeavyLoad )
 
     UT_PRINT( "All threads ended. Shared value=", shared.val )
     UT_EQ( 0, shared.val )
+    t1->Terminate();
+    t2->Terminate();
+    t3->Terminate();
     delete t1;
     delete t2;
     delete t3;
@@ -408,7 +427,7 @@ UT_METHOD( HeavyLoad )
 //--------------------------------------------------------------------------------------------------
 //--- SpeedTest
 //--------------------------------------------------------------------------------------------------
-#if !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+#if ALIB_TIME && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 UT_METHOD( LockSpeedTest )
 {
     UT_INIT()
@@ -458,7 +477,7 @@ UT_METHOD( LockSpeedTest )
         UT_PRINT( "  ThreadLockNR: {} lock/unlock ops: {}\u00B5s", repeats, time ) //greek 'm' letter;
     }
 }
-#endif // !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+#endif // #if ALIB_TIME && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 
 #include "unittests/aworx_unittests_end.hpp"
 

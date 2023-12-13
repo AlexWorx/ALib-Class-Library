@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,7 +15,29 @@
 #   endif
 #endif // !defined(ALIB_DOX)
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+
 namespace aworx { namespace lib { namespace boxing {
+
+#if ALIB_DEBUG && !defined(ALIB_DOX)
+    // This is used by boxing::Bootstrap to do runtime-check for compatibility of boxing
+    // and long double values.
+    // It was put here to prevent the compiler to optimize and remove the code.
+    extern  long double dbgLongDoubleWriteTestMem[2];
+            long double dbgLongDoubleWriteTestMem[2];
+    extern  void dbgLongDoubleTrueLengthSet();
+            void dbgLongDoubleTrueLengthSet()
+    {
+        memset( dbgLongDoubleWriteTestMem, 0x3E, 2 * ALIB_SIZEOF_LONGDOUBLE_REPORTED);
+    }
+    extern  bool dbgLongDoubleTrueLengthTest();
+            bool dbgLongDoubleTrueLengthTest()
+    {
+        const char* mem= reinterpret_cast<const char*>( dbgLongDoubleWriteTestMem );
+        return    mem[ALIB_SIZEOF_LONGDOUBLE_WRITTEN - 1] != 0x3E
+               && mem[ALIB_SIZEOF_LONGDOUBLE_WRITTEN    ] == 0x3E;
+    }
+#endif
 
 
 #if ALIB_MONOMEM
@@ -144,3 +166,4 @@ void  Boxes::AddArray( const Box* boxArray, integer length )
 #endif //  #if defined(ALIB_DOX)
 
 }}} // namespace [aworx::lib::boxing]
+ALIB_WARNINGS_RESTORE

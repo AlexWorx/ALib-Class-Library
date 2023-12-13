@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -57,48 +57,34 @@ int  FormatterStdImpl::format( AString&        pTargetString,
                                const Boxes&    pArguments,
                                int             pArgOffset        )
 {
-    // check for newline. This indicates that this is not a formatString string
-    if( pFormatString.IndexOf('\n') >= 0 )
-        return 0;
-
     // save parameters/init state
     targetString=             &pTargetString;
     targetStringStartLength=  pTargetString.Length();
     formatString=             pFormatString;
-    arguments=                &pArguments;
-    argOffset=                 pArgOffset;
+    parser      =             formatString;
+    arguments   =             &pArguments;
+    argOffset   =             pArgOffset;
 
     // initialize state info
     nextAutoIdx=        0;
     argsConsumed=       0;
 
-    parser=             formatString;
-
     for(;;)
     {
-        integer actLength= pTargetString.Length();
-
         // find start of esc
         integer escStart= findPlaceholder();
         if ( escStart < 0 )
         {
             // write rest of formatString string (only if we had consumed before)
-            if( argsConsumed > 0 && parser.Length() > 0 )
-            {
-                pTargetString.template _<false>( parser );
-                replaceEscapeSequences( actLength );
-            }
+            if( argsConsumed > 0)
+                writeStringPortion( parser.Length() );
+
             return argsConsumed;
         }
 
         // write string before ESC code
-        if ( escStart == 0 )
-            parser.template ConsumeChars<false>(1);
-        else
-        {
-            parser.template ConsumeChars<false, CurrentData::Keep >( escStart, pTargetString, 1 );
-            replaceEscapeSequences( actLength );
-        }
+        writeStringPortion( escStart );
+        parser.template ConsumeChars<false>(1);
 
         // get and clean field attributes
         resetPlaceholder();
@@ -271,8 +257,6 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
 
 void    FormatterStdImpl::writeStdArgument()
 {
-    // store actual target length to fix some float exceptional cases (inf, nan)
-    integer oldTargetLength= targetString->Length();
 
     // write to temp buffer first, if we have a field width given
     AString* target;
@@ -290,14 +274,17 @@ void    FormatterStdImpl::writeStdArgument()
     else
         target= targetString;
 
-    integer fieldStartIdx= target->Length();
+    // store actual target length to fix some float exceptional cases (inf, nan)
+    integer oldTargetLength= target->Length();
 
+
+    integer fieldStartIdx= target->Length();
 
     // the main switch over the type
     switch( placeholder.Type )
     {
         case PHTypes::NotGiven:
-            ALIB_ERROR( "Internal error: this should have been handled by method checkStdFieldAgainstArgument" )
+            ALIB_ERROR( "TEXT", "Internal error: this should have been handled by method checkStdFieldAgainstArgument" )
         break;
 
         case PHTypes::String:
@@ -510,7 +497,9 @@ void    FormatterStdImpl::writeStdArgument()
                 {
                     WString256 wBuf;
                     wBuf.DbgDisableBufferReplacementWarning();
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     wBuf.Append<false>( target->Buffer() + oldTargetLength, target->Length() - oldTargetLength );
+                    ALIB_WARNINGS_RESTORE
                     target->ShortenTo( oldTargetLength );
                     target->Append<false>( wBuf.Buffer(),placeholder.CutContent );
                 }
@@ -528,9 +517,6 @@ void    FormatterStdImpl::writeStdArgument()
 
 bool    FormatterStdImpl::writeCustomFormat()
 {
-    if( placeholder.FormatSpec.IsEmpty() )
-        return false;
-
     auto* func=  placeholder.Arg->GetFunction<text::FFormat>( Reach::Local );
     if( !func )
         return false;

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,14 +17,14 @@
 #   include "alib/system/environment.hpp"
 #endif
 
-#if   defined(__GLIBCXX__)  || defined(__APPLE__)
+#if defined ( _WIN32 )
+    #include <direct.h>
+#elif   defined(__GLIBCXX__)  || defined(__APPLE__)    || defined(__ANDROID_NDK__)
     #include <unistd.h>
     #include <dirent.h>
     #include <sys/stat.h>
     #include <pwd.h>
 
-#elif defined ( _WIN32 )
-    #include <direct.h>
 #else
     #pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
@@ -98,7 +98,7 @@ void Directory::Change( SpecialFolder special )
         {
 
             #if defined (__unix__)
-                if ( !system::GetEnvironmentVariable( A_CHAR("HOME"), Path ) )
+                if ( !EnvironmentVariables::Get( A_CHAR("HOME"), Path ) )
                 {
                     struct passwd* pwd = getpwuid(getuid());
                     Path.Reset( pwd ? NString( pwd->pw_dir ) :  "~/" );
@@ -114,10 +114,10 @@ void Directory::Change( SpecialFolder special )
 
 
             #elif defined(_WIN32)
-                if ( !system::GetEnvironmentVariable( A_CHAR("USERPROFILE"), Path ) || !Directory::Exists( Path ) )
+                if ( !EnvironmentVariables::Get( A_CHAR("USERPROFILE"), Path ) || !Directory::Exists( Path ) )
                 {
-                    system::GetEnvironmentVariable( A_CHAR("HOMEDRIVE"), Path );
-                    system::GetEnvironmentVariable( A_CHAR("HOMEPATH" ), Path, CurrentData::Keep );
+                    EnvironmentVariables::Get( A_CHAR("HOMEDRIVE"), Path );
+                    EnvironmentVariables::Get( A_CHAR("HOMEPATH" ), Path, CurrentData::Keep );
                 }
             #else
                 #pragma message ("Unknown Platform in file: " __FILE__ )
@@ -172,8 +172,8 @@ void Directory::Change( SpecialFolder special )
                 #elif defined(_WIN32)
                     NString reasonMsg=  "(Environment variables TMP and TEMP either not set or not containing valid paths.)";
                     AString testDir;
-                    if (     ( system::GetEnvironmentVariable( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
-                         ||  ( system::GetEnvironmentVariable( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
+                    if (     ( EnvironmentVariables::Get( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
+                         ||  ( EnvironmentVariables::Get( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
                     {
                         evaluatedTempDir= testDir;
                     }
@@ -219,8 +219,8 @@ void Directory::Change( SpecialFolder special )
                 #elif defined(_WIN32)
                     const NString reasonMsg=  "(Environment variables TMP and TEMP either not set or not containing valid paths.)";
                     AString testDir;
-                    if (     ( system::GetEnvironmentVariable( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
-                         ||  ( system::GetEnvironmentVariable( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
+                    if (     ( EnvironmentVariables::Get( A_CHAR("TMP") , testDir ) && Directory::Exists( testDir ) )
+                         ||  ( EnvironmentVariables::Get( A_CHAR("TEMP"), testDir ) && Directory::Exists( testDir ) ) )
                     {
                         evaluatedVarTempDir= testDir;
                     }
@@ -282,7 +282,9 @@ bool Directory::Change( const StringNZT& path )
         integer origLength= Path.Length();
         Path._<false>( path ).Terminate();
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( !Directory::Exists( CString(Path.Buffer() + origLength, path.Length() ) ) )
+        ALIB_WARNINGS_RESTORE
         {
             Path.ShortenTo( origLength );
             return false;
@@ -315,7 +317,7 @@ bool Directory::CurrentDirectory( AString& target )         // static
     target.Reset();
     nchar charBuf[FILENAME_MAX];
 
-    #if   defined(__GLIBCXX__) || defined(__APPLE__)
+    #if   defined(__GLIBCXX__) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         if ( !getcwd( charBuf, sizeof(charBuf ) ) )
     #elif defined ( _WIN32 )
         if ( !_getcwd( charBuf, sizeof(charBuf ) ) )
@@ -332,7 +334,7 @@ bool Directory::CurrentDirectory( AString& target )         // static
 
 bool Directory::Exists( const CString& path )               // static
 {
-    #if defined (__GLIBC__) || defined(__APPLE__)
+    #if defined (__GLIBC__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
         ALIB_STRINGS_TO_NARROW(path,nPath,1024)
         DIR* dir= opendir( nPath );
         if ( dir != nullptr )
@@ -362,7 +364,7 @@ bool Directory::Exists( const CString& path )               // static
 
 SystemErrors Directory::Create( const CString& path )       // static
 {
-    #if defined (__GLIBC__)  || defined(__APPLE__)
+    #if defined (__GLIBC__)  || defined(__APPLE__) || defined(__ANDROID_NDK__)
         ALIB_STRINGS_TO_NARROW(path,nPath,1024)
         int errCode= mkdir( nPath,    S_IRWXU | S_IRGRP | S_IROTH
                                     | S_IXGRP | S_IXOTH             );

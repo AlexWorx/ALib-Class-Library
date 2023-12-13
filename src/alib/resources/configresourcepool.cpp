@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -106,8 +106,8 @@ const String& ConfigResourcePool::Get( const NString& category, const NString& n
 #endif
     }
 
-    ALIB_ASSERT_ERROR( !dbgAssert, "Unknown resource! Category: ", NString64(category),
-                                                       ", Name: ", NString64(name)      )
+    ALIB_ASSERT_ERROR( !dbgAssert, "RESOURCES", "Unknown resource! Category: ", NString64(category),
+                                                                    ", Name: ", NString64(name)    )
     return NULL_STRING;
 }
 

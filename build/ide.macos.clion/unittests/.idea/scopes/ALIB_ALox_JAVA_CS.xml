@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="ALIB-ALox-JAVA_CS" pattern="file[unittests]:src.cs//*||file[unittests]:src.java//*" />
+</component>

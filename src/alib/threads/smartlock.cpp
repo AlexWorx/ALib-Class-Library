@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -82,9 +82,9 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
     }// ALIB_LOCK_WITH
 
 
-    ALIB_ASSERT_ERROR( !errAlreadyAdded , "Acquirer already registered." )
-    ALIB_ASSERT_ERROR( errWasAcquired!=1, "Already acquired. Hint: Acquirer[0] must not acquire this before adding itself!" )
-    ALIB_ASSERT_ERROR( errWasAcquired!=2, "Acquired and acquirer[0] anonymous. Misuse of SmartLock!" )
+    ALIB_ASSERT_ERROR( !errAlreadyAdded , "THREADS", "Acquirer already registered." )
+    ALIB_ASSERT_ERROR( errWasAcquired!=1, "THREADS", "Already acquired. Hint: Acquirer[0] must not acquire this before adding itself!" )
+    ALIB_ASSERT_ERROR( errWasAcquired!=2, "THREADS", "Acquired and acquirer[0] anonymous. Misuse of SmartLock!" )
 
     return static_cast<int>( count );
 }
@@ -132,8 +132,8 @@ int   SmartLock::RemoveAcquirer( ThreadLock* acquirerToRemove )
         count= acquirers.size();
     }
 
-    ALIB_ASSERT_ERROR( !errNotFound,    "Acquirer not found." )
-    ALIB_ASSERT_ERROR( !errWasAcquired, "Acquired on release. Hint: Acquirers must acquire only when acquired themselves!" )
+    ALIB_ASSERT_ERROR( !errNotFound,    "THREADS",  "Acquirer not found." )
+    ALIB_ASSERT_ERROR( !errWasAcquired, "THREADS",  "Acquired on release. Hint: Acquirers must acquire only when acquired themselves!" )
     return static_cast<int>( count );
 }
 

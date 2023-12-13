@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
@@ -58,7 +58,9 @@ class ParserImpl  : public Parser
         enum class Tokens : char
         {
             EOT             = '\0',
-            Operator        = 'O' ,
+            SymbolicOp      = 'O' , // can be unary or binary
+            AlphaUnOp       = 'U' ,
+            AlphaBinOp      = 'B' ,
 
             LitString       = 'S' ,
             LitInteger      = 'I' ,

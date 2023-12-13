@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_PROPERTY_FORMATTER
@@ -20,7 +20,7 @@ namespace aworx { namespace lib { namespace text {
 
 
 /** ************************************************************************************************
- * # Introduction # {#alib_namespace_strings_propertyformatter_overview}
+ * # Introduction # {#alib_ns_strings_propertyformatter_overview}
  *
  * This class can be used to offer customized format strings to end users. For example, when
  * it should be allowed to end-users to store output format strings of complex type.
@@ -60,7 +60,7 @@ namespace aworx { namespace lib { namespace text {
  * The whole approach is useful in cases where an application wants to allow a customizable output
  * format of data objects.
  *
- * # Sample # {#alib_namespace_strings_propertyformatter_sample}
+ * # Sample # {#alib_ns_strings_propertyformatter_sample}
  * Let us assume, an application uses an enumeration and a simple struct:
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_1
  *
@@ -89,7 +89,7 @@ namespace aworx { namespace lib { namespace text {
  * are only referred to once (in the next step).<br>
  * As this sample is very trivial, the second parameter <c>AString&</c> is not used and named.
  * Details on the purpose and use of this parameter is addressed
- * \ref alib_namespace_strings_propertyformatter_callbacks "below".
+ * \ref alib_ns_strings_propertyformatter_callbacks "below".
  *
  * As a next step, these functions need to be collected together in a "translation table".
  * The table primarily holds a string denoting the replacement identifier and a pointer to the
@@ -105,15 +105,15 @@ namespace aworx { namespace lib { namespace text {
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_4
  *
  * Running the code above produces the following output:
- * \snippet "DOX_ALIB_STRINGS_PROPERTY_FORMATTER.txt"     OUTPUT
+ * \verbinclude "DOX_ALIB_STRINGS_PROPERTY_FORMATTER.txt"
  *
  * Serializing objects in a custom format (e.g. a user could define its own \b JSon object output)
  * should be the most obvious and frequent use case. And this is what the classes name suggests.
  * Nevertheless, the callback methods might be more complex than just returning "properties" of
  * objects. The next sections gives more details on the custom callbacks.
  *
- * \~Comment  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \~
- * # Callback Functions # {#alib_namespace_strings_propertyformatter_callbacks}
+ * \I{ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
+ * # Callback Functions # {#alib_ns_strings_propertyformatter_callbacks}
  * The call back function's signature is defined with <c>using</c>-statement #TCallback which
  * evaluates to
  *
@@ -144,8 +144,8 @@ namespace aworx { namespace lib { namespace text {
  * the \b %AString buffer provided in the second parameter is needed to be used
  * only in cases that a string gets assembled in the callback function!
  *
- * \~Comment  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \~
- * # Identifiers And The Escape Character '@' # {#alib_namespace_strings_propertyformatter_escape}
+ * \I{ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
+ * # Identifiers And The Escape Character '@' # {#alib_ns_strings_propertyformatter_escape}
  * The escape character used to find custom identifiers in the format string is defined
  * with parameter \p{ESCCharacter} of the constructor and defaults to \b '\@'.
  * This escape character is searched in the format string. If found, the identifier is
@@ -188,14 +188,14 @@ namespace aworx { namespace lib { namespace text {
  * Finally, to insert the escape character itself into the format string, it has to be doubly
  * inserted (<c>"@@"</c>).
  *
- * \~Comment  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \~
- * # Alternative # {#alib_namespace_strings_propertyformatter_alternative}
+ * \I{ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
+ * # Alternative # {#alib_ns_strings_propertyformatter_alternative}
  * If \alib_expressions is compiled with the library, a utility class similar to this one
  * is available with \alib{expressions::util,ExpressionFormatter}.
  * With this, complex expressions and calculations might be used instead of only having simple
  * identifiers as replacements.
  *
-\~Comment ####################################################################################### \~
+ * \I{#############################################################################################}
  * # Reference Documentation #
  * @throws #aworx::lib::text::Exceptions::UnknownPropertyInFormatString
  **************************************************************************************************/
@@ -204,7 +204,7 @@ class PropertyFormatter
     public:
         /**
          * The signature of the callback functions.
-         * See \ref alib_namespace_strings_propertyformatter_callbacks for more information.
+         * See \ref alib_ns_strings_propertyformatter_callbacks for more information.
          */
         using TCallback=   Box (*)(const Box&, AString&);
 
@@ -221,7 +221,7 @@ class PropertyFormatter
             int         MinimumRecognitionLength;
 
             /**  The callback function for this identifier.
-             *   See \ref alib_namespace_strings_propertyformatter_callbacks.  */
+             *   See \ref alib_ns_strings_propertyformatter_callbacks.  */
             TCallback   Callback;
         };
 

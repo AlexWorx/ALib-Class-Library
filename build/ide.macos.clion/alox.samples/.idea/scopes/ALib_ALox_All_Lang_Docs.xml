@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="ALib-ALox-All-Lang+Docs" pattern="file[alox.samples]:src.cpp//*||file[alox.samples]:src.cs//*||file[alox.samples]:src.java//*||file[alox.samples]:docs/Manual//*||file:docs/Changelog.dox||file:docs/MainPage.dox||file:docs/Tools.dox||file:docs/readme.txt||file:docs/FAQ.dox||file:README.md||file:LICENSE.txt" />
+</component>

@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //  Private, not published in git ( I hope! )
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,6 +11,7 @@
 #include <sstream>
 #include <array>
 #include <algorithm>
+#include <assert.h>
 #if ALIB_CPPVER >= 17
 #   include <any>
 #endif
@@ -73,7 +74,7 @@ int main( int, char** )
 #undef main
 
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_BOXING
 
 #include "alib/alox.hpp"
 
@@ -90,7 +91,6 @@ int main( int, char** )
 #elif defined(_MSC_VER)
     #pragma warning( disable:4100 ) // unreferenced formal parameter
     #pragma warning( disable:4189 ) //  initialized but not referenced
-
 #endif
 
 #include <iostream>
@@ -202,12 +202,12 @@ void isType()
 {
 //! [DOX_ALIB_BOXING_TUT_ISTYPE]
 Box myBox= true;
-cout << "Is the type boolean? " << Bool( myBox.IsType<bool  >() ) << endl;
-cout << "Is the type double? "  << Bool( myBox.IsType<double>() ) << endl;
+cout << "Is the type boolean? " << lib::Bool( myBox.IsType<bool  >() ) << endl;
+cout << "Is the type double? "  << lib::Bool( myBox.IsType<double>() ) << endl;
 
 myBox    = 5.5;
-cout << "Is the type boolean? " << Bool( myBox.IsType<bool  >() ) << endl;
-cout << "Is the type double? "  << Bool( myBox.IsType<double>() ) << endl;
+cout << "Is the type boolean? " << lib::Bool( myBox.IsType<bool  >() ) << endl;
+cout << "Is the type double? "  << lib::Bool( myBox.IsType<double>() ) << endl;
 //! [DOX_ALIB_BOXING_TUT_ISTYPE]
 }
 
@@ -345,6 +345,7 @@ void surjectiveStringTypes()
 // ########################################################################################
 namespace dox_boxing_sample_arr {
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_SAMPLE_ARR]
 bool ProcessArray( const aworx::Box& box )
 {
@@ -388,6 +389,7 @@ bool ProcessArray( const aworx::Box& box )
     return false;
 }
 //! [DOX_ALIB_BOXING_SAMPLE_ARR]
+ALIB_WARNINGS_RESTORE
 
 void sampleFunc()
 {
@@ -405,6 +407,7 @@ ProcessArray( 42 );
 
 void sampleFunc3()
 {
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_SAMPLE_ARR_3]
 int mArray[2][3] = {{ 1,2,3 },{ 4,5,6 } };
 aworx::Box box( mArray );
@@ -415,6 +418,7 @@ int (&arraySlice)[3]= box.UnboxElement<int[3]>(1);
 
 std::cout << "array[1][2]= " << arraySlice[2] << std::endl;
 //! [DOX_ALIB_BOXING_SAMPLE_ARR_3]
+ALIB_WARNINGS_RESTORE
 }
 
 void sampleFunc4()
@@ -796,6 +800,7 @@ void RegisterMyFunctions()
 
 void invoke()
 {
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_FUNCTIONS_INVOKE]
 // A sample array
 integer intArray[4] {1,2,3,4} ;
@@ -814,6 +819,7 @@ AString buffer;
 for( int i= 0 ; i < 4 ; ++i )
     cout << "box["<< i <<"].ToString(): \"" <<  boxes[i].Call<FToString>( buffer )  << '\"' << endl;
 //! [DOX_ALIB_BOXING_FUNCTIONS_INVOKE]
+ALIB_WARNINGS_RESTORE
 }
 
 void invoke2()
@@ -828,11 +834,9 @@ cout << "box.ToString(): \"" <<  box.Call<FToString>( buffer )  << '\"' << endl;
 }
 
 
-
-
 } //dox_boxing_sample_functions {
-#if !defined(HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#   include "alib/lib/fs_debug/typedemangler.hpp"
+#if !defined(HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
 namespace dox_boxing_sample_functions {
 
@@ -929,6 +933,7 @@ constexpr Box  Box2=  "Constructed at compile-time!";  // Here, you can't!
 
 namespace dox_boxing_sample_variadic {
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_VARIADIC_SAMPLE]
 template <typename... T> void VariadicFunction( const T&... args )
 {
@@ -943,6 +948,7 @@ template <typename... T> void VariadicFunction( const T&... args )
     }
 }
 //! [DOX_ALIB_BOXING_VARIADIC_SAMPLE]
+ALIB_WARNINGS_RESTORE
 
 //! [DOX_ALIB_BOXING_VARIADIC_RECIPE]
 template <typename... T> void VariadicRecipe( T&&... args )
@@ -1164,7 +1170,7 @@ for( auto& box : myVec )
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 
 #if    !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS   \
@@ -1197,7 +1203,7 @@ UT_METHOD(Boxing_Dox)
     testOutputStreamN.str("");
 
     dox_boxing_chpt2_4::isType();
-    ut.WriteResultFile( "DOX_ALIB_BOXING_TUT_ISTYPE.txt", testOutputStreamN.str() );
+    ut.WriteResultFile( "DOX_ALIB_BOXING_TUT_ISTYPE.txt", testOutputStreamN.str(), "" );
     testOutputStreamN.str("");
 
     dox_boxing_chpt2_4::unbox();
@@ -1220,15 +1226,15 @@ UT_METHOD(Boxing_Dox)
     // ############################      5. Arrays      #######################################
     // ########################################################################################
     dox_boxing_sample_arr::sampleFunc();
-    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR.txt", testOutputStreamN.str() );
+    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR.txt", testOutputStreamN.str() ,"" );
     testOutputStreamN.str("");
 
     dox_boxing_sample_arr::sampleFunc3();
-    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR_3.txt", testOutputStreamN.str() );
+    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR_3.txt", testOutputStreamN.str(), "" );
     testOutputStreamN.str("");
 
     dox_boxing_sample_arr::sampleFunc4();
-    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR_4.txt", testOutputStreamN.str() );
+    ut.WriteResultFile( "DOX_ALIB_BOXING_SAMPLE_ARR_4.txt", testOutputStreamN.str(), "" );
     testOutputStreamN.str("");
 
     dox_boxing_sample_arr::sampleFuncUnboxVector(); //no output
@@ -1354,8 +1360,4 @@ UT_METHOD(Boxing_Dox)
 
 ALIB_WARNINGS_RESTORE
 
-#endif //  ALIB_UT_DOCS
-
-
-
-
+#endif //  ALIB_UT_DOCS && ALIB_BOXING

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -48,21 +48,6 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-// For code compatibility with ALox Java/C++
-// We have to use underscore as the start of the name and for this have to disable a compiler
-// warning. But this is a local code (cpp file) anyhow.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-
-    #define _NC _<false>
-
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
-
-
 using namespace aworx::lib;
 
 ALIB_BOXING_VTABLE_DEFINE( aworx::lib::system::Exceptions   , vt_system_exceptions   )
@@ -75,11 +60,10 @@ system::System SYSTEM;
 namespace system {
 
 
-
-
 #if !defined(ALIB_DOX)
 namespace
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     String months[12];
     String days[7];
 
@@ -103,14 +87,14 @@ namespace
     };
 
     String units[SIZE_OF_UNITS];
-
+    ALIB_WARNINGS_RESTORE
 }
 #endif // defined(ALIB_DOX)
 
 System::System()
 : Module( ALIB_VERSION, ALIB_REVISION, "SYS" )
 {
-    ALIB_ASSERT_ERROR( this == &SYSTEM,
+    ALIB_ASSERT_ERROR( this == &SYSTEM, "SYSTEM",
         "Instances of class System must not be created. Use singleton aworx::lib::SYSTEM" )
 }
 
@@ -149,6 +133,8 @@ void System::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t*
                              " ns"         ","     // 13  NSecP
                              " ns"            ),   // 14  NSecS
 
+        "DFMT",  A_CHAR( "yyyy-MM-dd HH:mm:ss"),   // default format string for DateTime values used by FFormat_DateTime()
+
         // Exceptions
         "E<", A_CHAR("system::"),
         "E",  A_CHAR("0,OK"               ",NON"  ) EOS
@@ -177,7 +163,7 @@ void System::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t*
    A_CHAR("-1"   ","    "UNKNOWN"           ","  "UknSE"  "," )
    A_CHAR("0"    ","    "OK"                ","           "," )
 
-#if defined (__GLIBC__) || defined(__APPLE__)
+#if defined (__GLIBC__) || defined(__APPLE__)   || defined(__ANDROID_NDK__)
    A_CHAR("1"    ","    "EPERM"             ","  "OSERR"  ","
           "2"    ","    "ENOENT"            ","  "OSERR"  ","
           "3"    ","    "ESRCH"             ","  "OSERR"  ","
@@ -441,8 +427,8 @@ void System::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t*
         EnumRecords<Exceptions              >::Bootstrap();
         EnumRecords<SystemErrors            >::Bootstrap();
         EnumRecords<Directory::SpecialFolder>::Bootstrap( *this, "SpecialFolder" );
-
     }
+
     else if( phase == BootstrapPhases::Final )
     {
         Substring parser;
@@ -470,115 +456,11 @@ Exception CreateSystemException( const NCString& file, int line, const NCString&
 }
 
 
+
 // #################################################################################################
-// CalendarDateTime
+// CalendarDateTime::Format
 // #################################################################################################
-
-void CalendarDateTime::Clear()
-{
-    Year=
-    Month=
-    Day=
-    DayOfWeek=
-    Hour=
-    Minute=
-    Second=
-    Millisecond=    0;
-}
-
-void CalendarDateTime::Set( const DateTime& timeStamp, Timezone timezone )
-{
-    Clear();
-
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
-        struct tm  tm;
-        time_t tt= timeStamp.InEpochSeconds();
-        if ( timezone == Timezone::UTC )
-        {
-            tm.tm_isdst=      0; // daylight saving off
-            gmtime_r( &tt, &tm );
-        }
-        else
-        {
-            tm.tm_isdst=     -1; // daylight saving auto
-            localtime_r( &tt, &tm );
-        }
-
-        Year=       tm.tm_year + 1900;
-        Day=        tm.tm_mday;
-        DayOfWeek=  tm.tm_wday;
-        Month=      tm.tm_mon + 1;
-        Second=     tm.tm_sec;
-        Hour=       tm.tm_hour;
-        Minute=     tm.tm_min;
-
-    #elif defined( _WIN32 )
-        SYSTEMTIME st= timeStamp.ToSystemTime( timezone );
-
-        Year=       st.wYear;
-        Day=        st.wDay;
-        DayOfWeek=  st.wDayOfWeek;
-        Month=      st.wMonth;
-        Hour=       st.wHour;
-        Minute=     st.wMinute;
-        Second=     st.wSecond;
-
-    #else
-        #pragma message ("Unknown Platform in file: " __FILE__ )
-    #endif
-}
-
-DateTime  CalendarDateTime::Get( Timezone timezone )
-{
-    DateTime result(Initialization::Suppress);
-
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
-        struct tm  tm;
-        tm.tm_year=       Year - 1900;
-        tm.tm_mday=       Day;
-        tm.tm_mon=        Month -1;
-        tm.tm_hour=       Hour;
-        tm.tm_min=        Minute;
-        tm.tm_sec=        Second;
-
-        time_t tt;
-        if ( timezone == Timezone::UTC )
-        {
-            tm.tm_isdst=      0; // daylight saving off
-            tt= timegm( &tm );
-        }
-        else
-        {
-            tm.tm_isdst=     -1; // daylight saving auto
-            tt= mktime( &tm );
-        }
-
-        result= DateTime::FromEpochSeconds( tt );
-
-
-    #elif defined( _WIN32 )
-
-        SYSTEMTIME st;
-        st.wYear=           (WORD) Year;
-        st.wDay=            (WORD) Day;
-        st.wDayOfWeek=      (WORD) DayOfWeek;
-        st.wMonth=          (WORD) Month;
-        st.wHour=           (WORD) Hour;
-        st.wMinute=         (WORD) Minute;
-        st.wSecond=         (WORD) Second;
-        st.wMilliseconds=   0;
-
-        result= DateTime::FromSystemTime( st, timezone );
-
-    #else
-        #pragma message ("Unknown Platform in file: " __FILE__ )
-    #endif
-
-    return result;
-}
-
-
-AString& CalendarDateTime::Format( Substring format, AString& target, CurrentData targetData )
+AString& CalendarDateTime::Format( Substring format, AString& target, CurrentData targetData ) const
 {
     if ( targetData == CurrentData::Clear )
         target.Reset();
@@ -614,12 +496,12 @@ AString& CalendarDateTime::Format( Substring format, AString& target, CurrentDat
                     integer end= format.IndexOf( '\'' );
                     if ( end < 1 )
                     {
-                        ALIB_WARNING( "Format Error: Missing single Quote" )
+                        ALIB_WARNING( "SYSTEM", "Format Error: Missing single Quote" )
                         target <<     "Format Error: Missing single Quote" ;
                         return target;
                     }
 
-                    target._NC( format, 0, end );
+                    target._<false>( format, 0, end );
                     format.ConsumeChars<false>( end + 1 );
                 }
 
@@ -630,34 +512,34 @@ AString& CalendarDateTime::Format( Substring format, AString& target, CurrentDat
                 break;
 
             case 'm': //minute
-                target._NC( aworx::Format( Minute, n, nf ) );
+                target._<false>( aworx::Format( Minute, n, nf ) );
                 break;
 
             case 'K': // hour 0..11
-                target._NC( aworx::Format( Hour % 12, n, nf ) );
-                target._NC( Hour < 12 ? " am" : " pm" );
+                target._<false>( aworx::Format( Hour % 12, n, nf ) );
+                target._<false>( Hour < 12 ? " am" : " pm" );
                 break;
 
             case 'H': // hour 0..23
-                target._NC( aworx::Format( Hour,   n, nf ) );
+                target._<false>( aworx::Format( Hour,   n, nf ) );
                 break;
 
             case 'd': // day
-                     if ( n <= 2 )     target._NC( aworx::Format( Day, n, nf) );
-                else if ( n == 3 )     target._NC( days[DayOfWeek], 0, 3 );
-                else                   target._NC( days[DayOfWeek]    );
+                     if ( n <= 2 )     target._<false>( aworx::Format( Day, n, nf) );
+                else if ( n == 3 )     target._<false>( days[DayOfWeek], 0, 3 );
+                else                   target._<false>( days[DayOfWeek]    );
                 break;
 
             case 'M': // month
-                     if ( n <= 2 )     target._NC( aworx::Format( Month, n, nf ) );
-                else if ( n == 3 )     target._NC( months[Month-1], 0, 3 );
-                else                   target._NC( months[Month-1]     );
+                     if ( n <= 2 )     target._<false>( aworx::Format( Month, n, nf ) );
+                else if ( n == 3 )     target._<false>( months[Month-1], 0, 3 );
+                else                   target._<false>( months[Month-1]     );
                 break;
 
             case 'y': // year
-                     if ( n == 1 )     target._NC( aworx::Format(Year,        1, nf) );
-                else if ( n == 2 )     target._NC( aworx::Format(Year %  100, 2, nf) );
-                else                   target._NC( aworx::Format(Year,        n, nf) );
+                     if ( n == 1 )     target._<false>( aworx::Format(Year,        1, nf) );
+                else if ( n == 2 )     target._<false>( aworx::Format(Year %  100, 2, nf) );
+                else                   target._<false>( aworx::Format(Year,        n, nf) );
                 break;
 
             default: // otherwise: copy what was in
@@ -670,49 +552,7 @@ AString& CalendarDateTime::Format( Substring format, AString& target, CurrentDat
     return target;
 }
 
-// #################################################################################################
-// CalendarDuration
-// #################################################################################################
-void CalendarDuration::Clear()
-{
-    Days=
-    Hours=
-    Minutes=
-    Seconds=
-    Milliseconds=
-    Microseconds=
-    Nanoseconds=    0;
-}
-#define  NanosPerDay           INT64_C( 86400000000000 ) ///< Constant denoting number of nanoseconds of a day.
-#define  NanosPerHour          INT64_C(  3600000000000 ) ///< Constant denoting number of nanoseconds of an hour.
-#define  NanosPerMinute        INT64_C(    60000000000 ) ///< Constant denoting number of nanoseconds of a minute.
-#define  NanosPerSecond        INT64_C(     1000000000 ) ///< Constant denoting number of nanoseconds of a second.
-#define  NanosPerMillisecond   INT64_C(        1000000 ) ///< Constant denoting number of nanoseconds of a millisecond.
-#define  NanosPerMicrosecond   INT64_C(           1000 ) ///< Constant denoting number of nanoseconds of a microsecond.
 
-
-void CalendarDuration::FromNanoSeconds( int64_t nanos )
-{
-    Clear();
-    decltype(nanos) fract;
-    if ( nanos > NanosPerDay )          { Days=         static_cast<int>( fract= nanos / NanosPerDay         );  nanos-= fract * NanosPerDay;         }
-    if ( nanos > NanosPerHour )         { Hours=        static_cast<int>( fract= nanos / NanosPerHour        );  nanos-= fract * NanosPerHour;        }
-    if ( nanos > NanosPerMinute )       { Minutes=      static_cast<int>( fract= nanos / NanosPerMinute      );  nanos-= fract * NanosPerMinute;      }
-    if ( nanos > NanosPerSecond )       { Seconds=      static_cast<int>( fract= nanos / NanosPerSecond      );  nanos-= fract * NanosPerSecond;      }
-    if ( nanos > NanosPerMillisecond )  { Milliseconds= static_cast<int>( fract= nanos / NanosPerMillisecond );  nanos-= fract * NanosPerMillisecond; }
-    if ( nanos > NanosPerMicrosecond )  { Microseconds= static_cast<int>( fract= nanos / NanosPerMicrosecond );                                       }
-}
-
-int64_t     CalendarDuration::ToNanoSeconds()
-{
-    return      Days          * NanosPerDay
-             +  Hours         * NanosPerHour
-             +  Minutes       * NanosPerMinute
-             +  Seconds       * NanosPerSecond
-             +  Milliseconds  * NanosPerMillisecond
-             +  Microseconds  * NanosPerMicrosecond
-             +  Nanoseconds;
-}
 
 // #################################################################################################
 // FFormat_DateTime
@@ -722,7 +562,9 @@ DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
 void FFormat_DateTime( const Box& box, const String& formatSpec, AString& target )
 {
     system::CalendarDateTime tct( box.Unbox<DateTime>() );
-    tct.Format( formatSpec, target );
+    tct.Format( formatSpec.IsNotEmpty() ? formatSpec
+                                        : lib::SYSTEM.GetResource("DFMT"),
+                target );
 }
 DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
 #endif
@@ -740,8 +582,6 @@ namespace strings {
 using namespace system;
 
 namespace {
-
-
 
     template<typename TChar>
     void appendDateTime(TAString<TChar>& target, const DateTime::Duration pSrc)
@@ -868,4 +708,3 @@ template void T_Append<time::Ticks::   Duration, xchar>::operator()( TAString<xc
 
 
 }}// namespace [aworx::lib]
-

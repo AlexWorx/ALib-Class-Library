@@ -4,7 +4,7 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM
@@ -19,9 +19,6 @@ ALIB_ASSERT_MODULE(STRINGS)
 #if !defined(HPP_ALIB_COMPATIBILITY_STD_CHARACTERS)
 #   include "alib/compatibility/std_characters.hpp"
 #endif
-
-
-
 
 #if !defined (_GLIBCXX_IOSTREAM )  && !defined(_IOSTREAM_)
     #include <iostream>
@@ -61,7 +58,7 @@ template<typename T>  struct T_SuppressStdOstreamOperator  :  ::std::false_type 
 
 
 /** ************************************************************************************************
- * Parameter class used for to append to objects of type \alib{strings,TAString,AString}, which
+ * Parameter class used to append to objects of type \alib{strings,TAString,AString}, which
  * invokes the method of the according specialization of template struct
  * <b>T_Append<ISReadLine,TChar></b>.<br>
  * This then reads a line of text from the encapsulated \b std::istream and appends that line to the
@@ -247,6 +244,12 @@ class StringWriter
          ******************************************************************************************/
         integer         WriteAndGetWideLength( const NString& src )
         {
+            if( ostream == nullptr )
+            {
+                ALIB_WARNING( "STRINGS", "StringWriter::WriteAndGetWideLength: No output stream")
+                return 0;
+            }
+
             ostream->write( src.Buffer(), src.Length() );
             return src.WStringLength();
         }
@@ -258,6 +261,12 @@ class StringWriter
          ******************************************************************************************/
         integer         WriteAndGetWideLength( const WString& src )
         {
+            if( ostream == nullptr )
+            {
+                ALIB_WARNING( "STRINGS", "StringWriter::WriteAndGetWideLength: No output stream")
+                return 0;
+            }
+
             converter.Reset( src );
             ostream->write( converter.Buffer(), converter.Length() );
             return src.Length();
@@ -278,6 +287,11 @@ class StringWriter
          ******************************************************************************************/
         void            Write( const NString& src )
         {
+            if( ostream == nullptr )
+            {
+                ALIB_WARNING( "STRINGS", "StringWriter::WriteAndGetWideLength: No output stream")
+                return;
+            }
             ostream->write( src.Buffer(), src.Length() );
         }
 
@@ -287,6 +301,11 @@ class StringWriter
          ******************************************************************************************/
         void            Write( const WString& src )
         {
+            if( ostream == nullptr )
+            {
+                ALIB_WARNING( "STRINGS", "StringWriter::WriteAndGetWideLength: No output stream")
+                return;
+            }
             converter.Reset( src );
             ostream->write( converter.Buffer(), converter.Length() );
         }
@@ -525,7 +544,8 @@ inline std::wostream* operator<<( std::wostream* stream, const aworx::WString& s
  **************************************************************************************************/
 inline std::istream& operator>>( std::istream& stream, aworx::NAString& string )
 {
-    string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( &stream, aworx::CurrentData::Clear );
+    string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( &stream,
+                                                                   aworx::lib::CurrentData::Clear );
     return stream;
 }
 
@@ -540,10 +560,11 @@ inline std::istream& operator>>( std::istream& stream, aworx::NAString& string )
  **************************************************************************************************/
 inline std::istream* operator>>( std::istream* stream, aworx::NAString& string )
 {
-    ALIB_ASSERT_WARNING ( stream != nullptr, "Given std::IStream is nullptr" )
+    ALIB_ASSERT_WARNING ( stream != nullptr, "STRINGS", "Given std::IStream is nullptr" )
 
     if (stream != nullptr)
-        string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( stream, aworx::CurrentData::Clear );
+        string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( stream,
+                                                                   aworx::lib::CurrentData::Clear );
     return stream;
 }
 
@@ -565,14 +586,17 @@ inline std::istream* operator>>( std::istream* stream, aworx::NAString& string )
  * @param  string The AString to receive data.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& stream, aworx::WAString& string )
+inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& stream,
+                                                aworx::WAString&             string )
 {
     #if ALIB_CHARACTERS_NATIVE_WCHAR
-        string << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream, aworx::CurrentData::Clear );
+        string << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+                                                                   aworx::lib::CurrentData::Clear );
     #else
         aworx::XLocalString<1024> converter;
         converter.DbgDisableBufferReplacementWarning();
-        converter << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream, aworx::CurrentData::Keep );
+        converter << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+                                                                   aworx::lib::CurrentData::Keep );
         string.Reset( converter );
     #endif
     return stream;
@@ -591,9 +615,10 @@ inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& str
  * @param  string The AString to receive data.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::basic_istream<wchar_t>* operator>>( std::basic_istream<wchar_t>* stream, aworx::WAString& string )
+inline std::basic_istream<wchar_t>* operator>>( std::basic_istream<wchar_t>* stream,
+                                                aworx::WAString& string )
 {
-    ALIB_ASSERT_WARNING ( stream != nullptr, "Given std::istream is nullptr" )
+    ALIB_ASSERT_WARNING ( stream != nullptr, "STRINGS", "Given std::istream is nullptr" )
 
     if (stream != nullptr)
         (*stream) >> string;

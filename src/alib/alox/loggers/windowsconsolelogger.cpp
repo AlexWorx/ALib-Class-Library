@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -101,7 +101,7 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
         {
             if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
             {
-                ALIB_WARNING( "Unknown value specified in variable: {} = {!Q'}.",
+                ALIB_WARNING( "ALOX", "Unknown value specified in variable: {} = {!Q'}.",
                               variable.Fullname(), variable.GetString() )
             }
         }
@@ -186,7 +186,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
             c= rest.ConsumeChar();
             int colNo= c - '0';
-            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ConsoleLogger: Unknown ESC-c code" )
+            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ALOX", "ConsoleLogger: Unknown ESC-c code" )
 
             WORD attr= 0;
             WORD light=  UseLightColors != LightColorUsage::Never && ((UseLightColors== LightColorUsage::Foreground) == isForeGround )  ? FOREGROUND_INTENSITY : 0;
@@ -201,7 +201,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                                                                :  ( originalConsoleAttributes & ~W32C_BACKGROUND_MASK ) >> 4;
             else
             {
-                ALIB_WARNING( "Unknown ESC- code \"C{}{}...\"", c, rest.Substring(0,10) );
+                ALIB_WARNING( "ALOX", "Unknown ESC- code \"C{}{}...\"", c, rest.Substring(0,10) );
             }
 
             actualAttributes=  isForeGround  ?  ( actualAttributes & W32C_FOREGROUND_MASK ) |   attr
@@ -260,7 +260,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
         else
         {
-            ALIB_WARNING( "WindowsConsoleLogger: Unknown ESC code" );
+            ALIB_WARNING( "ALOX", "WindowsConsoleLogger: Unknown ESC code" );
         }
 
         // set the attributes

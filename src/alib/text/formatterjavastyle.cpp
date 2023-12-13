@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -96,11 +96,61 @@ integer FormatterJavaStyle::findPlaceholder()
 }
 
 
-void    FormatterJavaStyle::replaceEscapeSequences( integer startIdx )
+void    FormatterJavaStyle::writeStringPortion( integer length )
 {
-    targetString->SearchAndReplace( A_CHAR( "%%" ), A_CHAR( "%" ), startIdx );
-    targetString->SearchAndReplace( A_CHAR( "%n" ), NewLine()    , startIdx );
-    targetString->_<false>( strings::TFormat<character>::Escape( Switch::Off, startIdx ) );
+    if( length == 0)
+        return;
+
+    targetString->EnsureRemainingCapacity( length );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    auto* src = parser.Buffer();
+    auto* dest= targetString->VBuffer() + targetString->Length();
+    ALIB_WARNINGS_RESTORE
+    parser.ConsumeChars( length );
+
+    character c1;
+    character c2= *src;
+    while( length > 1 )
+    {
+        c1= c2;
+        c2= *++src;
+
+        if(     ( c1 == '%' && c2 =='%')
+            ||    c1 == '\\'                     )
+        {
+            if(  c1 == '\\' )
+                switch(c2)
+                {
+                    case 'r': c1= '\r' ; break;
+                    case 'n': c1= '\n' ; break;
+                    case 't': c1= '\t' ; break;
+                    case 'a': c1= '\a' ; break;
+                    case 'b': c1= '\b' ; break;
+                    case 'v': c1= '\v' ; break;
+                    case 'f': c1= '\f' ; break;
+                    case '"': c1= '"'  ; break;
+                    default:  c1= '?'  ; break;
+                }
+
+            c2= *++src;
+            --length;
+        }
+        else if( c1 == '%' && c2 =='n' )
+        {
+            c1= '\n';
+            ++src;
+            --length;
+        }
+
+        *dest++= c1;
+        --length;
+    }
+
+    // copy last character and adjust target string length:
+    // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
+    if( length == 1)
+        *dest= *src;
+    targetString->SetLength( dest - targetString->VBuffer() + length);
 }
 
 

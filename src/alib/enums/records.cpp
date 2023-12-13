@@ -1,14 +1,19 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#   if ALIB_FILESET_COMMON_ENUMS && !defined(HPP_ALIB_FS_COMMONENUMS)
-#      include "alib/lib/fs_commonenums/commonenums.hpp"
+#   if ALIB_FILESET_COMMON_ENUMS
+#       if !defined(HPP_ALIB_FS_COMMONENUMS)
+#           include "alib/lib/fs_commonenums/commonenums.hpp"
+#       endif
+#   if !defined (HPP_ALIB_FS_COMMONENUMS_DEFS)
+#      include "alib/lib/fs_commonenums/commonenumdefs.hpp"
+#   endif
 #   endif
 #   if !defined(HPP_ALIB_ENUMS_DETAIL_ENUMRECORDMAP)
 #      include "alib/enums/detail/enumrecordmap.hpp"
@@ -204,7 +209,7 @@ integer EnumRecordParser::getInteger( bool isLastField )
             bigInt= 0;
         else
             if( ! Input.ConsumeInt( bigInt ) )
-                error("Not an integral value" );
+                error( "Not an integral value" );
     }
 
     if( !isLastField )
@@ -298,7 +303,7 @@ void ERSerializable::Parse()
 #if !ALIB_FILESET_MODULES
 void Bootstrap()
 {
-#if ALIB_FILESET_COMMON_ENUMS
+#if ALIB_FILESET_COMMON_ENUMS && ALIB_STRINGS
 DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS])
 EnumRecords<Bool>::Bootstrap(
 {

@@ -2,27 +2,32 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
 #define HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
 
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
+#endif
+
 #if !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_FORWARDLIST)
-#   include "alib/lib/fs_lists/forwardlist.hpp"
+#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
+#   include "alib/lib/fs_lists/sidilist.hpp"
 #endif
 
 #if ALIB_DEBUG
 #   if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_LOCALSTRING)
 #      include "alib/strings/localstring.hpp"
 #   endif
-#   if !defined (HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#      include "alib/lib/fs_debug/typedemangler.hpp"
-#   endif
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_MONOMEM)
+#   include "alib/monomem/monomem.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace monomem {
@@ -51,52 +56,52 @@ namespace util {
  * While such operation mode does not imply all performance benefits of monotonic allocation
  * scenarios, still the recycling of node objects may avoid many malloc/free operations and
  * therefore reduce memory fragmentation significantly.<br>
- * Method #RecycleChunk will not create recyclable objects in that mode, bute will duly
+ * Method #RecycleChunk will not create recyclable objects in that mode, but will duly
  * use <c>std::free</c> to directly free a chunk of non-object size.
  **************************************************************************************************/
 struct RTTRAllocator
 {
     /** The node type of the internal node type used for stacking  recyclables. Besides inheriting
      *  the single-list pointer, this type is empty.                                              */
-    struct Node : ForwardNode<Node>
+    struct Node : lib::detail::SidiNodeBase<Node>
     {};
 
     /** The monotonic allocator */
-    MonoAllocator*              allocator;
+    MonoAllocator*                   allocator;
 
     /** List of destructed objects available for recycling. */
-    ForwardList<Node>           stack;
+    lib::detail::SidiListHelper<Node> stack;
 
     /** The object size of recylables. Will be detected with the first invocation of #Get. */
-    size_t                      detectedObjectSize                                              = 0;
+    size_t                           detectedObjectSize                                         = 0;
 
     /** The required object alignment. Will be detected with the first invocation of #Get. */
-    size_t                      detectedObjectAlignment                                         = 0;
+    size_t                           detectedObjectAlignment                                    = 0;
 
     #if ALIB_DEBUG
         /** The detected object's run-time type information struct.<br>
          *  Available only in debug builds.                                               */
-        const std::type_info*   dbgDetectedObjectTypeInfo                                 = nullptr;
+        const std::type_info*        dbgDetectedObjectTypeInfo                            = nullptr;
 
         /** Flag on raising an \alib warning. Defaults to \c true and set to \c false when a
          *  corresponding warning was given..<br>
          *  Available only in debug builds.                                                   */
-        bool                    dbgWarnDifferentObjectTypeAlloc                              = true;
+        bool                         dbgWarnDifferentObjectTypeAlloc                         = true;
 
         /** Flag on raising an \alib warning. Defaults to \c true and set to \c false when a
          *  corresponding warning was given..<br>
          *  Available only in debug builds.                                                   */
-        bool                    dbgWarnDifferentObjectTypeDealloc                            = true;
+        bool                         dbgWarnDifferentObjectTypeDealloc                       = true;
 
         /** Flag on raising an \alib warning. Defaults to \c true and set to \c false when a
          *  corresponding warning was given..<br>
          *  Available only in debug builds.                                                   */
-        bool                    dbgWarnDeallocationPriorToAllocation                         = true;
+        bool                         dbgWarnDeallocationPriorToAllocation                    = true;
 
         /** Flag on raising an \alib warning. Defaults to \c true and set to \c false when a
          *  corresponding warning was given..<br>
          *  Available only in debug builds.                                                   */
-        bool                    dbgWarnRecycleChunkPriorToAllocation                         = true;
+        bool                         dbgWarnRecycleChunkPriorToAllocation                    = true;
     #endif
 
    /**
@@ -111,7 +116,7 @@ struct RTTRAllocator
     RTTRAllocator( MonoAllocator* pAllocator)
     : allocator(pAllocator)
     {
-        MONOMEM_FILE_DOMAIN("UTIL/RTTA")
+        DBG_MONOMEM_FILE_DOMAIN("UTIL/RTTA")
     }
 
 
@@ -144,17 +149,17 @@ struct RTTRAllocator
             detectedObjectSize               = size;
             detectedObjectAlignment          = alignment;
   ALIB_DBG( dbgDetectedObjectTypeInfo        = &dbgTypeInfo;   )
-            MONOMEM_INFO("Object type detected     : {!Q<>}", dbgTypeInfo  )
+            DBG_MONOMEM_INFO("Object type detected     : {!Q<>}", dbgTypeInfo  )
             ALIB_ASSERT_ERROR( alignment >= alignof(Node),
-                "Struct RTTRAllocator can not be used to recycle types with an alignment "
-                "smaller than ", alignof(Node) )
+                               "MONOMEM/RTTRA", "Struct RTTRAllocator can not be used to recycle types with an alignment "
+                               "smaller than ", alignof(Node) )
         }
 
         if( size == detectedObjectSize && detectedObjectAlignment == alignment )
         {
-            if( stack.isNotEmpty() )
+            if( !stack.isEmpty() )
             {
-                MONOMEM_VERBOSE( "Recycling object.    Type: {!Q<>}", dbgTypeInfo )
+                DBG_MONOMEM_VERBOSE( "Recycling object.    Type: {!Q<>}", dbgTypeInfo )
 
                 return reinterpret_cast<char*>( stack.popFront() );
             }
@@ -163,30 +168,31 @@ struct RTTRAllocator
         else
         {
             #if ALIB_STRINGS
-                ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeAlloc, NString1K() <<
+                ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeAlloc, "MONOMEM/RTTRA", NString1K() <<
                   "A different object was requested for allocation!\n"
                   "  Previous type : <" << DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
                   "  Requested type: <" << DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
                   "Note: This allocator may not be efficient when used.\n"
                   "      If this is a use case using a 'std' library container, this message indicates\n"
                   "      that a RTTRAllocator was shared between different container instantiations.\n"
-                  "      If this is not the case, than an 'unusual' implementation of such C++ library may \n"
+                  "      If this is not the case, than an 'unusual' implementation of such C++ library may\n"
                   "      prevent this concept from working. See ALib manual for further information"            )
             #else
-                ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeAlloc,
+                ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeAlloc, "MONOMEM/RTTRA",
                   "A different object was requested for allocation!\n" )
             #endif
 
             dbgWarnDifferentObjectTypeAlloc= false;
-            MONOMEM_WARNING( "Allocating a different object type {!Q<>}\\n  Note: This object can not be recycled.", dbgTypeInfo )
+            DBG_MONOMEM_WARNING( "Allocating a different object type {!Q<>}\n  Note: This object can not be recycled.", dbgTypeInfo )
             return allocator ? allocator->Alloc( size, alignment )
                              : static_cast<char*>(std::malloc( size ));
         }
         #endif
 
-        MONOMEM_VERBOSE( "Allocating object.   Type: {!Q<>}", dbgTypeInfo )
+        DBG_MONOMEM_VERBOSE( "Allocating object.   Type: {!Q<>}", dbgTypeInfo )
 
         ALIB_ASSERT_ERROR( allocator != nullptr || alignment <= alignof(std::max_align_t),
+            "MONOMEM/RTTRA",
             "Struct RTTRAllocator can not be used to allocate types with an alignment "
             "greater than 'alignof(std::max_align_t)'." )
         return allocator ? allocator->Alloc( size, alignment )
@@ -209,7 +215,7 @@ struct RTTRAllocator
     char* AllocUnrelated( size_t size, size_t alignment ALIB_DBG(, const std::type_info& dbgTypeInfo))
     {
         ALIB_DBG( (void) dbgTypeInfo; )
-        MONOMEM_VERBOSE( "Allocating other.    Type: {!Q<>}", dbgTypeInfo )
+        DBG_MONOMEM_VERBOSE( "Allocating other.    Type: {!Q<>}", dbgTypeInfo )
         return allocator ? allocator->Alloc( size, alignment )
                          : static_cast<char*>(std::malloc( size ));
     }
@@ -243,7 +249,7 @@ struct RTTRAllocator
         {
             stack.pushFront( reinterpret_cast<Node*>( mem ) );
 
-            MONOMEM_VERBOSE( "Stacking object.     Type: {!Q<>}", dbgTypeInfo )
+            DBG_MONOMEM_VERBOSE( "Stacking object.     Type: {!Q<>}", dbgTypeInfo )
         }
         else
         {
@@ -253,14 +259,14 @@ struct RTTRAllocator
                 if( detectedObjectSize == 0 )
                 {
                     #if ALIB_STRINGS
-                        ALIB_ASSERT_WARNING( !dbgWarnDeallocationPriorToAllocation,  NString1K() <<
+                        ALIB_ASSERT_WARNING( !dbgWarnDeallocationPriorToAllocation,  "MONOMEM/RTTRA", NString1K() <<
                             "De-allocation prior to a first object allocation needed to detect recyclable type!\n"
                             "  De-allocated object type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n" <<
                             "Note: This allocator may not be efficient when used.\n"
                             "      If this is a use case using a 'std' library container, this message indicates\n"
                             "      an 'unusual' implementation of such C++ standard library."                   )
                     #else
-                        ALIB_ASSERT_WARNING( !dbgWarnDeallocationPriorToAllocation,
+                        ALIB_ASSERT_WARNING( !dbgWarnDeallocationPriorToAllocation, "MONOMEM/RTTRA",
                             "De-allocation prior to a first object allocation needed to detect recyclable type!" )
                         (void) dbgTypeInfo;
                     #endif
@@ -269,17 +275,17 @@ struct RTTRAllocator
                 else
                 {
                     #if ALIB_STRINGS
-                        ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeDealloc, NString1K() <<
+                        ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeDealloc, "MONOMEM/RTTRA", NString1K() <<
                              "A different object for was requested for de-allocoation!\n"
                              "  Previous type : <" << DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
                              "  Requested type: <" << DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
                              "Note: This allocator may not be efficient when used.\n"
                              "      If this is a use case using a 'std' library container, this message indicates\n"
                              "      that a RTTRAllocator was shared between different container instantiations.\n"
-                             "      If this is not the case, than an 'unusual' implementation of such C++ library may \n"
+                             "      If this is not the case, than an 'unusual' implementation of such C++ library may\n"
                              "      prevent this concept from working. See ALib manual for further information"  )
                     #else
-                        ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeDealloc,
+                        ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeDealloc, "MONOMEM/RTTRA",
                              "A different object for was requested for de-allocoation!" )
                     #endif
                     dbgWarnDifferentObjectTypeDealloc= false;
@@ -310,7 +316,7 @@ struct RTTRAllocator
 #else
     void RecycleChunk( void* mem, size_t size, size_t alignment ALIB_DBG(, const std::type_info& dbgTypeInfo) )
     {
-        // in non-monomem mode, chunks can not be split.
+        // in non-memory mode, chunks can not be split.
         if ( allocator == nullptr )
         {
             std::free( mem );
@@ -322,14 +328,14 @@ struct RTTRAllocator
         if( detectedObjectSize == 0)
         {
             #if ALIB_STRINGS
-                ALIB_ASSERT_WARNING( !dbgWarnRecycleChunkPriorToAllocation,  NString1K() <<
+                ALIB_ASSERT_WARNING( !dbgWarnRecycleChunkPriorToAllocation, "MONOMEM/RTTRA",  NString1K() <<
                   "De-allocation prior to a first object allocation needed to detect recyclable type!\n"
                   "  De-allocated object type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
                   "Note: If this recycler is used with a 'std' library container, this either\n"
                   "      indicates an 'unusual' implementation of such C++ standard library,\n"
                   "      or a manual shrink of the capacity without any prior object insertion."    )
             #else
-                ALIB_ASSERT_WARNING( !dbgWarnRecycleChunkPriorToAllocation,
+                ALIB_ASSERT_WARNING( !dbgWarnRecycleChunkPriorToAllocation, "MONOMEM/RTTRA",
                   "De-allocation prior to a first object allocation needed to detect recyclable type!" )
                 ALIB_DBG( (void) dbgTypeInfo );
             #endif
@@ -349,13 +355,15 @@ struct RTTRAllocator
         while(size > detectedObjectSize)
         {
             stack.pushFront( reinterpret_cast<Node*>( mem ) );
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             mem  =  reinterpret_cast<char*>(mem) + detectedObjectSize;
+            ALIB_WARNINGS_RESTORE
             size -= detectedObjectSize;
             ALIB_DBG( ++cntStackedObjects; )
         }
 
         #if ALIB_STRINGS
-            ALIB_ASSERT_WARNING( cntStackedObjects > 0, NString1K() <<
+            ALIB_ASSERT_WARNING( cntStackedObjects > 0, "MONOMEM/RTTRA", NString1K() <<
               "De-allocated chunk's size is smaller than detected object size.\n"
               "  Deallocated object: Type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
               "                      Size: "  << origSize     << " bytes, alignment: " << alignment << "\n"
@@ -364,12 +372,12 @@ struct RTTRAllocator
               "Note: If this recycler is used with a <std::unordered_map> or <std::unordered_set>,\n"
               "      this message may be eliminated by reserving a reasonable initial bucket size."  )
         #else
-            ALIB_ASSERT_WARNING( cntStackedObjects > 0,
+            ALIB_ASSERT_WARNING( cntStackedObjects > 0, "MONOMEM/RTTRA",
               "De-allocated chunk's size is smaller than detected object size." )
             ALIB_DBG( (void) origSize );
         #endif
 
-        MONOMEM_INFO( "Stacking {} objects from de-allocated memory of size {} (lost {} bytes). Deallocated type: {!Q<>}.",
+        DBG_MONOMEM_INFO( "Stacking {} objects from de-allocated memory of size {} (lost {} bytes). Deallocated type: {!Q<>}.",
                       cntStackedObjects,
                       origSize,
                       origSize - cntStackedObjects * detectedObjectSize,

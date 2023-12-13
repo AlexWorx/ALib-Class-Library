@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_PLUGINS
@@ -230,9 +230,7 @@ class ConfigurationPlugin
         {
             public:
 
-            /**
-             * Virtual destructor.
-             */
+            /** Virtual destructor. */
             virtual                ~Iterator()
             {}
 
@@ -375,7 +373,7 @@ class CLIArgs : public ConfigurationPlugin
         /** ****************************************************************************************
          * Virtual Destructor.
          ******************************************************************************************/
-        virtual ~CLIArgs() {}
+        virtual ~CLIArgs()                                                              override  {}
 
         /** ****************************************************************************************
          * Sets the command line argument list. Needs to be called once after construction.
@@ -411,7 +409,7 @@ class CLIArgs : public ConfigurationPlugin
          * @return The name of the plug-in.
          ******************************************************************************************/
         ALIB_API
-        virtual String      Name()                                                            const;
+        virtual String      Name()                                                   const override;
 
         /** ****************************************************************************************
          * Searches the variable in the command line parameters.
@@ -421,7 +419,7 @@ class CLIArgs : public ConfigurationPlugin
          * @return \c true if variable was found, \c false if not.
          ******************************************************************************************/
         ALIB_API
-        virtual bool        Load( Variable& variable, bool searchOnly= false );
+        virtual bool        Load( Variable& variable, bool searchOnly= false )             override;
 
         /** ****************************************************************************************
          * Creates an iterator object to return all variables within a section.
@@ -436,7 +434,7 @@ class CLIArgs : public ConfigurationPlugin
          * @returns The iterator requested.
          ******************************************************************************************/
         ALIB_API
-        virtual Iterator*   GetIterator( const String& sectionName );
+        virtual Iterator*   GetIterator( const String& sectionName )                       override;
 };
 
 /** ************************************************************************************************
@@ -466,14 +464,14 @@ class Environment : public ConfigurationPlugin
         /** ****************************************************************************************
          * Virtual Destructor.
          ******************************************************************************************/
-        virtual ~Environment() {}
+        virtual ~Environment()                                                           override {}
 
         /** ****************************************************************************************
          * Return the plug-in name, in this case, we read resource variable CfgPlgEnv.
          * @return The name of the plug-in.
          ******************************************************************************************/
         ALIB_API
-        virtual String  Name()                                                               const;
+        virtual String  Name()                                                       const override;
 
         /** ****************************************************************************************
          * Searches the variable in the environment.
@@ -482,7 +480,7 @@ class Environment : public ConfigurationPlugin
          * @param searchOnly   If \c true, the variable is not set. Defaults to \c false.
          * @return \c true if variable was found, \c false if not.
          ******************************************************************************************/
-        ALIB_API virtual bool  Load( Variable& variable, bool searchOnly= false  );
+        ALIB_API virtual bool  Load( Variable& variable, bool searchOnly= false  )         override;
 };
 
 

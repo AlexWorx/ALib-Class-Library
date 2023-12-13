@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_FORMATTER
@@ -274,7 +274,8 @@ class Formatter
         ALIB_API
         Formatter&          FormatArgs( AString& target )
         {
-            ALIB_IF_THREADS( ALIB_ASSERT_ERROR( CountAcquirements(), "Formatter not acquired." ) )
+            ALIB_IF_THREADS( ALIB_ASSERT_ERROR( CountAcquirements(),
+                                                "TEXT/FMT", "Formatter not acquired." ) )
             return formatLoop( target, boxes );
         }
 
@@ -289,7 +290,8 @@ class Formatter
          *******************************************************************************************/
         Formatter&          FormatArgs( AString& target, const Boxes& args )
         {
-            ALIB_IF_THREADS( ALIB_ASSERT_ERROR( CountAcquirements(), "Formatter not acquired." ) )
+            ALIB_IF_THREADS( ALIB_ASSERT_ERROR( CountAcquirements(),
+                                                "TEXT/FMT", "Formatter not acquired." ) )
             return formatLoop( target, args );
         }
 

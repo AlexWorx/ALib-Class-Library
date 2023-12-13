@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_TEXT
 
 #include "alib/alox.hpp"
 
@@ -73,8 +73,12 @@ void FFormat_Kelvin( const Box& box, const String& formatSpec, AString& target )
 //! [DOX_ALIB_SF_CUSTOM_IFORMAT_1]
 
 //! [DOX_ALIB_SF_CUSTOM_IFORMAT_2]
-void FFormat_Kelvin( const Box& box, const String& formatSpec, AString& target )
+void FFormat_Kelvin( const Box& box, const String& formatSpecGiven, AString& target )
 {
+    // set default format spec (in real code, this should be using a resourced default string)
+    String formatSpec=  formatSpecGiven.IsNotEmpty() ? formatSpecGiven
+                                                     : A_CHAR("C2");
+
     // get value from boxed object
     double value= box.Unbox<Kelvin>().value;
 
@@ -114,7 +118,7 @@ void FFormat_Kelvin( const Box& box, const String& formatSpec, AString& target )
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 UT_METHOD( ManUsing )
 {
@@ -126,8 +130,8 @@ UT_METHOD( ManUsing )
 //! [DOX_ALIB_SF_USING_1]
 AString target;
 
-FormatterJavaStyle()  .Format( target, "The result is %s!\\n",  6 * 7 );
-FormatterPythonStyle().Format( target, "The result is {}!\\n",  6 * 7 );
+FormatterJavaStyle()  .Format( target, "The result is %s!\n",  6 * 7 );
+FormatterPythonStyle().Format( target, "The result is {}!\n",  6 * 7 );
 
 cout << target;
 //! [DOX_ALIB_SF_USING_1]
@@ -146,8 +150,8 @@ FormatterJavaStyle formatter;
 formatter.Next.reset( new FormatterPythonStyle() );
 
 // both formats string syntax versions may be used now the first formatter.
-formatter.Format( target, "%s style\\n",  "Java"   );
-formatter.Format( target, "{} style\\n",  "Python" );
+formatter.Format( target, "%s style\n",  "Java"   );
+formatter.Format( target, "{} style\n",  "Python" );
 
 cout << target;
 //! [DOX_ALIB_SF_USING_2]
@@ -206,22 +210,22 @@ FormatterPythonStyle    formatter;
 
 Boxes& results= formatter.Acquire(ALIB_CALLER_PRUNED);
 
-results.Add( "The results are \n" );
+results.Add( "The results are\n" );
 
 // calculating speed
 //...
 //...
-results.Add( "   Speed: {} m/s\\n", 42 );
+results.Add( "   Speed: {} m/s\n", 42 );
 
 // calculating mass
 //...
 //...
-results.Add( "    Mass: {} kg\\n", 75.0 );
+results.Add( "    Mass: {} kg\n", 75.0 );
 
 // calculating energy
 //...
 //...
-results.Add( "  Energy: {} Joule\\n", 66150 );
+results.Add( "  Energy: {} Joule\n", 66150 );
 
 
 try
@@ -284,7 +288,7 @@ catch(Exception& e)
 Kelvin    temperature { 287.65 };
 AString   target;
 
-Formatter::GetDefault()->Format(target, "The temperature is {}\\n", temperature);
+Formatter::GetDefault()->Format(target, "The temperature is {}\n", temperature);
 
 cout << target;
 //! [DOX_ALIB_SF_CUSTOM_APPEND_1]
@@ -370,9 +374,9 @@ aworx::lib::boxing::BootstrapRegister<aworx::lib::text::FFormat,
 Kelvin    temperature { 287.65 };
 AString   target;
 
-Formatter::GetDefault()->Format(target, "The temperature is {:C2}\\n", temperature);
-Formatter::GetDefault()->Format(target, "The temperature is {:F0}\\n", temperature);
-Formatter::GetDefault()->Format(target, "The temperature is {:K5}\\n", temperature);
+Formatter::GetDefault()->Format(target, "The temperature is {:C2}\n", temperature);
+Formatter::GetDefault()->Format(target, "The temperature is {:F0}\n", temperature);
+Formatter::GetDefault()->Format(target, "The temperature is {:K5}\n", temperature);
 
 cout << target;
 //! [DOX_ALIB_SF_CUSTOM_IFORMAT_4]
@@ -391,4 +395,4 @@ cout << target;
 
 } //namespace
 
-#endif //  ALIB_UT_DOCS
+#endif //  ALIB_UT_DOCS && ALIB_TEXT

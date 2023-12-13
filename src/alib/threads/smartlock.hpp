@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_SMARTLOCK
@@ -86,13 +86,13 @@ class SmartLock : public ThreadLock
         #if ALIB_DEBUG
             void  Acquire( const NCString& dbgFile, int dbgLine, const NCString& dbgFunc )
             {
-                ALIB_ASSERT_ERROR( acquirers.size() > 0, "Must not be acquired without acquirers." )
+                ALIB_ASSERT_ERROR( acquirers.size() > 0, "THREADS", "Must not be acquired without acquirers." )
                 ThreadLock::Acquire(dbgFile, dbgLine, dbgFunc);
             }
         #else
             void  Acquire()
             {
-                ALIB_ASSERT_ERROR( acquirers.size() > 0, "Must not be acquired without acquirers." )
+                ALIB_ASSERT_ERROR( acquirers.size() > 0, "THREADS", "Must not be acquired without acquirers." )
                 ThreadLock::Acquire();
             }
         #endif

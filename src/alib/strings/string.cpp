@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,7 +15,7 @@
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
 
-#if ALIB_DEBUG && defined( _WIN32 ) && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
+#if ALIB_DEBUG && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
 #   include "alib/strings/localstring.hpp"
 #endif
 #endif // !defined(ALIB_DOX)
@@ -25,7 +25,7 @@ using namespace aworx::lib::characters;
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
- * This is the reference documentation of sub-namespace \b strings of the \aliblink which
+ * This is the reference documentation of sub-namespace \c strings of the \aliblink, which
  * holds types of library module \alib_strings_nl.
  *
  * Extensive documentation for this module is provided with
@@ -52,18 +52,20 @@ void TString<TChar>::dbgCheck() const
     if ( !astringCheckReported )
     {
         astringCheckReported= true;
-        ALIB_MESSAGE( "ALIB_DEBUG_STRINGS is enabled")
+        ALIB_MESSAGE( "STRINGS", "ALIB_DEBUG_STRINGS is enabled")
     }
 
-    ALIB_ASSERT_ERROR( length == 0 ||  buffer != nullptr,
-                       "Nulled string has a length of ", length )
+    ALIB_ASSERT_ERROR( length == 0 ||  buffer != nullptr, "STRINGS",
+                       "Nulled string has a length of ", int(length) )
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     for (integer i= length -1 ; i >= 0 ; --i)
         if ( buffer[i] == '\0' )
         {
-            ALIB_ERROR( "Found termination character '\\0' in buffer. Index=", i )
+            ALIB_ERROR( "STRINGS", "Found termination character '\\0' in buffer. Index=", int(i) )
             break;
         }
+    ALIB_WARNINGS_RESTORE
 }
 
 #endif
@@ -79,6 +81,7 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer s
     integer nLen=   needle.Length();
     if( nLen == 0 )
         return startIdx;
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar*  buf=    buffer + startIdx;
     const TChar*  bufEnd= buffer + length - nLen + 1;
     const TChar* nBuf=    needle.Buffer();
@@ -94,6 +97,7 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer s
         ++buf;
     }
     return -1;
+    ALIB_WARNINGS_RESTORE
 }
 
 template<typename TChar>
@@ -102,11 +106,13 @@ integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer 
     int openCnt= 1;
     while( idx < length )
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( buffer[idx] == opener )   ++openCnt;
         if( buffer[idx] == closer )
             if( --openCnt == 0 )
                 break;
         ++idx;
+        ALIB_WARNINGS_RESTORE
     }
 
     return openCnt == 0 ? idx : -openCnt;
@@ -260,26 +266,10 @@ integer  TString<nchar>::WStringLength()  const
 
     const nchar* cs= buffer;
 
-    //--------- __GLIBCXX__ Version ---------
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
-
-        size_t conversionSize=  mbsnrtowcs( nullptr, &cs, static_cast<size_t>(length), 0, nullptr );
-        if ( conversionSize ==  static_cast<size_t>(-1) )
-        {
-            ALIB_WARNING( "MBCS to WCS conversion failed. Illegal MBC sequence" )
-            return -1;
-        }
-
-        ALIB_ASSERT_ERROR( conversionSize <= static_cast<size_t>( length ),
-                           "MBCS to WCS conversion failed. Conversion length=",
-                           static_cast<integer>(conversionSize) )
-
-        return static_cast<integer>(conversionSize);
-
     //--------- Windows Version ----------
-    #elif defined( _WIN32 )
+    #if defined( _WIN32 )
 
-        int conversionSize= MultiByteToWideChar( CP_UTF8, NULL, cs, static_cast<int>( length ), nullptr, 0 );
+        int conversionSize= MultiByteToWideChar( CP_UTF8, 0, cs, static_cast<int>( length ), nullptr, 0 );
 
         // check for errors
         #if ALIB_DEBUG
@@ -297,22 +287,38 @@ integer  TString<nchar>::WStringLength()  const
                 msg._(')');
 
                 ALIB_WARNING( msg )
-                return -1;
+                return length;
             }
 
             if( conversionSize > length )
             {
-                ALIB_ERROR( "MBCS to WCS conversion failed. Conversion length=", conversionSize );
-                return -1;
+                ALIB_ERROR( "STRINGS", "MBCS to WCS conversion failed. Conversion length=", conversionSize );
+                return length;
             }
         #endif
 
         return conversionSize;
 
+    //--------- __GLIBCXX__ Version ---------
+    #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
+
+        size_t conversionSize=  mbsnrtowcs( nullptr, &cs, static_cast<size_t>(length), 0, nullptr );
+        if ( conversionSize ==  static_cast<size_t>(-1) )
+        {
+            ALIB_WARNING( "STRINGS", "MBCS to WCS conversion failed. Illegal MBC sequence. Probably UTF-8 is not set in locale" )
+            return length;
+        }
+
+        ALIB_ASSERT_ERROR( conversionSize <= static_cast<size_t>( length ), "STRINGS",
+                           NString128( "MBCS to WCS conversion failed. Conversion length=")
+                           << conversionSize )
+
+        return static_cast<integer>(conversionSize);
+
     #else
 
         #pragma message ("Unknown Platform in file: " __FILE__ )
-        return 0;
+        return length;
 
     #endif
 }
@@ -352,6 +358,7 @@ integer  TString<xchar>::WStringLength()  const
     if ( length == 0 )
         return 0;
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const xchar* src=       buffer;
     const xchar* srcEnd=    buffer + length;
     integer result= 0;
@@ -365,13 +372,15 @@ integer  TString<xchar>::WStringLength()  const
             ++result;
         else
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             ALIB_ASSERT_ERROR(    src < srcEnd                                                   // has one more?
                                && ((uc                               & 0xfffffc00) == 0xd800)    // is low?
                                && ((static_cast<char32_t>( *src++ )  & 0xfffffc00) == 0xdc00),   // is high?
-                               "Error decoding UTF16" )
+                               "STRINGS", "Error decoding UTF16" )
 
             ++result;
             ++src;
+            ALIB_WARNINGS_RESTORE
         }
     }
 
@@ -382,7 +391,7 @@ integer  TString<xchar>::WStringLength()  const
     {
         uinteger uc= *src++;
         ALIB_ASSERT_ERROR(       uc <  0xd800
-                            || ( uc >= 0xe000 && uc <= 0x10ffff ),
+                            || ( uc >= 0xe000 && uc <= 0x10ffff ), "STRINGS",
                             "Illegal unicode 32 bit codepoint"       )
 
         if( uc < 0x10000 )

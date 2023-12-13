@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,6 +19,8 @@
 #define ARG1           (*(args+1))
 #define BOL(box)       (box).Unbox<bool     >()
 #define INT(box)       (box).Unbox<integer>()
+#define ITF(box)       static_cast<double>((box).Unbox<integer>() )
+#define BTF(box)       static_cast<double>((box).Unbox<bool   >() )
 #define FLT(box)       (box).Unbox<double   >()
 #define FUNC( name,...) Box name( Scope& scope,                                                 \
                                   ArgIterator  args,                                            \
@@ -98,15 +100,15 @@ FUNC(     mul_BI, return  BOL(ARG0)  *   INT(ARG1) ; )
 FUNC(     mul_BF, return  BOL(ARG0)  *   FLT(ARG1) ; )
 FUNC(     mul_IB, return  INT(ARG0)  *   BOL(ARG1) ; )
 FUNC(     mul_II, return  INT(ARG0)  *   INT(ARG1) ; )
-FUNC(     mul_IF, return  INT(ARG0)  *   FLT(ARG1) ; )
-FUNC(     mul_FB, return  FLT(ARG0)  *   BOL(ARG1) ; )
-FUNC(     mul_FI, return  FLT(ARG0)  *   INT(ARG1) ; )
+FUNC(     mul_IF, return  ITF(ARG0)  *   FLT(ARG1) ; )
+FUNC(     mul_FB, return  FLT(ARG0)  *   BTF(ARG1) ; )
+FUNC(     mul_FI, return  FLT(ARG0)  *   ITF(ARG1) ; )
 FUNC(     mul_FF, return  FLT(ARG0)  *   FLT(ARG1) ; )
 FUNC(     div_BI, return  BOL(ARG0)  /   INT(ARG1) ; )
 FUNC(     div_BF, return  BOL(ARG0)  /   FLT(ARG1) ; )
 FUNC(     div_II, return  INT(ARG0)  /   INT(ARG1) ; )
-FUNC(     div_IF, return  INT(ARG0)  /   FLT(ARG1) ; )
-FUNC(     div_FI, return  FLT(ARG0)  /   INT(ARG1) ; )
+FUNC(     div_IF, return  ITF(ARG0)  /   FLT(ARG1) ; )
+FUNC(     div_FI, return  FLT(ARG0)  /   ITF(ARG1) ; )
 FUNC(     div_FF, return  FLT(ARG0)  /   FLT(ARG1) ; )
 FUNC(     mod_BI, return  BOL(ARG0)  %   INT(ARG1) ; )
 FUNC(     mod_II, return  INT(ARG0)  %   INT(ARG1) ; )
@@ -120,18 +122,18 @@ FUNC(     add_BI, return  BOL(ARG0)  +   INT(ARG1) ; )
 FUNC(     add_BF, return  BOL(ARG0)  +   FLT(ARG1) ; )
 FUNC(     add_IB, return  INT(ARG0)  +   BOL(ARG1) ; )
 FUNC(     add_II, return  INT(ARG0)  +   INT(ARG1) ; )
-FUNC(     add_IF, return  INT(ARG0)  +   FLT(ARG1) ; )
+FUNC(     add_IF, return  ITF(ARG0)  +   FLT(ARG1) ; )
 FUNC(     add_FB, return  FLT(ARG0)  +   BOL(ARG1) ; )
-FUNC(     add_FI, return  FLT(ARG0)  +   INT(ARG1) ; )
+FUNC(     add_FI, return  FLT(ARG0)  +   ITF(ARG1) ; )
 FUNC(     add_FF, return  FLT(ARG0)  +   FLT(ARG1) ; )
 FUNC(     sub_BB, return  BOL(ARG0)  -   BOL(ARG1) ; )
 FUNC(     sub_BI, return  BOL(ARG0)  -   INT(ARG1) ; )
 FUNC(     sub_BF, return  BOL(ARG0)  -   FLT(ARG1) ; )
 FUNC(     sub_IB, return  INT(ARG0)  -   BOL(ARG1) ; )
 FUNC(     sub_II, return  INT(ARG0)  -   INT(ARG1) ; )
-FUNC(     sub_IF, return  INT(ARG0)  -   FLT(ARG1) ; )
+FUNC(     sub_IF, return  ITF(ARG0)  -   FLT(ARG1) ; )
 FUNC(     sub_FB, return  FLT(ARG0)  -   BOL(ARG1) ; )
-FUNC(     sub_FI, return  FLT(ARG0)  -   INT(ARG1) ; )
+FUNC(     sub_FI, return  FLT(ARG0)  -   ITF(ARG1) ; )
 FUNC(     sub_FF, return  FLT(ARG0)  -   FLT(ARG1) ; )
 
 FUNC(    shfL_BI, return  TOINT( BOL(ARG0)  <<  INT(ARG1) ); )
@@ -183,9 +185,9 @@ FUNC(      eq_BI, return             BOL(ARG0)  ==  INT(ARG1) ; )
 FUNC(      eq_BF, return  std::fabs( BOL(ARG0)  -   FLT(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
 FUNC(      eq_IB, return             INT(ARG0)  ==  BOL(ARG1) ; )
 FUNC(      eq_II, return             INT(ARG0)  ==  INT(ARG1) ; )
-FUNC(      eq_IF, return  std::fabs( INT(ARG0)  -   FLT(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
+FUNC(      eq_IF, return  std::fabs( ITF(ARG0)  -   FLT(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
 FUNC(      eq_FB, return  std::fabs( FLT(ARG0)  -   BOL(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
-FUNC(      eq_FI, return  std::fabs( FLT(ARG0)  -   INT(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
+FUNC(      eq_FI, return  std::fabs( FLT(ARG0)  -   ITF(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
 FUNC(      eq_FF, return  std::fabs( FLT(ARG0)  -   FLT(ARG1) ) <= std::numeric_limits<double>::epsilon(); )
 
 
@@ -197,7 +199,7 @@ FUNC(     neq_IB, return             INT(ARG0)  !=  BOL(ARG1) ; )
 FUNC(     neq_II, return             INT(ARG0)  !=  INT(ARG1) ; )
 FUNC(     neq_IF, return  std::fabs( INT(ARG0)  -   INT(ARG1) ) >  std::numeric_limits<double>::epsilon(); )
 FUNC(     neq_FB, return  std::fabs( FLT(ARG0)  -   BOL(ARG1) ) >  std::numeric_limits<double>::epsilon(); )
-FUNC(     neq_FI, return  std::fabs( FLT(ARG0)  -   INT(ARG1) ) >  std::numeric_limits<double>::epsilon(); )
+FUNC(     neq_FI, return  std::fabs( FLT(ARG0)  -   ITF(ARG1) ) >  std::numeric_limits<double>::epsilon(); )
 FUNC(     neq_FF, return  std::fabs( FLT(ARG0)  -   FLT(ARG1) ) >  std::numeric_limits<double>::epsilon(); )
 
 
@@ -437,6 +439,7 @@ Arithmetics::Arithmetics( Compiler& compiler )
     Token functionNames[tableSize];
     Token::LoadResourcedTokens( EXPRESSIONS, "CPA", functionNames
                                 ALIB_DBG(,tableSize)                                        );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
     ConstantIdentifiers=
     {
@@ -447,7 +450,6 @@ Arithmetics::Arithmetics( Compiler& compiler )
         { *descriptor++, constTrue    },
         { *descriptor++, constFalse   },
     };
-
 
     Functions=
     {
@@ -460,7 +462,6 @@ Arithmetics::Arithmetics( Compiler& compiler )
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::F  ), CALCULUS_CALLBACK(toFloat_F), &Types::Float   , CTI },
     };
 
-
     AddOperators( OperatorTable );
 
     if( HasBits(compiler.CfgCompilation, Compilation::AllowBitwiseBooleanOperators ) )
@@ -471,9 +472,10 @@ Arithmetics::Arithmetics( Compiler& compiler )
 
     AddBinaryOpOptimizations( binaryOperatorOptimizations);
 
-    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
+    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize)
+    ALIB_WARNINGS_RESTORE
 }
 
 bool Arithmetics::TryCompilation( CIFunction& ciFunction )

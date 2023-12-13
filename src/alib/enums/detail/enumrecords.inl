@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_DETAIL_ENUMRECORDS
@@ -12,8 +12,8 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-#if !defined(HPP_ALIB_FS_INTEGERS_INTEGERS)
-#   include "alib/lib/fs_integers/integers.hpp"
+#if !defined(HPP_ALIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
 #endif
 
 

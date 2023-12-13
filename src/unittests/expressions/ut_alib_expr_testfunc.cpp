@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_EXPRESSIONS ||  ALIB_UT_DOCS
+#if ALIB_UT_EXPRESSIONS &&  ALIB_UT_DOCS
 
 #include "alib/alox.hpp"
 #if ALIB_ALOX
@@ -46,7 +46,6 @@
 using namespace std;
 using namespace aworx;
 using namespace aworx::lib;
-using namespace aworx::lib::expressions;
 #include "unittests/expressions/ut_alib_expr_testfunc.hpp"
 
 ALIB_WARNINGS_MACRO_NOT_USED_OFF
@@ -94,8 +93,8 @@ void    testNormalizaton( const NCString& file, int line, const NCString& func,
     {
         ALIB_ASSERT( !expression )
         ut.Print (file, line, aworx::Verbosity::Info,
-                  "------ Exception thrown when testing normalization -------\\n"
-                  "      Expression:  {{{}}}\\n"
+                  "------ Exception thrown when testing normalization -------\n"
+                  "      Expression:  {{{}}}\n"
                   "Exception:",
                   expressionString      );
             log_exception( ut, e  );
@@ -105,9 +104,9 @@ void    testNormalizaton( const NCString& file, int line, const NCString& func,
     if( !expression->GetNormalizedString().Equals( expected ) )
     {
         ut.Print (file, line, aworx::Verbosity::Info,
-                  "------ Error in  normalization -------\\n"
-                  "   Expression:  {{{}}}\\n"
-                  "   Normalized:  {{{}}}\\n"
+                  "------ Error in  normalization -------\n"
+                  "   Expression:  {{{}}}\n"
+                  "   Normalized:  {{{}}}\n"
                   "     Expected:  {{{}}}",
                   expressionString,
                   expression->GetNormalizedString(),
@@ -153,8 +152,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
             ut.Print (file, line, aworx::Verbosity::Info,
-                  "Expression compilation threw exception as expected:\\n"
-                  "      Expression:  {{{}}}\\n"
+                  "Expression compilation threw exception as expected:\n"
+                  "      Expression:  {{{}}}\n"
                   "Exception:",
                   expressionString      );
             log_exception( ut, e  );
@@ -164,9 +163,9 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( expected.IsSameType(e.Type().CastToBox()) )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                  "--------- Error --------\\n"
-                  "Expression compilation threw a different exception than expected:\\n"
-                  "         Expression:  {{{}}}\\n"
+                  "--------- Error --------\n"
+                  "Expression compilation threw a different exception than expected:\n"
+                  "         Expression:  {{{}}}\n"
                   " Expected exception:  {}"     ,
                   expressionString               ,
                   expected.Unbox<expressions::Exceptions>()        );
@@ -176,8 +175,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
 
         ut.Print (file, line, aworx::Verbosity::Info,
-                  "--------- Error --------\\n"
-                  "Expression compilation threw UNEXPECTED exception:\\n"
+                  "--------- Error --------\n"
+                  "Expression compilation threw UNEXPECTED exception:\n"
                   " Expression:  {{{}}}",
                   expressionString        );
         Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
@@ -200,8 +199,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( expected == e.Type().CastToBox() )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                  "Expression threw exception as expected:\\n"
-                  " Expression:  {{{}}}\\n"
+                  "Expression threw exception as expected:\n"
+                  " Expression:  {{{}}}\n"
                   "  Normalized: {{{}}}",
                   expressionString,
                   expression->GetNormalizedString()             );
@@ -213,10 +212,10 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( expected.IsSameType(e.Type().CastToBox()) )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                  "--------- Error --------\\n"
-                  "Expression threw different exception than expected:\\n"
-                  "         Expression:  {{{}}}\\n"
-                  "          Normalized: {{{}}}\\n"
+                  "--------- Error --------\n"
+                  "Expression threw different exception than expected:\n"
+                  "         Expression:  {{{}}}\n"
+                  "          Normalized: {{{}}}\n"
                   "  Expected exception: {}",
                   expressionString,
                   expression->GetNormalizedString(),
@@ -227,9 +226,9 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
 
         ut.Print (file, line, aworx::Verbosity::Info,
-                  "--------- Error --------\\n"
-                  "Expression threw UNEXPECTED exception:\\n"
-                  " Expression:  {{{}}}\\n"
+                  "--------- Error --------\n"
+                  "Expression threw UNEXPECTED exception:\n"
+                  " Expression:  {{{}}}\n"
                   "  Normalized: {{{}}}"  ,
                   expressionString,
                   expression->GetNormalizedString()             );
@@ -246,11 +245,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( !expected.IsSameType(result) )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Error in expression result type:\\n"
-                      "             Expression: {{{}}}\\n"
-                      "             Normalized: {{{}}}\\n"
-                      "   Expected result type: {!Q<>} (value: {})\\n"
+                      "--------- Error --------\n"
+                      "Error in expression result type:\n"
+                      "             Expression: {{{}}}\n"
+                      "             Normalized: {{{}}}\n"
+                      "   Expected result type: {!Q<>} (value: {})\n"
                       "            Result type: {!Q<>}  (value: {})",
                       expressionString,
                       expression->GetNormalizedString(),
@@ -265,11 +264,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( expected != result )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Error in expression result value:\\n"
-                      "          Expression: {{{}}}\\n"
-                      "          Normalized: {{{}}}\\n"
-                      "     Expected result: {}\\n"
+                      "--------- Error --------\n"
+                      "Error in expression result value:\n"
+                      "          Expression: {{{}}}\n"
+                      "          Normalized: {{{}}}\n"
+                      "     Expected result: {}\n"
                       "              Result: {}"         ,
                       expressionString,
                       expression->GetNormalizedString(),
@@ -295,9 +294,9 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             ALIB_ASSERT( !recompiled )
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Recompiling normalized (!!!) threw exception:\\n"
-                      "              Original: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Recompiling normalized (!!!) threw exception:\n"
+                      "              Original: {{{}}}\n"
                       "  Failed normalization: {{{}}}",
                       expressionString,
                       expression->GetNormalizedString()          );
@@ -316,11 +315,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Recompiled (!!!) Expression threw exception:\\n"
-                      "   Expression: {{{}}}\\n"
-                      "   Normalized: {{{}}}\\n"
-                      "    Optimized: {{{}}}\\n"   ,
+                      "--------- Error --------\n"
+                      "Recompiled (!!!) Expression threw exception:\n"
+                      "   Expression: {{{}}}\n"
+                      "   Normalized: {{{}}}\n"
+                      "    Optimized: {{{}}}\n"   ,
                       expressionString,
                       expression->GetNormalizedString(),
                       recompiled->GetNormalizedString()             );
@@ -336,12 +335,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( !expected.IsSameType(result2) )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result type of recompiled normalized expression:\\n"
-                          "            Expression: {{{}}}\\n"
-                          "            Normalized: {{{}}}\\n"
-                          "             Optimized: {{{}}}\\n"
-                          "  Expected result type: {}\\n"
+                          "--------- Error --------\n"
+                          "Error in result type of recompiled normalized expression:\n"
+                          "            Expression: {{{}}}\n"
+                          "            Normalized: {{{}}}\n"
+                          "             Optimized: {{{}}}\n"
+                          "  Expected result type: {}\n"
                           "           Result type: {}"       ,
                           expressionString,
                           expression->GetNormalizedString(),
@@ -357,13 +356,13 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( expected != result2 )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result value of recompiled normalized expression:\\n"
-                          "       Expression: {{{}}}\\n"
-                          "       Normalized: {{{}}}\\n"
-                          "        Optimized: {{{}}}\\n"
-                          "  Expected result: {}\\n"
-                          "           Result: {}\\n"       ,
+                          "--------- Error --------\n"
+                          "Error in result value of recompiled normalized expression:\n"
+                          "       Expression: {{{}}}\n"
+                          "       Normalized: {{{}}}\n"
+                          "        Optimized: {{{}}}\n"
+                          "  Expected result: {}\n"
+                          "           Result: {}\n"       ,
                           expressionString,
                           expression->GetNormalizedString(),
                           recompiled->GetNormalizedString(),
@@ -382,8 +381,8 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             auto cfgComp= compiler.CfgCompilation;
             auto cfgNorm= compiler.CfgNormalization;
-            compiler.CfgCompilation   =    Compilation::DEFAULT;
-            compiler.CfgNormalization = Normalization::DEFAULT;
+            compiler.CfgCompilation   = expressions::Compilation::DEFAULT;
+            compiler.CfgNormalization = expressions::Normalization::DEFAULT;
 
                 optimized= compiler.Compile( expression->GetOptimizedString() );
 
@@ -395,10 +394,10 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             ALIB_ASSERT( !optimized )
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Recompiling OPTIMIZED normalized (!!!) threw exception:\\n"
-                      "                   Original: {{{}}}\\n"
-                      "                 Normalized: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Recompiling OPTIMIZED normalized (!!!) threw exception:\n"
+                      "                   Original: {{{}}}\n"
+                      "                 Normalized: {{{}}}\n"
                       " Normalization of optimized: {{{}}}",
                       expressionString,
                       expression->GetNormalizedString(),
@@ -416,11 +415,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Recompiled (!!!) Expression threw exception:\\n"
-                      "  Expression: {{{}}}\\n"
-                      "  Normalized: {{{}}}\\n"
-                      "   Optimized: {{{}}}\\n"   ,
+                      "--------- Error --------\n"
+                      "Recompiled (!!!) Expression threw exception:\n"
+                      "  Expression: {{{}}}\n"
+                      "  Normalized: {{{}}}\n"
+                      "   Optimized: {{{}}}\n"   ,
                       expressionString,
                       expression->GetNormalizedString(),
                       optimized->GetNormalizedString()             );
@@ -435,12 +434,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( !expected.IsSameType(result2) )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result type of recompiled normalized expression:\\n"
-                          "           Expression: {{{}}}\\n"
-                          "           Normalized: {{{}}}\\n"
-                          "            Optimized: {{{}}}\\n"
-                          " Expected result type: {}\\n"
+                          "--------- Error --------\n"
+                          "Error in result type of recompiled normalized expression:\n"
+                          "           Expression: {{{}}}\n"
+                          "           Normalized: {{{}}}\n"
+                          "            Optimized: {{{}}}\n"
+                          " Expected result type: {}\n"
                           "          Result type: {}"       ,
                           expressionString,
                           expression->GetNormalizedString(),
@@ -456,13 +455,13 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( expected != result2 )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result value of recompiled normalized expression:\\n"
-                          "       Expression: {{{}}}\\n"
-                          "       Normalized: {{{}}}\\n"
-                          "        Optimized: {{{}}}\\n"
-                          "  Expected result: {}\\n"
-                          "           Result: {}\\n"       ,
+                          "--------- Error --------\n"
+                          "Error in result value of recompiled normalized expression:\n"
+                          "       Expression: {{{}}}\n"
+                          "       Normalized: {{{}}}\n"
+                          "        Optimized: {{{}}}\n"
+                          "  Expected result: {}\n"
+                          "           Result: {}\n"       ,
                           expressionString,
                           expression->GetNormalizedString(),
                           optimized->GetNormalizedString(),
@@ -478,12 +477,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( programLength > 0 && programLength != optimizedPLen )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Error in expression PROGRAM LENGTH of recompiling optimized expression:\\n"
-                      "       Expression: {{{}}}\\n"
-                      "       Normalized: {{{}}}\\n"
-                      "        Optimized: {{{}}}\\n"
-                      "  Expected length: {}\\n"
+                      "--------- Error --------\n"
+                      "Error in expression PROGRAM LENGTH of recompiling optimized expression:\n"
+                      "       Expression: {{{}}}\n"
+                      "       Normalized: {{{}}}\n"
+                      "        Optimized: {{{}}}\n"
+                      "  Expected length: {}\n"
                       "           length: {}"         ,
                       expressionString,
                       expression->GetNormalizedString(),
@@ -506,11 +505,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     if( programLength > 0 && programLength != optimizedPLen )
     {
         ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                  "Error in expression PROGRAM LENGTH:\\n"
-                  "      Expression: {{{}}}\\n"
-                  "      Normalized: {{{}}}\\n"
-                  " Expected length: {}\\n"
+                      "--------- Error --------\n"
+                  "Error in expression PROGRAM LENGTH:\n"
+                  "      Expression: {{{}}}\n"
+                  "      Normalized: {{{}}}\n"
+                  " Expected length: {}\n"
                   "          length: {}"         ,
                   expressionString,
                   expression->GetNormalizedString(),
@@ -530,7 +529,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     integer nonOptimizedLen= 0;
     {
         // compile normalized without optimization
-        compiler.CfgCompilation+= Compilation::NoOptimization;
+        compiler.CfgCompilation+= expressions::Compilation::NoOptimization;
         SPExpression expressionCompiledWitoutOptimizations;
         try
         {
@@ -538,12 +537,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            compiler.CfgCompilation-= Compilation::NoOptimization;
+            compiler.CfgCompilation-= expressions::Compilation::NoOptimization;
             ALIB_ASSERT( !expressionCompiledWitoutOptimizations )
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Compiling with \"NoOptimization\" threw exception:\\n"
-                      "           Original: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Compiling with \"NoOptimization\" threw exception:\n"
+                      "           Original: {{{}}}\n"
                       "  Normalized (used): {{{}}}",
                       expressionString,
                       expression->GetNormalizedString()          );
@@ -551,7 +550,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             log_exception( ut, e  );
             assert(!ut.AssertOnFailure);
         }
-        compiler.CfgCompilation-= Compilation::NoOptimization;
+        compiler.CfgCompilation-= expressions::Compilation::NoOptimization;
         nonOptimizedLen= expressionCompiledWitoutOptimizations->GetProgram()->Length();
 
 
@@ -563,11 +562,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Evaluation of expression compiled with \"NoOptimization\"  threw exception:\\n"
-                      "                    Original: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Evaluation of expression compiled with \"NoOptimization\"  threw exception:\n"
+                      "                    Original: {{{}}}\n"
                       "           Normalized (used): {{{}}}",
-                      "    Non-Optimized Normalized: {{{}}}\\n"   ,
+                      "    Non-Optimized Normalized: {{{}}}\n"   ,
                       expressionString,
                       expression->GetNormalizedString(),
                       expressionCompiledWitoutOptimizations->GetNormalizedString()             );
@@ -582,12 +581,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( !expected.IsSameType(result2) )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result type of expression compiled with \"NoOptimization\":\\n"
-                          "                            Expression: {{{}}}\\n"
-                          "                            Normalized: {{{}}}\\n"
-                          "  Non-Optimized Normalized (evaluated): {{{}}}\\n"
-                          "                  Expected result type: {}\\n"
+                          "--------- Error --------\n"
+                          "Error in result type of expression compiled with \"NoOptimization\":\n"
+                          "                            Expression: {{{}}}\n"
+                          "                            Normalized: {{{}}}\n"
+                          "  Non-Optimized Normalized (evaluated): {{{}}}\n"
+                          "                  Expected result type: {}\n"
                           "                           Result type: {}"       ,
                           expressionString,
                           expression->GetNormalizedString(),
@@ -603,13 +602,13 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( expected != result2 )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result value of expression compiled with \"NoOptimization\":\\n"
-                          "                            Expression: {{{}}}\\n"
-                          "                            Normalized: {{{}}}\\n"
-                          "  Non-Optimized Normalized (evaluated): {{{}}}\\n"
-                          "             Expected result: {}\\n"
-                          "                      Result: {}\\n"       ,
+                          "--------- Error --------\n"
+                          "Error in result value of expression compiled with \"NoOptimization\":\n"
+                          "                            Expression: {{{}}}\n"
+                          "                            Normalized: {{{}}}\n"
+                          "  Non-Optimized Normalized (evaluated): {{{}}}\n"
+                          "             Expected result: {}\n"
+                          "                      Result: {}\n"       ,
                           expressionString,
                           expression->GetNormalizedString(),
                           expressionCompiledWitoutOptimizations->GetNormalizedString(),
@@ -631,12 +630,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            compiler.CfgCompilation-= Compilation::NoOptimization;
+            compiler.CfgCompilation-= expressions::Compilation::NoOptimization;
             ALIB_ASSERT( !expressionCompiledWitoutOptimizationsDecompiled )
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Compiling \"decompiled-non-optimized\" (!) threw exception:\\n"
-                      "                        Original: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Compiling \"decompiled-non-optimized\" (!) threw exception:\n"
+                      "                        Original: {{{}}}\n"
                       "                      Normalized: {{{}}}",
                       " Non-Optimized Decompiled (used): {{{}}}",
                       expressionString,
@@ -653,11 +652,11 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ut.Print (file, line, aworx::Verbosity::Info,
-                      "--------- Error --------\\n"
-                      "Evaluation of \"decompiled-non-optimized\" (!) threw exception:\\n"
-                      "                               Original: {{{}}}\\n"
+                      "--------- Error --------\n"
+                      "Evaluation of \"decompiled-non-optimized\" (!) threw exception:\n"
+                      "                               Original: {{{}}}\n"
                       "                  Normalized (original): {{{}}}",
-                      "   Non-Optimized Decompiled (evaluated): {{{}}}\\n"   ,
+                      "   Non-Optimized Decompiled (evaluated): {{{}}}\n"   ,
                       expressionString,
                       expression->GetNormalizedString(),
                       expressionCompiledWitoutOptimizationsDecompiled->GetNormalizedString()             );
@@ -672,12 +671,12 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( !expected.IsSameType(result2) )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result type of \"decompiled-non-optimized\" (!):\\n"
-                          "                               Original: {{{}}}\\n"
+                          "--------- Error --------\n"
+                          "Error in result type of \"decompiled-non-optimized\" (!):\n"
+                          "                               Original: {{{}}}\n"
                           "                  Normalized (original): {{{}}}",
-                          "   Non-Optimized Decompiled (evaluated): {{{}}}\\n"   ,
-                          "                   Expected result type: {}\\n"
+                          "   Non-Optimized Decompiled (evaluated): {{{}}}\n"   ,
+                          "                   Expected result type: {}\n"
                           "                            Result type: {}"       ,
                           expressionString,
                           expression->GetNormalizedString(),
@@ -693,13 +692,13 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             if( expected != result2 )
             {
                 ut.Print (file, line, aworx::Verbosity::Info,
-                          "--------- Error --------\\n"
-                          "Error in result type of \"decompiled-non-optimized\" (!):\\n"
-                          "                            Expression: {{{}}}\\n"
-                          "                            Normalized: {{{}}}\\n"
-                          "  Non-Optimized Decompiled (evaluated): {{{}}}\\n"
-                          "                       Expected result: {}\\n"
-                          "                                Result: {}\\n"       ,
+                          "--------- Error --------\n"
+                          "Error in result type of \"decompiled-non-optimized\" (!):\n"
+                          "                            Expression: {{{}}}\n"
+                          "                            Normalized: {{{}}}\n"
+                          "  Non-Optimized Decompiled (evaluated): {{{}}}\n"
+                          "                       Expected result: {}\n"
+                          "                                Result: {}\n"       ,
                           expressionString,
                           expression->GetNormalizedString(),
                           expressionCompiledWitoutOptimizationsDecompiled->GetNormalizedString(),
@@ -714,9 +713,9 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
 
     //---------------- print success -------------------
     ut.Print (file, line, aworx::Verbosity::Info,
-              "Expression: {}\\n"
-              "      Norm: {}\\n"
-              "       Opt: {}\\n"
+              "Expression: {}\n"
+              "      Norm: {}\n"
+              "       Opt: {}\n"
               "    result: {}"
               "       {!ATab} {:03}/{:03} ET: {:03}/{:03} Len: {:2>}/{:2>} #Opt: {}"  ,
               expressionString,
@@ -767,7 +766,7 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     catch( Exception& e )
     {
         ut.Print (file, line, aworx::Verbosity::Info,
-                  "Cant print program. Exception compiling expression:\\n"
+                  "Cant print program. Exception compiling expression:\n"
                   " Expression:  {{{}}}",
                   expressionString        );
         Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
@@ -794,6 +793,7 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
 }
 #endif
 
+#include "unittests/aworx_unittests_end.hpp"
 
 } //namespace
 

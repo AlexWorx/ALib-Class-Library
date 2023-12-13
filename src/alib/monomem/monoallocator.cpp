@@ -1,16 +1,22 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
+#   include "alib/lib/tools.hpp"
 #   if !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #      include "alib/monomem/monoallocator.hpp"
 #   endif
-
+#   if !defined(HPP_ALIB_MONOMEM_MONOMEM)
+#      include "alib/monomem/monomem.hpp"
+#   endif
+#   if ALIB_ALOX && !defined (HPP_ALOX_LOGTOOLS)
+#       include "alib/alox/logtools.hpp"
+#   endif
 #   if ALIB_STRINGS && ALIB_DEBUG_MONOMEM && !defined(HPP_ALIB_STRINGS_ASTRING)
 #      include "alib/strings/astring.hpp"
 #   endif
@@ -33,7 +39,7 @@ namespace aworx { namespace lib {
  * This \alibmod implements the concept of <em>"monotonic allocation"</em> by providing central class
  * \alib{monomem,MonoAllocator} and a few corresponding container and utility types.
  *
- * Please consult \ref alib_mod_monomem "ALib Module Monomem - Programmer's Manual"
+ * Please consult \ref alib_mod_monomem "ALib Module Memory - Programmer's Manual"
  * for further information.
  **************************************************************************************************/
 namespace monomem {
@@ -46,9 +52,6 @@ namespace monomem {
 ALIB_IF_THREADS( ThreadLock      GlobalAllocatorLock;              )
 
 
-MonoAllocator::Chunk   MonoAllocator::dummyChunk= MonoAllocator::Chunk(TInitializeDefaults());
-
-
 #if ALIB_THREADS && ALIB_FILESET_MODULES && !defined(ALIB_DOX)
 
     void MonoAllocator::dbgCheckGlobalAllocatorLock()
@@ -57,7 +60,7 @@ MonoAllocator::Chunk   MonoAllocator::dummyChunk= MonoAllocator::Chunk(TInitiali
                            ||  !aworx::ALIB.IsBootstrapped()
                            ||  GlobalAllocatorLock.GetSafeness() == Safeness::Unsafe
                            ||  GlobalAllocatorLock.IsOwnedByCurrentThread()
-            , "Global MonoAllocater not acquired."  )
+            ,"MONOMEM", "Global MonoAllocator not acquired."  )
     }
 
 #endif
@@ -86,10 +89,12 @@ MonoAllocator::Chunk   MonoAllocator::dummyChunk= MonoAllocator::Chunk(TInitiali
 // #################################################################################################
 // MonoAllocator
 // #################################################################################################
-MonoAllocator::MonoAllocator( Chunk* pfirstChunk, size_t stdChunkSize )
-: chunk         ( pfirstChunk )
-, recyclables   ( nullptr )
-, stdUsableSpace( stdChunkSize - MaxUsableSpaceLoss() )
+MonoAllocator::MonoAllocator( Chunk* pfirstChunk,
+                              size_t initialChunkSize, unsigned int pChunkGrowthInPercent )
+: chunk               ( pfirstChunk )
+, recyclables         ( nullptr )
+, nextChunksUsableSize( initialChunkSize - MaxUsableSpaceLoss() )
+, chunkGrowthInPercent( pChunkGrowthInPercent )
 {
     #if ALIB_DEBUG_MONOMEM
         ++DbgStats.QtyChunks;
@@ -98,34 +103,36 @@ MonoAllocator::MonoAllocator( Chunk* pfirstChunk, size_t stdChunkSize )
 
 
     chunk->previous= nullptr;
-    ALIB_ASSERT_ERROR( stdChunkSize > sizeof(Chunk),
-                       "The standard allocation size has to be greater than {}.", sizeof(Chunk) )
+    ALIB_ASSERT_ERROR( initialChunkSize > sizeof(Chunk),
+                       "MONOMEM", "The initial allocation size has to be greater than {}.", sizeof(Chunk) )
 }
 
 
-MonoAllocator::MonoAllocator( size_t stdChunkSize )
-: chunk         ( &dummyChunk )
-, recyclables   ( nullptr )
-, stdUsableSpace( stdChunkSize - MaxUsableSpaceLoss() )
+MonoAllocator::MonoAllocator( size_t initialChunkSize, unsigned int pChunkGrowthInPercent )
+: chunk               ( nullptr )
+, recyclables         ( nullptr )
+, nextChunksUsableSize( initialChunkSize - MaxUsableSpaceLoss() )
+, chunkGrowthInPercent( pChunkGrowthInPercent )
 {
-    MONOMEM_PATHDOMAIN
-    MONOMEM_VERBOSE( LogDomain, "Created MonoAllocator. Chunk size: ", stdChunkSize )
-    ALIB_ASSERT_ERROR( stdChunkSize > sizeof(Chunk),
-                       "The standard allocation size has to be greater than {}.", sizeof(Chunk) )
+    DBG_MONOMEM_PATH_DOMAIN
+    DBG_MONOMEM_VERBOSE( LogDomain, "Created MonoAllocator. Initial chunk size: ", initialChunkSize )
+    ALIB_ASSERT_ERROR( initialChunkSize > sizeof(Chunk),
+                       "MONOMEM", "The initial allocation size has to be greater than ", sizeof(Chunk) )
 
 }
 
-MonoAllocator*         MonoAllocator::Create( size_t stdChunkSize )
+MonoAllocator*   MonoAllocator::Create( size_t       initialChunkSize,
+                                        unsigned int pChunkGrowthInPercent )
 {
-    MONOMEM_PATHDOMAIN
-    MONOMEM_INFO( "MA/SELFCNT", "Creating self-contained MonoAllocator. Chunk size: ", stdChunkSize )
+    DBG_MONOMEM_PATH_DOMAIN
+    DBG_MONOMEM_INFO( "MA/SELFCNT", "Creating self-contained MonoAllocator. Initial chunk size: ", initialChunkSize )
 
-    ALIB_ASSERT_ERROR( stdChunkSize > MonoAllocator::MaxUsableSpaceLoss(),
-                       "The standard allocation size has to be greater than {}.", sizeof(Chunk) )
+    ALIB_ASSERT_ERROR( initialChunkSize > MonoAllocator::MaxUsableSpaceLoss(),
+                       "MONOMEM", "The initial allocation size has to be greater than {}.", sizeof(Chunk) )
 
-    Chunk*          firstChunk= Chunk::create( stdChunkSize - MonoAllocator::MaxUsableSpaceLoss() );
-    MonoAllocator* allocator =  reinterpret_cast<MonoAllocator*>( firstChunk->alloc( sizeof( MonoAllocator), alignof(MonoAllocator) ) );
-    return new (allocator) MonoAllocator( firstChunk, stdChunkSize );
+    auto firstChunk= Chunk::create( initialChunkSize - MonoAllocator::MaxUsableSpaceLoss() );
+    auto allocator =  reinterpret_cast<MonoAllocator*>( firstChunk->alloc( sizeof( MonoAllocator), alignof(MonoAllocator) ) );
+    return new (allocator) MonoAllocator( firstChunk, initialChunkSize, pChunkGrowthInPercent );
 }
 
 MonoAllocator::~MonoAllocator()
@@ -142,7 +149,6 @@ MonoAllocator::~MonoAllocator()
     auto* cnk= recyclables;
     while( cnk )
     {
-        ALIB_ASSERT( cnk != &dummyChunk )
         #if ALIB_DEBUG_MONOMEM
             ++cntChunks;
         #endif
@@ -157,7 +163,7 @@ MonoAllocator::~MonoAllocator()
     while( cnk )
     {
         auto* next= cnk->previous;
-        if( cnk != &dummyChunk )
+        if( cnk )
         {
             cnk->destruct();
 
@@ -168,8 +174,8 @@ MonoAllocator::~MonoAllocator()
         cnk= next;
     }
 
-    MONOMEM_PATHDOMAIN
-    MONOMEM_INFO( logDomain, "MonoAllocator destructed. #Chunks: {}, #allocations: {}",
+    DBG_MONOMEM_PATH_DOMAIN
+    DBG_MONOMEM_INFO( logDomain, "MonoAllocator destructed. #Chunks: {}, #allocations: {}",
                              cntChunks, qtyAllocations )
 
     #if ALIB_DEBUG_MONOMEM
@@ -181,10 +187,10 @@ MonoAllocator::~MonoAllocator()
 
 void MonoAllocator::Reset( const MonoAllocator::Snapshot& snapshot )
 {
-    if( chunk == &dummyChunk )
+    if( !chunk )
     {
-        ALIB_ASSERT_ERROR( snapshot.chunk == nullptr,
-                           "Illegal snapshot given. Chunk allocator has no allocations, yet " )
+        ALIB_ASSERT_ERROR( snapshot.chunk == nullptr, "MONOMEM",
+                           "Illegal snapshot given. Chunk allocator has no allocations, yet." )
         return;
     }
 
@@ -197,8 +203,9 @@ void MonoAllocator::Reset( const MonoAllocator::Snapshot& snapshot )
 
         ALIB_ASSERT_ERROR( !(    this >= reinterpret_cast<MonoAllocator*>(firstChunk      )
                               && this <  reinterpret_cast<MonoAllocator*>(firstChunk->end ) ),
+            "MONOMEM",
             "Parameterless version of MonoAllocator::Reset() was called for a "
-            "self-contained monotonic allocator created with MonoAllocator::Create()."             )
+            "self-contained monotonic allocator created with MonoAllocator::Create()."    )
     }
     #endif
 
@@ -224,9 +231,6 @@ void MonoAllocator::Reset( const MonoAllocator::Snapshot& snapshot )
         ALIB_ASSERT( chunk)
         chunk->act= snapshot.actFill;
     }
-
-    if( chunk == nullptr )
-        chunk= &dummyChunk;
 }
 
 #if ALIB_DEBUG_MONOMEM
@@ -246,10 +250,7 @@ void MonoAllocator::Reset( const MonoAllocator::Snapshot& snapshot )
 // #################################################################################################
 char*  MonoAllocator::getCreateChunk(size_t size, size_t alignment)
 {
-    ALIB_ASSERT( static_cast<size_t>(chunk->end - chunk->act) < size )
-
-    if( chunk == &dummyChunk )
-        chunk=   nullptr;
+    ALIB_ASSERT( !chunk || size_t(chunk->end - chunk->act) < size )
 
     #if ALIB_DEBUG_MONOMEM
         if( chunk )
@@ -258,7 +259,7 @@ char*  MonoAllocator::getCreateChunk(size_t size, size_t alignment)
 
 
     // special treatment if size exceeds chunk size: create an own chunk and keep using current
-    if( size >= stdUsableSpace )
+    if( size >= nextChunksUsableSize )
     {
         Chunk* newChunk= Chunk::create( size
                                         // deduct what is internally added for the worst case of max-alignment
@@ -301,26 +302,27 @@ char*  MonoAllocator::getCreateChunk(size_t size, size_t alignment)
 
     // search a recycle chunk (usually the first fits)
     Chunk** previousPointer= &recyclables;
-    Chunk*  recycable      =  recyclables;
-    while( recycable )
-    {                                                       DBG_ALIGNMENT_INIT(    recycable )
-        char* mem= recycable->alloc( size, alignment );     DBG_ALIGNMENT_MEASURE( recycable )
+    Chunk*  recyclable     =  recyclables;
+    while( recyclable )
+    {                                                       DBG_ALIGNMENT_INIT(    recyclable )
+        char* mem= recyclable->alloc( size, alignment );     DBG_ALIGNMENT_MEASURE( recyclable )
         if( mem )
         {
-            *previousPointer= recycable->previous;
-            recycable->previous= chunk;
-            chunk= recycable;
+            *previousPointer= recyclable->previous;
+            recyclable->previous= chunk;
+            chunk= recyclable;
             return mem;
         }
 
         // this should almost never happen (only if requesting oversized objects after a reset)
-        previousPointer= &recycable->previous;
-        recycable= recycable->previous;
+        previousPointer= &recyclable->previous;
+        recyclable     =  recyclable->previous;
     }
 
     // create new chunk
     Chunk* previousChunk= chunk;
-    chunk               = Chunk::create( stdUsableSpace );
+    chunk               = Chunk::create( nextChunksUsableSize );
+    nextChunksUsableSize= (nextChunksUsableSize * chunkGrowthInPercent) / 100;
     chunk->previous     = previousChunk;                    DBG_ALIGNMENT_INIT( chunk )
 
     #if ALIB_DEBUG_MONOMEM
@@ -362,6 +364,18 @@ NAString MonoAllocator::DbgDumpStats()
     result << "    Chunk size exceeds:  "   << DbgStats.QtyChunkSizeExceeds << NNewLine();
 
     return result;
+}
+#endif
+
+#if ALIB_DEBUG_MONOMEM && !defined(ALIB_DOX)
+namespace detail {
+    void dbgMonoMemRecyclingOutput(size_t a, size_t b, size_t c, const std::type_info& typeInfo, size_t d  )
+    {
+        DBG_MONOMEM_INFO( "RECYCLING",
+              "Recycling {} objects from de-allocated memory of size {} (lost {} bytes).\n"
+              "Deallocated type: {!Q<>}{!Q[]}.",
+              a, b, c, typeInfo, d )
+    }
 }
 #endif
 

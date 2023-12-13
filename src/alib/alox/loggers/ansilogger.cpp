@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,105 +34,106 @@ using namespace aworx::lib::lox::detail;
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
 
-    // #################################################################################################
+// #################################################################################################
 // ANSI Escape Codes
 // #################################################################################################
- #if defined(_MSC_VER)
-// MSC  (as of 12/2015):
-// C4579: in-class initialization for type 'const aworx::character[11]'
-// is not yet implemented; static member will remain uninitialized at run-time but
-// use in constant-expressions is supported
-          character  AnsiLogger::ANSI_RED             [6]  { A_CHAR("\033[31m")       }; ///< Select red as foreground color
-          character  AnsiLogger::ANSI_GREEN           [6]  { A_CHAR("\033[32m")       }; ///< Select green as foreground color
-          character  AnsiLogger::ANSI_YELLOW          [6]  { A_CHAR("\033[33m")       }; ///< Select yellow as foreground color
-          character  AnsiLogger::ANSI_BLUE            [6]  { A_CHAR("\033[34m")       }; ///< Select blue as foreground color
-          character  AnsiLogger::ANSI_MAGENTA         [6]  { A_CHAR("\033[35m")       }; ///< Select magenta as foreground color
-          character  AnsiLogger::ANSI_CYAN            [6]  { A_CHAR("\033[36m")       }; ///< Select cyan as foreground color
-          character  AnsiLogger::ANSI_BLACK           [6]  { A_CHAR("\033[30m")       }; ///< Select black as foreground color
-          character  AnsiLogger::ANSI_WHITE           [11] { A_CHAR("\033[38;5;15m")  }; ///< Select white as foreground color
-          character  AnsiLogger::ANSI_GRAY            [12] { A_CHAR("\033[38;5;240m") }; ///< Select gray as foreground color
-          character  AnsiLogger::ANSI_STD_COL         [6]  { A_CHAR("\033[39m")       }; ///< Select standard foreground color
+#if defined(_MSC_VER)
+    // MSC  (as of 12/2015):
+    // C4579: in-class initialization for type 'const aworx::character[11]'
+    // is not yet implemented; static member will remain uninitialized at run-time but
+    // use in constant-expressions is supported
+    character  AnsiLogger::ANSI_RED             [6]  { A_CHAR("\033[31m")       }; ///< Select red as foreground color
+    character  AnsiLogger::ANSI_GREEN           [6]  { A_CHAR("\033[32m")       }; ///< Select green as foreground color
+    character  AnsiLogger::ANSI_YELLOW          [6]  { A_CHAR("\033[33m")       }; ///< Select yellow as foreground color
+    character  AnsiLogger::ANSI_BLUE            [6]  { A_CHAR("\033[34m")       }; ///< Select blue as foreground color
+    character  AnsiLogger::ANSI_MAGENTA         [6]  { A_CHAR("\033[35m")       }; ///< Select magenta as foreground color
+    character  AnsiLogger::ANSI_CYAN            [6]  { A_CHAR("\033[36m")       }; ///< Select cyan as foreground color
+    character  AnsiLogger::ANSI_BLACK           [6]  { A_CHAR("\033[30m")       }; ///< Select black as foreground color
+    character  AnsiLogger::ANSI_WHITE           [11] { A_CHAR("\033[38;5;15m")  }; ///< Select white as foreground color
+    character  AnsiLogger::ANSI_GRAY            [12] { A_CHAR("\033[38;5;240m") }; ///< Select gray as foreground color
+    character  AnsiLogger::ANSI_STD_COL         [6]  { A_CHAR("\033[39m")       }; ///< Select standard foreground color
 
-          character  AnsiLogger::ANSI_BG_RED          [6]  { A_CHAR("\033[41m")       }; ///< Select red as background color
-          character  AnsiLogger::ANSI_BG_GREEN        [6]  { A_CHAR("\033[42m")       }; ///< Select green as background color
-          character  AnsiLogger::ANSI_BG_YELLOW       [6]  { A_CHAR("\033[43m")       }; ///< Select yellow as background color
-          character  AnsiLogger::ANSI_BG_BLUE         [6]  { A_CHAR("\033[44m")       }; ///< Select blue as background color
-          character  AnsiLogger::ANSI_BG_MAGENTA      [6]  { A_CHAR("\033[45m")       }; ///< Select magenta as background color
-          character  AnsiLogger::ANSI_BG_CYAN         [6]  { A_CHAR("\033[46m")       }; ///< Select cyan as background color
-          character  AnsiLogger::ANSI_BG_BLACK        [6]  { A_CHAR("\033[40m")       }; ///< Select black as background color
-          character  AnsiLogger::ANSI_BG_WHITE        [11] { A_CHAR("\033[48;5;15m")  }; ///< Select white as background color
-          character  AnsiLogger::ANSI_BG_GRAY         [12] { A_CHAR("\033[48;5;240m") }; ///< Select gray as background color
-          character  AnsiLogger::ANSI_BG_STD_COL      [6]  { A_CHAR("\033[49m")       }; ///< Select standard background color
+    character  AnsiLogger::ANSI_BG_RED          [6]  { A_CHAR("\033[41m")       }; ///< Select red as background color
+    character  AnsiLogger::ANSI_BG_GREEN        [6]  { A_CHAR("\033[42m")       }; ///< Select green as background color
+    character  AnsiLogger::ANSI_BG_YELLOW       [6]  { A_CHAR("\033[43m")       }; ///< Select yellow as background color
+    character  AnsiLogger::ANSI_BG_BLUE         [6]  { A_CHAR("\033[44m")       }; ///< Select blue as background color
+    character  AnsiLogger::ANSI_BG_MAGENTA      [6]  { A_CHAR("\033[45m")       }; ///< Select magenta as background color
+    character  AnsiLogger::ANSI_BG_CYAN         [6]  { A_CHAR("\033[46m")       }; ///< Select cyan as background color
+    character  AnsiLogger::ANSI_BG_BLACK        [6]  { A_CHAR("\033[40m")       }; ///< Select black as background color
+    character  AnsiLogger::ANSI_BG_WHITE        [11] { A_CHAR("\033[48;5;15m")  }; ///< Select white as background color
+    character  AnsiLogger::ANSI_BG_GRAY         [12] { A_CHAR("\033[48;5;240m") }; ///< Select gray as background color
+    character  AnsiLogger::ANSI_BG_STD_COL      [6]  { A_CHAR("\033[49m")       }; ///< Select standard background color
 
-          character  AnsiLogger::ANSI_LIGHT_RED       [11] { A_CHAR("\033[38;5;09m")  }; ///< Select light red as foreground color
-          character  AnsiLogger::ANSI_LIGHT_GREEN     [11] { A_CHAR("\033[38;5;10m")  }; ///< Select light green as foreground color
-          character  AnsiLogger::ANSI_LIGHT_YELLOW    [11] { A_CHAR("\033[38;5;11m")  }; ///< Select light yellow as foreground color
-          character  AnsiLogger::ANSI_LIGHT_BLUE      [11] { A_CHAR("\033[38;5;12m")  }; ///< Select light blue as foreground color
-          character  AnsiLogger::ANSI_LIGHT_MAGENTA   [11] { A_CHAR("\033[38;5;13m")  }; ///< Select light magenta as foreground color
-          character  AnsiLogger::ANSI_LIGHT_CYAN      [11] { A_CHAR("\033[38;5;14m")  }; ///< Select light cyan as foreground color
-          character  AnsiLogger::ANSI_LIGHT_GRAY      [12] { A_CHAR("\033[38;5;250m") }; ///< Select light gray as foreground color
-          character  AnsiLogger::ANSI_LIGHT_STD_COL   [6]  { A_CHAR("\033[39m")       }; ///< Select standard foreground color
+    character  AnsiLogger::ANSI_LIGHT_RED       [11] { A_CHAR("\033[38;5;09m")  }; ///< Select light red as foreground color
+    character  AnsiLogger::ANSI_LIGHT_GREEN     [11] { A_CHAR("\033[38;5;10m")  }; ///< Select light green as foreground color
+    character  AnsiLogger::ANSI_LIGHT_YELLOW    [11] { A_CHAR("\033[38;5;11m")  }; ///< Select light yellow as foreground color
+    character  AnsiLogger::ANSI_LIGHT_BLUE      [11] { A_CHAR("\033[38;5;12m")  }; ///< Select light blue as foreground color
+    character  AnsiLogger::ANSI_LIGHT_MAGENTA   [11] { A_CHAR("\033[38;5;13m")  }; ///< Select light magenta as foreground color
+    character  AnsiLogger::ANSI_LIGHT_CYAN      [11] { A_CHAR("\033[38;5;14m")  }; ///< Select light cyan as foreground color
+    character  AnsiLogger::ANSI_LIGHT_GRAY      [12] { A_CHAR("\033[38;5;250m") }; ///< Select light gray as foreground color
+    character  AnsiLogger::ANSI_LIGHT_STD_COL   [6]  { A_CHAR("\033[39m")       }; ///< Select standard foreground color
 
-          character  AnsiLogger::ANSI_BG_LIGHT_RED    [11] { A_CHAR("\033[48;5;09m")  }; ///< Select light red as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_GREEN  [11] { A_CHAR("\033[48;5;10m")  }; ///< Select light green as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_YELLOW [11] { A_CHAR("\033[48;5;11m")  }; ///< Select light yellow as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_BLUE   [11] { A_CHAR("\033[48;5;12m")  }; ///< Select light blue as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_MAGENTA[11] { A_CHAR("\033[48;5;13m")  }; ///< Select light magenta as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_CYAN   [11] { A_CHAR("\033[48;5;14m")  }; ///< Select light cyan as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_GRAY   [12] { A_CHAR("\033[48;5;250m") }; ///< Select light gray as background color
-          character  AnsiLogger::ANSI_BG_LIGHT_STD_COL[6]  { A_CHAR("\033[49m")       }; ///< Select standard background color
+    character  AnsiLogger::ANSI_BG_LIGHT_RED    [11] { A_CHAR("\033[48;5;09m")  }; ///< Select light red as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_GREEN  [11] { A_CHAR("\033[48;5;10m")  }; ///< Select light green as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_YELLOW [11] { A_CHAR("\033[48;5;11m")  }; ///< Select light yellow as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_BLUE   [11] { A_CHAR("\033[48;5;12m")  }; ///< Select light blue as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_MAGENTA[11] { A_CHAR("\033[48;5;13m")  }; ///< Select light magenta as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_CYAN   [11] { A_CHAR("\033[48;5;14m")  }; ///< Select light cyan as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_GRAY   [12] { A_CHAR("\033[48;5;250m") }; ///< Select light gray as background color
+    character  AnsiLogger::ANSI_BG_LIGHT_STD_COL[6]  { A_CHAR("\033[49m")       }; ///< Select standard background color
 
-          character  AnsiLogger::ANSI_BOLD            [5]  { A_CHAR("\033[1m")        }; ///< Select bold font style
-          character  AnsiLogger::ANSI_ITALICS         [5]  { A_CHAR("\033[3m")        }; ///< Select italics font style
-          character  AnsiLogger::ANSI_STD_STYLE       [5]  { A_CHAR("\033[0m")        }; ///< Select standard font style
-          character  AnsiLogger::ANSI_RESET           [5]  { A_CHAR("\033[0m")        }; ///< Reset colors and font style
+    character  AnsiLogger::ANSI_BOLD            [5]  { A_CHAR("\033[1m")        }; ///< Select bold font style
+    character  AnsiLogger::ANSI_ITALICS         [5]  { A_CHAR("\033[3m")        }; ///< Select italics font style
+    character  AnsiLogger::ANSI_STD_STYLE       [5]  { A_CHAR("\033[0m")        }; ///< Select standard font style
+    character  AnsiLogger::ANSI_RESET           [5]  { A_CHAR("\033[0m")        }; ///< Reset colors and font style
 
-#else
-constexpr character  AnsiLogger::ANSI_RED             [6] ;
-constexpr character  AnsiLogger::ANSI_GREEN           [6] ;
-constexpr character  AnsiLogger::ANSI_YELLOW          [6] ;
-constexpr character  AnsiLogger::ANSI_BLUE            [6] ;
-constexpr character  AnsiLogger::ANSI_MAGENTA         [6] ;
-constexpr character  AnsiLogger::ANSI_CYAN            [6] ;
-constexpr character  AnsiLogger::ANSI_BLACK           [6] ;
-constexpr character  AnsiLogger::ANSI_WHITE           [11];
-constexpr character  AnsiLogger::ANSI_GRAY            [12];
-constexpr character  AnsiLogger::ANSI_STD_COL         [6] ;
+#elif ALIB_CPPVER < 17
+    constexpr character  AnsiLogger::ANSI_RED             [6] ;
+    constexpr character  AnsiLogger::ANSI_GREEN           [6] ;
+    constexpr character  AnsiLogger::ANSI_YELLOW          [6] ;
+    constexpr character  AnsiLogger::ANSI_BLUE            [6] ;
+    constexpr character  AnsiLogger::ANSI_MAGENTA         [6] ;
+    constexpr character  AnsiLogger::ANSI_CYAN            [6] ;
+    constexpr character  AnsiLogger::ANSI_BLACK           [6] ;
+    constexpr character  AnsiLogger::ANSI_WHITE           [11];
+    constexpr character  AnsiLogger::ANSI_GRAY            [12];
+    constexpr character  AnsiLogger::ANSI_STD_COL         [6] ;
 
-constexpr character  AnsiLogger::ANSI_BG_RED          [6] ;
-constexpr character  AnsiLogger::ANSI_BG_GREEN        [6] ;
-constexpr character  AnsiLogger::ANSI_BG_YELLOW       [6] ;
-constexpr character  AnsiLogger::ANSI_BG_BLUE         [6] ;
-constexpr character  AnsiLogger::ANSI_BG_MAGENTA      [6] ;
-constexpr character  AnsiLogger::ANSI_BG_CYAN         [6] ;
-constexpr character  AnsiLogger::ANSI_BG_BLACK        [6] ;
-constexpr character  AnsiLogger::ANSI_BG_WHITE        [11];
-constexpr character  AnsiLogger::ANSI_BG_GRAY         [12];
-constexpr character  AnsiLogger::ANSI_BG_STD_COL      [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_RED          [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_GREEN        [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_YELLOW       [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_BLUE         [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_MAGENTA      [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_CYAN         [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_BLACK        [6] ;
+    constexpr character  AnsiLogger::ANSI_BG_WHITE        [11];
+    constexpr character  AnsiLogger::ANSI_BG_GRAY         [12];
+    constexpr character  AnsiLogger::ANSI_BG_STD_COL      [6] ;
 
-constexpr character  AnsiLogger::ANSI_LIGHT_RED       [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_GREEN     [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_YELLOW    [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_BLUE      [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_MAGENTA   [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_CYAN      [11];
-constexpr character  AnsiLogger::ANSI_LIGHT_GRAY      [12];
-constexpr character  AnsiLogger::ANSI_LIGHT_STD_COL   [6] ;
+    constexpr character  AnsiLogger::ANSI_LIGHT_RED       [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_GREEN     [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_YELLOW    [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_BLUE      [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_MAGENTA   [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_CYAN      [11];
+    constexpr character  AnsiLogger::ANSI_LIGHT_GRAY      [12];
+    constexpr character  AnsiLogger::ANSI_LIGHT_STD_COL   [6] ;
 
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_RED    [11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_GREEN  [11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_YELLOW [11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_BLUE   [11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_MAGENTA[11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_CYAN   [11];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_GRAY   [12];
-constexpr character  AnsiLogger::ANSI_BG_LIGHT_STD_COL[6] ;
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_RED    [11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_GREEN  [11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_YELLOW [11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_BLUE   [11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_MAGENTA[11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_CYAN   [11];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_GRAY   [12];
+    constexpr character  AnsiLogger::ANSI_BG_LIGHT_STD_COL[6] ;
 
-constexpr character  AnsiLogger::ANSI_BOLD            [5] ;
-constexpr character  AnsiLogger::ANSI_ITALICS         [5] ;
-constexpr character  AnsiLogger::ANSI_STD_STYLE       [5] ;
-constexpr character  AnsiLogger::ANSI_RESET           [5] ;
+    constexpr character  AnsiLogger::ANSI_BOLD            [5] ;
+    constexpr character  AnsiLogger::ANSI_ITALICS         [5] ;
+    constexpr character  AnsiLogger::ANSI_STD_STYLE       [5] ;
+    constexpr character  AnsiLogger::ANSI_RESET           [5] ;
 #endif
+
 
 // #################################################################################################
 // Constructor/Destructor
@@ -167,7 +168,7 @@ void AnsiLogger::construct()
         {
             if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
             {
-                ALIB_WARNING( "Unknown value specified in variable: {} = {!Q'}.",
+                ALIB_WARNING( "ALOX", "Unknown value specified in variable: {} = {!Q'}.",
                               variable.Fullname(), variable.GetString() )
             }
         }
@@ -217,13 +218,12 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
             integer idx= rest.IndexOf( 'm' );
             if ( idx < 0 ) // unknown ANSI Code
             {
-                ALIB_WARNING( "Unknown ANSI ESC Code \"{}...\"", rest.Substring(0, 10 ) )
+                ALIB_WARNING( "ALOX", "Unknown ANSI ESC Code \"{}...\"", rest.Substring(0, 10 ) )
                 writer.Write( actual );
                 continue;
             }
 
-            integer wCharLength= actual.WStringLength();
-            column+= wCharLength >= 0 ? wCharLength : actual.Length();
+            column+= actual.WStringLength();
 
             actual= Substring( actual.Buffer(), actual.Length() + idx + 2 );
             rest.ConsumeChars<false>( idx  + 1 );
@@ -253,7 +253,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
 
             c= rest.ConsumeChar();
             int colNo= c - '0';
-            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "AnsiLogger: Unknown ESC-c code" )
+            ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ALOX", "AnsiLogger: Unknown ESC-c code" )
 
             // add bg
             colNo+=  isForeGround ? 0 : 10;
@@ -309,7 +309,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
                 case 37: ansiCol= AnsiLogger::ANSI_BG_WHITE         ; break;
                 case 38: ansiCol= AnsiLogger::ANSI_BG_LIGHT_GRAY    ; break;
                 case 39: ansiCol= AnsiLogger::ANSI_BG_STD_COL       ; break;
-                default: ALIB_ERROR( "Error in ANSI Code" )
+                default: ALIB_ERROR( "ALOX", "Error in ANSI Code" )
                          ansiCol= A_CHAR("");
                          break;
             }
@@ -355,7 +355,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
         else
         {
             rest.ConsumeChar();
-            ALIB_WARNING( "Unknown ESC code {!Q'}.", c )
+            ALIB_WARNING( "ALOX", "Unknown ESC code {!Q'}.", c )
         }
 
     } // write loop

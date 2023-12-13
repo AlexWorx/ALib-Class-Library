@@ -1,13 +1,13 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_EXPRESSIONS
 
 
 // Preparations to fake std::cout, main(), etc.
@@ -29,6 +29,7 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamEC;    } 
     #pragma clang diagnostic ignored "-Wunused-variable"
     #pragma clang diagnostic ignored "-Wold-style-cast"
     #pragma clang diagnostic ignored "-Wunused-parameter"
+    #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 #elif defined(__GNUC__)
     #pragma GCC diagnostic ignored "-Wunused-parameter"
     #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -36,6 +37,7 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamEC;    } 
     #pragma warning( push )
     #pragma warning( disable:4100 ) // unreferenced formal parameter
 #endif
+
 
 //! [DOX_ALIB_EXPR_TUT_CALC_MAIN]
 // Using the expression compiler in this code entity, as well as the evaluation of expressions.
@@ -179,7 +181,7 @@ void WriteOrigNormalizedAndOptimized(const String& expressionString)
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 
 void invokeCalculator( AWorxUnitTesting& ut, const nchar* expression, int fileNo )
@@ -187,7 +189,8 @@ void invokeCalculator( AWorxUnitTesting& ut, const nchar* expression, int fileNo
     const nchar* argc[]= { "", expression };
     dox_calculator_sample( 1, reinterpret_cast<const nchar**>( &argc ) );
     ut.WriteResultFile( NString128("DOX_ALIB_EXPR_TUT_CALC_MAIN-") << fileNo<< ".txt",
-                        testOutputStreamEC.str() );
+                        testOutputStreamEC.str()
+                        , "" ); // no "OUTPUT", hence verbinclude has to be used
     testOutputStreamEC.str( "");
 }
 void invokeNormalizedAndOptimized( AWorxUnitTesting& ut, const character* expression, int fileNo )
@@ -233,4 +236,4 @@ UT_METHOD( Calculator )
 
 } //namespace
 
-#endif //  ALIB_UT_DOCS
+#endif //  ALIB_UT_DOCS && ALIB_EXPRESSIONS

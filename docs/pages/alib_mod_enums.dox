@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -12,7 +12,7 @@
 \tableofcontents
 
 
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
 # 1. Introduction # {#alib_enums_intro}
 
 This foundational \alibmod, comprises four <b><em>"TMP type traits structs"</em></b>  aiming to
@@ -23,7 +23,7 @@ Those are:
 2. \alib{enums,T_EnumIsBitwise}<br>
    Enables bitwise operators on elements of enumerations with bitwise
    numbering.
-3. \alib{enums,T_EnumIsIteratable}<br>
+3. \alib{enums,T_EnumIsIterable}<br>
    Specifies the lower and upper bounds of enum types with consecutive numbering of
    elements.
 4. \alib{enums,T_EnumRecords}<br>
@@ -34,10 +34,10 @@ Along with the type traits, corresponding operators, helper types and namespace 
 are provided.
 
 
-\~Comment ###################################################################################### \~
-\~Comment ############           Arithmetical and Bitwise                 ###################### \~
-\~Comment ###################################################################################### \~
-# 2. Arithmetical and Bitwise Enums #  {#alib_enums_arithmethic}
+\I{################################################################################################}
+\I{###################            Arithmetical and Bitwise                 ######################  }
+\I{################################################################################################}
+# 2. Arithmetical and Bitwise Enums #  {#alib_enums_arithmetic}
 
 With scoped enums, introduced by C++ 11, neither arithmetical nor logical boolean operators
 that use enum elements as arguments, found their way into the language.
@@ -72,8 +72,8 @@ will not collide with similar operators found in other libraries or an \alib use
 \alib differs between <em>"arithmetical enums"</em> and <em>"bitwise enums"</em> , which are
 introduced in the next two subsections.
 
-\~Comment ###################################################################################### \~
-## 2.1 Standard Arithmetical Operators ## {#alib_enums_arithmethic_standard}
+\I{################################################################################################}
+## 2.1 Standard Arithmetical Operators ## {#alib_enums_arithmetic_standard}
 
 TMP struct \alib{enums,T_EnumIsArithmetical} by default is derived from <c>std::false_type</c>
 and is otherwise empty. If a specialization for an enumeration type derives from
@@ -121,8 +121,8 @@ then the following code compiles:
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ARITHMETIC_2
 
 
-\~Comment ###################################################################################### \~
-## 2.2 Bitwise Operators ## {#alib_enums_arithmethic_bitwise}
+\I{################################################################################################}
+## 2.2 Bitwise Operators ## {#alib_enums_arithmetic_bitwise}
 
 TMP struct \alib{enums,T_EnumIsBitwise} by default is derived from <c>std::false_type</c>
 and is otherwise empty. If a specialization for an enumeration type derives from
@@ -145,15 +145,9 @@ enumerations:
 
 \attention
   Likewise with the operators introduced in the previous section, this documentation "fakes" the
-  operators into namespace <c>aworx::lib::enums</c>, while in fact they are defined in the global
-  namespace!<br>
+  operators into namespace <c>aworx::lib::enums::bitwise</c>, while in fact they are defined in
+  the global namespace!<br>
   See note in the previous section for details.
-
-
- In addition, namespace function
-- \alib{enums::bitwise,HasBits}
-
-becomes applicable.
 
 The term <em>"bitwise"</em>  denotes that the elements of enums have numbers assigned which
 each represent one (or multiple) bit(s) in the underlying integral type.
@@ -176,23 +170,35 @@ With that, the following code snippet compiles:
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_BITWISE_2
 
 
-\~Comment ###################################################################################### \~
-\~Comment ############                  Iteration                       ######################## \~
-\~Comment ###################################################################################### \~
-# 3. Iteratatable Enums  # {#alib_enums_iter}
+In addition to these operators, namespace functions
+- \alib{enums::bitwise,HasBits},
+- \alib{enums::bitwise,CountElements},
+- \alib{enums::bitwise,ToBitwiseEnumeration} and
+- \alib{enums::bitwise,ToSequentialEnumeration}
+
+become applicable. Please consult the functions' reference documentation for further information.
+\attention
+  Likewise with the operators, this documentation "fakes" these functions into namespace
+  <c>aworx::lib::enums::bitwise</c>, while in fact they are defined in namespace #aworx.
+
+
+\I{################################################################################################}
+\I{###################                  Iteration                       ########################  }
+\I{################################################################################################}
+# 3. Iterable Enums  # {#alib_enums_iter}
 Another "missing feature" of the C++ language in respect to scoped enums is the possibility
 to iterate over all enum elements defined in an enum type.
-The obvious reason why standard iterator functionality \c std::iterator and C++ 11 range-based
+The obvious reason why standard iterator functionality \c std::iterator_traits and C++ 11 range-based
 iterations are not applicable to enumerations is that enumerations are types and not
-containers or other iteratable object instances.
+containers or other iterable object instances.
 
 Nevertheless it would still be nice if iteration was possible and for this to achieve, this tiny
 module provides a simple solution.
 
-\~Comment #################################################################################### \~
-## 3.1 TMP Struct T_EnumIsIteratable ## {#alib_enums_iter_struct}
+\I{################################################################################################}
+## 3.1 TMP Struct T_EnumIsIterable ## {#alib_enums_iter_struct}
 
-To have an easy mechanism for iterating over enum types, TMP struct \alib{enums,T_EnumIsIteratable}
+To have an easy mechanism for iterating over enum types, TMP struct \alib{enums,T_EnumIsIterable}
 may be specialized for a custom enum type that is not "sparsely" defined, which means that
 each element has an adjacent element with a difference of \c 1 of their assigned integral value.
 (All, but the last, of-course.)
@@ -209,25 +215,25 @@ A typical C++ code iterating over all enumerations would look like this:
 
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP
 
-The enums are stuffed in an array using a <c>std::initializer_list</c>  to be iteratable.
+The enums are stuffed in an array using a <c>std::initializer_list</c>  to be iterable.
 This is inefficient and error prone with changes of the enumeration definition.
 
-As an alternative this module provides TMP struct \alib{enums,T_EnumIsIteratable} which we specialize
-for enumeration \c Pets using helper macro \ref ALIB_ENUMS_MAKE_ITERATABLE as follows:
+As an alternative this module provides TMP struct \alib{enums,T_EnumIsIterable} which we specialize
+for enumeration \c Pets using helper macro \ref ALIB_ENUMS_MAKE_ITERABLE as follows:
 
- \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_MAKE_ITERATABLE
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_MAKE_ITERABLE
 
 With that in place, templated class \alib{enums,EnumIterator} becomes available for the enumeration
 type. The loop can be rewritten as
 follows:
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP_NEW
 
-\~Comment #################################################################################### \~
-## 3.2 Details On Iteratable Enums ## {#alib_enums_iter_details}
+\I{################################################################################################}
+## 3.2 Details On Iterable Enums ## {#alib_enums_iter_details}
 
 ### 3.2.1 operators+/-(TEnum, int) ###  {#alib_enums_iter_details_1}
 In the previous section we used
- \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_MAKE_ITERATABLE
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_MAKE_ITERABLE
 to announce enum \c Pets to \alib.
 Besides the enum type, the macro expects the
 <em>"integral value of the last enum element plus 1"</em>.
@@ -235,9 +241,9 @@ Besides the enum type, the macro expects the
 You might have noticed that the term <c>Pets::Snake + 1</c> usually is not valid
 C++ code, as we are adding an integral value to a C++ 11 scoped enum element.
 
-The reason why this still compiles is that with a specialization of \alib{enums,T_EnumIsIteratable}
-\alib{enums::iteratable,operator+,operator+<TEnum, int>} and
-\alib{enums::iteratable,operator-,operator-<TEnum, int>} become available.
+The reason why this still compiles is that with a specialization of \alib{enums,T_EnumIsIterable}
+\alib{enums::iterable,operator+,operator+<TEnum, int>} and
+\alib{enums::iterable,operator-,operator-<TEnum, int>} become available.
 
 
 ### 3.2.2 Stopper Elements ###  {#alib_enums_iter_details_2}
@@ -246,48 +252,48 @@ This is error prone in the respect that if the enumeration type gets extended, o
 invocation might be changes, as <c>Pets::Snake</c> then is not the last in the list.
 
 A way out, is to add a "stopper" element to the enumeration and name it special, e.g. in
-upper case <c>"END_OF_ITERATABLE_ENUM"</c>. It is then rather unlikely, that some programmer would
+upper case <c>"END_OF_ITERABLE_ENUM"</c>. It is then rather unlikely, that some programmer would
 put a new element behind this one. Furthermore, the macro statement would never needed to be
 changed:
 
-     ALIB_ENUMS_MAKE_ITERATABLE(MyEnum, MyEnum::END_OF_ITERATABLE_ENUM )
+     ALIB_ENUMS_MAKE_ITERABLE(MyEnum, MyEnum::END_OF_ITERABLE_ENUM )
 
 A next advantage is that within the enum declaration itself it becomes obvious that this is
-an iteratable enum type and somewhere in the gloabl namespace of the same header file
-the specialization for \b T_EnumIsIteratable will be found.
+an iterable enum type and somewhere in the gloabl namespace of the same header file
+the specialization for \b T_EnumIsIterable will be found.
 Of-course, the drawback is that an enum element is presented to the C++ compiler that is not
 an element like the other ones.
 
 ### 3.2.3 Starter Elements ###    {#alib_enums_iter_details_3}
 So far, all our samples used macro
-- \ref ALIB_ENUMS_MAKE_ITERATABLE
+- \ref ALIB_ENUMS_MAKE_ITERABLE
 
 to specialize this struct. In fact, this macro is just a shortcut to macro
-- \ref ALIB_ENUMS_MAKE_ITERATABLE_BEGIN_END
+- \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END
 
 passing <c>TEnum(0)</c> as a start value.
 
 This lifts the restriction of having integral \c 0 underlying the first enum element.
 
 ### 3.2.4 Helper Type EnumIterator ###  {#alib_enums_iter_details_4}
-The \c std::iterator returned with methods \alib{enums,EnumIterator::begin} and
+The \c std::iterator_traits returned with methods \alib{enums,EnumIterator::begin} and
 \alib{enums,EnumIterator::begin} implements the standard library concept of
 \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator} and with this
 offers various operators, including subscript \c operator[].
 
-\~Comment #################################################################################### \~
+\I{################################################################################################}
 ## 3.3 Bitwise Enums And Iteration ## {#alib_enums_iter_bitwise}
 Iteration works well, if an TMP struct \alib{enums,T_EnumIsBitwise} is specialized in parallel
-to \alib{enums,T_EnumIsIteratable}.
+to \alib{enums,T_EnumIsIterable}.
 The restriction described in \ref alib_enums_iter_struct, namely that enum types must not be
 "sparsely" defined, in this case means that, every next enum element has the next bit set,
 hence its internal value is doubled with each next element.
 
-Macro \ref ALIB_ENUMS_MAKE_ITERATABLE, chooses integral value \c 1 as a start element.
-Again, if \ref ALIB_ENUMS_MAKE_ITERATABLE_BEGIN_END is used, iteration might start on higher values.
+Macro \ref ALIB_ENUMS_MAKE_ITERABLE, chooses integral value \c 1 as a start element.
+Again, if \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END is used, iteration might start on higher values.
 
 
-\~Comment #################################################################################### \~
+\I{################################################################################################}
 ## 3.4 Performance Considerations  ## {#alib_enums_iter_perf}
 Class \alib{enums,EnumIterator} is empty in respect to fields. Created on the stack there
 is no performance penalty. The same is true for the internal iterator type, which is
@@ -301,13 +307,13 @@ while loop:
      while( i++ < stop) { ... }
 
 
-\~Comment ###################################################################################### \~
-\~Comment ############                  Enum Records                    ######################## \~
-\~Comment ###################################################################################### \~
+\I{################################################################################################}
+\I{###################                  Enum Records                    ########################  }
+\I{################################################################################################}
 # 4. Enum Records # {#alib_enums_records}
 
 We have seen in the previous sections of this manual that C++ enumeration types are - by language
-design- quite limited in their functionality. So far, we have added various operators and
+design - quite limited in their functionality. So far, we have added various operators and
 an iterator type, which all become activated using template meta programming (TMP) and
 on the user's side by specializing simple corresponding type traits structs.
 
@@ -351,10 +357,10 @@ For now, lets start with the simple things.
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.1 Equipping An Enumeration With Data Records ## {#alib_enums_records_firststep}
 
-In chapter \ref alib_enums_arithmethic_bitwise a simple enumeration type \b Fruits was
+In chapter \ref alib_enums_arithmetic_bitwise a simple enumeration type \b Fruits was
 given. If this was not C++ but a "higher level" programming language, we could print out
 the name of the enum elements easily.
 
@@ -385,14 +391,14 @@ Here is our enumeration:
 
 It is only three simple steps to be done.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.1.1 Step 1/3: Declaring The Record Type ### {#alib_enums_records_firststep_recordtype}
 First we need a suitable <em><b>"record type"</b></em> to store the element names:
 
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_RECORDS_FRUITS_ER
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.1.2 Step 2/3: Assigning The Record To The Enumeration ### {#alib_enums_records_firststep_assign}
 Now we specialize TMP struct \alib{enums,T_EnumRecords} for enum \b Fruits. The only single
 entity in this struct is given with <c>using</c>-statement \alib{enums,T_EnumRecords::Type}, which
@@ -412,7 +418,7 @@ as follows:
   It has to be in the global namespace and usually is placed in same header file that
   defines the enumeration.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.1.3 Step 3/3: Initializing The Data ### {#alib_enums_records_firststep_init}
 We are almost done. The final step of preparation is to define the data records. This is to be
 done when \ref alib_manual_bootstrapping "bootstrapping a software".
@@ -453,11 +459,11 @@ That's it, the enum records are ready to be used! While later in this manual eve
 ways of initializing enum records will be introduced, the next two sections are about using
 the data.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.2 Accessing Enum Records ## {#alib_enums_records_access}
 To access the three enum records of type \b Fruits, two possibilities are offered.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.2.1 Retrieving A Specific Record ### {#alib_enums_records_access_specific}
 In the Java sample above, method \b printFruit was provided as:
 
@@ -510,7 +516,7 @@ These two namespace functions are all that is given to retrieve specific enumera
 It is as simple as this!
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.2.2 Iterating Enum Records ### {#alib_enums_records_access_iteration}
 
 The second method to access enum records is to iterate over all defined records.
@@ -519,7 +525,7 @@ their definition during bootstrap.
 
 Iteration is performed using static templated class \alib{enums,EnumRecords,EnumRecords<TEnum>}
 which provides static \b begin() and \b end() methods. When using a <em>range-based for(:)-loop</em>,
-C++ requires an iteratable object. For this, the static class has a default constructor, which
+C++ requires an iterable object. For this, the static class has a default constructor, which
 is needed to be called.
 
 Staying with our sample, a simple loop looks like this:
@@ -542,11 +548,11 @@ Inner iterator type \alib{enums,EnumRecords::ForwardIterator} offers methods
 \alib{enums::EnumRecords::ForwardIterator,Enum} and \alib{enums::EnumRecords::ForwardIterator,Integral}
 which return the enum element, respectively its underlying integral value.
 
-The follwing code compiles and executes without an assertion:
+The following code compiles and executes without an assertion:
 \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_RECORDS_FRUITS_ITERATE_2_INVOKE
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.3 Detail Topics## {#alib_enums_records_details}
 The author of this manual anticipates that an experienced C++ programmer might not be impressed
 much of the functionality that <b>ALib Enum Records</b> offer and that - by reading so far - its
@@ -558,7 +564,7 @@ The answer, why we think this concept is very valuable is given only in later ch
 Meanwhile, we have some details to explain.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.3.1 Serialization/Deserialization ### {#alib_enums_records_details_serialization}
 What was sampled in the previous sections, namely writing out the C++ element names of
 enum class \b Fruits and parsing it back from a string, could be named
@@ -613,14 +619,14 @@ The built-in facilities to serialize and deserialize enumeration element are:
 - \alib{enums,ParseBitwise}
 - \alib{enums,ParseEnumOrTypeBool}.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.3.2 Enum Inheritance Relationships ### {#alib_enums_records_details_inheritance}
 
 By language definition, inheritance hierarchies are not available for  C++ enumeration types.
 With assigning a record type to enumeration types, <b>the inheritance hierarchy of the record
 can be used!</b>. Questions like "Is enum type X inherited from enum type Y?" can be decided
 at compile time.
-This "side effect" simply <em>emerges</em> of from the concept <em>ALib Enum Records"</em> .
+This "side effect" simply <em>emerges</em> of from the concept <em>"ALib Enum Records"</em>.
 
 The most relevant use case that leverages this inheritance relationship is to have functions accept
 enum elements as arguments only if they are of a certain "derived enum type".
@@ -649,7 +655,7 @@ from this!
 Consequently, almost all enumeration records found within other \alibmods_nl are derived from
 \b ERSerializable and for most custom record types it appropriate to do.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.3.3 Defining Multiple Records Per Element ### {#alib_enums_records_details_multiple}
 It is allowed to define multiple enum records for a single element of an enumeration.
 If done, then
@@ -693,14 +699,14 @@ was recognized as <c>"Get"</c>.
 
 The way of appending enum elements to \b AString instances is implemented with two
 different methods, depending on whether \alib{enums,T_EnumIsBitwise} is specialized for an enum type
-or not (see chapter \ref alib_enums_arithmethic_bitwise).
+or not (see chapter \ref alib_enums_arithmetic_bitwise).
 If it is, instead of just trying to receive a defined record for an enum value, the bitwise version
 acknowledges multiple definitions in a tricky and convenient way.
 Details and a sample code for this is given with
 \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.4 Resourced/Externalized Enum Records ## {#alib_enums_records_resourced}
 
 As stated in the previous sections, <em>ALib Enum Records</em> are considered <b>static data</b>,
@@ -726,7 +732,7 @@ very well.
   does not extend its functionality with the presence of module \alib_enums_nl.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.4.1 Parsing Enum Records From Strings ### {#alib_enums_records_resourced_parsing}
 So far, in this manual the initialization of enum records has been performed using methods
 - \alib{enums,EnumRecords::Bootstrap(TEnum element\, TArgs&&... args)} for a single record, or
@@ -773,7 +779,7 @@ to
   a comparison might be done.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.4.2 ALib Module Resources And Enum Records  ### {#alib_enums_records_resourced_resourced}
 
 With the inclusion of module \alib_resources in an \alibdist, the strings used to define enum
@@ -788,7 +794,7 @@ This feature is likewise available for the upcoming two further methods.
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.4.3 Using TMP struct T_Resourced  ### {#alib_enums_records_resourced_tresourced}
 
 Module \alib_resources_nl provides tool TMP struct \alib{resources,T_Resourced} to announce
@@ -816,7 +822,7 @@ may include that a specialization for \b T_Resourced is given.
   the fields value will be used instead.<br>
   The two types will be introduced in a later chapter.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 4.4.4 Using Resources In ALib Modules  ### {#alib_enums_records_resourced_from_modules}
 The final overload of method is given with:
 
@@ -828,13 +834,19 @@ resource management, configuration data, etc., just the same as any \e full \ali
 If so, this method is preferred over all others versions, except for the cases where the use of
 \b T_Resourced is mandatory or otherwise superior, as described in the previous section.
 
+Further information is given with the \ref alib_mod_resources "programmer's manual" of module
+\alib_resources_nl.<br>
+A comprehensive sample of using \alib resources placed in a custom module is provided with the
+\ref alib_cli_tut "tutorial of ALib Module 'CLI'".
+The sample code provided there, can be easily used as a jump start into an own project that
+creates a custom \alib module and leverages the resource features provided.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.5 A Design Pattern For Using Enum Records  ## {#alib_enums_records_paradigm}
 The previous chapters 4.1 - 4.2 provided a step by step tutorial-style guide into the concept of
-<em>ALib Enum Records</em>. The code behind this small \alibmod_nl is small, easy but still needs
-a little explanation - because it is as much a concept as it is a library.<br>
+<em>ALib Enum Records</em>. The code behind this small \alibmod_nl is easy but still needs
+a little explanation - because it is as much a design concept as it is a library.<br>
 This chapter wants to give further thoughts about this concept.
 
 A reader might nevertheless think:
@@ -845,14 +857,14 @@ A reader might nevertheless think:
 
 And right: Instead of talking about "Enum Records" this library could talk about
 1. <em>"Static data tables"</em>
-2. Records are collected in a simple forward list to be iteratable.
+2. Records are collected in a simple forward list to be iterable.
 3. Record are in addition hashed using a pair of a table name and a simple integral value
    as an index to the record.
 
 From this angle of view, the only difference this concept brings is:
 
 <ol start="4">
-<li> A C++ enumeration \e type (!) is used for the name that a) addresses an iteratable record list
+<li> A C++ enumeration \e type (!) is used for the name that a) addresses an iterable record list
      and b) is the first part of the hash key to retrieve single records.
      (Technically implemented by using run-time type information, aka keyword <c>typeid</c>).</li>
 <li> The numbering of the records of a table is done with the elements of that enumeration and
@@ -911,7 +923,7 @@ Another prominent sample is found with class \alib{results,Exception}. Furthermo
 \alib_cli makes really heavy use of this paradigm.
 
 
-\~Comment #################################################################################### \~
+\I{################################################################################################}
 # 5. Class Enum Of Module Boxing # {#alib_enums_furtherreading}
 
 As this module's name indicates, the four major features introduced in this manual are all
@@ -936,5 +948,3 @@ is also offered for the concept of <b>ALib Enum Records</b>.
 
 
 */
-
-

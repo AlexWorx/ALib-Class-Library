@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -27,11 +27,11 @@
 #      endif
 #   endif
 
-#   if !defined (HPP_ALIB_ENUMS_ITERATABLE)
-#      include "alib/enums/iteratable.hpp"
+#   if !defined (HPP_ALIB_ENUMS_ITERABLE)
+#      include "alib/enums/iterable.hpp"
 #   endif
 
-#   if !defined (HPP_ALIB_RESOURCES_LocalResourcePool)
+#   if !defined (HPP_ALIB_RESOURCES_LOCALRESOURCEPOOL)
 #      include "alib/resources/localresourcepool.hpp"
 #   endif
 
@@ -67,25 +67,24 @@ bool Module::Bootstrap( BootstrapPhases targetPhase, int argc, const char** argv
     if( ALIB.Modules.IsEmpty() )
         ALIB.BootstrapFillDefaultModuleList();
 
-
     // Initialize "micro" modules once
     if( !Module::microModulesInitialized )
     {
-        ALIB_IF_THREADS( threads::Bootstrap(); )
-        ALIB_IF_BOXING(   boxing::Bootstrap(); )
         ALIB_IF_TIME(       time::Bootstrap(); )
+        ALIB_IF_BOXING(   boxing::Bootstrap(); )
+        ALIB_IF_THREADS( threads::Bootstrap(); )
         Module::microModulesInitialized= true;
     }
 
     // args given but not first phase?
-    ALIB_ASSERT_WARNING( argc == 0 || bootstrapState == 0,
+    ALIB_ASSERT_WARNING( argc == 0 || bootstrapState == 0, "MODULES",
                          "Command line args ignored. "
                          "Accepted only with initialization level 'PrepareResources'."  )
 
     if( bootstrapState >= UnderlyingIntegral( targetPhase )  )
     {
-        ALIB_WARNING( "Given initialization level already performed on module.  "
-                       "Module Name (resource category): ", ResourceCategory  )
+        ALIB_WARNING( "MODULE", "Given initialization level already performed on module. "
+                      "Module Name (resource category): ", ResourceCategory  )
         return false;
     }
 
@@ -95,8 +94,9 @@ bool Module::Bootstrap( BootstrapPhases targetPhase, int argc, const char** argv
            *thisModuleIt != this )
         ++thisModuleIt;
 
-    ALIB_ASSERT_ERROR( thisModuleIt != ALIB.Modules.rend(),
-      "Trying to bootstrap a module that is not included in list ALibDistribution::Modules.")
+    ALIB_ASSERT_ERROR( thisModuleIt != ALIB.Modules.rend(), "MODULES",
+      "Trying to bootstrap a module that is not included in list ALibDistribution::Modules.\n"
+      "Resource category of the module: ", (*thisModuleIt)->ResourceCategory )
 
 
     // loop over all phases
@@ -116,18 +116,19 @@ bool Module::Bootstrap( BootstrapPhases targetPhase, int argc, const char** argv
                 resources::LocalResourcePool* pool= lib::monomem::GlobalAllocator.Emplace<resources::LocalResourcePool>();
                 resourcePool= pool;
 
-                integer                  expectedSize= 35; // ALIB distribution resources
-                ALIB_IF_ALOX           ( expectedSize+=  43 ; )
-                ALIB_IF_CONFIGURATION  ( expectedSize+=  9  ; )
-                ALIB_IF_CLI            ( expectedSize+=  17 ; )
-                ALIB_IF_EXPRESSIONS    ( expectedSize+=  135; )
-                ALIB_IF_RESULTS        ( expectedSize+=  5  ; )
-                ALIB_IF_TEXT   ( expectedSize+=  48 ; )
-                ALIB_IF_SYSTEM         ( expectedSize+=  9  ; )
+                // \releasetask{update resource numbers numbers}
+                integer                  expectedSize=   33  // ALIB distribution resources
+                ALIB_IF_ALOX           (               + 42   )
+                ALIB_IF_CONFIGURATION  (               + 9    )
+                ALIB_IF_CLI            (               + 17   )
+                ALIB_IF_EXPRESSIONS    (               + 256  )
+                ALIB_IF_RESULTS        (               + 5    )
+                ALIB_IF_TEXT           (               + 47   )
+                ALIB_IF_SYSTEM         (               + 11   ) ;
                 auto& hashMap= pool->BootstrapGetInternalHashMap();
                 hashMap.BaseLoadFactor( 2.0 );
                 hashMap.MaxLoadFactor ( 5.0 );
-                hashMap.Reserve       ( expectedSize );
+                hashMap.Reserve       ( expectedSize, ValueReference::Absolute );
             }
 
 
@@ -217,7 +218,7 @@ bool Module::Bootstrap( BootstrapPhases targetPhase, int argc, const char** argv
             {
                 module->resourcePool = resourcePool;
             }
-                #if ALIB_CONFIGURATION
+            #if ALIB_CONFIGURATION
             else if ( actualPhase == BootstrapPhases::PrepareConfig &&
                       module->config == nullptr )
             {
@@ -237,8 +238,8 @@ bool Module::Bootstrap( BootstrapPhases targetPhase, int argc, const char** argv
                 break;
             }
         }
-        ALIB_ASSERT_ERROR( foundThisModuleInList,
-                           "The module that method Bootstrap was invoked on is not includeed in "
+        ALIB_ASSERT_ERROR( foundThisModuleInList, "MODULES",
+                           "The module that method Bootstrap was invoked on is not included in "
                            "list Module::BootstrapModules." )
     }
 
@@ -251,7 +252,7 @@ void Module::Shutdown( ShutdownPhases targetPhase )
     // check and set ourselves initialized
     if( bootstrapState <= - UnderlyingIntegral( targetPhase ) )
     {
-       ALIB_WARNING( "Termination level already performed" )
+       ALIB_WARNING( "MODULE", "Termination level already performed." )
        return;
     }
 
@@ -283,7 +284,7 @@ void Module::Shutdown( ShutdownPhases targetPhase )
 
             ALIB_ASSERT_ERROR(
                 ( *module )->bootstrapState == UnderlyingIntegral( BootstrapPhases::Final )
-                || ( *module )->bootstrapState < 0,
+                || ( *module )->bootstrapState < 0, "MODULES",
                 "Trying to terminate a not (fully) initialized module. "
                 "Module Name (resource category): ", ResourceCategory )
 
@@ -359,10 +360,8 @@ bool Module::VerifyCompilationFlags( uint64_t flags )
     // dump out the flags
     std::cout << std::left << std::setw(30) <<  "Symbol" << '|' << std::setw(5) << " Lib" <<'|' << " Comp. Unit"  << std::endl;
 
-    int cnt= 0;
     for( auto& p : CompilationFlagMeanings )
     {
-        ++cnt;
         std::cout << std::setw(30) <<  p.first << '|' << std::setw(5) << (CompilationFlags & p.second  ? " On" : " Off")
                                                << "|" << std::setw(5) << (flags            & p.second  ? " On" : " Off")
                   << std::endl;

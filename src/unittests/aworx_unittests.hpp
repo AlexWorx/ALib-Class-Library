@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the unit tests of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * Defines some preprocessor macros and classes so that GTest and MSVC Unit Tests can live in
@@ -94,11 +94,11 @@
 
     // nothing (almost) in it in GTest: every test is own class
     #if defined(__clang__)
-        #define  UT_CLASS(name)           _Pragma("clang diagnostic push")                                       \
+        #define  UT_CLASS                 _Pragma("clang diagnostic push")                                       \
                                           _Pragma("clang diagnostic ignored \"-Wzero-as-null-pointer-constant\"")
         #define  UT_CLASS_END             _Pragma("clang diagnostic pop")
     #else
-        #define  UT_CLASS(name)
+        #define  UT_CLASS
         #define  UT_CLASS_END
     #endif
 
@@ -123,7 +123,7 @@
     #include "alib/alox/loggers/memorylogger.hpp"
     #define UT_FUNC_MACRO   __FUNCTION__
 
-    #define  UT_CLASS()                   TEST_CLASS(TESTCLASSNAME)                                                 \
+    #define  UT_CLASS                   TEST_CLASS(TESTCLASSNAME)                                                 \
                                           {   private:  const char* aworxTestName= ALIB_NSTRINGIFY(TESTCLASSNAME);  \
                                               public:
 
@@ -203,6 +203,9 @@ namespace ut_aworx {
 class AWorxUnitTesting : public aworx::lib::results::ReportWriter
 {
     public:
+        #if defined(_WIN32)
+            bool                                          initializerCout;
+        #endif
         aworx::NAString         Domain;
         aworx::NCString         ActTestName;
         bool                    AssertOnFailure= true;
@@ -218,9 +221,6 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
 
     public:
         bool                                              initializer;
-        #if defined(_WIN32)
-            bool                                          initializerCout;
-        #endif
 #if ALIB_ALOX
         aworx::lib::lox::Lox                              lox;
         aworx::lib::lox::detail::textlogger::TextLogger*  utl;
@@ -232,7 +232,7 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
 #endif
 
                  AWorxUnitTesting( const aworx::NCString& testName);
-        virtual ~AWorxUnitTesting();
+        virtual ~AWorxUnitTesting() override;
 
         template <typename... T>
         void Print (  const aworx::NCString& file, int line, aworx::Verbosity verbosity,  T&&... args  )
@@ -251,12 +251,12 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
             ALIB_DBG(AWorxUnitTesting& ut= *this;) //needed for the assertion, as macro ALIB_CALLER is changed here
             aworx::String4K buf; buf.DbgDisableBufferReplacementWarning();
             buf << output;
-            ALIB_ASSERT_ERROR( buf.IsNotEmpty(), "Empty Doxygen sample output file." )
+            ALIB_ASSERT_ERROR( buf.IsNotEmpty(), "UT", "Empty Doxygen sample output file." )
             writeResultFile( name, buf, doxyTag );
         }
 
-        virtual void NotifyActivation  ( aworx::Phase ) { }
-        virtual void Report  (  const aworx::lib::results::Message& msg );
+        virtual void NotifyActivation  ( aworx::lib::Phase ) override { }
+        virtual void Report  (  aworx::lib::results::Message& msg )                       override;
 
         template<typename TComp1, typename TComp2>
         ATMP_VOID_IF(     ( aworx::lib::characters::T_CharArray<TComp1 ALIB_COMMA aworx::character>::Access
@@ -291,7 +291,7 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
             if (!c)
                 Failed(file,line,exp,v);
             #if ALIB_GTEST
-                EXPECT_NEAR ( exp, v, prec     );
+                EXPECT_NEAR ( static_cast<double>(exp), static_cast<double>(v), static_cast<double>(prec) );
             #elif defined(_WIN32)
                 Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c );
             #else

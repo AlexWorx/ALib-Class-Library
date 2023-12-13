@@ -1,11 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 #if ALIB_UT_MONOMEM
 
 #include "alib/alox.hpp"
@@ -25,7 +26,7 @@
 
 #include "alib/strings/util/spaces.hpp"
 
-#define TESTCLASSNAME       CPP_ALib_Memory_StringTree
+#define TESTCLASSNAME       CPP_ALib_Monomem_StringTree
 #include "unittests/aworx_unittests.hpp"
 
 
@@ -149,32 +150,36 @@ struct DynInt
 
 using namespace ut_stringtree;
 
-UT_CLASS()
+UT_CLASS
 
 UT_METHOD(StringTree)
 {
     UT_INIT()
     MonoAllocator ma(4*1024);
     {
-        aworx::StringTree<DynInt, StringTreeNamesDynamic<wchar>> tree( &ma, A_WCHAR( '/'), 0);
+        aworx::StringTree<ut_stringtree::DynInt, StringTreeNamesDynamic<wchar>> tree( &ma, A_WCHAR( '/'), 0);
 
-        auto ptr= tree.Root();                                  UT_EQ(  0,  *ptr.Value().value) UT_EQ(  0,  tree.RecyclablesCount() )
-                                                                UT_EQ(  0,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
-        ptr.CreateChild(A_WCHAR("C11"), 1);                     UT_EQ(  1,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
-        ptr.DeleteChildren();                                   UT_EQ(  0,  tree.Size() )       UT_EQ(  1,  tree.RecyclablesCount() )
-        ptr.CreateChild(A_WCHAR("C11"), 1);                     UT_EQ(  1,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
-        tree.ReserveRecyclables(3);                             UT_EQ(  1,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
+        auto ptr= tree.Root();                                       UT_EQ(  0,  *ptr.Value().value) UT_EQ(  0,  tree.RecyclablesCount() )
+                                                                     UT_EQ(  0,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
+        ptr.CreateChild(A_WCHAR("C11"), 1);                          UT_EQ(  1,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
+        ptr.DeleteChildren();                                        UT_EQ(  0,  tree.Size() )       UT_EQ(  1,  tree.RecyclablesCount() )
+        ptr.CreateChild(A_WCHAR("C11"), 1);                          UT_EQ(  1,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
+        tree.ReserveRecyclables(3, lib::ValueReference::Absolute);   UT_EQ(  1,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
+        tree.ReserveRecyclables(3, lib::ValueReference::Absolute);   UT_EQ(  1,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
+        tree.ReserveRecyclables(1, lib::ValueReference::Relative);   UT_EQ(  1,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
+        tree.ReserveRecyclables(2, lib::ValueReference::Relative);   UT_EQ(  1,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
+        tree.ReserveRecyclables(3, lib::ValueReference::Relative);   UT_EQ(  1,  tree.Size() )       UT_EQ(  3,  tree.RecyclablesCount() )
 
         auto result=
         ptr.CreatePathIfNotExistent( A_WCHAR("C12/C21"), 2);    UT_EQ(  2,  *result.first.Value().value) UT_EQ(  2,  result.second  )
-                                                                UT_EQ(  3,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
+                                                                UT_EQ(  3,  tree.Size() )       UT_EQ(  1,  tree.RecyclablesCount() )
         ptr= tree.Root();
         ptr.CreateChild(A_WCHAR("C14"), 4);                     UT_EQ(  4,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
         ptr.DeleteChild(A_WCHAR("C12"));                        UT_EQ(  2,  tree.Size() )       UT_EQ(  2,  tree.RecyclablesCount() )
         tree.Clear();                                           UT_EQ(  0,  *ptr.Value().value)
                                                                 UT_EQ(  0,  tree.Size() )       UT_EQ(  4,  tree.RecyclablesCount() )
         tree.Reset(99);                                         UT_EQ( 99,  *ptr.Value().value)
-                                                            UT_EQ(  0,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
+                                                                UT_EQ(  0,  tree.Size() )       UT_EQ(  0,  tree.RecyclablesCount() )
     }
 
     // StringTree shared
@@ -272,16 +277,16 @@ UT_METHOD(StringTree_NodePtr)
     nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a")           ).IsEmpty()) UT_EQ( A_CHAR("a"    ), nodePtr.AssemblePath(path) )
     nodePtr= pm.Root(); UT_FALSE( nodePtr.GoToTraversedPath(A_CHAR("XYZ")         ).IsEmpty()) UT_EQ( A_CHAR(""     ), nodePtr.AssemblePath(path) )
     nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("b")           ).IsEmpty()) UT_EQ( A_CHAR("b"    ), nodePtr.AssemblePath(path) )
-    nodePtr= pm.Root(); UT_FALSE( nodePtr.GoToCreateChildIfNotExistent(A_CHAR("a")) ) UT_EQ( A_CHAR("a"    ), nodePtr.AssemblePath(path) )
+    nodePtr= pm.Root(); UT_FALSE( nodePtr.GoToCreateChildIfNotExistent(A_CHAR("a")) )          UT_EQ( A_CHAR("a"    ), nodePtr.AssemblePath(path) )
 
     nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a/B/./1")     ).IsEmpty()) UT_EQ( A_CHAR("a/B/1"), nodePtr.AssemblePath(path) )
     nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a/B/1/..")    ).IsEmpty()) UT_EQ( A_CHAR("a/B"  ), nodePtr.AssemblePath(path) )
     nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a/B/1/../1")  ).IsEmpty()) UT_EQ( A_CHAR("a/B/1"), nodePtr.AssemblePath(path) )
-    nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a/B/1")       ).IsEmpty()) UT_EQ( "aB1", nodePtr.Value() )
-                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("../2")        ).IsEmpty()) UT_EQ( "aB2", nodePtr.Value() )
-                        UT_FALSE( nodePtr.GoToTraversedPath(A_CHAR("b")           ).IsEmpty()) UT_EQ( "aB2", nodePtr.Value() )
-                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("/b")          ).IsEmpty()) UT_EQ( "b--", nodePtr.Value() )
-                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("./C")         ).IsEmpty()) UT_EQ( "bC-", nodePtr.Value() )
+    nodePtr= pm.Root(); UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("a/B/1")       ).IsEmpty()) UT_EQ( NString("aB1" ), nodePtr.Value() )
+                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("../2")        ).IsEmpty()) UT_EQ( NString("aB2" ), nodePtr.Value() )
+                        UT_FALSE( nodePtr.GoToTraversedPath(A_CHAR("b")           ).IsEmpty()) UT_EQ( NString("aB2" ), nodePtr.Value() )
+                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("/b")          ).IsEmpty()) UT_EQ( NString("b--" ), nodePtr.Value() )
+                        UT_TRUE ( nodePtr.GoToTraversedPath(A_CHAR("./C")         ).IsEmpty()) UT_EQ( NString("bC-" ), nodePtr.Value() )
 
 
     UT_PRINT( "Up" )
@@ -576,8 +581,6 @@ UT_METHOD(StringTree_RecursiveIterator)
         UT_EQ( recursiveIt.Next(), recursiveIt2.Next() )
     }
     UT_TRUE( recursiveIt2.IsInvalid() )
-
-//exit(42);
 
     //---------- test sorting ---------------------
     UT_PRINT(NewLine(), "------- Test sorting ---" )

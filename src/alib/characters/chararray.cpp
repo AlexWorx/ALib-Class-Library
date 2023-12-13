@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,16 +11,18 @@
 #   include "alib/characters/chararray.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#   include "alib/lib/fs_debug/assert.hpp"
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
 #endif // !defined(ALIB_DOX)
 
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+
 namespace aworx { namespace lib {
 
 /**
- * This is the reference documentation of sub-namespace \b characters of the \aliblink which
+ * This is the reference documentation of sub-namespace \c characters of the \aliblink, which
  * holds types of library module \alib_characters.
  *
  * Extensive documentation for this module is provided with
@@ -29,6 +31,21 @@ namespace aworx { namespace lib {
 namespace characters {
 
 //! @cond NO_DOX
+template<typename TChar>
+void CharArray<TChar>::Reverse( TChar* array, integer length )
+{
+    TChar* start= &array[0];
+    TChar* end  = &array[length-1];
+    while( start < end )
+    {
+        TChar tmp= *start;
+        *start   = *end;
+        *end     = tmp;
+        ++start;
+        --end;
+    }
+}
+
 template<typename TChar>
 integer CharArray<TChar>::IndexOfAnyIncluded( const TChar* haystack,  integer  length,
                                               const TChar* needles,   integer  needlesLength )
@@ -57,9 +74,8 @@ integer CharArray<TChar>::IndexOfAnyExcluded( const TChar* haystack,  integer  l
     if ( length        == -1 )    length=        static_cast<integer>( Length( haystack ) );
     if ( needlesLength == -1 )    needlesLength= static_cast<integer>( Length( needles  ) );
 
-    const TChar* end=    haystack + length;
-
-    const TChar* s=   haystack - 1;
+    const TChar* end= haystack + length;
+    const TChar* s  = haystack - 1;
     while( ++s != end )
     {
         integer i;
@@ -80,10 +96,9 @@ integer CharArray<TChar>::LastIndexOfAnyInclude( const TChar* haystack,  integer
     if ( needlesLength == -1 )    needlesLength= static_cast<integer>( Length( needles  ) );
 
     const TChar* s= haystack + startPos;
-
     while( s >= haystack )
     {
-        ALIB_ASSERT_ERROR( *s != '\0', "AString::LastIndexOfAny(): found '\\0' in source")
+        ALIB_ASSERT_ERROR( *s != '\0', "CHARS", "Found '\\0' in source string")
         for( integer i= 0; i < needlesLength ; ++i )
             if( *(needles + i) == *s )
                 return s - haystack;
@@ -100,10 +115,9 @@ integer CharArray<TChar>::LastIndexOfAnyExclude( const TChar* haystack,  integer
     if ( needlesLength == -1 )    needlesLength= static_cast<integer>( Length( needles  ) );
 
     const TChar* s= haystack + startPos;
-
     while( s >= haystack )
     {
-        ALIB_ASSERT_ERROR( *s != '\0', "String::LastIndexOfAny(): found '\\0' in source")
+        ALIB_ASSERT_ERROR( *s != '\0', "CHARS", "Found '\\0' in source string")
         {
             integer i;
             for( i= 0; i < needlesLength ; ++i )
@@ -112,7 +126,6 @@ integer CharArray<TChar>::LastIndexOfAnyExclude( const TChar* haystack,  integer
             if ( i == needlesLength )
                 return s - haystack;
         }
-
         --s;
     }
     return -1;
@@ -156,6 +169,7 @@ template integer CharArray<nchar>::IndexOfAnyExcluded    (const nchar*,integer,c
 template integer CharArray<nchar>::LastIndexOfAnyInclude (const nchar*,integer,const nchar*,integer);
 template integer CharArray<nchar>::LastIndexOfAnyExclude (const nchar*,integer,const nchar*,integer);
 template integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,Case);
+template void    CharArray<nchar>::Reverse               (      nchar*,integer );
 
 // #################################################################################################
 // WString
@@ -221,6 +235,7 @@ template integer CharArray<wchar>::IndexOfAnyExcluded    (const wchar*,integer,c
 template integer CharArray<wchar>::LastIndexOfAnyInclude (const wchar*,integer,const wchar*,integer);
 template integer CharArray<wchar>::LastIndexOfAnyExclude (const wchar*,integer,const wchar*,integer);
 template integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,Case);
+template void    CharArray<wchar>::Reverse               (      wchar*,integer );
 
 
 // #################################################################################################
@@ -231,6 +246,7 @@ template integer CharArray<xchar>::IndexOfAnyExcluded    (const xchar*,integer,c
 template integer CharArray<xchar>::LastIndexOfAnyInclude (const xchar*,integer,const xchar*,integer);
 template integer CharArray<xchar>::LastIndexOfAnyExclude (const xchar*,integer,const xchar*,integer);
 template integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,Case);
+template void    CharArray<xchar>::Reverse               (      xchar*,integer );
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> void  CharArray<xchar>::Fill( xchar* dest, integer length, xchar c  )
@@ -288,18 +304,6 @@ template<> integer CharArray<xchar>::IndexOfAnyExcludedZT( const xchar* haystack
 }
 #endif
 
-template<> int    CharArray<xchar>::Compare( const xchar* str1,  const xchar* str2, integer cmpLength  )
-{
-    const xchar* end= str1 + cmpLength;
-    int diff;
-    while( str1 != end )
-        if( (diff =   static_cast<int>( *str1++ )
-                    - static_cast<int>( *str2++ ) ) != 0)
-            return diff;
-
-    return 0;
-}
-
 
 //! @endcond
 
@@ -336,4 +340,6 @@ template<> int    CharArray<xchar>::Compare( const xchar* str1,  const xchar* st
            int ALIB_PRETTY_PRINTERS_WCHAR_SIZE_IS_4;
 
 #endif
+
+ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 

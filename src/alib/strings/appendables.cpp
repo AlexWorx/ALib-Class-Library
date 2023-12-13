@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,9 +19,6 @@
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
 
-#if ALIB_DEBUG && !defined (HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#   include "alib/lib/fs_debug/typedemangler.hpp"
-#endif
 #endif // !defined(ALIB_DOX)
 
 

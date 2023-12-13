@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_SERIALIZATION
@@ -91,10 +91,10 @@ template<typename    TEnum,
 ATMP_T_IF(bool, EnumRecords<TEnum>::template AreOfType<ERSerializable>() )
 Parse( strings::TSubstring<TChar>& input,  TEnum&  result )
 {
-    ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(),
+    ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                        NString128() << "No Enum Records for type <"
                                     << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
-    if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+    if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
         input.TrimStart();
 
     for( auto recordIt=   EnumRecords<TEnum>().begin() ;
@@ -170,24 +170,24 @@ ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
     bool mResult= false;
     result= TEnum(0);
     strings::TSubstring<TChar> restoreBeforeDelim;
-    if ALIB_CONSTEXPR_IF ( keepLastDelim )
+    if ALIB_CONSTEXPR17 ( keepLastDelim )
         restoreBeforeDelim= input;
     for(;;)
     {
-        if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+        if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
             input.TrimStart();
         TEnum actEnum;
         if ( !Parse<TEnum, TChar, TSensitivity, TTrimBeforeConsume>( input, actEnum ) )
         {
-            if ALIB_CONSTEXPR_IF ( keepLastDelim )
+            if ALIB_CONSTEXPR17 ( keepLastDelim )
                 input= restoreBeforeDelim;
             return mResult;
         }
         result|=  actEnum;
         mResult=  true;
-        if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+        if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
             input.TrimStart();
-        if ALIB_CONSTEXPR_IF ( keepLastDelim )
+        if ALIB_CONSTEXPR17 ( keepLastDelim )
             restoreBeforeDelim=  input;
 
         if( !input.template ConsumeChar<TSensitivity, TTrimBeforeConsume>( delimiter ) )
@@ -211,11 +211,6 @@ ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
  * Otherwise false is returned.
  *
  * In debug builds, the method asserts that at least one record is defined for \p{TEnum}.
- *
- * \note
- *   This method is applicable to bitwise enums as well. However, only one element name is
- *   parsed. To parse multiple elements (ored to one enum value), use method
- *   \alib{enums,ParseBitwise}-
  *
  * ### Availability ###
  * This function is available only if \ref alib_manual_modules_filesets "fileset \"Common Enums\""
@@ -248,10 +243,10 @@ template<typename    TEnum,
          Case        TSensitivity       = Case::Ignore,
          Whitespaces TTrimBeforeConsume = Whitespaces::Trim >
 inline
-bool    ParseEnumOrTypeBool(  strings::TSubstring<TChar>&   input,
-                          TEnum&                        result,
-                          TEnum                         falseValue,
-                          TEnum                         trueValue         );
+bool    ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
+                             TEnum&                        result,
+                             TEnum                         falseValue,
+                             TEnum                         trueValue         );
 #else
 template<typename    TEnum,
          typename    TChar,
@@ -357,7 +352,7 @@ struct  T_Append<TEnum, TChar,
      **********************************************************************************************/
     void operator()( TAString<TChar>& target, TEnum element )
     {
-        ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(),
+        ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                            NString128() << "No Enum Records for type <"
                                         << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
 
@@ -452,7 +447,7 @@ struct  T_Append<TEnum, TChar,
      * to \p{target}.
      *
      * In debug builds, the method asserts that at least one record is defined for \p{TEnum}.
-     * It is furthermore asserted that all bits contained in \p{element} have been "covered"
+     * It is furthermore asserted that all bits contained in \p{elements} have been "covered"
      * by corresponding names.
      *
      * The enum records defined may aggregate several bits. Aggregations have to be defined
@@ -461,12 +456,12 @@ struct  T_Append<TEnum, TChar,
      * \see
      *   This struct's documentation for more information and a sample.
      *
-     * @param target    The \b AString that \p{element} is to be appended to.
+     * @param target    The \b AString that \p{elements} is to be appended to.
      * @param elements  The enumeration element to append to \p{target}.
      **********************************************************************************************/
     void operator()( TAString<TChar>& target, TEnum elements )
     {
-        ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(),
+        ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                            NString128() << "No Enum Records for type <"
                                         << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
 
@@ -504,11 +499,17 @@ struct  T_Append<TEnum, TChar,
         if( len != 0 )
             target.DeleteEnd( 1 );
 
-        ALIB_ASSERT_ERROR( covered == elements,
-           NString128() << "Not all bits have been covered while writing bitset '"
-                        << NFormat::Bin( elements ) << "' of enumeration type <"
-                        << DbgTypeDemangler( typeid(TEnum)).Get() << ">. Remaining bits are '"
-                        << NFormat::Bin( covered & elements )  << "'."                           )
+        #if ALIB_STRINGS
+            ALIB_ASSERT_ERROR( covered == elements, "ENUMS",
+               NString128() << "Not all bits have been covered while writing bitset '"
+                            << NFormat::Bin( elements ) << "' of enumeration type <"
+                            << DbgTypeDemangler( typeid(TEnum)).Get() << ">. Remaining bits are '"
+                            << NFormat::Bin( covered & elements )  << "'."                        )
+        #else
+            ALIB_ASSERT_ERROR( covered == elements, "ENUMS",
+                               "Not all bits have been covered while writing a bitset of type <",
+                               DbgTypeDemangler( typeid(TEnum)).Get(),   ">."                     )
+        #endif
 
         ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePostfix(); )
     }

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,7 +11,7 @@
 \tableofcontents
 
 
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
 # 1. Introduction # {#alib_characters_intro}
 
 Module \alib_characters_nl is very foundational. The main goal of the module is not to provide
@@ -36,7 +36,7 @@ C++ library that we know of, makes character and string handling as convenient, 
 readable and flexible as these.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. Character Types # {#alib_characters_chars}
 What is a "character" in computer science? What is a "character" for humans? Both questions
 do not have simple answers. Both idioms underwent some historical development and change.
@@ -44,7 +44,7 @@ do not have simple answers. Both idioms underwent some historical development an
 The good news is: Today, the challenge of representing characters of human written languages in computer
 systems is at least well understood. But it is complex.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.1 The Challenges Of C++ Character Types ## {#alib_characters_chars_challenge}
 The right definition of the character type creates a lot of confusion and platform dependencies.
 This Programmer's Manual can not elaborate in all depth on this topic. To make best and most
@@ -73,7 +73,7 @@ which then leads to an efficient implementation of C++ strings, is a non-trivial
 While we have never seen a compiler doing this, the C++ language standard officially even allows
 the size of \c wchar_t to be one byte wide.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.2 ALib Explicit Character Types ## {#alib_characters_chars_by_width}
 In general, this \alib module differs between two ways of choosing the underlying character width
 of a string.
@@ -98,7 +98,7 @@ is not made by the compiler/platform any more.
 Instead, the \alib library decides. The comprises the first step towards platform independence.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.3 ALib Logical Character Types ## {#alib_characters_chars_by_logic}
 
 While the two explicit character types \aworx{nchar} and \aworx{wchar} are
@@ -194,7 +194,7 @@ Samples of this will be seen in the Programmer's Manual of module \alib_strings.
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.4 Character Type Summary ## {#alib_characters_chars_summary}
 Let us quickly summarize what was said in this chapter about character types:
 - Four C++ built-in types exist: \c char, \c char16_t or \c char32_t, \c wchar_t.<br>
@@ -219,11 +219,11 @@ confusing situation that C++ alone creates, this approach proves to simplify cha
 a lot. Of-course, this is only true if a programmer embraces these \alib definitions and starts
 using type \b character everywhere instead of type \c char or \c wchar_t.
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 # 3. Type Selection And Character Literals # {#alib_characters_prepro}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.1 Changing The Library Defaults ## {#alib_characters_prepro_defaults}
 While the main goal of this module is to enable a programmer to mostly forget about the character
 width that she is using with her \alib enabled software, and furthermore to transparently
@@ -259,7 +259,7 @@ To achieve this, two compiler symbols may be passed:
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.2 Code Selection Symbols ## {#alib_characters_prepro_codeselect}
 General purpose user code should not be affected on how the library is compiled in respect to
 character width. Especially all \alibmod compile and run independent from the compiler
@@ -287,7 +287,7 @@ settings. For this, a few corresponding symbols are provided:
   \c char16_t or \c char32_t and has a different width than \c wchar_t.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.3 Character And String Literals ## {#alib_characters_prepro_literals}
 
 In C++, character and character string literals are enclosed in single, respectively double
@@ -348,8 +348,8 @@ six aliases types are offered:
 
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 # 4. Character Arrays # {#alib_characters_arrays}
 
 The previous chapter talked about challenges that are caused by built-in character type definitions
@@ -358,7 +358,7 @@ platform defaults and providing this general openness and flexibility.
 
 Unfortunately, this chapter about C++ character arrays, again talks about challenges...
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.1 The Challenges Of C++ Character Arrays ## {#alib_characters_arrays_challenge}
 
 While this module is about "characters" and arrays of those, the term "string" is used
@@ -429,7 +429,7 @@ Let us summarize what types of "character arrays" are available in the C++ core 
 
 Besides that, there are tons of libraries available that define their own string types.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.2 Character Array Type Traits ## {#alib_characters_arrays_traits}
 
 The concept of "type traits" in C++ is used to annotate types with attributes that can be
@@ -458,7 +458,7 @@ arrays that are "implemented" by
 type \p{TString}.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.3  Array Data Access ## {#alib_characters_arrays_traits_access}
 
 Specializations of \b T_CharArray need to define <c>static constexpr</c> field
@@ -497,7 +497,7 @@ While in the documentation of the two methods, the parameter \p{src} of the stat
 <c>const TString</c>, in the case of using access flag \alib{characters::AccessType,MutableOnly},
 the method has to be defined using a mutable reference to \p{TString}.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.4 Custom Object Creation From Array Data ## {#alib_characters_arrays_traits_construct}
 
 A second <c>static constexpr</c> member that a specialization of struct \b %T_CharArray
@@ -532,7 +532,7 @@ to create a value of type \p{TString} from the character array provided with the
   an <em>explicit cast statement</em> has to be given.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.4 Type Traits For Zero-Terminated Character Array ## {#alib_characters_arrays_traits_zt}
 
 The type traits template struct \alib{characters,T_CharArray<TString\,TChar>} introduced in the
@@ -559,7 +559,7 @@ Of-course, a type \p{TString} that represents a zero-terminated array type may (
 specialize both templated traits structs. Hereby it might use different flags and implementations
 of the static methods for simple character arrays and for zero-terminated ones.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.5 Helper Macros To Specialize The Traits Structs ## {#alib_characters_arrays_traits_macros}
 The following C++ preprocessor macros are defined by this module to support the correct specialization
 of template traits struct \b T_CharArray:
@@ -581,7 +581,7 @@ struct \b T_ZTCharArray:
 - \ref ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH_MUTABLE
 - \ref ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.6 Tool Struct TT_CharArrayType  ## {#alib_characters_arrays_traits_tool_arraytype}
 
 The fact that the C++ does not provide a distinct "character" type, implies that traits structs
@@ -616,8 +616,8 @@ can be used.
 With sibling helper struct \alib{characters,TT_ZTCharArrayType}, the same is provided for traits
 struct \b T_CharArray.
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 # 5. Built-In Character Array Traits # {#alib_characters_builtintraits}
 
 As stated before, this module \alib_characters_nl, has a very foundational nature and
@@ -666,7 +666,7 @@ of its \b XYZString, \alib strings might be passed without explicit conversion.
 With this in mind, the following sub-chapters provide information about the built-in array
 specializations of this module.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.1 C++ Types ## {#alib_characters_builtintraits_cpp}
 
 There are probably four different built-in C++ character array types:
@@ -716,7 +716,7 @@ Unlike the default definitions for types of the standard C++ library and other 3
 selected by the inclusion of an optional header file. Instead, these definitions are fixed
 and not customizable.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.2 Standard C++ Library Types ## {#alib_characters_builtintraits_std}
 \note
   The built-in (default) specializations of the character array traits structs for the string types
@@ -768,10 +768,10 @@ The definitions for the three types is summarized in the following table:
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.3 Third-Party Types ## {#alib_characters_builtintraits_3rdparty}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ### 5.3.1 QT String Types ### {#alib_characters_builtintraits_3rdparty_qt}
 
 \note
@@ -797,8 +797,8 @@ inclusion of header file alib/compatibility/chararray_qt.hpp provides a speciali
 \alib{strings,T_Append} for \b QT type \b QChar.
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 # 6. Helper Types # {#alib_characters_helpers}
 
 In addition to the type definitions, type traits structs and helper struct

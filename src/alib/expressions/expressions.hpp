@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONS
@@ -13,7 +13,6 @@
 #endif
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
-
 
 #if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
     #include "alib/compatibility/std_boxing_functional.hpp"
@@ -631,7 +630,7 @@ enum class Compilation
 
     /**
      * If \c false, compile-time exception
-     * \alib{expressions,Exception::MissingFunctionParentheses} is thrown if a parameterless
+     * \alib{expressions,Exceptions::MissingFunctionParentheses} is thrown if a parameterless
      * function is stated without (otherwise redundant) parentheses <c>'()'</c>.
      *
      * If \c true, this is tolerated.
@@ -648,7 +647,7 @@ enum class Compilation
      *
      *   The other way round, if a function is registered as an identifier, flag
      *   \b %AllowEmptyParenthesesForIdentifierFunctions, controls if exception
-     *   \alib{expressions,Exception::IdentifierWithFunctionParentheses} is to be thrown
+     *   \alib{expressions,Exceptions::IdentifierWithFunctionParentheses} is to be thrown
      *   if empty parentheses are given on functions that are registered as
      *   identifier-style functions.
      */
@@ -656,7 +655,7 @@ enum class Compilation
 
     /**
      * If \c false, compile-time exception
-     * \alib{expressions,Exception::IdentifierWithFunctionParentheses} is thrown if a
+     * \alib{expressions,Exceptions::IdentifierWithFunctionParentheses} is thrown if a
      * parameterless function, declared as 'identifier style' is used with parentheses
      * <c>'()'</c>.
      *
@@ -1204,16 +1203,16 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
  *
  * The "constructor functions" are declared to be
  * \alib{expressions::plugins,Calculus::CTI,compile-time invokable}
- * and return are a constant at compile-time if their input parameter is constant.
+ * and return a constant value at compile-time in case their input parameter is constant.
  * When the program - that may due to optimization not contain the identifiers any more - becomes
  * de-compiled, these constants have to be written to the normalized expression string in a way that
  * corresponding constant values of type \b %Duration are expressed.
  *
  * To perform this task, an implementation of the box-function that this struct declares
  * has to be registered with boxes containing values of \b TimePointBase::Duration.<br>
- * Registrations of box-functions have to be done in the
- * the \ref alib_manual_bootstrapping "bootstrapp" code of the library. In this case it is done
- * in static method \alib{expressions,plugins::DateAndTime::Bootstrap}.
+ * Registrations of box-functions have to be done in the \ref alib_manual_bootstrapping "bootstrap"
+ * code of the library. In this case it is done in static method
+ * \alib{expressions,plugins::DateAndTime::Bootstrap}.
  * The function name that is used for the implementation is \b %FToLiteral_Duration. Here is
  * the line of code that registers the function with the boxed type:
  *

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_FORMATTER_JAVASTYLE
@@ -107,7 +107,7 @@ namespace aworx { namespace lib { namespace text {
  *   - The following time conversion suffix characters are \b not supported:
  *     \c 'L', \c 'N', \c 'p', \c 'z', \c 'Z', \c 's', \c 'Q', \c 'C', \c 'j', \c 'r' and \c 'c'.
  *
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
  * # Reference Documentation #
  * @throws <b>aworx::lib::text::Exceptions</b>
  *   - \alib{text::Exceptions,ArgumentIndexIs0}
@@ -223,15 +223,16 @@ class FormatterJavaStyle : public FormatterStdImpl
         }
 
         /** ****************************************************************************************
+         * Implementation of abstract method \alib{text,FormatterStdImpl::writeStringPortion}.<br>
          * Replaces \c "%%" with \c '\%' and \c "%n" with ascii \c 0x0a. In addition applies
          * \alib{strings,TFormat::Escape,Format::Escape} on \p{target} which replaces
          * standard codes like \c "\\n", \c "\\r" or \c "\\t" with corresponding ascii codes.
          * (The latter is an extension to the standard behavior of Java formatter.)
          *
-         * @param startIdx The start of the region to replace
+         * @param length The number of characters to write.
          ******************************************************************************************/
         ALIB_API
-        virtual void        replaceEscapeSequences( integer startIdx )                     override;
+        virtual void        writeStringPortion( integer length )                           override;
 
         /** ****************************************************************************************
          * All that this formatter does with this overridden method is to convert strings to

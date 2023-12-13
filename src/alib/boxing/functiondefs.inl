@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_FUNCTIONDEFS
@@ -75,7 +75,7 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
     ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
     ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
 
-    ALIB_ASSERT_ERROR(N == self.GetPlaceholderUsageLength(),
+    ALIB_ASSERT_ERROR(N == self.GetPlaceholderUsageLength(), "BOXING",
                       "Hash function registered with type of wrong usage length")
 
     size_t result=  static_cast<std::size_t>(0x52a6937UL) - (N * 0x387e)
@@ -84,7 +84,7 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
     constexpr uinteger Bit1= static_cast<uinteger>( 1 );
 
     // smaller than first "word"
-    if ALIB_CONSTEXPR_IF( N < sizeof( uinteger ) )
+    if ALIB_CONSTEXPR17( N < sizeof( uinteger ) )
         return static_cast<size_t>( (  self.Data().GetUInteger(0)
                                       & ((Bit1 << (N * 8) )- 1)   )   * 92334534 )
                + result;
@@ -92,11 +92,11 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
     // add first word
     result+= self.Data().GetUInteger(0) * 52424735;
 
-    if ALIB_CONSTEXPR_IF ( N == sizeof(uinteger) )
+    if ALIB_CONSTEXPR17 ( N == sizeof(uinteger) )
         return result;
 
     // tests if smaller than second "word"
-    else if ALIB_CONSTEXPR_IF ( N - sizeof( uinteger ) < sizeof( uinteger ) )
+    else if ALIB_CONSTEXPR17 ( N - sizeof( uinteger ) < sizeof( uinteger ) )
     {
         return static_cast<size_t>( (   self.Data().GetUInteger(1)
                                       & ((Bit1 << ((N - sizeof(uinteger)) * 8) )- 1)   )   * 892112 )

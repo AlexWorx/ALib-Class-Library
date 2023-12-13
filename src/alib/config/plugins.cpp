@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -204,6 +204,7 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
         }
         else
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if (!wArgs)
             {
                 if(!std::is_same<character, char>::value)
@@ -224,6 +225,7 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
                 else
                     cliArg= reinterpret_cast<const character**>(argVector)[i];
             }
+            ALIB_WARNINGS_RESTORE
         }
 
         cliArg.Trim();
@@ -338,6 +340,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
         }
         else
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if (!cliArgs.wArgs)
             {
                 if(!std::is_same<character, char>::value)
@@ -358,6 +361,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
                 else
                     cliArg= reinterpret_cast<const character**>(cliArgs.argVector)[nextArgNo];
             }
+            ALIB_WARNINGS_RESTORE
         }
         cliArg.Trim();
         ++nextArgNo;
@@ -416,7 +420,7 @@ bool  Environment::Load( Variable& variable, bool searchOnly )
     String256 value;                value             .DbgDisableBufferReplacementWarning();
     String256 nameZeroTerminated;   nameZeroTerminated.DbgDisableBufferReplacementWarning();
     nameZeroTerminated << variable.Fullname();
-    system::GetEnvironmentVariable( nameZeroTerminated, value, CurrentData::Keep );
+    EnvironmentVariables::Get( nameZeroTerminated, value, CurrentData::Keep );
     if ( value.IsEmpty() )
         return false;
 

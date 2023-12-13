@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -73,7 +73,7 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
     #if ALIB_DEBUG
     #   define PARSERROR ALIB_WARNING(                                                             \
             NString512("Error reading tab stops string \"") << NString512(sourceString)            \
-                    << "\":\\n   at position " << (sourceString.Length() - parser.Length())    )
+                    << "\":\n   at position " << (sourceString.Length() - parser.Length())    )
     #else
     #   define PARSERROR
     #endif

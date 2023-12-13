@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_FWDS
@@ -36,7 +36,8 @@ struct FFormat
      * accordance to the type-specific format specification \p{formatSpec}.
      *
      * @param self       The box that the function was invoked on.
-     * @param formatSpec The specification of the format (type specific)
+     * @param formatSpec The specification of the format (type specific). If empty, a default
+     *                   specification string might have to be chosen.
      * @param target     The AString object receiving the formatted string.
      */
     using Signature = void (*) ( const Box& self, const String& formatSpec, AString& target );

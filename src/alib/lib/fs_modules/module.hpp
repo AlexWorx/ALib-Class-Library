@@ -1,8 +1,8 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_modules of the \aliblong.
+ * This header file is part of file set \alibfs_modules of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_FS_MODULES_MODULE
@@ -37,7 +37,7 @@ ALIB_ASSERT_FILESET(MODULES)
 namespace aworx  {
 namespace lib {
 
-namespace resources { class ResourcePool;     }
+namespace resources { class ResourcePool;  }
 namespace config    { class Configuration; }
 
 
@@ -60,7 +60,10 @@ namespace config    { class Configuration; }
  * are to be used, to avoid conflicting entries.
  *
  * The \ref alib_manual provides several chapters that explain how
- * \ref alib_manual_bootstrapping "3. Bootstrapping ALib" is performed with the help of this class.
+ * \ref alib_manual_bootstrapping "3. Bootstrapping ALib" is performed with the help of this
+ * class.<br>
+ * Furthermore, source code sample is given with the
+ * \ref alib_cli_tut "tutorial of ALib module CLI".
  *
  * Often, types that comprise a "module singleton" (as the derived types shown in the inheritance
  * diagram above) incorporate some further functionality specific to the field of application that
@@ -71,9 +74,7 @@ namespace config    { class Configuration; }
 class Module
 {
     public:
-        /**
-         * Initialization levels usable with #Bootstrap methods.
-         */
+        /** Initialization levels usable with #Bootstrap methods. */
         enum class BootstrapPhases
         {
             PrepareResources = 1,    ///< Creates field #resourcePool and loads its module specific
@@ -83,9 +84,7 @@ class Module
             Final            = 3,    ///< The final initialization phase.
         };
 
-        /**
-         * Termination levels usable with #Shutdown methods.
-         */
+        /** Termination levels usable with #Shutdown methods.    */
         enum class ShutdownPhases
         {
             Announce         = 1,    ///< Signals termination. Keeps resources, config, etc.
@@ -231,8 +230,9 @@ class Module
         virtual ~Module()
         {
             ALIB_ASSERT_WARNING( bootstrapState == - UnderlyingIntegral( ShutdownPhases::Destruct),
+                                 "MODULES",
                                  "Destructing a non-terminated module. "
-                                 "Module Name (resource category): ", ResourceCategory  )
+                                 "Module Resource category: ", ResourceCategory  )
         }
 
     // #############################################################################################
@@ -389,7 +389,7 @@ class Module
              **************************************************************************************/
             void  BootstrapSetConfig(config::Configuration* pConfig)
             {
-                ALIB_ASSERT_ERROR( config == nullptr,
+                ALIB_ASSERT_ERROR( config == nullptr, "MODULES",
                                    "This module already has a configuration object set." )
                 config= pConfig;
             }
@@ -423,7 +423,7 @@ class Module
          ******************************************************************************************/
         void            BootstrapSetResourcePool(resources::ResourcePool* pool)
         {
-            ALIB_ASSERT_ERROR( bootstrapState == 0,
+            ALIB_ASSERT_ERROR( bootstrapState == 0, "MODULES",
                                "A custom resource pool must be set prior to module initialization.")
             resourcePool= pool;
         }
@@ -469,7 +469,7 @@ class Module
          * #resourcePool providing field #ResourceCategory as parameter.
          *
          * \note
-         *   Usually, it is recommended to use #Get, which asserts with debug builds
+         *   Usually, it is recommended to use #GetResource, which asserts with debug builds
          *   if a resource was not found.
          * @param name  The resource name.
          * @return The resource string, respectively a \e nulled string on failure.

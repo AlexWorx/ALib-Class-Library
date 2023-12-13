@@ -2,18 +2,18 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_MONOALLOCATOR
 #define HPP_ALIB_MONOMEM_MONOALLOCATOR 1
 
-#if !defined (HPP_ALIB_MONOMEM_MONOMEM)
-#   include "alib/monomem/monomem.hpp"
-#endif
-
 #if !defined (HPP_ALIB_TMP) && !defined(ALIB_DOX)
 #   include "alib/lib/tmp.hpp"
+#endif
+
+#if !defined (HPP_ALIB_MONOMEM_FWDS)
+#   include "alib/monomem/fwds.hpp"
 #endif
 
 #if ALIB_THREADS
@@ -36,12 +36,17 @@
 #    endif
 #endif
 
-#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#   include "alib/lib/fs_debug/assert.hpp"
+
+#if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB_)
+#   include <cstdlib>
 #endif
 
-#if !defined (_GLIBCXX_MONOMEM) && !defined(_MONOMEM_)
+#if !defined (_GLIBCXX_MEMORY) && !defined(_MEMORY_)
 #   include <memory>
+#endif
+
+#if !defined (_GLIBCXX_CSTDDEF) && !defined (_CSTDDEF_)
+#   include <cstddef>
 #endif
 
 
@@ -55,9 +60,11 @@ namespace aworx { namespace lib { namespace monomem {
  * The allocations can be reset to a certain state (see #TakeSnapshot), which allows to reuse
  * the allocated chunks for future sequential allocations.
  *
- * The standard size of the chunks allocated is defined with constructor parameter
- * \p{stdChunkSize}. This value is reduced by #MaxUsableSpaceLoss and stored in field
- * #stdUsableSpace.
+ * The size of the chunks allocated is defined with constructor parameters
+ * \p{initialChunkSize}. This value is reduced by #MaxUsableSpaceLoss and stored in field
+ * #nextChunksUsableSize. With each allocation of a chunk this value can be increased.
+ * Constructor parameter \p{chunkGrowthInPercent} defaults to 200, which doubles the next
+ * chunk size.
  *
  * If an invocation of one of the allocation methods requests memory bigger than the
  * remaining space in the actual (last) chunk, then a new chunk is created and made the actual
@@ -65,14 +72,14 @@ namespace aworx { namespace lib { namespace monomem {
  * The remaining space of the former actual chunk will not be used for future allocations and is
  * lost in this respect, except for the following exclamation.
  *
- * If a requested allocation size exceeds #stdUsableSpace, then a new chunk with the requested size
+ * If a requested allocation size exceeds #nextChunksUsableSize, then a new chunk with the requested size
  * is created, stored in the list of allocated chunks and the current chunk remains in use.
  * With that, requested allocations are allowed to have a bigger size than the standard
  * chunk size given in the constructor.<br>
  *
  * Depending on compiler symbol \ref ALIB_DEBUG_MONOMEM some metrics on instances of this class
  * become available. Those might for example be helpful to find a reasonable value for constructor
- * parameter \p{stdChunkSize}.
+ * parameter \p{initialChunkSize}.
  **************************************************************************************************/
 class MonoAllocator
 {
@@ -113,10 +120,13 @@ class MonoAllocator
             static
             Chunk* create( size_t size )
             {
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 size+= MonoAllocator::MaxUsableSpaceLoss();
                 Chunk*  chunk= new (malloc(size)) Chunk();
                 chunk->act = reinterpret_cast<char*>( chunk + 1 );
                 chunk->end = reinterpret_cast<char*>( chunk ) + size;
+                ALIB_WARNINGS_RESTORE
+
                 return chunk;
             }
 
@@ -124,15 +134,6 @@ class MonoAllocator
              * Defaulted default constructor
              **************************************************************************************/
             Chunk()                                                                       = default;
-
-            /** ************************************************************************************
-             * Special constructor used for static member \alib{monomem,MonoAllocator::dummyChunk}.
-             **************************************************************************************/
-            Chunk( TInitializeDefaults )
-            : previous(nullptr)
-            , act     ( reinterpret_cast<char*>(this))
-            , end     ( reinterpret_cast<char*>(this))
-            {}
 
             /** ************************************************************************************
              * Deletes the allocated chunk and with it, this object itself.
@@ -148,7 +149,9 @@ class MonoAllocator
              **************************************************************************************/
             void reset()
             {
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 act= reinterpret_cast<char*>( this + 1 );
+                ALIB_WARNINGS_RESTORE
             }
 
             /** ************************************************************************************
@@ -164,11 +167,12 @@ class MonoAllocator
             {
                 void*   result= act;
                 size_t freeSpace= static_cast<size_t>( end-act );
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 if( !std::align( alignment, requestedSize, result, freeSpace) )
                     return nullptr;
                 act= reinterpret_cast<char*>( result ) + requestedSize;
-
                 return reinterpret_cast<char*>( result );
+                ALIB_WARNINGS_RESTORE
             }
 
             /** ************************************************************************************
@@ -214,12 +218,6 @@ class MonoAllocator
     // protected fields
     // #############################################################################################
     protected:
-        /** Static, zero-sized chunk used to avoid checks if no "real" chunks have been allocated,
-         *  yet. */
-        static
-        ALIB_API
-        Chunk               dummyChunk;
-
         /** The actual chunk. Contains a link to previously allocated chunks.*/
         Chunk*              chunk;
 
@@ -227,7 +225,7 @@ class MonoAllocator
         Chunk*              recyclables;
 
         /**
-         * The standard allocation size given in the constructor minus the maximum overhead
+         * The initial allocation size given in the constructor minus the maximum overhead
          * caused by storing a chunk's management data inside the chunks themselves.
          * In other words, this field stores the value given in the constructor, minus the value
          * returned by \alib{monomem::MonoAllocator,MaxUsableSpaceLoss}.
@@ -235,7 +233,14 @@ class MonoAllocator
          * Allocated chunks may be bigger in the case that a single allocation is larger than this
          * value.
          */
-        size_t              stdUsableSpace;
+        size_t              nextChunksUsableSize;
+
+        /**
+         * Growth factor of subsequently allocated chunks.
+         * Given by a construction parameter, which defaults to 200, which doubles chunk size
+         * with each next chunk allocation.
+         */
+        unsigned int        chunkGrowthInPercent;
 
     public:
         #if ALIB_DEBUG_MONOMEM
@@ -327,9 +332,8 @@ class MonoAllocator
                  * @param allocator   The current chunk.
                  */
                 Snapshot( MonoAllocator* allocator )
-                : chunk  ( allocator->chunk != &MonoAllocator::dummyChunk ? allocator->chunk
-                                                                          : nullptr             )
-                , actFill( allocator->chunk->act)
+                : chunk  ( allocator->chunk )
+                , actFill( chunk ? allocator->chunk->act : nullptr)
                 {}
 
                 /**
@@ -359,12 +363,16 @@ class MonoAllocator
    public:
         /** ****************************************************************************************
          * Constructor.
-         * #MaxUsableSpaceLoss is subtracted from given \p{stdChunkSize} and stored in field
-         * #stdUsableSpace.
-         *
-         * @param stdChunkSize The standard size of memory chunks that are dynamically allocated.
+         * #MaxUsableSpaceLoss is subtracted from given \p{initialChunkSize} and stored in field
+         * #nextChunksUsableSize.
+         * @param chunkGrowthInPercent  Optional growth factor in percent (*100), applied to each
+         *                              allocation of a next chunk size.
+         *                              Values provided should be greater than 100.<p>
+         *                              Defaults to 200, which doubles chunk size with each
+         *                              next internal chunk allocation.
+         * @param initialChunkSize      The standard size of memory chunks that are dynamically allocated.
          ******************************************************************************************/
-        ALIB_API    MonoAllocator( size_t stdChunkSize );  // add optional increase
+        ALIB_API    MonoAllocator( size_t initialChunkSize, unsigned int chunkGrowthInPercent= 200 );
 
 
         /** ****************************************************************************************
@@ -384,10 +392,16 @@ class MonoAllocator
          * allocations are performed) which then has to be passed to the overloaded method
          * \b Reset(const Snapshot&).
          *
-         * @param stdChunkSize The size of memory chunks allocated.
+         * @param initialChunkSize      The size of memory chunks allocated.
+         * @param chunkGrowthInPercent  Optional growth factor in percent (*100), applied to each
+         *                              allocation of a next chunk size.
+         *                              Values provided should be greater than 100.<p>
+         *                              Defaults to 200, which doubles chunk size with each
+         *                              next internal chunk allocation.
          * @return A \b MonoAllocator object residing in its first created chunk.
          ******************************************************************************************/
-        ALIB_API static MonoAllocator* Create( size_t stdChunkSize );
+        ALIB_API static MonoAllocator* Create( size_t       initialChunkSize,
+                                               unsigned int chunkGrowthInPercent= 200 );
 
 
         #if ALIB_THREADS && ALIB_FILESET_MODULES && !defined(ALIB_DOX)
@@ -416,20 +430,25 @@ class MonoAllocator
             #if ALIB_DEBUG_MONOMEM
                 ++DbgStats.QtyAllocations;
                 DbgStats.AllocSize    += size;
-                size_t qtyLeftBeforeAlloc= static_cast<size_t>(chunk->end - chunk->act);
+                size_t qtyLeftBeforeAlloc= chunk ? static_cast<size_t>(chunk->end - chunk->act)
+                                                 : 0;
             #endif
 
-            char* mem= chunk->alloc( size, alignment );
+            char* mem;
 
-            if( mem )
+            if( chunk )
             {
-                #if ALIB_DEBUG_MONOMEM
-                    DbgStats.AlignmentWaste+=   qtyLeftBeforeAlloc
-                                              - static_cast<size_t>(chunk->end - chunk->act)
-                                              - size;
-                    DbgStats.QtyTrivialAllocations++;
-                #endif
-                return mem;
+                mem = chunk->alloc(size, alignment);
+                if ( mem )
+                {
+                    #if ALIB_DEBUG_MONOMEM
+                        DbgStats.AlignmentWaste += qtyLeftBeforeAlloc
+                            - static_cast<size_t>(chunk->end - chunk->act)
+                            - size;
+                        DbgStats.QtyTrivialAllocations++;
+                    #endif
+                    return mem;
+                }
             }
 
             return getCreateChunk( size, alignment );
@@ -508,7 +527,9 @@ class MonoAllocator
         template<typename T, typename TSize, typename... TArgs>
         T*              EmplaceArray( TSize length, TArgs&& ... args )
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             T* mem= AllocArray<T, TSize>( length );
+            ALIB_WARNINGS_RESTORE
 
             for( TSize i= 0 ; i < length ; ++i )
                 new (mem + i) T(std::forward<TArgs>( args )...);
@@ -519,6 +540,10 @@ class MonoAllocator
         /** ****************************************************************************************
          * Saves the current state of the allocator and returns this information as a \b Snapshot
          * value. Such snapshots may be passed to method #Reset(const Snapshot&).
+         *
+         * Note that the actual memory is \b not copied and restored. In this respect the word
+         * "Snapshot" is overstating. What is stored are the current use of memory, but not it's
+         * contents.
          *
          * @return A (lightweight) snapshot value object.
          ******************************************************************************************/
@@ -532,7 +557,7 @@ class MonoAllocator
          * Parameter \p{snapshot} is defaulted with a default-constructed \b Snapshot, which
          * completely resets the allocator.
          *
-         * Withe a reset, the memory chunks which had been allocated after taking the given
+         * With a reset, the memory chunks which had been allocated after taking the given
          * \p{snapshot}, are not freed, but re-used with future monotonic allocations.
          *
          * This method is useful in cases where some permanent objects which are allocated first
@@ -595,10 +620,13 @@ class MonoAllocator
          * This constructor is used by static method #Create which uses <em>placement new</em> to
          * create this allocate inside the chunk given.
          *
-         * @param firstChunk   The first chunk already created outside.
-         * @param stdChunkSize The size of memory chunks allocated.
+         * @param firstChunk            The first chunk already created outside.
+         * @param initialChunkSize      The size of the first chunk allocated.
+         * @param chunkGrowthInPercent  Growth factor in percent (*100), applied to each
+         *                              allocation of a next chunk size.
          ******************************************************************************************/
-        ALIB_API    MonoAllocator( Chunk* firstChunk, size_t stdChunkSize );
+        ALIB_API    MonoAllocator( Chunk* firstChunk,
+                                   size_t initialChunkSize, unsigned int chunkGrowthInPercent );
 
         /** ****************************************************************************************
          * This internal allocation method is called by the allocation interface methods, in case
@@ -659,8 +687,8 @@ void     Destruct(T* object)
  **************************************************************************************************/
 inline
 MonoAllocator&          AcquireGlobalAllocator( const NCString&  dbgFile,
-                                               int              dbgLine,
-                                               const NCString&  dbgFunc  );
+                                                int              dbgLine,
+                                                const NCString&  dbgFunc  );
 
 /** ************************************************************************************************
  * Simple inline function that releases \alib{monomem,GlobalAllocatorLock}, previously acquired

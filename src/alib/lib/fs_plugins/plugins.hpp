@@ -1,8 +1,8 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_plugins of the \aliblong.
+ * This header file is part of file set \alibfs_plugins of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_FS_PLUGINS_PLUGINS
@@ -22,10 +22,6 @@ ALIB_ASSERT_FILESET(PLUGINS)
 #   include "alib/lib/features.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#   include "alib/lib/fs_debug/assert.hpp"
-#endif
-
 #if !defined(HPP_ALIB_FS_COMMONENUMS_DEFS)
 #   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
 #endif
@@ -42,7 +38,7 @@ ALIB_ASSERT_FILESET(PLUGINS)
 #   include <algorithm>
 #endif
 
-namespace aworx { namespace lib {
+namespace aworx { namespace lib { namespace detail {
 
 /** ************************************************************************************************
  * This class usually is used as a base class for types that need to manage simple plug-ins.
@@ -130,7 +126,7 @@ class PluginContainer
                                           Responsibility responsibility
                                                            = Responsibility::KeepWithSender )
         {
-            ALIB_ASSERT_ERROR( plugin != nullptr, "Nullptr provided for plugin." )
+            ALIB_ASSERT_ERROR( plugin != nullptr, "FSPLUGINS", "Nullptr provided for plugin." )
 
             static_assert(    std::has_virtual_destructor<TPlugin>::value
                            || responsibility == Responsibility::KeepWithSender,
@@ -139,7 +135,7 @@ class PluginContainer
             plugins.insert( std::find_if( plugins.begin(),  plugins.end(),
                                           [priority]( Slot& ppp)
                                           {
-                                              ALIB_ASSERT_ERROR( ppp.priority != priority,
+                                              ALIB_ASSERT_ERROR( ppp.priority != priority, "FSPLUGINS",
                                                "PluginContainer::InsertPlugin(): Plug-in with same priority exists" )
 
                                               return ppp.priority < priority;
@@ -191,7 +187,7 @@ class PluginContainer
         void                RemovePlugin( integer idx )
         {
             ALIB_ASSERT_WARNING( idx < CountPlugins(),
-                                 "PluginContainer::RemovePlugin(): Index out of bounds: ", idx )
+                                 "FSPLUGINS: PluginContainer::RemovePlugin(): Index out of bounds: ", idx )
             plugins.erase( plugins.begin() + idx );
         }
 
@@ -222,7 +218,7 @@ class PluginContainer
                                             } ),
                            plugins.end() );
 
-            ALIB_ASSERT_WARNING( plugin,
+            ALIB_ASSERT_WARNING( plugin, "FSPLUGINS",
                                  "PluginContainer::RemovePlugin(): No Plug-in was removed " )
 
             return  plugin;
@@ -314,7 +310,7 @@ class PluginContainer
 
 }; // class PluginContainer
 
-}} // namespace [aworx::lib]
+}}} // namespace [aworx::lib::detail]
 
 
 

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOXING
@@ -19,12 +19,12 @@ ALIB_ASSERT_MODULE(BOXING)
 #   include "alib/lib/tmp.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#   include "alib/lib/fs_debug/assert.hpp"
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_INTEGERS_INTEGERS)
-#   include "alib/lib/fs_integers/integers.hpp"
+#if !defined(HPP_ALIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
 #endif
 
 #if !defined(HPP_ALIB_SINGLETONS_SINGLETON)
@@ -47,11 +47,8 @@ ALIB_ASSERT_MODULE(BOXING)
 #   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
 #endif
 
-
-#if ALIB_DEBUG
-#   if !defined(HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#       include "alib/lib/fs_debug/typedemangler.hpp"
-#   endif
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
 
 #if !defined (_GLIBCXX_TYPEINDEX) && !defined(_TYPEINDEX_)
@@ -84,7 +81,6 @@ ALIB_ASSERT_MODULE(BOXING)
 
 
 
-
 //##################################################################################################
 //###################################        INL Headers         ###################################
 //##################################################################################################
@@ -98,12 +94,10 @@ ALIB_ASSERT_MODULE(BOXING)
 #include "alib/boxing/boxes.inl"
 #include "alib/boxing/functiondefs.inl"
 
-
+//##################################################################################################
+//########      Namespace functions  (Bootstrap, BootstrapRegister, RegisterDefault)      ##########
+//##################################################################################################
 namespace aworx { namespace lib { namespace boxing {
-
-//##################################################################################################
-//#############      Namespace functions  (Bootstrap, BootstrapRegister, RegisterDefault)      ###################
-//##################################################################################################
 
 /** ************************************************************************************************
  * This method needs to be called with bootstrapping a software.
@@ -122,6 +116,7 @@ namespace aworx { namespace lib { namespace boxing {
  *   For information about using this method, consult chapter
  *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
  * ************************************************************************************************/
+ALIB_API
 void        Bootstrap();
 
 /** ************************************************************************************************
@@ -158,9 +153,8 @@ template<typename TFDecl, typename TMapping>
 inline
 void BootstrapRegister( typename TFDecl::Signature function )
 {
-// temporarily uncomment this for debugging ALib itself, which must not register a function twice
-//ALIB_ASSERT_ERROR( nullptr == detail::T_VTableFactory<TMapping>::Get()->Functions.template Get<TFDecl>(false),
-//                   "Doubly defined function" )
+    ALIB_ASSERT_ERROR( nullptr == detail::T_VTableFactory<TMapping>::Get()->Functions.template Get<TFDecl>(false),
+                       "BOXING", "Doubly defined function" )
 
     detail::T_VTableFactory<TMapping>::Get()->Functions.template Set<TFDecl>( function );
 }

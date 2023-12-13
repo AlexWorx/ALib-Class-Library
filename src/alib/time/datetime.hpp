@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_DATETIME
@@ -33,7 +33,7 @@ namespace aworx { namespace lib { namespace time {
  * if module \alib_system is included in the \alibdist.
  * A typical construction with this helper could look like this:
  *
- *      DateTime myDate= CalendarDateTime(2019,1,31,14,5).Get( Timezone::UTC );
+ *      DateTime myDate= CalendarDateTime(2023,1,31,14,5).Get( Timezone::UTC );
  **************************************************************************************************/
 class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 {
@@ -157,6 +157,67 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
                                                    Timezone timezone= Timezone::Local );
         #endif
 
+
+        /** ****************************************************************************************
+         * Equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator==( const DateTime& other )                                        const
+        {
+            return stamp == other.stamp;
+        }
+
+
+        /** ****************************************************************************************
+         * Not equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator!=( const DateTime& other )                                        const
+        {
+            return stamp != other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Less than operator.
+         * @param other The time stamp to compare.
+         * @return A reference to this object.
+         ******************************************************************************************/
+        bool   operator<( const DateTime& other )                                         const
+        {
+            return stamp <  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Less than or equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator<=( const DateTime& other )                                        const
+        {
+            return stamp <=  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Greater than operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator>( const DateTime& other )                                         const
+        {
+            return stamp >  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Greater than or equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator>=( const DateTime& other )                                        const
+        {
+            return stamp >=  other.stamp;
+        }
 };
 
 

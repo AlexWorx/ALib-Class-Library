@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TIMEPOINTBASE
@@ -24,8 +24,8 @@ ALIB_ASSERT_MODULE(TIME)
 #   endif
 #endif
 
-#if !defined(HPP_ALIB_FS_INTEGERS_INTEGERS)
-#   include "alib/lib/fs_integers/integers.hpp"
+#if !defined(HPP_ALIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
 #endif
 
 
@@ -35,6 +35,10 @@ ALIB_ASSERT_MODULE(TIME)
 
 #if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
     #include <cmath>
+#endif
+
+#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
+#   include <algorithm>
 #endif
 
 namespace aworx { namespace lib { namespace time {
@@ -47,7 +51,7 @@ namespace aworx { namespace lib { namespace time {
  *
  * The common features that this class provides to its descendants are:
  * - Type definition #TTimePoint used to store a point in time.
- * - Method #NativeValue, which exposes the internal value of type #TTimePoint which is of C++
+ * - Method #Export, which returns the internal value of type #TTimePoint which is of C++
  *   standard type \c std::chrono::time_point.
  * - Inner class \alib{time::TimePointBase,Duration} that represents the difference type of this
  *   class.
@@ -164,6 +168,29 @@ class TimePointBase
              **************************************************************************************/
             static
             Duration        Import( TDuration timeSpan )        {  return Duration ( timeSpan ); }
+
+
+            /** ************************************************************************************
+             * Sets this object's value to the given duration, in the case the given is shorter.
+             * @param other The time stamp to compare.
+             * @return A reference to this object.
+             **************************************************************************************/
+            Duration&        SetMinimum( const Duration& other  )
+            {
+                span= (std::min)(span, other.span);
+                return *this;
+            }
+
+            /** ************************************************************************************
+             * Sets this object's value to the given duration, in the case the given is longer.
+             * @param other The time stamp to compare.
+             * @return A reference to this object.
+             **************************************************************************************/
+            Duration&        SetMaximum( const Duration& other  )
+            {
+                span= (std::max)(span, other.span);
+                return *this;
+            }
 
             /** ************************************************************************************
              * Equal to operator.
@@ -321,6 +348,7 @@ class TimePointBase
                return *this;
             }
 
+
         // #########################################################################################
         // Conversion to/from time values (nanoseconds, milliseconds, microseconds, seconds, ...)
         // #########################################################################################
@@ -332,7 +360,7 @@ class TimePointBase
              **************************************************************************************/
             double         InDays()       const
             {
-               return std::chrono::duration_cast<std::chrono::microseconds>( span ).count()
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
                       / (1000000. * 3600. * 24. );
             }
 
@@ -352,8 +380,8 @@ class TimePointBase
              **************************************************************************************/
             double        InHours()      const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count()
-                                           / (1000000. * 3600. ) );
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
+                                           / (1000000. * 3600. );
             }
 
             /** ************************************************************************************
@@ -371,7 +399,7 @@ class TimePointBase
              **************************************************************************************/
             double        InMinutes()    const
             {
-               return std::chrono::duration_cast<std::chrono::microseconds>( span ).count()
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
                       / (1000000. * 60. );
             }
 
@@ -390,7 +418,7 @@ class TimePointBase
              **************************************************************************************/
             double        InSeconds()    const
             {
-               return std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count()
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count() )
                       / (1000000000. );
             }
 
@@ -409,7 +437,7 @@ class TimePointBase
              **************************************************************************************/
             double      InMilliseconds()    const
             {
-               return std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count()
+               return static_cast<double>( std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count() )
                       / (1000000. );
             }
 
@@ -428,7 +456,7 @@ class TimePointBase
              **************************************************************************************/
             double      InMicroseconds()    const
             {
-               return std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count()
+               return static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count())
                       / (1000. );
             }
 
@@ -465,7 +493,7 @@ class TimePointBase
                     return 0.0;
 
                 // calc hertz
-                double hz= 1000000000.0 /  InNanoseconds();
+                double hz= 1000000000.0 / static_cast<double>(InNanoseconds());
 
                 // no rounding? that's it
                 if ( qtyFractionalDigits < 0 )
@@ -640,7 +668,8 @@ class TimePointBase
     // #############################################################################################
 
     protected:
-        /** The internal timer value. This value can be accessed using method #NativeValue. */
+        /** The internal timer value. This value can be accessed using methods #Export and
+         *  #Import. */
         TTimePoint                stamp;
 
     // #############################################################################################
@@ -682,7 +711,7 @@ class TimePointBase
 
         /** ****************************************************************************************
          * Constructor using native C++ library values.
-         * \see Method #NativeValue.
+         * \see Methods #Import and #Export.
          *
          * @param internalValue The value to copy into this.
          ******************************************************************************************/
@@ -690,7 +719,6 @@ class TimePointBase
         TimePointBase( TTimePoint internalValue )
         : stamp(internalValue)
         {}
-
 
     // #############################################################################################
     // Interface
@@ -710,6 +738,15 @@ class TimePointBase
         }
 
         /** ****************************************************************************************
+         * Unsets this object, hence makes this object representing the start of the epoch, as if
+         * it was constructed with parameter value \c Initialization::Suppress.
+         ******************************************************************************************/
+        void        Unset()
+        {
+            stamp= TTimePoint();
+        }
+
+        /** ****************************************************************************************
          * Copies the value from the given object.
          * @param other The point in time to copy from.
          ******************************************************************************************/
@@ -720,29 +757,47 @@ class TimePointBase
 
         /** ****************************************************************************************
          * Returns the internal time value in the C++ standard library type.
-         *
-         * @return  The internal value
+         * @return  The internal value.
          ******************************************************************************************/
-        TTimePoint&  NativeValue()
+        TTimePoint  Export()                                                                   const
         {
             return stamp;
         }
 
         /** ****************************************************************************************
+         * Sets the the internal time value given by a value of C++ standard library type.
+         * @param timePoint  The value to set.
+         ******************************************************************************************/
+        void        Import(TTimePoint timePoint)
+        {
+            stamp= timePoint;
+        }
+
+
+        /** ****************************************************************************************
          * Returns the internal time value in the C++ standard library's tick unit.
          *
-         * @return  The internal value
+         * @return  The internal value.
          ******************************************************************************************/
-        TRaw        Raw()        const
+        TRaw        ToRaw()                                                                   const
         {
             return stamp.time_since_epoch().count();
+        }
+
+        /** ****************************************************************************************
+         * Sets the value from a value of C++ standard library's tick unit type.
+         * @param raw The time span to create in raw units.
+         ******************************************************************************************/
+        void        SetFromRaw( TRaw raw )
+        {
+            stamp= TTimePoint( typename TClock::duration( raw ) );
         }
 
         /** ****************************************************************************************
          * Creates an instance from a value of C++ standard library's tick unit type.
          *
          * @param raw The time span to create in raw units.
-         * @return  The internal value
+         * @return  The internal value.
          ******************************************************************************************/
         static
         TDerived    FromRaw( TRaw raw )
@@ -801,68 +856,6 @@ class TimePointBase
         Duration operator-( const TDerived& other )                                            const
         {
             return Duration(stamp - other.stamp);
-        }
-
-
-        /** ****************************************************************************************
-         * Equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
-        bool   operator==( const TDerived& other )                                             const
-        {
-            return stamp == other.stamp;
-        }
-
-
-        /** ****************************************************************************************
-         * Not equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
-        bool   operator!=( const TDerived& other )                                             const
-        {
-            return stamp != other.stamp;
-        }
-
-        /** ****************************************************************************************
-         * Less than operator.
-         * @param other The time stamp to compare.
-         * @return A reference to this object.
-         ******************************************************************************************/
-        bool   operator<( const TDerived& other )                                              const
-        {
-            return stamp <  other.stamp;
-        }
-
-        /** ****************************************************************************************
-         * Less than or equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
-        bool   operator<=( const TDerived& other )                                             const
-        {
-            return stamp <=  other.stamp;
-        }
-
-        /** ****************************************************************************************
-         * Greater than operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
-        bool   operator>( const TDerived& other )                                              const
-        {
-            return stamp >  other.stamp;
-        }
-
-        /** ****************************************************************************************
-         * Greater than or equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
-        bool   operator>=( const TDerived& other )                                             const
-        {
-            return stamp >=  other.stamp;
         }
 
     // #############################################################################################

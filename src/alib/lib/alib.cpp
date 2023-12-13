@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -22,7 +22,7 @@
 
 #   include <thread>
 
-#   if ALIB_FILESET_DEBUG  && !defined(ALIB_DOX)
+#   if !defined(ALIB_DOX)
 #      include "alib/lib/fs_debug/assert.hpp"
 #   else
 #      include <iostream>
@@ -44,7 +44,7 @@
      * In release compilations, this function is inlined and empty and therefore has not necessarily
      * be removed by preprocessor macro \ref ALIB_DBG or otherwise.
      *
-     * In debug-compilatins, this is not empty, if:
+     * In debug-compilations, this is not empty, if:
      * 1. Module \alib_threads is not included in the \alibdist (what disables thread-safeness
      *    throughout the library), and
      * 2. Compiler symbol \ref ALIB_EXT_LIB_THREADS_AVAILABLE was passed on library compilation,
@@ -75,15 +75,9 @@
 
         if( threadSeen != std::this_thread::get_id() )
         {
-            #if ALIB_FILESET_DEBUG
-                ALIB_ERROR(  "A second thread was detected using a single-threaded compilation of "
-                             "ALib! (Module 'Threads' not included in the ALib distribution)."     )
-            #else
-                std::cout << "A second thread was detected using a single-threaded compilation of "
-                             "ALib! (Module 'Threads' not included in the ALib distribution)."
-                          << std::endl;
-                assert(0);
-            #endif
+            ALIB_ERROR(  "THREADS",
+                         "A second thread was detected using a single-threaded compilation of "
+                         "ALib! (Module 'Threads' not included in the ALib distribution)."     )
         }
         inSingleThreadedCheck= false;
     }
@@ -92,6 +86,203 @@
 
 #endif  // !ALIB_THREADS && ALIB_DEBUG && ALIB_EXT_LIB_THREADS_AVAILABLE
 
+
+
+// #################################################################################################
+// Debug functions
+// #################################################################################################
+#if ALIB_DEBUG
+#   include <iostream>
+#   include <cassert>
+#   include <cstring>
+#   include "alib/lib/tools.hpp"
+#   if defined( _WIN32 ) && !defined(_STRING_)
+#      include <string>
+#   endif
+
+namespace aworx { namespace lib {
+
+
+void (*DBG_SIMPLE_ALIB_MSG_PLUGIN)( const char* file, int line, const char* method,
+                                    int type, const char* topic, int qtyMsgs, const char** msgs )
+       =nullptr;
+
+
+//! @cond NO_DOX
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+void DbgSimpleALibMsg( const char* file, int line, const char* method, int type,
+                       const char* topic,
+                       const char* msg1, const char* msg2, const char* msg3,
+                       const char* msg4, const char* msg5                         )
+{
+ALIB_WARNINGS_RESTORE
+
+    int   qtyMsgs=  msg2 != nullptr ? (msg3 != nullptr ? (msg4 != nullptr ? (msg5 != nullptr ? 5 : 4) : 3) : 2) : 1;
+    const char* msgs[5]= { msg1, msg2, msg3, msg4, msg5 };
+
+    if( DBG_SIMPLE_ALIB_MSG_PLUGIN )
+    {
+        DBG_SIMPLE_ALIB_MSG_PLUGIN( file, line, method, type, topic, qtyMsgs, msgs );
+        return;
+    }
+
+    // internal implementation
+         if( type == 0 )  std::cout << "ALib Error: ";
+    else if( type == 1 )  std::cout << "ALib WARNING: ";
+    else                  std::cout << "ALib Message(" << type << "): ";
+
+    // With ALox replacing this method (the usual thing), the first string might auto-detected
+    // as an ALox domain name. To keep this consistent wie do a similar effort here
+    // (code is copied from ALoxReportWriter::Report())
+    int msgNo= 0;
+    if(qtyMsgs > 1)
+    {
+        bool illegalCharacterFound= false;
+
+        auto strLen= strlen(msg1);
+        for( size_t idx= 0 ;  idx< strLen ; ++idx )
+        {
+            char c= msg1[idx];
+            if (!    (    isdigit( c )
+                       || ( c >= 'A' && c <= 'Z' )
+                       || c == '-'
+                       || c == '_'
+                       || c == '/'
+                       || c == '.'
+              )      )
+            {
+                    illegalCharacterFound= true;
+                break;
+            }
+        }
+
+        if(!illegalCharacterFound)
+        {
+            std::cout << msg1 << ": ";
+            msgNo= 1;
+        }
+    }
+
+
+    for ( ; msgNo != qtyMsgs; ++msgNo )
+        std::cout << msgs[msgNo];
+    std::cout << std::endl;
+    std::cout << "At        : " << file << ':' << line << ' ' << method << "()" << std::endl;
+
+    assert(type);
+}
+
+void DbgSimpleALibMsg( const char* file, int line, const char* method, int type,
+                       const char* topic, const char* msg, int intVal )
+{
+    std::basic_string<char> sIntVal=       std::to_string( intVal );
+    if( DBG_SIMPLE_ALIB_MSG_PLUGIN )
+    {
+        const char* msgs[2]= { msg, sIntVal.c_str() };
+        DBG_SIMPLE_ALIB_MSG_PLUGIN( file, line, method, type, topic, 2, msgs );
+        return;
+    }
+
+    // internal implementation
+    if( type == 0 )
+        std::cout << "Error in '" << topic << "': ";
+    else
+        std::cout << "Warning in '" << topic << "' " << "(type=" << type << "): ";
+    std::cout << msg << sIntVal << std::endl;
+    std::cout << "At        : " << file << ':' << line << ' ' << method << "()" << std::endl;
+    assert(type);
+}
+
+//! @endcond
+}}// namespace [aworx::lib]
+
+#endif
+
+
+// #################################################################################################
+// static assertions for the platform
+// #################################################################################################
+
+#if !defined(HPP_ALIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
+#endif
+#if !defined(_GLIBCXX_TYPE_TRAITS) || !defined(_TYPE_TRAITS_)
+#   include <type_traits>
+#endif
+
+
+static_assert(         sizeof(aworx::integer )       ==         sizeof(aworx::uinteger  ),       "Error in ALib type definitions" );
+static_assert(         sizeof(aworx::integer )       ==         sizeof(std::size_t    ),         "Error in ALib type definitions" );
+static_assert(std::is_signed< aworx::integer>::value == std::is_signed<std::ptrdiff_t >::value,  "Error in ALib type definitions" );
+static_assert(std::is_signed< aworx::integer>::value != std::is_signed<std::size_t    >::value,  "Error in ALib type definitions" );
+static_assert(std::is_signed<aworx::uinteger>::value == std::is_signed<std::size_t    >::value,  "Error in ALib type definitions" );
+static_assert(std::is_signed<aworx::uinteger>::value != std::is_signed<std::ptrdiff_t >::value,  "Error in ALib type definitions" );
+
+
+// #################################################################################################
+// Type De-mangling
+// #################################################################################################
+
+#if ALIB_DEBUG && !defined(ALIB_DOX)
+#   if !defined (HPP_ALIB_TOOLS)
+#      include "alib/lib/tools.hpp"
+#   endif
+
+#   if defined(__GNUC__) || defined(__clang__)
+#      include <cxxabi.h>
+#      include <cassert>
+#   endif
+
+#   if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB_)
+#      include <cstdlib>
+#   endif
+
+#   if defined(_WIN32) && !defined(_CSTRING_)
+#      include <cstring>
+#   endif
+
+namespace aworx { namespace lib {
+
+    #if defined(__GNUC__) || defined(__clang__)
+
+        DbgTypeDemangler::DbgTypeDemangler( const std::type_info& typeInfo )
+        {
+            int status;
+            name= abi::__cxa_demangle( typeInfo.name(), nullptr, nullptr, &status);
+            assert( status==0 );
+        }
+
+        DbgTypeDemangler::~DbgTypeDemangler()
+        {
+            if ( name )
+                std::free(static_cast<void*>( const_cast<char*>(name) ) );
+        }
+
+        const char* DbgTypeDemangler::Get()
+        {
+            return name;
+        }
+
+    #else
+        DbgTypeDemangler::DbgTypeDemangler( const type_info& typeInfo )
+        {
+            name= typeInfo.name();
+            if (std::strncmp( name, "class ", 6) == 0)
+                name+= 6;
+        }
+
+        DbgTypeDemangler::~DbgTypeDemangler()
+        {
+        }
+
+        const char* DbgTypeDemangler::Get()
+        {
+            return name;
+        }
+    #endif
+
+}} // namespace [aworx::lib}
+#endif // ALIB_DEBUG
 
 // #################################################################################################
 // Namespace documentation aworx and aworx::lib
@@ -214,6 +405,3 @@ namespace aworx {
  * # Reference Documentation #
  */
 namespace lib { }}
-
-
-

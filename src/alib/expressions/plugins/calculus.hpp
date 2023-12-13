@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
@@ -446,12 +446,12 @@ struct Calculus   : public CompilerPlugin
      * Hash map assigning combinations of (unary and binary) operators and its argument types to a
      * tuple providing information about a callback function.
      *
-     * The tuple stored, contains the function pointer and the functions's return type.
+     * The tuple stored, contains the function pointer and the functions' return type.
      * A third member of type #CTInvokable indicates whether the callback function is allowed to be
      * invoked on the \alib{expressions,Scope} object used at compile-time.
      * This scope object is of the same (eventually custom) type as the one for evaluation, however
      * the evaluation-specific data is not set. In other words, the third tuple member denotes
-     * if during program compilation the function might be invoked when the operator's argumeent(s)
+     * if during program compilation the function might be invoked when the operator's argument(s)
      * are constant.
      *
      * A fourth tuple member of type \alib{strings,TString,String} is available only with debug builds
@@ -845,7 +845,7 @@ struct Calculus   : public CompilerPlugin
          *   \ref alib_expressions_details_optimizations_norm.
          *
          * \note
-         *   Note that, If the aformentioned feature is used, then this function name has to be
+         *   Note that, if the aforementioned feature is used, then this function name has to be
          *   provided together with the implementation of the expression function itself,
          *   even if the internal default cast implementation (activated by setting field
          *   #Callback to \c nullptr) is used. The rationale is, that this library can not

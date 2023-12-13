@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_characters of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARACTERS
@@ -26,8 +26,8 @@ ALIB_ASSERT_MODULE(CHARACTERS)
 #   include "alib/lib/tmp.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_INTEGERS_INTEGERS)
-#   include "alib/lib/fs_integers/integers.hpp"
+#if !defined(HPP_ALIB_INTEGERS)
+#   include "alib/lib/integers.hpp"
 #endif
 
 #if !defined (_GLIBCXX_STRING) && !defined(_STRING_)

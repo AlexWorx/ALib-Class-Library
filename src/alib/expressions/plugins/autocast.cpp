@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -140,17 +140,17 @@ ALIB_DBG(upgradeCastDBG         = "ToBoolean"; )
     // set upgrade function to the right callback
     if(  t1 < t2 )
     {
-        ciAutoCast.Callback                       = upgradeCast;
-        ciAutoCast.TypeOrValue                    = *(ciAutoCast.ArgsBegin + 1);
+        ciAutoCast.Callback                    = upgradeCast;
+        ciAutoCast.TypeOrValue                 = *(ciAutoCast.ArgsBegin + 1);
         ciAutoCast.ReverseCastFunctionName     = decompileFunctionCall;
-ALIB_DBG(ciAutoCast.DbgCallbackName= upgradeCastDBG; )
+ALIB_DBG(ciAutoCast.DbgCallbackName            = upgradeCastDBG; )
     }
     else
     {
-        ciAutoCast.CallbackRhs                    = upgradeCast;
-        ciAutoCast.TypeOrValueRhs                 = *(ciAutoCast.ArgsBegin    );
+        ciAutoCast.CallbackRhs                 = upgradeCast;
+        ciAutoCast.TypeOrValueRhs              = *(ciAutoCast.ArgsBegin    );
         ciAutoCast.ReverseCastFunctionNameRhs  = decompileFunctionCall;
-ALIB_DBG(ciAutoCast.DbgCallbackNameRhs= upgradeCastDBG; )
+ALIB_DBG(ciAutoCast.DbgCallbackNameRhs         = upgradeCastDBG; )
     }
 
     // If constant values were given, we can we do it right away (compile-time optimization)

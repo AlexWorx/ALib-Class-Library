@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Tools: DoxygenGraphTemplateInstanceRemover
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -22,7 +22,7 @@
 # General
 # -------------------------------------------------------------------------------------------------
 
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.20.0 )
     project( "DoxygenGraphTemplateInstanceRemover" )
 
     # this defaults to a release version!
@@ -66,9 +66,9 @@ aux_source_directory(. SRC_LIST)
 #! [DOXYGEN_CMAKE_COTIRE_TARGET]
 # link against unity-built version of library in case of cotire
 if( ${ALIB_CMAKE_COTIRE} )
-    target_link_libraries     ( dot   ALib_StaticLib_unity  )
+    target_link_libraries     ( dot   PRIVATE ALib_StaticLib_unity  )
 else()
-    target_link_libraries     ( dot   ALib_StaticLib        )
+    target_link_libraries     ( dot   PRIVATE ALib_StaticLib        )
 endif()
 #! [DOXYGEN_CMAKE_COTIRE_TARGET]
 

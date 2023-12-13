@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -39,6 +39,9 @@
 #       include "alib/lib/fs_modules/distribution.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
+
+
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::results::Report::Types, vt_alib_report_types )
 
 
 namespace aworx { namespace lib { namespace results {
@@ -86,7 +89,7 @@ void Report::PopHaltFlags()
         if ( stackEmptyError )
         {
             PushHaltFlags( true, true );
-            ALIB_ERROR( "Stack empty, too many pop operations" );
+            ALIB_ERROR( "RESULTS", "Stack empty, too many pop operations" );
         }
     )
 }
@@ -103,8 +106,8 @@ void Report::PushWriter( ReportWriter* newReportWriter )
 void Report::PopWriter( ReportWriter* checkWriter )
 {
     ALIB_LOCK_WITH(lock)
-    if ( writers.size() == 0 )             {  ALIB_ERROR( "No Writer to remove" )          return; }
-    if ( writers.top()  != checkWriter )   {  ALIB_ERROR( "Report Writer is not actual" )  return; }
+    if ( writers.size() == 0 )             {  ALIB_ERROR( "RESULTS", "No Writer to remove" )          return; }
+    if ( writers.top()  != checkWriter )   {  ALIB_ERROR( "RESULTS", "Report Writer is not actual" )  return; }
     writers.top()->NotifyActivation( Phase::End );
     writers.pop();
     if ( writers.size() > 0 )
@@ -117,7 +120,7 @@ ReportWriter* Report::PeekWriter()
     return writers.top();
 }
 
-void Report::DoReport( const Message& message )
+void Report::DoReport( Message& message )
 {
     ALIB_LOCK_WITH(lock)
     if (recursionBlocker)
@@ -143,9 +146,11 @@ void Report::DoReport( const Message& message )
             #if defined( _WIN32 )
                 if( halt )
                 {
+                    #if  ALIB_SYSTEM
                     if ( ALIB.IsDebuggerPresent() )
                         DebugBreak();
                     else
+                    #endif
                         assert( false );
                 }
             #else
@@ -170,17 +175,50 @@ void ReportWriterStdIO::NotifyActivation( Phase phase )
 }
 
 
-void ReportWriterStdIO::Report( const Message& msg )
+void ReportWriterStdIO::Report( Message& msg )
 {
     ALIB_IF_THREADS( SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
 
-        String512 buffer( "ALib " );
+        String1K buffer( "ALib " );
              if (  msg.Type.Integral() == 0 )   buffer._( "Error:   " );
         else if (  msg.Type.Integral() == 1 )   buffer._( "Warning: " );
         else                                    buffer._( "Report (type=" )._( msg.Type )._("): ");
 
         auto* out  = msg.Type.Integral() == 0 || msg.Type.Integral() == 1 ? &std::cerr : &std::cout;
         auto* other= msg.Type.Integral() == 0 || msg.Type.Integral() == 1 ? &std::cout : &std::cerr;
+
+        // With ALox replacing this report writer (the usual thing), the first string might
+        // become auto-detected as an ALox domain name. To keep this consistent wie do a similar
+        // effort here (code is copied from ALoxReportWriter::Report())
+        NString32 replacement;
+        if(     msg.Size() > 1
+            &&  msg[0].IsArrayOf<nchar>()
+            &&  msg[0].UnboxLength() < 29 )
+        {
+            bool illegalCharacterFound= false;
+            NString firstArg= msg[0].Unbox<NString>();
+            for( integer idx= 0 ;  idx< firstArg.Length() ; ++idx )
+            {
+                char c= firstArg[idx];
+                if (!    (    isdigit( c )
+                           || ( c >= 'A' && c <= 'Z' )
+                           || c == '-'
+                           || c == '_'
+                           || c == '/'
+                           || c == '.'
+                  )      )
+                {
+                    illegalCharacterFound= true;
+                    break;
+                }
+            }
+
+            if(!illegalCharacterFound)
+            {
+                replacement <<  firstArg << ": ";
+                msg[0]= replacement;
+            }
+        }
 
         SPFormatter formatter= Formatter::GetDefault();
         if( formatter != nullptr)
@@ -217,7 +255,7 @@ void ReportWriterStdIO::Report( const Message& msg )
         out  ->flush();
         other->flush();
 
-        #if defined( _WIN32 ) && ALIB_FILESET_MODULES
+        #if defined( _WIN32 ) && ALIB_SYSTEM
             if ( ALIB.IsDebuggerPresent() )
             {
                 #if !ALIB_CHARACTERS_WIDE

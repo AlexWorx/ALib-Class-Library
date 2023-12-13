@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -22,7 +22,7 @@
 #   include "alib/results/report.hpp"
 #endif
 
-#if defined(__GLIBCXX__)
+#if defined(__GLIBCXX__) || defined(__ANDROID_NDK__)
     #include <unistd.h>
 #elif defined(__APPLE__)
     #include <unistd.h>
@@ -63,7 +63,7 @@ const ProcessInfo&    ProcessInfo::Current()
 }
 
 
-#if defined(__GLIBC__) && defined(__unix__)
+#if defined(__GLIBC__) && defined(__unix__) || defined(__ANDROID_NDK__)
     bool readProcFile( const NCString& fileName, AString& result  );
     bool readProcFile( const NCString& fileName, AString& result  )
     {
@@ -129,7 +129,7 @@ const ProcessInfo&    ProcessInfo::Current()
                                 ||   (     Name.Length() >= 2
                                         && Name.CharAtStart<false>()=='('
                                         && Name.CharAtEnd  <false>()==')' ),
-                                "Error reading process Info"         )
+                                "SYSTEM", "Error reading process Info"         )
 
         if ( Name.CharAtEnd  () == ')' ) Name.DeleteEnd  <false>( 1 );
         if ( Name.CharAtStart() == '(' ) Name.DeleteStart<false>( 1 );
@@ -149,8 +149,8 @@ const ProcessInfo&    ProcessInfo::Current()
         {
             ExecFilePath.Append( buffer, length );
             integer idx= ExecFilePath.LastIndexOf( '/' );
-            ALIB_ASSERT_ERROR( idx>= 0,
-                               "Executable path does not contain directory separator character.\\n"
+            ALIB_ASSERT_ERROR( idx>= 0, "SYSTEM",
+                               "Executable path does not contain directory separator character.\n"
                                "  Path: {}", ExecFilePath )
             ExecFileName._( ExecFilePath, idx + 1 );
             ExecFilePath.ShortenTo( idx );
@@ -227,7 +227,7 @@ const ProcessInfo&    ProcessInfo::Current()
         GetModuleFileNameA( NULL, buf, MAX_PATH );
         ExecFilePath.Reset( (const char*) buf );
         integer idx= ExecFilePath.LastIndexOf( '\\' );
-        ALIB_ASSERT_ERROR( idx>= 0,
+        ALIB_ASSERT_ERROR( idx>= 0, "SYSTEM",
                            "Executable path does not contain directory separator character: ",
                            ExecFilePath )
         Name= ExecFileName._( ExecFilePath, idx + 1 );

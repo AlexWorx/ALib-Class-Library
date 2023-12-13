@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -70,11 +70,11 @@ Paragraphs& Paragraphs::PushIndent( uinteger qty, character fillChar )
 
 Paragraphs& Paragraphs::PopIndent()
 {
-    ALIB_ASSERT_ERROR( !IndentSizesFirstLine.empty(), "Paragraphs: PopIndent without prior push." )
+    ALIB_ASSERT_ERROR( !IndentSizesFirstLine.empty(), "TEXT", "Paragraphs: PopIndent without prior push." )
     IndentFirstLine.DeleteEnd( static_cast<integer>( IndentSizesFirstLine.top() ) );
     IndentSizesFirstLine.pop();
 
-    ALIB_ASSERT_ERROR( !IndentSizesOtherLines.empty(),"Paragraphs: PopIndent without prior push." )
+    ALIB_ASSERT_ERROR( !IndentSizesOtherLines.empty(),"TEXT", "Paragraphs: PopIndent without prior push." )
     IndentOtherLines.DeleteEnd( static_cast<integer>( IndentSizesOtherLines.top() ) );
     IndentSizesOtherLines.pop();
     return *this;
@@ -131,29 +131,29 @@ namespace
     void throwMarkerException( Exceptions eType, String& markedBuffer, integer errPos )
     {
         String64 actText;
-        integer excerptPos= 25;
-        integer excerptStart= errPos - 25;
-        if( excerptStart <= 0 )
+        integer exceptPos= 25;
+        integer exceptStart= errPos - 25;
+        if( exceptStart <= 0 )
         {
-            excerptPos+= excerptStart;
-            excerptStart= 0;
+            exceptPos+= exceptStart;
+            exceptStart= 0;
         }
         else
         {
             actText._( A_CHAR("[...]") );
-            excerptPos+= 5;
+            exceptPos+= 5;
         }
 
 
-        actText._( markedBuffer, excerptStart, 50 );
-        if( markedBuffer.Length() > excerptStart + 50 )
+        actText._( markedBuffer, exceptStart, 50 );
+        if( markedBuffer.Length() > exceptStart + 50 )
             actText._( A_CHAR("[...]") );
-                     actText.SearchAndReplace( A_CHAR("\r"), A_CHAR("\\r"), excerptPos );
-                     actText.SearchAndReplace( A_CHAR("\n"), A_CHAR("\\n"), excerptPos );
-        excerptPos+= actText.SearchAndReplace( A_CHAR("\r"), A_CHAR("\\r")             );
-        excerptPos+= actText.SearchAndReplace( A_CHAR("\n"), A_CHAR("\\n")             );
+                    actText.SearchAndReplace( A_CHAR("\r"), A_CHAR("\\r"), exceptPos );
+                    actText.SearchAndReplace( A_CHAR("\n"), A_CHAR("\\n"), exceptPos );
+        exceptPos+= actText.SearchAndReplace( A_CHAR( "\r"), A_CHAR( "\\r")             );
+        exceptPos+= actText.SearchAndReplace( A_CHAR( "\n"), A_CHAR( "\\n")             );
 
-        throw Exception( ALIB_CALLER_NULLED, eType, errPos, actText, excerptPos );
+        throw Exception( ALIB_CALLER_NULLED, eType, errPos, actText, exceptPos );
     }
 
 }
@@ -163,9 +163,11 @@ namespace
 
 void   Paragraphs::AddMarked( Boxes&  args )
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     character searchCharBuf[2];
               searchCharBuf[0]= MarkerChar;
               searchCharBuf[1]= '\n';
+    ALIB_WARNINGS_RESTORE
     String searchChars(searchCharBuf, 2);
 
     Formatter->Acquire(ALIB_CALLER_PRUNED);
@@ -344,8 +346,10 @@ void  Paragraphs::Format( AString&      text,
             // insert indent if not just spaces
             if ( !indentAreJustSpaces )
             {
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 text.InsertAt( indent, startIdx );
                 startIdx+= indent.Length();
+                ALIB_WARNINGS_RESTORE
             }
 
             #if defined( _WIN32 )

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_resources of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESOURCES_LOCALRESOURCEPOOL
@@ -18,8 +18,8 @@
 #   include "alib/monomem/hashmap.hpp"
 #endif
 
-namespace aworx  { namespace lib { namespace resources {
 
+namespace aworx  { namespace lib { namespace resources {
 
 /** ************************************************************************************************
  * This class provides a very simple implementation of abstract interface class
@@ -50,15 +50,30 @@ class LocalResourcePool  : public ResourcePool
         /** A hash map used to store static resources. */
         detail::StaticResourceMap       data;
 
+    #if ALIB_DEBUG_RESOURCES
+    /** If set prior to bootstrapping (e.g. to <c>&std::cout</c>), then each found resource string
+     *  is written here. This is very useful to find errors in bulk resource strings, for example
+     *  a simple missing comma.
+     *
+     * ### Availability ###
+     * Available only if compiler symbol \ref ALIB_DEBUG_RESOURCES is set.
+     *  \see Manual section \ref alib_resources_details_debug.
+     */
+    public: static std::ostream*    DbgResourceLoadObserver;
+    #endif
+
     // #############################################################################################
     // Constructor/Destructor
     // #############################################################################################
     public:
         /** Constructor. */
-        ALIB_API
-        LocalResourcePool();
+        LocalResourcePool()
+        : data( &monomem::GlobalAllocator )
+        {}
 
         /** Destructor. */
+        ALIB_API
+        virtual
         ~LocalResourcePool()                                                                override
         {}
 
@@ -90,6 +105,11 @@ class LocalResourcePool  : public ResourcePool
 
     /** ********************************************************************************************
      * Implements abstract method \alib{resources,ResourcePool::BootstrapAddOrReplace}.
+     * \note
+     *   If compiler symbol \ref ALIB_DEBUG_RESOURCES is set on compilation and static field
+     *   \alib{resources,LocalResourcePool::DbgResourceLoadObserver} is set prior to bootstrapping,
+     *   this method will write information about whether the given data is added or replaced
+     *   to the debug output stream.
      *
      * @param category   Category string of the resource to add.
      * @param name       Name string of the resource.

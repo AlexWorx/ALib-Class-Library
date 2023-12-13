@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,7 +34,7 @@ using namespace aworx;
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- CurrentDir
@@ -108,10 +108,10 @@ UT_METHOD(GetVariable)
     aworx::AString aString;
     bool result;
     #if defined(_WIN32)
-        result=  lib::system::GetEnvironmentVariable( A_CHAR("HOMEDRIVE"), aString );
-        result|= lib::system::GetEnvironmentVariable( A_CHAR("HOMEPATH") , aString, CurrentData::Keep );
+        result=    EnvironmentVariables::Get( A_CHAR("HOMEDRIVE"), aString )
+                 | EnvironmentVariables::Get( A_CHAR("HOMEPATH") , aString, lib::CurrentData::Keep );
     #else
-        result=  lib::system::GetEnvironmentVariable( A_CHAR("HOME")    , aString );
+        result=  EnvironmentVariables::Get( A_CHAR("HOME")    , aString );
     #endif
 
     UT_PRINT("The aString directory is:" )
@@ -119,9 +119,10 @@ UT_METHOD(GetVariable)
     UT_TRUE( Directory::Exists( aString ) )
     UT_TRUE( result )
 
-    result=  lib::system::GetEnvironmentVariable( A_CHAR("Nonexistingenvvar")  , aString );
-    UT_FALSE( result )
-    UT_TRUE( aString.IsEmpty() )
+    result=  EnvironmentVariables::Get( A_CHAR("Nonexistingenvvar")  , aString, lib::CurrentData::Keep );
+    UT_FALSE( result )   UT_FALSE( aString.IsEmpty() )
+    result=  EnvironmentVariables::Get( A_CHAR("Nonexistingenvvar")  , aString );
+    UT_FALSE( result )   UT_TRUE ( aString.IsEmpty() )
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -138,7 +139,7 @@ UT_METHOD(Processes)
     const ProcessInfo& currentProcess= ProcessInfo::Current();
     UT_TRUE( currentProcess.PID != 0 )
 
-    #if defined (__GLIBC__) || defined(__APPLE__)
+    #if defined (__GLIBC__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
         // print process tree of us
         int indent= 0;
         uinteger nextPID= currentProcess.PPID;

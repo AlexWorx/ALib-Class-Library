@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -21,60 +21,61 @@
 
 namespace aworx { namespace lib { namespace expressions { namespace util {
 
-ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
+ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
                                           Compiler*      pCompiler,
                                           SPFormatter    formatter,
-                                          character      ESCCharacter,
-                                          character      ESCOpeningBracket,
-                                          character      ESCClosingBracket     )
+                                          character      separatorChar    )
 : compiler            ( pCompiler )
 , stdFormatter        ( formatter )
-, originalFormatString( customFormatString )
-, formatString        ( customFormatString )
+, originalFormatString( pFormatString )
 {
+    // use ALib standard formatter, if no dedicated instance was given.
     if(!formatter.get())
         stdFormatter= Formatter::GetDefault();
 
-    integer parsePos= 0;
-    while(parsePos < formatString.Length() )
+    // parse format string
+    integer nonExprPortionStart= 0;
+    integer parsePos           = 0;
+    while(parsePos < originalFormatString.Length() )
     {
         // has next parse position?
-        integer parsePosCopy= parsePos;
-        if( ( parsePos= formatString.IndexOf( ESCCharacter, parsePosCopy ) ) < 0 )
-            break;
-
-        String expressionString;
-        integer endPos= parsePos+ 1;
-        if( endPos < formatString.Length() )
+        // Note: if bracket is found at the end of string, we just ignore this here. An according
+        // exception is thrown in formatter later.
+        if(    ( parsePos= originalFormatString.IndexOf( A_CHAR('{'), parsePos ) ) < 0
+            ||   parsePos == originalFormatString.Length() - 1 )
         {
-            // double Escape character? -> replace to single!
-            if( formatString[endPos] == ESCCharacter )
-            {
-                formatString.Delete( endPos, 1 );
-                ++parsePos;
-                continue;
-            }
-
-            // find end of expression string
-            if( formatString[endPos] == ESCOpeningBracket )
-            {
-                endPos= formatString.IndexOfSegmentEnd( ESCOpeningBracket, ESCClosingBracket, endPos + 1 );
-                expressionString= formatString.Substring( parsePos + 2, endPos - parsePos - 2 );
-                ++endPos;
-            }
-            else
-            {
-                while( endPos < formatString.Length()  && isalpha( formatString[endPos] ) )
-                    ++endPos;
-                expressionString= formatString.Substring( parsePos + 1, endPos - parsePos - 1 );
-            }
+            formatStringStripped << originalFormatString.Substring( nonExprPortionStart );
+            break;
         }
+
+        // double Escape character? -> ignore
+        ++parsePos;
+        if( originalFormatString[parsePos] == A_CHAR('{') )
+        {
+            ++parsePos;
+            continue;
+        }
+
+        // add current portion to format string
+        formatStringStripped << originalFormatString.Substring( nonExprPortionStart, parsePos - nonExprPortionStart );
+
+        // Either find separator character or closing bracket of placeholder
+        integer endPos= parsePos;
+        while(      endPos < originalFormatString.Length() -1
+               &&   originalFormatString[endPos] != separatorChar
+               &&   originalFormatString[endPos] != A_CHAR('}')     )
+            ++endPos;
+
+        // extract expression string and set start of non-expression portion
+        String expressionString= originalFormatString.Substring( parsePos, endPos - parsePos );
+        nonExprPortionStart= endPos;
+        if( originalFormatString[endPos] == separatorChar )
+            ++nonExprPortionStart;
 
         // add expression
         try
         {
             expressions.emplace_back( compiler->Compile( expressionString ) );
-
         }
         catch( Exception& e)
         {
@@ -82,13 +83,6 @@ ExpressionFormatter::ExpressionFormatter( const String   customFormatString,
                     expressions.size() + 1, originalFormatString );
              throw;
         }
-
-        // delete expression from format string
-        formatString.Delete( parsePos, endPos - parsePos
-                                       + (    endPos < formatString.Length()
-                                           && formatString[endPos] == ESCCharacter ? 1 : 0 )  );
-
-        ++parsePos;
     }
 }
 
@@ -97,7 +91,7 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
 {
     // evaluate expressions and collect boxes
     auto& results= stdFormatter->Acquire(ALIB_CALLER_PRUNED);
-    results.Add( formatString );
+    results.Add( formatStringStripped );
 
     try
     {

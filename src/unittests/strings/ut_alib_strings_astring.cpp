@@ -1,11 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 #if ALIB_UT_STRINGS
 
 #include "alib/alox.hpp"
@@ -38,27 +39,13 @@
 #endif
 
 
-// For code compatibility with ALox Java/C++
-// We have to use underscore as the start of the name and for this have to disable a compiler
-// warning. But this is a local code (cpp file) anyhow.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-
-    #define _NC _<false>
-
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
-
 using namespace std;
 using namespace aworx;
 
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 
 //--------------------------------------------------------------------------------------------------
@@ -293,7 +280,17 @@ UT_METHOD( DeleteInsertFillReplace )
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@',   0,  10)  ;    UT_EQ( A_CHAR("@@@@@@@@@@"),   ms )
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@', -10, 100)  ;    UT_EQ( A_CHAR("@@@@@@@@@@"),   ms )
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@', -10,  5 )  ;    UT_EQ( A_CHAR("0123456789"),   ms )
+// GCC V.12.2.0 is afraid that internally an illegal memset is performed with the next test (which is not true)
+#if defined(__clang__)
+#elif defined(__GNUC__)
+_Pragma("GCC diagnostic push")
+_Pragma("GCC diagnostic ignored \"-Wstringop-overflow\"")
+#endif
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@', -10, 10 )  ;    UT_EQ( A_CHAR("0123456789"),   ms )
+#if defined(__clang__)
+#elif defined(__GNUC__)
+_Pragma("GCC diagnostic pop")
+#endif
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@', -10, 11 )  ;    UT_EQ( A_CHAR("@123456789"),   ms )
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@',   0,  1 )  ;    UT_EQ( A_CHAR("@123456789"),   ms )
         ms.Reset(A_CHAR("0123456789"));   ms.ReplaceRegion          ( '@',   0,  2 )  ;    UT_EQ( A_CHAR("@@23456789"),   ms )
@@ -408,10 +405,10 @@ UT_METHOD( Append )
         ms.Reset()._   ( t, -5, 10);                UT_EQ( A_CHAR("01234")      , ms )
         ms.Reset()._   ( t, -5, 100);               UT_EQ( A_CHAR("0123456789") , ms )
 
-        // _NC
+        // _<false>
         ms.SetNull();            UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms._NC( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms.Reset()._NC( t, 5,3); UT_EQ( A_CHAR("567"),  ms )
+        ms._<false>( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
+        ms.Reset()._<false>( t, 5,3); UT_EQ( A_CHAR("567"),  ms )
     }
 
     // const complementChar*
@@ -446,10 +443,10 @@ UT_METHOD( Append )
         ms.Reset()._   ( t, -5, 10);                UT_EQ( A_CHAR("01234")      , ms )
         ms.Reset()._   ( t, -5, 100);               UT_EQ( A_CHAR("0123456789") , ms )
 
-        // _NC
+        // _<false>
         ms.SetNull();            UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms._NC( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms.Reset()._NC( t, 5,3); UT_EQ( A_CHAR("567"),  ms )
+        ms._<false>( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
+        ms.Reset()._<false>( t, 5,3); UT_EQ( A_CHAR("567"),  ms )
     }
 
     // const strangeChar*
@@ -480,10 +477,10 @@ UT_METHOD( Append )
         ms.Reset()._   ( t, -5, 10);                UT_EQ( A_CHAR("01234")      , ms )
         ms.Reset()._   ( t, -5, 100);               UT_EQ( A_CHAR("0123456789") , ms )
 
-        // _NC
+        // _<false>
         ms.SetNull();            UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms._NC( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
-        ms.Reset()._NC( t, 5,3); UT_EQ( A_CHAR("567"),  ms)
+        ms._<false>( csEmpty );       UT_EQ  ( 0, ms.Length()      )  UT_TRUE( ms.IsNull()   )
+        ms.Reset()._<false>( t, 5,3); UT_EQ( A_CHAR("567"),  ms)
     }
 
     // fundamental types
@@ -547,10 +544,10 @@ UT_METHOD( Append )
         t.ConsumeChar();         ms.Reset( t );           UT_EQ(  A_CHAR("234") , ms  )
         t.ConsumeCharFromEnd();  ms.Reset( t );           UT_EQ( A_CHAR("23")   , ms  )
 
-        // _NC
+        // _<false>
         ms.SetNull();             UT_EQ  ( 0, ms.Length()        )  UT_TRUE( ms.IsNull() )
-        ms._NC( ssEmpty );        UT_EQ  ( 0, ms.Length()        )  UT_TRUE( ms.IsNull() )
-        ms.Reset()._NC( t);       UT_EQ( A_CHAR("23"),  ms )
+        ms._<false>( ssEmpty );        UT_EQ  ( 0, ms.Length()        )  UT_TRUE( ms.IsNull() )
+        ms.Reset()._<false>( t);       UT_EQ( A_CHAR("23"),  ms )
     }
 
     // std::string
@@ -575,10 +572,10 @@ UT_METHOD( Append )
         ms.Reset()._( t, -5, 10);       UT_EQ( A_CHAR("01234")      , ms )
         ms.Reset()._( t, -5, 100);      UT_EQ( A_CHAR("0123456789") , ms )
 
-        // _NC
+        // _<false>
         ms.SetNull();                   UT_EQ( 0, ms.Length())   UT_TRUE( ms.IsNull() )
-        ms._NC( ssEmpty );              UT_EQ( 0, ms.Length())   UT_TRUE( ms.IsNull() )
-        ms.Reset()._NC( t);             UT_EQ( A_CHAR("0123456789"), ms  )
+        ms._<false>( ssEmpty );         UT_EQ( 0, ms.Length())   UT_TRUE( ms.IsNull() )
+        ms.Reset()._<false>( t);        UT_EQ( A_CHAR("0123456789"), ms  )
         ms.Reset()._<false>( t ,2,3);   UT_EQ( A_CHAR("234")       , ms  )
     }
 
@@ -792,7 +789,6 @@ UT_METHOD( CapacityLength )
         lib::results::Report::GetDefault().PopHaltFlags();
     }
 }
-
 
 //--------------------------------------------------------------------------------------------------
 //--- Test Tab
@@ -1492,7 +1488,7 @@ UT_METHOD( Compare )
     UT_FALSE( ms > greater2 )
     UT_FALSE( ms < smaller  )
     UT_FALSE( ms < smaller2 )
-    UT_TRUE ( ms == ms )
+    UT_TRUE ( ms.Equals(ms) ) // using == raises a C++ 20 warning with Clang only. Don't really get it.
     UT_TRUE ( ms != greater )
     UT_FALSE( ms < ms )
     UT_FALSE( ms > ms )
@@ -1664,6 +1660,43 @@ UT_METHOD( ConvertCase )
     }
 }
 
+//--------------------------------------------------------------------------------------------------
+//--- Test Revert
+//--------------------------------------------------------------------------------------------------
+UT_METHOD( Revert )
+{
+    UT_INIT()
+
+    NAString na;                        na.Reverse();           UT_TRUE( na.Equals( NullNString()          ) )
+    na         << A_NCHAR(""         ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR(""           )) )
+                                        na.Reverse<false>(0,0); UT_TRUE( na.Equals( A_NCHAR(""           )) )
+    na.Reset() << A_NCHAR("1"        ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR("1"          )) )
+    na.Reset() << A_NCHAR("12"       ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR("21"         )) )
+    na.Reset() << A_NCHAR("123"      ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR("321"        )) )
+    na.Reset() << A_NCHAR("1234"     ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR("4321"       )) )
+    na.Reset() << A_NCHAR("12345"    ); na.Reverse();           UT_TRUE( na.Equals( A_NCHAR("54321"      )) )
+
+    WAString wa;                        wa.Reverse();           UT_TRUE( wa.Equals( NullWString()          ) )
+    wa         << A_WCHAR(""         ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR(""           )) )
+                                        wa.Reverse<false>(0,0); UT_TRUE( wa.Equals( A_WCHAR(""           )) )
+    wa.Reset() << A_WCHAR("1"        ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR("1"          )) )
+    wa.Reset() << A_WCHAR("12"       ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR("21"         )) )
+    wa.Reset() << A_WCHAR("123"      ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR("321"        )) )
+    wa.Reset() << A_WCHAR("1234"     ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR("4321"       )) )
+    wa.Reset() << A_WCHAR("12345"    ); wa.Reverse();           UT_TRUE( wa.Equals( A_WCHAR("54321"      )) )
+
+    XAString xa;                        xa.Reverse();           UT_TRUE( xa.Equals( NullXString()          ) )
+    xa         << A_XCHAR(""         ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR(""           )) )
+                                        xa.Reverse<false>(0,0); UT_TRUE( xa.Equals( A_XCHAR(""           )) )
+    xa.Reset() << A_XCHAR("1"        ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR("1"          )) )
+    xa.Reset() << A_XCHAR("12"       ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR("21"         )) )
+    xa.Reset() << A_XCHAR("123"      ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR("321"        )) )
+    xa.Reset() << A_XCHAR("1234"     ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR("4321"       )) )
+    xa.Reset() << A_XCHAR("12345"    ); xa.Reverse();           UT_TRUE( xa.Equals( A_XCHAR("54321"      )) )
+
+}
+
+
 
 //--------------------------------------------------------------------------------------------------
 //--- Test XAString
@@ -1675,21 +1708,36 @@ UT_METHOD( Test_XAString )
     // this mainly is for testing CharArray<xchar> methods
 
     XAString  xstr( "BCDEF" );
-    UT_TRUE(  xstr == A_XCHAR( "BCDEF"  ) )
-    UT_FALSE( xstr <  A_XCHAR( "BCDEF"  ) )
+    UT_TRUE ( xstr                  == A_XCHAR( "BCDEF"  ) )
+    UT_TRUE ( A_XCHAR( "BCDEF")     == xstr                )
+    UT_FALSE( xstr                  <  A_XCHAR( "BCDEF"  ) )
+    UT_FALSE( A_XCHAR( "BCDEF")     >  xstr                )
 
-    UT_TRUE(  xstr != A_XCHAR( "ABCDEF" ) )
-    UT_FALSE( xstr == A_XCHAR( "ABCDEF" ) )
-    UT_FALSE( xstr <  A_XCHAR( "ABCDEF" ) )
-    UT_TRUE(  xstr >  A_XCHAR( "ABCDEF" ) )
+    UT_TRUE ( xstr                  != A_XCHAR( "ABCDEF" ) )
+    UT_FALSE( xstr                  == A_XCHAR( "ABCDEF" ) )
+    UT_FALSE( xstr                  <  A_XCHAR( "ABCDEF" ) )
+    UT_TRUE ( xstr                  >  A_XCHAR( "ABCDEF" ) )
 
-    UT_TRUE(  xstr != A_XCHAR( "CBCDEF" ) )
-    UT_FALSE( xstr == A_XCHAR( "CBCDEF" ) )
-    UT_FALSE( xstr >  A_XCHAR( "CBCDEF" ) )
-    UT_TRUE ( xstr <  A_XCHAR( "CBCDEF" ) )
+    UT_TRUE ( xstr                  != A_XCHAR( "CBCDEF" ) )
+    UT_FALSE( xstr                  == A_XCHAR( "CBCDEF" ) )
+    UT_FALSE( xstr                  >  A_XCHAR( "CBCDEF" ) )
+    UT_TRUE ( xstr                  <  A_XCHAR( "CBCDEF" ) )
 
-    UT_FALSE( xstr == A_XCHAR( "CBCDEX" ) )
-    UT_TRUE(  xstr != A_XCHAR( "CBCDEX" ) )
+    UT_FALSE( xstr                  == A_XCHAR( "CBCDEX" ) )
+    UT_TRUE ( xstr                  != A_XCHAR( "CBCDEX" ) )
+
+    UT_TRUE ( A_XCHAR( "ABCDEF" )   != xstr                )
+    UT_FALSE( A_XCHAR( "ABCDEF" )   == xstr                )
+    UT_TRUE ( A_XCHAR( "ABCDEF" )   <  xstr                )
+    UT_FALSE( A_XCHAR( "ABCDEF" )   >  xstr                )
+
+    UT_TRUE ( A_XCHAR( "CBCDEF" )   != xstr                )
+    UT_FALSE( A_XCHAR( "CBCDEF" )   == xstr                )
+    UT_TRUE ( A_XCHAR( "CBCDEF" )   >  xstr                )
+    UT_FALSE( A_XCHAR( "CBCDEF" )   <  xstr                )
+
+    UT_FALSE( A_XCHAR( "CBCDEX" )   == xstr                )
+    UT_TRUE(  A_XCHAR( "CBCDEX" )   != xstr                )
 
     UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "bcdef" )) == 0 )
     UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "acdef" )) >  0 )

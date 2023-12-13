@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -56,7 +56,7 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
         /** ****************************************************************************************
          * Destructs a ConsoleLogger
          ******************************************************************************************/
-        virtual            ~ConsoleLogger() {}
+        virtual            ~ConsoleLogger()                                             override  {}
 
     // #############################################################################################
     // Abstract method implementations
@@ -69,7 +69,7 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool        notifyLogOp( Phase phase );
+        virtual bool        notifyLogOp( Phase phase )                                     override;
 
         /** ****************************************************************************************
          * Writes the given region of the given string to the console.
@@ -80,13 +80,14 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
          * @return The number of characters written, -1 on error.
          ******************************************************************************************/
         ALIB_API
-        virtual integer     logSubstring( const String& buffer, integer start, integer length );
+        virtual integer     logSubstring( const     String& buffer,
+                                          integer   start,           integer length )      override;
 
 
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
-        virtual void        notifyMultiLineOp( Phase )    {}
+        virtual void        notifyMultiLineOp( Phase )                                   override {}
 
 }; // class ConsoleLogger
 

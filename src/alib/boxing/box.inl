@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOX
@@ -48,7 +48,7 @@ class Box
 
 
         // #########################################################################################
-        // Two local macro that check whether TBoxable is a valid type to box, respectively unbox..
+        // Two local macro that check whether TBoxable is a valid type to box, respectively unbox.
         // For this, various different cases are (redundantly) checked to produce compiler
         // errors that provide all necessary information about why the operation can not be
         // performed.
@@ -485,21 +485,6 @@ class Box
         #undef ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_BOXING
         #undef ALIB_TM_IS_DEFAULT_BOXING
 
-        //###################   type checks used with IsType<T> and Unbox<T>   #####################
-    protected:
-
-
-        // #########################################################################################
-        // Local Macro that checks whether TBoxable is a valid type to unbox.
-        // For this, various different cases are (redundantly) checked to produce compiler
-        // errors that provide all necessary information about why a type can not be unboxed.
-        // Note: Using an empty templated method for this, produced the static assertion only after
-        //       other compiler errors. Therefore, a macro is used.
-        // #########################################################################################
-
-
-
-
     #endif // defined(ALIB_DOX)
 
     // #############################################################################################
@@ -795,7 +780,7 @@ class Box
          ******************************************************************************************/
         template<typename TUnboxable>
         inline
-        const TUnboxable  Unbox()                                                              const;
+        const TUnboxable  Unbox()                                                             const;
         #else
 
         template <typename TUnboxable>
@@ -806,7 +791,7 @@ class Box
         {
             ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING(TUnboxable)
 
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Unboxing is undefined behavior." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
             ALIB_ASSERT_ERROR( vtable == getVTable<TUnboxable>(),
                                "Can not unbox type <" , DbgTypeDemangler(typeid(TUnboxable)).Get(),
                                "> from mapped type <" , DbgTypeDemangler(vtable->Type    ).Get(),
@@ -819,6 +804,29 @@ class Box
         #undef ALIB_TEMPINTERNAL_STATIC_TYPE_CHECKS_UNBOXING
         #endif
 
+        #if defined(ALIB_DOX)
+        /** ****************************************************************************************
+         * Convenient method to unbox types boxed as pointers, as a non-<c>const</c> pointer type.
+         *
+         * \see Refer to manual chapter \ref alib_boxing_classes_constant for more information.
+         *
+         * @tparam TUnboxable The type to unbox. If it is not unboxable, a compile-time
+         *                    assertion is given.
+         * @return The unboxed value of type \p{TUnboxable} casted to a non-<c>const</c> object.
+         ******************************************************************************************/
+        template<typename TUnboxable>
+        inline
+        TUnboxable  UnboxMutable()                                                            const;
+        #else
+
+        template <typename TUnboxable>
+        ALIB_FORCE_INLINE
+        TUnboxable
+        UnboxMutable()                                                                         const
+        {
+            return const_cast<ATMP_RC(TUnboxable)>( Unbox<TUnboxable>() );
+        }
+        #endif
 
         /** ****************************************************************************************
          * Returns the "raw" placeholder of this box.
@@ -830,7 +838,7 @@ class Box
          ******************************************************************************************/
         const Placeholder&  Data()                                                             const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Can nt access placeholder." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Can nt access placeholder." )
             return data;
         }
 
@@ -847,7 +855,7 @@ class Box
          ******************************************************************************************/
         Placeholder&        Data()
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Can't access placeholder." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Can't access placeholder." )
             return data;
         }
 
@@ -865,7 +873,7 @@ class Box
          ******************************************************************************************/
         unsigned int        GetPlaceholderUsageLength()                                        const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized." )
             return vtable->PlaceholderUsage;
         }
 
@@ -904,7 +912,7 @@ class Box
          ******************************************************************************************/
         const std::type_info&   ElementTypeID()                                                const
         {
-            ALIB_ASSERT_ERROR( vtable   , "Box not initialized. Can not get type information." )
+            ALIB_ASSERT_ERROR( vtable   , "BOXING", "Box not initialized. Can not get type information." )
             return  vtable->ElementType;
         }
 
@@ -916,7 +924,7 @@ class Box
          ******************************************************************************************/
         size_t           ArrayElementSize()                                                    const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Unboxing is undefined behavior." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
             return vtable->Mapping > 0 ? static_cast<size_t>( vtable->Mapping )
                                        : 0;
         }
@@ -935,13 +943,13 @@ class Box
         template <typename TElementType>
         TElementType*    UnboxArray()       const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Unboxing is undefined behavior." )
-            ALIB_ASSERT_ERROR( IsArray(),
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
+            ALIB_ASSERT_ERROR( IsArray(), "BOXING",
                                "Box::UnboxArray() invoked on box of non-array type <",
                                DbgTypeDemangler(vtable->Type).Get(), ">." )
 
             ALIB_ASSERT_ERROR( typeid(TElementType) == vtable->ElementType,
-                               "Can not unbox array type<" , DbgTypeDemangler(typeid(TElementType*)).Get(),
+                               "BOXING: Can not unbox array type<" , DbgTypeDemangler(typeid(TElementType*)).Get(),
                                "[]> from mapped type<"     , DbgTypeDemangler(vtable->ElementType  ).Get(),
                                "[]>." )
 
@@ -966,7 +974,7 @@ class Box
          ******************************************************************************************/
         integer         UnboxLength()                                                          const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box not initialized. Can not access placeholder." )
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Can not access placeholder." )
             return data.Length();
         }
 
@@ -986,23 +994,25 @@ class Box
         template <typename TElementType>
         TElementType&    UnboxElement(integer idx)       const
         {
-            ALIB_ASSERT_ERROR( vtable, "Box is void (no contents). Unboxing is undefined behavior." )
-            ALIB_ASSERT_ERROR( IsArray(),
+            ALIB_ASSERT_ERROR( vtable, "BOXING", "Box is void (no contents). Unboxing is undefined behavior." )
+            ALIB_ASSERT_ERROR( IsArray(), "BOXING",
                                "Box::UnboxElement() invoked on box of non-array type <",
                                DbgTypeDemangler(vtable->Type).Get(), ">." )
 
             ALIB_ASSERT_ERROR( typeid(TElementType) == vtable->ElementType,
-                               "Can not unbox array element type <" , DbgTypeDemangler(typeid(TElementType)).Get(),
+                               "BOXING: Can not unbox array element type <" , DbgTypeDemangler(typeid(TElementType)).Get(),
                                "> from mapped type <"               , DbgTypeDemangler(vtable->ElementType    ).Get(),
                                "[]>." )
 
-            ALIB_ASSERT_ERROR( idx >= 0 && idx < UnboxLength(),
+            ALIB_ASSERT_ERROR( idx >= 0 && idx < UnboxLength(), "BOXING",
                                "Box::UnboxElement<", DbgTypeDemangler(typeid(TElementType)).Get(),
                                ">(): Index out of bounds.")
 
             detail::DbgCheckRegistration( vtable, true );
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return * ( data.Pointer<TElementType>()  + idx );
+            ALIB_WARNINGS_RESTORE
         }
 
         #if defined(ALIB_DOX)
@@ -1045,7 +1055,7 @@ class Box
          *                      to search for.
          * @param  searchScope  \alib{Reach::Local} chooses type-specific functions only, while.
          *                      \alib{Reach::Global} includes default functions in the search.
-         * @param  isInvocation Available only in debug compilatins. If \c true, a counter
+         * @param  isInvocation Available only in debug compilations. If \c true, a counter
          *                      associated with an implementation found is increaed to provide
          *                      statistics. Defaults to false and should not be given.
          * @return The function implementation.
@@ -1146,7 +1156,7 @@ class Box
         decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
         CallDirect(typename TFDecl::Signature function, TArgs&&... args)                  const
         {
-            ALIB_ASSERT_ERROR( vtable,
+            ALIB_ASSERT_ERROR( vtable, "BOXING",
                 "Box not initialized (does not contain value). Function call not allowed." )
             return reinterpret_cast<typename TFDecl::Signature>(function)
                        ( *this, std::forward<TArgs>(args)... );
@@ -1174,7 +1184,7 @@ class Box
         decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
         Call(TArgs&&... args)
         {
-            ALIB_ASSERT_ERROR( vtable,
+            ALIB_ASSERT_ERROR( vtable, "BOXING",
                 "Box not initialized (does not contain value). Function call not allowed." )
             auto* func= GetFunction<TFDecl>( Reach::Global ALIB_DBG(, true));
             if( func != nullptr )
@@ -1202,7 +1212,7 @@ class Box
         decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
         CallDirect(typename TFDecl::Signature function, TArgs &&... args)
         {
-            ALIB_ASSERT_ERROR( vtable,
+            ALIB_ASSERT_ERROR( vtable, "BOXING",
                 "Box not initialized (does not contain value). Function call not allowed." )
             return reinterpret_cast<typename TFDecl::Signature>( function )
                        ( *this, std::forward<TArgs>(args)... );
@@ -1213,7 +1223,7 @@ class Box
          * \alib{boxing,FEquals}.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object equals \p{lhs}, \c false otherwise.
+         * @return \c true if this object equals \p{rhs}, \c false otherwise.
          ******************************************************************************************/
         ALIB_API
         bool  operator==(Box const& rhs)                                                      const;
@@ -1222,7 +1232,7 @@ class Box
          * Comparison operator. Returns the negated result of #operator==.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object equals \p{lhs}, \c false otherwise.
+         * @return \c true if this object equals \p{rhs}, \c false otherwise.
          ******************************************************************************************/
         bool  operator!=(const Box& rhs)                                                       const
         {
@@ -1237,7 +1247,7 @@ class Box
          *   Sample code provided with documentation of box-function \alib{boxing,FIsLess}.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object is smaller than \p{lhs}, otherwise \c false.
+         * @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
          ******************************************************************************************/
         ALIB_API
         bool operator< (Box const& rhs)                                                       const;
@@ -1246,7 +1256,7 @@ class Box
          * Comparison operator. Uses a combination of \c operator< and \c operator==.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object is smaller than \p{lhs}, otherwise \c false.
+         * @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
          ******************************************************************************************/
         ALIB_API
         bool operator<=(Box const& rhs)                                                       const;
@@ -1255,7 +1265,7 @@ class Box
          * Comparison operator. Uses a combination of \c operator< and \c operator==.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object is smaller than \p{lhs}, otherwise \c false.
+         * @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
          ******************************************************************************************/
         ALIB_API
         bool operator> (Box const& rhs)                                                       const;
@@ -1264,7 +1274,7 @@ class Box
          * Comparison operator. Returns the negated result of \c operator<.
          *
          * @param rhs The right hand side argument of the comparison.
-         * @return \c true if this object is smaller than \p{lhs}, otherwise \c false.
+         * @return \c true if this object is smaller than \p{rhs}, otherwise \c false.
          ******************************************************************************************/
         bool operator>= (Box const& rhs)                                                       const
         {

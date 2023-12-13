@@ -29,6 +29,11 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  SINGLETONS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SINGLETONS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
@@ -127,6 +132,11 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;BOXING;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;BOXING    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;BOXING;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=THREADS;STRINGS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
@@ -139,14 +149,18 @@ make -j
 
 echo "\n\n############################  MONOMEM;STRINGS    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BOXING;STRINGS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;STRINGS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  MONOMEM;BOXING    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BOXING;STRINGS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;BOXING;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+make -j
 
 echo "\n\n############################  BOXING;STRINGS    ############################"
 rm -r -f *

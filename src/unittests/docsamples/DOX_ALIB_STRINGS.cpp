@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,8 +10,7 @@
 #   include "alib/threads/smartlock.hpp"
 #endif
 
-
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_STRINGS
 
 #if !defined(HPP_ALIB_COMPILERS)
 #   include "alib/lib/compilers.hpp"
@@ -34,12 +33,12 @@ ALIB_WARNINGS_RESTORE
 #include <iostream>
 #include <sstream>
 
-// get support for  ostream operator<<() on String objects
 #include "alib/compatibility/std_characters.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/strings/substring.hpp"
 #include "alib/text/propertyformatter.hpp"
 #include "alib/text/propertyformatters.hpp"
+#include "alib/text/text.hpp"
 #include "alib/enums/recordbootstrap.hpp"
 
 #if !defined (HPP_ALIB_RESOURCES_RESOURCES)
@@ -244,6 +243,7 @@ namespace
 }
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_2]
 
+static
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_3]
 PropertyFormatter::TCallbackTable  PersonCallbacks=
 {
@@ -269,24 +269,23 @@ ALIB_RESOURCED(                PersonFormats, &aworx::ALIB.GetResourcePool(),
                                                aworx::ALIB.ResourceCategory,    "PersonFormats" )
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_1]
 
-#endif // defined(ALIB_CONFIGURATION)
 
 namespace std
 {
-
-template<>
-struct hash<PersonFormats>
-{
-    std::size_t operator()(PersonFormats src) const
+    template<>
+    struct hash<PersonFormats>
     {
-        return static_cast<size_t>( UnderlyingIntegral( src ) );
-    }
-};
+        std::size_t operator()(PersonFormats src) const
+        {
+            return static_cast<size_t>( UnderlyingIntegral( src ) );
+        }
+    };
 }
+#endif // ALIB_CONFIGURATION
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 UT_METHOD( SimpleCodeSamples )
 {
@@ -342,6 +341,7 @@ assert(  aString.IsEmpty()                );
 assert(  aString != EmptyString()         );
 //! [DOX_ALIB_ASTRING_NULLED]
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_ASTRING_MODIFY_CONST_BUFFER]
 const AString myAString( "Hello" );
 
@@ -352,6 +352,7 @@ const AString myAString( "Hello" );
 // ...but method VBuffer() is declared const.
 myAString.VBuffer()[1]= 'e';
 //! [DOX_ALIB_ASTRING_MODIFY_CONST_BUFFER]
+ALIB_WARNINGS_RESTORE
 
 }
 
@@ -378,8 +379,6 @@ Directory dir4( subString );
 //! [DOX_ALIB_CONSTRUCTION]
 }
 #endif
-
-
 
 UT_METHOD( PropertyFormatter )
 {
@@ -410,7 +409,7 @@ std::cout << target;
 
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_4]
     }
-    ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER.txt", testOutputStream.str() );
+    ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER.txt", testOutputStream.str() , "");
     testOutputStream.str("");
 
     // do some more unit testing
@@ -445,7 +444,6 @@ ALIB_IF_ALOX(
     }
 }
 
-
 #if ALIB_CONFIGURATION
 UT_METHOD( PropertyFormatters )
 {
@@ -460,23 +458,23 @@ lib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
 aworx::ALIB.GetResourcePool().BootstrapBulk( aworx::ALIB.ResourceCategory,
 
     // Enum records for enum class "PersonFormats"
-    "PersonFormats"      ,
-        A_CHAR("0,FORMATS,"   "SHORT"     ",PFVal0"  ",,,,"  "PFComnt,"
-               "1,FORMATS,"   "DEFAULT"   ",PFVal1"  ",,,,"  "PFComnt,"
-               "2,FORMATS,"   "ALL"       ",PFVal2"  ",,,,"  "PFComnt"  ),
+    "PersonFormats",    A_CHAR( "0,FORMATS,"   "SHORT"     ",,,"  ","
+                                "1,FORMATS,"   "DEFAULT"   ",,,"  ","
+                                "2,FORMATS,"   "ALL"       ",,,"        ),
 
-        // Built-in default values for the variables
-        "PFVal0"         ,  A_CHAR("{@name}")                           ,
-        "PFVal1"         ,  A_CHAR("{@name} ({@age})")                  ,
-        "PFVal2"         ,  A_CHAR("{@name} aged {@age} loves {@hobby}"),
+    // Built-in default values for the variables
+    "PersonFormats_D0", A_CHAR( "{@name}")                            ,
+    "PersonFormats_D1", A_CHAR( "{@name} ({@age})")                   ,
+    "PersonFormats_D2", A_CHAR( "{@name} aged {@age} loves {@hobby}" ),
 
-        // Variable comments. These are written for example to an INI-file if the application
-        // fetches default values at the end of the process. In this sample, all variables share
-        // the same comment.
-        "PFComnt"        , A_CHAR("A property format string for printing \"Persons\".\n"
-                                  "You can use @name, @age and @hobby as placeholders for person attributes."),
+    // Variable comments. These are written for example to an INI-file if the application
+    // fetches default values at the end of the process. In this sample, all variables share
+    // the same comment.
+    "PersonFormats_C0", A_CHAR( "Short output format for lists of \"Persons\"."   ),
+    "PersonFormats_C1", A_CHAR( "Default output format for lists of \"Persons\"." ),
+    "PersonFormats_C2", A_CHAR( "Verbose output format for lists of \"Persons\"." ),
 
-        nullptr // End marker für method BootstrapBulk (must be given!)
+    nullptr // End marker für method BootstrapBulk (must be given!)
 );
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2]
 
@@ -507,7 +505,7 @@ target << FMTPerson( PersonFormatterMap, PersonFormats::All,   john ) << NewLine
 
 std::cout << target;
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_4]
-    ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP.txt", testOutputStream.str() );
+    ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP.txt", testOutputStream.str() ,"");
     testOutputStream.str("");
     target.Reset();
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_5]
@@ -528,7 +526,7 @@ target << FMT_PERSON_ALL( sue )                       << NewLine();
 std::cout << target;
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_5]
 
-  ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2.txt", testOutputStream.str() );
+  ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2.txt", testOutputStream.str() ,"");
   testOutputStream.str("");
     target.Reset();
 
@@ -544,7 +542,7 @@ Formatter::AcquireDefault(ALIB_CALLER_PRUNED)
 
 std::cout << target << endl;
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_7]
-  ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_3.txt", testOutputStream.str() );
+  ut.WriteResultFile( "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_3.txt", testOutputStream.str() ,"");
   testOutputStream.str("");
   target.Reset();
 }
@@ -556,4 +554,4 @@ std::cout << target << endl;
 
 } //namespace
 
-#endif //  ALIB_UT_DOCS
+#endif //  ALIB_UT_DOCS && ALIB_STRINGS

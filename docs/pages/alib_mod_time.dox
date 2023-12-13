@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -11,7 +11,7 @@
 \tableofcontents
 
 
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
 # 1. Introduction # {#alib_time_intro}
 
 This \alibmod provides types for calendrical date and time processing as well as
@@ -30,7 +30,7 @@ in an easy to use and better readable interface.
   functionality.
 
 
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
 # 2. Points In Time # {#alib_time_points}
 A human being imagines a "point in time" to be the combination of a calendar data and a clock time.
 However, calendar dates and clock times rely on very complicated definitions, if
@@ -48,7 +48,7 @@ The class provides inner type \alib{time::TimePointBase,Duration} which represen
 of two values of the type and offers an extensive set of methods and operators to work with
 values of itself and that inner type.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 3. DateTime And Ticks # {#alib_time_types}
 
 Two specializations of class \alib{time,TimePointBase} are provided with the module:
@@ -56,7 +56,7 @@ Two specializations of class \alib{time,TimePointBase} are provided with the mod
 1. Class \alib{time,DateTime} for time points that are convertible to calendrical values, and
 2. Class \alib{time,Ticks} for steady and monotonic time points.
 
-The wording "stead and monotonic" means that probes (aka time measurements) taken are never influenced by
+The wording "steady and monotonic" means that probes (aka time measurements) taken are never influenced by
 changes of the system's clock, daylight saving changes, etc. In contrast, it is always assured that
 the difference of two probes represents exactly the duration that passed between taking the probes.
 
@@ -67,7 +67,7 @@ Type \alib{time,DateTime} provides methods to convert values to system dependent
 For example, with GNU/Linux conversion to and from \c time_t is implemented. On Windows OS, in
 addition conversion to \c FILETIME and \c SYSTEMTIME is offered.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. Conversion Of Ticks To DateTime Values# {#alib_time_ticks_to_dates}
 So, why aren't there similar conversion methods to system dependent "date types" available with
 class \alib{time,Ticks} that uses the internal monotonic timer?
@@ -124,7 +124,7 @@ has to be made aware that all calendar dates given, are to be interpreted "relat
 system's clock setting that the first log-entry showed.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Further Support With Module System # {#alib_time_system}
 
 Two utility classes that are directly concerned to the types of this module have \b not been
@@ -148,7 +148,7 @@ The classes are:
   implemented for this type.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 6. Utilities # {#alib_time_util}
 To measure a set of durations and receive cumulated, average, minimum and maximum values of
 all probes, class \alib{time,StopWatch} is provided.

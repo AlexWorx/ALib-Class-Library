@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * <b>Legal Notice:</b>
@@ -32,6 +32,7 @@ ALIB_ASSERT_MODULE(BOXING)
     #pragma clang diagnostic ignored "-Wdeprecated"
     #pragma clang diagnostic ignored "-Wunused-variable"
     #pragma clang diagnostic ignored "-Wcomma"
+    #pragma clang diagnostic ignored "-Wduplicate-enum"
 #endif
 #include <QtCore/QString>
 #include <QtCore/QVector>

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -37,8 +37,10 @@ namespace aworx { namespace lib { namespace expressions { namespace detail {
 namespace {
 
 const String normSpace(A_CHAR(" "));
-const String normBracketOpen[4]  {A_CHAR("("), A_CHAR("( "), A_CHAR(" ("), A_CHAR(" ( ")};
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+const String normBracketOpen [4] {A_CHAR("("), A_CHAR("( "), A_CHAR(" ("), A_CHAR(" ( ")};
 const String normBracketClose[4] {A_CHAR(")"), A_CHAR(" )"), A_CHAR(") "), A_CHAR(" ) ")};
+ALIB_WARNINGS_RESTORE
 
 #define      SPACE(flag)          ( HasBits(format, Normalization::flag ) ? normSpace : EmptyString() )
 #define COND_SPACE(flag, force) if( HasBits(format, Normalization::flag ) || force ) normalized << ' '
@@ -321,6 +323,8 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
     }
 
     //--------- normal unary operators -------
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+
     auto opIdx= normalized.Length();
     normalized << op;
     auto opLen= normalized.Length() - opIdx;
@@ -353,7 +357,10 @@ void ASTUnaryOp::Assemble( Program& program, MonoAllocator& allocator, AString &
         normalized << dynamic_cast<ASTLiteral*>( Argument )->Value.Unbox<String>();
     }
 
-    if( brackets ) normalized << normBracketClose[HasBits(format, Normalization::UnaryOpInnerBracketSpace )];
+    if( brackets )
+        normalized << normBracketClose[HasBits(format, Normalization::UnaryOpInnerBracketSpace )];
+   ALIB_WARNINGS_RESTORE
+
 
     // check plugins
     program.AssembleUnaryOp( op, Position, opIdx );

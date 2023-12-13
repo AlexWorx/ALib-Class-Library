@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -38,6 +38,8 @@
 #if !defined (HPP_ALIB_CONFIG_INI_FILE)
     #include "alib/config/inifile.hpp"
 #endif
+
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 // Fix the method name of logging (needed for unity builds)
 #undef  ALIB_CALLER
@@ -87,7 +89,7 @@ void Log_ScopeDomains_Helper2B()
 
 class DomainTestThread : public Thread
 {
-    virtual void Run()
+    virtual void Run()                                                                      override
     {
         Log_Info( "DTT", "" )
     }
@@ -95,7 +97,7 @@ class DomainTestThread : public Thread
 
 class LogOnceTestThread : public Thread
 {
-    virtual void Run()
+    virtual void Run()                                                                      override
     {
         Log_Once( Verbosity::Info, "Once(Scope::ThreadOuter) 2x - 2nd thread", Scope::ThreadOuter, 2 )
         Log_Once( Verbosity::Info, "Once(Scope::ThreadOuter) 2x - 2nd thread", Scope::ThreadOuter, 2 )
@@ -111,7 +113,7 @@ class DomainTestThreadRL : public Thread
     public:
     Lox* lox;
     DomainTestThreadRL( Lox* pLox ) { this->lox= pLox; }
-    virtual void Run()
+    virtual void Run()                                                                      override
     {
         #define LOX_LOX (*lox)
             Lox_Info( "DTT", "" )
@@ -133,7 +135,7 @@ namespace ut_alox {
         public:
         AWorxUnitTesting& ut;
         StoreDataTestThread( AWorxUnitTesting& pUT ) :ut(pUT) {}
-        virtual void Run()
+        virtual void Run()                                                                  override
         {
 
             Log_Store( "2nd Thread Data"       ,             Scope::ThreadOuter   )
@@ -151,7 +153,7 @@ namespace ut_alox {
 * UT_CLASS
 **********************************************************************************************/
 
-UT_CLASS()
+UT_CLASS
 
 
 /** ********************************************************************************************
@@ -210,22 +212,17 @@ UT_METHOD(Log_LineFormat)
 
         Log::DebugLogger->MetaInfo->Format.Reset(
                   testML->MetaInfo->Format.Reset( A_CHAR("%P") ) );
-        #if defined( _WIN32 )
-            testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("");
-            UT_TRUE(    testML->MemoryLog.Equals(A_CHAR("te.processhost.managed.exe"))
-                     || testML->MemoryLog.Equals(A_CHAR("testhost.exe")              )
-                     || testML->MemoryLog.Equals(A_CHAR("testhost.x86.exe")          )
-                     || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.exe"))
-                     || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.x86.exe")));
-        #else
-            testML->MemoryLog.Reset();  testML->AutoSizes.Reset();
-            Log_Info("")
-            UT_TRUE(       ALIB_AVOID_ANALYZER_WARNINGS
-                       ||  testML->MemoryLog.Equals( A_CHAR("ALib_UT"))
-                       ||  testML->MemoryLog.StartsWith( A_CHAR("QTC_ALox_UnitTe") )  // QMake project
-                       ||  testML->MemoryLog.StartsWith( A_CHAR("memcheck-") )         // valgrind
-                   )
-        #endif
+
+        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")
+        UT_TRUE(    ALIB_AVOID_ANALYZER_WARNINGS
+                 || testML->MemoryLog.Equals( A_CHAR("ALib_UT"))
+                 || testML->MemoryLog.StartsWith( A_CHAR("QTC_ALox_UnitTe") )  // QMake project
+                 || testML->MemoryLog.StartsWith( A_CHAR("memcheck-") )         // valgrind
+                 || testML->MemoryLog.Equals(A_CHAR("te.processhost.managed.exe"))
+                 || testML->MemoryLog.Equals(A_CHAR("testhost.exe")              )
+                 || testML->MemoryLog.Equals(A_CHAR("testhost.x86.exe")          )
+                 || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.exe"))
+                 || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.x86.exe")))
 
 
         Log::DebugLogger->MetaInfo->Format=
@@ -234,7 +231,7 @@ UT_METHOD(Log_LineFormat)
 
         Log::DebugLogger->MetaInfo->Format=
         testML->MetaInfo->Format.Reset( A_CHAR("%LG") );
-        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")  UT_EQ( A_CHAR("MONOMEM")      , testML->MemoryLog )
+        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")  UT_EQ( A_CHAR("MEMORY")      , testML->MemoryLog )
     #endif
 
 
@@ -389,7 +386,7 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
     #endif
 
     Log_RemoveLogger( &ml )
-    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the \n"
+    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
               "language-related scope store (using a StringTree with monotonic allocation):" )
     #if ALIB_DEBUG_MONOMEM
         UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
@@ -541,6 +538,7 @@ UT_METHOD(Log_ScopeDomains)
                 Thread::SleepMillis(1);
                                    UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
             Log_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
+            thread.Terminate();
         #endif
     #endif
 
@@ -549,7 +547,7 @@ UT_METHOD(Log_ScopeDomains)
     Log_RemoveLogger( &ml )
 
     #if ALIB_DEBUG
-        UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the \n"
+        UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
                   "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
             UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
@@ -687,6 +685,7 @@ UT_METHOD(Lox_ScopeDomains)
             Thread::SleepMillis(1);
                                UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
         Lox_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
+        thread.Terminate();
 
     #endif
     #endif // ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
@@ -771,6 +770,7 @@ UT_METHOD(Log_Once_Test)
         UT_EQ( 1, ml.CntLogs ) ml.CntLogs= 0;
         Log_Once( Verbosity::Info, "Once(key, Scope::ThreadOuter) 2x - main thread", A_CHAR("group"), Scope::ThreadOuter, 1 )
         UT_EQ( 0, ml.CntLogs ) ml.CntLogs= 0;
+        thread.Terminate();
     #endif
 
     //-------------------- associated to line  -----------------
@@ -852,7 +852,7 @@ UT_METHOD(Log_Once_Test)
     Log_RemoveLogger( &ml )
 
     #if ALIB_DEBUG
-    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the \n"
+    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
               "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
             UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
@@ -958,10 +958,11 @@ UT_METHOD(Log_Store_Test)
 
     { Log_Retrieve( data,           Scope::ThreadOuter ) UT_TRUE( data.Unbox<NString>().Equals( "Main Thread Data")         ) }
     { Log_Retrieve( data,  "mykey", Scope::ThreadOuter ) UT_TRUE( data.Unbox<NString>().Equals( "Main Thread Data, keyed")  ) }
+    thread.Terminate();
 #endif
 
     #if ALIB_DEBUG
-    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the \n"
+    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
               "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
             UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )

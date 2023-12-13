@@ -1,13 +1,14 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #include "alib/distribution.hpp"
 #include "alib/alox.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #if ALIB_ALOX
 #   if !defined (HPP_ALIB_ALOXMODULE)
@@ -38,7 +39,6 @@
 #if ALIB_THREADS
 #   include "alib/threads/smartlock.hpp"
 #endif
-
 
 #include "alib/strings/substring.hpp"
 
@@ -114,10 +114,9 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
         )
     {
         initializer= false;
-
-        aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_DBG(__FILE__, __LINE__, ""));
+        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_DBG(__FILE__, __LINE__, "")) );
             aworx::lib::boxing::compatibility::std::BootstrapStdStringBoxing();
-        aworx::lib::monomem::GlobalAllocatorLock.Release();
+        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release() );
         aworx::ALIB.CheckDistribution();
     }
 
@@ -175,7 +174,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
         utl->AutoSizes.Import( LastAutoSizes, CurrentData::Keep );
 
     lox.Acquire(ALIB_CALLER);
-        lox.SetVerbosity( utl, Verbosity::Verbose, "/" );
+        lox.SetVerbosity( utl, Verbosity::Info, "/" );
         lox.SetVerbosity( utl, Verbosity::Verbose, Domain);
         lox.SetVerbosity( utl, Verbosity::Warning, Lox::InternalDomains );
         lox.SetVerbosity( utl, Verbosity::Info,    NString64() << Lox::InternalDomains << "UT_REPORT" );
@@ -217,7 +216,7 @@ ALIB_IF_ALOX(
     lib::results::Report::GetDefault().PopWriter( this ); )
 
     // check if ALib default formatter was released properly
-    ALIB_IF_THREADS(
+    ALIB_IF_TEXT(
         this->EQ (__FILE__, __LINE__, 0, Formatter::GetDefault().get()->CountAcquirements() ); )
 
 ALIB_IF_ALOX(
@@ -234,8 +233,10 @@ Boxes& AWorxUnitTesting::printPrepare (  const aworx::NCString& file, int line )
         lox.Acquire(file, line, ActTestName);
         return lox.GetLogableContainer();
     #else
-        logablesFileAndLine.Clear().Add(file, ':', line, ": ");
-        return logables.Clear();
+        logablesFileAndLine.clear();
+        logablesFileAndLine.Add(file, ':', line, ": ");
+        logables.clear();
+        return logables;
     #endif
 }
 
@@ -282,7 +283,7 @@ void AWorxUnitTesting::printDo (  aworx::Verbosity verbosity, aworx::Boxes& args
 
 void AWorxUnitTesting::Failed( const NCString& file, int line, const Box& exp, const Box& given )
 {
-    Print( file, line, aworx::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\\n"
+    Print( file, line, aworx::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
                                                 "               given: \"{!ESC}\"", exp, given );
     assert(!AssertOnFailure);
 }
@@ -294,46 +295,22 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
     (void) output;
     (void) doxyTag;
 #else
+    #ifndef ALIB_BASE_DIR
+        #error "Dox samples output directory not given (Compiler variable 'ALIB_BASE_DIR' not properly set?)."
+    #endif
+
     ALIB_DBG(AWorxUnitTesting& ut= *this;) //needed for the assertion, as macro ALIB_CALLER is changed here
-    integer start= 0;
-    for(;;)
-    {
-        start= output.IndexOf( A_CHAR("/home"), start );
-        if ( start < 0 )
-            break;
-        integer end= output.IndexOf( A_CHAR("/ALib"), start );
-        ALIB_ASSERT_ERROR( end >0 && end - start < 25, "Error pruning home directory" )
-        if (end < 0 )
-            end= output.Length();
-        output.Delete( start + 5, end - start - 5 );
-        ++start;
-    }
 
     // if invoked the first time, search the right directory
     if ( GeneratedSamplesDir.IsNull() )
     {
-        GeneratedSamplesDir.Reset( "" );
-        String128 testDir; testDir << "../" << GeneratedSamplesSearchDir;
-        for( int depth= 0; depth < 10 ; ++depth )
-        {
-            if ( Directory::Exists( testDir ) )
-            {
-                GeneratedSamplesDir << testDir << "/generated/";
-                GeneratedSamplesDir.SearchAndReplace( "//", "/" );
-        #if !ALIB_CHARACTERS_WIDE
-                Directory::Create( GeneratedSamplesDir );
-        #else
-                Directory::Create( String512(GeneratedSamplesDir) );
-        #endif
-                break;
-            }
-            testDir.InsertAt( A_CHAR("../"), 0 );
-        }
+        GeneratedSamplesDir.Reset( "" ) << ALIB_BASE_DIR
+                                        << A_CHAR("/docs/pages/generated/");
     }
 
     if ( GeneratedSamplesDir.IsNotNull() && GeneratedSamplesDir.IsEmpty() )
     {
-        ALIB_ERROR( "Samples directory \"/generated\" not found in upward path search" )
+        ALIB_ERROR( "UNITTESTS", String512("Samples directory \"") << GeneratedSamplesDir <<" not found." )
         return;
     }
 
@@ -351,18 +328,50 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
 // #################################################################################################
 // Error/Warning
 // #################################################################################################
-void AWorxUnitTesting::Report  ( const lib::results::Message& msg )
+void AWorxUnitTesting::Report  ( lib::results::Message& msg )
 {
     #if !ALIB_ALOX
         (void) msg;
+        assert(false);
     #else
         lox.Acquire(msg.File, msg.Line, msg.Function);
+            NString256 domain;
+            domain << Lox::InternalDomains << "UT_REPORT";
+
+            // detect subdomain
+            if(     msg.Size() > 1
+                &&  msg[0].IsArrayOf<nchar>() )
+            {
+                bool illegalCharacterFound= false;
+                NString firstArg= msg[0].Unbox<NString>();
+                for( integer idx= 0 ;  idx< firstArg.Length() ; ++idx )
+                {
+                    char c= firstArg[idx];
+                    if (!    (    isdigit( c )
+                               || ( c >= 'A' && c <= 'Z' )
+                               || c == '-'
+                               || c == '_'
+                               || c == '/'
+                               || c == '.'
+                      )      )
+                    {
+                        illegalCharacterFound= true;
+                        break;
+                    }
+                }
+
+                if(!illegalCharacterFound)
+                {
+                    domain << '/' << firstArg;
+                    msg.erase( msg.begin() );
+                }
+            }
             lox.GetLogableContainer().Add( msg );
-            lox.Entry( NString16() << Lox::InternalDomains << "UT_REPORT",
+            lox.Entry( domain,
                        msg.Type == aworx::lib::results::Report::Types::Error   ? Verbosity::Error    :
                        msg.Type == aworx::lib::results::Report::Types::Warning ? Verbosity::Warning  :
                        msg.Type == aworx::lib::results::Report::Types::Message ? Verbosity::Info     :
-                                                                               Verbosity::Verbose    );
+                                                                                 Verbosity::Verbose    );
 
         lox.Release();
     #endif
@@ -454,21 +463,21 @@ void AWorxUnitTesting::Report  ( const lib::results::Message& msg )
 }//namespace
 
 
-
-#if !ALIB_GTEST
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable:4505 ) // local variable is initialized but not referenced
-#endif
-namespace Microsoft {  namespace VisualStudio {   namespace CppUnitTestFramework     {
-            template<> std::wstring ToString<int64_t>(const int64_t& t)
-            {
-                wstringstream convert;
-                convert << t;
-                return convert.str();
-            }
-}}}
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-#endif
+// 231201 11:23: had to remove this "suddenly". Is it ok, to keep this out?
+// #if !ALIB_GTEST
+// #if defined(_MSC_VER)
+// #pragma warning( push )
+// #pragma warning( disable:4505 ) // local variable is initialized but not referenced
+// #endif
+// namespace Microsoft {  namespace VisualStudio {   namespace CppUnitTestFramework     {
+//             template<> std::wstring ToString<int64_t>(const int64_t& t)
+//             {
+//                 wstringstream convert;
+//                 convert << t;
+//                 return convert.str();
+//             }
+// }}}
+// #if defined(_MSC_VER)
+// #pragma warning( pop )
+// #endif
+// #endif

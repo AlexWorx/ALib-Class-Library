@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_VARIABLEDECL
@@ -71,8 +71,10 @@ enum class FormatHints
  *
  * Besides defining the enum record type, a custom enum has to have a specialization of
  * type \alib{resources,T_Resourced}. The reason for this is that enum records of this type
- * use field #DefaultValue and #Comments <em>indirectly</em>, namely just specifying a resource
- * name. This way, both values are loaded from separated resource strings, what has the following
+ * do load fields #DefaultValue and #Comments <em>indirectly</em> from resources by
+ * adding postfixes <b>_D</b>, respectively <b>_C</b> to the variable's resource name along with
+ * the variable's underlying enumeration element's integral value.
+ * This way, both values are loaded from separated resource strings, what has the following
  * advantages:
  * - The values may contain the separation character used.
  * - The values can be manipulated within the (externalized) resources more easily.
@@ -86,17 +88,23 @@ enum class FormatHints
  * - \alib{config,Variable::Declare(TEnum)}
  * - \alib{config,Variable::Declare(TEnum),Variable::Declare(TEnum\,const StringTypes&...)}
  *
- * The resource data has to provide eight values in the following order:
+ * The resource data has to provide six values in the following order:
  * 1. The custom integral enum value (this is mandatory with every resourced enum record).
  * 2. Field #Category.
  * 3. Base class's field \alib{enums,ERSerializable::EnumElementName}.
  *    \note Field \alib{enums,ERSerializable::MinimumRecognitionLength} is not read from the string,
  *          but set to fixed value \c 0.
- * 4. Field #DefaultValue.
- * 5. Field #Delim.
- * 6. Field #FormatAttrAlignment.
- * 7. Field #FmtHints.
- * 8. Field #Comments.
+ * 4. Field #Delim.
+ * 5. Field #FormatAttrAlignment.
+ * 6. Field #FmtHints.
+ *
+ * As already noted above, fields #DefaultValue and #Comments can be defined in two
+ * separate resource strings named like the variable's resource itself with concatenated postfixes
+ * <b>_D</b>, respectively <b>_C</b> and the variable's underlying enumeration element's integral
+ * value. Both resources are optional and not mandatory to be existent.
+ *
+ * A sample of variable resources is given with the
+ * \ref alib_ns_strings_propertyformatter_map_sample "documentation of class PropertyFormatter".
  **************************************************************************************************/
 struct VariableDecl : public enums::ERSerializable
 {
@@ -197,20 +205,23 @@ struct VariableDecl : public enums::ERSerializable
         // copy our data tuple from the enum record
         *this=  enums::GetRecord(declaration);
 
-        // if default value is empty, set to nullptr, else interpret as resource name and load
-        if( DefaultValue.IsEmpty() )
-            DefaultValue= NullString();
+        // try to load default value and comment from resources
+        if ALIB_CONSTEXPR17( T_Resourced<TEnum>::value )
+        {
+            DefaultValue = NullString();
+            NString128 resName;
+            resName << T_Resourced<TEnum>::Name() << "_D";
+            integer codePos = resName.Length() - 1;
+            resName << UnderlyingIntegral( declaration );
+            DefaultValue = ResourcedType<TEnum>::Get( resName ALIB_DBG( , false ) );
 
-        else
-            if ALIB_CONSTEXPR_IF( T_Resourced<TEnum>::value )
-                DefaultValue= ResourcedType<TEnum>::Get( DefaultValue   ALIB_DBG(, true) );
+            resName[codePos] = 'C';
+            Comments = ResourcedType<TEnum>::Get( resName ALIB_DBG( , false ) );
+        }
 
-        // if default value is empty, set to nullptr, else interpret as resource name and load
-        if( Comments.IsEmpty() )
-            Comments= NullString();
-        else
-            if ALIB_CONSTEXPR_IF( T_Resourced<TEnum>::value )
-                Comments=     ResourcedType<TEnum>::Get( Comments       ALIB_DBG(, true) );
+        // check for nulled strings
+        if( DefaultValue.IsNull() ) DefaultValue= NullString();
+        if( Comments    .IsNull() )     Comments= NullString();
     }
 #endif
 }; // struct VariableDecl

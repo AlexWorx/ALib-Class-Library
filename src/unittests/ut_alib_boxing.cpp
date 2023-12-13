@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,6 +19,7 @@
 #include "alib/compatibility/std_boxing.hpp"
 
 #include "alib/boxing/dbgboxing.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #define TESTCLASSNAME       CPP_ALib_Boxing
 #include "unittests/aworx_unittests.hpp"
@@ -233,7 +234,7 @@ extern  void testFAppend(AWorxUnitTesting& ut, const Box& box,  const String& va
 }
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- FTypes Equals/IsNull/IsEmpty
@@ -265,6 +266,31 @@ inline void testBoxing(AWorxUnitTesting& ut,  TBoxable val, const Box& box1 , co
 {
     UT_EQ( val, box1.Unbox<TBoxable>() )
     UT_EQ( val, box2.Unbox<TBoxable>() )
+
+    UT_TRUE( ( box1.Call<FEquals>(box2) ) )
+    UT_TRUE( ( box2.Call<FEquals>(box1) ) )
+}
+
+template<>
+inline void testBoxing(AWorxUnitTesting& ut,  double val, const Box& box1 , const Box& box2)
+{
+    UT_NEAR( val, box1.Unbox<double>(), 0.00001 )
+    UT_NEAR( val, box2.Unbox<double>(), 0.00001 ) 
+
+    UT_TRUE( ( box1.Call<FEquals>(box2) ) )
+    UT_TRUE( ( box2.Call<FEquals>(box1) ) )
+}
+
+template<>
+inline void testBoxing(AWorxUnitTesting& ut,  float val, const Box& box1 , const Box& box2)
+{
+    #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
+        UT_NEAR( val, box1.Unbox<float>(), 0.00001f )
+        UT_NEAR( val, box2.Unbox<float>(), 0.00001f )
+    #else
+        UT_NEAR( val, float(box1.Unbox<double>()), 0.00001f )
+        UT_NEAR( val, float(box2.Unbox<double>()), 0.00001f )
+    #endif
 
     UT_TRUE( ( box1.Call<FEquals>(box2) ) )
     UT_TRUE( ( box2.Call<FEquals>(box1) ) )
@@ -324,13 +350,13 @@ UT_METHOD(Boxing_FundamentalTypes)
     #if  !ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
         { float       v=      5.1f;   testBoxing(ut,  static_cast<     double  >( 5.1f ), v, &v );   }
         { double      v=      5.2 ;   testBoxing(ut,  static_cast<     double  >( 5.2 ) , v, &v );   }
-      #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+      #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
         { long double v=      5.2L ;  testBoxing(ut,  static_cast<long double  >( 5.2 ) , v, &v );   }
       #endif
     #else
         { float       v=      5.1f;   testBoxing(ut,  static_cast<     float   >( 5.1f ), v, &v );   }
         { double      v=      5.2 ;   testBoxing(ut,  static_cast<     double  >( 5.2 ) , v, &v );   }
-      #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+      #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
         { long double v=      5.2L ;  testBoxing(ut,  static_cast<long double  >( 5.2 ) , v, &v );   }
       #endif
     #endif
@@ -576,7 +602,9 @@ UT_METHOD(Boxing_Std_Vector)
         UT_EQ( 3,    b.UnboxElement<int>(0) )
         UT_EQ( 4,    b.UnboxElement<int>(1) )
         UT_EQ( 5,    b.UnboxElement<int>(2) )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         int* array= &b.UnboxElement<int>(0);
+        ALIB_WARNINGS_RESTORE
         UT_EQ( 3,    array[0] )
         UT_EQ( 4,    array[1] )
         UT_EQ( 5,    array[2] )
@@ -590,7 +618,9 @@ UT_METHOD(Boxing_Std_Vector)
         UT_EQ( 3.2,  b.UnboxElement<double>(0) )
         UT_EQ( 4.3,  b.UnboxElement<double>(1) )
         UT_EQ( 5.4,  b.UnboxElement<double>(2) )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         double* array= &b.UnboxElement<double>(0);
+        ALIB_WARNINGS_RESTORE
         UT_EQ( 3.2,  array[0] )
         UT_EQ( 4.3,  array[1] )
         UT_EQ( 5.4,  array[2] )
@@ -603,7 +633,9 @@ UT_METHOD(Boxing_Std_Vector)
         UT_EQ( std::basic_string<character>(A_CHAR("one")),    b.UnboxElement<std::basic_string<character>>(0) )
         UT_EQ( std::basic_string<character>(A_CHAR("two")),    b.UnboxElement<std::basic_string<character>>(1) )
         UT_EQ( std::basic_string<character>(A_CHAR("three")),  b.UnboxElement<std::basic_string<character>>(2) )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         std::basic_string<character>* array= &b.UnboxElement<std::basic_string<character>>(0);
+        ALIB_WARNINGS_RESTORE
         UT_EQ( std::basic_string<character>(A_CHAR("one")),    array[0] )
         UT_EQ( std::basic_string<character>(A_CHAR("two")),    array[1] )
         UT_EQ( std::basic_string<character>(A_CHAR("three")),  array[2] )

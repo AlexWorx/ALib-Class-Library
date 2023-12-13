@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -44,9 +44,8 @@ namespace ut_aworx {
 //--- The function generates the minimum abbreviation of each token and tests this string
 //--- against all other tokens. None of them should match!
 //--------------------------------------------------------------------------------------------------
-
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
-
 {
     String256 abbreviation;
     for( int i= 0 ; i < qtyTokens ; ++i )
@@ -112,8 +111,8 @@ void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTokens )
 
         }
     }
-
 }
+ALIB_WARNINGS_RESTORE
 
 
 } //namespace

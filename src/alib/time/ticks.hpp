@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKS
@@ -44,6 +44,68 @@ class Ticks : public TimePointBase<std::chrono::steady_clock, Ticks>
         /// Use constructors of parent class.
         using  TimePointBase::TimePointBase;
 //! @endcond
+
+
+        /** ****************************************************************************************
+         * Equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator==( const Ticks& other )                                                const
+        {
+            return stamp == other.stamp;
+        }
+
+
+        /** ****************************************************************************************
+         * Not equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator!=( const Ticks& other )                                                const
+        {
+            return stamp != other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Less than operator.
+         * @param other The time stamp to compare.
+         * @return A reference to this object.
+         ******************************************************************************************/
+        bool   operator<( const Ticks& other )                                                 const
+        {
+            return stamp <  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Less than or equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator<=( const Ticks& other )                                                const
+        {
+            return stamp <=  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Greater than operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator>( const Ticks& other )                                                 const
+        {
+            return stamp >  other.stamp;
+        }
+
+        /** ****************************************************************************************
+         * Greater than or equal to operator.
+         * @param other The time stamp to compare.
+         * @return The result of the comparison.
+         ******************************************************************************************/
+        bool   operator>=( const Ticks& other )                                                const
+        {
+            return stamp >=  other.stamp;
+        }
 };
 
 

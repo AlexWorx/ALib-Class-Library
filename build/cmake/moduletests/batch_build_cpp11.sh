@@ -29,6 +29,11 @@ rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=BITBUFFER"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  SINGLETONS    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=SINGLETONS"  ../../cmake/moduletests
@@ -127,6 +132,10 @@ rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;BOXING    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=BITBUFFER;BOXING"  ../../cmake/moduletests
+make -j
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=THREADS;STRINGS"  ../../cmake/moduletests
@@ -142,11 +151,10 @@ rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  MONOMEM;BOXING    ############################"
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
 rm -r -f *
-cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_11"  "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
 make -j
-
 
 echo "\n\n############################  BOXING;STRINGS    ############################"
 rm -r -f *

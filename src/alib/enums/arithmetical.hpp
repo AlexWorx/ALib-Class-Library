@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_ARITHMETICAL
@@ -44,7 +44,7 @@ namespace aworx { namespace lib { namespace enums {
  *   Likewise with the operators introduced with TMP struct \alib{enums,T_EnumIsBitwise},
  *   this documentation "fakes" the operators into namespace <c>aworx::lib::enums</c>,
  *   while in fact they are defined in the global namespace!<br>
- *   See \ref alib_enums_arithmethic_standard "corresponding note" in the Programmer's Manual
+ *   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
  *   for details.
  *
  * <b>Restrictions</b><br>
@@ -54,7 +54,7 @@ namespace aworx { namespace lib { namespace enums {
  * \see
  *   - Macro \ref ALIB_ENUMS_MAKE_ARITHMETICAL, which specializes this TMP struct for a given
  *     enumeration type.
- *   - For details and a source code sample see chapter \ref alib_enums_arithmethic_standard
+ *   - For details and a source code sample see chapter \ref alib_enums_arithmetic_standard
  *     of the Programmer's Manual of module \alib_enums.
  *
  * @tparam TEnum      The enum type to enable arithmetical operators for.

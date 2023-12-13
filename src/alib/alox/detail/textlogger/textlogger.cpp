@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -29,21 +29,10 @@
 #   if !defined (HPP_ALIB_STRINGS_FORMAT)
 #       include "alib/strings/format.hpp"
 #   endif
+#   if !defined(HPP_ALIB_RESULTS_REPORT)
+#      include "alib/results/report.hpp"
+#   endif
 #endif // !defined(ALIB_DOX)
-
-// For code compatibility with ALox Java/C++
-// We have to use underscore as the start of the name and for this have to disable a compiler
-// warning. But this is a local code (cpp file) anyhow.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#endif
-
-    #define _NC template _<false>
-
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
 
 
 namespace aworx { namespace lib { namespace lox { namespace detail { namespace textlogger {
@@ -67,7 +56,7 @@ StandardConverter::StandardConverter()
 
 StandardConverter::~StandardConverter()
 {
-    ALIB_ASSERT_ERROR( cntRecursionx == -1,
+    ALIB_ASSERT_ERROR( cntRecursionx == -1, "ALOX",
         "ALox object converter recursion counter > 0.\n"
         "Note: This error indicates, that a previous format operation (log statement) contained\n"
         "      corrupt format values, which caused the formatter to behave undefined, including\n"
@@ -83,7 +72,7 @@ void StandardConverter::ConvertObjects( AString& target, Boxes& logables  )
 {
     ++cntRecursionx;
 
-        ALIB_ASSERT_WARNING( cntRecursionx < 5, "Logging recursion depth >= 5" )
+        ALIB_ASSERT_WARNING( cntRecursionx < 5, "ALOX", "Logging recursion depth >= 5" )
 
         // get a formatter. We use a clone per recursion depth!
         // So, did we have this depth already? If not, create a new set of formatters formatter
@@ -159,14 +148,14 @@ void MetaInfo::Write( TextLogger& logger, AString& buf, detail::Domain& domain, 
         }
         else
         {
-            buf._NC( format );
+            buf._<false>( format );
             break;
         }
     }
 }
 
 void MetaInfo::processVariable( TextLogger&        logger,
-                                detail::Domain&      domain,
+                                detail::Domain&    domain,
                                 Verbosity          verbosity,
                                 ScopeInfo&         scope,
                                 AString&           dest,
@@ -224,13 +213,13 @@ void MetaInfo::processVariable( TextLogger&        logger,
 
                 case 'L':  // line number
                 {
-                    dest._NC( scope.GetLineNumber() );
+                    dest._<false>( scope.GetLineNumber() );
                     return;
                 }
 
                 default:
                 {
-                    ALIB_ASSERT_WARNING( FormatWarningOnce,
+                    ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                          "Unknown format variable '%S{}' (only one warning)", c2  )
                     ALIB_DBG( FormatWarningOnce= true; )
                     val= "%ERROR";
@@ -255,9 +244,9 @@ void MetaInfo::processVariable( TextLogger&        logger,
                 // if standard format, just write it out
                 if ( DateFormat.Equals( A_CHAR("yyyy-MM-dd") ) )
                 {
-                    dest._NC( aworx::Format( callerDateTime.Year,     4 ) )._NC( '-' )
-                        ._NC( aworx::Format( callerDateTime.Month,    2 ) )._NC( '-' )
-                        ._NC( aworx::Format( callerDateTime.Day,      2 ) );
+                    dest._<false>( aworx::Format( callerDateTime.Year,     4 ) )._<false>( '-' )
+                        ._<false>( aworx::Format( callerDateTime.Month,    2 ) )._<false>( '-' )
+                        ._<false>( aworx::Format( callerDateTime.Day,      2 ) );
                 }
                 // user defined format
                 else
@@ -278,9 +267,9 @@ void MetaInfo::processVariable( TextLogger&        logger,
                 // and b) a DateTime object, if the format is the unchanged standard. And it is faster anyhow.
                 if ( TimeOfDayFormat.Equals( A_CHAR("HH:mm:ss") ) )
                 {
-                    dest._NC( aworx::Format(callerDateTime.Hour,    2) )._NC( ':' )
-                        ._NC( aworx::Format(callerDateTime.Minute,  2) )._NC( ':' )
-                        ._NC( aworx::Format(callerDateTime.Second,  2) );
+                    dest._<false>( aworx::Format(callerDateTime.Hour,    2) )._<false>( ':' )
+                        ._<false>( aworx::Format(callerDateTime.Minute,  2) )._<false>( ':' )
+                        ._<false>( aworx::Format(callerDateTime.Second,  2) );
                 }
 
                 // user defined format
@@ -299,11 +288,11 @@ void MetaInfo::processVariable( TextLogger&        logger,
                 auto       maxElapsedSecs= MaxElapsedTime.InAbsoluteSeconds();
                 CalendarDuration  elapsed( elapsedTime );
 
-                if ( maxElapsedSecs >= 60*60*24 )  dest._NC( elapsed.Days  )._NC( TimeElapsedDays );
-                if ( maxElapsedSecs >= 60*60    )  dest._NC( aworx::Format(elapsed.Hours  ,  maxElapsedSecs >= 60*60*10 ?  2 : 1 ) )._NC( ':' );
-                if ( maxElapsedSecs >= 60       )  dest._NC( aworx::Format(elapsed.Minutes,  maxElapsedSecs >= 10*60    ?  2 : 1 ) )._NC( ':' );
-                dest._NC( aworx::Format(elapsed.Seconds,  maxElapsedSecs > 9 ? 2 : 1)          )._NC( '.' );
-                dest._NC( aworx::Format(elapsed.Milliseconds,  3) );
+                if ( maxElapsedSecs >= 60*60*24 )  dest._<false>( elapsed.Days  )._<false>( TimeElapsedDays );
+                if ( maxElapsedSecs >= 60*60    )  dest._<false>( aworx::Format(elapsed.Hours  ,  maxElapsedSecs >= 60*60*10 ?  2 : 1 ) )._<false>( ':' );
+                if ( maxElapsedSecs >= 60       )  dest._<false>( aworx::Format(elapsed.Minutes,  maxElapsedSecs >= 10*60    ?  2 : 1 ) )._<false>( ':' );
+                dest._<false>( aworx::Format(elapsed.Seconds,  maxElapsedSecs > 9 ? 2 : 1)          )._<false>( '.' );
+                dest._<false>( aworx::Format(elapsed.Milliseconds,  3) );
             }
 
             // %TL: Time elapsed since last log call
@@ -312,7 +301,7 @@ void MetaInfo::processVariable( TextLogger&        logger,
 
             else
             {
-                ALIB_ASSERT_WARNING( FormatWarningOnce,
+                ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%T{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
             }
@@ -333,7 +322,7 @@ void MetaInfo::processVariable( TextLogger&        logger,
                     String msg( A_CHAR("SINGLE_THREADED") );
                     const String& threadName= msg;
                 #endif
-                dest._NC( Format::Field( threadName, logger.AutoSizes.Next( AutoSizes::Types::Field, threadName.Length(), 0 ), Alignment::Center ) );
+                dest._<false>( Format::Field( threadName, logger.AutoSizes.Next( AutoSizes::Types::Field, threadName.Length(), 0 ), Alignment::Center ) );
             }
             else if ( c2 == 'I' )   // %tI: thread ID
             {
@@ -343,11 +332,11 @@ void MetaInfo::processVariable( TextLogger&        logger,
                 #else
                     threadID << "-1";
                 #endif
-                dest._NC( Format::Field( threadID,   logger.AutoSizes.Next( AutoSizes::Types::Field, threadID  .Length(), 0 ), Alignment::Center ) );
+                dest._<false>( Format::Field( threadID,   logger.AutoSizes.Next( AutoSizes::Types::Field, threadID  .Length(), 0 ), Alignment::Center ) );
             }
             else
             {
-                ALIB_ASSERT_WARNING( FormatWarningOnce,
+                ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%t{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
             }
@@ -357,11 +346,11 @@ void MetaInfo::processVariable( TextLogger&        logger,
         case 'L':
         {
             c2= variable.ConsumeChar();
-                 if ( c2 == 'G' )     dest._NC( logger.GetName() );
-            else if ( c2 == 'X' )     dest._NC( scope.GetLoxName() );
+                 if ( c2 == 'G' )     dest._<false>( logger.GetName() );
+            else if ( c2 == 'X' )     dest._<false>( scope.GetLoxName() );
             else
             {
-                ALIB_ASSERT_WARNING( FormatWarningOnce,
+                ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                                      "Unknown format variable '%L{}' (only one warning)", c2  )
                 ALIB_DBG( FormatWarningOnce= true; )
             }
@@ -370,12 +359,12 @@ void MetaInfo::processVariable( TextLogger&        logger,
 
         case 'P':
         {
-            dest._NC( ProcessInfo::Current().Name );
+            dest._<false>( ProcessInfo::Current().Name );
             return;
         }
 
         case 'V':
-            dest._NC(  verbosity == Verbosity::Error     ? VerbosityError
+            dest._<false>(  verbosity == Verbosity::Error     ? VerbosityError
                      : verbosity == Verbosity::Warning   ? VerbosityWarning
                      : verbosity == Verbosity::Info      ? VerbosityInfo
                      :                                     VerbosityVerbose    );
@@ -388,7 +377,7 @@ void MetaInfo::processVariable( TextLogger&        logger,
         }
 
         case '#':
-            dest._NC( aworx::Format( logger.CntLogs, LogNumberMinDigits ) );
+            dest._<false>( aworx::Format( logger.CntLogs, LogNumberMinDigits ) );
             return;
 
         // A: Auto tab
@@ -406,14 +395,16 @@ void MetaInfo::processVariable( TextLogger&        logger,
         }
 
         case 'N':
-            dest._NC( logger.GetName() );
+            dest._<false>( logger.GetName() );
             return;
 
         default:
-            ALIB_ASSERT_WARNING( FormatWarningOnce,
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            ALIB_ASSERT_WARNING( FormatWarningOnce, "ALOX",
                         "Unknown format character {!Q'} (only one warning)",
                         *( variable.Buffer() -1 ) )
             ALIB_DBG( FormatWarningOnce= true; )
+            ALIB_WARNINGS_RESTORE
             return;
    }// switch
 }
@@ -423,13 +414,13 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     // unmeasurable?
     if ( diffNanos < TimeDiffMinimum )
     {
-        buf._NC( TimeDiffNone );
+        buf._<false>( TimeDiffNone );
         return;
     }
 
     if ( diffNanos < 1000 )
     {
-        buf._NC( aworx::Format( diffNanos, 3 ) )._NC( TimeDiffNanos );
+        buf._<false>( aworx::Format( diffNanos, 3 ) )._<false>( TimeDiffNanos );
         return;
     }
 
@@ -439,15 +430,15 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     // below 1000 microseconds?
     if ( diffMicros < 1000 )
     {
-        buf._NC( aworx::Format( diffMicros, 3 ) );
-        buf._NC( TimeDiffMicros );
+        buf._<false>( aworx::Format( diffMicros, 3 ) );
+        buf._<false>( TimeDiffMicros );
         return;
     }
 
     // below 1000 ms?
     if ( diffMicros < 1000000 )
     {
-        buf._NC( aworx::Format( (diffMicros / 1000), 3 ) )._NC( TimeDiffMillis );
+        buf._<false>( aworx::Format( (diffMicros / 1000), 3 ) )._<false>( TimeDiffMillis );
         return;
     }
 
@@ -459,10 +450,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthSecs=  ((diffMicros / 1000) + 5) / 10;
 
         // print two digits after dot x.xx
-        buf._NC( aworx::Format( (hundredthSecs / 100), 1 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (hundredthSecs % 100), 2 ) )
-           ._NC( TimeDiffSecs );
+        buf._<false>( aworx::Format( (hundredthSecs / 100), 1 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (hundredthSecs % 100), 2 ) )
+           ._<false>( TimeDiffSecs );
         return;
     }
 
@@ -473,10 +464,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthSecs < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._NC( aworx::Format( ( tenthSecs / 10 ), 2 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( ( tenthSecs % 10 ), 1 ) )
-           ._NC( TimeDiffSecs );
+        buf._<false>( aworx::Format( ( tenthSecs / 10 ), 2 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( ( tenthSecs % 10 ), 1 ) )
+           ._<false>( TimeDiffSecs );
         return;
     }
 
@@ -487,10 +478,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthMins=  tenthSecs / 6;
 
         // print two digits after dot x.xx
-        buf._NC( aworx::Format( (hundredthMins / 100), 1 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (hundredthMins % 100), 2 ) )
-           ._NC( TimeDiffMins );
+        buf._<false>( aworx::Format( (hundredthMins / 100), 1 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (hundredthMins % 100), 2 ) )
+           ._<false>( TimeDiffMins );
         return;
     }
 
@@ -501,10 +492,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthMins < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._NC( aworx::Format( (tenthMins / 10), 2 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (tenthMins % 10), 1 ) )
-           ._NC( TimeDiffMins );
+        buf._<false>( aworx::Format( (tenthMins / 10), 2 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (tenthMins % 10), 1 ) )
+           ._<false>( TimeDiffMins );
         return;
     }
 
@@ -515,10 +506,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
         int64_t hundredthHours=  tenthMins / 6;
 
         // print two digits after dot x.xx
-        buf._NC( aworx::Format( (hundredthHours / 100), 1 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (hundredthHours % 100), 2 ))
-           ._NC( TimeDiffHours );
+        buf._<false>( aworx::Format( (hundredthHours / 100), 1 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (hundredthHours % 100), 2 ))
+           ._<false>( TimeDiffHours );
         return;
     }
 
@@ -529,10 +520,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthHours < 1000 )
     {
         // print two digits after dot x.xx
-        buf._NC( aworx::Format( (tenthHours / 10), 2 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (tenthHours % 10), 1 ) )
-           ._NC( TimeDiffHours );
+        buf._<false>( aworx::Format( (tenthHours / 10), 2 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (tenthHours % 10), 1 ) )
+           ._<false>( TimeDiffHours );
         return;
     }
 
@@ -540,10 +531,10 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( tenthHours < 1000 )
     {
         // print one digits after dot xx.x (round value by adding 5 hundredth)
-        buf._NC( aworx::Format( (tenthHours / 10), 2 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( ((tenthHours / 10) % 10), 1 ) )
-           ._NC( TimeDiffHours );
+        buf._<false>( aworx::Format( (tenthHours / 10), 2 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( ((tenthHours / 10) % 10), 1 ) )
+           ._<false>( TimeDiffHours );
         return;
     }
 
@@ -554,19 +545,19 @@ void MetaInfo::writeTimeDiff( AString& buf, int64_t diffNanos )
     if ( hundredthDays < 1000 )
     {
         // print two digits after dot x.xx
-        buf._NC( aworx::Format( (hundredthDays / 100), 1 ) )
-           ._NC( '.' )
-           ._NC( aworx::Format( (hundredthDays % 100), 2 ) )
-           ._NC( TimeDiffDays );
+        buf._<false>( aworx::Format( (hundredthDays / 100), 1 ) )
+           ._<false>( '.' )
+           ._<false>( aworx::Format( (hundredthDays % 100), 2 ) )
+           ._<false>( TimeDiffDays );
         return;
     }
 
     // 10 days or more (print days plus one digit after the comma)
     // print one digits after dot xx.x (round value by adding 5 hundredth)
-    buf ._NC( aworx::Format( (hundredthDays / 100), 2 ) )
-        ._NC( '.' )
-        ._NC( aworx::Format( ((hundredthDays / 10) % 10), 1 ) )
-        ._NC( TimeDiffDays );
+    buf ._<false>( aworx::Format( (hundredthDays / 100), 2 ) )
+        ._<false>( '.' )
+        ._<false>( aworx::Format( ((hundredthDays / 10) % 10), 1 ) )
+        ._<false>( TimeDiffDays );
 }
 
 
@@ -655,7 +646,7 @@ void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 
         // Variable  <name>_FORMAT / <typeName>_FORMAT:
         VariableDecl variableDecl( Variables::FORMAT );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(), "ALOX",
                              "Default value of variable FORMAT should be kept null" )
 
         if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
@@ -683,7 +674,7 @@ void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 
         // Variable  <name>_FORMAT_DATE_TIME / <typeName>_FORMAT_DATE_TIME:
         variableDecl= VariableDecl( Variables::FORMAT_DATE_TIME );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(), "ALOX",
                              "Default value of variable FORMAT_DATE_TIME should be kept null" )
         if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     ) ) == Priorities::NONE
             && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() ) ) == Priorities::NONE )
@@ -704,7 +695,7 @@ void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 
         // Variable  <name>FORMAT_TIME_DIFF / <typeName>FORMAT_TIME_DIFF:
         variableDecl= VariableDecl( Variables::FORMAT_TIME_DIFF );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(), "ALOX",
                              "Default value of variable FORMAT_TIME_DIFF should be kept null" )
         if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
             && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
@@ -737,7 +728,7 @@ void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 
         // Variable  <name>FORMAT_MULTILINE / <typeName>FORMAT_MULTILINE:
         variableDecl= VariableDecl( Variables::FORMAT_MULTILINE );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(), "ALOX",
                              "Default value of variable FORMAT_MULTILINE should be kept null" )
         if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
             && ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
@@ -766,7 +757,7 @@ void   TextLogger::AcknowledgeLox( LoxImpl* lox, ContainerOp op )
 
         // Variable  <name>FORMAT_REPLACEMENTS / <typeName>FORMAT_REPLACEMENTS:
         variableDecl= VariableDecl( Variables::REPLACEMENTS );
-        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(),
+        ALIB_ASSERT_WARNING( variableDecl.DefaultValue.IsNull(), "ALOX",
                              "Default value of variable REPLACEMENTS should be kept null" )
         if( ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetName()     )) == Priorities::NONE
             || ALOX.GetConfig().Load( cfgVar.Declare( variableDecl, GetTypeName() )) == Priorities::NONE )
@@ -885,13 +876,13 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
     logBuf.Reset();
     AutoSizes.Start();
     MetaInfo->Write( *this, logBuf, domain, verbosity, scope );
-    logBuf._NC( ESC::EOMETA );
+    logBuf._<false>( ESC::EOMETA );
 
     // check for empty messages
     if ( msgBuf.Length() == msgBufStartLength )
     {
         // log empty msg and quit
-        logBuf._NC( FmtMsgSuffix );
+        logBuf._<false>( FmtMsgSuffix );
         ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
             logText( domain, verbosity, logBuf, scope, -1 );
         ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Release();                   )
@@ -916,15 +907,15 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
         // append msg to logBuf
         if ( cntReplacements == 0 )
         {
-            logBuf._NC( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
+            logBuf._<false>( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
         }
         else
         {
-            logBuf._NC( FmtMultiLinePrefix );
-            logBuf._NC( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
-            logBuf._NC( FmtMultiLineSuffix );
+            logBuf._<false>( FmtMultiLinePrefix );
+            logBuf._<false>( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
+            logBuf._<false>( FmtMultiLineSuffix );
         }
-        logBuf._NC( FmtMsgSuffix );
+        logBuf._<false>( FmtMsgSuffix );
 
         // now do the logging by calling our derived class's logText
         ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
@@ -976,8 +967,8 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
             // single line?
             if ( lineNo == 0 )
             {
-                logBuf._NC( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
-                logBuf._NC( FmtMsgSuffix );
+                logBuf._<false>( msgBuf, msgBufStartLength, msgBuf.Length() - msgBufStartLength );
+                logBuf._<false>( FmtMsgSuffix );
 
                 ALIB_IF_THREADS( if (usesStdStreams) SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED);)
                     logText( domain, verbosity, logBuf, scope, -1 );
@@ -1007,7 +998,7 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
             // log headline in mode 3
             if ( MultiLineMsgMode == 3 )
             {
-                logBuf._NC( FmtMultiLineMsgHeadline );
+                logBuf._<false>( FmtMultiLineMsgHeadline );
                 AutoSizes.ActualIndex=  qtyTabStops;
                 logText( domain, verbosity, logBuf, scope, 0 );
             }
@@ -1033,12 +1024,12 @@ void TextLogger::Log( Domain& domain, Verbosity verbosity, Boxes& logables, Scop
         }
 
         // append message and do the log
-        logBuf._NC( FmtMultiLinePrefix );
-          logBuf._NC( msgBuf,  actStart, actEnd - actStart  );
-        logBuf._NC( FmtMultiLineSuffix );
+        logBuf._<false>( FmtMultiLinePrefix );
+          logBuf._<false>( msgBuf,  actStart, actEnd - actStart  );
+        logBuf._<false>( FmtMultiLineSuffix );
         actStart= actEnd + delimLen;
         if ( actStart >= msgBuf.Length() )
-            logBuf._NC( FmtMsgSuffix );
+            logBuf._<false>( FmtMsgSuffix );
         logText( domain, verbosity, logBuf, scope, lineNo );
 
         // next

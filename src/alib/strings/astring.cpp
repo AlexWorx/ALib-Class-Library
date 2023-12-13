@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -39,24 +39,24 @@ void TAString<TChar>::dbgCheck() const
     integer cap= Capacity();
 
     ALIB_ASSERT_ERROR( debugLastAllocRequest == 0
-                       ||  TString<TChar>::length <= debugLastAllocRequest
-                       ,"Error: Previous allocation request was too short"         )
+                       ||  TString<TChar>::length <= debugLastAllocRequest, "STRINGS",
+                       "Error: Previous allocation request was too short"         )
 
-    ALIB_ASSERT_ERROR( TString<TChar>::length <= cap
-                       ,"Error: Length greater than allocation size"               )
+    ALIB_ASSERT_ERROR( TString<TChar>::length <= cap, "STRINGS",
+                       "Error: Length greater than allocation size"               )
 
     if( TString<TChar>::buffer && HasInternalBuffer() )
     {
         for (integer i= -16 ; i < 0 ; ++i)
             if ( TString<TChar>::buffer[i] != 2 )
             {
-                ALIB_ERROR( "Magic byte not found at start of buffer." )
+                ALIB_ERROR( "STRINGS", "Magic byte not found at start of buffer." )
                 break;
             }
         for (integer i= 1 ; i <= 16 ; ++i)
             if ( TString<TChar>::buffer[ cap + i] != 3 )
             {
-                ALIB_ERROR( "Magic byte not found at end of buffer." )
+                ALIB_ERROR( "STRINGS", "Magic byte not found at end of buffer." )
                 break;
             }
     }
@@ -76,7 +76,7 @@ void TAString<TChar>::GrowBufferAtLeastBy( integer minimumGrowth )
     integer actCapacity= Capacity();
 
     ALIB_ASSERT_WARNING (  TString<TChar>::length + minimumGrowth > actCapacity,
-                           "Unnecessary invocation of Grow()" )
+                           "STRINGS", "Unnecessary invocation of Grow()" )
 
     // first allocation? Go with given growth as size
     if (actCapacity == 0 )
@@ -121,7 +121,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
     // set uninitialized (and return)
     if ( newCapacity == 0 )
     {
-        ALIB_ASSERT_WARNING( !dbgWarnWhenExternalBufferIsReplaced || capacity >= 0,
+        ALIB_ASSERT_WARNING( !dbgWarnWhenExternalBufferIsReplaced || capacity >= 0, "STRINGS",
             "AString::SetBuffer(): removing an external buffer (setting string nulled). "
             "This may not be wanted."  )
 
@@ -138,9 +138,12 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
         return;
     }
 
-    ALIB_ASSERT_WARNING( !dbgWarnWhenExternalBufferIsReplaced || capacity >= 0,
-        "AString::SetBuffer(): replacing an external buffer by an internally managed one. "
-        "This may not be wanted."   )
+    #if ALIB_DEBUG
+        if( dbgWarnWhenExternalBufferIsReplaced && capacity < 0)
+            ALIB_WARNING( "STRINGS",
+            "AString::SetBuffer(): replacing an external buffer by an internally managed one. "
+            "This may not be wanted: ", reinterpret_cast<const char*>(Terminate())   )
+    #endif
 
     // extend or shrink an existing buffer (and return)
     if( capacity > 0 )
@@ -150,10 +153,12 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
                                                                            static_cast<size_t>(newCapacity  + 1)
                                                                            * sizeof( TChar )                       ) );
             #if ALIB_AVOID_ANALYZER_WARNINGS
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 if( newCapacity > capacity )
                     characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + TString<TChar>::length,
                                                         newCapacity  + 1 - TString<TChar>::length
                                                         ,'\0'                                                   );
+                ALIB_WARNINGS_RESTORE
             #endif
         #else
             // add 16 characters of padding at start/end
@@ -221,7 +226,7 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
                                     Responsibility responsibility  )
 {
     ALIB_ASSERT_ERROR(    !(extBufferSize == 0 && extBuffer != nullptr)
-                       && !(extBufferSize != 0 && extBuffer == nullptr) ,
+                       && !(extBufferSize != 0 && extBuffer == nullptr) , "STRINGS",
         "AString::SetBuffer(): Given buffer is nullptr while given alloc size is not 0 (or vice versa)" )
 
     // delete any existing
@@ -235,7 +240,7 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
     // too small? treat as if a nullptr was given.
     if ( extBufferSize < 1 )
     {
-        ALIB_ERROR( "allocation size < 1" )
+        ALIB_ERROR( "STRINGS", "allocation size < 1" )
         extBuffer= nullptr;
     }
 
@@ -253,7 +258,7 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
 
     if ( extLength >= extBufferSize  )
     {
-        ALIB_ERROR( "ext length >= ext allocation size" )
+        ALIB_ERROR( "STRINGS", "ext length >= ext allocation size" )
         extLength= extBufferSize -1;
     }
 
@@ -326,6 +331,7 @@ integer TAString<TChar>::SearchAndReplace(  TChar      needle,
                                             TChar      replacement,
                                             integer    startIdx        )
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     ALIB_STRING_DBG_CHK(this)
          if ( startIdx < 0  )       startIdx= 0;
     else if ( startIdx >= TString<TChar>::length )  return 0;
@@ -343,6 +349,7 @@ integer TAString<TChar>::SearchAndReplace(  TChar      needle,
     }
     while(  ++startIdx < TString<TChar>::length ) ;
     return cntReplacements;
+    ALIB_WARNINGS_RESTORE
 }
 
 
@@ -367,6 +374,7 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
     integer cntReplacements=    0;
     while ( cntReplacements < maxReplacements && startIdx < TString<TChar>::length)
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         // search  next occurrence
         integer    idx= sensitivity == Case::Sensitive
                         ? TString<TChar>(*this).template IndexOf<false, Case::Sensitive>( needle, startIdx )
@@ -394,8 +402,8 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
 
         // next
         ++cntReplacements;
+        ALIB_WARNINGS_RESTORE
     }
-
 
     // that's it
     return cntReplacements;
@@ -416,6 +424,7 @@ template   void TAString<xchar>::dbgCheck() const;
 // #################################################################################################
 // #################################################################################################
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template  void             TAString<nchar>::GrowBufferAtLeastBy(integer);
 template  void             TAString<nchar>::SetBuffer          (integer);
 template  void             TAString<nchar>::SetBuffer          (nchar*,integer,integer,Responsibility);
@@ -439,6 +448,7 @@ template  integer          TAString<xchar>::SearchAndReplace   (xchar,xchar,inte
 template  integer          TAString<xchar>::SearchAndReplace   (const TString<xchar>&,const TString<xchar>&,integer,integer,Case );
 template  TAString<xchar>& TAString<xchar>::Trim               (const TCString<xchar>& );
 template  integer          TAString<xchar>::TrimAt             (integer,const TCString<xchar>& );
+ALIB_WARNINGS_RESTORE
 
 
 // #################################################################################################
@@ -497,43 +507,20 @@ template  integer          TAString<xchar>::TrimAt             (integer,const TC
 template<> template<>
 TAString<char>& TAString<char>::Append<false>( const wchar_t* src, integer srcLength )
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     ALIB_STRING_DBG_CHK( this )
-    ALIB_ASSERT_ERROR( src,  "NC: nullptr passed" )
+    ALIB_ASSERT_ERROR( src,  "STRINGS", "nullptr appended to string" )
     if( srcLength == 0 )
         return *this;
 
-    //--------- __GLIBCXX__ Version ---------
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
-
-        integer maxConversionSize= static_cast<integer>(MB_CUR_MAX) * srcLength;
-        mbstate_t ps;
-        EnsureRemainingCapacity( maxConversionSize );
-        memset( &ps, 0, sizeof(mbstate_t) );
-        const wchar_t* srcp= src;
-        size_t conversionSize= wcsnrtombs( TString<char>::vbuffer + TString<char>::length, &srcp, static_cast<size_t>(srcLength), static_cast<size_t>(maxConversionSize),  &ps);
-        if ( conversionSize == static_cast<size_t>( -1 ) )
-        {
-            ALIB_WARNING( "Cannot convert WCS to MBCS. Check locale settings (should be UTF-8)" )
-            return *this;
-        }
-
-        if ( conversionSize < 1 )
-        {
-            ALIB_ERROR( "Error converting WCS to MBCS." )
-            return *this;
-        }
-
-        TString<char>::length+= conversionSize;
-        return *this;
-
     //--------- Windows Version ---------
-    #elif defined( _WIN32 )
+    #if defined( _WIN32 )
 
         // loop until reserved size is big enough
         EnsureRemainingCapacity( srcLength * 2 );
         for(;;)
         {
-            int conversionSize= WideCharToMultiByte( CP_UTF8, NULL,
+            int conversionSize= WideCharToMultiByte( CP_UTF8, 0,
                                                      src, static_cast<int>( srcLength),
                                                      TString<char>::vbuffer + TString<char>::length, static_cast<int>( Capacity() - TString<char>::length ),
                                                      NULL, NULL );
@@ -557,16 +544,42 @@ TAString<char>& TAString<char>::Append<false>( const wchar_t* src, integer srcLe
                       (   error == ERROR_INVALID_FLAGS          ? "ERROR_INVALID_FLAGS."
                         : error == ERROR_INVALID_PARAMETER      ? "ERROR_INVALID_PARAMETER"
                         : error == ERROR_NO_UNICODE_TRANSLATION ? "ERROR_NO_UNICODE_TRANSLATION"
-                                                                : NString64(error)      )
+                                                                : NString64(error).Terminate()      )
                     )
 
             return *this;
         }
 
+    //--------- __GLIBCXX__ Version ---------
+    #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
+                                                                                                                            
+        integer maxConversionSize= integer(MB_CUR_MAX) * srcLength;
+
+        mbstate_t ps;
+        EnsureRemainingCapacity( maxConversionSize );
+        memset( &ps, 0, sizeof(mbstate_t) );
+        const wchar_t* srcp= src;
+        size_t conversionSize= wcsnrtombs( TString<char>::vbuffer + TString<char>::length, &srcp, static_cast<size_t>(srcLength), static_cast<size_t>(maxConversionSize),  &ps);
+        if ( conversionSize == static_cast<size_t>( -1 ) )
+        {
+            ALIB_WARNING( "STRINGS", "Cannot convert WCS to MBCS. Check locale settings (should be UTF-8)" )
+            return *this;
+        }
+
+        if ( conversionSize < 1 )
+        {
+            ALIB_ERROR( "STRINGS", "Error converting WCS to MBCS." )
+            return *this;
+        }
+
+        TString<char>::length+= conversionSize;
+        return *this;
+
     #else
         #pragma message ("Unknown Platform in file: " __FILE__ )
         return *this;
     #endif
+    ALIB_WARNINGS_RESTORE
 }
 
 template<>
@@ -583,6 +596,7 @@ TAString<char>& TAString<char>::Append<false>( const CHARXX_T* src, integer srcL
 }
 
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 // #################################################################################################
 // <wchar_t>
 // #################################################################################################
@@ -594,8 +608,42 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
     // copy loop
     EnsureRemainingCapacity( srcLength );
 
+    //--------- Windows Version ----------
+    #if defined( _WIN32 )
+        if( srcLength == 0)
+            return *this;
+        integer conversionSize= MultiByteToWideChar( CP_UTF8, 9,
+                                                     src, static_cast<int>( srcLength ),
+                                                     vbuffer + length, static_cast<int>( Capacity() - length ) );
+        // check for errors
+        #if ALIB_DEBUG
+            if ( conversionSize == 0 )
+            {
+                // not enough space?
+                int error= GetLastError();
+
+                ALIB_WARNING(
+                    "MBCS to WCS conversion failed (Error: ",
+                    (  error == ERROR_INSUFFICIENT_BUFFER      ?  "ERROR_INSUFFICIENT_BUFFER."
+                     : error == ERROR_INVALID_FLAGS            ?  "ERROR_INVALID_FLAGS."
+                     : error == ERROR_INVALID_PARAMETER        ?  "ERROR_INVALID_PARAMETER"
+                     : error == ERROR_NO_UNICODE_TRANSLATION   ?  "ERROR_NO_UNICODE_TRANSLATION"
+                                                               :  NString64( error ).Terminate()   ),
+                     ")" )
+            }
+
+            ALIB_ASSERT_ERROR( conversionSize <= srcLength, "STRINGS",
+                               NString128( "MBCS to WCS conversion failed. Requested length=" )._( srcLength )
+                                        ._( ", conversion length=" )._(conversionSize)
+                            )
+        #endif
+
+        length+= conversionSize;
+        return *this;
+
+
     //--------- __GLIBCXX__ Version ---------
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
+    #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
         while(srcLength > 0 )
         {
@@ -638,43 +686,8 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
         }
         return *this;
 
-    //--------- Windows Version ----------
-    #elif defined( _WIN32 )
-        if( srcLength == 0)
-            return *this;
-        integer conversionSize= MultiByteToWideChar( CP_UTF8, NULL,
-                                                     src, static_cast<int>( srcLength ),
-                                                     vbuffer + length, static_cast<int>( Capacity() - length ) );
-        // check for errors
-        #if ALIB_DEBUG
-            if ( conversionSize == 0 )
-            {
-                // not enough space?
-                int error= GetLastError();
-
-                ALIB_WARNING(
-                    "MBCS to WCS conversion failed (Error: ",
-                    (  error == ERROR_INSUFFICIENT_BUFFER      ?  "ERROR_INSUFFICIENT_BUFFER."
-                     : error == ERROR_INVALID_FLAGS            ?  "ERROR_INVALID_FLAGS."
-                     : error == ERROR_INVALID_PARAMETER        ?  "ERROR_INVALID_PARAMETER"
-                     : error == ERROR_NO_UNICODE_TRANSLATION   ?  "ERROR_NO_UNICODE_TRANSLATION"
-                                                               :  NString64( error )            ),
-                     ")" )
-            }
-
-            ALIB_ASSERT_ERROR( conversionSize <= srcLength,
-                               NString128( "MBCS to WCS conversion failed. Requested length=" )._( srcLength )
-                                        ._( ", conversion length=" )._(conversionSize)
-                            )
-        #endif
-
-        length+= conversionSize;
-        return *this;
-
-
     #else
         #pragma message ("Unknown Platform in file: " __FILE__ )
-        conversionSize= 0;
         return *this;
     #endif
 }
@@ -702,7 +715,7 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
                 ALIB_ASSERT_ERROR(    src < srcEnd                        // has one more?
                                    && ((uc    & 0xfffffc00) == 0xd800)    // is low
                                    && ((*src  & 0xfffffc00) == 0xdc00),   // is high
-                                   "Error decoding UTF16" )
+                                   "STRINGS", "Error decoding UTF16" )
 
                 vbuffer[length++]=  static_cast<wchar_t>(     (uc << 10)
                                                          +  ((*src++) - 0x35fdc00 )    );
@@ -727,7 +740,7 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
             uinteger uc= *src++;
             ALIB_ASSERT_ERROR(       uc <  0xd800
                                 || ( uc >= 0xe000 && uc <= 0x10ffff ),
-                                "Illegal unicode 32 bit codepoint"       )
+                                "STRINGS", "Illegal unicode 32 bit codepoint"       )
 
             if( uc < 0x10000 )
             {
@@ -743,7 +756,6 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
 
         return *this;
     }
-
 #endif
 
 // #################################################################################################
@@ -770,7 +782,7 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
                 ALIB_ASSERT_ERROR(    src < srcEnd                        // has one more?
                                    && ((uc    & 0xfffffc00) == 0xd800)    // is low
                                    && ((*src  & 0xfffffc00) == 0xdc00),   // is high
-                                   "Error decoding UTF16" )
+                                   "STRINGS", "Error decoding UTF16" )
 
                 vbuffer[length++]=  static_cast<CHARXX_T>(     (uc << 10)
                                                          +  ((*src++) - 0x35fdc00 )    );
@@ -794,7 +806,7 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
             uinteger uc= static_cast<uinteger>( *src++ );
             ALIB_ASSERT_ERROR(       uc <  0xd800
                                 || ( uc >= 0xe000 && uc <= 0x10ffff ),
-                                "Illegal unicode 32 bit codepoint"       )
+                                "STRINGS", "Illegal unicode 32 bit codepoint"       )
 
             if( uc < 0x10000 )
             {
@@ -810,8 +822,8 @@ TAString<wchar_t>& TAString<wchar_t>::Append<false>( const char* src, integer sr
 
         return *this;
     }
-
 #endif
+ALIB_WARNINGS_RESTORE
 
 template<> template<>
 TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const char* src, integer srcLength )

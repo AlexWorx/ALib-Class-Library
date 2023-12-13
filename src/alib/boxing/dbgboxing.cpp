@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -42,9 +42,9 @@
 #      if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
 #         include <unordered_map>
 #      endif
-#      if !defined(_GLIBCXX_SET) && !defined(_SET_)
-#         include <set>
-#      endif
+#   if !defined(_GLIBCXX_UNORDERED_SET) && !defined(_UNORDERED_SET_)
+#      include <unordered_set>
+#   endif
 #   endif
 
 #endif // !defined(ALIB_DOX)
@@ -65,8 +65,8 @@ namespace aworx { namespace lib { namespace boxing { namespace detail {
     extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
            HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray(&monomem::GlobalAllocator);
 #else
-    extern std:set           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
-           std::set          <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern std::unordered_set<TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+           std::unordered_set<TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
     extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
            std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
     extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
@@ -103,9 +103,9 @@ void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType 
                 ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
                 DbgKnownVTables.InsertUnique( std::make_pair( &vtable->Type, vtable ) );
             #else
-                if ( DbgKnownVTables.find( vtable->Type ) != DbgKnownVTables.end() )
+                if ( DbgKnownVTables.find( &vtable->Type ) != DbgKnownVTables.end() )
                 {
-                    ALIB_ERROR( "Double instantiation of VTable of Type: \"",
+                    ALIB_ERROR( "BOXING", "Double instantiation of VTable of Type: \"",
                                 DbgTypeDemangler( vtable->Type ).Get(), "\"" )
                     DbgLockMaps(false);
                     return;
@@ -120,9 +120,9 @@ void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType 
                 ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
                 DbgKnownVTablesArray.InsertUnique(std::make_pair( &vtable->ElementType, vtable ) );
             #else
-                if ( DbgKnownVTablesArray.find( vtable->ElementType ) != DbgKnownVTablesArray.end() )
+                if ( DbgKnownVTablesArray.find( &vtable->ElementType ) != DbgKnownVTablesArray.end() )
                 {
-                    ALIB_ERROR( "Double instantiation of VTable of Type: \"",
+                    ALIB_ERROR( "BOXING", "Double instantiation of VTable of Type: \"",
                                 DbgTypeDemangler( vtable->ElementType ).Get(), "[]\"" )
                     DbgLockMaps(false);
                     return;
@@ -285,7 +285,8 @@ void  DbgBoxing::typeInfo( AString&                 target,
 
     target << indent << "Usage Counter:  " << vtable->DbgCntUsage  << NewLine();
 
-    ALIB_ASSERT_ERROR( target.IndexOf( A_CHAR("INTERNAL ERROR") ) < 0, "Error occurred describing type" )
+    ALIB_ASSERT_ERROR( target.IndexOf( A_CHAR("INTERNAL ERROR") ) < 0,
+                       "BOXING", "Error occurred describing type" )
 
     auto functions=  GetSpecificFunctionTypes(vtable);
     MonoAllocator allocator(8192);
@@ -343,7 +344,7 @@ void  DbgBoxing::dumpFunctions( const std::vector<std::pair<const std::type_info
 
     SPFormatter formatter= Formatter::GetDefault();
     Boxes& args= formatter->Acquire(ALIB_CALLER_PRUNED);
-    args.Add( indent, "{}  {!ATab5}{:>2})\\n", nullptr, '(', nullptr );
+    args.Add( indent, "{}  {!ATab5}{:>2})\n", nullptr, '(', nullptr );
     for( auto& nameAndUse : tmpStrings )
     {
         args[2]= std::get<0>(nameAndUse);

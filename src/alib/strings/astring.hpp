@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_ASTRING
@@ -230,7 +230,7 @@ namespace aworx { namespace lib { namespace strings                             
  * Destruction will free the currently allocated buffer - if internal.
  *
  *
- * \anchor alib_namespace_strings_astring_copymove
+ * \anchor alib_ns_strings_astring_copymove
  *<b>Copy/Move Constructor and Assignment</b><br>
  * The class provides the minimum equipment to be usable as member type of standard containers like
  * \c std::vector. This includes a copy and move constructor as well as a copy assignment operator.
@@ -255,7 +255,7 @@ namespace aworx { namespace lib { namespace strings                             
  *        string1= "Hello";       // Can't be an AString. Rather String, Substring or CString
  *        string2.Reset("World"); // Obviously an AString. The given string is copied!
  *
- * \anchor alib_namespace_strings_astring_write_access
+ * \anchor alib_ns_strings_astring_write_access
  * <b>Writing directly into the Buffer:</b><br>
  * Parent class \alib{strings,TString,String} holds its protected field
  * \alib{strings,TString::buffer,buffer} in an anonymous C++ union of two pointers,
@@ -272,7 +272,7 @@ namespace aworx { namespace lib { namespace strings                             
  * #operator[] is extended by a non-const version that returns a reference to a character instead
  * of just the character value.
  *
- * \anchor  alib_namespace_strings_astring_appendto
+ * \anchor  alib_ns_strings_astring_appendto
  * <b>Appending Objects to AStrings:</b><br>
  * This class is used to provide a global concept of having a sort of <b>"ToString"</b> method
  * with any C++ class. For this, the class provides method #Append, which uses template
@@ -339,7 +339,7 @@ class TAString : public TString<TChar>
         /**
          * If \c true, a \ref ALIB_WARNING "warning" is issued when an external buffer, whose
          * life-cycle is not controlled by this instance gets replaced.
-         * This field exists only with debug-compilatins of this class.
+         * This field exists only with debug-compilations of this class.
          *
          * \see
          *    See method #DbgDisableBufferReplacementWarning for more information.
@@ -418,7 +418,7 @@ class TAString : public TString<TChar>
 
         /** ****************************************************************************************
          * Move constructor.
-         * See \ref alib_namespace_strings_astring_copymove "Copy/Move Constructor and Assignment"
+         * See \ref alib_ns_strings_astring_copymove "Copy/Move Constructor and Assignment"
          * for details.
          * @param move The object to move.
          ******************************************************************************************/
@@ -441,6 +441,7 @@ class TAString : public TString<TChar>
                           capacity=   move.capacity;
 
             // clean moved object (buffer does not need to be nulled)
+            move.length=
             move.capacity=  0;
 
             // in debug mode, more copying and more destructor prevention is needed
@@ -449,7 +450,6 @@ class TAString : public TString<TChar>
                 #if ALIB_DEBUG_STRINGS
                 debugLastAllocRequest=               move.debugLastAllocRequest;
                 move.buffer=  nullptr;
-                move.length=  0;
                 #endif
             #endif
         }
@@ -478,12 +478,14 @@ class TAString : public TString<TChar>
         ~TAString() noexcept
         {
             ALIB_STRING_DBG_CHK(this)
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( HasInternalBuffer() )
                 std::free( const_cast<void*>(reinterpret_cast<const void*>( TString<TChar>::buffer
                                                   #if ALIB_DEBUG_STRINGS
                                                                             - 16
                                                   #endif
                                                                                                )) );
+            ALIB_WARNINGS_RESTORE
         }
 
     #if defined(ALIB_DOX)
@@ -534,7 +536,8 @@ class TAString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP(typename T,
-           characters::T_CharArray<T,TChar>::Construction == characters::ConstructionType::ExplicitOnly
+            characters::T_CharArray<T,TChar>::Construction == characters::ConstructionType::ExplicitOnly
+        &&  characters::T_ZTCharArray<T,TChar>::Construction != characters::ConstructionType::Implicit
         && !T_SuppressAutoCast<TAString<TChar>,characters::ConstructionType::ExplicitOnly,ATMP_RCV(T)>::value )
         explicit
         operator T () const
@@ -572,7 +575,7 @@ class TAString : public TString<TChar>
          *
          * \see
          *   For details why no other assignment operators exists for this class, note paragraph
-         *   \ref alib_namespace_strings_astring_copymove "Copy/Move Constructor and Assignment"
+         *   \ref alib_ns_strings_astring_copymove "Copy/Move Constructor and Assignment"
          *   of this class's reference documentation.
          *
          * @param  copy  The object to copy the contents from.
@@ -686,7 +689,7 @@ class TAString : public TString<TChar>
         {
             #if ALIB_DEBUG_STRINGS
                 ALIB_ASSERT_ERROR( TString<TChar>::length <= debugLastAllocRequest,
-                                   "Previous allocation request was too short"       )
+                                   "STRINGS", "Previous allocation request was too short"       )
             #endif
 
             if ( Capacity() < TString<TChar>::length + spaceNeeded )
@@ -762,8 +765,10 @@ class TAString : public TString<TChar>
          ******************************************************************************************/
         const TChar* Terminate()                                                               const
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( TString<TChar>::vbuffer )
                  TString<TChar>::vbuffer[ TString<TChar>::length ]= '\0';
+            ALIB_WARNINGS_RESTORE
 
             return TString<TChar>::buffer;
         }
@@ -775,7 +780,7 @@ class TAString : public TString<TChar>
         /** ****************************************************************************************
          * The internal buffer character array provided as non constant character pointer.
          * \see Chapter
-         * \ref alib_namespace_strings_astring_write_access "Write Access to the Buffer"
+         * \ref alib_ns_strings_astring_write_access "Write Access to the Buffer"
          * of the reference documentation of this class.
          *
          * @return The internal buffer array.
@@ -806,9 +811,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template<bool TCheck =true>
         void        SetCharAt( integer idx, TChar c )
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             ALIB_ASSERT_ERROR( c != '\0' || idx==TString<TChar>::length,
-                               "Can't write character '\0'"                )
-            if ALIB_CONSTEXPR_IF (TCheck)
+                               "STRINGS", "Can't write character '\0'"                )
+            if ALIB_CONSTEXPR17 (TCheck)
             {
                 if(    (idx >= 0  && idx <  TString<TChar>::length )
                     || ( c =='\0' && idx == TString<TChar>::length ) )
@@ -817,9 +823,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( idx >= 0 && idx < TString<TChar>::length,
-                                   "Non-checking invocation: ", "Index out of range" )
+                                   "STRINGS", "Non-checking invocation: ", "Index out of range" )
                 *(TString<TChar>::vbuffer + idx )= c;
             }
+            ALIB_WARNINGS_RESTORE
         }
 
         /** ****************************************************************************************
@@ -836,8 +843,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         TChar&      operator[] (integer  idx)
         {
-            ALIB_ASSERT_ERROR( idx >= 0  && idx < TString<TChar>::length , "Index out of bounds" )
+            ALIB_ASSERT_ERROR( idx >= 0  && idx < TString<TChar>::length ,
+                               "STRINGS", "Index out of bounds" )
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return TString<TChar>::vbuffer[idx];
+            ALIB_WARNINGS_RESTORE
         }
 
         using TString<TChar>::operator[];
@@ -859,8 +869,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         void    SetLength( integer newLength )
         {
-            ALIB_ASSERT_ERROR( newLength >= 0         , "Negative AString length requested" )
-            ALIB_ASSERT_ERROR( newLength <= Capacity(), "Requested AString length exceeds capacity" )
+            ALIB_ASSERT_ERROR( newLength >= 0         ,
+                               "STRINGS", "Negative AString length requested" )
+            ALIB_ASSERT_ERROR( newLength <= Capacity(),
+                               "STRINGS", "Requested AString length exceeds capacity" )
             TString<TChar>::length= newLength;
             ALIB_STRING_DBG_CHK(this)
         }
@@ -883,13 +895,17 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @param newLength  The new length of this \b %AString. Must be between 0 and the current
          *                   length.
+         * @return    \c *this to allow concatenated calls.
          ******************************************************************************************/
-        void    ShortenTo( integer newLength )
+        TAString&    ShortenTo( integer newLength )
         {
-            ALIB_ASSERT_ERROR( newLength >= 0, "Negative AString length requested" )
-            ALIB_ASSERT_ERROR( newLength <= TString<TChar>::length, "Increase of AString length requested" )
+            ALIB_ASSERT_ERROR( newLength >= 0,
+                               "STRINGS", "Negative AString length requested" )
+            ALIB_ASSERT_ERROR( newLength <= TString<TChar>::length,
+                               "STRINGS", "Increase of AString length requested" )
             TString<TChar>::length= newLength;
             ALIB_STRING_DBG_CHK(this)
+            return *this;
         }
 
 
@@ -938,7 +954,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if (!src)
                     return *this;
@@ -956,12 +972,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_STRING_DBG_CHK(this)
-                ALIB_ASSERT_ERROR( src || srcLength == 0,
+                ALIB_ASSERT_ERROR( src || srcLength == 0, "STRINGS",
                                    "Nullptr passed with non-checking method version." )
             }
 
             EnsureRemainingCapacity( srcLength );
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::Copy( src, srcLength, TString<TChar>::vbuffer + TString<TChar>::length );
+            ALIB_WARNINGS_RESTORE
             TString<TChar>::length+= srcLength;
 
             return *this;
@@ -985,7 +1003,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString& Append( const TString<TChar>& src, integer regionStart, integer regionLength =MAX_LEN )
         {
-            if ALIB_CONSTEXPR_IF (TCheck)
+            if ALIB_CONSTEXPR17 (TCheck)
             {
                 if ( src.IsNull() )
                     return *this;
@@ -1004,12 +1022,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 //---- non-checking version ----
                 ALIB_ASSERT_ERROR(    regionStart >= 0 && regionLength >= 0
                                    && regionLength != MAX_LEN
-                                   && regionStart +  regionLength  <= src.Length(),
+                                   && regionStart +  regionLength  <= src.Length(),  "STRINGS",
                                    "Non-checking invocation: ", "Invalid region given" )
             }
 
             // both versions
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return Append<false>( src.Buffer() + regionStart, regionLength );
+            ALIB_WARNINGS_RESTORE
         }
 
         /** ****************************************************************************************
@@ -1124,6 +1144,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             return true;
         }
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+
         // single character same type
         template<bool TCheck= true>
         bool   append(TChar src )
@@ -1147,7 +1169,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             using TOtherChar= ATMP_RCVR(T);
 
             // same type?
-            if ALIB_CONSTEXPR_IF ( ATMP_EQ( TChar, TOtherChar) )
+            if ALIB_CONSTEXPR17 ( ATMP_EQ( TChar, TOtherChar) )
             {
                 EnsureRemainingCapacity( 1 );
                 TString<TChar>::vbuffer[ TString<TChar>::length++ ]= static_cast<TChar>( src );
@@ -1155,24 +1177,24 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             // AString<nchar>?
-            else if ALIB_CONSTEXPR_IF ( ATMP_EQ( TChar, nchar) )
+            else if ALIB_CONSTEXPR17 ( ATMP_EQ( TChar, nchar) )
             {
                 wchar wc=  static_cast<wchar>( src );
                 int mbLength;
-                #if defined(_MSC_VER)
+                #if defined(_WIN32)
                     EnsureRemainingCapacity( MB_LEN_MAX * 2);
-                    mbLength= WideCharToMultiByte( CP_UTF8, NULL, &wc, 1,
+                    mbLength= WideCharToMultiByte( CP_UTF8, 0, &wc, 1,
                                                    ((nchar*) TString<TChar>::vbuffer) + TString<TChar>::length,
                                                    MB_LEN_MAX * 2, NULL, NULL );
                     if ( mbLength <= 0 )
                     {
                         ALIB_DBG( DWORD error= GetLastError(); )
-                        ALIB_WARNING( "AString: Cannot convert wide character string to UTF-8. Error: ",
+                        ALIB_WARNING( "STRINGS", "Cannot convert wide character string to UTF-8. Error: ",
                                        (   error == ERROR_INSUFFICIENT_BUFFER    ? "ERROR_INSUFFICIENT_BUFFER"
                                         :  error == ERROR_INVALID_FLAGS          ? "ERROR_INVALID_FLAGS."
                                         :  error == ERROR_INVALID_PARAMETER      ? "ERROR_INVALID_PARAMETER"
                                         :  error == ERROR_NO_UNICODE_TRANSLATION ? "ERROR_NO_UNICODE_TRANSLATION"
-                                                                                 : NString64( error ) ) )
+                                                                                 : static_cast<const char*>(NAString( error ) ) ) )
                     }
                 #else
                     EnsureRemainingCapacity( static_cast<integer>(MB_CUR_MAX) + 1);
@@ -1182,7 +1204,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
                 if ( mbLength <= 0 )
                 {
-                    ALIB_WARNING( "Cannot convert WC to MBC." )
+                    ALIB_WARNING( "STRINGS", "Cannot convert WC to MBC." )
                     return false;
                 }
 
@@ -1195,7 +1217,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             TString<TChar>::vbuffer[ TString<TChar>::length++ ]= static_cast<TChar>( src );
             return true;
         }
-
+        ALIB_WARNINGS_RESTORE
 
         #endif // doxygen
 
@@ -1337,7 +1359,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
             integer srcLength= src.Length();
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( srcLength == 0 || pos < 0 || pos > TString<TChar>::length )
                     return *this;
@@ -1345,17 +1367,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( srcLength > 0 && pos >=0 && pos <= TString<TChar>::length,
-                                   "Non-checking invocation: ", "Illegal parameters" )
+                                   "STRINGS", "Non-checking invocation: ", "Illegal parameters" )
             }
 
             EnsureRemainingCapacity( srcLength );
 
             // move content and copy string new region
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( pos != TString<TChar>::length )
                 characters::CharArray<TChar>::Move( TString<TChar>::vbuffer + pos,
                                                     TString<TChar>::length -  pos,
                                                     TString<TChar>::vbuffer + pos + srcLength    );
             TString<TChar>::length+= src.CopyTo( TString<TChar>::vbuffer + pos );
+            ALIB_WARNINGS_RESTORE
 
             return *this;
         }
@@ -1372,19 +1396,20 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString&   InsertChars( TChar c, integer qty )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( qty <= 0 )
                     return *this;
             }
             else
-            {
-                ALIB_ASSERT_ERROR( qty >= 0, "Non-checking invocation: ", "Illegal quantity given" )
-            }
+                ALIB_ASSERT_ERROR( qty >= 0, "STRINGS",
+                                   "Non-checking invocation: ", "Negative quantity given" )
 
             EnsureRemainingCapacity( qty );
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + TString<TChar>::length, qty, c );
             TString<TChar>::length+=  qty;
+            ALIB_WARNINGS_RESTORE
             return *this;
         }
 
@@ -1404,22 +1429,23 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString&   InsertChars( TChar c, integer qty, integer pos )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( qty <= 0 || pos < 0 ||  pos > TString<TChar>::length )
                     return *this;
             }
             else
             {
-                ALIB_ASSERT_ERROR( qty >= 0,
-                                   "Non-checking invocation: ", "Illegal quantity given" )
-                ALIB_ASSERT_ERROR( pos >= 0 && pos <= TString<TChar>::length,
+                ALIB_ASSERT_ERROR( qty >= 0, "STRINGS",
+                                   "Non-checking invocation: ", "Negative quantity given" )
+                ALIB_ASSERT_ERROR( pos >= 0 && pos <= TString<TChar>::length, "STRINGS",
                                    "Non-checking invocation: ", "Illegal position given" )
             }
 
             EnsureRemainingCapacity( qty );
 
             // move content ?
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( pos != TString<TChar>::length )
                 characters::CharArray<TChar>::Move( TString<TChar>::vbuffer + pos,
                                                     TString<TChar>::length  - pos,
@@ -1428,6 +1454,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             // set
             characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + pos, qty, c );
             TString<TChar>::length+=  qty;
+            ALIB_WARNINGS_RESTORE
+
             return *this;
         }
 
@@ -1457,7 +1485,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
             integer regionEnd;
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1471,9 +1499,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
             else
             {
-                ALIB_ASSERT_ERROR( regionStart  >= 0
+                ALIB_ASSERT_ERROR(     regionStart  >= 0
                                    &&  regionStart  <= TString<TChar>::length
-                                   &&  regionLength >= 0,
+                                   &&  regionLength >= 0, "STRINGS",
                                    "Non-checking invocation: ", "Illegal arguments"   )
 
                 // delete over the end?
@@ -1485,10 +1513,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             // both versions
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::Move( TString<TChar>::vbuffer + regionEnd,
                                                 TString<TChar>::length  - regionEnd + 1,
                                                 TString<TChar>::vbuffer + regionStart   );
             TString<TChar>::length-= regionLength;
+            ALIB_WARNINGS_RESTORE
+
             return *this;
         }
 
@@ -1509,7 +1540,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( regionLength <= 0 )
                 {
@@ -1522,12 +1553,15 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR(  regionLength >=0 && regionLength <= TString<TChar>::length,
-                                    "Non-checking invocation: ", "Region length out of range." )
+                                    "STRINGS", "Non-checking invocation: ",
+                                    "Region length out of range." )
             }
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::Move( TString<TChar>::buffer + regionLength,
                                                 TString<TChar>::length - regionLength + 1,
                                                 TString<TChar>::vbuffer                     );
+            ALIB_WARNINGS_RESTORE
             TString<TChar>::length-= regionLength;
             return *this;
         }
@@ -1548,7 +1582,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR_IF (TCheck)
+            if ALIB_CONSTEXPR17 (TCheck)
             {
                 if ( regionLength > 0 )
                 {
@@ -1561,7 +1595,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR(  regionLength >=0 && regionLength <= TString<TChar>::length,
-                                    "Non-checking invocation: ", "Region length out of range" )
+                                    "STRINGS", "Non-checking invocation: ",
+                                    "Region length out of range" )
                 TString<TChar>::length-= regionLength;
             }
 
@@ -1665,19 +1700,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         TAString&   ReplaceSubstring( const TString<TChar>& src, integer regionStart, integer regionLength )
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 TString<TChar>::AdjustRegion( regionStart, regionLength );
             }
             else
             {
-                ALIB_ASSERT_ERROR( src.IsNotNull(),
+                ALIB_ASSERT_ERROR( src.IsNotNull(), "STRINGS",
                                    "Non-checking invocation: ", "Source string is nulled" )
                 #if ALIB_DEBUG
                     integer rs=  regionStart;
                     integer rl=  regionLength;
                     TString<TChar>::AdjustRegion( rs, rl );
-                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength,
+                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength, "STRINGS",
                                        "Non-checking invocation: ", "Invalid region given" )
                 #endif
             }
@@ -1689,6 +1724,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 EnsureRemainingCapacity( lenDiff );
 
             // move content
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( lenDiff != 0 )
                 characters::CharArray<TChar>::Move( TString<TChar>::vbuffer +  regionStart + regionLength,
                                                     TString<TChar>::length  - (regionStart + regionLength),
@@ -1697,6 +1733,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             // copy the source
             src.CopyTo( TString<TChar>::vbuffer + regionStart );
             TString<TChar>::length+= lenDiff;
+            ALIB_WARNINGS_RESTORE
 
             return *this;
         }
@@ -1717,7 +1754,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString&   ReplaceRegion( TChar c, integer regionStart, integer regionLength )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1728,11 +1765,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                     integer rs=  regionStart;
                     integer rl=  regionLength;
                     TString<TChar>::AdjustRegion( rs, rl );
-                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength,
+                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength, "STRINGS",
                                        "Non-checking invocation: ", "Invalid region given" )
                 #endif
             }
+
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + regionStart, regionLength, c );
+            ALIB_WARNINGS_RESTORE
             return *this;
         }
 
@@ -1783,7 +1823,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString& ToUpper( integer regionStart= 0, integer regionLength =MAX_LEN )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1794,12 +1834,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                     integer rs=  regionStart;
                     integer rl=  regionLength;
                     TString<TChar>::AdjustRegion( rs, rl );
-                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength,
+                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength, "STRINGS",
                                        "Non-checking invocation: ", "Invalid region given" )
                 #endif
             }
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::ToUpper( TString<TChar>::vbuffer + regionStart, regionLength );
+            ALIB_WARNINGS_RESTORE
             return *this;
         }
 
@@ -1815,7 +1857,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TAString& ToLower( integer regionStart= 0, integer regionLength =MAX_LEN )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
                     return *this;
@@ -1826,19 +1868,54 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                     integer rs=  regionStart;
                     integer rl=  regionLength;
                     TString<TChar>::AdjustRegion( rs, rl );
-                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength,
+                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength, "STRINGS",
                                        "Non-checking invocation: ", "Invalid region given" )
                 #endif
             }
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             characters::CharArray<TChar>::ToLower( TString<TChar>::vbuffer + regionStart, regionLength );
+            ALIB_WARNINGS_RESTORE
+            return *this;
+        }
+
+        /** ****************************************************************************************
+         * Reverses the order of the characters of this string (or a region hereof).
+         *
+         * @param regionStart     Start of the region to be reversed. Defaults to 0
+         * @param regionLength    Length of the region to be reversed. Defaults to \b %MAX_LEN.
+         *
+         * @return \c *this to allow concatenated calls.
+         ******************************************************************************************/
+        template <bool TCheck= true>
+        TAString& Reverse( integer regionStart= 0, integer regionLength =MAX_LEN )
+        {
+            if ALIB_CONSTEXPR17 ( TCheck )
+            {
+                if ( TString<TChar>::AdjustRegion( regionStart, regionLength ) )
+                    return *this;
+            }
+            else
+            {
+                #if ALIB_DEBUG
+                    integer rs=  regionStart;
+                    integer rl=  regionLength;
+                    TString<TChar>::AdjustRegion( rs, rl );
+                    ALIB_ASSERT_ERROR( rs == regionStart && rl == regionLength, "STRINGS",
+                                       "Non-checking invocation: ", "Invalid region given" )
+                #endif
+            }
+
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            characters::CharArray<TChar>::Reverse( TString<TChar>::vbuffer + regionStart, regionLength );
+            ALIB_WARNINGS_RESTORE
             return *this;
         }
 
 ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
     /** ############################################################################################
-     * @name std::iterator
+     * @name std::iterator_traits
      ##@{ ########################################################################################*/
     public:
         using TString<TChar>::begin;
@@ -1847,7 +1924,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         using TString<TChar>::rend;
 
         /**
-         * A \c std::iterator type, implementing the standard library concept of
+         * A \c std::iterator_traits type, implementing the standard library concept of
          * \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
          * While parent class \b %String provides a constant iterator only, this class exposes
          * an iterator that allows the modification of the character an iterator references.
@@ -1857,6 +1934,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         /** Same as #Iterator, but working from the end to the start of the string. */
         using ReverseIterator  = std::reverse_iterator<Iterator>;
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         /** Returns an iterator pointing to a constant character at the start of this string.
          *  @return The start of this string.                                         */
         Iterator          begin()                   { return Iterator(  TString<TChar>::vbuffer ); }
@@ -1865,6 +1943,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *  @return The end of this string.                                           */
         Iterator          end()                     { return Iterator(  TString<TChar>::vbuffer
                                                                       + TString<TChar>::length  ); }
+        ALIB_WARNINGS_RESTORE
 
         /** Returns a reverse iterator pointing to a constant character at the end of this string.
          *  @return The last character of this string.                                        */
@@ -1878,6 +1957,39 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 //! @cond NO_DOX
 
+
+#if (ALIB_CPPVER >= 20 || defined(_MSC_VER))          && !defined(ALIB_DOX)
+// The following operators are re-implementations of those found with class String.
+// They are needed to mitigate typical C++ 20 comparison operator ambiguities.
+// Note: We do not use a template for nchar-, wchar- and xchar- versions, for compatibility
+//       reasons and to increase compile speed
+// Attn: See note at operators in string.hpp
+
+// AString/char*
+inline bool  operator==  (const TAString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TAString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+
+// AString/CString
+inline bool  operator==  (const TAString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TAString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+
+// AString/AString
+inline bool  operator==  (const TAString<nchar>& lhs, const NAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<wchar>& lhs, const WAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TAString<xchar>& lhs, const XAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TAString<nchar>& lhs, const NAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<wchar>& lhs, const WAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TAString<xchar>& lhs, const XAString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+
+#endif
 
 #if ALIB_DEBUG_STRINGS
 extern template       ALIB_API void             TAString<nchar>::dbgCheck            () const;

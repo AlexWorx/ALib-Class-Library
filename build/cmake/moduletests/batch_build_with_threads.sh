@@ -29,6 +29,11 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;THREADS"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;THREADS"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  SINGLETONS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SINGLETONS;THREADS"  ../../cmake/moduletests
@@ -127,6 +132,11 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;BOXING;THREADS"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;BOXING    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;BOXING;THREADS"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=THREADS;STRINGS;THREADS"  ../../cmake/moduletests
@@ -144,13 +154,17 @@ make -j
 
 echo "\n\n############################  MONOMEM;BOXING    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BOXING;STRINGS;THREADS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=MONOMEM;BOXING;THREADS"  ../../cmake/moduletests
 make -j
-
 
 echo "\n\n############################  BOXING;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BOXING;STRINGS;THREADS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
+rm -r -f *
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS;THREADS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  SINGLETONS;TIME    ############################"

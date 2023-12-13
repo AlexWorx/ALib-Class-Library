@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //  Private, not published in git ( I hope! )
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_ENUMS
 
 #include "alib/alox.hpp"
 #include <iostream>
@@ -15,7 +15,7 @@
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_COMPAT_IOSTREAM]
 #include "alib/compatibility/std_strings_iostream.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_COMPAT_IOSTREAM]
-#include "alib/enums/iteratable.hpp"
+#include "alib/enums/iterable.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_MAIN]
 #include "alib/enums/records.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_MAIN]
@@ -30,6 +30,7 @@
 #   include "alib/lib/fs_commonenums/commonenums.hpp"
 #endif
 
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 
 #define TESTCLASSNAME       CPP_ALib_Dox_Enums
@@ -239,7 +240,7 @@ enum class Bits
 
 ALIB_ENUMS_ASSIGN_RECORD( Bits, aworx::lib::enums::ERSerializable )
 ALIB_ENUMS_MAKE_BITWISE(    Bits )
-ALIB_ENUMS_MAKE_ITERATABLE( Bits, Bits::END_OF_ENUM )
+ALIB_ENUMS_MAKE_ITERABLE( Bits, Bits::END_OF_ENUM )
 
 enum class BitsParsable
 {
@@ -257,7 +258,7 @@ ALIB_ENUMS_MAKE_BITWISE( BitsParsable )
 
 
 // #################################################################################################
-// ### Enum Iteratable
+// ### Iterable Enum
 // #################################################################################################
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE]
 enum class Pets
@@ -269,9 +270,9 @@ enum class Pets
 };
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE]
 
-//! [DOX_ALIB_ENUMS_ITER_MAKE_ITERATABLE]
-ALIB_ENUMS_MAKE_ITERATABLE(Pets, Pets::Snake + 1 )
-//! [DOX_ALIB_ENUMS_ITER_MAKE_ITERATABLE]
+//! [DOX_ALIB_ENUMS_ITER_MAKE_ITERABLE]
+ALIB_ENUMS_MAKE_ITERABLE(Pets, Pets::Snake + 1 )
+//! [DOX_ALIB_ENUMS_ITER_MAKE_ITERABLE]
 
 
 //! [DOX_ALIB_ENUMS_ER_STATES]
@@ -449,7 +450,7 @@ acceptBaseOrDerived(TEnum element)
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 
     UT_METHOD( lang_IntXX )
@@ -458,7 +459,7 @@ UT_CLASS()
         UT_PRINT("*** Documentation Sample +**")
 
         dox_lang_complete_specialization::test();
-        ut.WriteResultFile( "DOX_ALIB_INTXX.txt", testOutputStream.str() );
+        ut.WriteResultFile( "DOX_ALIB_INTXX.txt", testOutputStream.str(), "" );
         testOutputStream.str("");
 
 
@@ -525,11 +526,9 @@ for( auto element : aworx::lib::enums::EnumIterator<Pets>() )
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP_NEW]
 
 
-
 // #################################################################################################
 // ### Enum Records
 // #################################################################################################
-
 
 // ### Chapter 4.1  ##############################
 #if defined(__clang__)
@@ -538,13 +537,15 @@ for( auto element : aworx::lib::enums::EnumIterator<Pets>() )
 #endif
 
 #define   Fruits simple::Fruits
-aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED);
+
+ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_3CALLS]
 aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Apple , A_CHAR("Apple" ) );
 aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Orange, A_CHAR("Orange") );
 aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Banana, A_CHAR("Banana") );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_3CALLS]
-aworx::lib::monomem::GlobalAllocatorLock.Release();
+ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
 #undef   Fruits
 #if defined(__clang__)
     #pragma clang diagnostic pop
@@ -572,7 +573,7 @@ aworx::EnumRecords<Fruits>::Bootstrap(
 
 if( compiledButNotInvoked)
 {
-    aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED);
+    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
 
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_STRING]
 aworx::EnumRecords<Fruits>::Bootstrap(
@@ -580,7 +581,7 @@ aworx::EnumRecords<Fruits>::Bootstrap(
              "1"    ","    "Orange"  ","   "1"      ","
              "2"    ","    "Banana"  ","   "1"       )  );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_STRING]
-    aworx::lib::monomem::GlobalAllocatorLock.Release();
+    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
 }
 // ### Chapter 4.2  ##############################
 
@@ -618,7 +619,7 @@ acceptBaseOrDerived( Anything::element );
 
 // ### Chapter 4.?  ##############################
 
- aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED);
+ ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
 //! [DOX_ALIB_ENUMS_BITWISE_DEFINITION]
 aworx::EnumRecords<WindowManager::States>::Bootstrap(
 
@@ -654,7 +655,7 @@ aworx::EnumRecords<Bits>::Bootstrap(
     { Bits::Four ,   A_CHAR("Four")   },
 } );
 
-aworx::lib::monomem::GlobalAllocatorLock.Release();
+ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
 
 
 
@@ -823,7 +824,7 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
         UT_INIT()
         UT_PRINT("*** Documentation Sample +**")
 
-        aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED);
+        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
             aworx::EnumRecords<ArithmeticEnum>::Bootstrap(
             {
                 { ArithmeticEnum(0),  A_CHAR("E0") },
@@ -833,7 +834,7 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
                 { ArithmeticEnum(4),  A_CHAR("E4") },
                 { ArithmeticEnum(5),  A_CHAR("E5") },
             } );
-        aworx::lib::monomem::GlobalAllocatorLock.Release();
+        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
 
 
         UT_EQ   ( ArithmeticEnum::element3  , ArithmeticEnum::element1 + ArithmeticEnum::element2 )
@@ -881,5 +882,4 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
 } //namespace
 
 
-#endif //  ALIB_UT_DOCS
-
+#endif //  ALIB_UT_DOCS && ALIB_ENUMS

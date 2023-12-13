@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -12,7 +12,7 @@
 # #################################################################################################
 
 project("ALox.Samples")
-cmake_minimum_required( VERSION 3.3.0 )
+cmake_minimum_required( VERSION 3.18.0 )
 
 # -------------------------------------------------------------------------------------------------
 # Settings prior to including the generic cmake CMake file
@@ -23,8 +23,7 @@ cmake_minimum_required( VERSION 3.3.0 )
 
 
 # -------------------------------------------------------------------------------------------------
-# Includine the generic cmake CMake file
+# Include the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
 include( ../../cmake/samples/ALox/CMakeLists.txt )
-

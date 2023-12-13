@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -12,13 +12,15 @@
 #include "alib/alox.hpp"
 #include "alib/strings/util/tokenizer.hpp"
 #include "alib/strings/numberformat.hpp"
-#include "alib/compatibility/std_characters.hpp"
+#include "alib/compatibility/std_strings.hpp"
 #if ALIB_TIME
 #   include "alib/time/datetime.hpp"
 #endif
 #if ALIB_SYSTEM
 #   include "alib/system/calendar.hpp"
 #endif
+
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -83,7 +85,7 @@ namespace strings {
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 void testParam            ( AWorxUnitTesting& ut, const character* exp, const String& as )
 {
@@ -307,16 +309,16 @@ UT_METHOD( ConstructorsImplicit )
    character*                   testCharP=      const_cast<character*>( testConstCharP );
    std::basic_string<character> testStdString           ( testConstCharP ) ;
    AString                  testAString                 ( testConstCharP ) ;
-   character                testStringLiteral[2]        ( A_CHAR("1")       ) ;
+   character                testStringLiteral[2]        ( A_CHAR("1")    ) ;
    Substring                testSubstring               ( testConstCharP ) ;
    String32                 testLocalString             ( testConstCharP ) ;
    tstn::MyString           testMyString;
 
-   const std::basic_string<character>   testConstStdString          ( testConstCharP ) ;
+   const std::basic_string<character> testConstStdString( testConstCharP ) ;
    const AString            testConstAString            ( testConstCharP ) ;
-   const character           testConstStringLiteral[2]  ( A_CHAR("1")       ) ;
+   const character           testConstStringLiteral[2]  ( A_CHAR("1")    ) ;
    const Substring          testConstSubstring          ( testConstCharP ) ;
-   const String32           testConstLocalString ( testConstCharP ) ;
+   const String32           testConstLocalString        ( testConstCharP ) ;
    const tstn::MyString     testConstMyString;
 
    const character* myStringBuf= testMyString.GetMyBuffer    (            ) ;
@@ -902,9 +904,9 @@ UT_METHOD( MoveConstructors )
 }
 
 //--------------------------------------------------------------------------------------------------
-//--- Test ConstructBack
+//--- Test ConstructAndCompare
 //--------------------------------------------------------------------------------------------------
-UT_METHOD( ConstructBack )
+UT_METHOD( ConstructAndCompare )
 {
     UT_INIT()
 
@@ -917,20 +919,53 @@ UT_METHOD( ConstructBack )
         WString                   wString     = A_WCHAR("WString"     );
         XString                   xString     = A_XCHAR("XString"     );
 
-        std_string     = std::string(nString);     UT_TRUE( std_string  ==  "NString"            )
-                                                   UT_TRUE( std_string  == std::string(nString)  )
-                                                   UT_TRUE( nString     == std_string            )
+        std_string     = std::string(nString);     UT_TRUE ( std_string  ==  "NString"            )
+                                                   UT_TRUE ( std_string  == std::string(nString)  )
+                                                   UT_TRUE ( nString     == std_string            )
+                                                   UT_TRUE ( std_string  == nString               )
+                                                   UT_FALSE( nString     != std_string            )
+                                                   UT_FALSE( std_string  != nString               )
+                                                   UT_FALSE( nString     <  std_string            )
+                                                   UT_FALSE( std_string  <  nString               )
+                                                   UT_FALSE( nString     >  std_string            )
+                                                   UT_FALSE( std_string  >  nString               )
+                                                   UT_TRUE ( nString     <= std_string            )
+                                                   UT_TRUE ( std_string  <= nString               )
+                                                   UT_TRUE ( nString     >= std_string            )
+                                                   UT_TRUE ( std_string  >= nString               )
 
         std_wstring    = std::basic_string<wchar>(wString);
-                                                   UT_TRUE( std_wstring == A_WCHAR("WString")    )
-                                                   UT_TRUE( std_wstring == std::basic_string<wchar>(wString) )
-                                                   UT_TRUE( wString     == std_wstring           )
+                                                   UT_TRUE ( std_wstring == A_WCHAR("WString")    )
+                                                   UT_TRUE ( std_wstring == std::basic_string<wchar>(wString) )
+                                                   UT_TRUE ( wString     == std_wstring           )
+                                                   UT_TRUE ( std_wstring== wString               )
+                                                   UT_FALSE( wString    != std_wstring           )
+                                                   UT_FALSE( std_wstring!= wString               )
+                                                   UT_FALSE( wString    <  std_wstring           )
+                                                   UT_FALSE( std_wstring<  wString               )
+                                                   UT_FALSE( wString    >  std_wstring           )
+                                                   UT_FALSE( std_wstring>  wString               )
+                                                   UT_TRUE ( wString    <= std_wstring           )
+                                                   UT_TRUE ( std_wstring<= wString               )
+                                                   UT_TRUE ( wString    >= std_wstring           )
+                                                   UT_TRUE ( std_wstring>= wString               )
 
         std_xstring    = std::basic_string<xchar>(xString);
-                                                   UT_TRUE( std_xstring == A_XCHAR("XString")    )
-                                                   UT_TRUE( std_xstring == std::basic_string<xchar>(xString) )
-                                                   UT_TRUE( xString     == std_xstring           )
-    }
+                                                   UT_TRUE ( std_xstring == A_XCHAR("XString")   )
+                                                   UT_TRUE ( std_xstring == std::basic_string<xchar>(xString) )
+                                                   UT_TRUE ( xString     == std_xstring          )
+                                                   UT_TRUE ( std_xstring  == xString             )
+                                                   UT_FALSE( xString     != std_xstring          )
+                                                   UT_FALSE( std_xstring  != xString             )
+                                                   UT_FALSE( xString     <  std_xstring          )
+                                                   UT_FALSE( std_xstring  <  xString             )
+                                                   UT_FALSE( xString     >  std_xstring          )
+                                                   UT_FALSE( std_xstring  >  xString             )
+                                                   UT_TRUE ( xString     <= std_xstring          )
+                                                   UT_TRUE ( std_xstring  <= xString             )
+                                                   UT_TRUE ( xString     >= std_xstring          )
+                                                   UT_TRUE ( std_xstring  >= xString             )
+                                                }
 
     // CString / std::string
     {
@@ -941,17 +976,50 @@ UT_METHOD( ConstructBack )
         WCString                  wCString    = A_WCHAR("WString"     );
         XCString                  xCString    = A_XCHAR("XString"     );
 
-        std_string     = nCString;                 UT_TRUE( std_string  ==  "NString"             )
-                                                   UT_TRUE( std_string  == std::string(nCString)  )
-                                                   UT_TRUE( nCString    == std_string             )
+        std_string     = nCString;                 UT_TRUE ( std_string  ==  "NString"             )
+                                                   UT_TRUE ( std_string  == std::string(nCString)  )
+                                                   UT_TRUE ( nCString    == std_string             )
+                                                   UT_TRUE ( std_string  == nCString               )
+                                                   UT_FALSE( nCString    != std_string             )
+                                                   UT_FALSE( std_string  != nCString               )
+                                                   UT_FALSE( nCString    <  std_string             )
+                                                   UT_FALSE( std_string  <  nCString               )
+                                                   UT_FALSE( nCString    >  std_string             )
+                                                   UT_FALSE( std_string  >  nCString               )
+                                                   UT_TRUE ( nCString    <= std_string             )
+                                                   UT_TRUE ( std_string  <= nCString               )
+                                                   UT_TRUE ( nCString    >= std_string             )
+                                                   UT_TRUE ( std_string  >= nCString               )
 
-        std_wstring    = wCString;                 UT_TRUE( std_wstring == A_WCHAR("WString")     )
-                                                   UT_TRUE( std_wstring == std::basic_string<wchar>(wCString) )
-                                                   UT_TRUE( wCString    == std_wstring            )
+        std_wstring    = wCString;                 UT_TRUE ( std_wstring == A_WCHAR("WString")     )
+                                                   UT_TRUE ( std_wstring == std::basic_string<wchar>(wCString) )
+                                                   UT_TRUE ( wCString    == std_wstring            )
+                                                   UT_TRUE ( std_wstring == wCString               )
+                                                   UT_FALSE( wCString    != std_wstring            )
+                                                   UT_FALSE( std_wstring != wCString               )
+                                                   UT_FALSE( wCString    <  std_wstring            )
+                                                   UT_FALSE( std_wstring <  wCString               )
+                                                   UT_FALSE( wCString    >  std_wstring            )
+                                                   UT_FALSE( std_wstring >  wCString               )
+                                                   UT_TRUE ( wCString    <= std_wstring            )
+                                                   UT_TRUE ( std_wstring <= wCString               )
+                                                   UT_TRUE ( wCString    >= std_wstring            )
+                                                   UT_TRUE ( std_wstring >= wCString               )
 
-        std_xstring    = xCString;                 UT_TRUE( std_xstring == A_XCHAR("XString")     )
-                                                   UT_TRUE( std_xstring == std::basic_string<xchar>(xCString) )
-                                                   UT_TRUE( xCString    == std_xstring            )
+        std_xstring    = xCString;                 UT_TRUE ( std_xstring == A_XCHAR("XString")     )
+                                                   UT_TRUE ( std_xstring == std::basic_string<xchar>(xCString) )
+                                                   UT_TRUE ( xCString    == std_xstring            )
+                                                   UT_TRUE ( std_xstring == xCString               )
+                                                   UT_FALSE( xCString    != std_xstring            )
+                                                   UT_FALSE( std_xstring != xCString               )
+                                                   UT_FALSE( xCString    <  std_xstring            )
+                                                   UT_FALSE( std_xstring <  xCString               )
+                                                   UT_FALSE( xCString    >  std_xstring            )
+                                                   UT_FALSE( std_xstring >  xCString               )
+                                                   UT_TRUE ( xCString    <= std_xstring            )
+                                                   UT_TRUE ( std_xstring <= xCString               )
+                                                   UT_TRUE ( xCString    >= std_xstring            )
+                                                   UT_TRUE ( std_xstring >= xCString               )
     }
 
     // AString / std::string
@@ -963,17 +1031,51 @@ UT_METHOD( ConstructBack )
         WAString                  wAString    ( A_WCHAR("WString"     ) );
         XAString                  xAString    ( A_XCHAR("XString"     ) );
 
-        std_string     = nAString;                 UT_TRUE( std_string  ==  "NString"             )
-                                                   UT_TRUE( std_string  == std::string(nAString)  )
-                                                   UT_TRUE( nAString     == std_string            )
+        std_string     = nAString;                 UT_TRUE ( std_string  == "NString"              )
+                                                   UT_TRUE ( std_string  == std::string(nAString)  )
+                                                   UT_TRUE ( nAString    == std_string             )
+                                                   UT_TRUE ( std_string  == nAString               )
+                                                   UT_FALSE( nAString    != std_string             )
+                                                   UT_FALSE( std_string  != nAString               )
+                                                   UT_FALSE( nAString    <  std_string             )
+                                                   UT_FALSE( std_string  <  nAString               )
+                                                   UT_FALSE( nAString    >  std_string             )
+                                                   UT_FALSE( std_string  >  nAString               )
+                                                   UT_TRUE ( nAString    <= std_string             )
+                                                   UT_TRUE ( std_string  <= nAString               )
+                                                   UT_TRUE ( nAString    >= std_string             )
+                                                   UT_TRUE ( std_string  >= nAString               )
 
-        std_wstring    = wAString;                 UT_TRUE( std_wstring == A_WCHAR("WString")     )
-                                                   UT_TRUE( std_wstring == std::basic_string<wchar>(wAString) )
-                                                   UT_TRUE( wAString     == std_wstring           )
+        std_wstring    = wAString;                 UT_TRUE ( std_wstring == A_WCHAR("WString")     )
+                                                   UT_TRUE ( std_wstring == std::basic_string<wchar>(wAString) )
+                                                   UT_TRUE ( wAString    == std_wstring            )
+                                                   UT_TRUE ( std_wstring == wAString               )
+                                                   UT_FALSE( wAString    != std_wstring            )
+                                                   UT_FALSE( std_wstring != wAString               )
+                                                   UT_FALSE( wAString    <  std_wstring            )
+                                                   UT_FALSE( std_wstring <  wAString               )
+                                                   UT_FALSE( wAString    >  std_wstring            )
+                                                   UT_FALSE( std_wstring >  wAString               )
+                                                   UT_TRUE ( wAString    <= std_wstring            )
+                                                   UT_TRUE ( std_wstring <= wAString               )
+                                                   UT_TRUE ( wAString    >= std_wstring            )
+                                                   UT_TRUE ( std_wstring >= wAString               )
 
-        std_xstring    = xAString;                 UT_TRUE( std_xstring == A_XCHAR("XString")     )
-                                                   UT_TRUE( std_xstring == std::basic_string<xchar>(xAString) )
-                                                   UT_TRUE( xAString     == std_xstring           )
+        std_xstring    = xAString;                 UT_TRUE ( std_xstring == A_XCHAR("XString")     )
+                                                   UT_TRUE ( std_xstring == std::basic_string<xchar>(xAString) )
+                                                   UT_TRUE ( xAString    == std_xstring            )
+                                                   UT_TRUE ( std_xstring == xAString               )
+                                                   UT_TRUE ( std_xstring == xAString               )
+                                                   UT_FALSE( xAString    != std_xstring            )
+                                                   UT_FALSE( std_xstring != xAString               )
+                                                   UT_FALSE( xAString    <  std_xstring            )
+                                                   UT_FALSE( std_xstring <  xAString               )
+                                                   UT_FALSE( xAString    >  std_xstring            )
+                                                   UT_FALSE( std_xstring >  xAString               )
+                                                   UT_TRUE ( xAString    <= std_xstring            )
+                                                   UT_TRUE ( std_xstring <= xAString               )
+                                                   UT_TRUE ( xAString    >= std_xstring            )
+                                                   UT_TRUE ( std_xstring >= xAString               )
     }
 
 #if ALIB_CPPVER >= 17
@@ -987,17 +1089,50 @@ UT_METHOD( ConstructBack )
         WString                        wString          = A_WCHAR("WString"     );
         XString                        xString          = A_XCHAR("XString"     );
 
-        std_string_view     = nString;             UT_TRUE( std_string_view  ==  "NString"                 )
-                                                   UT_TRUE( std_string_view  == std::string_view(nString)  )
-                                                   UT_TRUE( nString          == std_string_view            )
+        std_string_view     = nString;             UT_TRUE ( std_string_view ==  "NString"               )
+                                                   UT_TRUE ( std_string_view == std::string_view(nString))
+                                                   UT_TRUE ( nString         == std_string_view          )
+                                                   UT_TRUE ( std_string_view == nString            )
+                                                   UT_FALSE( nString         != std_string_view    )
+                                                   UT_FALSE( std_string_view != nString            )
+                                                   UT_FALSE( nString         <  std_string_view    )
+                                                   UT_FALSE( std_string_view <  nString            )
+                                                   UT_FALSE( nString         >  std_string_view    )
+                                                   UT_FALSE( std_string_view >  nString            )
+                                                   UT_TRUE ( nString         <= std_string_view    )
+                                                   UT_TRUE ( std_string_view <= nString            )
+                                                   UT_TRUE ( nString         >= std_string_view    )
+                                                   UT_TRUE ( std_string_view >= nString            )
 
-        std_wstring_view    = wString;             UT_TRUE( std_wstring_view == A_WCHAR("WString")         )
-                                                   UT_TRUE( std_wstring_view == wString                    )
-                                                   UT_TRUE( wString          == std_wstring_view           )
+        std_wstring_view    = wString;             UT_TRUE ( std_wstring_view== A_WCHAR("WString") )
+                                                   UT_TRUE ( std_wstring_view== wString            )
+                                                   UT_TRUE ( wString         == std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view== wString            )
+                                                   UT_FALSE( wString         != std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view!= wString            )
+                                                   UT_FALSE( wString         <  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view<  wString            )
+                                                   UT_FALSE( wString         >  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view>  wString            )
+                                                   UT_TRUE ( wString         <= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view<= wString            )
+                                                   UT_TRUE ( wString         >= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view>= wString            )
 
-        std_xstring_view    = xString;             UT_TRUE( std_xstring_view == A_XCHAR("XString")         )
+        std_xstring_view    = xString;             UT_TRUE( std_xstring_view == A_XCHAR("XString") )
                                                    UT_TRUE( std_xstring_view == xString )
-                                                   UT_TRUE( xString          == std_xstring_view           )
+                                                   UT_TRUE( xString          == std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view== xString            )
+                                                   UT_FALSE( xString         != std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view!= xString            )
+                                                   UT_FALSE( xString         <  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view<  xString            )
+                                                   UT_FALSE( xString         >  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view>  xString            )
+                                                   UT_TRUE ( xString         <= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view<= xString            )
+                                                   UT_TRUE ( xString         >= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view>= xString            )
 
     }
 
@@ -1010,23 +1145,58 @@ UT_METHOD( ConstructBack )
         WCString                       wCString         = A_WCHAR("WString"     );
         XCString                       xCString         = A_XCHAR("XString"     );
 
-        std_string_view     = nCString;            UT_TRUE( std_string_view  ==  "NString"         )
-                                                   UT_TRUE( std_string_view  == nCString           )
-                                                   UT_TRUE( nCString         == std_string_view    )
+        std_string_view     = nCString;            UT_TRUE ( std_string_view ==  "NString"         )
+                                                   UT_TRUE ( std_string_view == nCString           )
+                                                   UT_TRUE ( nCString        == std_string_view    )
+                                                   UT_TRUE ( std_string_view == nCString           )
+                                                   UT_FALSE( nCString        != std_string_view    )
+                                                   UT_FALSE( std_string_view != nCString           )
+                                                   UT_FALSE( nCString        <  std_string_view    )
+                                                   UT_FALSE( std_string_view <  nCString           )
+                                                   UT_FALSE( nCString        >  std_string_view    )
+                                                   UT_FALSE( std_string_view >  nCString           )
+                                                   UT_TRUE ( nCString        <= std_string_view    )
+                                                   UT_TRUE ( std_string_view <= nCString           )
+                                                   UT_TRUE ( nCString        >= std_string_view    )
+                                                   UT_TRUE ( std_string_view >= nCString           )
 
 //Err:  nCString=          std_string_view;
 /*OK: */nCString= NCString(std_string_view);
 
-        std_wstring_view    = wCString;            UT_TRUE( std_wstring_view == A_WCHAR("WString") )
-                                                   UT_TRUE( std_wstring_view == wCString           )
-                                                   UT_TRUE( wCString         == std_wstring_view   )
+        std_wstring_view    = wCString;            UT_TRUE ( std_wstring_view== A_WCHAR("WString") )
+                                                   UT_TRUE ( std_wstring_view== wCString           )
+                                                   UT_TRUE ( wCString        == std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view== wCString           )
+                                                   UT_TRUE ( wCString        == std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view== wCString           )
+                                                   UT_FALSE( wCString        != std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view!= wCString           )
+                                                   UT_FALSE( wCString        <  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view<  wCString           )
+                                                   UT_FALSE( wCString        >  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view>  wCString           )
+                                                   UT_TRUE ( wCString        <= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view<= wCString           )
+                                                   UT_TRUE ( wCString        >= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view>= wCString           )
 
 //Err:  wCString=          std_wstring_view;
 /*OK: */wCString= WCString(std_wstring_view);
 
-        std_xstring_view    = xCString;            UT_TRUE( std_xstring_view == A_XCHAR("XString") )
-                                                   UT_TRUE( std_xstring_view == xCString           )
-                                                   UT_TRUE( xCString         == std_xstring_view   )
+        std_xstring_view    = xCString;            UT_TRUE ( std_xstring_view== A_XCHAR("XString") )
+                                                   UT_TRUE ( std_xstring_view== xCString           )
+                                                   UT_TRUE ( xCString        == std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view== xCString           )
+                                                   UT_FALSE( xCString        != std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view!= xCString           )
+                                                   UT_FALSE( xCString        <  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view<  xCString           )
+                                                   UT_FALSE( xCString        >  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view>  xCString           )
+                                                   UT_TRUE ( xCString        <= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view<= xCString           )
+                                                   UT_TRUE ( xCString        >= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view>= xCString           )
 
 //Err:  xCString=          std_xstring_view;
 /*OK: */xCString= XCString(std_xstring_view);
@@ -1042,22 +1212,211 @@ UT_METHOD( ConstructBack )
         WAString                       wAString         (        L"WString"       );
         XAString                       xAString         ( A_XCHAR("XString"     ) );
 
-        std_string_view     = nAString;            UT_TRUE( std_string_view  ==  "NString"                 )
-                                                   UT_TRUE( std_string_view  == std::string_view(static_cast<NString>(nAString))  )
-                                                   UT_TRUE( nAString         == std_string_view            )
+        std_string_view     = nAString;            UT_TRUE ( std_string_view ==  "NString"         )
+                                                   UT_TRUE ( std_string_view == std::string_view(static_cast<NString>(nAString))  )
+                                                   UT_TRUE ( nAString        == std_string_view    )
+                                                   UT_TRUE ( std_string_view == nAString           )
+                                                   UT_FALSE( nAString        != std_string_view    )
+                                                   UT_FALSE( std_string_view != nAString           )
+                                                   UT_FALSE( nAString        <  std_string_view    )
+                                                   UT_FALSE( std_string_view <  nAString           )
+                                                   UT_FALSE( nAString        >  std_string_view    )
+                                                   UT_FALSE( std_string_view >  nAString           )
+                                                   UT_TRUE ( nAString        <= std_string_view    )
+                                                   UT_TRUE ( std_string_view <= nAString           )
+                                                   UT_TRUE ( nAString        >= std_string_view    )
+                                                   UT_TRUE ( std_string_view >= nAString           )
 
-        std_wstring_view    = wAString;            UT_TRUE( std_wstring_view == A_WCHAR("WString")         )
-                                                   UT_TRUE( std_wstring_view == wAString                   )
-                                                   UT_TRUE( wAString         == std_wstring_view           )
+        std_wstring_view    = wAString;            UT_TRUE ( std_wstring_view== A_WCHAR("WString") )
+                                                   UT_TRUE ( std_wstring_view== wAString           )
+                                                   UT_TRUE ( wAString        == std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view== wAString           )
+                                                   UT_TRUE ( wAString        == std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view== wAString           )
+                                                   UT_FALSE( wAString        != std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view!= wAString           )
+                                                   UT_FALSE( wAString        <  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view<  wAString           )
+                                                   UT_FALSE( wAString        >  std_wstring_view   )
+                                                   UT_FALSE( std_wstring_view>  wAString           )
+                                                   UT_TRUE ( wAString        <= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view<= wAString           )
+                                                   UT_TRUE ( wAString        >= std_wstring_view   )
+                                                   UT_TRUE ( std_wstring_view>= wAString           )
 
-        std_xstring_view    = xAString;            UT_TRUE( std_xstring_view == A_XCHAR("XString")         )
-                                                   UT_TRUE( std_xstring_view == xAString                   )
-                                                   UT_TRUE( xAString         == std_xstring_view           )
+        std_xstring_view    = xAString;            UT_TRUE ( std_xstring_view== A_XCHAR("XString") )
+                                                   UT_TRUE ( std_xstring_view== xAString           )
+                                                   UT_TRUE ( xAString        == std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view== xAString           )
+                                                   UT_FALSE( xAString        != std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view!= xAString           )
+                                                   UT_FALSE( xAString        <  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view<  xAString           )
+                                                   UT_FALSE( xAString        >  std_xstring_view   )
+                                                   UT_FALSE( std_xstring_view>  xAString           )
+                                                   UT_TRUE ( xAString        <= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view<= xAString           )
+                                                   UT_TRUE ( xAString        >= std_xstring_view   )
+                                                   UT_TRUE ( std_xstring_view>= xAString           )
     }
 
 #endif  //ALIB_CPPVER >= 17
 }
 
+//--------------------------------------------------------------------------------------------------
+//--- Test CompareOperators
+//--------------------------------------------------------------------------------------------------
+template<typename TALibString>
+void checkComparisonN(AWorxUnitTesting& ut, TALibString& s)
+{
+    UT_TRUE ( s     == A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") == s   )
+    UT_FALSE( s     != A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") != s   )
+    UT_FALSE( s     <  A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") <  s   )
+    UT_TRUE ( s     <= A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") <= s   )
+    UT_FALSE( s     >  A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") >  s   )
+    UT_TRUE ( s     >= A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") >= s   )
+
+    UT_FALSE( s     == A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") == s   )
+    UT_TRUE ( s     != A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") != s   )
+    UT_TRUE ( s     <  A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") <  s   )
+    UT_TRUE ( s     <= A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") <= s   )
+    UT_FALSE( s     >  A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") >  s   )
+    UT_FALSE( s     >= A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") >= s   )
+}
+
+template<typename TALibString>
+void checkComparisonW(AWorxUnitTesting& ut, TALibString& s)
+{
+    UT_TRUE ( s     == A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") == s   )
+    UT_FALSE( s     != A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") != s   )
+    UT_FALSE( s     <  A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") <  s   )
+    UT_TRUE ( s     <= A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") <= s   )
+    UT_FALSE( s     >  A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") >  s   )
+    UT_TRUE ( s     >= A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") >= s   )
+
+    UT_FALSE( s     == A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") == s   )
+    UT_TRUE ( s     != A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") != s   )
+    UT_TRUE ( s     <  A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") <  s   )
+    UT_TRUE ( s     <= A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") <= s   )
+    UT_FALSE( s     >  A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") >  s   )
+    UT_FALSE( s     >= A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") >= s   )
+}
+
+template<typename TALibString>
+void checkComparisonX(AWorxUnitTesting& ut, TALibString& s)
+{
+    UT_TRUE ( s     == A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") == s   )
+    UT_FALSE( s     != A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") != s   )
+    UT_FALSE( s     <  A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") <  s   )
+    UT_TRUE ( s     <= A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") <= s   )
+    UT_FALSE( s     >  A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") >  s   )
+    UT_TRUE ( s     >= A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") >= s   )
+
+    UT_FALSE( s     == A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") == s   )
+    UT_TRUE ( s     != A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") != s   )
+    UT_TRUE ( s     <  A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") <  s   )
+    UT_TRUE ( s     <= A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") <= s   )
+    UT_FALSE( s     >  A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") >  s   )
+    UT_FALSE( s     >= A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") >= s   )
+}
+
+template<typename TALibString, typename TALibString2>
+void checkComparison(AWorxUnitTesting& ut, TALibString& s, TALibString2& c1, TALibString2& c2 )
+{
+    UT_TRUE ( s     == c1    )    UT_TRUE ( c1 == s   )
+    UT_FALSE( s     != c1    )    UT_FALSE( c1 != s   )
+    UT_FALSE( s     <  c1    )    UT_FALSE( c1 <  s   )
+    UT_TRUE ( s     <= c1    )    UT_TRUE ( c1 <= s   )
+    UT_FALSE( s     >  c1    )    UT_FALSE( c1 >  s   )
+    UT_TRUE ( s     >= c1    )    UT_TRUE ( c1 >= s   )
+
+    UT_FALSE( s     == c2    )    UT_FALSE( c2 == s   )
+    UT_TRUE ( s     != c2    )    UT_TRUE ( c2 != s   )
+    UT_TRUE ( s     <  c2    )    UT_FALSE( c2 <  s   )
+    UT_TRUE ( s     <= c2    )    UT_FALSE( c2 <= s   )
+    UT_FALSE( s     >  c2    )    UT_TRUE ( c2 >  s   )
+    UT_FALSE( s     >= c2    )    UT_TRUE ( c2 >= s   )
+}
+
+
+UT_METHOD( CompareOperators )
+{
+    UT_INIT()
+    {
+        NString ns= A_NCHAR("ABC");    checkComparisonN(ut, ns);
+        WString ws= A_WCHAR("ABC");    checkComparisonW(ut, ws);
+        XString xs= A_XCHAR("ABC");    checkComparisonX(ut, xs);
+
+        NCString ncs= A_NCHAR("ABC");    checkComparisonN(ut, ncs);
+        WCString wcs= A_WCHAR("ABC");    checkComparisonW(ut, wcs);
+        XCString xcs= A_XCHAR("ABC");    checkComparisonX(ut, xcs);
+
+        NString32        ns32(A_NCHAR("ABC"));    checkComparisonN(ut, ns32);
+        WString32        ws32(A_WCHAR("ABC"));    checkComparisonW(ut, ws32);
+        XLocalString<32> xs32(A_XCHAR("ABC"));    checkComparisonX(ut, xs32);
+    }
+
+    {
+        NString  ns= A_NCHAR("ABC");  NString  nsC1= A_NCHAR("ABC"); NString  nsC2= A_NCHAR("ABX");
+        WString  ws= A_WCHAR("ABC");  WString  wsC1= A_WCHAR("ABC"); WString  wsC2= A_WCHAR("ABX");
+        XString  xs= A_XCHAR("ABC");  XString  xsC1= A_XCHAR("ABC"); XString  xsC2= A_XCHAR("ABX");
+
+        NCString nc= A_NCHAR("ABC");  NCString ncC1= A_NCHAR("ABC"); NCString ncC2= A_NCHAR("ABX");
+        WCString wc= A_WCHAR("ABC");  WCString wcC1= A_WCHAR("ABC"); WCString wcC2= A_WCHAR("ABX");
+        XCString xc= A_XCHAR("ABC");  XCString xcC1= A_XCHAR("ABC"); XCString xcC2= A_XCHAR("ABX");
+
+        NAString na; na << A_NCHAR("ABC");  NAString naC1; naC1 << A_NCHAR("ABC"); NAString naC2;  naC2 << A_NCHAR("ABX");
+        WAString wa; wa << A_WCHAR("ABC");  WAString waC1; waC1 << A_WCHAR("ABC"); WAString waC2;  waC2 << A_WCHAR("ABX");
+        XAString xa; xa << A_XCHAR("ABC");  XAString xaC1; xaC1 << A_XCHAR("ABC"); XAString xaC2;  xaC2 << A_XCHAR("ABX");
+
+        NString32 nl; nl << A_NCHAR("ABC");  NString32 nlC1; nlC1 << A_NCHAR("ABC"); NString32 nlC2;  nlC2 << A_NCHAR("ABX");
+        WString32 wl; wl << A_WCHAR("ABC");  WString32 wlC1; wlC1 << A_WCHAR("ABC"); WString32 wlC2;  wlC2 << A_WCHAR("ABX");
+        XLocalString<32> xl; xl << A_XCHAR("ABC");  XLocalString<32> xlC1; xlC1 << A_XCHAR("ABC"); XLocalString<32> xlC2;  xlC2 << A_XCHAR("ABX");
+
+        // (String x String)
+        checkComparison(ut, ns     , nsC1      , nsC2     );
+        checkComparison(ut, ws     , wsC1      , wsC2     );
+        checkComparison(ut, xs     , xsC1      , xsC2     );
+
+        // (String x CString)
+        checkComparison(ut, ns     , naC1      , naC2     );
+        checkComparison(ut, ws     , waC1      , waC2     );
+        checkComparison(ut, xs     , xaC1      , xaC2     );
+
+        // (String x AString)
+        checkComparison(ut, ns     , naC1      , naC2     );
+        checkComparison(ut, ws     , waC1      , waC2     );
+        checkComparison(ut, xs     , xaC1      , xaC2     );
+
+        // (String x LString)
+        checkComparison(ut, ns     , nlC1      , nlC2     );
+        checkComparison(ut, ws     , wlC1      , wlC2     );
+        checkComparison(ut, xs     , xlC1      , xlC2     );
+
+
+        // (CString x CString)
+        checkComparison(ut, nc     , ncC1      , ncC2     );
+        checkComparison(ut, wc     , wcC1      , wcC2     );
+        checkComparison(ut, xc     , xcC1      , xcC2     );
+
+        // (CString x AString)
+        checkComparison(ut, nc     , naC1      , naC2     );
+        checkComparison(ut, wc     , waC1      , waC2     );
+        checkComparison(ut, xc     , xaC1      , xaC2     );
+
+        // (CString x LString)
+        checkComparison(ut, nc     , nlC1      , nlC2     );
+        checkComparison(ut, wc     , wlC1      , wlC2     );
+        checkComparison(ut, xc     , xlC1      , xlC2     );
+
+        // (AString x LString)
+        checkComparison(ut, na     , nlC1      , nlC2     );
+        checkComparison(ut, wa     , wlC1      , wlC2     );
+        checkComparison(ut, xa     , xlC1      , xlC2     );
+
+    }
+
+}
 #include "unittests/aworx_unittests_end.hpp"
 
 } //namespace

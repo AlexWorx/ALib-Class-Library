@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,13 +15,13 @@
 #   include <cstdlib>
 #endif
 
-#if defined(__GLIBCXX__)
+#if   defined( _WIN32 )
+#elif defined(__GLIBCXX__)  || defined(__ANDROID_NDK__)
 #   include <sys/ioctl.h>
 #   include <unistd.h>
 #elif defined(__APPLE__)
 #   include <unistd.h>
 #   include <sys/sysctl.h>
-#elif   defined( _WIN32 )
 #else
 #   pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
@@ -40,7 +40,9 @@ int Console::GetWidth( bool forceRedetect )
         return Console::lastReceivedWidth;
 
 
-    #if defined(__GLIBC__) && defined(__unix__)
+    #if defined (_WIN32)
+
+    #elif defined(__GLIBC__) && defined(__unix__)  || defined(__ANDROID_NDK__)
 
         struct winsize w;
         if( ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != 0 )
@@ -49,8 +51,6 @@ int Console::GetWidth( bool forceRedetect )
             Console::lastReceivedWidth= w.ws_col;
 
     #elif defined (__APPLE__)
-
-    #elif defined (_WIN32)
 
     #else
         #pragma message ("Unknown Platform in file: " __FILE__ )

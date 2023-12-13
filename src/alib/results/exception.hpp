@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_results of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESULTS_EXCEPTION
@@ -165,7 +165,7 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
          *       construction. Otherwise, this constructor should be avoided.
          ******************************************************************************************/
         Exception()
-        : SelfContained( 1024 )
+        : SelfContained( 1024, 100 )
         {}
 
         /** ****************************************************************************************
@@ -176,12 +176,17 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
          * \note The use of this constructor is advisable only in seldom cases. The same
          *       notes as given with the documentation of the default constructor apply.
          *
-         * @param stdChunkSize  The standard allocation size of the internal
-         *                      \alib{monomem,MonoAllocator}.
+         * @param initialChunkSize      The initial allocation size of the internal
+         *                              \alib{monomem,MonoAllocator}.
+         * @param chunkGrowthInPercent  Optional growth faktor in percent (*100), applied to each
+         *                              allocation of a next chunk size.
+         *                              Values provided should be greater than 100.<p>
+         *                              Defaults to 100, which does not increase subsequent
+         *                              chunk allocations.
          ******************************************************************************************/
         template<typename  TIntegral>
-        Exception( TIntegral stdChunkSize )
-        : SelfContained( static_cast<size_t>(stdChunkSize) )
+        Exception( TIntegral initialChunkSize, int chunkGrowthInPercent= 100  )
+        : SelfContained( static_cast<size_t>(initialChunkSize), chunkGrowthInPercent )
         {
             static_assert( !std::is_enum<TIntegral>::value,
                            "Errorneous use of Exception constructor. Enumeration element given "
@@ -211,7 +216,7 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
         template<typename  TEnum, typename... TArgs  >
         Exception( const NCString& file, int line, const NCString& func,
                    TEnum type, TArgs&&... args )
-        : SelfContained( 1024 )
+        : SelfContained( 1024, 100 )
         {
             Add( file,line,func, type, std::forward<TArgs>(args)... );
         }
@@ -317,20 +322,24 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
          * found in the entry.
          *
          * @param target The target string to format the entry description to.
+         * @return Returns given \b AString \p target for convenience.
          ******************************************************************************************/
         ALIB_API
-        void   Format( AString& target )                                                      const;
+        AString&  Format( AString& target )                                                    const;
 
         /** ****************************************************************************************
          * Same as \alib{results::Exception,Format(AString&)const,Format(AString&)}, but writing
          * to a string of complement character width.
          *
          * @param target The target string to format the entry description to.
+         * @return Returns given \b AString \p target for convenience.
          ******************************************************************************************/
         ALIB_API
-        void   Format( strings::TAString<complementChar>& target )                             const
+        strings::TAString<complementChar>&
+        Format( strings::TAString<complementChar>& target )                                    const
         {
             target << Format();
+            return target;
         }
 
         /** ****************************************************************************************
@@ -357,16 +366,17 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
          ******************************************************************************************/
         template<typename TConstOrMutableMessage>
         class IteratorType
-            : public std::iterator< std::forward_iterator_tag,        // iterator_category
-                                    Message,                          // value_type
-                                    integer,                          // distance type
-                                    TConstOrMutableMessage*,          // pointer
-                                    TConstOrMutableMessage&           // reference
-                                  >
         {
             protected:
                 /** The pointer to the actual node. */
                 detail::ExceptionEntry* p;
+
+            public:
+                using iterator_category = std::forward_iterator_tag;  ///< Implementation of <c>std::iterator_traits</c>.
+                using value_type        = Message                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+                using difference_type   = integer                  ;  ///< Implementation of <c>std::iterator_traits</c>.
+                using pointer           = TConstOrMutableMessage*  ;  ///< Implementation of <c>std::iterator_traits</c>.
+                using reference         = TConstOrMutableMessage&  ;  ///< Implementation of <c>std::iterator_traits</c>.
 
             public:
                 /** Constructor.
@@ -522,6 +532,8 @@ class Exception : protected monomem::SelfContained<detail::ExceptionEntry*>
 using     Exception=           lib::results::Exception;
 
 }  // namespace [aworx]
+
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::results::Exception*, vt_alib_exception )
 
 
 // #################################################################################################

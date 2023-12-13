@@ -1,6 +1,6 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_commonenums of the \aliblong.
+ * This header file is part of file set \alibfs_commonenums of the \aliblong.
  *
  * \note
  *   Generally header file \alibheader{lib/fs_commonenums/commonenums.hpp} should be included
@@ -8,7 +8,7 @@
  *   \ref alib_enums_records "ALib Enum Records" for the common enums.
  *   This file is internally included while class \b %String is not defined, yet.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_FS_COMMONENUMS_DEFS
@@ -20,9 +20,21 @@
 
 ALIB_ASSERT_FILESET(COMMON_ENUMS)
 
+
+
 namespace aworx { namespace lib {
 
 // CodeMarker_CommonEnums
+
+/** ************************************************************************************************
+ * Denotes Alignments.
+ **************************************************************************************************/
+enum class Alignment
+{
+    Left,         ///<  Chooses left alignment.
+    Right,        ///<  Chooses right alignment.
+    Center        ///<  Chooses centered alignment.
+};
 
 /** ************************************************************************************************
  * Enumeration representing a boolean value. While the use of this enumeration type seems senseless
@@ -41,12 +53,13 @@ enum class Bool                 : bool
 };
 
 /** ************************************************************************************************
- * Denotes if sth. is switched on or off.
+ * Denotes if a cache mechanism is enabled or disabled.
  **************************************************************************************************/
-enum class Switch               : bool
+enum class Caching
 {
-    Off,          ///< Switch it off, switched off, etc.
-    On            ///< Switch it on, switched on, etc.
+    Disabled,  ///< Caching is disabled.
+    Enabled,   ///< Caching is enabled.
+    Auto,      ///< Auto/default mode.
 };
 
 /** ************************************************************************************************
@@ -63,40 +76,33 @@ enum class Case                 : bool
 DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_1] )
 
 /** ************************************************************************************************
- * Denotes Alignments.
+ * Denotes standard container operations.
  **************************************************************************************************/
-enum class Alignment
+enum class ContainerOp
 {
-    Left,         ///<  Chooses left alignment.
-    Right,        ///<  Chooses right alignment.
-    Center        ///<  Chooses centered alignment.
+    Insert,       ///< Denotes insertions.
+    Remove,       ///< Denotes removals.
+    Get,          ///< Denotes to search data.
+    GetCreate,    ///< Denotes to create data if not found.
+    Create        ///< Denotes to create data.
 };
 
 /** ************************************************************************************************
- * Denotes sort order.
+ * Denotes whether default entities should be created or not.
  **************************************************************************************************/
-enum class SortOrder            : bool
+enum class CreateDefaults       : bool
 {
-    Ascending,    ///<  Chooses ascending sort oder.
-    Descending,   ///<  Chooses descending sort oder.
+    No,           ///< Do not create.
+    Yes           ///< Create default values.
 };
 
 /** ************************************************************************************************
- * Denotes how members of a set something should be taken into account.
+ * Denotes whether something should be created if it does not exist.
  **************************************************************************************************/
-enum class Inclusion            : bool
+enum class CreateIfNotExists    : bool
 {
-    Include,      ///<  Chooses inclusion.
-    Exclude,      ///<  Chooses exclusion.
-};
-
-/** ************************************************************************************************
- * Denotes the reach of something.
- **************************************************************************************************/
-enum class Reach                : bool
-{
-    Global,       ///< Denotes global reach.
-    Local         ///< Denotes local reach.
+    No,           ///< Do not create.
+    Yes           ///< Create if something does not exist.
 };
 
 /** ************************************************************************************************
@@ -110,21 +116,50 @@ enum class CurrentData          : bool
 };
 
 /** ************************************************************************************************
- * Denotes if the source data should be moved or copied.
+ * Denotes how members of a set something should be taken into account.
  **************************************************************************************************/
-enum class SourceData           : bool
+enum class Inclusion            : bool
 {
-    Copy,         ///<  Chooses not to clear existing data.
-    Move,         ///<  Chooses to clear existing data.
+    Include,      ///<  Chooses inclusion.
+    Exclude,      ///<  Chooses exclusion.
 };
 
 /** ************************************************************************************************
- * Denotes whether something should be performed in a safe or unsafe fashion.
+ * Used for example with constructors that allow to suppress initialization of members.
  **************************************************************************************************/
-enum class Safeness             : bool
+enum class Initialization
 {
-    Safe,         ///<  Do it or treat it with safety.
-    Unsafe,       ///<  Omit checks or perform unsafe operations.
+    Suppress,     ///< Suppress initialization.
+                  ///< Writes "DontInitialize", reads in addition "suppress".
+    Perform,      ///< Perform initialization.
+                  ///< Writes "Initialize", reads in addition "perform".
+};
+
+/** ************************************************************************************************
+ * Denotes a phase, e.g. of a transaction.
+ **************************************************************************************************/
+enum class Phase
+{
+    Begin         = (1 << 0),    ///< The start of a transaction.
+    End           = (1 << 1),    ///< The end of a transaction.
+};
+
+/** ************************************************************************************************
+ * Denotes whether a e.g a setting should be propagated.
+ **************************************************************************************************/
+enum class Propagation          : bool
+{
+    Omit,         ///< Do not propagate changes.
+    ToDescendants ///< Propagate changes to descendants/children/sub-components.
+};
+
+/** ************************************************************************************************
+ * Denotes the reach of something.
+ **************************************************************************************************/
+enum class Reach                : bool
+{
+    Global,       ///< Denotes global reach.
+    Local         ///< Denotes local reach.
 };
 
 /** ************************************************************************************************
@@ -139,6 +174,15 @@ enum class Responsibility       : bool
 };
 
 /** ************************************************************************************************
+ * Denotes whether something should be performed in a safe or unsafe fashion.
+ **************************************************************************************************/
+enum class Safeness             : bool
+{
+    Safe,         ///<  Do it or treat it with safety.
+    Unsafe,       ///<  Omit checks or perform unsafe operations.
+};
+
+/** ************************************************************************************************
  * Denotes if something is left or right.
  **************************************************************************************************/
 enum class Side                 : bool
@@ -148,82 +192,39 @@ enum class Side                 : bool
 };
 
 /** ************************************************************************************************
+ * Denotes sort order.
+ **************************************************************************************************/
+enum class SortOrder            : bool
+{
+    Ascending,    ///<  Chooses ascending sort oder.
+    Descending,   ///<  Chooses descending sort oder.
+};
+
+/** ************************************************************************************************
+ * Denotes if the source data should be moved or copied.
+ **************************************************************************************************/
+enum class SourceData           : bool
+{
+    Copy,         ///<  Chooses not to clear existing data.
+    Move,         ///<  Chooses to clear existing data.
+};
+
+/** ************************************************************************************************
+ * Denotes if sth. is switched on or off.
+ **************************************************************************************************/
+enum class Switch               : bool
+{
+    Off,          ///< Switch it off, switched off, etc.
+    On            ///< Switch it on, switched on, etc.
+};
+
+/** ************************************************************************************************
  * Denotes whether a time value represents local time or UTC.
  **************************************************************************************************/
 enum class Timezone             : bool
 {
     Local,        ///<  Denotes local time.
     UTC,          ///<  Denotes UTC (coordinated universal time).
-};
-
-/** ************************************************************************************************
- * Denotes whether a string is trimmed or not
- **************************************************************************************************/
-enum class Whitespaces          : bool
-{
-    Trim,         ///< Trim whitespaces away.
-    Keep          ///< Keep whitespaces in string.
-};
-
-
-/** ************************************************************************************************
- * Denotes whether something should be created if it does not exist.
- **************************************************************************************************/
-enum class CreateIfNotExists    : bool
-{
-    No,           ///< Do not create.
-    Yes           ///< Create if something does not exist.
-};
-
-/** ************************************************************************************************
- * Denotes whether default entities should be created or not.
- **************************************************************************************************/
-enum class CreateDefaults       : bool
-{
-    No,           ///< Do not create.
-    Yes           ///< Create default values.
-};
-
-
-/** ************************************************************************************************
- * Denotes whether a e.g a setting should be propagated.
- **************************************************************************************************/
-enum class Propagation          : bool
-{
-    Omit,         ///< Do not propagate changes.
-    ToDescendants ///< Propagate changes to descendants/children/sub-components.
-};
-
-/** ************************************************************************************************
- * Denotes a phase, e.g. of a transaction.
- **************************************************************************************************/
-enum class Phase
-{
-    Begin         = (1 << 0),    ///< The start of a transaction.
-    End           = (1 << 1),    ///< The end of a transaction.
-};
-
-/** ************************************************************************************************
- * Denotes standard container operations.
- **************************************************************************************************/
-enum class ContainerOp
-{
-    Insert,       ///< Denotes insertions.
-    Remove,       ///< Denotes removals.
-    Get,          ///< Denotes to search data.
-    GetCreate,    ///< Denotes to create data if not found.
-    Create        ///< Denotes to create data.
-};
-
-/** ************************************************************************************************
- * Used for example with constructors that allow to suppress initialization of members.
- **************************************************************************************************/
-enum class Initialization
-{
-    Suppress,     ///< Suppress initialization.
-                  ///< Writes "DontInitialize", reads in addition "suppress".
-    Perform,      ///< Perform initialization.
-                  ///< Writes "Initialize", reads in addition "perform".
 };
 
 /** ************************************************************************************************
@@ -239,87 +240,27 @@ enum class Timing
 };
 
 /** ************************************************************************************************
- * Denotes if a cache mechanism is enabled or disabled.
+ * Denotes if a value is interpreted as an absolute or relative number.
  **************************************************************************************************/
-enum class Caching
+enum class  ValueReference
 {
-    Disabled,  ///< Caching is disabled.
-    Enabled,   ///< Caching is enabled.
-    Auto,      ///< Auto/default mode.
+    Absolute,  ///< Referring to an absolute value.
+    Relative,  ///< Referring to a relative value.
+};
+
+/** ************************************************************************************************
+ * Denotes whether a string is trimmed or not
+ **************************************************************************************************/
+enum class Whitespaces          : bool
+{
+    Trim,         ///< Trim whitespaces away.
+    Keep          ///< Keep whitespaces in string.
 };
 
 
-} // namespace aworx[::lib]
+}} // namespace [aworx::lib]
 
-// CodeMarker_CommonEnums
 
-/// Type alias in namespace #aworx.
-using     Bool=             lib::Bool;
-
-/// Type alias in namespace #aworx.
-using     Switch=           lib::Switch;
-
-/// Type alias in namespace #aworx.
-using     Case=             lib::Case;
-
-/// Type alias in namespace #aworx.
-using     Alignment=        lib::Alignment;
-
-/// Type alias in namespace #aworx.
-using     SortOrder=        lib::SortOrder;
-
-/// Type alias in namespace #aworx.
-using     Inclusion=        lib::Inclusion;
-
-/// Type alias in namespace #aworx.
-using     Reach=            lib::Reach;
-
-/// Type alias in namespace #aworx.
-using     CurrentData=      lib::CurrentData;
-
-/// Type alias in namespace #aworx.
-using     SourceData=       lib::SourceData;
-
-/// Type alias in namespace #aworx.
-using     Safeness=         lib::Safeness;
-
-/// Type alias in namespace #aworx.
-using     Responsibility=   lib::Responsibility;
-
-/// Type alias in namespace #aworx.
-using     Timezone=         lib::Timezone;
-
-/// Type alias in namespace #aworx.
-using     Side=             lib::Side;
-
-/// Type alias in namespace #aworx.
-using     Whitespaces=      lib::Whitespaces;
-
-/// Type alias in namespace #aworx.
-using     CreateIfNotExists=lib::CreateIfNotExists;
-
-/// Type alias in namespace #aworx.
-using     CreateDefaults   =lib::CreateDefaults;
-
-/// Type alias in namespace #aworx.
-using     Propagation=      lib::Propagation;
-
-/// Type alias in namespace #aworx.
-using     Phase=            lib::Phase;
-
-/// Type alias in namespace #aworx.
-using     ContainerOp=      lib::ContainerOp;
-
-/// Type alias in namespace #aworx.
-using     Initialization=   lib::Initialization;
-
-/// Type alias in namespace #aworx.
-using     Timing=           lib::Timing;
-
-/// Type alias in namespace #aworx.
-using     Caching=          lib::Caching;
-
-}  // namespace [aworx]
 
 
 #endif // HPP_ALIB_FS_COMMONENUMS_DEFS
