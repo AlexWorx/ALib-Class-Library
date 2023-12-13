@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILER
@@ -10,12 +10,6 @@
 
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
 #   include "alib/expressions/expression.hpp"
-#endif
-
-#if ALIB_CONFIGURATION
-#   ifndef HPP_ALIB_CONFIG_CONFIGURATION
-#       include "alib/config/configuration.hpp"
-#   endif
 #endif
 
 #ifndef HPP_ALIB_FS_PLUGINS_PLUGINS
@@ -46,14 +40,41 @@
 #   include "alib/monomem/list.hpp"
 #endif
 
-namespace aworx {
+namespace aworx { namespace lib { namespace expressions {
 
 // forwards
-
-namespace lib { namespace expressions {
 namespace detail { struct Parser; }
-
 struct  CompilerPlugin;
+
+/** ************************************************************************************************
+ * An implementation of this abstract interface class may be attached to field
+ * \alib{expressions,Compiler::Repository} to enable an \e automated the definition and retrieval
+ * of expression strings of nested expressions.
+ *
+ * A default implementation, which uses typical \alib mechanics to define expression
+ * strings, is given with class \alib{expressions,StandardRepository}.
+ *
+ * More information about automated nested expressions and the use of this interface class is
+ * provided with manual chapter \ref alib_expressions_nested_config.
+ **************************************************************************************************/
+class ExpressionRepository
+{
+    public:
+        /** Virtual destructor.   */
+        virtual ~ExpressionRepository() {}
+
+        /** ****************************************************************************************
+         * This method is called during compilation of expressions in the case a named expression
+         * is not found by method \alib{expressions,Compiler::GetNamed}.
+         *
+         * @param      identifier  The name of the required expression.
+         * @param[out] target      The target to write the requested expression string to.
+         * @return \c true, if the expression string could be retrieved, \c false otherwise.
+         *         If \c true is returned and \p{target} is still empty, then the string is defined
+         *         to be empty, which throws an exception on compilation.
+         ******************************************************************************************/
+        virtual bool        Get( const String& identifier, AString& target )                    = 0;
+};
 
 /** ************************************************************************************************
  * This is a central class of library module \alib_expressions_nl used to compile
@@ -65,7 +86,7 @@ struct  CompilerPlugin;
  * ## Friends ##
  * class \alib{expressions,Expression}
  **************************************************************************************************/
-class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
+class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePriorities>
 {
     #if !defined(ALIB_DOX)
         friend class  Expression;
@@ -75,7 +96,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 
     public:
        /** Alias shortcut to the type of the plug-in vector inherited from \b %PluginContainer. */
-       using Plugins= std::vector<PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
+       using Plugins= std::vector<lib::detail::PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
 
     // #############################################################################################
     // internal fields
@@ -97,12 +118,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
         /** The map of 'named' expressions. */
         HashMap< AString, SPExpression,
                  std::hash    <String>,
-                 std::equal_to<String> >     namedExpressions;
-
-        #if ALIB_CONFIGURATION
-            /** A variable object, reused (performance vs memory) */
-            Variable                        var;
-        #endif // ALIB_CONFIGURATION
+                 std::equal_to<String> >    namedExpressions;
 
 
     // #############################################################################################
@@ -162,9 +178,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
             #if ALIB_DEBUG
                 for( auto& op : UnaryOperators )
                     if( op.Equals( symbol ) )
-                    {
-                        ALIB_ASSERT_ERROR( false, "Unary operator {!Q'} already defined.", symbol )
-                    }
+                        ALIB_ASSERT_ERROR( false, "EXPR", "Unary operator {!Q'} already defined.", symbol )
             #endif
             UnaryOperators.EmplaceBack(symbol);
         }
@@ -195,7 +209,7 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
         {
             ALIB_DBG( auto result= )
             BinaryOperators.EmplaceOrAssign(symbol, precedence);
-            ALIB_ASSERT_ERROR( result.second == true, // was inserted
+            ALIB_ASSERT_ERROR( result.second == true, "EXPR", // was inserted
                                "Binary operator {!Q'} already defined.", symbol )
         }
 
@@ -214,60 +228,16 @@ class Compiler  : public PluginContainer<CompilerPlugin, CompilePriorities>
 
             // have an alias?
             auto aliasOp= AlphabeticBinaryOperatorAliases.Find( symbol );
-            ALIB_ASSERT_ERROR( aliasOp != AlphabeticBinaryOperatorAliases.end(),
+            ALIB_ASSERT_ERROR( aliasOp != AlphabeticBinaryOperatorAliases.end(), "EXPR",
                                "Unknown binary operator {!Q'}.", symbol       )
 
             it= BinaryOperators.Find( aliasOp.Mapped() );
-            ALIB_ASSERT_ERROR( it != BinaryOperators.end(),
+            ALIB_ASSERT_ERROR( it != BinaryOperators.end(), "EXPR",
                                "Unknown binary operator {!Q'} which was aliased by {!Q'}.",
                                aliasOp->second, symbol       )
             return it.Mapped();
         }
 
-
-    #if ALIB_CONFIGURATION
-
-        /**
-         * This object defaults to \c nullptr and may be set in during bootstrap of the comiler
-         * object (at the same time the plug-ins are attached, etc.)
-         *
-         * If set, method #getExpressionString will use this object to try to find named
-         * expression in the configuration.
-         */
-        Configuration*          Config                                                    = nullptr;
-
-        /**
-         * May be filled with configuration category names. A named expression's identifier will
-         * be first tried to be loaded using each category name added here. If this fails,
-         * it is checked if an underscore <c>'_'</c>character is found in the name, if yes,
-         * it is then tried to extract the category from the variable name.
-         *
-         * Note: Adding an empty string allows to search in the unnamed-category as well.
-         */
-        std::vector<AString>    DefaultCategories;
-
-        /**
-         * Within this vector, all variables loaded 'automatically' from #Configuration with
-         * default implementation of method #getExpressionString are stored. The tuple
-         * string values provide:
-         * - the priority,
-         * - the category name,
-         * - the variable name and
-         * - the name of the nested expression.
-         *
-         * The latter is needed, as it might differ from the combination of the category and
-         * variable name due to definitions in #DefaultCategories.
-         *
-         * This vector might be used for various things, e.g. logging out status information.
-         * It is also used by method StoreLoadedExpressions.
-         *
-         * \note
-         *   This list is never cleared by this class. It might be cleared from outside
-         *   (e.g. to release memory) without causing any side effects, other than what
-         *   an application itself volunteers to do with this information.
-         */
-        std::vector<std::tuple<Priorities,AString,AString,String>>                  VariablesLoaded;
-    #endif
 
         /**
          * \alib{enums,T_EnumIsBitwise,Bitwise enum class} that lists the plug-ins built-into
@@ -298,7 +268,7 @@ ALIB_IF_SYSTEM(
          *   The built-in plug-ins are allowed to be shared by different compiler instances.
          *   To reach that, they must not be disabled here (or method #SetupDefaults must be
          *   omitted) and instead created once and registered with the compiler using
-         *   inherited method \alib{PluginContainer::InsertPlugin}. In that case, parameter
+         *   inherited method \alib{detail::PluginContainer::InsertPlugin}. In that case, parameter
          *   \p{responsibility} of that method has to be provided as
          *   \c Responsibility::KeepWithSender.
          */
@@ -393,7 +363,15 @@ ALIB_IF_SYSTEM(
          * In the constructor of this class, a \alib{text,Formatter::Clone,clone} of the
          * \alib \alib{text::Formatter,GetDefault,default formatter} is set here.
          */
-        SPFormatter              CfgFormatter;
+        SPFormatter                 CfgFormatter;
+
+        /**
+         * Optional pointer to a default or custom implementation of a repository that provides
+         * expression strings for named nested expressions.
+         *
+         * \see Manual chapter \ref alib_expressions_nested_config.
+         */
+        ExpressionRepository*       Repository                                            = nullptr;
 
     // #############################################################################################
     // Public Interface
@@ -544,7 +522,7 @@ ALIB_IF_SYSTEM(
          *
          * @param name              The name used to map the expression.
          * @param expressionString  The string to parse.
-         *                          If \c nullptr an existing expression is removed.
+         *                          If nulled, entry \p{name} is removed (if existing).
          * @return \c true if an expression with the same named existed and was replaced.
          *         Otherwise returns \c false.
          ******************************************************************************************/
@@ -553,7 +531,7 @@ ALIB_IF_SYSTEM(
 
         /** ****************************************************************************************
          * Removes a named expression. This is just a shortcut to #AddNamed, providing
-         * \c nullptr for parameter \p{expressionString}.
+         * a nulled string for parameter \p{expressionString}.
          *
          * @param name  The name of the expression to be removed.
          * @return \c true if an expression with the given name existed and was removed.
@@ -565,36 +543,19 @@ ALIB_IF_SYSTEM(
         }
 
         /** ****************************************************************************************
-         * Returns a named expression. Either this expression has to have been added using
-         * #AddNamed prior to retrieving it, or implementations of this class overwrite protected
-         * method #getExpressionString, which allows to receive expression strings 'on the fly'.
+         * Returns a named expression previously defined using #AddNamed.
+         * In the case that no expression with the given named was defined and optional interface
+         * #Repository is set, then this interface is used to retrieve a corresponding expression
+         * string and compile the named expression 'on the fly'.
+         *
+         * \see
+         *   Manual chapter \ref alib_expressions_nested_config.
          *
          * @param name  The name of the expression.
          * @return In case of success a shared pointer to the expression.
          ******************************************************************************************/
         virtual ALIB_API
         SPExpression        GetNamed( const String& name );
-
-        #if ALIB_CONFIGURATION
-            /** ************************************************************************************
-             * Stores back all expression strings which had been automatically loaded from
-             * the plugin specified by \p{slot} to configuration system. For storing, the parsed
-             * expression description is used. Thus, this method may be used to write a "clean"
-             * expression string, that does not use abbreviations for identifiers, has no
-             * unnecessary whitespaces, etc.
-             *
-             * Note the importance of parameter \p{slot}: Usually, only such expression variables
-             * should be stored that had been loaded from a configuration file. Expression strings
-             * provided e.g. via CLI parameters should be considered temporary ones and hence not
-             * written.
-             *
-             * @param slot  The slot of the configuration plug-in of which loaded variables are to
-             *              be written back.
-             * @return The number of variables written.
-             **************************************************************************************/
-            ALIB_API
-            int                 StoreLoadedExpressions( Priorities slot= Priorities::Standard );
-        #endif // ALIB_CONFIGURATION
 
     // #############################################################################################
     // Protected Interface
@@ -618,28 +579,6 @@ ALIB_IF_SYSTEM(
          ******************************************************************************************/
         virtual  ALIB_API
         Scope*              getCompileTimeScope();
-
-        /** ****************************************************************************************
-         * This method is called by #GetNamed if a named expression requested is not found.
-         *
-         * If nested expressions that have not been 'manually' added using #AddNamed, are to be
-         * supported, this method has either be overwritten to receive expression strings in a
-         * customized way for the given expression \p{name}, or the built-in mechanism of loading
-         * expression strings from the \ref #aworx::lib::config "ALib Configuration System"
-         * has to be activated. Activation is done by setting field #Configuration to a valid
-         * instance prior to using the compiler.
-         *
-         * The latter allows to have expressions located in INI-files, provided with command line
-         * parameters and so forth.
-         *
-         * @param identifier  The name of the expression
-         * @param target      The target to write the expression string to.
-         * @return This \c true, if the expression string could be retrieved, \c false otherwise.
-         *         If \c true is returned and \p{target} is still empty, then the string is defined
-         *         to be empty, which throws an exception on compilation.
-         ******************************************************************************************/
-        virtual ALIB_API
-        bool                getExpressionString( const String& identifier, AString& target );
 
         /** ****************************************************************************************
          * Implements \alib{expressions,Expression::GetOptimizedString}.

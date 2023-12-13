@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_SCOPEINFO
@@ -360,8 +360,12 @@ class ScopeInfo
             {
                 integer idx= getPathLength();
                 if( idx >= 0 )
+                {
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     actual->name= NString( actual->origFile.Buffer() + idx + 1,
                                            actual->origFile.Length() - idx - 1 );
+                    ALIB_WARNINGS_RESTORE
+                }
                 else
                     actual->name= "";
             }

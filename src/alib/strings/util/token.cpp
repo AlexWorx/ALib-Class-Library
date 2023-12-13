@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -30,6 +30,12 @@
     #undef max
     #undef min
 #endif
+
+
+#if ALIB_BOXING
+    ALIB_BOXING_VTABLE_DEFINE( aworx::lib::strings::util::Token*, vt_alib_strings_token )
+#endif
+
 
 namespace aworx { namespace lib { namespace strings { namespace util  {
 
@@ -63,8 +69,10 @@ Token::Token( const String& pName, Case sensitivity,
 #if ALIB_ENUMS
 void Token::Define( const String& definition, character separator )
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     minLengths[0]=  0;
     minLengths[1]= -1;
+    ALIB_WARNINGS_RESTORE
     format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::EmptyName));
 
     Substring parser(definition);
@@ -100,13 +108,19 @@ void Token::Define( const String& definition, character separator )
                 return;
             }
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             parser.ConsumeDecDigits( minLengths[qtyMinLengths++] );
+            ALIB_WARNINGS_RESTORE
         }
     }
+
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     if( qtyMinLengths == 0 )
         minLengths[0]= static_cast<int8_t>( name.Length() );
+
     if( qtyMinLengths > 0 && qtyMinLengths < 7 )
         minLengths[qtyMinLengths]= -1;
+    ALIB_WARNINGS_RESTORE
 
     #if ALIB_DEBUG
         if( parser.IsNotEmpty() )
@@ -131,9 +145,11 @@ void Token::Define( const String& definition, character separator )
 void    Token::detectFormat()
 {
     // detect number of min length values
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     int qtyMinLength= 1;
     while( qtyMinLength < 7 && minLengths[qtyMinLength] >= 0 )
         ++qtyMinLength;
+    ALIB_WARNINGS_RESTORE
 
     // just one length given? Keep format "normal"
     format= Formats::Normal;
@@ -234,17 +250,20 @@ void    Token::detectFormat()
 
                 if( segmentEnd )
                 {
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                     if( segmentNo < 7 && minLengths[segmentNo] > segmentLength )
                     {
                         format= Formats(DbgDefinitionError::MinLenExceedsSegmentLength);
                         return;
                     }
+                    ALIB_WARNINGS_RESTORE
 
                     segmentLength=  (format == Formats::CamelCase ? 1 : 0);
                     ++segmentNo;
                 }
             }
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             for( int minLenIdx= 0 ; minLenIdx < 7 && minLengths[minLenIdx] >= 0 ; ++minLenIdx )
             {
                 if(     minLengths[minLenIdx] == 0
@@ -255,6 +274,7 @@ void    Token::detectFormat()
                     return;
                 }
             }
+            ALIB_WARNINGS_RESTORE
         }
     #endif
 
@@ -263,7 +283,8 @@ void    Token::detectFormat()
 
 bool    Token::Match( const String& needle )
 {
-    ALIB_ASSERT_ERROR( needle.Length() > 0, "Empty search string in when matching function name." )
+    ALIB_ASSERT_ERROR( needle.Length() > 0,
+                       "STRINGS/TOK", "Empty search string in when matching function name." )
     Case sensitivity= Sensitivity();
 
     Formats   caseType= GetFormat();
@@ -370,7 +391,9 @@ bool    Token::Match( const String& needle )
         {
             ++segNo;
             segLen= 0;
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             segMinLen    = segNo < 7 ? minLengths[segNo] : -2;
+            ALIB_WARNINGS_RESTORE
 
             // oh,oh!
             if( n == '\0' && (!isCamel || h == '\0' || rollbackLen == 0) )
@@ -383,6 +406,7 @@ bool    Token::Match( const String& needle )
 
 #if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(ALIB_DOX)
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
                                   const NString&        resourceCategory,
                                   const NString&        resourceName,
@@ -391,6 +415,7 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
                                   character             outerSeparator,
                                   character             innerSeparator        )
 {
+ALIB_WARNINGS_RESTORE
     ALIB_DBG( int tableSize= 0; )
     int resourceNo= -1; // disble number parsing
 
@@ -404,9 +429,10 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
             parser= resourcePool.Get( resourceCategory, NString256() << resourceName << resourceNo++
                                       ALIB_DBG(, false ) );
 
-        ALIB_ASSERT_ERROR( resourceNo != 1 || parser.IsNotNull(),  NString256() <<
-                           "Resource string(s) \"" << resourceCategory
-                           << "/" << resourceName  << "(nn)\"  not found when parsing token."  )
+        ALIB_ASSERT_ERROR( resourceNo != 1 || parser.IsNotNull(),  "STRINGS/TOK",
+          NString256() <<  "Resource string(s) \"" << resourceCategory
+                       <<  "/"                     << resourceName
+                       << "(nn)\"  not found when parsing token."  )
 
         if( parser.IsEmpty() )
             break;
@@ -450,14 +476,14 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
                         errorMessage= "The definition string was not completely consumed.";
                         break;
                     case Token::DbgDefinitionError::ZeroMinLengthAndNotLastCamelHump:
-                        errorMessage= "Zero minimum length provided for segment which is not the last\\n"
+                        errorMessage= "Zero minimum length provided for segment which is not the last\n"
                                       "of a camel case token.";
                         break;
                 }
 
                 if( errorMessage.IsNotEmpty() )
                 {
-                    ALIB_ERROR( errorMessage, NString512() <<
+                    ALIB_ERROR( "STRINGS", errorMessage, NString512() <<
                         "\n(While reading token table.)\n"
                         "    Resource category (module name):  \"" <<  resourceCategory << "\"\n"
                         "    Resource name:                    \"" <<  resourceName     << "\"\n"
@@ -480,7 +506,7 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
             if( resourcePool.Get( resourceCategory, NString256() << resourceName << (resourceNo + i)
                                   ALIB_DBG(, false ) ).IsNotNull() )
             {
-                ALIB_ERROR( NString128()
+                ALIB_ERROR( "STRINGS", NString128()
                    << "Detected a \"gap\" in numbering of resource strings while parsing "
                       "resource token table: "
                       "From index " << resourceNo - 1 << " to " << resourceNo + i - 1 << ".\n"
@@ -490,11 +516,11 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
     #endif
 
 
-    ALIB_ASSERT_ERROR( dbgSizeVerifier == tableSize, NString512() <<
-        "Size mismatch in resourced token table:\\n"
+    ALIB_ASSERT_ERROR( dbgSizeVerifier == tableSize, "STRINGS/TOK", NString512() <<
+        "Size mismatch in resourced token table:\n"
         "    Resource category (module name):  \"" << resourceCategory   << "\"\n"
         "    Resource name:                    \"" << resourceName       << "\"\n"
-        "    Resourced table size:             ["  << tableSize          << "]\\n"
+        "    Resourced table size:             ["  << tableSize          << "]\n"
         "    Expected table size:              ["  << dbgSizeVerifier    << "]"     )
 
 }

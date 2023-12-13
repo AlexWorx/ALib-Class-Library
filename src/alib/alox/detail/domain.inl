@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_DOMAIN
@@ -260,7 +260,7 @@ class Domain
          ******************************************************************************************/
         detail::Logger*  GetLogger( int no )
         {
-            ALIB_ASSERT_ERROR( no < static_cast<int>(Data.size()), "Internal error: Illegal Logger Number" )
+            ALIB_ASSERT_ERROR( no < static_cast<int>(Data.size()), "ALOX", "Internal error: Illegal Logger Number" )
             return Data[static_cast<size_t>(no)].Logger;
         }
 

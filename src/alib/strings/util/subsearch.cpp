@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -47,11 +47,13 @@ void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedl
     integer pfxLen= kmpTable[0]= -1;
     while (needleIdx != needle.Length())
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         while ((pfxLen != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
 	        pfxLen= kmpTable[pfxLen];
         ++needleIdx;
         ++pfxLen;
         kmpTable[needleIdx]=     characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]) ? kmpTable[pfxLen] : pfxLen;
+        ALIB_WARNINGS_RESTORE
     }
 }
 
@@ -69,9 +71,11 @@ integer TSubstringSearch<TChar,TSensitivity>::Search( const TString<TChar>& hays
     integer needleIdx     = 0;
     while (haystackIdx != haystack.Length())
     {
-        while ((needleIdx != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(haystack.Buffer()[haystackIdx],
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        while ((needleIdx != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>( haystack.Buffer()[haystackIdx],
                                                                                                  needle  .Buffer()[needleIdx] ) )
 	        needleIdx= kmpTable[needleIdx];
+        ALIB_WARNINGS_RESTORE
         ++haystackIdx;
         ++needleIdx;
         if ( needleIdx >= needle.Length() )

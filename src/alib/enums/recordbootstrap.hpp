@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDBOOTSTRAP
@@ -68,7 +68,8 @@ template<typename TEnum, typename TEnableIf>
 inline
 void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords::Initializer> definitions )
 {
-    auto* table= definitions.begin();
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    auto*  table  = definitions.begin();
     auto&  records= detail::EnumRecordHook<TEnum>::GetSingleton();
     auto** lastP  = records.getPointerToLast();
     for( size_t i= 0; i!= definitions.size(); ++i)
@@ -86,6 +87,7 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     }
 
     (*lastP)= nullptr;
+    ALIB_WARNINGS_RESTORE
 }
 
 #if ALIB_STRINGS
@@ -93,8 +95,8 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     template<typename TEnum, typename TEnableIf>
     inline
     void EnumRecords<TEnum, TEnableIf>::Bootstrap( const String& input,
-                                              character     innerDelim,
-                                              character     outerDelim    )
+                                                   character     innerDelim,
+                                                   character     outerDelim    )
     {
         EnumRecordParser::Initialize(input, innerDelim, outerDelim, NullNString(), NullNString() );
 
@@ -130,10 +132,10 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     template<typename TEnum, typename TEnableIf>
     inline
     void EnumRecords<TEnum, TEnableIf>::Bootstrap( ResourcePool&   pool,
-                                              const NString&  category,
-                                              const NString&  name,
-                                              character       innerDelim,
-                                              character       outerDelim     )
+                                                   const NString&  category,
+                                                   const NString&  name,
+                                                   character       innerDelim,
+                                                   character       outerDelim     )
     {
         // resources given in the standard, non-indexed way?
         String input= pool.Get( category, name  ALIB_DBG(, false) );
@@ -181,7 +183,7 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
                 ++nr;
                 if( pool.Get( category, nameNr.Reset( name)._( nr) ALIB_DBG(, false)).IsNotNull() )
                 {
-                    ALIB_ERROR( NString128()
+                    ALIB_ERROR( "ENUMS", NString128()
                        << "Detected a \"gap\" in numbering of enum records for type <"
                        << DbgTypeDemangler( typeid(TEnum)).Get() << ">: From index "
                        << nr - i - 1 << " to " << nr - 1 << ".\n"

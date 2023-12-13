@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * Precompiled Header for ALib.
@@ -14,9 +14,11 @@
  * As of today, with GNU and clang compilers, compilation seems more efficient if this header is
  * disabled.
  **************************************************************************************************/
+#if !defined(ALIB_DOX)
+
 #include "alib/lib/modules.hpp"
 
-#if defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER && !defined(ALIB_DOX)
+#if defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
 
 #if ALIB_CHARACTERS
 #   define  ALIB_TEMP_HDRNAME "alib/characters/chararray.hpp"
@@ -104,6 +106,7 @@
 #endif
 
 #endif  // defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
+#endif  // ALIB_DOX
 
 
 

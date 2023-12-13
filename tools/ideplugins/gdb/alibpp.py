@@ -1,18 +1,11 @@
 '''#################################################################################################
   gdb pretty printer python scripts for classes of ALib and ALox
 
-  (c) 2015-2016 A-Worx GmbH, Germany
+  (c) 2015-2023 A-Worx GmbH, Germany
   Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 
   This Python script implements "pretty printers" for the GNU Debugger 'gdb' as  suggested here:
     https://sourceware.org/gdb/onlinedocs/gdb/Writing-a-Pretty_002dPrinter.html
-
-  Note:
-    For users of QT Creator, a dedicated script is available at
-
-            ALOX_LIB_PATH/tools/ideplugins/QTCreator/DebugHelpers/
-
-    For more information, read that scripts header.
 
 
   Installation:
@@ -30,7 +23,9 @@
     (as of August 2016 versions). As soon as child values are returned, the 'main' pretty
     printing result is not shown.  It is not very probable that this is a fault of this script,
     because this is also true for official pretty printer scripts of standard c++ container classes
-    when used with these IDEs: The objects main value is just not shown with these IđDEs.
+    when used with these IDEs: The objects main value is just not shown with these IDEs.
+    Update 2023/01/30: It is still an issue in CLion as tracked here:
+        https://youtrack.jetbrains.com/issue/CPP-15217
 
     Therefore, this script is configurable. Configuration is made by adding global symbols
     to (the debug version) of the inferior (the library or executable to debug). This script
@@ -42,7 +37,7 @@
 
     - ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES
       If this symbol is defined, then pointer types are treated just as normal types.
-      This is dangerous. For example, with current CLion V. 2016.2.1, this symbol must only
+      This is dangerous. For example, with CLion V. 2016.2.1, this symbol must only
       be set if ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN is set as well. If not, the whole debug system might
       crash and debugging is not possible anymore.
 
@@ -77,11 +72,12 @@
 
 
   Types supported so far:
-    - String, CString, AString, Tokenizer
-    - Directory
-    - Ticks
-    - Thread, ThreadLock, ThreadLockNR,
-    - Logger, Domain
+    - All sorts of ALib string types,
+    - strings::util::Tokenizer
+    - system::Directory, system::CalendarDate
+    - time::Ticks
+    - threads::Thread, threads::ThreadLock, threads::ThreadLockNR,
+    - lox::core::Logger, lox::core::Domain, lox::core::LoggerData
 
 #################################################################################################'''
 import string
@@ -98,7 +94,6 @@ import os.path
 import sys
 import struct
 import types
-
 
 # For explanation see notes above!
 cfg_suppress_children= -1
@@ -182,6 +177,15 @@ def getASString(strObject):
     return getASString(strObject, 0)
 
 def getASString(strObject, width):
+    if   str(width) == "char":
+        width= int(0)
+    elif str(width) == "wchar_t":
+        width= int(-1)
+    elif str(width) == "char16_t":
+        width= int(2)
+    elif str(width) == "char32_t":
+        width= int(4)
+
     if width == 0:
         if cfg_alib_character_is_wide:
             width= -1
@@ -281,6 +285,73 @@ def getVerbosityString( value ):
 
     return  "<unknown value (" + str(value) + ")>"
 
+def getDayOfWeekString( value ):
+    if value == 0:
+        return "Sun"
+    if value == 1:
+        return  "Mon"
+    if value == 2:
+        return  "Tue"
+    if value == 3:
+        return  "Wed"
+    if value == 4:
+        return  "Thu"
+    if value == 5:
+        return  "Fri"
+    if value == 6:
+        return  "Sat"
+    return "<unknown day>"
+
+def getDurationString( value ):
+    started= False
+    iv= int( value )
+    result= ""
+
+    i= int(iv / (365*24*60*60*1000*1000*1000))
+    if i > 0:
+        started= True
+        result= str(i) + "years "
+    iv-= int(i * (365*24*60*60*1000*1000*1000))
+
+    i= int(iv / (24*60*60*1000*1000*1000))
+    if started or i > 0:
+        started= True
+        result+= str(i) + "days - "
+    iv-= int(i * (24*60*60*1000*1000*1000))
+
+    i= int(iv / (60*60*1000*1000*1000))
+    if started or i > 0:
+        started= True
+        result+= format(i, '02') + ":"
+    iv-= int(i * (60*60*1000*1000*1000))
+
+    i= int(iv / (60*1000*1000*1000))
+    if started or i > 0:
+        started= True
+        result+= format(i, '02') + ":"
+    iv-= int(i * (60*1000*1000*1000))
+
+    i= int(iv / (1000*1000*1000))
+    if started or i > 0:
+        started= True
+        result+= format(i, '02') + " - "
+    iv-= int(i * (1000*1000*1000))
+
+    i= int(iv / (1000*1000))
+    if started or i > 0:
+        started= True
+        result+= format(i, '03') + ","
+    iv-= int(i * (1000*1000))
+
+    i= int(iv / (1000))
+    if started or i > 0:
+        result+= format(i, '03') + ","
+    iv-= int(i * (1000))
+
+    result+= format(iv, '03') + "ns"
+    return result
+
+
 def getLoggerDescription(value):
     name=       value["Name"]
     typeName=   value["TypeName"]
@@ -296,37 +367,51 @@ def getLoggerDescription(value):
 #
 # ############################## The Pretty Printer class ##############################
 #
+def dbgDumpPythonObject(obj):
+  for attr in dir(obj):
+    print("  obj.%s = %r" % (attr, getattr(obj, attr)))
+
+
 class ALibPrinter(object):
     ''' Generic printer taking the readily made variables result and children '''
 
-    def __init__( self, result, children ):
-        self.result=     result
-        self.children=   children
+    def __init__( self, pResult, pChildren ):
+        self.result=        pResult
+        self.childrenDict=  pChildren
 
     def to_string(self):
         return self.result
 
-
     def children(self):
+        #print("------------------------------------ " + str(self.childrenDict))
+        if self.childrenDict is None:
+            self.childrenDict= [ ("No Children With This Pretty Printer" , "./."   ) ]
         return self.childrenDict
+
 
 glbALibPrinterWithOutChildrenBlocker= False
 class ALibPrinterWithOutChildren(object):
     ''' Printer that does not define the 'children' method, to avoid problems with
     some IDEs '''
 
-    def __init__( self, result, children ):
-        self.result=    result
-        self.childrenDict=  children
+    def __init__( self, pResult, pChildren ):
+        self.result=        pResult
+        self.childrenDict=  pChildren
 
     def to_string(self):
         result= self.result
         global glbALibPrinterWithOutChildrenBlocker
         if glbALibPrinterWithOutChildrenBlocker is False:
             if self.childrenDict is not None:
+                result= str(result) + " | {"
                 glbALibPrinterWithOutChildrenBlocker= True
+                isFirst= True
                 for t in self.childrenDict:
-                    result+= ", " + t[0] +'=' + str(t[1])
+                    if not isFirst:
+                        result+= ", "
+                    isFirst= False
+                    result+= t[0] +'=' + str(t[1])
+                result+= "}"
                 glbALibPrinterWithOutChildrenBlocker= False
         return result
 
@@ -363,22 +448,27 @@ def lookup_pp_alib_and_alox( value  ):
 
 
 
-    type=  str(value.type.strip_typedefs() )
+    typeNameOrig=  str(value.type.name )               # This is not used yet, but may be helpful to identify "custom pod-types"
+    typeName    =  str(value.type.strip_typedefs() )
 
-    if type.startswith("const "):
-        type= type[6:]
+
+    print("--------Type: " + typeNameOrig + " -> " +typeName )
+
+
+    if typeName.startswith("const "):
+        typeName= typeName[6:]
 
     # not aworx?
-    if not type.startswith( "aworx::"):
+    if not typeName.startswith( "aworx::"):
         return None
-    type= type[7:]
+    typeName= typeName[7:]
 
     #print( "ALib: Lookup for type >%s< " % type )
 
 
     # pointer / reference
     global cfg_find_pointers
-    if cfg_find_pointers is -1:
+    if cfg_find_pointers == -1:
         print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES"...')
         if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES" ) is None:
             print ( 'ALib: ... not found')
@@ -388,12 +478,12 @@ def lookup_pp_alib_and_alox( value  ):
             cfg_find_pointers=  1
 
 
-    if cfg_find_pointers == 1 and type.endswith(" *"):
-        type= type[0:-2]
+    if cfg_find_pointers == 1 and typeName.endswith(" *"):
+        typeName= typeName[0:-2]
 
 
-    if type.endswith(" &"):
-        type= type[0:-2]
+    if typeName.endswith(" &"):
+        typeName= typeName[0:-2]
 
 
     # declare result and children for our pretty printer
@@ -403,39 +493,44 @@ def lookup_pp_alib_and_alox( value  ):
 
     try:
         ################################## ALib ##################################
-        if type.startswith( 'lib::' ):
-            type= type[5:]
+        if typeName.startswith( 'lib::' ):
+            typeName= typeName[5:]
 
 
             #------------------------------------- strings ---------------------------------
-            if type.startswith( 'strings::' ):
-                type= type[9::]
+            if typeName.startswith( 'strings::' ):
+                typeName= typeName[9::]
 
                 #--------------------- char -----------------------
-                if type == "TString<char>":
-                    asBuffer= getASString( value, 1 )
+                if typeName.startswith("TString<"):
+                    cType= typeName[8:typeName.find(">")]
+                    asBuffer= getASString( value, cType )
                     result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
 
-                    children= [ ("buffer"   , value["buffer"]   ),
-                                ("length"   , value["length"]   )   ];
-
-                elif type == "TCString<char>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 1 ) + '"'
-
-                elif type == "TSubstring<char>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 1 ) + '"'
+                    children=  [ ("buffer" , value["buffer"]   ),
+                                 ("length" , value["length"]   )   ];
 
 
-                elif type == "TAString<char>":
+                elif typeName.startswith("TCString<"):
+                    cType= typeName[9:typeName.find(">")]
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, cType ) + '"'
+
+                elif typeName.startswith("TSubstring<"):
+                    cType= typeName[11:typeName.find(">")]
+                    result= "[" + str(value["length"]) + '] "'  + getASString( value, cType ) + '"'
+
+
+                elif typeName.startswith("TAString<"):
+                    cType= typeName[9:typeName.find(">")]
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) + "(Ext)"
                     else:
                         result+= str(capacity)
-                    result+= '] "'  + getASString( value, 1 ) + '"'
+                    result+= '] "'  + getASString( value, cType ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TString<char>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char>") ) )
+                    children= [  ( "aworx::lib::strings::TString<"+cType+">", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                               ];
                     try:
@@ -443,288 +538,170 @@ def lookup_pp_alib_and_alox( value  ):
                     except:
                         pass
 
-                elif type[:17] == "TLocalString<char":
+                elif typeName.startswith("TLocalString<"):
+                    cType= typeName[13:typeName.find(",")]
                     result= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
                         result+=  str(-capacity) +"(LS)"
                     else:
                         result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, 1 ) + '"'
+                    result+= '] "'  + getASString( value, cType ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TAString<char>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char>") ) )
+                    children= [  ( "aworx::lib::strings::TAString<"+cType+">", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                                  ];
 
-                #--------------------- wchar_t -----------------------
-                if type == "TString<wchar_t>":
-                    asBuffer= getASString( value, -1 )
-                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
 
-                    children= [ ("buffer"   , value["buffer"]   ),
-                                ("length"   , value["length"]   )   ];
-
-                elif type == "TCString<wchar_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, -1 ) + '"'
-
-                elif type == "TSubstring<wchar_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, -1 ) + '"'
-
-
-                elif type == "TAString<wchar_t>":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) + "(Ext)"
-                    else:
-                        result+= str(capacity)
-                    result+= '] "'  + getASString( value, -1 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TString<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<wchar_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                              ];
-                    try:
-                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
-                    except:
-                        pass
-
-                elif type[:20] == "TLocalString<wchar_t":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) +"(LS)"
-                    else:
-                        result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, -1 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TAString<wchar_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<wchar_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                                 ];
-
-                #--------------------- char16_t -----------------------
-                if type == "TString<char16_t>":
-                    asBuffer= getASString( value, 2 )
-                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
-
-                    children= [ ("buffer"   , value["buffer"]   ),
-                                ("length"   , value["length"]   )   ];
-
-                elif type == "TCString<char16_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 2 ) + '"'
-
-                elif type == "TSubstring<char16_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 2 ) + '"'
-
-
-                elif type == "TAString<char16_t>":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) + "(Ext)"
-                    else:
-                        result+= str(capacity)
-                    result+= '] "'  + getASString( value, 2 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TString<char16_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char16_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                              ];
-                    try:
-                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
-                    except:
-                        pass
-
-                elif type[:20] == "TLocalString<char16_t":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) +"(LS)"
-                    else:
-                        result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, 2 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TAString<char16_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char16_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                                 ];
-
-                #--------------------- char32_t -----------------------
-                if type == "TString<char32_t>":
-                    asBuffer= getASString( value, 4 )
-                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
-
-                    children= [ ("buffer"   , value["buffer"]   ),
-                                ("length"   , value["length"]   )   ];
-
-                elif type == "TCString<char32_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 4 ) + '"'
-
-                elif type == "TSubstring<char32_t>":
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, 4 ) + '"'
-
-
-                elif type == "TAString<char32_t>":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) + "(Ext)"
-                    else:
-                        result+= str(capacity)
-                    result+= '] "'  + getASString( value, 4 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TString<char32_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char32_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                              ];
-                    try:
-                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
-                    except:
-                        pass
-
-                elif type[:30] == "TLocalString<char32_t":
-                    result= "[" + str(value["length"]) +"/"
-                    capacity= value["capacity"]
-                    if capacity < 0:
-                        result+=  str(-capacity) +"(LS)"
-                    else:
-                        result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, 4 ) + '"'
-
-                    children= [  ( "aworx::lib::strings::TAString<char32_t>", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char32_t>") ) )
-                                ,( "capacity" , value["capacity"] )
-                                 ];
-
-                #--------------------- util -----------------------
-
-                elif type == "util::Tokenizer":
-                    result= 'Actual="'  + getASString( value["Actual"]  ) + \
-                             '" Rest="' + getASString( value["Rest"]    ) + '"' + \
+                elif typeName.startswith("util::TTokenizer<"):
+                    cType= typeName[17:typeName.find(">")]
+                    result= 'Actual="'  + getASString( value["Actual"]  ,cType ) + \
+                             '" Rest="' + getASString( value["Rest"]    ,cType ) + '"' + \
                              " Delim='" + chr(value["delim"]) + "'"
+
+                else:  print("ALib Type without Pretty Printer: " + typeName )
 
 
 
             #--------------------------------- System ---------------------------------
-            elif type.startswith( 'system::' ):
-                type= type[8::]
+            elif typeName.startswith( 'system::' ):
+                typeName= typeName[8::]
 
-                if type == "Directory":
+                if typeName == "Directory":
                     result= getASString( value["Path"] )
 
+
+
+                elif typeName == "CalendarDate":
+                    result=          str(   value["stamp"] >> 12       )               \
+                            + '/'  + str( ( value["stamp"] >>  8) & 15 )               \
+                            + '/'  + str( ( value["stamp"] >>  3) & 31 )               \
+                            + ' (' + getDayOfWeekString( value["stamp"] & 7 )  + ')'
+
+                elif typeName == "CalendarDateTime":
+                    result=   '{}/{:02}/{:02} ({}) {}:{:02}:{:02} {}ms'.format(
+                                          value["Year"       ]              , \
+                                     int( value["Month"      ] )            , \
+                                     int( value["Day"        ] )            , \
+                      getDayOfWeekString( value["DayOfWeek"  ] & 7 )        , \
+                                          value["Hour"       ]              , \
+                                     int( value["Minute"     ] )            , \
+                                     int( value["Second"     ] )            , \
+                                     int( value["Millisecond"] )            )
+
+
             #--------------------------------- Time ---------------------------------
-            elif type.startswith( 'time::' ):
-                type= type[6::]
+            elif typeName.startswith( 'time::' ):
+                typeName= typeName[6::]
 
-                if type == "Ticks":
-                    result=  "<error>"
-                    ticks= value["ticks"]
-                    seconds=     1000000000
-                    minutes=     1000000000 * 60
-                    hours=       minutes*60
-                    milliseconds= 1000000
-                    microseconds=1000
-                    if ticks == 0:
-                        result= "<Uninitialized (0)>"
-                    else:
-                        origTicks= ticks
-                        result= ""
+                if typeName == "Ticks":
+                    result= getDurationString( value["stamp"]["__d"]["__r"] )
 
-                        if origTicks >= hours:
+                elif typeName.endswith("Ticks>::Duration"):
+                    result= getDurationString( value["span"]["__r"] )
 
-                            result+=  str(ticks/hours) + "h "
-                            ticks-= int(ticks/hours) * hours
+                elif typeName == "DateTime":
+                    result= getDurationString( value["stamp"]["__d"]["__r"] )
 
-                        if origTicks >= seconds:
+                elif typeName.endswith("DateTime>::Duration"):
+                    result= getDurationString( value["span"]["__r"] )
 
-                            result+=  "%02d:" %  (ticks/minutes)
-                            ticks-= int(ticks/minutes) * minutes
+                elif typeName == "StopWatch":
+                    result=  "Cnt="  +               str( value["cntSamples"] )
+                    result+= " SUM=" + getDurationString( value["sum"]["span"]["__r"] )
+                    result+= " MIN=" + getDurationString( value["min"]["span"]["__r"] )
+                    result+= " MAX=" + getDurationString( value["max"]["span"]["__r"] )
+                    result+= " AVG=" + getDurationString( int(value["sum"]["span"]["__r"]) / int(value["cntSamples"])  )
 
-                            result+=   "%02d" %  (ticks/seconds)
-                            ticks-= int(ticks/seconds)*seconds
+            #--------------------------------- Memory ---------------------------------
+            elif typeName.startswith( 'bitbuffer::' ):
+                typeName= typeName[8::]
 
-                        if origTicks <  hours:
-                            if origTicks >= seconds:
-                                result+= "  +"
+                if typeName == "BitBufferBase::Index":
+                    result= "data[" + str(value["pos"]) +"]." + str(value["bit"] )
 
-                            ms= int(ticks/milliseconds)
-                            if ms > 0:
-                                result+=  "%03dms " % ms
-                                ticks-= ms * milliseconds
+                elif typeName == "BitWriter":
+                    result = "{:039_b}".format(int(value["word"]))
+                    bitIdx= int( value["idx"]["bit"] )
+                    bitIdx+= int(bitIdx / 4)
+                    result= result[0:39-bitIdx] + "<" + result[39-bitIdx:]
+                    result+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
 
-                        if origTicks <  minutes:
+                elif typeName == "BitReader":
+                    result = "{:039_b}".format(int(value["word"]))
+                    bitIdx= int( value["idx"]["bit"] )
+                    bitIdx+= int(bitIdx / 4)
+                    result =  result[bitIdx:] + "<"
+                    result+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
 
-                            us= int(ticks/microseconds)
-                            if us > 0:
-                                result+=  "%03dus " % us
-                                ticks-= us * microseconds
-
-                            result+=  "%03dns " % ticks
-                            ticks-= ticks/microseconds
 
 
             #--------------------------------- Threads ---------------------------------
-            elif type == "ThreadLockNR":
-                tnrIsAcquired= value["dbgIsAcquired"]
-                result= "Unlocked" if (tnrIsAcquired == 0) else "Locked"
-                if value["mutex"] == 0:
-                    result+= " (Unsafe mode!)"
-
-                children= [ ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
-                            ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
-                            ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
-
-            elif type == "ThreadLock":
-                tnrCntLock= value["cntAcquirements"]
-                if tnrCntLock == 0:
-                    result= "Unlocked"
-
-                elif tnrCntLock == 1:
-                    result= "Locked"
-
-                elif tnrCntLock < 0:
-                    result= "Illegal State. cntAcquirements=" + str(tnrCntLock)
-
-                else:
-                    result= "Locked (" + str(tnrCntLock) +")"
-
-                if value["mutex"] == 0:
-                    result+= " (Unsafe mode!)"
-                else:
-                    if tnrCntLock >= 1:
-                        result+=  ", Owner: " + "#" + str(value["owner"]["id"]) + ' "' \
-                                  + getASString( value["owner"]["name"] ) + '"'
+            elif typeName.startswith( 'threads::' ):
+                typeName= typeName[9::]
+                if typeName == "ThreadLockNR":
+                    tnrIsAcquired= value["dbgIsAcquiredBy"]["_M_thread"]
+                    if tnrIsAcquired == 0 :
+                        result= "Unlocked"
+                    else:
+                        result= "Locked (by internal thread ID: " + str(tnrIsAcquired) + ")"
 
 
-                children= [ ("cntAcquirements"         , value["cntAcquirements"]         ),
-                            ("owner"                   , value["owner"]                   ),
-                            ("mutex"                   , value["mutex"]                   ),
-                            ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
-                            ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
-                            ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
+                elif typeName == "ThreadLock":
+                    tnrCntLock= value["cntAcquirements"]
+                    if tnrCntLock == 0:
+                        result= "Unlocked"
 
-            elif type == "Thread":
-                result =  "#" + str(value["id"]) + ' "' + getASString( value["name"] )
-                result+=  '" (Alive/' if (value["isAliveFlag"]   != 0) else '" (Not alive/'
-                result+=  "User)"    if (value["id"]             >  0) else "System)"
+                    elif tnrCntLock == 1:
+                        result= "Locked"
+
+                    elif tnrCntLock < 0:
+                        result= "Illegal State. cntAcquirements=" + str(tnrCntLock)
+
+                    else:
+                        result= "Locked (" + str(tnrCntLock) +")"
+
+                    if value["safeness"] == 1:
+                        result+= " (Unsafe mode!)"
+                    else:
+                        if tnrCntLock >= 1:
+                            result+=  ", Owner: " + "#" + str(value["owner"]["_M_thread"]) + ' "'
+
+
+#                    children= [ ("cntAcquirements"         , value["cntAcquirements"]         ),
+#                                ("owner"                   , value["owner"]                   ),
+#                                ("mutex"                   , value["mutex"]                   ),
+#                                ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
+#                                ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
+#                                ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
+
+                elif typeName == "Thread":
+                    result =  "#" + str(value["id"]) + ' "' + getASString( value["name"] )
+                    result+=  '" (Alive/' if (value["isAliveFlag"]   != 0) else '" (Not alive/'
+                    result+=  "User)"    if (value["id"]             >  0) else "System)"
 
 
             ################################## ALox ##################################
-            elif type.startswith( 'lox::' ):
-                type= type[5:]
+            elif typeName.startswith( 'lox::' ):
+                typeName= typeName[5:]
 
 
                 #---------------------------- Verbosity ------------------------------
-                if type == "Verbosity":
+                if typeName == "Verbosity":
                     result= getVerbosityString( value )
 
                 #---------------------------- Loggers ------------------------------
-                elif type == "core::Logger"                 or \
-                     type == "core::textlogger::TextLogger" or \
-                     type == "loggers::ConsoleLogger"       or \
-                     type == "loggers::MemoryLogger"        or \
-                     type == "loggers::AnsiLogger"          or \
-                     type == "loggers::AnsiConsoleLogger":
+                elif typeName == "core::Logger"                 or \
+                     typeName == "core::textlogger::TextLogger" or \
+                     typeName == "loggers::ConsoleLogger"       or \
+                     typeName == "loggers::MemoryLogger"        or \
+                     typeName == "loggers::AnsiLogger"          or \
+                     typeName == "loggers::AnsiConsoleLogger":
 
                     result= getLoggerDescription( value )
 
                 #---------------------------- Domain ------------------------------
-                elif type == "core::Domain":
+                elif typeName == "core::Domain":
 
                     # get absolute domain path
                     result= ""
@@ -753,7 +730,7 @@ def lookup_pp_alib_and_alox( value  ):
 
 
                 #---------------------------- Domain::LoggerData ------------------------------
-                elif type == "core::Domain::LoggerData":
+                elif typeName == "core::Domain::LoggerData":
                     result = "<"            + getVerbosityString(   value["LoggerVerbosity"]   )
                     result+= ", "           + getLoggerDescription( value["Logger"]            )
                     result+= ", priority="  + str(                  value["Priority"]          )
@@ -771,9 +748,9 @@ def lookup_pp_alib_and_alox( value  ):
     except Exception as e:
         print ("\nALib PrettyPrinters: Exception occurred: %s" % str(e))
         if result != None and len(result) > 0:
-            result= "<Pretty Printer Error. Unfinished result='%s'>" % result
+            result= "<Pretty Printer Exception. Unfinished result='%s'>" % result
         else:
-            result= "<Pretty Printer Error>"
+            result= "<Pretty Printer Exception>"
         #pass
 
 
@@ -785,7 +762,7 @@ def lookup_pp_alib_and_alox( value  ):
         return ALibPrinterWithOutChildren( result, children )
 
     global cfg_suppress_children
-    if cfg_suppress_children is -1:
+    if cfg_suppress_children == -1:
         print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN"...')
         if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN" ) is None:
             print ( 'ALib: ... not found')
@@ -794,11 +771,10 @@ def lookup_pp_alib_and_alox( value  ):
             print ( 'ALib: ... found')
             cfg_suppress_children=  1
 
-    if cfg_suppress_children is 0:
+    if cfg_suppress_children == 0:
         return ALibPrinter( result, children )
     else:
         return ALibPrinterWithOutChildren( result, children )
-
 
 
     return None

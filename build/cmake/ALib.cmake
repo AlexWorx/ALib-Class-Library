@@ -1,15 +1,17 @@
 # #################################################################################################
 #  ALib.cmake - CMake file for projects using ALib
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+#
+# \file
+# CMake file for projects using ALib
 # #################################################################################################
-
 
 # --------------------------------------------------------------------------------------------------
 # checks
 # --------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.18.0 )
 
     # check
     if (tmp_alib_included_marker)
@@ -57,10 +59,10 @@
 # The variables are only set, if not already predefined prior to invoking this script.
 # --------------------------------------------------------------------------------------------------
 
-set( ALIB_VERSION                   "1912R0"                                            CACHE STRING
+set( ALIB_VERSION                   "2312R0"                                            CACHE STRING
      "The ALib version. Not modifiable (will be overwritten on generation!)"        FORCE )
 
-set( ALIB_VERSION_NO                "1912" )
+set( ALIB_VERSION_NO                "2312" )
 set( ALIB_VERSION_REV               "0" )
 
 if( NOT DEFINED  ALIB_DEBUG )
@@ -92,7 +94,7 @@ if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 
     if( NOT DEFINED  ALIB_COVERAGE_COMPILE )
         set( ALIB_COVERAGE_COMPILE              "Off"                                   CACHE   BOOL
-             "Defaults to false. If true, option --coverag is added to GNU compiler command line.")
+             "Defaults to false. If true, option --coverage is added to GNU compiler command line.")
     endif()
 
     if ( $ENV{CLION_IDE} )
@@ -148,7 +150,16 @@ if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
         if( NOT DEFINED  ALIB_DEBUG_MONOMEM )
             set( ALIB_DEBUG_MONOMEM             "Off"                                   CACHE   BOOL
-                 "Adds consistency checks and collection of statistics with module ALib Monomem. Defaults to false." )
+                 "Adds consistency checks and collection of statistics with module ALib Memory. Defaults to false." )
+        endif()
+    endif()
+endif()
+
+if( "BITBUFFER" IN_LIST ALIB_DISTRIBUTION )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if( NOT DEFINED  ALIB_DEBUG_ARRAY_COMPRESSION )
+            set( ALIB_DEBUG_ARRAY_COMPRESSION   "On"                                    CACHE   BOOL
+                 "If true, in debug compilations, compressed arrays are read back to check if result is same. Defaults to true." )
         endif()
     endif()
 endif()
@@ -216,7 +227,7 @@ endif()
 if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
     if( NOT DEFINED  ALIB_RESOURCES_OMIT_DEFAULTS )
         set( ALIB_RESOURCES_OMIT_DEFAULTS       "Off"                                   CACHE   BOOL
-             "If true, ALib modules do not add default versions of resource strings. See section 'Bootstrapping' of ALib Programer's Manual for more information. Defaults to false.")
+             "If true, ALib modules do not add default versions of resource strings. See section 'Bootstrapping' of ALib Programmer's Manual for more information. Defaults to false.")
     endif()
 
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
@@ -265,10 +276,10 @@ if( NOT allModules )
     SET( moduleList "" )
     LIST( APPEND moduleList    "EXPRESSIONS;CLI;ALOX" )
     LIST( APPEND moduleList    "CONFIGURATION;SYSTEM" )
-    LIST( APPEND moduleList    "RESULTS;TEXT" )
-    LIST( APPEND moduleList    "RESOURCES;THREADS"                    )
-    LIST( APPEND moduleList    "ENUMS;BOXING;STRINGS"                 )
-    LIST( APPEND moduleList    "SINGLETONS;MONOMEM;CHARACTERS;TIME"   )
+    LIST( APPEND moduleList    "RESULTS;TEXT"         )
+    LIST( APPEND moduleList    "RESOURCES;THREADS"    )
+    LIST( APPEND moduleList    "ENUMS;BOXING;STRINGS" )
+    LIST( APPEND moduleList    "SINGLETONS;MONOMEM;BITBUFFER;CHARACTERS;TIME"   )
     FOREACH( module IN LISTS moduleList )
         IF( module IN_LIST  ALIB_DISTRIBUTION )
             list( APPEND  ALIB_SYMBOLS    "ALIB_${module}"  )
@@ -337,6 +348,16 @@ if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
             list( APPEND ALIB_SYMBOLS           "ALIB_DEBUG_MONOMEM"  )
         else()
             list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_DEBUG_MONOMEM"  )
+        endif()
+    endif()
+endif()
+
+if( "BITBUFFER" IN_LIST ALIB_DISTRIBUTION )
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        if ( ALIB_DEBUG_ARRAY_COMPRESSION )
+            list( APPEND ALIB_SYMBOLS           "ALIB_DEBUG_ARRAY_COMPRESSION"  )
+        else()
+            list( APPEND ALIB_SYMBOLS_UNUSED    "ALIB_DEBUG_ARRAY_COMPRESSION"  )
         endif()
     endif()
 endif()
@@ -470,7 +491,7 @@ if ( NOT ${ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH} )
     if(CMAKE_THREAD_LIBS_INIT)
         list(     APPEND  ALIB_SYMBOLS  "ALIB_EXT_LIB_THREADS_AVAILABLE" )
         if(CMAKE_USE_PTHREADS_INIT)
-            list( APPEND  ALIB_COMPILE_FLAGS        "-pthread"             )
+            list( APPEND  ALIB_COMPILER_OPTIONS  "-pthread"       )
         endif()
     endif()
 
@@ -478,20 +499,37 @@ if ( NOT ${ALIB_CMAKE_SKIP_THREAD_LIB_SEARCH} )
 endif()
 
 if ( ${ALIB_FEAT_BOOST_REGEX} )
+    set(Boost_USE_STATIC_LIBS     "On"  CACHE  BOOL  "Link boost statically" )
+    if( "THREADS" IN_LIST ALIB_DISTRIBUTION )
+        set(Boost_USE_MULTITHREADED      "On"  CACHE   BOOL "Use multi-threaded version of boost")
+    else()
+        set(Boost_USE_MULTITHREADED      "Off" CACHE   BOOL "Use single-threaded version of boost")
+    endif()
+
     find_package( Boost REQUIRED COMPONENTS regex )
 
     if(Boost_FOUND)
-        list( APPEND  ALIB_EXTERNAL_LIBS  boost_regex ) #recommended but does not work currently: "Boost::regex"
+        list( APPEND  ALIB_EXTERNAL_LIBS Boost::regex )
+        if(${Boost_USE_STATIC_LIBS})
+           message(STATUS "Found Boost version ${Boost_LIB_VERSION}, linking against boost static libraries")
+        else()
+           message(STATUS "Found Boost version ${Boost_LIB_VERSION}, linking against boost shared libraries")
+        endif()
     else()
         MESSAGE("Attention: Boost::regex requested, but library not found!")
     endif()
-
 endif()
 
 if(APPLE)
     list( APPEND ALIB_EXTERNAL_LIBS  "-framework Foundation")
 endif()
 
+# lib math, needed with GCC (suddenly, we don't really know why, added 221205)
+if(NOT MSVC)
+    if(NOT APPLE)
+        list( APPEND ALIB_EXTERNAL_LIBS  "m")
+    endif(NOT APPLE)
+endif(NOT MSVC)
 
 # --------------------------------------------------------------------------------------------------
 # A-Worx compiler features and flags
@@ -499,6 +537,7 @@ endif()
 
 # Set minimum required standard C++ 11
 list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11"    )
+
 
 # if "ALIB_SUPPRESS_COMPILER_WARNINGS" is set prior to invoking this script, this entry is removed
 # and nothing is added.
@@ -511,17 +550,27 @@ else()
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wextra"        )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Werror"        )
         #list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"       )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-psabi"     )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"  )
 
         # add coverage flags to GCC
         if( ${ALIB_COVERAGE_COMPILE} )
-            list( APPEND  ALIB_COMPILE_FLAGS   "--coverage"     )
-            list( APPEND  ALIB_LINKER_FLAGS    "--coverage"     )
+            list( APPEND  ALIB_COMPILER_OPTIONS  "--coverage"  )
+            list( APPEND  ALIB_LINKER_OPTIONS    "--coverage"  )
         endif()
 
+        # force unicode (needed for mingw)
+        if(MINGW)
+            list( APPEND  ALIB_COMPILER_OPTIONS   "-municode"  )
+            list( APPEND  ALIB_COMPILER_OPTIONS   "-DUNICODE"  )
+            list( APPEND  ALIB_COMPILER_OPTIONS   "-D_UNICODE" )
+        endif()
+
+
     # Clang: We are using -Weverything, although this is not recommended. We think it should be
-    #        recommmended. ALib for example does not use old-style casts and explicitly cast each
+    #        recommended. ALib for example does not use old-style casts and explicitly cast each
     #        and every type change! The benefit for ALib users is that ALib code can be used in very
-    #        strict build environmnets without using special warning flags.
+    #        strict build environments without using special warning flags.
     #        Of-course, some very obvious things like C++98 compatibility warnings have to be
     #        removed explicitly:
     elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"     )
@@ -535,6 +584,7 @@ else()
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-padded"                        )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-weak-vtables"                  )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-documentation-unknown-command" )
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"        )
 
         if ( ${ALIB_CMAKE_COTIRE} )
             # needs to be off of due to "unity builds" of cotire
@@ -542,20 +592,19 @@ else()
         endif()
 
         if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-            list( APPEND ALIB_COMPILE_FLAGS   "-fno-limit-debug-info"      )
+            list( APPEND ALIB_COMPILER_OPTIONS   "-fno-limit-debug-info"   )
         endif()
 
-
+    # MSVC
+    elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC"   )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/W4"    )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/WX"    )
+        list( APPEND ALIB_COMPILER_WARNINGS    "/EHsc"  )
 
     #! NEVER TESTED YET !
     elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel"  )
         list( APPEND ALIB_COMPILER_WARNINGS "" )
 
-    #! NEVER TESTED YET !
-    elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC"   )
-        list( APPEND ALIB_COMPILER_WARNINGS    "/W4"    )
-        list( APPEND ALIB_COMPILER_WARNINGS    "/WX"    )
-        list( APPEND ALIB_COMPILER_WARNINGS    "/EHsc"  )
     endif()
 endif()
 
@@ -563,9 +612,9 @@ endif()
 # A-Worx linker features and flags
 # --------------------------------------------------------------------------------------------------
 if(APPLE)
-    list( APPEND ALIB_LINKER_FLAGS        "-lObjc"     )
+    list( APPEND ALIB_LINKER_OPTIONS        "-lObjc"    )
 else()
-    list( APPEND ALIB_LINKER_FLAGS        ""           )
+    list( APPEND ALIB_LINKER_OPTIONS        ""          )
 endif()
 
 
@@ -595,20 +644,25 @@ if ( NOT ALIB_LIBRARY_FILENAME )
             LIST( REMOVE_ITEM  modules  "CHARACTERS"  )
         endif()
 
+        list( FIND   modules  "BITBUFFER"         idx )
+        if( NOT idx LESS 0 )
+            LIST( REMOVE_ITEM  modules  "MONOMEM"      )
+        endif()
+
         list( FIND   modules  "THREADS"           idx )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "STRINGS"     )
-            LIST( REMOVE_ITEM  modules  "TIME"     )
+            LIST( REMOVE_ITEM  modules  "TIME"        )
         endif()
 
         list( FIND   modules  "RESOURCES"         idx )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "STRINGS"     )
             LIST( REMOVE_ITEM  modules  "SINGLETONS"  )
-            LIST( REMOVE_ITEM  modules  "MONOMEM"  )
+            LIST( REMOVE_ITEM  modules  "MONOMEM"      )
         endif()
 
-        list( FIND   modules  "TEXT"      idx )
+        list( FIND   modules  "TEXT"      idx         )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "RESOURCES"   )
             LIST( REMOVE_ITEM  modules  "BOXING"      )
@@ -681,6 +735,7 @@ endif()
 # Create doxygen.ini file from .cmake.ini file
 # -------------------------------------------------------------------------------------------------
 if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    message( "Copying doxygen template (${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini)")
     configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini" "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.ini" @ONLY)
 endif()
 
@@ -742,7 +797,7 @@ ELSE()
     ENDFOREACH()
     SET( result  "" )
 
-    LIST( APPEND result ${ALIB_COMPILE_FLAGS} )
+    LIST( APPEND result ${ALIB_COMPILER_OPTIONS} )
     LIST( SORT   result  )
     LIST( LENGTH result  length)
     message( "\n  Compiler flags (${length} items):"  )
@@ -769,7 +824,7 @@ ELSE()
     ENDFOREACH()
     SET( result  "" )
 
-    LIST( APPEND result ${ALIB_LINKER_FLAGS} )
+    LIST( APPEND result ${ALIB_LINKER_OPTIONS} )
     LIST( SORT   result  )
     LIST( LENGTH result  length)
     message( "\n  Linker flags (${length} items):"  )
@@ -787,9 +842,9 @@ ENDIF()
 # Simple CMake function that sets
 # - ALIB_SYMBOLS
 # - ALIB_COMPILER_FEATURES
-# - ALIB_COMPILE_FLAGS
+# - ALIB_COMPILER_OPTIONS
 # - ALIB_COMPILER_WARNINGS
-# - ALIB_LINKER_FLAGS
+# - ALIB_LINKER_OPTIONS
 #
 # In addition, postion independent compile (-fPic) is enabled (for static libraries its default
 # is off with CMake).
@@ -798,22 +853,20 @@ function( ALibSetCompilerAndLinker  target )
 
     # compiler flags
     target_compile_features   ( ${target}    PRIVATE         ${ALIB_COMPILER_FEATURES}       )
-    target_compile_options    ( ${target}    PRIVATE         ${ALIB_COMPILE_FLAGS}           )
+    target_compile_options    ( ${target}    PRIVATE         ${ALIB_COMPILER_OPTIONS}        )
     target_compile_options    ( ${target}    PRIVATE         ${ALIB_COMPILER_WARNINGS}       )
     set_property              ( TARGET ${target}   PROPERTY POSITION_INDEPENDENT_CODE ON     )
-
     target_include_directories( ${target}    PUBLIC          ${ALIB_SOURCE_DIR}              )
 
     #definitions
     target_compile_definitions( ${target}    PUBLIC          ${ALIB_SYMBOLS}     )
 
     # linker flags
-
-    IF( NOT "${ALIB_LINKER_FLAGS}"  STREQUAL "" )
-        set_target_properties     ( ${target}    PROPERTIES  LINK_FLAGS     ${ALIB_LINKER_FLAGS} )
+    IF( NOT "${ALIB_LINKER_OPTIONS}"  STREQUAL "" )
+        set_target_properties ( ${target}    PROPERTIES  LINK_FLAGS     ${ALIB_LINKER_OPTIONS} )
     ENDIF()
     IF( NOT "${ALIB_EXTERNAL_LIBS}"  STREQUAL "" )
-        target_link_libraries     ( ${target}    ${ALIB_EXTERNAL_LIBS}                           )
+        target_link_libraries ( ${target}   PRIVATE ${ALIB_EXTERNAL_LIBS}                      )
     ENDIF()
 
 endfunction()
@@ -821,7 +874,7 @@ endfunction()
 # -------------------------------------------------------------------------------------------------
 # ALibSetCotire(target)
 #
-# If global variable \b ALIB_CMAKE_COTIRE is set and \ctrue, then the given project is setup to use
+# If global variable \b ALIB_CMAKE_COTIRE is set and \c true, then the given project is setup to use
 # cotire.
 # -------------------------------------------------------------------------------------------------
 function( ALibSetCotire  target )
@@ -847,7 +900,7 @@ endfunction()
 
 function( ALibAddStaticLibrary )
     # sources
-    add_library                ( ALib_StaticLib                    ${ALIB_INCLUDE_FILES}  ${ALIB_SOURCE_FILES} )
+    add_library                ( ALib_StaticLib    STATIC   ${ALIB_INCLUDE_FILES}  ${ALIB_SOURCE_FILES} )
     ALibSetCompilerAndLinker   ( ALib_StaticLib )
     set_target_properties      ( ALib_StaticLib    PROPERTIES  ARCHIVE_OUTPUT_NAME  ${ALIB_LIBRARY_FILENAME}  )
     ALibSetCotire              ( ALib_StaticLib )
@@ -860,7 +913,6 @@ function( ALibAddSharedLibrary )
 
     if(WIN32)
         target_compile_definitions ( ALib_SharedLib     PRIVATE         "ALIB_API_IS_DLL"          )
-        target_compile_definitions ( ALib_SharedLib     PRIVATE         "UNICODE"          )
     endif()
 
     ALibSetCotire              ( ALib_SharedLib )

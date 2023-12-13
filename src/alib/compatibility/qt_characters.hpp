@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * <b>Legal Notice:</b>
@@ -33,6 +33,7 @@ ALIB_ASSERT_MODULE(CHARACTERS)
     #pragma clang diagnostic ignored "-Wdeprecated"
     #pragma clang diagnostic ignored "-Wunused-variable"
     #pragma clang diagnostic ignored "-Wcomma"
+    #pragma clang diagnostic ignored "-Wduplicate-enum"
 #endif
 #include <QtCore/QString>
 #include <QtCore/QVector>
@@ -67,6 +68,7 @@ namespace qt {} }
 #define ALIB_QTCHAR   typename aworx::lib::characters::TT_CharOfSize<2>::type
 #define ALIB_QTCHAR_4 typename aworx::lib::characters::TT_CharOfSize<4>::type
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 // QStringView
 template<> struct  T_CharArray<QStringView, ALIB_QTCHAR>
 {
@@ -177,6 +179,8 @@ template<> struct  T_ZTCharArray<QVector<uint>, ALIB_QTCHAR_4>
         return  result;
     }
 };
+
+ALIB_WARNINGS_RESTORE
 
 #endif  //ALIB_DOX
 

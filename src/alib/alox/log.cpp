@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -57,14 +57,14 @@ using namespace detail;
         // block recursion caused by log operations in this code
         if ( DebugLogger != nullptr )
         {
-            ALIB_WARNING(  "Log::AddDebugLogger(): called twice." )
+            ALIB_WARNING( "ALOX", "Log::AddDebugLogger(): called twice." )
             recursion= false;
             return;
         }
         DebugLogger= reinterpret_cast<decltype(DebugLogger)>(-1);
 
         // add a VStudio logger if this a VStudio debug session
-        #if defined(_WIN32) && ALIB_DEBUG
+        #if defined(_MSC_VER) && ALIB_DEBUG
             if( ALIB.IsDebuggerPresent() )
             {
                 Variable variable( Variables::NO_IDE_LOGGER );

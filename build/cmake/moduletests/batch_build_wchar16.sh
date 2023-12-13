@@ -29,6 +29,11 @@ rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER    ############################"
+rm -r -f *
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  SINGLETONS    ############################"
 rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SINGLETONS"  ../../cmake/moduletests
@@ -179,6 +184,11 @@ rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;BOXING    ############################"
+rm -r -f *
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER;BOXING"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=THREADS;STRINGS"  ../../cmake/moduletests
@@ -191,14 +201,18 @@ make -j
 
 echo "\n\n############################  MONOMEM;STRINGS    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;STRINGS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  MONOMEM;BOXING    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
+rm -r -f *
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
+make -j
 
 echo "\n\n############################  BOXING;STRINGS    ############################"
 rm -r -f *

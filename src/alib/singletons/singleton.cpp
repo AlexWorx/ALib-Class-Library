@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,8 +11,8 @@
 #      include "alib/singletons/singleton.hpp"
 #   endif
 
-#   if !defined(HPP_ALIB_FS_DEBUG_ASSERT)
-#      include "alib/lib/fs_debug/assert.hpp"
+#   if !defined (HPP_ALIB_TOOLS)
+#      include "alib/lib/tools.hpp"
 #   endif
 
 #   if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
@@ -31,9 +31,6 @@
 #   if ALIB_STRINGS
 #      if  !defined (HPP_ALIB_STRINGS_ASTRING)
 #         include "alib/strings/astring.hpp"
-#      endif
-#      if  ALIB_DEBUG && !defined (HPP_ALIB_FS_DEBUG_TYPEDEMANGLER)
-#         include "alib/lib/fs_debug/typedemangler.hpp"
 #      endif
 #   endif
 
@@ -99,7 +96,7 @@ void  storeSingleton( const std::type_info& type, void* theSingleton )
         if( singletonMap.Size() == 0)
         {
             singletonMap.MaxLoadFactor( 10 );
-            singletonMap.Reserve( 23 );
+            singletonMap.Reserve( 23, lib::ValueReference::Absolute );
         }
 
         singletonMap.EmplaceUnique( &type, theSingleton );

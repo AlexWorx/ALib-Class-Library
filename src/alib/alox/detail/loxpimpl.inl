@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_LOXPIMPL
@@ -287,7 +287,7 @@ struct LI
                                   Ticks           startTime,
                                   const NString&  loggerName  );
 
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
+    #if defined (__GLIBCXX__) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         /** ****************************************************************************************
          * Implementation of method \alib{lox,Lox::SetStartTime}.
          * @param impl       The implementation struct of the \b Lox.
@@ -364,12 +364,23 @@ struct LI
     /** ********************************************************************************************
      * Implementation of method \alib{lox,Lox::Entry}.
      * @param impl        The implementation struct of the \b Lox.
-     * @param domain        The domain.
-     * @param verbosity     The verbosity.
+     * @param domain      The domain.
+     * @param verbosity   The verbosity.
      **********************************************************************************************/
     ALIB_API static
     void            Entry( LoxImpl* impl, const NString&  domain, Verbosity verbosity );
 
+    /** ****************************************************************************************
+     * Implementation of method \alib{lox,Lox::IsActive}.
+     *
+     * @param impl        The implementation struct of the \b Lox.
+     * @param verbosity   The verbosity to query for activity.
+     * @param domain      The log domain. All rules for resolving the effective log domain
+     *                    apply as with normal log statements.
+     * @return The number of active loggers.
+     ******************************************************************************************/
+    ALIB_API static
+    int IsActive( LoxImpl* impl, Verbosity verbosity, const NString&  domain );
 
 // #################################################################################################
 // Debug methods

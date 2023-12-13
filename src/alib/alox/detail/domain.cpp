@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -49,10 +49,12 @@ Domain::Domain( MonoAllocator* allocator, const NString& name )
     Data      .reserve( static_cast<size_t>( 2 ) );
 
     // The full of the root domain equals the name
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     nchar* fullPath= allocator->AllocArray<nchar>( name.Length() + 1 );
     name.CopyTo( fullPath );
     fullPath[name.Length()]= '/';
     FullPath= NString( fullPath, name.Length() + 1 );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 }
 
 
@@ -128,7 +130,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     domainPath.ConsumeChar( Domain::Separator() );
     integer endSubName= domainPath.IndexOf( Domain::Separator() );
 
-    ALIB_ASSERT_ERROR( endSubName != 0, "Internal Error" )
+    ALIB_ASSERT_ERROR( endSubName != 0, "ALOX","Internal Error" )
 
     // find end of actual domain name and save rest
     NSubstring restOfDomainPath= nullptr;

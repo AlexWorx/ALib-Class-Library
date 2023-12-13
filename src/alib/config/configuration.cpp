@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -59,7 +59,7 @@ Configuration::Configuration( CreateDefaults addPlugins )
 int Configuration::FetchFromDefault( ConfigurationPlugin& dest, const String& sectionName  )
 {
     InMemoryPlugin* defaultPlugin= GetPluginTypeSafe<InMemoryPlugin>( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin,
+    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
                        "Utility method FetchFromDefault used without default plugin in place." )
 
     int cntCopied= 0;
@@ -104,8 +104,15 @@ Priorities Configuration::Load( Variable& variable )
 
     if (    variable.Priority()    == Priorities::NONE
          && variable.DefaultValue().IsNotNull()         )
+    {
         Store( variable, variable.DefaultValue() );
 
+        // if this now did not set the values although we have a default value, then
+        // no plug-in seemed to be able to store the variable. Nevertheless, we need to
+        // set the default value, as loading failed.
+        if( variable.Size() == 0 && variable.DefaultValue() != NullString() )
+            XTernalizer().LoadFromString( variable, variable.DefaultValue() );
+    }
     return variable.Priority();
 }
 
@@ -116,14 +123,14 @@ Priorities Configuration::Store( Variable& variable, const String& externalizedV
     {
         if ( variable.Name().IsEmpty())
         {
-            ALIB_ERROR( "Trying to store an undefined variable."  )
+            ALIB_ERROR( "CONFIG", "Trying to store an undefined variable."  )
             return Priorities::NONE;
         }
 
         if ( variable.Size() > 1 && variable.Delim() == '\0' )
         {
-            ALIB_ERROR( "Trying to store variable {!Q} which has multiple values set but no delimiter defined.",
-                        variable.Fullname() )
+            ALIB_ERROR( "CONFIG", "Trying to store variable {!Q} which has multiple values "
+                                  "set but no delimiter defined.", variable.Fullname() )
             return Priorities::NONE;
         }
     }
@@ -173,7 +180,7 @@ Priorities Configuration::Store( Variable& variable, const String& externalizedV
 Priorities  Configuration::StoreDefault( Variable& variable, const String& externalizedValue )
 {
     ConfigurationPlugin* defaultPlugin= GetPlugin( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin,
+    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
                        "Utility method StoreDefault used without default plugin in place." )
 
     if ( externalizedValue.IsNotNull() )
@@ -196,7 +203,7 @@ Priorities  Configuration::Protect( Variable& variable, const String& externaliz
     if ( variable.Size() == 0 && variable.DefaultValue().IsNotNull() )
         protectedPlugin->StringConverter->LoadFromString( variable, variable.DefaultValue() );
 
-    ALIB_ASSERT_ERROR( protectedPlugin,
+    ALIB_ASSERT_ERROR( protectedPlugin, "CONFIG",
                        "Utility method Protect used without default plugin in place." )
 
     variable.SetPriority( Priorities::ProtectedValues );
@@ -206,7 +213,7 @@ Priorities  Configuration::Protect( Variable& variable, const String& externaliz
 integer  Configuration::LoadFromString( Variable& variable, const String& externalizedValue )
 {
     ConfigurationPlugin* defaultPlugin= GetPlugin( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin,
+    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
                        "Utility method LoadFromString used without default plugin in place." )
     defaultPlugin->StringConverter->LoadFromString( variable, externalizedValue );
     return  variable.Size();
@@ -221,7 +228,7 @@ Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
     variable.ClearValues();
     if ( variable.Name().IsEmpty() )
     {
-        ALIB_WARNING( "Empty variable name given" )
+        ALIB_WARNING( "CONFIG", "Empty variable name given" )
         return Priorities::NONE;
     }
 
@@ -234,9 +241,9 @@ Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
             break;
         }
 
-    // not found?
+    // no substitution or not found?
     if ( !substitute || priority == Priorities::NONE )
-        return Priorities::NONE;
+        return priority;
 
     // substitution in all values of variable
     String512 valBuffer; valBuffer.DbgDisableBufferReplacementWarning();
@@ -273,7 +280,7 @@ Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
                 integer idx=   value.IndexOf   ( SubstitutionVariableEnd, varStart );
                 if (idx < 0 )
                 {
-                    ALIB_WARNING( "End of substitution variable not found (while start was found). "
+                    ALIB_WARNING( "CONFIG", "End of substitution variable not found (while start was found). "
                                   "Variable name: {} Value: {!Q}.",
                                   variable.Fullname(), variable.GetString()  )
                     break;
@@ -335,7 +342,7 @@ Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
         // warn if max replacements
         if( maxReplacements <= 0 )
         {
-            ALIB_WARNING( "Too many substitutions in variable {!Q}. "
+            ALIB_WARNING( "CONFIG", "Too many substitutions in variable {!Q}. "
                           "Probably a recursive variable definition?", variable.Fullname() )
         }
     }
@@ -404,7 +411,7 @@ class IteratorImpl : public Configuration::Iterator
                 if( nextPlugin >= config.CountPlugins() )
                     return false;
 
-                // It might be that a plug-in is not iteratable and returns nullptr.
+                // It might be that a plug-in is not iterable and returns nullptr.
                 // Therefore the while loop
                 pluginIt= config.GetPlugin( nextPlugin++ )->GetIterator( sectionName );
             }

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,8 +20,10 @@ ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
 namespace aworx { namespace lib { namespace expressions {  namespace plugins {
 
+#if ALIB_CPPVER < 17
 constexpr Calculus::CTInvokable Calculus::CTI;
 constexpr Calculus::CTInvokable Calculus::ETI;
+#endif
 
 
 // #################################################################################################
@@ -43,8 +45,8 @@ void Calculus::AddOperator     ( const String&      op,
                     OperatorKey { op, lhsType.TypeID(), rhsType.TypeID() },
                     std::make_tuple( callback, resultType, cti  ALIB_DBG(, dbgCallbackName) ) );
 
-        ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
-                           "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\\n"
+        ALIB_ASSERT_ERROR( result.second == true, "EXPR", // assert this was an insert!
+                           "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\n"
                            "                                           and {!Q<>} (aka {}).",
                            op, Cmplr.TypeName( lhsType ), lhsType.TypeID(),
                                Cmplr.TypeName( rhsType ), rhsType.TypeID()  )
@@ -55,9 +57,10 @@ void Calculus::AddOperator     ( const String&      op,
     #endif
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
 {
-    Operators.Reserve( Operators.Size() + static_cast<integer>(length) );
+    Operators.Reserve( integer(length), ValueReference::Relative );
     ALIB_DBG( auto actBucketCount= Operators.BucketCount(); )
 
     #define OP         std::get<0>( *(table + i) )
@@ -76,8 +79,8 @@ void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
                         std::make_tuple( CBFUNC, RESULTTYPE, CTINVOKE
                                            ALIB_DBG(, std::get<4>( *(table + i) ))   ) );
 
-            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
-                       "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\\n"
+            ALIB_ASSERT_ERROR( result.second == true, "EXPR",// assert this was an insert!
+                       "Binary operator {!Q'} already defined for types {!Q<>} (aka {})\n"
                        "                                           and {!Q<>} (aka {}).",
                            OP, Cmplr.TypeName(std::get<1>( *(table+i))), LHS_TYPE,
                                Cmplr.TypeName(std::get<2>( *(table+i))), RHS_TYPE      )
@@ -87,10 +90,9 @@ void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
                         std::make_tuple( CBFUNC, RESULTTYPE, CTINVOKE
                                            ALIB_DBG(, std::get<4>( *(table + i) ))   ) );
         #endif
-
     }
 
-    ALIB_ASSERT_ERROR( actBucketCount == Operators.BucketCount(),
+    ALIB_ASSERT_ERROR( actBucketCount == Operators.BucketCount(), "EXPR",
                        "This is rather an internal error of HashTable: The number of buckets "
                        "of hash map 'Operators' increased, although it was reserved above." )
 
@@ -101,6 +103,7 @@ void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
     #undef RESULTTYPE
     #undef CTINVOKE
 }
+ALIB_WARNINGS_RESTORE
 
 void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const String& op )
 {
@@ -109,8 +112,8 @@ void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const 
         OperatorAliases.EmplaceIfNotExistent( OperatorKey { alias, lhs.TypeID(), rhs.TypeID() },
                                               op );
 
-        ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
-                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\\n"
+        ALIB_ASSERT_ERROR( result.second == true, "EXPR",// assert this was an insert!
+                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\n"
                                                                             "and {!Q<>} (aka {}).",
                            alias, Cmplr.TypeName( lhs ), lhs.TypeID(),
                                   Cmplr.TypeName( rhs ), rhs.TypeID()                              )
@@ -120,9 +123,10 @@ void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const 
     #endif
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length )
 {
-    OperatorAliases.Reserve( OperatorAliases.Size() + static_cast<integer>( length ) );
+    OperatorAliases.Reserve( integer(length), ValueReference::Relative );
 
     #define ALIAS      std::get<0>( *(table + i) )
     #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
@@ -135,8 +139,8 @@ void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length
             auto result=
             OperatorAliases.EmplaceIfNotExistent( OperatorKey { ALIAS, LHS_TYPE, RHS_TYPE },  OP );
 
-            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
-                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\\n"
+            ALIB_ASSERT_ERROR( result.second == true, "EXPR",// assert this was an insert!
+                           "Binary operator alias {!Q'} already defined for types {!Q<>} (aka {})\n"
                                                                             "and {!Q<>} (aka {}).",
                            ALIAS,   Cmplr.TypeName( std::get<1>( *(table + i) ) ), LHS_TYPE,
                                     Cmplr.TypeName( std::get<2>( *(table + i) ) ), RHS_TYPE       )
@@ -151,6 +155,7 @@ void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length
     #undef RHS_TYPE
     #undef OP
 }
+ALIB_WARNINGS_RESTORE
 
 // #################################################################################################
 // Unary operators
@@ -184,9 +189,9 @@ bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
                                                           ciUnaryOp.ArgsBegin,
                                                           ciUnaryOp.ArgsEnd           );
 ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
-        ALIB_ASSERT_ERROR(ciUnaryOp.TypeOrValue.IsSameType(std::get<1>(op)),
-                          "Type mismatch in definition of unary operator {!Q} ({}) in plugin {!Q}.\\n"
-                          "                    Type specified: {!Q<>} (aka {})\\n"
+        ALIB_ASSERT_ERROR(ciUnaryOp.TypeOrValue.IsSameType(std::get<1>(op)), "EXPR",
+                          "Type mismatch in definition of unary operator {!Q} ({}) in plugin {!Q}.\n"
+                          "                    Type specified: {!Q<>} (aka {})\n"
                           "         Type returned by callback: {!Q<>} (aka {})",
                           ciUnaryOp.Operator, ciUnaryOp.DbgCallbackName, CompilerPlugin::Name,
                           CompilerPlugin::Cmplr.TypeName(std::get<1>(op)),
@@ -205,11 +210,10 @@ ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
 // #################################################################################################
 // Binary operators
 // #################################################################################################
-
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length )
 {
-    BinaryOperatorOptimizations.Reserve(   BinaryOperatorOptimizations.Size()
-                                         + static_cast<integer>(length) );
+    BinaryOperatorOptimizations.Reserve(  integer(length), ValueReference::Relative );
 
     #define OP         std::get<0>( *(table + i) )
     #define SIDE       std::get<1>( *(table + i) )
@@ -225,7 +229,7 @@ void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table,
             auto result=
                 BinaryOperatorOptimizations.EmplaceIfNotExistent( BinOpOptKey { OP, SIDE, CONSTVAL, OTHERTYPE },  RESULT );
 
-            ALIB_ASSERT_ERROR( result.second == true, // assert this was an insert!
+            ALIB_ASSERT_ERROR( result.second == true, "EXPR", // assert this was an insert!
                "Optimization already defined for operator {!Q} with {!Lower}-hand "
                "constant value {!Q} of type {!Q<>} (aka {}) and with "
                "{!L}-hand type {!Q<>} (aka {}).",
@@ -242,6 +246,7 @@ void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table,
     #undef CONSTVAL
     #undef RESULT
 }
+ALIB_WARNINGS_RESTORE
 
 
 bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
@@ -289,9 +294,9 @@ bool Calculus::TryCompilation( CIBinaryOp& ciBinaryOp )
                                                ciBinaryOp.ArgsBegin,
                                                ciBinaryOp.ArgsEnd           );
 ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                                    )
-            ALIB_ASSERT_ERROR(ciBinaryOp.TypeOrValue.IsSameType(RESULTTYPE),
-                              "Type mismatch in definition of binary operator {!Q} ({}) of plugin {!Q}.\\n"
-                              "                    Type specified: {!Q<>} (aka {})\\n"
+            ALIB_ASSERT_ERROR(ciBinaryOp.TypeOrValue.IsSameType(RESULTTYPE), "EXPR",
+                              "Type mismatch in definition of binary operator {!Q} ({}) of plugin {!Q}.\n"
+                              "                    Type specified: {!Q<>} (aka {})\n"
                               "         Type returned by callback: {!Q<>} (aka {})",
                               ciBinaryOp.Operator, ciBinaryOp.DbgCallbackName, CompilerPlugin::Name,
                               CompilerPlugin::Cmplr.TypeName(RESULTTYPE            ),
@@ -385,6 +390,7 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
         if( entry.Descriptor.Match( name ) )
         {
             // collect information about given and requested parameters
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             size_t qtyGiven      =  ciFunction.QtyArgs();
             size_t qtyRequired   =  entry.SignatureLength;
             bool   isVariadic    =  false;
@@ -399,6 +405,7 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             bool    sharedAreSameType = true;
             for( size_t i= 0;  i != qtyShared ; ++i )
                 sharedAreSameType&=   ciFunction.Arg(i).IsSameType( *entry.Signature[i] );
+            ALIB_WARNINGS_RESTORE
 
             // check if given parameter don't match
             if(    !sharedAreSameType
@@ -448,9 +455,9 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
                 ciFunction.TypeOrValue      = entry.Callback( ciFunction.CompileTimeScope,
                                                               ciFunction.ArgsBegin,
                                                               ciFunction.ArgsEnd           );
-                ALIB_ASSERT_ERROR(ciFunction.TypeOrValue.IsSameType(*entry.ResultType),
-                                  "Type mismatch in definition of function {!Q} ({}) in plugin {!Q}.\\n"
-                                  "                    Type specified: {!Q<>} (aka {})\\n"
+                ALIB_ASSERT_ERROR(ciFunction.TypeOrValue.IsSameType(*entry.ResultType), "EXPR",
+                                  "Type mismatch in definition of function {!Q} ({}) in plugin {!Q}.\n"
+                                  "                    Type specified: {!Q<>} (aka {})\n"
                                   "         Type returned by callback: {!Q<>} (aka {})",
                                   entry.Descriptor, entry.DbgCallbackName, CompilerPlugin::Name,
                                   CompilerPlugin::Cmplr.TypeName(*entry.ResultType),

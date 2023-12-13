@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -61,13 +61,19 @@ lox::ALox ALOX;
 namespace lox {
 
 
+#if ALIB_CPPVER < 17
 constexpr const NString  Lox::InternalDomains;
+#endif
+
+#if ALIB_DEBUG && !defined(ALIB_DOX)
+    namespace { integer dbgCheckQtyConfigPlugins; }
+#endif
 
 
 ALox::ALox()
 : Module( ALIB_VERSION, ALIB_REVISION, "ALOX" )
 {
-    ALIB_ASSERT_ERROR( this == &ALOX,
+    ALIB_ASSERT_ERROR( this == &ALOX, "ALOX",
         "Instances of class Alox must not be created. Use singleton aworx::lib::ALOX" )
 }
 
@@ -129,7 +135,7 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
     // check
     if ( lox == nullptr )
     {
-        ALIB_ERROR( "Nullptr given" )
+        ALIB_ERROR( "ALOX", "Nullptr given" )
         return;
     }
 
@@ -142,7 +148,7 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
                 loxes.Erase( search );
                 return;
             }
-        ALIB_WARNING( "A lox named {!Q} could not be found for removal.",
+        ALIB_WARNING( "ALOX", "Given lox named {!Q} could not be found for removal.",
                       lox != nullptr ? lox->GetName() : "<null>"          )
     }
 
@@ -152,7 +158,7 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
         for( auto* it : loxes )
             if( it->GetName().Equals( lox->GetName() ) )
             {
-                ALIB_ERROR( "A lox named {!Q} was already registered. Registration ignored.",
+                ALIB_ERROR( "ALOX", "Given lox named {!Q} was already registered. Registration ignored.",
                             lox->GetName() )
                 return;
             }
@@ -180,98 +186,94 @@ void  ALox::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t**
 #if !ALIB_RESOURCES_OMIT_DEFAULTS
         resourcePool->BootstrapBulk( ResourceCategory,
 
-        "Var0" ,   A_CHAR( "1|ALOX|NO_IDE_LOGGER|"                           "VD01||||VC01" )  ,
-        "Var1" ,   A_CHAR( "2|ALOX|CONSOLE_TYPE|"                            "VD02||||VC02" )  ,
-        "Var2" ,   A_CHAR( "3|ALOX|%1_%2_VERBOSITY|"                      "VD03|;|=|1|VC03" )  ,
-        "Var3" ,   A_CHAR( "4|ALOX|GLOBAL_SOURCE_PATH_TRIM_RULES|"          "ES|;|=|1|VC04" )  ,
-        "Var4" ,   A_CHAR( "5|ALOX|%1_SOURCE_PATH_TRIM_RULES|"              "ES|;|=|1|VC05" )  ,
-        "Var5" ,   A_CHAR( "6|ALOX|%1_DOMAIN_SUBSTITUTION|"                   "|;|->|1|"    )  ,
-        "Var6" ,   A_CHAR( "7|ALOX|%1_PREFIXES|"                            "ES|;|=|1|VC07" )  ,
-        "Var7" ,   A_CHAR( "8|ALOX|%1_DUMP_STATE_ON_EXIT|"                  "VD08|,|||VC08" )  ,
-        "Var8" ,   A_CHAR("20|ALOX|%1_AUTO_SIZES|"                               "||||VC20" )  ,
-        "Var9" ,   A_CHAR("21|ALOX|%1_FORMAT|"                                 "|,||1|VC21" )  ,
-        "Var10",   A_CHAR("22|ALOX|%1_FORMAT_DATE_TIME|"                        "|,|||VC22" )  ,
-        "Var11",   A_CHAR("23|ALOX|%1_FORMAT_MULTILINE|"                        "|,|||VC23" )  ,
-        "Var12",   A_CHAR("24|ALOX|%1_FORMAT_TIME_DIFF|"                        "|,|||VC24" )  ,
-        "Var13",   A_CHAR("25|ALOX|%1_MAX_ELAPSED_TIME|"                    "VD25|,|||VC25" )  ,
-        "Var14",   A_CHAR("26|ALOX|%1_REPLACEMENTS|"                            "|,|||VC26" )  ,
-        "Var15",   A_CHAR("27|ALOX|CONSOLE_LIGHT_COLORS|"                      "ES||||VC27" )  ,
+        "Var0" ,   A_CHAR( "1|ALOX|NO_IDE_LOGGER|"                           "||"  )  ,
+        "Var1" ,   A_CHAR( "2|ALOX|CONSOLE_TYPE|"                            "||"  )  ,
+        "Var2" ,   A_CHAR( "3|ALOX|%1_%2_VERBOSITY|"                      ";|=|1"  )  ,
+        "Var3" ,   A_CHAR( "4|ALOX|GLOBAL_SOURCE_PATH_TRIM_RULES|"        ";|=|1"  )  ,
+        "Var4" ,   A_CHAR( "5|ALOX|%1_SOURCE_PATH_TRIM_RULES|"            ";|=|1"  )  ,
+        "Var5" ,   A_CHAR( "6|ALOX|%1_DOMAIN_SUBSTITUTION|"               ";|->|1" )  ,
+        "Var6" ,   A_CHAR( "7|ALOX|%1_PREFIXES|"                          ";|=|1"  )  ,
+        "Var7" ,   A_CHAR( "8|ALOX|%1_DUMP_STATE_ON_EXIT|"                  ",||"  )  ,
+        "Var8" ,   A_CHAR("20|ALOX|%1_AUTO_SIZES|"                           "||"  )  ,
+        "Var9" ,   A_CHAR("21|ALOX|%1_FORMAT|"                             ",||1"  )  ,
+        "Var10",   A_CHAR("22|ALOX|%1_FORMAT_DATE_TIME|"                    ",||"  )  ,
+        "Var11",   A_CHAR("23|ALOX|%1_FORMAT_MULTILINE|"                    ",||"  )  ,
+        "Var12",   A_CHAR("24|ALOX|%1_FORMAT_TIME_DIFF|"                    ",||"  )  ,
+        "Var13",   A_CHAR("25|ALOX|%1_MAX_ELAPSED_TIME|"                    ",||"  )  ,
+        "Var14",   A_CHAR("26|ALOX|%1_REPLACEMENTS|"                        ",||"  )  ,
+        "Var15",   A_CHAR("27|ALOX|CONSOLE_LIGHT_COLORS|"                    "||"  )  ,
         #if defined(_WIN32)
-        "Var16",   A_CHAR("28|ALOX|CODEPAGE|"                                "VD28||||VC28" )  ,
+        "Var16",   A_CHAR("28|ALOX|CODEPAGE|"                                "||" )  ,
         #endif
 
-
-        // Empty string. This is set with variables that want to be written into blank files.
-        "ES",         A_CHAR(""),
-
         // configuration variable default values
-        "VD01",       A_CHAR("false"),
-        "VD02",       A_CHAR("default"),
-        "VD03",       A_CHAR("writeback"),
-        "VD08",       A_CHAR("none, verbosity=info, domain=/ALOX"),
+        "Var_D1",       A_CHAR("false"),
+        "Var_D2",       A_CHAR("default"),
+        "Var_D3",       A_CHAR("writeback"),
+        "Var_D8",       A_CHAR("none, verbosity=info, domain=/ALOX"),
 
-        "VD25",       A_CHAR("0, limit=59"),
+        "Var_D25",      A_CHAR("0, limit=59"),
         #if defined(_WIN32)
-        "VD28",       A_CHAR("65001"),
+        "Var_D28",      A_CHAR("65001"),
         #endif
 
         // configuration variable comments
-        "VC01",       A_CHAR("If true, the creation of an additional, ide-specific debug logger is suppressed." "\n"
+        "Var_C1",   A_CHAR("If true, the creation of an additional, ide-specific debug logger is suppressed." "\n"
                            "(In particular suppresses DebugLogger (C#) and VStudioLogger (C++))" ),
 
-        "VC02",       A_CHAR("Influences the type of console logger to be created by method"      "\n"
+        "Var_C2",   A_CHAR("Influences the type of console logger to be created by method"      "\n"
                            "Lox::CreateConsoleLogger which is also used by Log::AddDebugLogger" "\n"
                            "Possible values are: default, plain, ansi, windows, noqtcreator"         ),
 
-        "VC03",       A_CHAR("The verbosities of logger \"%2\" in lox \"%1\". Use 'writeback [VAR_NAME] ;'"   "\n"
+        "Var_C3",   A_CHAR("The verbosities of logger \"%2\" in lox \"%1\". Use 'writeback [VAR_NAME] ;'"   "\n"
                            "to enable automatic writing on application exit."                  ),
 
-        "VC04",       A_CHAR("Defines global source path trim rules (applicable for all Lox instances)."        "\n"
+        "Var_C4",   A_CHAR("Defines global source path trim rules (applicable for all Lox instances)."        "\n"
                            "   Format: [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; \u2026 ]" ),
 
-        "VC05",       A_CHAR("Defines source path trim rules for Lox \"%1\". "           "\n"
+        "Var_C5",   A_CHAR("Defines source path trim rules for Lox \"%1\". "           "\n"
                            "   Format: [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; \u2026 ]" ),
 
-        "VC07",       A_CHAR("Prefix strings for log domains of lox \"%1\".\n"
+        "Var_C7",   A_CHAR("Prefix strings for log domains of lox \"%1\".\n"
                            "   Format: [*]domainpath[*] = prefixstring [, inclusion] [ ; \u2026 ] " ),
 
-        "VC08",       A_CHAR("Log information about lox \"%1\" on exit. Comma separated list of arguments define" "\n"
+        "Var_C8",   A_CHAR("Log information about lox \"%1\" on exit. Comma separated list of arguments define" "\n"
                            "verbosity, domain and content of output. Possible values content arguments are:"    "\n"
                            "  All, " "Basic, " "Version, " "SPTR, " "Loggers, " "Domains, " "InternalDomains"   "\n"
                            "  ScopeDomains, " "DSR, " "PrefixLogables" "Once, " "LogData, " "ThreadMappings, "  "\n"
                            "  CompilationFlags." " If NONE is given nothing is dumped." ),
 
-        "VC20",       A_CHAR("Auto size values of last run of Logger '%1' (generated and temporary values)."),
+        "Var_C20",  A_CHAR("Auto size values of last run of Logger '%1' (generated and temporary values)."),
 
-        "VC21",       A_CHAR("Meta info format of text logger \"%1\", including signatures for verbosity strings and" "\n"
+        "Var_C21",  A_CHAR("Meta info format of text logger \"%1\", including signatures for verbosity strings and" "\n"
                            "an optional string added to the end of each log statement."                             "\n"
                            "   Format: metaInfoFormat [, Error [, Warning [, Info [, Verbose [, MsgSuffix ]]]]]"),
 
-        "VC22",       A_CHAR("Meta info date and time format of text logger \")%1\"."                         "\n"
+        "Var_C22",  A_CHAR("Meta info date and time format of text logger \")%1\"."                         "\n"
                            "   Format: DateFormat [, TimeOfDayFormat [, TimeElapsedDays ]]]"),
 
-        "VC23",       A_CHAR("Multi-line format of text logger \"%1\"."       "\n"
+        "Var_C23",  A_CHAR("Multi-line format of text logger \"%1\"."       "\n"
                            "   Format: MultiLineMsgMode [, FmtMultiLineMsgHeadline [, FmtMultiLinePrefix [, FmtMultiLineSuffix\n"
                            "           [, MultiLineDelimiter [, MultiLineDelimiterRepl ]]]]]"),
 
-        "VC24",       A_CHAR("Meta info time difference entities of text logger \"%1\"."       "\n"
-                           "   Format: TimeDiffMinimum [, TimeDiffNone [, TimeDiffNanos [, TimeDiffMicros [, TimeDiffMillis \n"
+        "Var_C24",  A_CHAR("Meta info time difference entities of text logger \"%1\"."       "\n"
+                           "   Format: TimeDiffMinimum [, TimeDiffNone [, TimeDiffNanos [, TimeDiffMicros [, TimeDiffMillis\n"
                            "           [, TimeDiffSecs [, TimeDiffMins [, TimeDiffHours [,  TimeDiffDays  ]]]]]]]]"),
 
-        "VC25",       A_CHAR("Maximum elapsed time of all runs of Logger '%1'. To reset elapsed time display""\n"
+        "Var_C25",  A_CHAR("Maximum elapsed time of all runs of Logger '%1'. To reset elapsed time display""\n"
                            "width, set this to 0 manually. Generated and temporary value.)" ),
 
-        "VC26",       A_CHAR("Pairs of search and replacement strings for text logger \"%1\"."               "\n"
+        "Var_C26",  A_CHAR("Pairs of search and replacement strings for text logger \"%1\"."               "\n"
                            "   Format: search, replacement [, search, replacement] [,...]"),
 
-        "VC27",       A_CHAR("Evaluated by colorful loggers that dispose about light and dark colors. Those may"  "\n"
+        "Var_C27",  A_CHAR("Evaluated by colorful loggers that dispose about light and dark colors. Those may"  "\n"
                            "adjust their foreground and background color accordingly. If not given, under Windows OS" "\n"
                            "the right value is detected. Otherwise the value defaults to \"foreground\". In some"     "\n"
                            "occasions, the (detected or set) runtime environment might also indicate a different"     "\n"
                            "default value.  Possible values are 'foreground', 'background' and 'never'."),
 
         #if defined(_WIN32)
-        "VC28",       A_CHAR("Code page used by class WindowsConsoleLogger. Defaults to 65001."           "\n"
+        "Var_C28",   A_CHAR("Code page used by class WindowsConsoleLogger. Defaults to 65001."           "\n"
                            "(Only used on Windows OS)" ),
         #endif
 
@@ -347,6 +349,8 @@ void  ALox::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t**
             lib::monomem::AcquireGlobalAllocator( ALIB_CALLER_PRUNED );
                 theDebugLox= ga.Emplace<Lox>( "LOG");
             lib::monomem::ReleaseGlobalAllocator();
+
+            dbgCheckQtyConfigPlugins= config->CountPlugins();
         #endif
     }
 }
@@ -361,15 +365,12 @@ void ALox::shutdown( ShutdownPhases phase )
     else if( phase == ShutdownPhases::Destruct )
     {
         if ( Log::DebugLogger != nullptr )
-        Log_RemoveDebugLogger()
+            Log_RemoveDebugLogger()
 
         monomem::Destruct( theDebugLox );
 
         while ( loxes.Size() > 0 )
-        {
             detail::LI::Destruct( loxes.Back() );
-            loxes.PopBack();
-        }
     }
     #endif
 }
@@ -386,8 +387,9 @@ void        ALox::Reset()
         monomem::Destruct( theDebugLox);
     #endif
 
-    ALIB_ASSERT_ERROR(loxes.Size()           == 0, "A Lox remained from the last test" )
-    ALIB_ASSERT_ERROR(config->CountPlugins() == 4, "A config plug-in remained from the last test" )
+    ALIB_ASSERT_ERROR(loxes.Size()           == 0, "ALOX", "A Lox remained from the last test" )
+    ALIB_ASSERT_ERROR(config->CountPlugins() == dbgCheckQtyConfigPlugins,
+                                                   "ALOX", "A config plug-in remained from the last test" )
 
     dynamic_cast<InMemoryPlugin*>( config->GetPlugin( lib::config::Priorities::DefaultValues  ) )->Clear();
     dynamic_cast<InMemoryPlugin*>( config->GetPlugin( lib::config::Priorities::ProtectedValues) )->Clear();
@@ -401,77 +403,78 @@ void        ALox::Reset()
 // ESC codes
 // #################################################################################################
 #if defined(_MSC_VER)
-// MSC  (as of 12/2015):
-// C4579: in-class initialization for type 'const aworx::character[11]'
-// is not yet implemented; static member will remain uninitialized at run-time but
-// use in constant-expressions is supported
-          character  ESC::RED        [4] { A_CHAR("\033c0") }; ///< Select red color for foreground.
-          character  ESC::GREEN      [4] { A_CHAR("\033c1") }; ///< Select green color for foreground.
-          character  ESC::YELLOW     [4] { A_CHAR("\033c2") }; ///< Select yellow color for foreground.
-          character  ESC::BLUE       [4] { A_CHAR("\033c3") }; ///< Select blue color for foreground.
-          character  ESC::MAGENTA    [4] { A_CHAR("\033c4") }; ///< Select magenta color for foreground.
-          character  ESC::CYAN       [4] { A_CHAR("\033c5") }; ///< Select cyan color for foreground.
-          character  ESC::BLACK      [4] { A_CHAR("\033c6") }; ///< Select black color for foreground.
-          character  ESC::WHITE      [4] { A_CHAR("\033c7") }; ///< Select white color for foreground.
-          character  ESC::GRAY       [4] { A_CHAR("\033c8") }; ///< Select gray color for foreground.
-          character  ESC::FG_RESET   [4] { A_CHAR("\033c9") }; ///< Select std color for foreground.4
+    // MSC  (as of 12/2015):
+    // C4579: in-class initialization for type 'const aworx::character[11]'
+    // is not yet implemented; static member will remain uninitialized at run-time but
+    // use in constant-expressions is supported
+    character  ESC::RED        [4] { A_CHAR("\033c0") }; ///< Select red color for foreground.
+    character  ESC::GREEN      [4] { A_CHAR("\033c1") }; ///< Select green color for foreground.
+    character  ESC::YELLOW     [4] { A_CHAR("\033c2") }; ///< Select yellow color for foreground.
+    character  ESC::BLUE       [4] { A_CHAR("\033c3") }; ///< Select blue color for foreground.
+    character  ESC::MAGENTA    [4] { A_CHAR("\033c4") }; ///< Select magenta color for foreground.
+    character  ESC::CYAN       [4] { A_CHAR("\033c5") }; ///< Select cyan color for foreground.
+    character  ESC::BLACK      [4] { A_CHAR("\033c6") }; ///< Select black color for foreground.
+    character  ESC::WHITE      [4] { A_CHAR("\033c7") }; ///< Select white color for foreground.
+    character  ESC::GRAY       [4] { A_CHAR("\033c8") }; ///< Select gray color for foreground.
+    character  ESC::FG_RESET   [4] { A_CHAR("\033c9") }; ///< Select std color for foreground.4
 
-          character  ESC::BG_RED     [4] { A_CHAR("\033C0") }; ///< Select red color for background.
-          character  ESC::BG_GREEN   [4] { A_CHAR("\033C1") }; ///< Select green color for background.
-          character  ESC::BG_YELLOW  [4] { A_CHAR("\033C2") }; ///< Select yellow color for background.
-          character  ESC::BG_BLUE    [4] { A_CHAR("\033C3") }; ///< Select blue color for background.
-          character  ESC::BG_MAGENTA [4] { A_CHAR("\033C4") }; ///< Select blue color for background.
-          character  ESC::BG_CYAN    [4] { A_CHAR("\033C5") }; ///< Select blue color for background.
-          character  ESC::BG_BLACK   [4] { A_CHAR("\033C6") }; ///< Select red color for background.
-          character  ESC::BG_WHITE   [4] { A_CHAR("\033C7") }; ///< Select blue color for background.
-          character  ESC::BG_GRAY    [4] { A_CHAR("\033C8") }; ///< Select gray color for background.
-          character  ESC::BG_RESET   [4] { A_CHAR("\033C9") }; ///< Select std color for background.
+    character  ESC::BG_RED     [4] { A_CHAR("\033C0") }; ///< Select red color for background.
+    character  ESC::BG_GREEN   [4] { A_CHAR("\033C1") }; ///< Select green color for background.
+    character  ESC::BG_YELLOW  [4] { A_CHAR("\033C2") }; ///< Select yellow color for background.
+    character  ESC::BG_BLUE    [4] { A_CHAR("\033C3") }; ///< Select blue color for background.
+    character  ESC::BG_MAGENTA [4] { A_CHAR("\033C4") }; ///< Select blue color for background.
+    character  ESC::BG_CYAN    [4] { A_CHAR("\033C5") }; ///< Select blue color for background.
+    character  ESC::BG_BLACK   [4] { A_CHAR("\033C6") }; ///< Select red color for background.
+    character  ESC::BG_WHITE   [4] { A_CHAR("\033C7") }; ///< Select blue color for background.
+    character  ESC::BG_GRAY    [4] { A_CHAR("\033C8") }; ///< Select gray color for background.
+    character  ESC::BG_RESET   [4] { A_CHAR("\033C9") }; ///< Select std color for background.
 
-          character  ESC::BOLD       [4] { A_CHAR("\033sB") }; ///< Select bold font style.
-          character  ESC::ITALICS    [4] { A_CHAR("\033sI") }; ///< Select italics font style.
-          character  ESC::STYLE_RESET[4] { A_CHAR("\033sr") }; ///< Select standard font style.
-          character  ESC::RESET      [4] { A_CHAR("\033sa") }; ///< Reset color and style.
+    character  ESC::BOLD       [4] { A_CHAR("\033sB") }; ///< Select bold font style.
+    character  ESC::ITALICS    [4] { A_CHAR("\033sI") }; ///< Select italics font style.
+    character  ESC::STYLE_RESET[4] { A_CHAR("\033sr") }; ///< Select standard font style.
+    character  ESC::RESET      [4] { A_CHAR("\033sa") }; ///< Reset color and style.
 
-          character  ESC::URL_START  [4] { A_CHAR("\033lS") }; ///< Mark the start of an URL.
-          character  ESC::URL_END    [4] { A_CHAR("\033lE") }; ///< Mark the end of an URL.
-          character  ESC::TAB        [4] { A_CHAR("\033t0") }; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
+    character  ESC::URL_START  [4] { A_CHAR("\033lS") }; ///< Mark the start of an URL.
+    character  ESC::URL_END    [4] { A_CHAR("\033lE") }; ///< Mark the end of an URL.
+    character  ESC::TAB        [4] { A_CHAR("\033t0") }; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
 
-          character  ESC::EOMETA     [4] { A_CHAR("\033A0") }; ///< End of meta information in log string
+    character  ESC::EOMETA     [4] { A_CHAR("\033A0") }; ///< End of meta information in log string
 
-#else
-constexpr character  ESC::RED        [4];
-constexpr character  ESC::GREEN      [4];
-constexpr character  ESC::YELLOW     [4];
-constexpr character  ESC::BLUE       [4];
-constexpr character  ESC::MAGENTA    [4];
-constexpr character  ESC::CYAN       [4];
-constexpr character  ESC::BLACK      [4];
-constexpr character  ESC::WHITE      [4];
-constexpr character  ESC::GRAY       [4];
-constexpr character  ESC::FG_RESET   [4];
+#elif ALIB_CPPVER < 17
+    constexpr character  ESC::RED        [4];
+    constexpr character  ESC::GREEN      [4];
+    constexpr character  ESC::YELLOW     [4];
+    constexpr character  ESC::BLUE       [4];
+    constexpr character  ESC::MAGENTA    [4];
+    constexpr character  ESC::CYAN       [4];
+    constexpr character  ESC::BLACK      [4];
+    constexpr character  ESC::WHITE      [4];
+    constexpr character  ESC::GRAY       [4];
+    constexpr character  ESC::FG_RESET   [4];
 
-constexpr character  ESC::BG_RED     [4];
-constexpr character  ESC::BG_GREEN   [4];
-constexpr character  ESC::BG_YELLOW  [4];
-constexpr character  ESC::BG_BLUE    [4];
-constexpr character  ESC::BG_MAGENTA [4];
-constexpr character  ESC::BG_CYAN    [4];
-constexpr character  ESC::BG_BLACK   [4];
-constexpr character  ESC::BG_WHITE   [4];
-constexpr character  ESC::BG_GRAY    [4];
-constexpr character  ESC::BG_RESET   [4];
+    constexpr character  ESC::BG_RED     [4];
+    constexpr character  ESC::BG_GREEN   [4];
+    constexpr character  ESC::BG_YELLOW  [4];
+    constexpr character  ESC::BG_BLUE    [4];
+    constexpr character  ESC::BG_MAGENTA [4];
+    constexpr character  ESC::BG_CYAN    [4];
+    constexpr character  ESC::BG_BLACK   [4];
+    constexpr character  ESC::BG_WHITE   [4];
+    constexpr character  ESC::BG_GRAY    [4];
+    constexpr character  ESC::BG_RESET   [4];
 
-constexpr character  ESC::BOLD       [4];
-constexpr character  ESC::ITALICS    [4];
-constexpr character  ESC::STYLE_RESET[4];
-constexpr character  ESC::RESET      [4];
+    constexpr character  ESC::BOLD       [4];
+    constexpr character  ESC::ITALICS    [4];
+    constexpr character  ESC::STYLE_RESET[4];
+    constexpr character  ESC::RESET      [4];
 
-constexpr character  ESC::URL_START  [4];
-constexpr character  ESC::URL_END    [4];
-constexpr character  ESC::TAB        [4];
+    constexpr character  ESC::URL_START  [4];
+    constexpr character  ESC::URL_END    [4];
+    constexpr character  ESC::TAB        [4];
 
-constexpr character  ESC::EOMETA     [4];
+    constexpr character  ESC::EOMETA     [4];
 #endif
+
 
 void ESC::ReplaceToReadable( AString& target, integer startIdx )
 {

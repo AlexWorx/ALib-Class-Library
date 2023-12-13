@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_resources of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESOURCES_RESOURCES
@@ -105,8 +105,9 @@ class ResourcePool
         #endif
             BootstrapAddOrReplace(category, name, data);
 
-        ALIB_ASSERT_ERROR( result, "Doubly defined resource \""   , NString64(name    ),
-                                   "\" in category: "             , NString64(category)     )
+        ALIB_ASSERT_ERROR( result, "RESOURCES",
+                           NString256( "Doubly defined resource \"" ) << name
+                                   <<  "\" in category: "             << category     )
     }
 
     /** ********************************************************************************************
@@ -141,7 +142,7 @@ class ResourcePool
      *                  keys and data, including a terminating \c nullptr value.
      **********************************************************************************************/
     virtual
-    void BootstrapBulk( const nchar* category, ... )                                              = 0;
+    void BootstrapBulk( const nchar* category, ... )                                            = 0;
 
 #if defined(ALIB_DOX)
     /** ********************************************************************************************
@@ -150,8 +151,8 @@ class ResourcePool
      *
      * \note
      *   Usually resource pools are associated with \alib{Module} objects and resources should be
-     *   loaded using its "shortcut methods" \aworx{lib,Module::TryResource,TryResource}
-     *   and \aworx{lib,Module::Get,Get}.
+     *   loaded using its "shortcut methods" \aworx{lib::Module,TryResource}
+     *   and \aworx{lib::Module,GetResource}.
      *   If used directly, argument \p{dbgAssert} has to be enclosed in macro \ref ALIB_DBG
      *   (including the separting comma).
      *
@@ -162,10 +163,10 @@ class ResourcePool
      * @return The resource string, respectively a \e nulled string on failure.
      **********************************************************************************************/
     virtual
-    const String&   Get( const NString& category, const NString& name, bool dbgAssert )                  = 0;
+    const String&   Get( const NString& category, const NString& name, bool dbgAssert )         = 0;
 #else
     virtual
-    const String&   Get( const NString& category, const NString& name  ALIB_DBG(, bool dbgAssert) )      = 0;
+    const String&   Get( const NString& category, const NString& name ALIB_DBG(,bool dbgAssert))= 0;
 #endif
 
 #if defined(ALIB_DOX)
@@ -187,10 +188,10 @@ class ResourcePool
      *                   is raised if the resource was not found.
      * @return The resource string, respectively a \e nulled string on failure.
      **********************************************************************************************/
-    const String&   Get( const NString& category, const String& name, bool dbgAssert   );
+    const String&   Get( const NString& category, const String& name, bool dbgAssert );
 #else
     #if ALIB_CHARACTERS_WIDE
-        const String&   Get( const NString& category, const String& name  ALIB_DBG(, bool dbgAssert )  )
+        const String&   Get( const NString& category, const String& name ALIB_DBG(,bool dbgAssert) )
         {
             NString128 nName( name );
             return Get( category, nName  ALIB_DBG(, dbgAssert ) );
@@ -270,7 +271,7 @@ class ResourcePool
             static
             AString DbgDump( std::vector<std::tuple<NString, NString, String, integer>>& list,
                              const NString& catFilter = nullptr,
-                             const String&  format    = A_CHAR("({3:}) {1}={2!TAB20!ESC<!Q}\\n") );
+                             const String&  format    = A_CHAR("({3:}) {1}={2!TAB20!ESC<!Q}\n") );
         #endif
     #endif
 }; // class ResourcePool
@@ -430,7 +431,7 @@ struct ResourcedType
     static
     const String&       TypeNamePrefix()
     {
-        if ALIB_CONSTEXPR_IF( T_Resourced<T>::value )
+        if ALIB_CONSTEXPR17( T_Resourced<T>::value )
         {
             NString256 resourceName( T_Resourced<T>::Name() );
                        resourceName << "<";
@@ -452,7 +453,8 @@ struct ResourcedType
     static
     const String&       TypeNamePostfix()
     {
-        if ALIB_CONSTEXPR_IF( T_Resourced<T>::value )
+        ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
+        if ALIB_CONSTEXPR17( T_Resourced<T>::value )
         {
             NString256 resourceName( T_Resourced<T>::Name() );
                        resourceName << ">";
@@ -461,6 +463,7 @@ struct ResourcedType
             if( pf.IsNotNull() )
                 return pf;
         }
+        ALIB_WARNINGS_RESTORE
 
         return EMPTY_STRING;
     }

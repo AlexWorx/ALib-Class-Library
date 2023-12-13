@@ -1,22 +1,23 @@
 # #################################################################################################
-#  CMakeLists.txt - ALox Tools: DoxygenGraphTemplateInstanceRemover
+#  CMakeLists.txt - ALox Tools: ResourceExport
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
-#  How to use:
-#   1. Enter subdirectory 'debug'   and invoke:  `cmake ..`
-#   2. Enter subdirectory 'release' and invoke:  `cmake -DCMAKE_BUILD_TYPE=Release ..`
-#   3. Invoke `make` within any of these directories.
-#   More information is found in ALox documentation.
+#  Notes:
+#   This tool exports ALib resources for externalization.
+#   See section "3.5.3 Exporting Resources For Externalization" of the Programmer's Manual
+#   of ALib for more information.
+#
+#   Starting with version 1903, the output of this tool for each version is found in folder
+#   <b>./docs/pages/resource-exports/</b> of the ALib base directory.
 # ##################################################################################################
 
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-
+    cmake_minimum_required( VERSION 3.20.0 )
     project( "ResourceExport" )
-    cmake_minimum_required( VERSION 3.3.0 )
 
 ## -------------------------------------------------------------------------------------------------
 ## include ALib/ALox base cmake file
@@ -28,7 +29,7 @@
 # -------------------------------------------------------------------------------------------------
 # sources
 # -------------------------------------------------------------------------------------------------
-    LIST( APPEND   SOURCES      main.cpp   )
+    LIST( APPEND   SOURCES resourceexport.cpp)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -39,7 +40,4 @@
     add_executable(           resource-export ${SOURCES})
     ALibSetCompilerAndLinker( resource-export )
 
-    target_link_libraries(    resource-export   ALib_StaticLib )
-
-
-
+    target_link_libraries(    resource-export   PRIVATE ALib_StaticLib )

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -80,9 +80,9 @@ void    Scope::Reset()
     new (&Resources        ) std::vector<Expression*, StdContMA<Expression*>>( StdContMA<Expression*>(Allocator) );
 
     // reserve storage of previous size for the next run.
-    NestedExpressions.reserve(nestedExpressionsSize);
-            Resources.reserve(        ResourcesSize);
-       NamedResources.Reserve(   NamedResourcesSize);
+    NestedExpressions.reserve(nestedExpressionsSize );
+            Resources.reserve(        ResourcesSize );
+       NamedResources.Reserve(   NamedResourcesSize, ValueReference::Absolute);
 }
 
 
@@ -106,6 +106,7 @@ Compiler::Compiler()
     CfgFormatter.reset( Formatter::GetDefault()->Clone() );
 
     // register compiler types
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     ALIB_CPP14_CONSTEXPR std::pair<Box&,NString> typeKeys[]=
     {
        { Types::Void     , "T_VOID"  },
@@ -117,6 +118,7 @@ Compiler::Compiler()
        { Types::DateTime , "T_DATE"  },
        { Types::Duration , "T_DUR"   }, )
     };
+    ALIB_WARNINGS_RESTORE
 
     size_t idx= sizeof( typeKeys ) / sizeof( std::pair<Box&, NString> );
     do
@@ -135,8 +137,10 @@ Compiler::Compiler()
 
 Compiler::~Compiler()
 {
-    ALIB_ASSERT_ERROR( CfgFormatter.get()->CountAcquirements() == 0,
+    ALIB_ASSERT_ERROR( CfgFormatter.get()->CountAcquirements() == 0, "EXPR",
                        "The formatter of this compiler was not released properly" )
+    if( Repository != nullptr )
+        delete Repository;
 }
 
 Scope* Compiler::getCompileTimeScope()
@@ -154,7 +158,7 @@ void Compiler::SetupDefaults()
     if( HasBits( CfgCompilation, Compilation::DefaultUnaryOperators ) )
     {
         auto enumRecordIt= EnumRecords<DefaultUnaryOperators>::begin();
-        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultUnaryOperators::NONE,
+        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultUnaryOperators::NONE, "EXPR",
                            "Expected none-operator as first enum record" )
         while( ++enumRecordIt != EnumRecords<DefaultUnaryOperators>::end() )
             AddUnaryOperator( enumRecordIt->EnumElementName );
@@ -174,7 +178,7 @@ void Compiler::SetupDefaults()
     if( HasBits( CfgCompilation, Compilation::DefaultBinaryOperators ) )
     {
         auto enumRecordIt= EnumRecords<DefaultBinaryOperators>::begin();
-        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultBinaryOperators::NONE,
+        ALIB_ASSERT_ERROR( enumRecordIt.Enum() == DefaultBinaryOperators::NONE, "EXPR",
                            "Expected none-operator as first enum record" )
         while( ++enumRecordIt != EnumRecords<DefaultBinaryOperators>::end() )
         {
@@ -242,8 +246,9 @@ ALIB_IF_SYSTEM(
 SPExpression   Compiler::Compile( const String& expressionString   )
 {
     // checks
-    ALIB_ASSERT_ERROR( HasPlugins(), "No plug-ins attached. Invoke SetupDefaults() on compiler instance." )
-    ALIB_ASSERT_ERROR( expressionString.IsNotNull(), "Nulled expression string." )
+    ALIB_ASSERT_ERROR( HasPlugins(), "EXPR",
+                       "No plug-ins attached. Invoke SetupDefaults() on compiler instance." )
+    ALIB_ASSERT_ERROR( expressionString.IsNotNull(), "EXPR", "Nulled expression string." )
     if( expressionString.IsEmpty() )
         throw Exception( ALIB_CALLER, Exceptions::EmptyExpressionString );
 
@@ -296,10 +301,10 @@ SPExpression   Compiler::Compile( const String& expressionString   )
             allocator.Reset( startOfCompilation );
 
         // checks
-        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(),
+        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(), "EXPR",
                            "No exception when parsing expression, but result type is void!" )
 
-        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(),
+        ALIB_ASSERT_ERROR( !expression->program->ResultType().IsType<void>(), "EXPR",
                            "No exception when parsing expression, but result type is void." )
     }
     catch( Exception& )
@@ -391,7 +396,7 @@ SPExpression   Compiler::GetNamed( const String& name )
 
     // not found! -> use protected, virtual method to get the string from somewhere
     AString expressionString;
-    if (!getExpressionString( name, expressionString ) )
+    if (Repository == nullptr || !Repository->Get( name, expressionString ) )
         throw Exception( ALIB_CALLER_NULLED, Exceptions::NamedExpressionNotFound, name );
 
     // Got an expression string! -> Compile
@@ -405,66 +410,6 @@ SPExpression   Compiler::GetNamed( const String& name )
     return sharedExpression;
 }
 
-#if ALIB_CONFIGURATION
-int Compiler::StoreLoadedExpressions( Priorities slot )
-{
-    int count= 0;
-    for( auto& entry : VariablesLoaded )
-        if( std::get<0>( entry ) == slot )
-        {
-            ++count;
-            var.Declare( std::get<1>( entry ), std::get<2>( entry ) );
-            var.SetPriority( slot );
-            var.Add( GetNamed( std::get<3>( entry ))->GetNormalizedString() );
-            Config->Store( var );
-        }
-
-    return count;
-}
-#endif // ALIB_CONFIGURATION
-
-bool Compiler::getExpressionString( const String& identifier, AString& target )
-{
-    #if ALIB_CONFIGURATION
-
-        if( Config == nullptr )
-            return false;
-
-        // search in given default categories first.
-        for( auto& category : DefaultCategories )
-        {
-            if(  Config->Load( var.Declare( category, identifier ) ) != Priorities::NONE )
-            {
-                target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority(), category, identifier, identifier );
-                return true;
-            }
-        }
-
-        // try to split identifier in "category_name"
-        integer underscorePos=  identifier.IndexOf( '_', 1 );
-        while( underscorePos > 0 )
-        {
-            Substring name;
-            Substring category(identifier);
-            category.Split( underscorePos, name, 1 );
-            if(  Config->Load( var.Declare( category, name ) ) != Priorities::NONE )
-            {
-                target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority(), category, name, identifier );
-                return true;
-            }
-            underscorePos=  identifier.IndexOf( '_', underscorePos + 1 );
-        }
-
-        // failed
-        return false;
-    #else
-        (void) identifier;
-        (void) target;
-        return false;
-    #endif // ALIB_CONFIGURATION
-}
 
 
 // #################################################################################################
@@ -475,7 +420,7 @@ void    Compiler::AddType( Type sample, const NString& name )
 {
     ALIB_DBG( auto it= )
     typeMap.EmplaceIfNotExistent( &sample.TypeID(), name );
-    ALIB_ASSERT_ERROR( it.second  == true, // is insert
+    ALIB_ASSERT_ERROR( it.second  == true, "EXPR", // is insert
                        "Type already registered with compiler."  )
 }
 
@@ -485,7 +430,7 @@ NString Compiler::TypeName(Type box)
         return "NONE";
 
     auto entry= typeMap.Find( &box.TypeID() );
-    ALIB_ASSERT_WARNING( entry != typeMap.end(),
+    ALIB_ASSERT_WARNING( entry != typeMap.end(), "EXPR",
                          "Custom type {!Q} not registered. Please use Compiler::AddType to do so.",
                          box.TypeID() )
     if( entry == typeMap.end() )
@@ -494,6 +439,7 @@ NString Compiler::TypeName(Type box)
     return entry.Mapped();
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& target )
 {
     bool variadic= qty && (*(boxArray + qty -1)) == nullptr;
@@ -517,8 +463,8 @@ void Compiler::WriteFunctionSignature( Box** boxArray,  size_t qty,  AString& ta
     }
 
     target<< ')';
-
 }
+ALIB_WARNINGS_RESTORE
 
 void Compiler::WriteFunctionSignature( ArgIterator  begin,
                                        ArgIterator  end,

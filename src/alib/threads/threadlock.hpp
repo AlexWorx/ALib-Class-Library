@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCK
@@ -87,13 +87,13 @@ class ThreadLock
              */
             integer                 DbgWarningAfterWaitTimeInMillis                          =2000L;
 
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             NCString                DbgOwnerFile                                           =nullptr;
 
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             int                     DbgOwnerLine;
 
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             NCString                DbgOwnerFunc                                           =nullptr;
 
             /**
@@ -195,12 +195,13 @@ class ThreadLock
          * Returns the current owner of this lock. If not acquired, \c nullptr is returned.
          *
          * \see Method #IsOwnedByCurrentThread.
-         * @return The thread that owns this lock.
+         * @return The thread that owns this lock, \c nullptr if not acquired.
          ******************************************************************************************/
         Thread*         GetOwner()                                                            const
         {
-            std::thread::id id= owner; // this makes this method sort of "thread safe"
-            if( id == std::thread::id() )
+            // copying member owner once, makes this method sort of "thread safe"
+            std::thread::id id= owner;
+            if( id== std::thread::id() )
                 return nullptr;
             return detail::getThread( id );
         }

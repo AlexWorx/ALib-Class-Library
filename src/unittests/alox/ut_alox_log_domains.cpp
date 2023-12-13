@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -62,7 +62,7 @@ namespace ut_alox {
 * UT_CLASS
 **********************************************************************************************/
 
-UT_CLASS()
+UT_CLASS
 
 
 
@@ -259,7 +259,7 @@ UT_METHOD(Log_DomainSubstitutions_IniFile)
     // create INI file
     const char* iniFileContents=
         "[ALOX]\n"
-         "TESTMEMLOGGER_FORMAT= \"<%D>\"  \n"
+         "TESTMEMLOGGER_FORMAT= \"<%D>\"\n"
          "MYLOX_DOMAIN_SUBSTITUTION = /A_DOM -> /BETTER_NAME  ;\\ \n"
                                  "    /UI    -> /LIBS/UI    \n"
          "x\n";
@@ -351,85 +351,84 @@ UT_METHOD(Log_Domain_IniFile)
             MemoryLogger ml("TESTML");
             lox.SetVerbosity( &ml, Verbosity::Off );
 
-            lox.Info   (                  "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Error  ( "NOSETTING"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Info   (                  "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info                 ))
+            lox.Error  ( "NOSETTING"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Error  , "NOSETTING" ))
 
-            lox.Verbose( "DOM_VERB"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "DOM_VERB"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Verbose, "DOM_VERB"  ))
 
-            lox.Verbose( "DOM_INFO"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "DOM_INFO"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "DOM_WARN"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Warning( "DOM_WARN"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "DOM_INFO"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "DOM_INFO"  ))
+            lox.Info   ( "DOM_INFO"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "DOM_INFO"  ))
+            lox.Info   ( "DOM_WARN"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info   , "DOM_WARN"  ))
+            lox.Warning( "DOM_WARN"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Warning, "DOM_WARN"  ))
 
-            lox.Warning( "DOM_ERR"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Error  ( "DOM_ERR"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Warning( "DOM_ERR"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Warning, "DOM_ERR"   ))
+            lox.Error  ( "DOM_ERR"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Error  , "DOM_ERR"   ))
 
-            lox.Error  ( "DOM_OFF"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Error  ( "DOM_OFF"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Error  , "DOM_OFF"   ))
 
-            lox.Verbose( "ATSTART"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "ATSTART"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "ATSTARTXX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "ATSTARTXX"    , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XXATSTART"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XXATSTART"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XATSTARTX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XATSTARTX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "ATSTART"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "ATSTART"   ))
+            lox.Info   ( "ATSTART"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "ATSTART"   ))
+            lox.Verbose( "ATSTARTXX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "ATSTARTXX" ))
+            lox.Info   ( "ATSTARTXX"    , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "ATSTARTXX" ))
+            lox.Verbose( "XXATSTART"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XXATSTART" ))
+            lox.Info   ( "XXATSTART"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info   , "XXATSTART" ))
+            lox.Verbose( "XATSTARTX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XATSTARTX" ))
+            lox.Info   ( "XATSTARTX"    , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info   , "XATSTARTX" ))
 
-            lox.Verbose( "ATEND"        , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "ATEND"        , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "ATENDXX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "ATENDXX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XXATEND"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XXATEND"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XATENDX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XATENDX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "ATEND"        , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "ATEND"     ))
+            lox.Info   ( "ATEND"        , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "ATEND"     ))
+            lox.Verbose( "ATENDXX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "ATENDXX"   ))
+            lox.Info   ( "ATENDXX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info   , "ATENDXX"   ))
+            lox.Verbose( "XXATEND"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XXATEND"   ))
+            lox.Info   ( "XXATEND"      , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "XXATEND"   ))
+            lox.Verbose( "XATENDX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XATENDX"   ))
+            lox.Info   ( "XATENDX"      , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info   , "XATENDX"   ))
 
 
-            lox.Verbose( "SUBSTR"       , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "SUBSTR"       , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "SUBSTRXX"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "SUBSTRXX"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XXSUBSTR"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XXSUBSTR"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "XSUBSTRX"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "XSUBSTRX"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "SUBSTR"       , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "SUBSTR"    ))
+            lox.Info   ( "SUBSTR"       , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "SUBSTR"    ))
+            lox.Verbose( "SUBSTRXX"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "SUBSTRXX"  ))
+            lox.Info   ( "SUBSTRXX"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "SUBSTRXX"  ))
+            lox.Verbose( "XXSUBSTR"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XXSUBSTR"  ))
+            lox.Info   ( "XXSUBSTR"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "XXSUBSTR"  ))
+            lox.Verbose( "XSUBSTRX"     , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose, "XSUBSTRX"  ))
+            lox.Info   ( "XSUBSTRX"     , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info   , "XSUBSTRX"  ))
 
             // overwrite config
-            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose   , "/OVERWRITE"  ))
+            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info      , "/OVERWRITE"  ))
 
             lox.SetVerbosity( &ml , Verbosity::Warning, "/OVERWRITE" ); // does not overwrite
-            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose   , "/OVERWRITE"  ))
+            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info      , "/OVERWRITE"  ))
 
             lox.SetVerbosity( &ml , Verbosity::Warning, "/OVERWRITE", Priorities::ProtectedValues -1 ); // does overwrite
-            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Warning( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-
+            lox.Verbose( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose   , "/OVERWRITE"  ))
+            lox.Info   ( "/OVERWRITE"   , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info      , "/OVERWRITE"  ))
+            lox.Warning( "/OVERWRITE"   , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Warning   , "/OVERWRITE"  ))
 
             // overwrite non-config
-            lox.Error  ( "/A"           , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Error  ( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Error  ( "/A/C"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Error  ( "/A"           , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Error   , "/A"       ))
+            lox.Error  ( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Error   , "/A/B"     ))
+            lox.Error  ( "/A/C"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Error   , "/A/C"     ))
 
             lox.SetVerbosity( &ml , Verbosity::Info, "/A/B", Priorities::DefaultValues -1 ); // does not overwrite
-            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose , "/A/B"     ))
+            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Info    , "/A/B"     ))
 
             lox.SetVerbosity( &ml , Verbosity::Info, "/A/B", Priorities::DefaultValues ); // does overwrite
-            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose , "/A/B"     ))
+            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info    , "/A/B"     ))
 
             lox.SetVerbosity( &ml , Verbosity::Info, "/A/B", Priorities::DefaultValues + 1 ); // one higher
-            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose , "/A/B"     ))
+            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info    , "/A/B"     ))
 
             lox.SetVerbosity( &ml , Verbosity::Verbose, "/A" );
-            lox.Verbose( "/A"           , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
-            lox.Verbose( "/A/C"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;
+            lox.Verbose( "/A"           , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Verbose , "/A"       ))
+            lox.Verbose( "/A/B"         , "test" );    UT_EQ(  0, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(0, lox.IsActive( Verbosity::Verbose , "/A/B"     ))
+            lox.Info   ( "/A/B"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Info    , "/A/B"     ))
+            lox.Verbose( "/A/C"         , "test" );    UT_EQ(  1, ml.CntLogs )  ml.CntLogs= 0;    UT_EQ(1, lox.IsActive( Verbosity::Verbose , "/A/C"     ))
 
             //lox.State( "/CONSOLE", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
 

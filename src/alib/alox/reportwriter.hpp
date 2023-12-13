@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -42,19 +42,19 @@ class    ALoxReportWriter : public aworx::lib::results::ReportWriter
     /** ********************************************************************************************
      * Virtual destructor
      **********************************************************************************************/
-    virtual ~ALoxReportWriter()              {}
+    virtual ~ALoxReportWriter()                                                         override  {}
 
     /** ********************************************************************************************
      * Notify activation/deactivation
      **********************************************************************************************/
-    virtual void NotifyActivation  ( Phase ) { }
+    virtual void NotifyActivation  ( Phase )                                            override  {}
 
 
     /** ********************************************************************************************
      * Write \alib reports using \alox.
      * @param msg The message to log.
      **********************************************************************************************/
-     virtual void Report  ( const lib::results::Message& msg );
+     virtual void Report  ( lib::results::Message& msg )                                   override;
 
     /** ********************************************************************************************
      * Returns the domain used to write reports.

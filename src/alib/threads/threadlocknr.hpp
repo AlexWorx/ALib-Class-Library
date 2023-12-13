@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCKNR
@@ -13,6 +13,15 @@
 #endif
 
 ALIB_ASSERT_MODULE(THREADS)
+
+#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#   include "alib/strings/localstring.hpp"
+#endif
+
+#if !defined(HPP_ALIB_THREADS_THREAD)
+#   include "alib/threads/thread.hpp"
+#endif
+
 
 #if !defined (_GLIBCXX_MUTEX) && !defined(_MUTEX_)
     #include <mutex>
@@ -61,24 +70,24 @@ class ThreadLockNR
         Safeness                    safeness;
 
         #if ALIB_DEBUG
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             NCString                DbgOwnerFile                                           =nullptr;
 
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             int                     DbgOwnerLine;
 
-            /** Location of acquirement. (Available only in debug-builds.). */
+            /** Source location of acquirement. (Available only in debug-builds.). */
             NCString                DbgOwnerFunc                                           =nullptr;
 
 
-            /** Counter of (forbidden!) recursive acquirements. Available only in debug
-             *  compilations. */
-            bool                    dbgIsAcquired= false;
+            /** Id of a thread that currently acquired this object's mutex, used to detect forbidden
+             *  multiple (nested) acquirements.Available only in debug compilations. */
+            std::thread::id         dbgIsAcquiredBy;
         #endif
 
     public:
         /** ****************************************************************************************
-         * Simple constructor.
+         * Default constructor.
          *
          * @param pSafeness  The safeness mode. See #SetSafeness for more information.
          ******************************************************************************************/
@@ -115,11 +124,13 @@ class ThreadLockNR
             void  Acquire()
             {
          #endif
+                ALIB_ASSERT_ERROR( dbgIsAcquiredBy != std::this_thread::get_id(), "THREADS",
+                                   "Multiple acquirements of ThreadLockNR are forbidden." )
 
                 if ( safeness == Safeness::Safe )
                     mutex.lock();
 
-                ALIB_DBG( dbgIsAcquired= true; )
+                ALIB_DBG( dbgIsAcquiredBy= std::this_thread::get_id(); )
             }
 
         /** ****************************************************************************************
@@ -129,8 +140,17 @@ class ThreadLockNR
          ******************************************************************************************/
         void Release()
         {
-            ALIB_ASSERT_ERROR( dbgIsAcquired,  "Release without prior acquisition" )
-            ALIB_DBG( dbgIsAcquired= false; )
+            ALIB_ASSERT_ERROR( dbgIsAcquiredBy != std::thread::id() , "THREADS",
+                               "Release without prior acquisition" )
+            ALIB_ASSERT_ERROR( dbgIsAcquiredBy == std::this_thread::get_id(), "THREADS",
+                               NString256() <<
+                               "Release while ownership is with a different thread.\n" <<
+                               "   This thread: " << Thread::GetCurrent()->GetName() << " (ID: "
+                                                  << Thread::GetCurrent()->GetId()   << ")\n"
+                               "         Owner: " << detail::getThread(dbgIsAcquiredBy)->GetName() << " (ID: "
+                                                  << detail::getThread(dbgIsAcquiredBy)->GetId()   << ")"
+                               )
+            ALIB_DBG( dbgIsAcquiredBy= std::thread::id(); )
             if ( safeness == Safeness::Safe )
                 mutex.unlock();
         }
@@ -150,7 +170,18 @@ class ThreadLockNR
          ******************************************************************************************/
         void SetSafeness( Safeness pSafeness )
         {
-            ALIB_ASSERT_ERROR( !dbgIsAcquired, "Changing safeness while acquired" )
+            ALIB_ASSERT_ERROR(    dbgIsAcquiredBy != std::thread::id()
+                               && dbgIsAcquiredBy != std::this_thread::get_id(), "THREADS",
+                               NString256() <<
+                               "Changing safeness while acquired by a different thread.\n" <<
+                               "   This thread: " << Thread::GetCurrent()->GetName() << " (ID: "
+                                                  << Thread::GetCurrent()->GetId()   << ")\n"
+                               "         Owner: " << detail::getThread(dbgIsAcquiredBy)->GetName() << " (ID: "
+                                                  << detail::getThread(dbgIsAcquiredBy)->GetId()   << ")"
+                               )
+            ALIB_ASSERT_ERROR( dbgIsAcquiredBy == std::thread::id() ,  "THREADS",
+                               "Changing safeness while acquired (by this thread)." )
+            ALIB_DBG( dbgIsAcquiredBy= std::thread::id(); )
             safeness= pSafeness;
         }
 

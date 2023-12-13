@@ -1,7 +1,7 @@
 # ##################################################################################################
 #  ALibSources.cmake - CMake file for projects using ALib
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Notes:
@@ -22,36 +22,27 @@ SET( ALIB_SOURCE_FILES  "" )
 SET( ALIB_INCLUDE_FILES "" )
 
 # always included!
-list(     APPEND ALIB_INCLUDE_FILES     alib/alib_precompile.hpp     )
-list(     APPEND ALIB_INCLUDE_FILES     alib/distribution.hpp        )
-list(     APPEND ALIB_SOURCE_FILES      alib/lib/alib.cpp            )
+list( APPEND ALIB_INCLUDE_FILES     alib/alib_precompile.hpp     )
+list( APPEND ALIB_INCLUDE_FILES     alib/distribution.hpp        )
+list( APPEND ALIB_SOURCE_FILES      alib/lib/alib.cpp            )
 
-list(     APPEND ALIB_INCLUDE_FILES     alib/alox.hpp                )
+list( APPEND ALIB_INCLUDE_FILES     alib/alox.hpp                )
 
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/modules.hpp         )
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/compilers.hpp       )
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/platforms.hpp       )
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/features.hpp        )
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/tools.hpp           )
-list(     APPEND ALIB_INCLUDE_FILES     alib/lib/tmp.hpp             )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/modules.hpp         )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/compilers.hpp       )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/platforms.hpp       )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/features.hpp        )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/tools.hpp           )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/tmp.hpp             )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/integers.hpp        )
+list( APPEND ALIB_INCLUDE_FILES     alib/lib/bits.hpp            )
 
 
 
 # File-Sets
-if( "INTEGERS" IN_LIST ALIB_FILESETS )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_integers/integers.hpp   )
-endif()
-
 if( "COMMON_ENUMS" IN_LIST ALIB_FILESETS )
     list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_commonenums/commonenumdefs.hpp )
     list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_commonenums/commonenums.hpp    )
-endif()
-
-if( "DEBUG" IN_LIST ALIB_FILESETS )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_debug/assert.hpp               )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_debug/typedemangler.hpp        )
-    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_debug/assert.cpp               )
-    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_debug/typedemangler.cpp        )
 endif()
 
 if( "OWNER" IN_LIST ALIB_FILESETS )
@@ -59,20 +50,19 @@ if( "OWNER" IN_LIST ALIB_FILESETS )
 endif()
 
 if( "MODULES" IN_LIST ALIB_FILESETS )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_modules/module.hpp           )
-    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_modules/module.cpp           )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_modules/distribution.hpp     )
-    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_modules/distribution.cpp     )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_modules/module.hpp             )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_modules/module.cpp             )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_modules/distribution.hpp       )
+    list( APPEND ALIB_SOURCE_FILES      alib/lib/fs_modules/distribution.cpp       )
+endif()
+
+if( "PLUGINS" IN_LIST ALIB_FILESETS )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_plugins/plugins.hpp            )
 endif()
 
 if( "LISTS" IN_LIST ALIB_FILESETS )
     list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_lists/bidilist.hpp             )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_lists/forwardlist.hpp          )
-endif()
-
-
-if( "PLUGINS" IN_LIST ALIB_FILESETS )
-    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_plugins/plugins.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES     alib/lib/fs_lists/sidilist.hpp             )
 endif()
 
 
@@ -108,16 +98,18 @@ endif()
 
 if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/detail/hashtablebase.inl    )
-    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/detail/recycler.hpp         )
-    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/mastring.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/detail/recycler.inl         )
+    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/fwds.hpp                    )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/hashmap.hpp                 )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/hashset.hpp                 )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/hashtable.hpp               )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/list.hpp                    )
+    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/mastring.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/monomem.hpp                  )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/monoallocator.hpp           )
-    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/monomem.hpp                 )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/selfcontained.hpp           )
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/stdcontainerma.hpp          )
+    list( APPEND ALIB_INCLUDE_FILES     alib/monomem/util/fixedcapacityvector.hpp)
     list( APPEND ALIB_INCLUDE_FILES     alib/monomem/util/rttrallocator.hpp      )
 
     list( APPEND ALIB_SOURCE_FILES      alib/monomem/detail/hashtablebase.cpp    )
@@ -129,10 +121,22 @@ if( "MONOMEM" IN_LIST ALIB_DISTRIBUTION )
     endif()
 endif()
 
+if( "BITBUFFER" IN_LIST ALIB_DISTRIBUTION )
+    list( APPEND ALIB_INCLUDE_FILES     alib/bitbuffer/arraycompressor.hpp         )
+    list( APPEND ALIB_INCLUDE_FILES     alib/bitbuffer/bitbuffer.hpp               )
+    list( APPEND ALIB_INCLUDE_FILES     alib/bitbuffer/ac_v1/acalgos.inl           )
+    list( APPEND ALIB_INCLUDE_FILES     alib/bitbuffer/ac_v1/ac.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/bitbuffer/ac_v1/huffman.hpp           )
+
+    list( APPEND ALIB_SOURCE_FILES      alib/bitbuffer/bitbuffer.cpp               )
+    list( APPEND ALIB_SOURCE_FILES      alib/bitbuffer/ac_v1/ac.cpp                )
+    list( APPEND ALIB_SOURCE_FILES      alib/bitbuffer/ac_v1/huffman.cpp           )
+endif()
+
 if( "ENUMS" IN_LIST ALIB_DISTRIBUTION )
     list( APPEND ALIB_INCLUDE_FILES     alib/enums/arithmetical.hpp              )
     list( APPEND ALIB_INCLUDE_FILES     alib/enums/bitwise.hpp                   )
-    list( APPEND ALIB_INCLUDE_FILES     alib/enums/iteratable.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES     alib/enums/iterable.hpp                )
     list( APPEND ALIB_INCLUDE_FILES     alib/enums/records.hpp                   )
     list( APPEND ALIB_INCLUDE_FILES     alib/enums/recordbootstrap.hpp           )
     list( APPEND ALIB_INCLUDE_FILES     alib/enums/underlyingintegral.hpp        )
@@ -223,6 +227,20 @@ if( "STRINGS" IN_LIST ALIB_DISTRIBUTION )
 
 endif()
 
+if( "THREADS" IN_LIST ALIB_DISTRIBUTION )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/detail/threadmap.hpp            )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/smartlock.hpp                   )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/thread.hpp                      )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlock.hpp                  )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlocknr.hpp                )
+    list( APPEND ALIB_INCLUDE_FILES alib/threads/sleeper.hpp                     )
+
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/smartlock.cpp                   )
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/thread.cpp                      )
+    list( APPEND ALIB_SOURCE_FILES  alib/threads/threadlock.cpp                  )
+endif()
+
+
 #################################             Full Modules             #############################
 if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
     list( APPEND ALIB_INCLUDE_FILES     alib/resources/localresourcepool.hpp  )
@@ -277,19 +295,6 @@ if( "RESULTS" IN_LIST ALIB_DISTRIBUTION )
 endif()
 
 
-if( "THREADS" IN_LIST ALIB_DISTRIBUTION )
-    list( APPEND ALIB_INCLUDE_FILES alib/threads/detail/threadmap.hpp            )
-    list( APPEND ALIB_INCLUDE_FILES alib/threads/smartlock.hpp                   )
-    list( APPEND ALIB_INCLUDE_FILES alib/threads/thread.hpp                      )
-    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlock.hpp                  )
-    list( APPEND ALIB_INCLUDE_FILES alib/threads/threadlocknr.hpp                )
-
-    list( APPEND ALIB_SOURCE_FILES  alib/threads/smartlock.cpp                   )
-    list( APPEND ALIB_SOURCE_FILES  alib/threads/thread.cpp                      )
-    list( APPEND ALIB_SOURCE_FILES  alib/threads/threadlock.cpp                  )
-endif()
-
-
 if( "SYSTEM" IN_LIST ALIB_DISTRIBUTION )
 
     list( APPEND ALIB_INCLUDE_FILES alib/system/calendar.hpp                     )
@@ -298,7 +303,9 @@ if( "SYSTEM" IN_LIST ALIB_DISTRIBUTION )
     list( APPEND ALIB_INCLUDE_FILES alib/system/environment.hpp                  )
     list( APPEND ALIB_INCLUDE_FILES alib/system/processinfo.hpp                  )
     list( APPEND ALIB_INCLUDE_FILES alib/system/system.hpp                       )
+    list( APPEND ALIB_INCLUDE_FILES alib/system/systemerrors.hpp                 )
 
+    list( APPEND ALIB_SOURCE_FILES  alib/system/calendar.cpp                     )
     list( APPEND ALIB_SOURCE_FILES  alib/system/console.cpp                      )
     list( APPEND ALIB_SOURCE_FILES  alib/system/directory.cpp                    )
     list( APPEND ALIB_SOURCE_FILES  alib/system/environment.cpp                  )
@@ -340,14 +347,14 @@ endif()
 
 if( "CLI" IN_LIST ALIB_DISTRIBUTION )
     list( APPEND ALIB_INCLUDE_FILES alib/cli/arguments.hpp                       )
-    list( APPEND ALIB_INCLUDE_FILES alib/cli/cliapp.hpp                          )
     list( APPEND ALIB_INCLUDE_FILES alib/cli/cli.hpp                             )
     list( APPEND ALIB_INCLUDE_FILES alib/cli/cliutil.hpp                         )
+    list( APPEND ALIB_INCLUDE_FILES alib/cli/commandline.hpp                     )
 
     list( APPEND ALIB_SOURCE_FILES  alib/cli/arguments.cpp                       )
-    list( APPEND ALIB_SOURCE_FILES  alib/cli/cliapp.cpp                          )
     list( APPEND ALIB_SOURCE_FILES  alib/cli/cli.cpp                             )
     list( APPEND ALIB_SOURCE_FILES  alib/cli/cliutil.cpp                         )
+    list( APPEND ALIB_SOURCE_FILES  alib/cli/commandline.cpp                     )
 endif()
 
 if( "EXPRESSIONS" IN_LIST ALIB_DISTRIBUTION )
@@ -393,6 +400,10 @@ if( "EXPRESSIONS" IN_LIST ALIB_DISTRIBUTION )
     if( "SYSTEM" IN_LIST ALIB_DISTRIBUTION )
         list( APPEND ALIB_INCLUDE_FILES alib/expressions/plugins/dateandtime.hpp )
         list( APPEND ALIB_SOURCE_FILES  alib/expressions/plugins/dateandtime.cpp )
+    endif()
+    if( "CONFIGURATION" IN_LIST ALIB_DISTRIBUTION )
+        list( APPEND ALIB_INCLUDE_FILES alib/expressions/standardrepository.hpp           )
+        list( APPEND ALIB_SOURCE_FILES  alib/expressions/standardrepository.cpp           )
     endif()
 
  endif()
@@ -551,4 +562,3 @@ foreach( fileName IN LISTS   ALIB_SOURCE_FILES )
     LIST( APPEND  temp "${ALIB_SOURCE_DIR}/${fileName}" )
 endforeach()
 SET( ALIB_SOURCE_FILES  ${temp} )
-

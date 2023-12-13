@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_ENUM
@@ -128,23 +128,23 @@ struct Enum : protected Box
     /** ********************************************************************************************
      * Comparison operator.
      *
-     * @param lhs The right hand side argument of the comparison.
-     * @return \c true if this object equals \p{lhs}, \c false otherwise.
+     * @param rhs The right hand side argument of the comparison.
+     * @return \c true if this object equals \p{rhs}, \c false otherwise.
      **********************************************************************************************/
-    bool operator==(const Enum& lhs)                                                           const
+    bool operator==(const Enum& rhs)                                                           const
     {
-        return this->CastToBox() == lhs.CastToBox();
+        return this->CastToBox() == rhs.CastToBox();
     }
 
     /** ********************************************************************************************
      * Comparison operator.
      *
-     * @param lhs The right hand side argument of the comparison.
-     * @return \c true if this object does not equal \p{lhs}, \c false otherwise.
+     * @param rhs The right hand side argument of the comparison.
+     * @return \c true if this object does not equal \p{rhs}, \c false otherwise.
      **********************************************************************************************/
-    bool operator!=(const Enum& lhs)                                                           const
+    bool operator!=(const Enum& rhs)                                                           const
     {
-        return this->CastToBox() != lhs.CastToBox();
+        return this->CastToBox() != rhs.CastToBox();
     }
 
     #if defined(ALIB_DOX)
@@ -216,18 +216,18 @@ struct Enum : protected Box
      * Comparison operator with enum elements.
      *
      * @tparam TEnum       The external (user specific) enumeration type.
-     * @param lhs The right hand side argument of the comparison.
-     * @return \c true if this object equals \p{lhs}, \c false otherwise.
+     * @param rhs The right hand side argument of the comparison.
+     * @return \c true if this object equals \p{rhs}, \c false otherwise.
      **********************************************************************************************/
     template<typename TEnum>
     inline
-    bool operator==(TEnum lhs)       const;
+    bool operator==(TEnum rhs)       const;
     #else
     template<typename  TEnum>
     ATMP_T_IF(bool, std::is_enum<TEnum>::value)
-    operator==(TEnum lhs)       const
+    operator==(TEnum rhs)       const
     {
-        return Integral() == static_cast<typename std::underlying_type<TEnum>::type>( lhs )
+        return Integral() == static_cast<typename std::underlying_type<TEnum>::type>( rhs )
                && TypeID() == typeid( TEnum );
     }
     #endif
@@ -237,18 +237,18 @@ struct Enum : protected Box
      * Comparison operator with enum elements.
      *
      * @tparam TEnum       The external (user specific) enumeration type.
-     * @param lhs The right hand side argument of the comparison.
-     * @return \c true if this object does not equal \p{lhs}, \c false otherwise.
+     * @param rhs The right hand side argument of the comparison.
+     * @return \c true if this object does not equal \p{rhs}, \c false otherwise.
      **********************************************************************************************/
     template<typename TEnum>
     inline
-    bool operator!=(TEnum lhs)       const;
+    bool operator!=(TEnum rhs)       const;
     #else
     template<typename  TEnum>
     ATMP_T_IF(bool, std::is_enum<TEnum>::value)
-    operator!=(TEnum lhs)       const
+    operator!=(TEnum rhs)       const
     {
-        return Integral() != static_cast<typename std::underlying_type<TEnum>::type>( lhs )
+        return Integral() != static_cast<typename std::underlying_type<TEnum>::type>( rhs )
                || TypeID() != typeid( TEnum );
     }
     #endif
@@ -267,18 +267,18 @@ struct Enum : protected Box
      *   can not be determined by the user code.
      *
      *
-     * @param lhs The right hand side argument of the comparison.
-     * @return If the encapsulated type of this instance is the same as that of \p{lhs}, this
+     * @param rhs The right hand side argument of the comparison.
+     * @return If the encapsulated type of this instance is the same as that of \p{rhs}, this
      *         methods returns \c true if #Integral() of this object is smaller than the one of
-     *         \p{lhs} and otherwise \c false. If the types are not the same, than the result is
+     *         \p{rhs} and otherwise \c false. If the types are not the same, than the result is
      *         dependent on the tool chain (compiler) used for compiling \alib.
      **********************************************************************************************/
-    bool operator< (Enum const& lhs)  const
+    bool operator< (Enum const& rhs)  const
     {
         return      (    std::type_index(    TypeID() )
-                       < std::type_index(lhs.TypeID() )  )
-                ||  (    TypeID() == lhs.TypeID()
-                         && Integral() < lhs.Integral()         );
+                       < std::type_index(rhs.TypeID() )  )
+                ||  (    TypeID() == rhs.TypeID()
+                         && Integral() < rhs.Integral()         );
     }
 
     #if ALIB_ENUMS
@@ -297,7 +297,7 @@ struct Enum : protected Box
          * @tparam TRecord  The enumeration record type associated with the enum type.
          *                  This has to be explicitly provided.
          *                  It is the caller's obligation to ensure that the requested type equals
-         *                  the one associated. Otherwise this method produces undefault behavior.
+         *                  the one associated. Otherwise this method produces undefined behavior.
          *
          * @return The record that is associated with this enumeration element.
          ******************************************************************************************/
@@ -305,9 +305,16 @@ struct Enum : protected Box
         const TRecord&  GetRecord()
         {
             const void* result= enums::detail::getEnumRecord( TypeID(), Integral() );
-            ALIB_ASSERT_ERROR( result != nullptr,
-                               NString128() << "Enum Record for type <" << DbgTypeDemangler(TypeID()).Get()
-                                            << ">(" << Integral()   << ") not found." )
+            #if ALIB_STRINGS
+                ALIB_ASSERT_ERROR( result != nullptr, "BOXING",
+                                   NString128() << "Enum Record for type <" << DbgTypeDemangler(TypeID()).Get()
+                                                << ">(" << Integral()   << ") not found." )
+            #else
+                ALIB_ASSERT_ERROR( result != nullptr,
+                                   "BOXING: Enum Record for type not found: ",
+                                   DbgTypeDemangler(TypeID()).Get() )
+            #endif
+
 
             return *reinterpret_cast<const TRecord*>( result );
         }
@@ -325,7 +332,7 @@ struct Enum : protected Box
          * @tparam TRecord  The enumeration record type associated with the enum type.
          *                  This has to be explicitly provided.
          *                  It is the caller's obligation to ensure that the requested type equals
-         *                  the one associated. Otherwise this method produces undefault behavior.
+         *                  the one associated. Otherwise this method produces undefined behavior.
          *
          * @return A pointer to the record that is associated with this enumeration element,
          *         respectively \c nullptr if no record was found.

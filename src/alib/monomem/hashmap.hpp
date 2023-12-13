@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHMAP
@@ -100,10 +100,10 @@ using HashMap= lib::monomem::HashTable<std::pair<const TKey, TMapped>,
 /// Type alias in namespace #aworx. See type definition \ref aworx::lib::monomem::HashMap.
 template< typename TKey,
           typename TMapped,
-          typename THash        = std::hash    <TKey>,
-          typename TEqual       = std::equal_to<TKey>,
-          Caching  THashCaching = Caching::Auto,
-          typename TRecycling   = lib::monomem::Recycling::Private >
+          typename THash             = std::hash    <TKey>,
+          typename TEqual            = std::equal_to<TKey>,
+          lib::Caching  THashCaching = lib::Caching::Auto,
+          typename TRecycling        = lib::monomem::Recycling::Private >
 using HashMap= lib::monomem::HashMap<TKey, TMapped,THash,TEqual, THashCaching, TRecycling >;
 
 } // namespace [aworx]

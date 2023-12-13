@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
@@ -16,7 +16,7 @@
 #  include "alib/time/ticks.hpp"
 #endif
 
-#if !defined (_GLIBCXX_MONOMEM) && !defined(_MONOMEM_)
+#if !defined (_GLIBCXX_MEMORY) && !defined(_MEMORY_)
 #   include <memory>
 #endif
 

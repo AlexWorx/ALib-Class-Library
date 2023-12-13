@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER
@@ -58,7 +58,7 @@ class PlainTextLogger : public TextLogger
         /** ****************************************************************************************
          * Destructs a MemoryLogger
          ******************************************************************************************/
-        virtual  ~PlainTextLogger()
+        virtual  ~PlainTextLogger()                                                         override
         {}
 
     // #############################################################################################
@@ -123,7 +123,7 @@ class PlainTextLogger : public TextLogger
         ALIB_API
         virtual void    logText( detail::Domain&     domain,    Verbosity verbosity,
                                  AString&          msg,
-                                 detail::ScopeInfo&  scope,     int       lineNumber );
+                                 detail::ScopeInfo&  scope,     int       lineNumber )     override;
 }; // class PlainTextLogger
 
 }}}}}// namespace [aworx::lib::lox::detail::textlogger]

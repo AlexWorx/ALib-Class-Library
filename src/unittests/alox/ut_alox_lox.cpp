@@ -2,11 +2,12 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 #if ALIB_UT_ALOX
 
 
@@ -69,7 +70,7 @@ extern void ScopeInfoCacheTest7();
         int cntLoops;
         int sleepMicros;
 
-        virtual void Run()
+        virtual void Run()                                                                  override
         {
             Log_SetDomain( "TEST/THREAD2", Scope::Method )
 
@@ -98,7 +99,7 @@ void check_MemLogStartsWith( const aworx::CString& exp, AWorxUnitTesting& ut, Me
         Log_Info("")
     }
 
-UT_PRINT( String256("MemLog result: <<<") << memlog.MemoryLog << ">>> expected: " << exp)
+    UT_PRINT( String256("MemLog result: <<<") << memlog.MemoryLog << ">>> expected: " << exp)
 
     if( DirectorySeparator == '/' )
     {
@@ -154,7 +155,7 @@ void check_MemLogContains( const aworx::CString& exp, AWorxUnitTesting& ut, Memo
 #   define ALIB_CALLER     __FILE__, __LINE__,  UT_GET_TEST_NAME
 #endif
 
-UT_CLASS()
+UT_CLASS
 
 /** ********************************************************************************************
  * AddLogger
@@ -468,6 +469,9 @@ UT_METHOD(Log_Threads)
             Log_Info( "This is the main thread ", i )
             Thread::SleepMicros( 1 );
         }
+
+        thread2.Terminate();
+        thread3.Terminate();
     }
 }
 #endif // ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
@@ -568,10 +572,8 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
         Log_Info( ""); UT_TRUE( memLogger.MemoryLog.CharAt(1) == ':' );
         Log_Prune( memLogger.MemoryLog._();   )
 
-    #else
-        #if !defined(ALOX_UNITTESTS_QMAKE_BUILD) && defined(__unix__)
-            check_MemLogStartsWith( A_CHAR("/home")               , ut, memLogger );
-        #endif
+    #elif defined(__unix__)
+        check_MemLogStartsWith( A_CHAR("/")               , ut, memLogger );
     #endif
 
     Log_SetSourcePathTrimRule( "*"         , Inclusion::Include     )  // illegal rule, not stored (debug into)
@@ -579,16 +581,7 @@ UT_METHOD(Log_SetSourcePathTrimRuleTest)
     Log_SetSourcePathTrimRule( "*/src/"    , Inclusion::Include     )  check_MemLogStartsWith( A_CHAR("unittests/alox@")     , ut, memLogger );
     Log_SetSourcePathTrimRule( "*"         , Inclusion::Include     )  // illegal rule, not stored (debug into)
 
-// 171209: This single test line 'suddenly' did not work any more with valgrind.
-// We have no clue why! Even more strange is that this test runs
-// with valgrind if executed exclusively or in a limited set of tests.
-// Is this now a bug in ALox? We do not guess so, as it only appears when all > 100 tests are run in valgrind.
-// More likely a valgrind effect.
-// No time to investigate right now...postponing investigation, or a new valgrind version will fix it again?
-#if !defined(ALIB_AVOID_ANALYZER_WARNINGS)
-    Log_SetSourcePathTrimRule( "**"        , Inclusion::Include     );  // illegal rule, not stored (debug into)
-                                                                        check_MemLogStartsWith( A_CHAR("unittests/alox@")     , ut, memLogger );
-#endif
+    Log_SetSourcePathTrimRule( "**"        , Inclusion::Include     )  // illegal rule, not stored (debug into)
 
     Log_ClearSourcePathTrimRules( Reach::Global, false )
     Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include, -3 )  check_MemLogStartsWith( A_CHAR("rc/unittests/alox@")  , ut, memLogger );

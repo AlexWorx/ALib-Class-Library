@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_VARIABLE
@@ -211,7 +211,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          * Constructs an undefined Variable. Prior to using this, #Declare has to be invoked.
          ******************************************************************************************/
         Variable()
-        : SelfContained( 4 * 1024, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -233,7 +233,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          *                       \alib{boxing,Boxes} or a boxed array.
          ******************************************************************************************/
         Variable( const VariableDecl& declaration,  const Box& replacements )
-        : SelfContained( 2048, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -249,7 +249,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          *                  #Category, #Name, #Fullname, #Delim, #Comments and #DefaultValue) from.
          ******************************************************************************************/
         Variable( const Variable& variable )
-        : SelfContained( 2048, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -269,7 +269,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          ******************************************************************************************/
         Variable( const String& category,  const String& name,  character delim= '\0',
                   const String& comments  = nullptr      )
-        : SelfContained( 2048, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -295,7 +295,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
         template<typename TEnum, typename TEnableIf=
         ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<VariableDecl>() ) >
         Variable( TEnum declaration )
-        : SelfContained( 2048, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -329,7 +329,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
         template<typename TEnum, typename TEnableIf=
         ATMP_VOID_IF( EnumRecords<TEnum>::template AreOfType<VariableDecl>() ) >
         Variable( TEnum declaration,  const Box& replacements )
-        : SelfContained( 2048, &fields )
+        : SelfContained( 2048, 100, &fields )
         {
             #if ALIB_DEBUG_MONOMEM
                 Allocator().LogDomain= A_CHAR("MA/CFG/VAR");
@@ -779,8 +779,8 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          ******************************************************************************************/
         const String&           GetString( int idx= 0 )
         {
-            ALIB_ASSERT_ERROR( idx >= 0  &&  idx < Size(),
-                               "Index {} is out of range.", idx )
+            ALIB_ASSERT_ERROR( idx >= 0  &&  idx < Size(), "CONFIG",
+                               NString128( "Variable field index '") << idx << "' is out of range." )
             return Self().values[static_cast<size_t>(idx)];
         }
 

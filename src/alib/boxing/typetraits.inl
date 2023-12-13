@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_TYPETRAITS
@@ -371,27 +371,7 @@ template<typename TMappedPlain> struct T_SizeInPlaceholder
 };
 
 #if !defined(ALIB_DOX)
-
-#if defined (_MSC_VER)
-    static_assert( sizeof(long double) ==  8, "Unexpected size of long double" );
-    template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 8;  };
-#elif defined (__GNUC__) || defined (__clang__)
-
-    #if   (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8 ) || defined(_WIN64)
-
-        template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 10; };
-
-    #elif (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 4 ) || defined(_WIN32)
-
-        template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= 10; };
-
-    #else
-        #error "Unknown platform"
-    #endif
-#else
-    #error "Unknown platform"
-#endif
-
+    template<> struct T_SizeInPlaceholder<long double> { static constexpr unsigned int value= ALIB_SIZEOF_LONGDOUBLE_WRITTEN;  };
 #endif
 
 

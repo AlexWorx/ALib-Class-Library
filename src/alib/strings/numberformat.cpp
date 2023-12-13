@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -12,7 +12,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-#if defined( _WIN32 ) || defined(__APPLE__)
+#if defined( _WIN32 ) || defined(__APPLE__)   || defined(__ANDROID_NDK__)
 #   include <clocale>
 #endif
 

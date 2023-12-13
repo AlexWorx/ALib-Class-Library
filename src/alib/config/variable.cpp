@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -101,6 +101,7 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  const Box& re
     {
         String128 replace;
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         const Box*  replacementPtr;
         integer     qtyReplacements;
         if ( replacements.IsType<Boxes*>() )
@@ -130,9 +131,10 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  const Box& re
                 bufComments    .SearchAndReplace( search, replace );
                 bufDefaultValue.SearchAndReplace( search, replace );
             }
+        ALIB_WARNINGS_RESTORE
     }
 
-    ALIB_ASSERT_WARNING(  bufName.IsNotEmpty(), "Empty variable name given" )
+    ALIB_ASSERT_WARNING(  bufName.IsNotEmpty(), "CONFIG", "Empty variable name given" )
 
     self.Category           = allocator.EmplaceString( bufCategory     );
     self.Name               = allocator.EmplaceString( bufName         );
@@ -141,7 +143,7 @@ Variable&    Variable::Declare( const VariableDecl&  declaration,  const Box& re
     if ( declaration.DefaultValue.IsNotNull() )
         self.DefaultValue   = allocator.EmplaceString( bufDefaultValue );
     else
-        self.DefaultValue= NullString();
+        self.DefaultValue   = NullString();
 
     return *this;
 }
@@ -188,7 +190,7 @@ void Variable::ReplaceValue( int idx, const String& replacement )
     auto& self= Self();
     if( idx < 0 || idx >= Size() )
     {
-        ALIB_WARNING( "Index out of range: ", idx  )
+        ALIB_WARNING( "CONFIG", "Index out of range: ", idx  )
         return;
     }
 
@@ -201,7 +203,7 @@ void Variable::ReplaceValue( int idx, Variable& replVariable )
     auto& allocator= Allocator();
     if( idx < 0 || idx >= Size() )
     {
-        ALIB_WARNING( "Index out of range: ", idx  )
+        ALIB_WARNING( "CONFIG", "Index out of range: ", idx  )
         return;
     }
 
@@ -285,11 +287,9 @@ void VariableDecl::Parse()
     enums::EnumRecordParser::Get( Category                         );
     enums::EnumRecordParser::Get( ERSerializable::EnumElementName  );           // field from parent class
                                   ERSerializable::MinimumRecognitionLength= 0;  // omit reading, but fix to zero
-    enums::EnumRecordParser::Get( DefaultValue              );
     enums::EnumRecordParser::Get( Delim                     );
     enums::EnumRecordParser::Get( FormatAttrAlignment       );
-    enums::EnumRecordParser::Get( FmtHints                  );
-    enums::EnumRecordParser::Get( Comments                  , true ); // last field!
+    enums::EnumRecordParser::Get( FmtHints                  , true ); // last field!
 }
 DOX_MARKER([DOX_ALIB_ENUMS_RECORD_PARSER])
 

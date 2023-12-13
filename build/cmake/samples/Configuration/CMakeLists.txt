@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -24,8 +24,7 @@
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.18.0 )
     project("ALib.Configuration.Sample")
 
 
@@ -34,7 +33,10 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_DISTRIBUTION             "CONFIGURATION" )
+    list( APPEND  ALIB_DISTRIBUTION        "CONFIGURATION" )
+
+    # add options
+    #list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
 
     # invoke main CMake file
     include( ${CMAKE_CURRENT_LIST_DIR}/../../ALib.cmake )
@@ -49,7 +51,7 @@
     add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Configuration/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
     ALibSetCotire             ( Sample )
-    target_link_libraries     ( Sample   ALib_SharedLib  )
+    target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 
 
 # -------------------------------------------------------------------------------------------------
@@ -57,12 +59,4 @@
 # -------------------------------------------------------------------------------------------------
 
 # uncomment for debug
-#ALibDumpCMakeStatus()
-
-
-
-
-
-
-
-
+#ALibDumpCMakeVariables()

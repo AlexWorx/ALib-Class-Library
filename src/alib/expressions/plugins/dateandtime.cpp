@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -204,9 +204,9 @@ FUNC( inNanoseconds   , return DUR(ARG0).InNanoseconds (); )
 FUNC( inHertz         , return DUR(ARG0).InHertz(2);       )
 
 // binary operators time stamp
-FUNC( add_DTDUR , return  DT(ARG0)  +  DUR(ARG1);   )
-FUNC( add_DURDT , return  DT(ARG1)  +  DUR(ARG0);   )
-FUNC( sub_DTDUR , return  DT(ARG0)  -  DUR(ARG1);   )
+FUNC( add_DTDUR , return  DT(ARG0)  +  DUR(ARG1);  )
+FUNC( add_DURDT , return  DT(ARG1)  +  DUR(ARG0);  )
+FUNC( sub_DTDUR , return  DT(ARG0)  -  DUR(ARG1);  )
 FUNC( sub_DTDT  , return  DT(ARG0)  -  DT(ARG1);   )
 FUNC(   eqDT    , return  DT(ARG0)  == DT(ARG1);   )
 FUNC(  neqDT    , return  DT(ARG0)  != DT(ARG1);   )
@@ -290,6 +290,7 @@ DateAndTime::DateAndTime( Compiler& compiler )
     Token functionNames[tableSize];
     Token::LoadResourcedTokens( EXPRESSIONS, "CPD", functionNames
                                 ALIB_DBG(,tableSize)                                     );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
 
     // Constant identifiers
@@ -304,7 +305,6 @@ DateAndTime::DateAndTime( Compiler& compiler )
         { *descriptor++,  TOINT(0) },  { *descriptor++,  TOINT(1) },  { *descriptor++,  TOINT(2) },  { *descriptor++, TOINT( 3) },
         { *descriptor++,  TOINT(4) },  { *descriptor++,  TOINT(5) },  { *descriptor++,  TOINT(6) },
     };
-
 
     // functions
     Functions=
@@ -365,10 +365,11 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
     // binary operators
     AddOperators( binaryOpTableDateTime );
 
-    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
+    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize  )
-}
+    ALIB_WARNINGS_RESTORE
+/**/}
 
 
 }}}} // namespace [aworx::lib::expressions::detail]

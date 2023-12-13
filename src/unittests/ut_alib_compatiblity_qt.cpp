@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,7 +10,7 @@
 
 
 
-#if defined(QT_CORE_LIB)
+#if defined(QT_CORE_LIB) && ALIB_CHARACTERS
 #include "alib/compatibility/qt_characters.hpp"
 #include "alib/compatibility/qt_strings.hpp"
 #include "alib/compatibility/qt_boxing.hpp"
@@ -38,7 +38,7 @@ using namespace aworx;
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- QT_String
@@ -83,9 +83,9 @@ UT_METHOD( QT_String )
 UT_METHOD( QT_StringBoxing )
 {
     UT_INIT()
-    aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED);
+    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED) );
     aworx::lib::boxing::compatibility::qt::BootstrapQTStringBoxing();
-    aworx::lib::monomem::GlobalAllocatorLock.Release();
+    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release() );
 
 
     UT_PRINT("") UT_PRINT( "### Boxing: Testing Equals: char*/char[]  with QByteArray ###" )

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -41,6 +41,10 @@
 #      include "alib/enums/detail/enumrecordmap.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
+
+
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::results::Exception*, vt_alib_exception )
+
 
 namespace aworx { namespace lib { namespace results {
 
@@ -82,8 +86,8 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
                         recordList.push_back( std::pair<integer,const void*>(record.first.Element, record.second) );
                 if( recordList.size() == 0)
                 {
-                    ALIB_ERROR( "No enum records defined for exception enumeration type {!Q<>}.",
-                                message->Type.TypeID() )
+                    ALIB_ERROR( "EXCEPT", "No enum records defined for exception enumeration type {!Q<>}.",
+                                message->Type.TypeID().name() )
                 }
                 else
                 {
@@ -95,17 +99,17 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
                     AString recordListDump;
                     auto formatter= Formatter::AcquireDefault( ALIB_CALLER_PRUNED );
                     formatter->Format( recordListDump,
-                                       "Enum Recode record {} not found for exception enumeration type {}.\\n"
-                                       "The following records have been found, however:\\n",
+                                       "Enum record {} not found for exception enumeration type {}.\n"
+                                       "The following records have been found:\n",
                                        message->Type.Integral(),
                                        message->Type.TypeID()     );
 
                     for( auto& pair : recordList )
-                        formatter->Format( recordListDump, "  {:2}: {}\\n",
+                        formatter->Format( recordListDump, "  {:2}: {}\n",
                                            pair.first,
                                            reinterpret_cast<const ERException*>( pair.second )->EnumElementName );
                     formatter->Release();
-                    ALIB_ERROR( recordListDump )
+                    ALIB_ERROR( "EXCEPT", recordListDump )
                 }
             }
         }
@@ -158,7 +162,7 @@ const Enum&   Exception::Type() const
 
 
 
-void   Exception::Format( AString& target )     const
+AString&   Exception::Format( AString& target )     const
 {
     Paragraphs text(target);
     Tokenizer tknzr;
@@ -189,8 +193,7 @@ void   Exception::Format( AString& target )     const
     }
 
     formatter->Release();
+    return target;
 }
 
 }}} // namespace [aworx::lib::results]
-
-

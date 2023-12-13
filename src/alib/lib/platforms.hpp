@@ -3,7 +3,7 @@
  * This header file is part of the \aliblong. It does neither belong to a fileset, nor to a
  * specific module of \alib, but is included in any \alibdist.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * \note
@@ -20,12 +20,9 @@
 // basic system headers
 // #################################################################################################
 
-// GNUC specific
-#if defined( __GNUC__ )
-
 
 // Windows specific
-#elif defined ( _MSC_VER )
+#if defined (_WIN32)
 
     //! @cond NO_DOX
     // Include windows.h. but exclude rarely-used stuff from Windows headers. If these things are
@@ -51,10 +48,8 @@
 #   if !defined (_STDINT)
 #      include <stdint.h>
 #   endif
+#   include <assert.h>
 
-// other platforms not tested, yet
-#else
-#   pragma message ("Unknown Platform in file: " __FILE__ )
 #endif
 
 
@@ -62,7 +57,8 @@
 // Size of wchar_t
 // #################################################################################################
 #if defined(__WCHAR_MAX__)
-    #if  __WCHAR_MAX__ == 0x7FFFFFFF
+    #if    __WCHAR_MAX__ == 0x7FFFFFFF  \
+        || __WCHAR_MAX__ == 0xFFFFFFFF
         #define     ALIB_SIZEOF_WCHAR_T    4
     #else
         #define     ALIB_SIZEOF_WCHAR_T    2
@@ -70,7 +66,7 @@
 #elif defined(_MSC_VER)
     #define         ALIB_SIZEOF_WCHAR_T    2
 #else
-#define         ALIB_SIZEOF_WCHAR_T    4 // guessing, will be checked below
+#   define         ALIB_SIZEOF_WCHAR_T     4 // guessing, will be checked below
 #endif
 
 static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supported" );

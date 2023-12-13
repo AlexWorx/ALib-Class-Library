@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREAD
@@ -19,6 +19,17 @@
 
 ALIB_ASSERT_MODULE(THREADS)
 
+#if ALIB_TIME
+#   if !defined(HPP_ALIB_TIME_TICKS)
+#       include "alib/time/ticks.hpp"
+#   endif
+#endif
+
+#if ALIB_ENUMS
+#   if !defined(HPP_ALIB_ENUMS_RECORDS)
+#       include "alib/enums/records.hpp"
+#   endif
+#endif
 namespace aworx { namespace lib { namespace threads {
 
 // forwards
@@ -104,6 +115,22 @@ class Thread : public Runnable
         friend Thread* detail::getThread  (std::thread::id c11ID );
     #endif
 
+    public:
+        /**
+         * States that follow lifecycle of the thread. The states are accessible with method
+         * #GetState.
+         */
+        enum class State
+        {
+            Unstarted   =  0  ///< Not started and no call to #Start was performed, yet.
+                              ///< This is the state after construction of an instance.
+           ,Started     =  1  ///< Method #Start was invoked but not running, yet.
+           ,Running     =  2  ///< The thread's #Run method is currently processed.
+           ,Stopped     =  3  ///< The run method is processed and the thread is ready to be
+                              ///< terminated.
+           ,Terminated  =  4  ///< The thread is terminated.
+        };
+
     // #############################################################################################
     // Protected fields
     // #############################################################################################
@@ -114,9 +141,6 @@ class Thread : public Runnable
         /** The internal C++ 11 thread id. */
         std::thread::id     c11ID;
 
-        /** Internal flag to indicate if thread is alive. */
-        bool                isAliveFlag                                                      =false;
-
         /** The runnable to execute. */
         Runnable*           runnable                                                       =nullptr;
 
@@ -125,6 +149,9 @@ class Thread : public Runnable
 
         /** The name of the thread. */
         AString             name;
+
+        /** Internal flag to indicate if thread is alive. */
+        State               state                                                = State::Unstarted;
 
 
     // #############################################################################################
@@ -156,11 +183,12 @@ class Thread : public Runnable
 
 
         /** ****************************************************************************************
-         *  The destructor blocks, if the thread was started and is still running. Blocking lasts
-         *  until the thread's end of execution.
-         *  Declared virtual, as inherited from Runnable.
+         * Prior to destruction, #Terminate has to be called.
+         * The destructor blocks, if the thread was started and is still running. Blocking lasts
+         * until the thread's end of execution.
+         * Declared virtual, as inherited from Runnable.
          ******************************************************************************************/
-        ALIB_API  virtual  ~Thread();
+        ALIB_API  virtual  ~Thread()                                                       override;
 
 
     // #############################################################################################
@@ -173,8 +201,7 @@ class Thread : public Runnable
          * Hence, to have the thread execute something, either a \alib{threads,Runnable}
          * has to be provided or a derived version of this class replaces this method.
          *  */
-        virtual void    Run()                                { if (runnable)    runnable->Run(); }
-
+        virtual void    Run()               override           { if (runnable)    runnable->Run(); }
 
     // #############################################################################################
     // Interface
@@ -186,7 +213,7 @@ class Thread : public Runnable
          *
          * @return    The \alib id of the thread.
          ******************************************************************************************/
-        ThreadID        GetId()                              { return id;          }
+        virtual ThreadID        GetId()                                               { return id; }
 
         /** ****************************************************************************************
          * Returns the name of the thread. An \alib thread can have any name that is given to it and
@@ -195,7 +222,7 @@ class Thread : public Runnable
          *
          * @return  Returns the name of the thread.
          ******************************************************************************************/
-        const CString   GetName()                            { return name; }
+        virtual const CString   GetName()                                           { return name; }
 
         /** ****************************************************************************************
          * Sets the name of the thread. An \alib thread can have any name that is given to it and
@@ -204,19 +231,30 @@ class Thread : public Runnable
          *
          * @param newName    The name that the Thread should hold.
          ******************************************************************************************/
-         void           SetName( const String& newName )     { name.Reset( newName);   }
+         virtual void           SetName( const String& newName )           { name.Reset( newName); }
 
         /** ****************************************************************************************
-         * Returns \c true, if this thread was started and is still running. If \c false is
-         * returned, the thread object can be safely deleted, without causing a blocking operation.
+         * Returns the state of the thread. The states are given in enumeration #State and
+         * during the lifecycle of the thread, the state transitions from
+         * \alib{threads::Thread,State::Unstarted} to \alib{threads::Thread,State::Terminated}.
          * \note
-         *   For system threads (those not created using \alib thread features) \c true is
-         *   returned. It can't be determined if the thread is still alive or not.
-         *
-         *
-         * @return \c true if this thread was started previously and is still running.
+         *   For system threads (the thread that executed function <c>main thread</c> and those
+         *   not created using \alib thread features) \alib{threads::Thread,State::Running} is
+         *   returned.
+         *   For those, it can't be determined if the thread is stared, alive or not.
+         * @return The current state within the thread's lifecycle.
          ******************************************************************************************/
-         bool           IsAlive()                            { return isAliveFlag; }
+         State                  GetState()                                         { return state; }
+
+        /** ****************************************************************************************
+         * A shortcut to
+         * <c>GetState().first == State::Started  || GetState().first == State::Running</c>.
+         *
+         * @return \c true if the current state of the thread is
+         *            \alib{threads,Thread,State::Running}.
+         ******************************************************************************************/
+         bool                   IsAlive()                       { return state == State::Started
+                                                                      || state == State::Running; }
 
         /** ****************************************************************************************
          * Starts the execution of the thread. Method #Run is invoked by the new system thread,
@@ -225,7 +263,16 @@ class Thread : public Runnable
          * usually return \c true (unless the executed thread is not finished already).
          ******************************************************************************************/
         ALIB_API
-        void            Start();
+        virtual void            Start();
+
+        /** ****************************************************************************************
+         * Terminates a thread using <c>std::join()</c>.
+         * When this method is called, the thread should be in state <b>State::Closing</b>, which
+         * is the case after method \b Run has exited.
+         * Otherwise an \alib warning is raised.
+         ******************************************************************************************/
+        ALIB_API
+        virtual void            Terminate();
 
     // #############################################################################################
     // Static interface
@@ -237,7 +284,7 @@ class Thread : public Runnable
          * @return A pointer to the current thread.
          ******************************************************************************************/
         static
-        Thread*             GetCurrent()
+        Thread*         GetCurrent()
         {
             return detail::getThread( std::this_thread::get_id() );
         }
@@ -250,16 +297,28 @@ class Thread : public Runnable
          * @return A pointer to the main thread.
          ******************************************************************************************/
         ALIB_API static
-        Thread*             GetMain();
+        Thread*         GetMain();
+
+        /** ****************************************************************************************
+         * Proactively offers the system to suspend the current thread.
+         * Invokes <c>std::this_thread::yield</c>.
+         * \note Must not be named 'Yield', because this is a macro name with MSVC.
+         ******************************************************************************************/
+        ALIB_API static
+        void            YieldToSystem()
+        {
+            std::this_thread::yield();
+        }
 
         /** ****************************************************************************************
          * Suspends the current thread by calling <em>std::this_thread::sleep_for</em>.
-         * Variants of this method are #SleepMicros and #SleepNanos.
+         * \see
+         *   Variants #SleepMicros, #SleepNanos, #Sleep and #SleepUntil
          *
          *  @param milliseconds    Sleep time in milliseconds.
          ******************************************************************************************/
         static
-        void                SleepMillis( int milliseconds )
+        void            SleepMillis     ( int milliseconds )
         {
             std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
         }
@@ -267,27 +326,58 @@ class Thread : public Runnable
 
         /** ****************************************************************************************
          * Suspends the current thread by calling <em>std::this_thread::sleep_for</em>.
-         * Variants of this method are #SleepMillis and #SleepNanos.
+         * \see
+         *   Variants #SleepMillis, #SleepNanos, #Sleep and #SleepUntil
          *
          * @param microseconds    Sleep time in microseconds.
          ******************************************************************************************/
         static
-        void                SleepMicros( int64_t microseconds )
+        void            SleepMicros     ( int64_t microseconds )
         {
             std::this_thread::sleep_for( std::chrono::microseconds( microseconds ) );
         }
 
         /** ****************************************************************************************
          * Suspends the current thread by calling <em>std::this_thread::sleep_for</em>.
-         * Variants of this method are #SleepMicros and #SleepMillis.
+         * \see
+         *   Variants #SleepMicros, #SleepMillis, #Sleep and #SleepUntil
          *
          * @param nanoseconds    Sleep time in nanoseconds.
          ******************************************************************************************/
         static
-        void                SleepNanos( int64_t nanoseconds )
+        void            SleepNanos      ( int64_t nanoseconds )
         {
             std::this_thread::sleep_for( std::chrono::nanoseconds( nanoseconds ) );
         }
+
+        #if ALIB_TIME
+            /** ************************************************************************************
+             * Suspends the current thread by calling <em>std::this_thread::sleep_for</em>.
+             * \see
+             *   Variants #SleepUntil, #SleepMicros, #SleepMillis and #SleepNanos.
+             *
+             * @param duration    Sleep duration.
+             **************************************************************************************/
+            static
+            void        Sleep       ( const Ticks::Duration& duration )
+            {
+                std::this_thread::sleep_for( duration.Export() );
+            }
+
+            /** ************************************************************************************
+             * Suspends the current thread by calling <em>std::this_thread::sleep_for</em>.
+             * \see
+             *   Variants #Sleep, #SleepMicros, #SleepMillis and #SleepNanos
+             *
+             * @param time    Sleep duration.
+             **************************************************************************************/
+            static
+            void        SleepUntil  ( const Ticks& time )
+            {
+                std::this_thread::sleep_until( time.Export() );
+            }
+        #endif
+
 };
 
 }} // namespace aworx[::lib::threads]
@@ -298,9 +388,14 @@ using     Runnable=     lib::threads::Runnable;
 /// Type alias in namespace #aworx.
 using     Thread=       lib::threads::Thread;
 
-/** Type to store thread identifiers.  */
+/// Type to store thread identifiers.
 using     ThreadID=     lib::threads::ThreadID;
 
 }  // namespace [aworx]
+
+
+#if ALIB_ENUMS && ALIB_BOXING
+    ALIB_ENUMS_ASSIGN_RECORD(aworx::lib::threads::Thread::State, aworx::lib::enums::ERSerializable )
+#endif
 
 #endif // HPP_ALIB_THREADS_THREAD

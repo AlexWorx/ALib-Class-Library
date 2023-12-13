@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_MASTRING
@@ -23,7 +23,7 @@ namespace aworx { namespace lib { namespace monomem {
 
 /** ************************************************************************************************
  * The name of this class stands for "monotonically allocated string".
- * Consequently, it publically derives from \alib{strings,TAString,AString} and provides some
+ * Consequently, it publicly derives from \alib{strings,TAString,AString} and provides some
  * special constructors that perform an initial allocation using a given
  * \alib{monomem,MonoAllocator}. The constructors allow to specify an (additional)
  * capacity to allocate, besides what is needed when copying the construction parameter.

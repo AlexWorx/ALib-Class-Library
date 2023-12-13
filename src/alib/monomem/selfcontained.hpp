@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_SELF_CONTAINED
@@ -14,6 +14,10 @@
 
 #if !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
+#endif
+
+#if !defined (HPP_ALIB_TOOLS)
+#   include "alib/lib/tools.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace monomem {
@@ -99,14 +103,20 @@ class SelfContained
 
             /**
              * Constructor.
-             * @tparam  TArgs        The argument types used for constructing \p{TContained}.
-             * @param   firstChunk   The first argument to field #allocator.
-             * @param   stdChunkSize The second argument to field #allocator.
-             * @param   args         The arguments to construct the instance of \p{TContained}.
+             * @tparam TArgs                The argument types used for constructing \p{TContained}.
+             * @param  firstChunk           The first argument to field #allocator.
+             * @param  initialChunkSize     The second argument to field #allocator.
+             * @param  chunkGrowthInPercent Growth faktor in percent (*100), applied to each
+             *                              allocation of a next chunk size.
+             *                              Values provided should be greater than 100.<p>
+             * @param  args                 The arguments to construct the instance of
+             *                              \p{TContained}.
              */
             template<typename... TArgs>
-            Fields( MonoAllocator::Chunk* firstChunk, size_t stdChunkSize, TArgs&&... args )
-            : allocator( firstChunk, stdChunkSize )
+            Fields( MonoAllocator::Chunk* firstChunk,
+                    size_t initialChunkSize, unsigned int chunkGrowthInPercent,
+                    TArgs&&... args )
+            : allocator( firstChunk, initialChunkSize, chunkGrowthInPercent )
             , custom(  std::forward<TArgs>(args)... )
             {}
         };
@@ -127,19 +137,24 @@ class SelfContained
          * The instance of custom type \p{TContained} which is found in #fields will be constructed
          * using the given variadic arguments \p{args}.
          *
-         * @tparam  TArgs        The argument types used for constructing \p{TContained}.
-         * @param   stdChunkSize The size of memory chunks used with the monotonic allocator.
-         * @param   args         The arguments to construct the instance of \p{TContained}.
+         * @tparam TArgs                The argument types used for constructing \p{TContained}.
+         * @param  initialChunkSize     The initial size of memory chunks used with the monotonic
+         *                              allocator.
+         * @param  chunkGrowthInPercent Optional growth factor in percent (*100), applied to each
+         *                              allocation of a next chunk size.
+         *                              Values provided should be greater than 100.
+         * @param   args                The arguments to construct the instance of \p{TContained}.
          **********************************************************************************************/
         template<typename... TArgs>
-        SelfContained( size_t stdChunkSize, TArgs&&... args )
+        SelfContained( size_t initialChunkSize, unsigned int chunkGrowthInPercent, TArgs&&... args )
         {
-            ALIB_ASSERT_ERROR( sizeof(Fields) < stdChunkSize - MonoAllocator::MaxUsableSpaceLoss(),
-                               "Chunk size to small to create self-contained object."  )
-            MonoAllocator::Chunk* firstChunk= MonoAllocator::Chunk::create( stdChunkSize - MonoAllocator::MaxUsableSpaceLoss() );
+            ALIB_ASSERT_ERROR( sizeof(Fields) < initialChunkSize - MonoAllocator::MaxUsableSpaceLoss(),
+                               "MONOMEM", "Chunk size to small to create self-contained object."  )
+            auto firstChunk= MonoAllocator::Chunk::create( initialChunkSize - MonoAllocator::MaxUsableSpaceLoss() );
 
             fields=  reinterpret_cast<Fields*>( firstChunk->alloc( sizeof( Fields), alignof(Fields) ) );
-            new (fields) Fields( firstChunk, stdChunkSize, std::forward<TArgs>(args)... );
+            new (fields) Fields( firstChunk, initialChunkSize, chunkGrowthInPercent,
+                                 std::forward<TArgs>(args)... );
 
             fields->snapshot= fields->allocator.TakeSnapshot();
         }
@@ -193,7 +208,7 @@ class SelfContained
      *
      * @param move The object to move.
      **********************************************************************************************/
-    SelfContained(SelfContained&& move)
+    SelfContained(SelfContained&& move)                                                     noexcept
     {
         this->fields=  move.fields;
         move .fields=  nullptr;

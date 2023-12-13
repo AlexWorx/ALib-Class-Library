@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MaterialThemeProjectConfig">
+    <option name="isActive" value="true" />
+    <option name="activeBoldTab" value="true" />
+    <option name="isHighlightColorEnabled" value="true" />
+    <option name="useProjectFrame" value="true" />
+    <option name="highlightColor" value="135ae3" />
+    <option name="projectFrameColor" value="082669" />
+    <option name="tabHighlightPosition" value="Top-Bottom" />
+  </component>
+</project>

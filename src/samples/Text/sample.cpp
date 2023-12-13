@@ -2,7 +2,7 @@
 //  ALib C++ Library
 //  Boxing And Strings Sample
 //
-//  Copyright 2019 A-Worx GmbH, Germany
+//  Copyright 2023 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/distribution.hpp"
@@ -56,8 +56,8 @@ int main()
     // A quick, simple ALib formatter test
     AString                 target;
     FormatterPythonStyle    formatter;
-    const char*             formatString= "Host name: {!Tab20}\\n"
-                                          "Result: {!Tab20!Q} \\n"
+    const char*             formatString= "Host name: {!Tab20}\n"
+                                          "Result: {!Tab20!Q}\n"
                                           "Calculation time: {!Tab20:,} years";
 
     formatter.Format( target, formatString,
@@ -67,5 +67,4 @@ int main()
 
     // shutdown the library and exit
     ALIB.Shutdown();
-
 }

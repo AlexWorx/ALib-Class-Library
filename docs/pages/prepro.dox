@@ -1,13 +1,14 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 ####################################################################################################
 ### Definitions needed by doxygen
 ####################################################################################################
+#define ALIB_GCC
 #define ALIB_COMPILATION_FLAGS
 #define ALIB_EXT_LIB_THREADS_AVAILABLE
 #define ALIB_PRECOMPILED_HEADER
@@ -28,18 +29,22 @@
 
 #define ALIB_SIZEOF_INTEGER
 #define ALIB_SIZEOF_INTGAP
-#define ALIB_SIZEOF_LONGDOUBLE
+#define ALIB_INTGAP_TYPE
+#define ALIB_SIZEOF_LONGDOUBLE_REPORTED
+#define ALIB_SIZEOF_LONGDOUBLE_WRITTEN
 
 #define ALIB_CHARACTERS_NATIVE_WCHAR
 
 #define ALIB_GTEST
 #define ALIB_DOX
+#define ALIB_BASE_DIR
 
 
 #define ALIB_FEAT_SINGLETON_MAPPED                 1
 #define ALIB_DEBUG_BOXING                          1
 #define ALIB_DEBUG_STRINGS                         1
 #define ALIB_DEBUG_MONOMEM                         1
+#define ALIB_DEBUG_ARRAY_COMPRESSION               1
 #define ALIB_DEBUG_RESOURCES                       1
 #define ALIB_FEAT_BOOST_REGEX                      1
 #define ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS      1
@@ -58,14 +63,14 @@
 /**
 \page alib_ref_prepro    ALib and the C++ Preprocessor
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # Naming scheme #
 All preprocessor symbols and macros are prefixed with <b>"ALIB_"</b>. Most symbols then continue with
 the name of the \alibmod  that uses/defines them.
 One important exclamation of this naming scheme are the symbols defined by module \alib_alox,
 which are prefixed <b>"ALOX_"</b>.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # ALib Compiler Symbols #
 Compiler symbols are used to select different versions of code, dependent on
 - the platform,
@@ -85,7 +90,7 @@ All symbols are documented with:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \ref GrpALibPreproSymbols <br>
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # ALib Macros #
 Preprocessor macros, which expand given arguments to more complex code, are given with
 
@@ -94,9 +99,9 @@ Preprocessor macros, which expand given arguments to more complex code, are give
 
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
+\I{################################################################################################}
 
 @defgroup GrpALibPreproSymbols ALib Compiler Symbols
 \details
@@ -120,7 +125,7 @@ Followed to this, module-specific symbols are documented:
 &nbsp;&nbsp;      \ref GrpALibPreproSymbols_alox        "Module ALox"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_boxing      "Module Boxing"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_characters  "Module Characters"
-<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_monomem     "Module Monomem"
+<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_memory     "Module Memory"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_resources   "Module Resources"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_singletons  "Module Singletons"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_strings     "Module Strings"
@@ -129,9 +134,9 @@ Followed to this, module-specific symbols are documented:
 @{
 
 
-\~Comment ####################################################################################### \~
-\~Comment #######################           General              ################################ \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{##############################           General              ################################  }
+\I{################################################################################################}
 
 \name General Preprocessor Symbols
 \anchor GrpALibPreproSymbols_general
@@ -200,13 +205,19 @@ compiler:
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ####################    General Deduced Symbols   #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###########################    General Deduced Symbols   ####################################  }
+\I{################################################################################################}
 \name General Preprocessor Symbols Deduced By ALib Headers
 \anchor GrpALibPreproSymbols_general_deduced
 The following general symbols (aka symbols not related to distinct \alibmods) are deduced by
-\alib headers and thus may \b not be passed to the compiler:
+\alib headers and thus usually are not to be passed to the compiler.
+
+ \note Since \alib release 2312, the automatic detection of some symbols may be disabled by passing
+       them from outside. This allows to compile the code with platform/toolchain combinations that
+       are not 'known' to \alib.
+       See \ref ALIB_SIZEOF_INTEGER for more information.
+
 @{
 
 \def  ALIB_CPPVER
@@ -229,6 +240,13 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
   Macro which is \c 1 defined when compiled using the <b>C++ 20</b> standard.
   The macro is \c 0 if any other language standard is used.
 
+\def ALIB_GCC
+  Macro which is \c 1 defined when an unknown compiler is used and this compiler is
+  specifying \c __GNUC__ (what most compilers do).
+  This deduction to "the real gcc" can never be complete, but is the best guess available.
+  A much more complete deduction is provided by boost libraries for example.
+  \alib is tested only on a limited set of platforms/compilers.
+
 \def  ALIB_DOX
   Defined by \https{Doxygen,www.stack.nl/~dimitri/doxygen} when parsing source code.
   Not defined with parsers of a C++ compiler. Primarily used to provide a doxygen
@@ -236,25 +254,68 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
 
 \def  ALIB_SIZEOF_INTEGER
   Contains the size of \c std::size_t, \c std::ptrdiff_t, #aworx::integer and #aworx::uinteger,
-  which all should be the same, depending on the platform/compiler (32-bit or 64 bit system).
+  which all should be the same, depending on the compiler and platform (processor type).
+  Usually this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  platform. If this deduction fails, this may result in two possible outcomes:
+  1. A dedicated compilation error hinting to this documentation.
+  2. Less directly connected compilation errors.
+
+  In this case, the right value has to be provided to the compiler. When doing this, symbols
+  - \ref ALIB_INTGAP_TYPE,
+  - \ref ALIB_SIZEOF_INTGAP,
+  - \ref ALIB_SIZEOF_LONGDOUBLE_REPORTED and<br>
+  - \ref ALIB_SIZEOF_LONGDOUBLE_WRITTEN<br>
+
+  have to be provided as well. This is true for each symbol: If one of them is given explicitly
+  to the compiler, all of the five have to be given.
+  Otherwise an explicit error message will be given during compilation.
+
+\def ALIB_INTGAP_TYPE
+  The type of \alib{intGap_t}.
+  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  platform
+  @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
+       information about providing compiler symbols.
 
 \def  ALIB_SIZEOF_INTGAP
-  Contains the size of integral types \alib{intGap_t} and \alib{uintGap_t}.
+  Contains the size of integral types \alib{intGap_t} and \alib{uintGap_t}.<br>
+  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  platform.
 
-\def  ALIB_SIZEOF_LONGDOUBLE
+  @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
+       information about providing compiler symbols.
+
+\def  ALIB_SIZEOF_LONGDOUBLE_REPORTED
   Contains the size of <c>long double</c>. This is the value that <c>sizeof(long double)</c>
   returns. This size might be higher to what a copy operation of a value of the type might
   write.
+  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  platform.
 
-  \see
-    A different size for <c>long double</c> might be given with a specialization of
-    \alib{boxing,T_SizeInPlaceholder}
+  @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
+       information about providing compiler symbols.<br>
+
+  @see Sibling symbol \ref ALIB_SIZEOF_LONGDOUBLE_WRITTEN.
+
+\def  ALIB_SIZEOF_LONGDOUBLE_WRITTEN
+  Symbol which denotes how many bytes the hardware will write with a value of type <c>long double</c>.
+  This size might be smaller than the amount of memory that an allocation of that type would consume,
+  hence what is reported by <c>sizeof(long double)</c>.<br>
+  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  platform.
+
+  @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
+       information about providing this compiler symbol together with four others.<br>
+
+  @see The value of this symbol is used to define the specialization of struct
+       \alib{boxing,T_SizeInPlaceholder} for template type <c>long double</c>.
+
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment #####################           Module Selection          ############################# \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{############################           Module Selection          #############################  }
+\I{################################################################################################}
 \name ALib Module Selection
 \anchor GrpALibPreproSymbols_modsel
 
@@ -281,6 +342,9 @@ In addition to the modules, symbols that determine the availability of \alib
   \see
     Corresponding macros \ref ALIB_IF_ALOX and \ref ALIB_IFN_ALOX which are useful
     for pruning short code snippets.
+
+\def  ALIB_BITBUFFER
+  Denotes if module \alib_bitbuffer is included in the \alibdist.
 
 \def  ALIB_BOXING
   Denotes if module \alib_boxing is included in the \alibdist.
@@ -342,12 +406,6 @@ In addition to the modules, symbols that determine the availability of \alib
     Corresponding macros \ref ALIB_IF_SINGLETONS and \ref ALIB_IFN_SINGLETONS which are useful
     for pruning short code snippets.
 
-\def  ALIB_TEXT
-  Denotes if module \alib_text is included in the \alibdist.
-  \see
-    Corresponding macros \ref ALIB_IF_TEXT and \ref ALIB_IFN_TEXT which are useful
-    for pruning short code snippets.
-
 \def  ALIB_STRINGS
   Denotes if module \alib_strings is included in the \alibdist.
   \see
@@ -358,6 +416,12 @@ In addition to the modules, symbols that determine the availability of \alib
   Denotes if module \alib_system is included in the \alibdist.
   \see
     Corresponding macros \ref ALIB_IF_SYSTEM and \ref ALIB_IFN_SYSTEM which are useful
+    for pruning short code snippets.
+
+\def  ALIB_TEXT
+  Denotes if module \alib_text is included in the \alibdist.
+  \see
+    Corresponding macros \ref ALIB_IF_TEXT and \ref ALIB_IFN_TEXT which are useful
     for pruning short code snippets.
 
 \def  ALIB_THREADS
@@ -376,31 +440,24 @@ In addition to the modules, symbols that determine the availability of \alib
 \def ALIB_FILESET_COMMON_ENUMS
   Denotes if the named file set is available in the \alibdist.
 
-\def ALIB_FILESET_INTEGERS
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_DEBUG
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_OWNER
+\def ALIB_FILESET_LISTS
   Denotes if the named file set is available in the \alibdist.
 
 \def ALIB_FILESET_MODULES
   Denotes if the named file set is available in the \alibdist.
 
-\def ALIB_FILESET_LISTS
+\def ALIB_FILESET_OWNER
   Denotes if the named file set is available in the \alibdist.
 
 \def ALIB_FILESET_PLUGINS
   Denotes if the named file set is available in the \alibdist.
 
-
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment ############################          ALox         #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###################################          ALox         ####################################  }
+\I{################################################################################################}
 \name ALib Module ALox Feature Selection
 \anchor GrpALibPreproSymbols_alox
 @{
@@ -458,9 +515,9 @@ Instead, the macros used for the log statements themselves (see
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ############################         Boxing        #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###################################         Boxing        ####################################  }
+\I{################################################################################################}
 \name ALib Module Boxing Feature Selection
 \anchor GrpALibPreproSymbols_boxing
 
@@ -507,9 +564,9 @@ Instead, the macros used for the log statements themselves (see
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ############################       Characters      #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{###################################       Characters      ####################################  }
+\I{################################################################################################}
 \name ALib Module Characters Feature Selection
 \anchor GrpALibPreproSymbols_characters
 @{
@@ -579,11 +636,11 @@ Instead, the macros used for the log statements themselves (see
 
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ############################          Monomem         #################################### \~
-\~Comment ####################################################################################### \~
-\name ALib Module Monomem Feature Selection
-\anchor GrpALibPreproSymbols_monomem
+\I{################################################################################################}
+\I{###################################          Memory         ####################################  }
+\I{################################################################################################}
+\name ALib Module Memory Feature Selection
+\anchor GrpALibPreproSymbols_memory
 @{
 
 \def  ALIB_DEBUG_MONOMEM
@@ -599,20 +656,28 @@ Instead, the macros used for the log statements themselves (see
     memory chunks have been created. This might indicate that the allocation size of an allocator
     should be raised.
   - A warning in the destructor of class \alib{monomem,MonoAllocator} raised if memory has been
-    requested, that is bigger than the allocator's standard allocation size. This may happen
+    requested, that is bigger than the allocator's actual allocation size. This may happen
     (and the warning probably be ignored!) with the use of types \alib{monomem,HashTable} or
     \alib{monomem,StringTree}.
-  - Field \alib{monomem,MonoAllocator::DbgStatistics}
-  - Method \alib{monomem,MonoAllocator::DbgDumpStats}
-  - Namespace function \alib{monomem::DbgGetHashTableDistribution}
-  - Namespace function \alib{monomem::DbgDumpDistribution}
-  - Namespace function \alib{monomem::DbgDumpHashtable}
-  - Method \alib{lox::Lox::DbgGetMonoAllocator}
+  - The following debug fields and methods become available:
+    - Field \alib{monomem,MonoAllocator::DbgStatistics}
+    - Method \alib{monomem,MonoAllocator::DbgDumpStats}
+    - Namespace function \alib{monomem::DbgGetHashTableDistribution}
+    - Namespace function \alib{monomem::DbgDumpDistribution}
+    - Namespace function \alib{monomem::DbgDumpHashtable}
+    - Method \alib{lox::Lox::DbgGetMonoAllocator}
+
+    \note Setting this symbol requires the availability of \alib_alox in the library distribution.
+
+\def  ALIB_DEBUG_ARRAY_COMPRESSION
+  Selects code that reads back integral arrays after compression with class
+  \alib{bitbuffer::ac_v1,ArrayCompressor} to check compression/decompression algorithms.<br>
+  This symbol defaults to true in debug builds of the library.
 @}
 
-\~Comment ####################################################################################### \~
-\~Comment ############################          Resources         #################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################          Resources         ####################################}
+\I{################################################################################################}
 \name ALib Module Resources Feature Selection
 \anchor GrpALibPreproSymbols_resources
 @{
@@ -639,6 +704,11 @@ Instead, the macros used for the log statements themselves (see
   pragma warning is printed.
 
   In particular, the following features become enabled:
+  - Static field \alib{resources,LocalResourcePool::DbgResourceLoadObserver} becomes available
+    which supports finding resource definition errors. If set prior to bootstrapping,
+    methods \alib{resources,LocalResourcePool::BootstrapBulk} and
+    \alib{resources,LocalResourcePool::BootstrapAddOrReplace} will write information on
+    bulk and singular resource data definitions.
   - Types \alib{resources,LocalResourcePool} and \alib{resources,ConfigResourcePool} collect
     statistics about the number of acquisitions of particular resources.
     With type \b LocalResourcePool, these statistics can be read by directly accessing the internal
@@ -652,9 +722,9 @@ Instead, the macros used for the log statements themselves (see
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment ##########################          Singletons         ################################ \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{#################################          Singletons         ################################  }
+\I{################################################################################################}
 \name ALib Module Singletons Feature Selection
 \anchor GrpALibPreproSymbols_singletons
 @{
@@ -672,9 +742,9 @@ Instead, the macros used for the log statements themselves (see
 @}
 
 
-\~Comment ####################################################################################### \~
-\~Comment ##########################          Strings         ################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{#################################          Strings         ###################################  }
+\I{################################################################################################}
 \name ALib Module Strings Feature Selection
 \anchor GrpALibPreproSymbols_strings
 @{
@@ -685,6 +755,17 @@ Instead, the macros used for the log statements themselves (see
 
   If this symbol is not explicitly given to the compiler, it is set to  \c 0,
   the \b %boost library is not included and class \b %RegexMatcher is not available.
+
+  If using the \ref alib_manual_build_cmake_3 "corresponding CMake variable", script
+  \alibfile{build/cmake/ALib.cmake} will search and add \b boost_regex to \e CMake variable
+  \b ALIB_EXTERNAL_LIBS.
+
+  Please note that this script also performs
+
+        set(Boost_USE_STATIC_LIBS   ON)
+
+  before searching the library.
+
 
 \def  ALIB_DEBUG_STRINGS
   Selects extended debug code, mostly within class \alib{strings,TAString,AString}.<br>

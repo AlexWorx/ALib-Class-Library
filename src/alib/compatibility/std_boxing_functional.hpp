@@ -4,7 +4,7 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL

@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -201,7 +201,7 @@ class ETExceptionThrowers : public plugins::Calculus
 // ### Test Class
 // #################################################################################################
 
-UT_CLASS()
+UT_CLASS
 
 
 // #################################################################################################
@@ -795,6 +795,11 @@ UT_METHOD(VerbalOps)
     CONSTEXPR(  1  not_equals        2 , true  );
     CONSTEXPR(  1  not_equals        1 , false );
 
+    CONSTEXPR(  equals              , expressions::Exceptions::UnknownIdentifier );
+    CONSTEXPR(  equals 1            , expressions::Exceptions::SyntaxErrorExpectation );
+    CONSTEXPR(  equals equals       , expressions::Exceptions::SyntaxErrorExpectation );
+    CONSTEXPR(  equals equals equals, expressions::Exceptions::UnknownIdentifier );
+
     compiler.CfgNormalization= Normalization::DEFAULT;
 
     SPExpression expression;
@@ -859,7 +864,7 @@ UT_METHOD(VerbalOps)
         #define LOX_LOX ut.lox
         Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
         log_exception( ut, e );
-        ALIB_ERROR( "UT Failure" )
+        ALIB_ERROR( "UNITTESTS", "UT Failure" )
         #undef LOX_LOX
     }
 }
@@ -1670,6 +1675,7 @@ UT_METHOD(Nested)
 {
     UT_INIT()
 
+
     Compiler compiler;
     compiler.SetupDefaults();
     Scope scope(compiler.CfgFormatter);
@@ -1766,7 +1772,7 @@ ALIB_IF_SYSTEM(
         #define LOX_LOX ut.lox
         Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
         log_exception( ut, e );
-        ALIB_ERROR( "UT Failure" )
+        ALIB_ERROR( "UNITTESTS", "UT Failure" )
         #undef LOX_LOX
     }
 
@@ -1787,9 +1793,7 @@ ALIB_IF_SYSTEM(
 
     compiler.AddNamed( A_CHAR("second"), A_CHAR("Expression(first, 6)") );
    EXPRESSION( *first  , expressions::Exceptions::CircularNestedExpressions , 1  );
-
 }
-
 
 // #################################################################################################
 // ### NumberLiterals

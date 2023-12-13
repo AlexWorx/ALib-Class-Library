@@ -1,14 +1,14 @@
 // #################################################################################################
-//  ALib - A-Worx Utility Module
+//  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
 #   if !defined (HPP_ALIB_CLI_CLI)
-#      include "alib/cli/cliapp.hpp"
+#      include "alib/cli/commandline.hpp"
 #   endif
 
 #   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
@@ -33,25 +33,18 @@ namespace aworx { namespace lib {
 cli::Cli CLI;
 
 /** ************************************************************************************************
- * \attention
- *   Unfortunately, this \alibmod is not completed and is more or less in an alpha version state.
- *   You might want to wait for a next library release to see this fixed!<br>
- *   The same is true for this reference documentation. It was never reviewed and might be
- *   completely wrong and outdated for many entities!<br>
- *   Finally, there is really only a start of a \ref alib_mod_cli "Programmer's Manual"
- *   available.
+ * This is the reference documentation of sub-namespace \c cli of the \aliblink, which
+ * holds types of library module \alib_cli_nl.
+ *
+ * Besides this reference documentation, further documentation and source code samples for this
+ * module is provided with \ref alib_mod_cli "ALib Module CLI - Programmer's Manual".
  **************************************************************************************************/
 namespace cli {
-
-
-// ##########################################################################################
-// ### Module class implementation
-// ##########################################################################################
 
 Cli::Cli()
 : Module( ALIB_VERSION, ALIB_REVISION, "CLI" )
 {
-    ALIB_ASSERT_ERROR( this == &CLI,
+    ALIB_ASSERT_ERROR( this == &CLI, "CLI",
         "Instances of class Cli must not be created. Use singleton aworx::lib::CLI" )
 }
 
@@ -88,21 +81,21 @@ void Cli::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
             // messages of general exceptions
             "ED1",   A_CHAR( "No command given."                                       ),
             "ED2",   A_CHAR( "Unknown command found with with CLI argument{!Q[]}={!Q}" ),
-            "ED10",  A_CHAR( "Error parsing option. Usage:\\n"
+            "ED10",  A_CHAR( "Error parsing option. Usage:\n"
                              "{}"                                                      ),
-            "ED20",  A_CHAR( "Error parsing command.\\n"
-                             "Usage: {}\\n"
+            "ED20",  A_CHAR( "Error parsing command.\n"
+                             "Usage: {}\n"
                              "{}"                                                      ),
 
 
             // messages of internal exceptions
-            "ED11",  A_CHAR( "Missing argument(s) of option {!Q<>} found with CLI argument{!Q[]}={!Q}.\\n"
+            "ED11",  A_CHAR( "Missing argument(s) of option {!Q<>} found with CLI argument{!Q[]}={!Q}.\n"
                              "Expected {}, given {}."                                                       ),
 
-            "ED12",  A_CHAR( "Option identifier {!Q<>} found at start of CLI argument{!Q[]}={!Q},\\n"
+            "ED12",  A_CHAR( "Option identifier {!Q<>} found at start of CLI argument{!Q[]}={!Q},\n"
                              "while CLI argument string continues with non-argument identifier characters." ),
 
-            "ED21",  A_CHAR( "Missing argument(s) of parameter {!Q<>} found with CLI argument{!Q[]}={!Q}.\\n"
+            "ED21",  A_CHAR( "Missing argument(s) of parameter {!Q<>} found with CLI argument{!Q[]}={!Q}.\n"
                              "Quantity expected {}, quantity given {}."                                     ) EOS
 
 
@@ -129,4 +122,3 @@ DOX_MARKER([DOX_ALIB_CLI_DRYRUN_RESOURCES])
 
 
 }}}// namespace aworx::lib::cli
-

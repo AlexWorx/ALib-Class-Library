@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKSCONVERTER
@@ -101,9 +101,9 @@ class TickConverter
          ******************************************************************************************/
         DateTime  ToDateTime( Ticks ticks )
         {
-            DateTime result( Initialization::Suppress );
-            result.NativeValue()= systemClockSyncTime + std::chrono::duration_cast<std::chrono::system_clock::duration>( ticks.NativeValue() - steadyClockSyncTime );
-            return result;
+            return DateTime( systemClockSyncTime
+                           + std::chrono::duration_cast<std::chrono::system_clock::duration>(
+                                                         ticks.Export() - steadyClockSyncTime ) );
         }
 
         /** ****************************************************************************************
@@ -113,10 +113,7 @@ class TickConverter
          ******************************************************************************************/
         Ticks  ToTicks( DateTime dateTime )
         {
-            Ticks result( Initialization::Suppress );
-            result.NativeValue()= (dateTime.NativeValue() - systemClockSyncTime ) + steadyClockSyncTime;
-            return result;
-
+            return Ticks( dateTime.Export() - systemClockSyncTime + steadyClockSyncTime);
         }
 };
 

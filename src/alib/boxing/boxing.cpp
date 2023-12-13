@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -26,6 +26,9 @@
 #   if ALIB_ENUMS && ALIB_STRINGS
 #       if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
 #           include "alib/enums/serialization.hpp"
+#       endif
+#       if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
+#          include "alib/strings/util/token.hpp"
 #       endif
 #   endif
 
@@ -61,10 +64,17 @@
 #endif // !defined(ALIB_DOX)
 
 
+#if ALIB_STRINGS
+    ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<aworx::lib::strings::TAString<nchar>>, vt_alib_wrapped_tanstring )
+    ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<aworx::lib::strings::TAString<wchar>>, vt_alib_wrapped_tawstring )
+    ALIB_BOXING_VTABLE_DEFINE( std::reference_wrapper<aworx::lib::strings::TAString<xchar>>, vt_alib_wrapped_taxstring )
+#endif
+
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 namespace aworx { namespace lib {
 
 /** ************************************************************************************************
- * This is the reference documentation of sub-namespace \b boxing of the \aliblink which
+ * This is the reference documentation of sub-namespace \c boxing of the \aliblink, which
  * holds types of library module \alib_boxing.
  *
  * Extensive documentation for this module is provided with
@@ -161,7 +171,7 @@ bool    Box::IsFloatingPoint()                                                  
         #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
            || IsType<     float >()
         #endif
-        #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+        #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
            || IsType<long double>()
         #endif
         ;
@@ -173,7 +183,7 @@ double  Box::UnboxFloatingPoint()                                               
     if( IsType<     float >() ) return   static_cast<double>( Unbox<float      >() );
   #endif
 
-  #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+  #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
     if( IsType<long double>() ) return   static_cast<double>( Unbox<long double>() );
   #endif
 
@@ -710,9 +720,18 @@ bool FIsNotNull::ConstantTrue( const aworx::Box & )
 namespace{ unsigned int initFlag= 0; }
 #endif // !defined(ALIB_DOX)
 
+#if ALIB_DEBUG && !defined(ALIB_DOX)
+    // This is used by boxing::Bootstrap to do runtime-check for compatibility of boxing
+    // and long double values.
+    // It was moved to file boxes.cpp to prevent the compiler to optimize and remove the code.
+    extern  long double dbgLongDoubleWriteTestMem[2];
+    extern  void dbgLongDoubleTrueLengthSet();
+    extern  bool dbgLongDoubleTrueLengthTest();
+#endif
+
 void Bootstrap()
 {
-    assert( initFlag != 2 ); // can't reinitialize after termination
+    ALIB_ASSERT_ERROR( initFlag != 2, "BOXING", "Can't bootstrap after termination" )
     if( initFlag == 0x92A3EF61 )
         return;
     initFlag= 0x92A3EF61;
@@ -721,20 +740,17 @@ void Bootstrap()
     #if ALIB_DEBUG
         // check size of long double
         {
-            long double ld= 0.0L;
-            char mem[sizeof(long double)+1];
-            memset( mem, 0x3E, sizeof(long double) + 1);
-            *reinterpret_cast<long double*>(mem)= ld;
-            ALIB_ASSERT_ERROR(    mem[T_SizeInPlaceholder<long double>::value - 1] != 0x3E
-                               && mem[T_SizeInPlaceholder<long double>::value    ] == 0x3E,
+            dbgLongDoubleTrueLengthSet();
+            dbgLongDoubleWriteTestMem[0]= 0.0L;
+            ALIB_ASSERT_ERROR( dbgLongDoubleTrueLengthTest(), "BOXING",
             "Platform not supported. Template specialization T_SizeInPlaceholder<long double> contains wrong size" )
         }
     #endif
 
     //#############################     BootstrapRegister Static VTables    #################################
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_voidP    )
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxes    )
-      ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxarray )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_voidP    )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxes    )
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_boxarray )
 
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_1])
 ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_bool )
@@ -759,10 +775,10 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_1])
     #endif // !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
 
 
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_double )
-       #if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_double )
+    #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_long_double )
-      #endif
+    #endif
     #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_float  )
     #endif
@@ -780,10 +796,48 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_1])
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_2])
 ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char )
 DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_REGISTER_2])
+
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_wchar_t   )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char16_t  )
     ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_arr_char32_t  )
 
+    // Static VTables for standard types
+    ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_std_type_info )
+
+    // CodeMarker_CommonEnums
+    // Static VTables for low-level ALib types
+    #if !defined(HPP_ALIB_FS_COMMONENUMS_DEFS)
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Alignment         )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Bool              )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Caching           )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Case              )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_ContainerOp       )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_CreateDefaults    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_CreateIfNotExists )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_CurrentData       )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Inclusion         )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Initialization    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Phase             )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Propagation       )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Reach             )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Responsibility    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Safeness          )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Side              )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_SortOrder         )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_SourceData        )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Switch            )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Timezone          )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Timing            )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_ValueReference    )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_Whitespaces       )
+    #endif
+
+    #if ALIB_STRINGS
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_wrapped_tanstring )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_wrapped_tawstring )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_wrapped_taxstring )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_strings_token )
+    #endif
 
     //########################       Register default implementations        #######################
     BootstrapRegisterDefault<FIsTrue    >( FIsTrue_Default    );
@@ -1021,27 +1075,29 @@ ALIB_IF_MONOMEM(
 
     // CodeMarker_CommonEnums
     #if ALIB_TEXT
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Bool             )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Switch           )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Alignment        )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SortOrder        )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Inclusion        )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Reach            )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CurrentData      )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SourceData       )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Safeness         )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Responsibility   )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Side             )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timezone         )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Whitespaces      )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateIfNotExists)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateDefaults   )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Propagation      )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Phase            )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::ContainerOp      )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Initialization   )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timing           )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Bool             )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Caching          )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Case             )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::ContainerOp      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateDefaults   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CreateIfNotExists)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::CurrentData      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Inclusion        )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Initialization   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Phase            )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Propagation      )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Reach            )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Responsibility   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Safeness         )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Side             )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SortOrder        )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::SourceData       )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Switch           )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timezone         )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Timing           )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::ValueReference   )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( lib::Whitespaces      )
     #endif
 
     ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( strings::util::Token* )
@@ -1084,19 +1140,17 @@ void detail::DbgCheckRegistration( detail::VTable* vtable, bool increaseUsageCou
     if( !vtable->IsArray() )
     {
         DbgTypeDemangler type( vtable->Type );
-        ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
+        ALIB_ERROR( "BOXING", "Static VTable of mapped type <", type.Get(),
          "> not registered. Use Macro ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER with bootstrapping." )
     }
     else
     {
         DbgTypeDemangler type( vtable->ElementType );
-        ALIB_ERROR( "Static VTable of mapped type <", type.Get(),
+        ALIB_ERROR( "BOXING", "Static VTable of mapped type <", type.Get(),
          "[]> not registered. Use Macro ALIB_BOXING_REGISTER_MAPPED_ARRAY_TYPE with bootstrapping." )
     }
 }
-
 #endif
 
-
-
 }}} // namespace [aworx::lib::boxing]
+ALIB_WARNINGS_RESTORE

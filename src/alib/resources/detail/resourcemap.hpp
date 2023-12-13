@@ -2,18 +2,20 @@
  * \file
  * This header file is part of module \alib_resources of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_RESOURCES_DETAIL_RESOURCEMAP
 #define HPP_ALIB_RESOURCES_DETAIL_RESOURCEMAP 1
 
-#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-#   include "alib/strings/localstring.hpp"
+#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
+#   include "alib/resources/resources.hpp"
 #endif
+
 #if !defined (HPP_ALIB_MONOMEM_HASHMAP)
 #   include "alib/monomem/hashmap.hpp"
 #endif
+
 
 namespace aworx  { namespace lib { namespace resources {
 

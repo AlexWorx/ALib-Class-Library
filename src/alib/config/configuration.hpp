@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_CONFIGURATION
@@ -59,7 +59,7 @@ namespace aworx { namespace lib { namespace config {
  * See documentation of namespace #aworx::lib::config for more information on \alib
  * external configuration variables.
  **************************************************************************************************/
-class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
+class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, Priorities>
 {
     // #############################################################################################
     // internal fields
@@ -157,7 +157,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
             if ( argc > 1 )
             {
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" )
+                ALIB_ASSERT_ERROR( cliParameters, "CONFIG", "No CLIArgs plugin registered" )
                 cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ), false );
             }
         }
@@ -176,7 +176,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
             if ( argc > 1 )
             {
                 CLIArgs* cliParameters= GetPluginTypeSafe<CLIArgs>();
-                ALIB_ASSERT_ERROR( cliParameters, "No CLIArgs  installed" )
+                ALIB_ASSERT_ERROR( cliParameters, "CONFIG", "No CLIArgs plugin registered" )
                 cliParameters->SetArgs( argc, reinterpret_cast<const void**>( argv ),  true );
             }
         }
@@ -216,9 +216,9 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
                 {
                     VariableDecl decl( recordIt.Enum() );
                     if(    decl.DefaultValue.IsNotEmpty()
-                        && decl.EnumElementName.IndexOf('%') < 0)
+                        && decl.EnumElementName.IndexOf('%') < 0)   // no replacements
                     {
-                        tempVar.Declare( recordIt.Enum() );
+                        tempVar.Declare( decl, nullptr );
                         tempVar.SetConfig  (this);
                         tempVar.SetPriority( loadImpl( tempVar, false ) );
 
@@ -230,8 +230,9 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
     #endif
 
         /** ****************************************************************************************
-         * This method fetches all values from a plug-in of priority #DefaultValues, which are not
-         * present in the given plug-in \p{dest} and stores them in that.
+         * This method fetches all values from a plug-in of priority
+         * \alib{config,Priorities::DefaultValues}, which are not present in the given plug-in
+         * \p{dest} and stores them in that.
          * This is useful to collect all generated default values and store them in a user's
          * configuration file. This way, the user can identify configurable options easily.
          *
@@ -267,10 +268,15 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          *
          * If the variable was not found and \alib{config,Variable::DefaultValue}
          * in \p{variable} is set, the method adds the value to a plug-in of priority
-         * #DefaultValues, (respectively to the plug-in found at or below #DefaultValues).
+         * \alib{config,Priorities::DefaultValues},
+         * (respectively to the plug-in found at or below \b DefaultValues).
          * For the conversion of the value, field
          * \alib{config,ConfigurationPlugin::StringConverter} of field a plug-in of priority
-         * #DefaultValues, is used. (Which has to be present.)
+         * \b DefaultValues, is used.
+         *
+         * If no plug-in at or below priority \b DefaultValues is found, then the declared default
+         * value is added to the variable using the default implementation of
+         * \alib{config,XTernalizer::LoadFromString}.
          *
          * @param variable       The variable to receive.
          *
@@ -294,7 +300,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          *
          * Detection is made by searching the variable in the plug-ins prior to storing it.
          * The search order is likewise by priority, starting with the highest.
-         * If the variable was not found, \alib{config,Priorities,Priorities::DefaultValues}
+         * If the variable was not found, \alib{config,Priorities::DefaultValues}
          * is chosen. Usually the writing loop then will also already end there,
          * because standard configuration sets have a write-enabled in-memory plug-in at
          * that priority.
@@ -400,7 +406,7 @@ class Configuration : public PluginContainer<ConfigurationPlugin, Priorities>
          * For the conversion of the "externalized" string, method
          * \ref aworx::lib::config::XTernalizer::LoadFromString "XTernalizer::LoadFromString"
          * of field \alib{config,ConfigurationPlugin::StringConverter}
-         * of a plug-in of priority #DefaultValues, is used.
+         * of a plug-in of priority \alib{config,Priorities::DefaultValues}, is used.
          *
          * @param variable              The variable object.
          * @param externalizedValue     The new value to write.

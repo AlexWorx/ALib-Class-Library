@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -73,6 +73,7 @@ void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISR
         target.EnsureRemainingCapacity( actReadSize );
 
         // read
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         int64_t start= target.Length();
         param.IStream->getline( target.VBuffer() + start, actReadSize );
         std::streamsize gCount= param.IStream->gcount();
@@ -104,6 +105,7 @@ void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISR
                 return;
             }
         }
+        ALIB_WARNINGS_RESTORE
 
 
         // delim read
@@ -130,7 +132,7 @@ void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISR
 
         if ( param.IStream->rdstate() == std::iostream::failbit )
         {
-            ALIB_ERROR( "Unknown Error Reading File. Maybe method implemented incomplete?" )
+            ALIB_ERROR( "STRINGS", "Unknown Error Reading File. Maybe method implemented incomplete?" )
             break;
         }
 
@@ -140,7 +142,7 @@ void aworx::lib::strings::T_Append<aworx::lib::strings::compatibility::std::TISR
         //...
 
         // This happens if \0 is in the file
-        ALIB_ERROR( "Unknown Error Reading File. Probably not a text file." )
+        ALIB_ERROR( "STRINGS", "Unknown Error Reading File. Probably not a text file." )
         break;
     }
 

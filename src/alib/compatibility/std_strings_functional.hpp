@@ -4,7 +4,7 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_STRINGS_FUNCTIONAL
@@ -223,7 +223,7 @@ struct equal_to_string_ignore_case
     bool operator()(const lib::strings::TString<TChar>& lhs,
                     const lib::strings::TString<TChar>& rhs  ) const
     {
-        return lhs.template Equals<Case::Ignore>( rhs );
+        return lhs.template Equals<lib::Case::Ignore>( rhs );
     }
 };
 
@@ -255,7 +255,7 @@ struct less_string_ignore_case
     bool operator()(const lib::strings::TString<TChar>& lhs,
                     const lib::strings::TString<TChar>& rhs) const
     {
-        return  lhs.CompareTo<Case::Ignore>( rhs ) < 0;
+        return  lhs.template CompareTo<lib::Case::Ignore>( rhs ) < 0;
     }
 };
 

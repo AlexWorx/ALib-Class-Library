@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -54,7 +54,9 @@ Program::~Program()
 
 const Box& Program::ResultType() const
 {
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     return commands[commandsCount-1].ResultType;
+    ALIB_WARNINGS_RESTORE
 }
 
 // #################################################################################################
@@ -240,12 +242,12 @@ struct Assembly
     ALIB_ASSERT_ERROR(    prg.resultStack.empty()                                                  \
                        || prg.resultPC() == prg.actPC()                                            \
                        || prg.act().IsConditionalJump() ,                                          \
-                       "Internal error: Last in result stack is not last command." )
+                       "EXPR", "Internal error: Last in result stack is not last command." )
 
 bool Program::collectArgs( integer qty )
 {
     ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() >= static_cast<size_t>( qty < 0 ? 0 : qty ),
-                       "Not enough arguments on the stack. This should never happen (internal error)." )
+            "EXPR",    "Not enough arguments on the stack. This should never happen (internal error)." )
 
     expression.ctScope->Stack.clear();
     if( qty > 0 )
@@ -329,7 +331,7 @@ void Program::AssembleFunction( AString& functionName , integer qtyArgsOrNoParen
                 }
                 else
                 {
-                    ALIB_ERROR( "Unknown exception {!Q}.", e.Type() )
+                    ALIB_ERROR( "EXPR", "Unknown exception {!Q}.", e.Type() )
                 }
                 throw;
             }
@@ -517,7 +519,7 @@ void Program::AssembleUnaryOp( String& op, integer idxInOriginal, integer idxInN
                        expressionName );
             else
             {
-                ALIB_ERROR( "Unknown exception {!Q}.", e.Type() )
+                ALIB_ERROR( "EXPR", "Unknown exception {!Q}.", e.Type() )
             }
             throw;
         }
@@ -1084,16 +1086,17 @@ void Program::AssembleFinalize()
     ALIB_DBG(Assembly prg( compileStorage->Assembly, compileStorage->ResultStack); )
     ASSERT_ASSEMBLE
 
-    ALIB_ASSERT_ERROR( compileStorage->ConditionalStack.size() == 0,
+    ALIB_ASSERT_ERROR( compileStorage->ConditionalStack.size() == 0, "EXPR",
                        "Finalizing program, while conditional stack is of size {}.",
                        compileStorage->ConditionalStack.size()                             )
-    ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() == 1,
+    ALIB_ASSERT_ERROR( compileStorage->ResultStack.size() == 1, "EXPR",
                        "Finalizing program, while result stack is of size {}.",
                        compileStorage->ResultStack.size()                                  )
 
 
     // copy the program from the temporary vector to a simple array, allocated with the
     // compile-time scope's allocator.
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     commandsCount= static_cast<integer>( compileStorage->Assembly.size() );
     commands= expression.ctScope->Allocator.AllocArray<VM::Command>( compileStorage->Assembly.size() );
     auto* cmd= commands;
@@ -1101,7 +1104,7 @@ void Program::AssembleFinalize()
         new ( cmd++ ) VM::Command(*it);
 
     compileStorage= nullptr;
-
+    ALIB_WARNINGS_RESTORE
 }
 
 #undef ASSERT_ASSEMBLE

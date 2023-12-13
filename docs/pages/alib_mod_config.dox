@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -21,7 +21,7 @@
   module \alib_alox does.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 1. Introduction # {#alib_config_intro}
 
 This module provides tools to read and write configuration data using different mechanisms.
@@ -47,7 +47,7 @@ In short, the features are:
   of those libraries.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.1 Central Classes ## {#alib_config_intro_classes}
 
 The plug-ins, derived from abstract class
@@ -66,7 +66,7 @@ Class \alib{Module} holds a pointer to an instance of this class, which is creat
 \ref alib_manual_bootstrapping "library bootstrap". This instance by default is shared among all
 library modules and the application itself, and is usually all that is needed!
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.2 Naming Scheme ## {#alib_config_intro_naming}
 
 %Configuration variables are addressed by two strings: The \b category and the \b name. In the case of
@@ -103,7 +103,7 @@ or, in section \c MY:
         [MY]
         VARIABLE     =       my value
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. Command-Line parameters, Environment Variables and INI files # {#alib_config_clienvini}
 
 Three different standard plug-ins that collect external configuration variables are provided
@@ -125,7 +125,7 @@ With these default priorities set, whatever is stored in an INI file,
 can be overwritten by setting an environment variable. Both settings can in turn be
 overwritten by specifying a corresponding command line parameter when launching the process!
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 3. Default Variables # {#alib_config_defaultvars}
 
 In addition to the three plug-ins described above, \alib implements a fourth one,
@@ -145,7 +145,7 @@ The advantages of having such default variables are:
   section of a process or library).
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. Protecting Variables # {#alib_config_protecting}
 
 
@@ -162,7 +162,7 @@ This way, it is possible to protect values against external modification.
     code using \alib, this offers an easy way to disallow users of your software (which
     incorporates that 3rd party code) to configure things that you do not want to be configurable.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Using Class Configuration # {#alib_config_using}
 
 In normal use cases, there is no need to create an instance of class Configuration, as a singleton
@@ -196,7 +196,7 @@ allows a programmer that uses \alib enabled libraries (or \alib itself) to expos
 configuration source to these libraries.
 This way, the programmer can stick to his/her preferred way of implementation.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 6. Loading and Storing Variables # {#alib_config_loadandstore}
 Values of variables are loaded and received using instances of class \alib{config,Variable}.
 Instances of this class can be passed to the interface of class Configuration or directly to
@@ -215,7 +215,7 @@ For more information on this topic see
  - Chapters \ref alib_enums_records "4. Enum Records" and especially
    \ref alib_enums_records_paradigm of the Programmer's Manual of module \alib_enums_nl.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 7. Variable Substitution # {#alib_config_substitution}
 
 Method \alib{config,Configuration::Load} by default substitutes references to other configuration
@@ -262,7 +262,7 @@ is given as a variable name.
     - This must not be done if a variable belongs to a named category.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 8. In- and Externalizing Variable Values # {#alib_config_inexternalizing}
 %Variable values provided via command line parameters, environment variables or textual configuration
 files need to be converted when loading and storing them. This has two reasons:

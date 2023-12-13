@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -336,7 +336,7 @@ bool FormatterPythonStyle::parseStdFormatSpec()
                             placeholderPS.DefaultPrecision=   -1;
                 break;
 
-                default:    ALIB_ERROR( "Unhandled character in choices string above" )
+                default:    ALIB_ERROR( "TEXT", "Unhandled character in choices string above" )
                             return false;
 
             }//switch
@@ -378,23 +378,60 @@ bool FormatterPythonStyle::parseStdFormatSpec()
 }
 
 
-void    FormatterPythonStyle::replaceEscapeSequences( integer startIdx )
+void    FormatterPythonStyle::writeStringPortion( integer length )
 {
-    targetString->SearchAndReplace( A_CHAR( "{{" ), A_CHAR( "{" ), startIdx );
-    targetString->SearchAndReplace( A_CHAR( "}}" ), A_CHAR( "}" ), startIdx );
-    targetString->_<false>( strings::TFormat<character>::Escape( Switch::Off, startIdx ) );
+    if( length == 0)
+        return;
 
-    // search the last newline character in the just written portion of the target string.
-    // If one is found, reset auto sizes and actual start of string.
-    integer lastNewLine=-1;
-    integer actNewLine = startIdx - 1;
-    while( (actNewLine= targetString->IndexOf('\n', actNewLine + 1)) > 0 )
-        lastNewLine= actNewLine;
-    if( lastNewLine >= 0 )
+    targetString->EnsureRemainingCapacity( length );
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    auto* src = parser.Buffer();
+    auto* dest= targetString->VBuffer() + targetString->Length();
+    ALIB_WARNINGS_RESTORE
+    parser.ConsumeChars( length );
+
+    character c1;
+    character c2= *src;
+    while( length > 1 )
     {
-        targetStringStartLength= lastNewLine + 1;
-        Sizes.Start();
+        c1= c2;
+        c2= *++src;
+
+        if(     ( c1 == '{' && c2 =='{')
+            ||  ( c1 == '}' && c2 =='}')
+            ||    c1 == '\\'                     )
+        {
+            if(  c1 == '\\' )
+                switch(c2)
+                {
+                    case 'r': c1= '\r' ; break;
+                    case 'n': c1= '\n' ;
+                              // reset auto-sizes with \n
+                              targetStringStartLength=  dest - targetString->VBuffer() + 1;
+                              Sizes.Start();
+                              break;
+                    case 't': c1= '\t' ; break;
+                    case 'a': c1= '\a' ; break;
+                    case 'b': c1= '\b' ; break;
+                    case 'v': c1= '\v' ; break;
+                    case 'f': c1= '\f' ; break;
+                    case '"': c1= '"'  ; break;
+                    default:  c1= '?'  ; break;
+                }
+
+            c2= *++src;
+            --length;
+        }
+
+        *dest++= c1;
+        --length;
     }
+
+    // copy last character and adjust target string length:
+    // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
+    if( length == 1)
+        *dest= *src;
+    targetString->SetLength( dest - targetString->VBuffer() + length);
 }
 
 

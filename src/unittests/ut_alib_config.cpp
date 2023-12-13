@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_CONFIG
+#if ALIB_UT_CONFIGURATION
 
 #include "alib/lib/fs_modules/distribution.hpp"
 #include "alib/alox.hpp"
@@ -31,6 +31,7 @@
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 
 #define TESTCLASSNAME       CPP_ALib_Config
@@ -46,7 +47,7 @@ using namespace aworx;
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- Read and write a configuration file
@@ -322,9 +323,10 @@ UT_METHOD(ConfigIniFiles)
 
     var.Declare( EmptyString(),   A_CHAR("commented"), ',', A_CHAR("2lines"));
     var.SetPriority( Priorities::Standard );
-    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store(  var, A_CHAR("this is c-line 1 \nand this line 2") ) )
+    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store(  var, A_CHAR("this is c-line 1\nand this line 2") ) )
 
     // iterate
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     {
         auto it= iniFile.GetIterator(A_CHAR("Great Section"));
         int cntVars= 0;
@@ -344,6 +346,7 @@ UT_METHOD(ConfigIniFiles)
 
         delete it;
     }
+    ALIB_WARNINGS_RESTORE
 
     // write the file
     iniFile.FileName._(".writeback.txt");
@@ -650,4 +653,4 @@ UT_METHOD(ConfigIteration)
 
 } //namespace
 
-#endif // ALIB_UT_CONFIG
+#endif // ALIB_UT_CONFIGURATION

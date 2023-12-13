@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -108,7 +108,7 @@ void PlainTextLogger::logText( Domain&          ,   Verbosity  ,
 
     } // write loop
 
-    ALIB_ASSERT_WARNING( start == msgLength, "Loop error when pruning ESC codes" )
+    ALIB_ASSERT_WARNING( start == msgLength, "ALOX", "Loop error when pruning ESC codes" )
     notifyLogOp( Phase::End );
 }
 

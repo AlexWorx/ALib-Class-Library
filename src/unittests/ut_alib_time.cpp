@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -37,6 +37,7 @@
 #   include "alib/threads/thread.hpp"
 #endif
 
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #define TESTCLASSNAME       CPP_ALib_Time
 #include "unittests/aworx_unittests.hpp"
@@ -56,10 +57,10 @@ void print_clock_info(AWorxUnitTesting& ut, const NString& name)
 	using TPeriod= typename TClock::period ;
 
 	// general info
-	UT_PRINT( "Clock info for:        {}\\n"
-		      "period:                {} ns\\n"
-		      "unit:                  {} ns\\n"
-		      "Steady:                {}\\n",
+	UT_PRINT( "Clock info for:        {}\n"
+		      "period:                {} ns\n"
+		      "unit:                  {} ns\n"
+		      "Steady:                {}\n",
               name,
               TPeriod::num*1000000000ull / TPeriod::den,
               chrono::duration_cast<chrono::nanoseconds>(unit).count(),
@@ -85,7 +86,7 @@ void print_clock_info(AWorxUnitTesting& ut, const NString& name)
 	UT_PRINT( "Min measurement delta: {} ns", std::chrono::duration_cast<std::chrono::nanoseconds>( minDuration ).count() )
 }
 }
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- Basics
@@ -182,13 +183,13 @@ UT_METHOD(Basics)
         Box b= ticks;
         Ticks ticksBack= b.Unbox<Ticks>();
         UT_TRUE( ticks == ticksBack )
-        UT_EQ( ticks.Raw(), ticksBack.Raw() )
+        UT_EQ( ticks.ToRaw(), ticksBack.ToRaw() )
 
         DateTime dateTime;
         b= dateTime;
         DateTime dateTimeBack= b.Unbox<DateTime>();
         UT_TRUE( dateTime == dateTimeBack )
-        UT_EQ( dateTime.Raw(), dateTimeBack.Raw() )
+        UT_EQ( dateTime.ToRaw(), dateTimeBack.ToRaw() )
     }
 }
 
@@ -252,7 +253,77 @@ UT_METHOD(DateTimeConversion)
     UT_INIT()
     UT_PRINT("")  UT_PRINT( "### TickSpeedTest ###" )
 
-    #if defined (__GLIBCXX__) || defined(__APPLE__)
+    // GDB Pretty Printer test (set breakpoint and view in gdb)
+    {
+        DateTime ppDT = DateTime::Now();
+        auto     ppDTD= ppDT - DateTime::Now();
+        ppDT=  DateTime::FromRaw(0);
+        ppDTD= DateTime::Duration::FromNanoseconds(1);              ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromNanoseconds(2);              ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromNanoseconds(1000);           ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromNanoseconds(1000);           ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromNanoseconds(1);              ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMicroseconds(1);     ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMicroseconds(2);     ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMicroseconds(1000);  ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMicroseconds(1000);  ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMicroseconds(1);     ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMilliseconds(10);    ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMilliseconds(15);    ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteSeconds(1);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteSeconds(2);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteSeconds(58);         ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteSeconds(30);         ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMinutes(1);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMinutes(1);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMinutes(57);         ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMinutes(1);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteMinutes(1);          ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(1);            ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(1);            ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(20);           ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(1);            ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(1);            ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteHours(1);            ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+        ppDTD= DateTime::Duration::FromAbsoluteDays(1);             ppDT+= ppDTD;
+    }
+    {
+        Ticks ppT = Ticks ::Now();
+        auto  ppTD= ppT - Ticks::Now();
+        ppT=  Ticks::FromRaw(0);
+        ppTD= Ticks::Duration::FromNanoseconds(1);              ppT+= ppTD;
+        ppTD= Ticks::Duration::FromNanoseconds(2);              ppT+= ppTD;
+        ppTD= Ticks::Duration::FromNanoseconds(1000);           ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMicroseconds(1);     ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMicroseconds(1000);  ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMicroseconds(1);     ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMilliseconds(10);    ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMilliseconds(15);    ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteSeconds(1);          ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteSeconds(2);          ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteSeconds(58);         ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMinutes(1);          ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMinutes(1);          ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMinutes(57);         ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteMinutes(1);          ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteHours(1);            ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteHours(1);            ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteHours(20);           ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteHours(1);            ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteDays(1);             ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteDays(200);           ppT+= ppTD;
+        ppTD= Ticks::Duration::FromAbsoluteDays(200);           ppT+= ppTD;
+    }
+
+    #if defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
         // check epoc seconds
         {
@@ -271,8 +342,8 @@ UT_METHOD(DateTimeConversion)
             {
                 DateTime ticksNowRoundtrip= DateTime::FromEpochSeconds( timetNowFromTicks );
 
-                int64_t ns1= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowOrig     .NativeValue().time_since_epoch() ).count();
-                int64_t ns2= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowRoundtrip.NativeValue().time_since_epoch() ).count();
+                int64_t ns1= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowOrig     .Export().time_since_epoch() ).count();
+                int64_t ns2= std::chrono::duration_cast<std::chrono::nanoseconds>( ticksNowRoundtrip.Export().time_since_epoch() ).count();
                 UT_PRINT( "DateTime in nanos since epoch, original:  ", ns1 )
                 UT_PRINT( "DateTime in nanos since epoch, roundtrip: ", ns2 )
                 UT_NEAR( (ticksNowOrig - ticksNowRoundtrip).InAbsoluteSeconds(), 1, 1 )
@@ -281,7 +352,7 @@ UT_METHOD(DateTimeConversion)
             // now we add a day
             #if ALIB_SYSTEM
             {
-                time_t           timetTomorrowTime= timetNowFromTicks + 3600*24 + 2*3600 + 3*60 + 4;
+                time_t          timetTomorrowTime= timetNowFromTicks + 3600*24 + 2*3600 + 3*60 + 4;
                 DateTime        ticksTomorrow( ticksNowOrig );
                 CalendarDuration   converter;
                 converter.Days=       1;
@@ -425,7 +496,7 @@ UT_METHOD(DateTimeConversion)
         Ticks       ticksNow;
 
         DateTime    ticksConverted= converter.ToDateTime( ticksNow );
-        UT_PRINT("Diff: ", (dateTimeNow.Raw()  - ticksConverted.Raw()) )
+        UT_PRINT("Diff: ", (dateTimeNow.ToRaw()  - ticksConverted.ToRaw()) )
         UT_TRUE( abs( (dateTimeNow - ticksConverted).InNanoseconds()) < 10000 || ALIB_AVOID_ANALYZER_WARNINGS )
 
         Ticks       ticksBack=      converter.ToTicks( ticksConverted );
@@ -549,8 +620,10 @@ UT_METHOD(SpeedTestIndexOf)
 {
     UT_INIT()
 
-    // Note: Compares std::string against AString. In debug, std is faster, in release AString
-    //       is faster.
+    // Note: Compares std::string against AString. In debug, std is faster due to the various checks,
+    //       in release AString is faster.
+    //       Ooops, just noticed (Dec 23) that AString is slower in wide-character mode.
+    //              Up to 10 times, even. This should be investigated.
 
     std::string testString("-------------------------------------------------------------------------------------------*#");
     AString     testAString( testString );
@@ -677,6 +750,7 @@ UT_METHOD(DurationConversion)
     #endif
 }
 
+#if ALIB_SYSTEM
 void durationToStringCheck( AWorxUnitTesting& ut, Ticks::Duration& ts, const String& expected )
 {
     String128 res;
@@ -715,6 +789,69 @@ UT_METHOD(DurationAppend)
     ts=  Ticks::Duration::FromMicroseconds( 500 );  durationToStringCheck( ut, ts, A_CHAR("500 \u00B5s")         );
     ts=  Ticks::Duration::FromNanoseconds ( 250 );  durationToStringCheck( ut, ts, A_CHAR("250 ns")              );
 }
+#endif
+
+//--------------------------------------------------------------------------------------------------
+//--- Ages
+//--------------------------------------------------------------------------------------------------
+#if ALIB_SYSTEM
+UT_METHOD(CalendarDate_Time)
+{
+    UT_INIT()
+    //  0  0000    8  1000
+    //  1  0001    9  1001
+    //  2  0010    A  1010
+    //  3  0011    B  1011
+    //  4  0100    C  1100
+    //  5  0101    D  1101
+    //  6  0110    E  1110
+    //  7  0111    F  1111
+
+    // testing CalendarDateTime, which uses the systems's calendar methods exclusively, against
+    // CalendarDate, which performs increments and decrements with itself most times.
+    UT_PRINT("Looping 5 years..." )
+    const CalendarDateTime StartCDT( 2023, 01, 27, 12, 0, 0 );
+    const CalendarDate     StartCD ( 2023, 01, 27 );
+    const DateTime         StartDate= StartCDT.Get(Timezone::UTC);
+    UT_EQ( 2023, StartCDT.Year     )      UT_EQ( 2023, StartCD.Year     () )
+    UT_EQ(    1, StartCDT.Month    )      UT_EQ(    1, StartCD.Month    () )
+    UT_EQ(   27, StartCDT.Day      )      UT_EQ(   27, StartCD.Day      () )
+    UT_EQ(   -1, StartCDT.DayOfWeek)      UT_EQ(    5, StartCD.DayOfWeek() )
+    {
+              auto            incCD  = StartCD;
+        UT_FALSE( incCD <  StartCD )   UT_FALSE( incCD >  StartCD )
+        UT_TRUE ( incCD <= StartCD )   UT_TRUE ( incCD >= StartCD )
+        UT_FALSE( incCD != StartCD )   UT_TRUE ( incCD == StartCD )
+        const DateTime        EndDate= StartCD.Get(Timezone::UTC) + DateTime::Duration::FromAbsoluteDays( 5 * 365 );
+              CalendarDate    decCD( EndDate, Timezone::UTC );
+        const CalendarDate    EndCD( EndDate, Timezone::UTC );
+        UT_TRUE( incCD <  decCD )   UT_FALSE( incCD >  decCD )
+        UT_TRUE( incCD <= decCD )   UT_FALSE( incCD >= decCD )
+        UT_TRUE( incCD != decCD )   UT_FALSE( incCD == decCD )
+        for (int i = 1; i <= 5 * 365; ++i)
+        {
+                             incCD++;
+            auto             jmpCD= StartCD + i;
+            CalendarDateTime cdt( StartDate + DateTime::Duration::FromAbsoluteDays( i ), Timezone::UTC );
+
+            UT_EQ( cdt.Year     , incCD.Year     ())   UT_EQ( cdt.Year     , jmpCD.Year     ())
+            UT_EQ( cdt.Month    , incCD.Month    ())   UT_EQ( cdt.Month    , jmpCD.Month    ())
+            UT_EQ( cdt.Day      , incCD.Day      ())   UT_EQ( cdt.Day      , jmpCD.Day      ())
+            UT_EQ( cdt.DayOfWeek, incCD.DayOfWeek())   UT_EQ( cdt.DayOfWeek, jmpCD.DayOfWeek())
+
+                            decCD--;
+                            jmpCD= EndCD - i;
+                            cdt.Set( EndDate - DateTime::Duration::FromAbsoluteDays( i ), Timezone::UTC );
+            UT_EQ( cdt.Year     , decCD.Year     ())   UT_EQ( cdt.Year     , jmpCD.Year     ())
+            UT_EQ( cdt.Month    , decCD.Month    ())   UT_EQ( cdt.Month    , jmpCD.Month    ())
+            UT_EQ( cdt.Day      , decCD.Day      ())   UT_EQ( cdt.Day      , jmpCD.Day      ())
+            UT_EQ( cdt.DayOfWeek, decCD.DayOfWeek())   UT_EQ( cdt.DayOfWeek, jmpCD.DayOfWeek())
+        }
+    }
+    UT_PRINT("...done" )
+
+}
+#endif // ALIB_SYSTEM
 
 
 

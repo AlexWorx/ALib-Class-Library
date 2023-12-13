@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS
@@ -105,7 +105,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * |Boolean      | String   |<b>[]</b> | Integer  | Returns the sub-string of length \c 1 at index \e rhs in string \e lhs.
  *
  *
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
  * # Notes And Hints #
  *
  * ### Compile-Time Invokable: ###
@@ -281,7 +281,7 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  *   and if either \ref ALIB_CHARACTERS_WIDE is \c false or \ref ALIB_CHARACTERS_NATIVE_WCHAR
  *   equals \c true.
  *
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
  * # Reference Documentation #
  **************************************************************************************************/
 struct Strings   : public plugins::Calculus

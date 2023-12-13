@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKEN
@@ -22,6 +22,10 @@
 
 #if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(HPP_ALIB_FS_MODULES_MODULE)
 #   include "alib/lib/fs_modules/module.hpp"
+#endif
+
+#if ALIB_BOXING && !defined(HPP_ALIB_BOXING_BOXING)
+#   include "alib/boxing/boxing.hpp"
 #endif
 
 
@@ -306,7 +310,7 @@ class Token
          ******************************************************************************************/
         const String&   GetRawName()                                                           const
         {
-            ALIB_ASSERT_ERROR( int8_t(format) >= 0,
+            ALIB_ASSERT_ERROR( int8_t(format) >= 0, "STRINGS/TOK"
                                "Error in token definition. Use DbgGetError in debug-compilations!" )
             return name;
         }
@@ -322,12 +326,12 @@ class Token
         Formats         GetFormat()                                                            const
         {
             #if ALIB_BOXING
-               ALIB_ASSERT_ERROR( int8_t(format) >= 0,
+               ALIB_ASSERT_ERROR( int8_t(format) >= 0, "STRINGS/TOK"
                                   "Error {} in definition of token {!Q}. "
                                   "Use DbgGetError in debug-compilations!",
                                   NString256(int8_t(format)) << name       )
             #else
-                ALIB_ASSERT_ERROR( int8_t(format) >= 0,
+                ALIB_ASSERT_ERROR( int8_t(format) >= 0, "STRINGS/TOK"
                                    "Error ", NString64(int8_t(format)),
                                    " in definition of token \"", NString128(name),
                                    "\". Use DbgGetError in debug-compilations!"  )
@@ -369,7 +373,9 @@ class Token
          ******************************************************************************************/
         int8_t          GetMinLength( int idx )                                                const
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return minLengths[idx];
+            ALIB_WARNINGS_RESTORE
         }
 
     #if ALIB_ENUMS
@@ -532,6 +538,10 @@ class Token
 using     Token=     lib::strings::util::Token;
 
 }  // namespace [aworx]
+
+#if ALIB_BOXING
+    ALIB_BOXING_VTABLE_DECLARE( aworx::lib::strings::util::Token*, vt_alib_strings_token )
+#endif
 
 namespace aworx { namespace lib { namespace strings {
 #if defined(ALIB_DOX)

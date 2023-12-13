@@ -1,13 +1,290 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
 \page alib_changelog         Change Log
 
+\I{################################################################################################}
+\I{############################        Version 2312 R0       ####################################  }
+\I{################################################################################################}
+
+# Version 2312, Revision 0, released December 13th, 2023 #
+
+\note Yes, it hast been four years since the lasst release. What esd called a "global pandemic"
+      distracted me (the main programmer of this library) in many respects from working on open source
+      projects. Probably in a very different sense than some of you would expect.<br>
+      <b>Please take my excuse!</b>
+
+#### This version was successfully tested under the following platform and toolchain combinations: ####
+- GNU/Linux Arch 6.6.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 11 - 20, 32-Bit / 64-Bit<br>
+  (This is the main development platform.)
+- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), , C++ 11 - 20, 32-Bit / 64-Bit
+- Windows 10/11, MinGW 11.0,  C++ 11 - 17, 64-Bit ( <c>C++ 20 does  not compile! with current MinGW!</c>)
+- MacOS 13, Intel i9, AppleClang 14.0.3, C++ 11 - 20 C++, 64-Bit
+- MacOS 13, Apple M1/ARM64, C++ 11-20, 64-Bit
+- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 11 - 20, 64-Bit
+- Raspberry 4, ARM, 32-bit OS, GNU C++ 12.2.0, C++11-20
+- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++11-20
+
+
+#### CMake Build System  ####
+- Fixed the meanwhile lost ability to generate a static \alib library. Obviously a change in the
+  CMake default behaviour caused to build and link a shared library with the use of
+  provided method \ref alib_manual_build_cmake_5 "ALibAddStaticLibrary".
+- Added setting <b>set(Boost_USE_STATIC_LIBS   ON)</b> in \alibfile{build/cmake/ALib.cmake}.
+  This avoids rebuilding a project on systems that update \e Boost libraries.
+- Renamed CMake variables \e ALIB_COMPILE_FLAGS to \b ALIB_COMPILER_OPTIONS and
+  \e ALIB_LINKER_FLAGS to \b ALIB_LINKER_OPTIONS.
+  
+
+#### Preprocessor Symbols: ####
+- Added symbol \ref ALIB_GCC, which deducts the use of the \https{GNU Compiler Collection,gcc.gnu.org/}
+  by excluding other compilers.
+- Symbol \ref ALIB_CPP20 is now set to \c 1, if the language version is set accordingly.
+  (previously, the symbol existed but was never set).
+  Likewise symbol \c ALIB_CPPVER will now contain \c 20, if this language version was
+  used in the build process.
+- Renamed symbol \c ALIB_CONSTEXPR_IF to \ref ALIB_CONSTEXPR17 for usage in other situations
+  besides C++ 17 const-expression if-statements.
+- Added further macros to temporarily suppress compiler warnings:
+  - \ref ALIB_WARNINGS_ALLOW_NULL_POINTER_PASSING
+  - \ref ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+  - \ref ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
+  - \ref ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+  - \ref ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
+  - \ref ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
+  - \ref ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE
+  - \ref ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER
+
+- Other changes in macros:
+  - Added symbol \ref ALIB_BASE_DIR
+  - Added macro \ref ATMP_IS_INT
+  - Added macro \ref ATMP_IS_UINT
+  - Added macro \ref ATMP_IS_SINT
+  - Added symbol \ref ALIB_INTGAP_TYPE. See documentation of \ref ALIB_SIZEOF_INTEGER
+    as well as manual chapter \ref alib_manual_build_overview_platforms "4.1.1 Platforms and Toolchains"
+    of the \alib Programmer's Manual.
+
+#### General Changes: ####
+- Adopted code to compile smoothly with current clang version \https{clang compiler 14.0.6,llvm.org/}
+  and \https{GNU Compiler Collection 12.2.0,gcc.gnu.org/}. (As always a minimum set of
+  notorious warnings are disabled, only)
+- Removed former filesets \e debug and \e integers in favour to reduce compilation/setup complexity.
+  Corresponding files are now included in each \alibdist with header files:
+  - \alibheader{lib/integers.hpp} and
+  - \alibheader{lib/tools.hpp}
+  The latter was available before, but now includes the contents of removed files <c>assert.hpp</c>
+  and <c>typedemangler.hpp</c>
+- Added library header \alibheader{lib/bits.hpp}, which adds the following functions to
+  namespace #aworx::lib:
+  - #aworx::lib::BitCount
+  - #aworx::lib::CLZ
+  - #aworx::lib::CLZ0
+  - #aworx::lib::MSB
+  - #aworx::lib::MSB0
+  - #aworx::lib::BitCounterWidth
+  - #aworx::lib::LowerMask
+
+- Minor fixes of fileset dependency evaluation in file \alibheader{lib/modules.hpp}.
+- Removed use of deprecated type <c>"std::iterator"</c>.
+  (Replaced by use of <c>"std::iterator_traits"</c>.)
+- Renamed identifiers containing the misspelled word "iteratable" to "iterable".
+  I.e. template type\alib{enums,T_EnumIsIterable}, macro \ref ALIB_ENUMS_MAKE_ITERABLE
+  and also header file \alibheader{enums/iterable.hpp}
+- Slightly corrected bootstrapping order of micro modules to be
+  1. \alib_time,
+  2. \alib_boxing and
+  3. \alib_threads.
+
+
+#### ALib Debug Support: ####
+- Added parameter \p topic to overloaded methods \ref aworx::lib::DbgSimpleALibMsg.
+  Changed all invocations within the library to provide a topic.
+
+#### Fileset "CommonEnums": ####
+- Extracted enum alias definitions in namespace \c aworx into new header file
+  \alibheader{lib/fs_commonenums/commonenumdefs_aliased.hpp}.
+- Added common enum \ref aworx::lib::ValueReference.
+
+#### Fileset "Lists": ####
+- Moved classes of this fileset to new sub-namespace \ref aworx::lib::detail.
+- Renamed and simplified helper classes of this fileset.
+
+#### Fileset "Plugins": ####
+- Moved class \alib{detail::PluginContainer} to new sub-namespace \ref aworx::lib::detail.
+
+#### Fileset "Modules": ####
+- Added field \alib{ALibDistribution::LocaleFound} that allows to get confirmation that the locale
+  that was automatically set as described in \alib{ALibDistribution::bootstrap}.
+  This is now used by the unit tests to avoid errors due to failure of unicode
+  conversion just for the sake of missing environment variables in dubious development
+  environments.
+
+#### Module Resources: ####
+- Added field \alib{resources,LocalResourcePool::DbgResourceLoadObserver} and updated
+  manual chapter \ref alib_resources_details_debug.
+
+#### Module Enums: ####
+- Added three more namespace functions for bitwise defined enumeration types:
+  \alib{enums::bitwise,CountElements},
+  \alib{enums::bitwise,ToBitwiseEnumeration} and
+  \alib{enums::bitwise,ToSequentialEnumeration}.
+
+#### Module Boxing: ####
+- Defined \ref alib_boxing_more_opt_staticvt "static vtables for ALib Boxing" for the following types:
+  - \aworx{lib,Alignment,Common enumeration types} provided with \alib.
+  - \c std::type_info
+  - \alib{results,Exception}
+  - \alib{results,Report::Types}
+  - \alib{strings::util,Token}
+  - \alib string types when wrapped in \c std::reference_wrapper.
+  - Added convenience method \alib{boxing,Box::UnboxMutable}.
+
+#### Module Strings: ####
+- Fixed comparison operators to be compatible with ambiguities that occur with C++ 20 language
+  standard. Likewise, with C++ 20 the spaceship operator <c>'<=>'</c> is now used instead.
+- Added method \alib{strings,TAString::Reverse,AString::Reverse} and underlying implementation
+  \alib{characters,CharArray<TChar>::Reverse}.
+- Added checks for field \b ostream with output methods of class
+  \alib{strings,compatibility::std::StringWriter}.
+- Fixed a bug in floating point number conversion, which in rare cases caused an
+  \alib exception in debug builds and a falsely rounded output string in release builds.
+- Fixed move constructor of class \alib{strings,TAString,AString} not also reset the capacity,
+  but also the length of the moved string to \c 0.
+- Method \alib{strings,TString::WStringLength,String::WStringLength} now, in case of failure, returns the strings'
+  unconverted length instead of -1.
+
+#### Module Time: ####
+- Added method \alib{time,TimePointBase::Unset}.
+- Added methods \alib{time::TimePointBase,Duration::SetMinimum}
+  and           \alib{time::TimePointBase,Duration::SetMaximum}.
+- Renamed method <c>TimePointBase::Raw</c> to \alib{time,TimePointBase::ToRaw}.
+- Added method \alib{time,TimePointBase::SetFromRaw}.
+- Renamed method <c>TimePointBase::NativeValue</c> to \alib{time,TimePointBase::Export}.
+  Changed its signature to being \c const and changed return value to a copy of the internal value
+  instead of a reference to it.
+- Added method \alib{time,TimePointBase::Import}.
+
+
+#### Module Threads: ####
+- Changed signature of most methods of class \alib{threads,Thread} to being \c virtual.
+- Added method \alib{threads,Thread::Terminate}, which has to be called prior to destructing
+  a thread.
+- Added enum \alib{threads,Thread::State} and method \alib{threads,Thread::GetState},
+  which replace removed boolean field <c>Thread::isAliveFlag</c> and method <c>Thread::IsAlive</c>.
+- Added static method \alib{threads,Thread::YieldToSystem}
+- Added static methods \alib{threads,Thread::Sleep} and \alib{threads,Thread::SleepUntil}
+- Added class \alib{threads,Sleeper}.
+- Improved debug assertions of class \alib{threads,ThreadLockNR}
+
+
+#### Module Monomem: ####
+- Fixed method \alib{monomem,List::ElementAt} (and added missing unit test).
+- Added constructor parameter \p chunkGrowthInPercent to
+  \alib{monomem,MonoAllocator::MonoAllocator(size_t, unsigned int),MonoAllocator}
+  which allows exponential growth of allocated chunk sizes.
+- Fixed a bug in method \alib{monomem,HashTable::Erase(ConstIterator, ConstIterator) }
+  which lead to a double invocation of a destructor of the first element removed.
+  Improved unit tests to detect problems of this kind in the future.
+- Added container type \alib{monomem::util,FixedCapacityVector} and type definition
+  #aworx::FixedSizePriorityQueue.
+- Removed method \b HashTable::Rehash. See
+  \ref alib_ns_monomem_hashtable_rehashing "reference documentation" for the rationale.
+- Added parameter \p{reference} to methods
+  \alib{monomem,HashTable::Reserve},
+  \alib{monomem,HashTable::ReserveRecyclables} and
+  \alib{monomem,StringTree::ReserveRecyclables}.
+- Constructor of \alib{monomem,StringTree} now reserves a minimum number of internal buckets
+  to prevent the creation of a non-recyclable bucket list on future growth.
+- Added missing template parameter \c TLocalCapacity to alias name \ref aworx::StringTreeNamesDynamic.
+- Fixed bug in overloaded variant of \alib{monomem,HashTable::EmplaceOrAssign} which
+  could generate a compiler error due to not properly forwarding the hash functor.
+
+#### Module "Results": ####
+- Adopted method \alib{results,ReportWriterStdIO::Report} to interpret the first parameter of
+  a method as a "topic". The rules to detect such topic follow the rules of auto-detecting
+  domain names in higher level module \alox, which replaces the report writer for internal
+  messages.
+
+#### Module Text: ####
+- The backslash of newline characters in format strings do not need to be escaped itself anymore.
+  For example, format string
+
+        "Value 1: {}\\nValue 2: {}"
+
+  may now be written
+
+        "Value 1: {}\nValue 2: {}"
+
+  All occurrences in resource strings and log output have been changed to use the single-slash
+  version.
+
+- Replaced abstract virtual method <b>FormatterStdImpl::replaceEscapeSequences</b> with
+  \alib{text::FormatterStdImpl,writeStringPortion} (performance optimization).
+- \alib{text,FormatterStdImpl} now performs custom formatting whenever a custom boxing
+  function \alib{text,FFormat} is defined for a given boxed formatting argument.
+  In previous versions, this was done only if a custom format string was provided with the
+  corresponding placeholder of the format string.<br>
+  Consequently, custom implementations of \b FFormat now have to cope with empty format strings,
+  for example by using a (resourced) default string.
+
+#### Module Config: ####
+- Changed format of resourced \alib{config,VariableDecl,variable declarations}.
+- Fixed a bug that caused utility method \alib{config,Configuration::PreloadVariables} to overwrite
+  existing variables with default values.
+- Method \alib{config,Configuration::Load} now adds the default value to the given variable
+  instance, also when no default configuration plug-in is added.
+
+#### Module System: ####
+- \alib{system,FFormat_DateTime} now uses a default format string in the case no format was given.
+  The format string is resourced with key \b "DFMT".
+- Extracted system error definitions from \alibheader{system/system.hpp} to
+  \alibheader{system/systemerrors.hpp} (to reduce inclusion dependencies)
+- Added class \alib{system,CalendarDate}.
+
+#### Module ALox: ####
+- Fixed special shortcut header \alibheader{alox.hpp} to include \alibheader{distribution.hpp}
+  to allow single inclusion of "alib/alox.hpp" to automatically bootstrap and use
+  \alox functionality as instructed in the tutorial.
+- Added method \alib{lox,Lox::IsActive} to detect the number of loggers that are active
+  for a combination of domain and verbosity.<br>
+  Likewise added macros #Lox_IsActive and #Lox_IsActive.
+- Class \alib{lox::loggers,TextFileLogger} now tests file for possible access during construction.
+  Errors may be evaluated with new field \alib{lox::loggers,TextFileLogger::LastSystemError}, which
+  replaced former boolean field \b hasIoError that only was set after a (first) log operation.
+
+#### Module Expressions: ####
+- Moved mechanics to implement \ref alib_expressions_nested_config "automated named expressions"
+  into new dedicated abstract interface class \alib{expressions,ExpressionRepository}.<br>
+  A standard implementation for it is provided with \alib{expressions,StandardRepository}.
+  Implementations are to be set to new field \alib{expressions,Compiler::Repository}.
+  Consequently, all corresponding former entities in class \b Compiler
+  (namely \b Config, \b DefaultCategories, \b VariablesLoaded, \b StoreLoadedExpressions and
+  \b getExpressionString) have been removed.
+- \ref alib_expressions_operators_verbal "Verbal aliases" of binary operators are no longer
+  conflicting with identifier/function names. For example, a function named "equals" may
+  now be defined while the same string is used for a verbal operator alias.
+- Simplified syntax of format strings of type \alib{expressions::util,ExpressionFormatter}.
+
+#### New Module CLI: ####
+This module is not completely new, but with this version it comes in its first "release" state.
+Along with it, a brief Programmer's Manual \alib_cli is provided.
+This manual includes a step-by-steb sample, which can well be used as a jump-start template for your
+own project.
+
+#### New module "BitBuffer": ####
+This \alib release introduces a new module \alib_bitbuffer_nl which provides mechanism to serialize
+application data into streams of bits. The following classes are included:
+- \alib{bitbuffer,BitBuffer}, \alib{bitbuffer,BitBufferMA} and \alib{bitbuffer,BitBufferLocal}
+- \alib{bitbuffer,BitWriter} and \alib{bitbuffer,BitReader},
+- \alib{bitbuffer::ac_v1,ArrayCompressor}, \alib{bitbuffer::ac_v1,HuffmanEncoder}
+  and \alib{bitbuffer::ac_v1,HuffmanDecoder}
+
+A \ref alib_mod_bitbuffer "brief manual" explains the use of this new module.
 
 \~Comment ####################################################################################### \~
 \~Comment #####################        Version 1912 R0       #################################### \~
@@ -55,7 +332,7 @@ We hope that during the process of adopting your code, you will see the benefits
 #### General Changes: ####
 - Dropped the concept of "compiler symbols". If not explicitly documented otherwise,
   code selection symbols (that formerly where derived from compiler symbols passed with option <b>-D</b> )
-  are now directly passible to the compiler with the same option name instead of using postfixes
+  are now directly possible to the compiler with the same option name instead of using postfixes
   <b>_ON</b> or <b>_OFF</b>.
 - Cleaned header file inclusion across \alib to improve compilation speed.<br>
   Moving to this version will likely impose the need to include some specific headers in a
@@ -132,16 +409,16 @@ Various changes have been made, for example:
 - Most types now use underlying type <c>bool</c>.
 
 #### Fileset "Plugins": ####
-- Class \alib{PluginContainer} does not inherit from \alib{threads,ThreadLock} any more.
+- Class \b PluginContainer does not inherit from \alib{threads,ThreadLock} any more.
 
 #### Fileset "Lists" (new): ####
 This new fileset starts with providing types
-\alib{ForwardNode},
-\alib{ForwardList},
-\alib{ForwardListIterator},
-\alib{BidiNode},
-\alib{BidiList} and
-\alib{BidiListIterator}, which are considered "internal types" when implementing single- or
+\b ForwardNode,
+\b ForwardList,
+\b ForwardListIterator,
+\b BidiNode,
+\b BidiList and
+\b BidiListIterator, which are considered "internal types" when implementing single- or
 doubly-linked lists.
 
 #### Module Characters: ####
@@ -593,14 +870,11 @@ not written, yet. Due to the lack of documentation, we can not really recommend 
 As we are using it with other projects already, the code itself is considered stable and tested.
 
 
-
-
 \~Comment ####################################################################################### \~
 \~Comment #############################        Older         #################################### \~
 \~Comment ####################################################################################### \~
 
 # Older Versions #
-
 
 All previous versions have been maintained as a part of <b>multi-language project</b>
 [ALox Logging Library](http://alexworx.github.io/ALox-Logging-Library/).
@@ -609,4 +883,3 @@ Please consult this project's [Change-Log](http://alexworx.github.io/ALox-Loggin
 for information on changes since the initial release in May 2013.
 
 */
-

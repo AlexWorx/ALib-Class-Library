@@ -1,8 +1,8 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_modules of the \aliblong.
+ * This header file is part of file set \alibfs_modules of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_FS_MODULES_DISTRIBUTION
@@ -49,15 +49,16 @@ ALIB_ASSERT_FILESET(MODULES)
 #   define ALIB_VFYBIT_MODULE_TIME                             (1LLU <<  5)
 #   define ALIB_VFYBIT_MODULE_BOXING                           (1LLU <<  6)
 #   define ALIB_VFYBIT_MODULE_STRINGS                          (1LLU <<  7)
-#   define ALIB_VFYBIT_MODULE_RESOURCES                        (1LLU <<  8)
-#   define ALIB_VFYBIT_MODULE_THREADS                          (1LLU <<  9)
-#   define ALIB_VFYBIT_MODULE_TEXT                             (1LLU << 10)
-#   define ALIB_VFYBIT_MODULE_RESULTS                          (1LLU << 11)
-#   define ALIB_VFYBIT_MODULE_SYSTEM                           (1LLU << 12)
-#   define ALIB_VFYBIT_MODULE_CONFIGURATION                    (1LLU << 13)
-#   define ALIB_VFYBIT_MODULE_ALOX                             (1LLU << 14)
-#   define ALIB_VFYBIT_MODULE_EXPRESSIONS                      (1LLU << 15)
-#   define ALIB_VFYBIT_MODULE_CLI                              (1LLU << 16)
+#   define ALIB_VFYBIT_MODULE_BITBUFFER                        (1LLU <<  8)
+#   define ALIB_VFYBIT_MODULE_RESOURCES                        (1LLU <<  9)
+#   define ALIB_VFYBIT_MODULE_THREADS                          (1LLU << 10)
+#   define ALIB_VFYBIT_MODULE_TEXT                             (1LLU << 11)
+#   define ALIB_VFYBIT_MODULE_RESULTS                          (1LLU << 12)
+#   define ALIB_VFYBIT_MODULE_SYSTEM                           (1LLU << 13)
+#   define ALIB_VFYBIT_MODULE_CONFIGURATION                    (1LLU << 14)
+#   define ALIB_VFYBIT_MODULE_ALOX                             (1LLU << 15)
+#   define ALIB_VFYBIT_MODULE_EXPRESSIONS                      (1LLU << 16)
+#   define ALIB_VFYBIT_MODULE_CLI                              (1LLU << 17)
 
 #   define ALIB_VFYBIT_FEAT_SINGLETON_MAPPED                   (1LLU << 40)
 
@@ -70,7 +71,7 @@ ALIB_ASSERT_FILESET(MODULES)
 
 #   define ALIB_VFYBIT_DEBUG_STRINGS                           (1LLU << 46)
 #   define ALIB_VFYBIT_DEBUG_BOXING                            (1LLU << 47)
-#   define ALIB_VFYBIT_DEBUG_MONOMEM                           (1LLU << 48)
+#   define ALIB_VFYBIT_DEBUG_MONOMEM_MONOMEM                    (1LLU << 48)
 #   define ALIB_VFYBIT_DEBUG_RESOURCES                         (1LLU << 49)
 
 #   define ALOX_VFYBIT_DBG_LOG                                 (1LLU << 50)
@@ -100,13 +101,14 @@ ALIB_ASSERT_FILESET(MODULES)
 #   define    ALIB_COMPILATION_FLAGS                                                               \
 (   ALIB_VFYBIT_DEBUG                                * ALIB_DEBUG                                  \
                                                                                                    \
- +  ALIB_VFYBIT_MODULE_MONOMEM                       * ALIB_MONOMEM                                \
+ +  ALIB_VFYBIT_MODULE_MONOMEM                        * ALIB_MONOMEM                               \
  +  ALIB_VFYBIT_MODULE_SINGLETONS                    * ALIB_SINGLETONS                             \
  +  ALIB_VFYBIT_MODULE_CHARACTERS                    * ALIB_CHARACTERS                             \
  +  ALIB_VFYBIT_MODULE_ENUMS                         * ALIB_ENUMS                                  \
  +  ALIB_VFYBIT_MODULE_TIME                          * ALIB_TIME                                   \
  +  ALIB_VFYBIT_MODULE_BOXING                        * ALIB_BOXING                                 \
  +  ALIB_VFYBIT_MODULE_STRINGS                       * ALIB_STRINGS                                \
+ +  ALIB_VFYBIT_MODULE_BITBUFFER                     * ALIB_BITBUFFER                              \
  +  ALIB_VFYBIT_MODULE_RESOURCES                     * ALIB_RESOURCES                              \
  +  ALIB_VFYBIT_MODULE_THREADS                       * ALIB_THREADS                                \
  +  ALIB_VFYBIT_MODULE_TEXT                          * ALIB_TEXT                                   \
@@ -128,17 +130,12 @@ ALIB_ASSERT_FILESET(MODULES)
                                                                                                    \
  +  ALIB_VFYBIT_DEBUG_STRINGS                        * ALIB_DEBUG_STRINGS                          \
  +  ALIB_VFYBIT_DEBUG_BOXING                         * ALIB_DEBUG_BOXING                           \
- +  ALIB_VFYBIT_DEBUG_MONOMEM                        * ALIB_DEBUG_MONOMEM                          \
+ +  ALIB_VFYBIT_DEBUG_MONOMEM_MONOMEM                * ALIB_DEBUG_MONOMEM                          \
  +  ALIB_VFYBIT_DEBUG_RESOURCES                      * ALIB_DEBUG_RESOURCES                        \
                                                                                                    \
  +  ALIB_COMPILATION_FLAGS_ALOX                                                                    \
 )
-
-
 #endif //ALIB_DOX
-
-
-
 
 namespace aworx { namespace lib {
 
@@ -231,6 +228,14 @@ class ALibDistribution  : public Module
          *   only if module \alib_config is included in the \alibdist.
          */
         bool                    HasConsoleWindow;
+
+        /**
+         * This string is set during bootstrapping in the case that a locale information was
+         * found (via standard environment variables or \alib variable \aworx{lib,Variables,LOCALE})
+         * and successfully set.<br>
+         * Otherwise this string is \e nulled.
+         */
+        String                  LocaleFound;
 
         /**
          * The command line arguments stored for convenience.
@@ -361,7 +366,7 @@ class ALibDistribution  : public Module
          * Terminates this module.
          * @param phase  The shutdown phase to perform.
          ******************************************************************************************/
-        virtual void    shutdown( ShutdownPhases phase )                                override;
+        virtual void    shutdown( ShutdownPhases phase )                                   override;
 
 
 };// class ALibDistribution
@@ -374,10 +379,8 @@ extern ALIB_API lib::ALibDistribution ALIB;
 } // namespace [aworx]
 
 #if ALIB_CONFIGURATION
-
-ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::Variables, aworx::lib::config::VariableDecl )
-ALIB_RESOURCED_IN_MODULE( aworx::lib::Variables, aworx::ALIB, "Var" )
-
+    ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::Variables, aworx::lib::config::VariableDecl )
+    ALIB_RESOURCED_IN_MODULE( aworx::lib::Variables, aworx::ALIB, "Var" )
 #endif
 
 

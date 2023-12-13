@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -13,8 +13,8 @@
 #   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
 #      include "alib/lib/fs_modules/distribution.hpp"
 #   endif
-#   if !defined (HPP_ALIB_SYSTEM_SYSTEM)
-#      include "alib/system/system.hpp"
+#   if !defined(HPP_ALIB_SYSTEM_ERRORS)
+#      include "alib/system/systemerrors.hpp"
 #   endif
 #   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
 #      include "alib/resources/resources.hpp"
@@ -46,7 +46,7 @@ namespace config  {
 Config::Config()
 : Module( ALIB_VERSION, ALIB_REVISION, "CFG" )
 {
-    ALIB_ASSERT_ERROR( this == &CONFIG,
+    ALIB_ASSERT_ERROR( this == &CONFIG, "CONFIG",
         "Instances of class Config must not be created. Use singleton aworx::lib::CONFIG" )
 }
 

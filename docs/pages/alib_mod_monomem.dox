@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -9,10 +9,10 @@
 
 \tableofcontents
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 1. Introduction # {#alib_monomem_intro}
-This module's name <em>"monomem"</em> stands for <em>"monotonic memory"</em>.
-The term <em>monotonic</em> here relates to the way that memory allocation is performed:
+This module's name <em>"monomem"</em> stands for <em>"monotonic memory"</em> .
+The term <em>monotonic</em>  here relates to the way that memory allocation is performed:
 At a certain point in execution time, a set of allocations is performed which are all deleted
 at the same future point in time. The used memory for allocation is "monotonically growing"
 during a defined time span.
@@ -27,7 +27,7 @@ lead to a wide range of possible use-cases.
     - \ref alib_monomem_intro_strictweak, and
     - \ref alib_monomem_intro_recycling.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.1 Allocation Models ## {#alib_monomem_intro_builtin_allocation}
 Two "built-in" sorts of memory are available with the C++ language:
 - <b>Local- Or Stack-Allocation<br></b>
@@ -72,7 +72,7 @@ To be motivated to use monotonic allocation, the following is important to under
 Besides these two, other memory allocation models are available with 3rd-party libraries.<br>
 Well, and one fundamental of those is provided with this \alibmod_nl.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.2 Monotonic Allocation ## {#alib_monomem_intro_definition}
 
 Monotonic allocation builds on dynamic allocation but avoids memory fragmentation and thus
@@ -146,7 +146,7 @@ But further reasons of performance gain are:
     hard to measure (and to prove!) in simple testing software.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.3 Samples  ## {#alib_monomem_intro_samples}
 
 A well understandable sample use case for monotonic allocation, is found with module \alib_expressions.
@@ -173,7 +173,7 @@ processing can be considered monotonically allocatable.
 And you can bet that all prominent implementations of <em>http-serves</em> are using this concept,
 as introduced here.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.4 Strict And Weak Monotonic Allocation  ## {#alib_monomem_intro_strictweak}
 The definition given above stated that those objects that share the same life cycle may
 be considered a set and be monotonically allocated.
@@ -216,7 +216,7 @@ performance gain of monotonic allocation usually goes far beyond the performance
 be caused (in the whole system!) by a higher peak memory consumption.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.5 Recycling  ## {#alib_monomem_intro_recycling}
 
 The takeaway from the previous section was that weakening the requirements to perform
@@ -274,7 +274,7 @@ completely mitigated, if only the first chunk of memory allocated is large enoug
 needed to handle the peak of parallel user sessions.
 
 Besides the fact that the use of container types can often be turned into a use case of
-monotonic-allocation, the more general takeaway of this final introductory chapter is:
+monotonic allocation, the more general takeaway of this final introductory chapter is:
 
 \par Recycling:
 <em><b>It might be worthwhile to think a little longer about the possibility of applying monotonic
@@ -283,7 +283,7 @@ tricks, many scenarios that do NOT seem to be suitable, may be turned into a sui
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. Class MonoAllocator # {#alib_monomem_class_monoalloc}
 
 The central type of this \alibmod is class \alib{monomem,MonoAllocator}. Its interface allows
@@ -293,7 +293,7 @@ array types.
 Internally bigger chunks of memory are requested from the heap and used for the provision of
 the data.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.1 Resetting Class MonoAllocator ## {#alib_monomem_class_monoalloc_reset}
 The memory chunks that an instance of class \alib{monomem,MonoAllocator} allocates on the heap
 are stored in a single-linked list and only deleted with the deletion of the allocator instance.
@@ -304,7 +304,7 @@ are re-used as well! Only in the case that more memory is needed than in a prior
 chunk is requested from the heap.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.2 MonoAllocator Snapshots ## {#alib_monomem_class_monoalloc_snapshot}
 The simple concept of resetting an allocator to have the ability to reuse it, internally is
 realized by a more sophisticated concept. Class \b %MonoAllocator does not only
@@ -330,7 +330,7 @@ While the exact conditions of use are not easy to precisely define, during the c
 monotonic allocation, a programmer will probably identify use cases for nested allocations quite naturally.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 3. Monomem Container Types # {#alib_monomem_containers}
 
 This module provides implementations of container types that are very similar to types found
@@ -357,7 +357,7 @@ in this and the next chapter \ref alib_monomem_stdcontainers "4. C++ Library Con
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.1 Provided Containers ## {#alib_monomem_containers_types}
 
 The following container types are provided with module \alib_monomem_nl :
@@ -380,7 +380,7 @@ Besides monotonic allocation, the types support recycling of internal node objec
 in the next chapter.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.2 Recycling Support ## {#alib_monomem_containers_recycling_private}
 
 The concept of "node recycling" as it was introduced in chapter \ref alib_monomem_intro_recycling,
@@ -400,7 +400,7 @@ the first recyclable) and all recycling takes place internally.
 
 The next chapter introduces details of shared recycling.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.3 Shared Recycling ## {#alib_monomem_containers_recycling_shared}
 
 The concept of \b shared recycling aims to reduce the overall peak size of allocated
@@ -443,15 +443,15 @@ The object passed has to survive the life-span of each container type that uses 
 
 Here is a quick sample taken from the unit tests that demonstrates the use of shared recycling:
 
-  \snippet "ut_alib_monomem.cpp"  DOX_ALIB_MONOMEM_RECYCLER
+  \snippet "ut_alib_monomem_monomem.cpp"  DOX_ALIB_MONOMEM_RECYCLER
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.4 Recycling Of Non-Node Types ## {#alib_monomem_containers_recycling_nonnodetypes}
 
 The implementation of class \alib{monomem,HashTable} allocates so called <em>"bucket arrays"</em>
 besides node objects. If, with the insertion of a new element, the
 \alib{monomem,HashTable::MaxLoadFactor,maximum load factor} of the hash-table is reached,
-a new, bigger bucket array is allocated and the existing nodes are "re-hased". Then the former
+a new, bigger bucket array is allocated and the existing nodes are "re-hashed". Then the former
 bucket array becomes useless, hence would be de-allocated if dynamic memory allocation was used.
 
 In general, this is not a problematic situation because the growth continues only up to a
@@ -465,7 +465,7 @@ non-node piece of memory to its recycler object: There, the array be sliced into
    this technique is not extended into an interface that allows other unused (hence weak monotonic)
    object allocations to be fed to a container's recycler.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 3.5 Reserving Capacity ## {#alib_monomem_containers_recycling_reserving}
 The concept of reserving container capacity if the future size of a container is known or at
 least assessable, is extended by this \alibmod_nl's container type to the optional inclusion
@@ -485,14 +485,14 @@ invalid with the reset! Preserving capacity including recyclables is a way to mi
 common source of "undefined behaviour" when using nested monotonic allocations.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. C++ Library Container Types# {#alib_monomem_stdcontainers}
 
 While the C++ standard container types can be used with this implementation, some limitations
 apply in respect to <em>"node recycling"</em> .
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.1 Std-Containers: Monotonic Allocation Without Recycling # {#alib_monomem_stdcontainers_strict}
 
 For all uses cases that constitute monotonic allocation
@@ -509,14 +509,14 @@ A standard container is declared by providing the allocator types \b aworx::StdC
 or \b aworx::StdContMAOptional<T> for the allocator template typename with repeating the contained
 object's type:
 
- \snippet "ut_alib_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_DECL
+ \snippet "ut_alib_monomem_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_DECL
 
 With the definition of an instance of a container, an instance of the <c>std::allocator</c> type has
 to be passed to the constructor of the container. This often requires a pair of extra brackets,
 as otherwise the compiler might consider the construction of a temporary of type \b StdContMA<T>
 to be a function declaration:
 
- \snippet "ut_alib_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_DEF
+ \snippet "ut_alib_monomem_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_DEF
 
 If an allocator that is used by a standard container is reset, the container object itself
 has to be reset. Because, the standard containers do not support such reset, the simple way
@@ -529,10 +529,10 @@ The documentation of class \alib{monomem,StdContMA} provides a source code sampl
 demonstrates this.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.2 Std-Containers: Monotonic Allocation With Recycling # {#alib_monomem_stdcontainers_recycling}
 
-The challenge of implementing alib_monomem_intro_recyling "recycling" for the C++ standard container
+The challenge of implementing \ref alib_monomem_intro_recycling "recycling" for the C++ standard container
 types lies in the fact that the standard specification does not cover a container's implementation
 but only its interface. Consequently, the internal node type is not determined. Even worse,
 it is not even determined if the type allocates and de-allocates single node objects at all, or
@@ -556,7 +556,7 @@ Being a platform agnostic library, of-course \alib does not use type \alib{monom
 anywhere internally.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 4.3. C++ 17 Polymorphic Memory Resources ## {#alib_monomem_stdcontainers_pmr}
 
 With C++ language version \c 17, the standard library was extended by namespace <c>std::pmr</c>
@@ -576,10 +576,10 @@ class \b MonoAllocator.
 For now, such implementation can be done by a user of both, \alib and <c>std::pmr</c>, with a few
 lines of code only.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Self-Contained Monotonic Allocators And Custom Types# {#alib_monomem_selfcontained}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.1 Self-Contained Allocators ## {#alib_monomem_selfcontained_allocator}
 It is possible to emplace an instance of type \alib{monomem,MonoAllocator} in the first chunk
 of memory it allocates.
@@ -591,13 +591,13 @@ their destructor must be invoked "manually".
 
 The following code snippet demonstrates this:
 
-  \snippet "ut_alib_monomem.cpp"  DOX_ALIB_MONOMEM_ALLOCATOR_CREATE
+  \snippet "ut_alib_monomem_monomem.cpp"  DOX_ALIB_MONOMEM_ALLOCATOR_CREATE
 
 Note that \alib{monomem::Destruct} is a templated inline namespace utility function that
 simply calls the constructor of the object given. In theory any object could be passed, regardless
 of monotonic allocation. The function is just given for better readability.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 5.2 Self-Contained CustomTypes ## {#alib_monomem_selfcontained_selfcontained}
 The concept of placing a monotonic allocator inside its first chunk of memory is extended to
 furthermore placing any custom type inside that first chunk and making the allocator a
@@ -605,7 +605,7 @@ field of that custom type.
 
 Let us look at a sample. A dictionary that maps words to other words should be implemented.
 First we need to define the data members needed, which is just one hash table:
-  \snippet "ut_alib_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_1
+  \snippet "ut_alib_monomem_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_1
 
 Then we can define the custom type, which inherits class \alib{monomem,SelfContained}. The
 struct that defines the custom fields is given as a template parameter to this base class.
@@ -614,7 +614,7 @@ When implementing a method, keyword <c>this</c> has to be replaced by a call to 
 \alib{monomem,SelfContained::Self}.
 
 The sample class then looks like this:
-  \snippet "ut_alib_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_2
+  \snippet "ut_alib_monomem_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_2
 
 Note that the hash map that implements the dictionary is of-course using the very same monotonic
 allocator that class \b SelfContained creates for itself. However, as it can not be accessed
@@ -623,7 +623,7 @@ at construction time of struct \b FieldsOfDictionary, the constructor of class
 
 If an object of type \b Dictionary is constructed, all is internally set up and cleaned on
 destruction:
-  \snippet "ut_alib_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_3
+  \snippet "ut_alib_monomem_monomem.cpp"  DOX_ALIB_MONOMEM_SELFCONTAINED_3
 
 \note
   A step by step guide to using \b SelfContained is given with
@@ -635,7 +635,7 @@ An advantage of this concept is that the footprint of the resulting type has jus
 one pointer and this way instances can be moved to other places very easily.<br>
 The standard throwable type of \alib, class \alib{results,Exception}, is a prominent sample.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 6. Thread Safeness # {#alib_monomem_threadsafeness}
 
 There is no built-in protection against racing conditions caused by parallel allocations
@@ -648,10 +648,10 @@ invoked by different threads. Any mechanism of protection has to be performed by
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 7. The Global MonoAllocator # {#alib_monomem_globalinstance}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 7.1 Permanent Allocations ## {#alib_monomem_globalinstance_permanent}
 In the case that the life-span of a set of objects suitable for monotonic allocation
 equals the complete life-span of the software process itself, the global allocator singleton
@@ -675,7 +675,7 @@ easily. For this reason, the interface of class \alib{monomem,MonoAllocator} ass
 in debug-compilations, that either the current instance (aka the <c>this</c> pointer) does not equal
 the object \alib{monomem,GlobalAllocator} or that it is duly locked.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 7.2 Snapshots On The Global Allocator ## {#alib_monomem_globalinstance_snapshot}
 A second case for using the global allocator singleton is using it in combination with
 \ref alib_monomem_class_monoalloc_snapshot "snapshots". If sets of monotonic allocatable objects
@@ -694,10 +694,10 @@ behaviour might be difficult to debug.
 As a conclusion, this use pattern is not recommended, unless a programmer knows exactly what
 and why she is doing it.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 8. Further Features # {#alib_monomem_further}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 8.1 String Allocations ## {#alib_monomem_further_strings}
 
 To monotonically allocate copies of constant strings, convenience method
@@ -724,7 +724,7 @@ occasional dynamic allocations caused by buffer exceeds.
 Note that no string type is given that stores the monotonic allocator to be used with future
 capacity increase. To not provide such type is a design decision.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 8.2 Debugging ## {#alib_monomem_further_debug}
 
 With debug compilations and symbol \ref ALIB_DEBUG set, common assertions are activated in the
@@ -739,13 +739,12 @@ With special compilation symbol \ref ALIB_DEBUG_MONOMEM, the following features 
   - Field \alib{monomem,MonoAllocator::LogDomain} which allows to control the sub-domain name
     of log output created by a specific allocator instance.
   - An \alib warning is raised if an allocation request exceeds
-    \alib{monomem,MonoAllocator::stdUsableSpace}.
+    \alib{monomem,MonoAllocator::nextChunksUsableSize}.
   - An \alib warning is raised in the destructor if more than \c 15 chunks have been allocated.
 - For class \b HashTable
   - Function \alib{monomem,DbgGetHashTableDistribution}.
   - Function \alib{monomem,DbgDumpDistribution}.
   - Function \alib{monomem,DbgDumpHashtable}.
-
 */
 
 

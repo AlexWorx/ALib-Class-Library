@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION
@@ -15,7 +15,7 @@
 namespace aworx { namespace lib { namespace strings { namespace detail {
 
 
-// clang 7.0.1 falsely reports:
+// clang 7.0.1 - 14.0.6 (as of today 221216) falsely reports:
 // "warning: '@tparam' command used in a comment that is not attached to a template declaration
 #if !defined(ALIB_DOX)
     ALIB_WARNINGS_IGNORE_DOCS

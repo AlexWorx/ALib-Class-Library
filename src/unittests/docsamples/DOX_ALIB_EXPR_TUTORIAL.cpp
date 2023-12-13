@@ -1,13 +1,15 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
+#include "alib/lib/compilers.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+
+#if ALIB_UT_DOCS && ALIB_EXPRESSIONS && ( (ALIB_CPPVER >= 17) || !defined(__APPLE__) )
 
 #include "alib/alox.hpp"
 
@@ -24,7 +26,39 @@ ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-#include <experimental/filesystem>
+
+#if defined(_MSC_VER)
+    ALIB_WARNINGS_RESERVED_MACRO_NAME_OFF
+    ALIB_WARNINGS_MACRO_NOT_USED_OFF
+        #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING // MSVC to20do
+    ALIB_WARNINGS_RESTORE
+    ALIB_WARNINGS_RESTORE
+#endif
+
+#include <chrono>
+
+#if ALIB_CPPVER < 17
+#   include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#else
+#   include <filesystem>
+    namespace fs = std::filesystem;
+#endif
+
+// Note: MacOS is currently (as of 231210) C++ 20 library features in the area of std::clock
+#if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+namespace
+{
+    template <typename TP>
+    std::time_t to_time_t(TP tp)
+    {
+        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - TP::clock::now()
+                        + std::chrono::system_clock::now());
+        return std::chrono::system_clock::to_time_t(sctp);
+    }
+}
+#endif
+
 
 
 namespace std { namespace {   basic_stringstream<char> testOutputStreamN;    } }
@@ -68,7 +102,6 @@ using namespace std;
 using namespace aworx;
 using namespace aworx::lib::expressions;
 
-namespace fs = experimental::filesystem;
 
 
 // #################################################################################################
@@ -82,7 +115,7 @@ struct FormatOperator : CompilerPlugin
     : CompilerPlugin( "Tutorial Plugin", compiler )
     {}
 
-    virtual bool TryCompilation( CIBinaryOp&  ciBinaryOp )
+    virtual bool TryCompilation( CIBinaryOp&  ciBinaryOp )                                  override
     {
         // check if it is not us
         if(     ciBinaryOp.Operator != A_CHAR("{}")
@@ -306,12 +339,10 @@ Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 {
     // Create a copy of the string using the scope string allocator. This is done by using
     // class MAString, which, when returned, right away is boxed as a usual string,
-    // aka char[]. Therefore, no intermediate string objects to be stored, neither the
-    // std::string returned by "generic_u8string", nor the string.
-    // Note, that this must be done within the call, because the object returned by
-    // generic_u8string() will be instantly deleted and thus the buffer thrown away.
+    // aka char[]. Therefore, no intermediate string objects need to be stored, neither the
+    // std::string returned by "string()", nor the string.
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 //! [DOX_ALIB_EXPR_TUT_FF_PluginCallback]
@@ -327,11 +358,11 @@ struct FFCompilerPlugin : public CompilerPlugin
     {}
 
     // implement "TryCompilation" for functions
-    virtual bool TryCompilation( CIFunction&  ciFunction )
+    virtual bool TryCompilation( CIFunction&  ciFunction )                                  override
     {
         // Is parameterless and function name equals "Name"?
         if(       ciFunction.QtyArgs() == 0
-             &&   ciFunction.Name.Equals<Case::Ignore>( A_CHAR("Name") )    )
+             &&   ciFunction.Name.Equals<lib::Case::Ignore>( A_CHAR("Name") )    )
         {
             // set callback function, its return type and indicate success
             ciFunction.Callback     = getName;
@@ -394,7 +425,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -406,11 +437,11 @@ struct FFCompilerPlugin : public Calculus
     {
         Functions=
         {
-            {  { A_CHAR("Name"), Case::Ignore, 4 }, // The function name, letter case min. abbreviation (using class strings::util::Token).
-                nullptr, 0                        , // No arguments (otherwise an array of sample boxes defining expected argument types).
-                CALCULUS_CALLBACK(getName)        , // The callback function. In debug mode, also the name of the callback.
-                &Types::String                    , // The return type of the callback function, given as pointer to sample box.
-                ETI                                 // Denotes "evaluation time invokable only". Alternative is "CTI".
+            {  { A_CHAR("Name"), lib::Case::Ignore, 4 }, // The function name, letter case min. abbreviation (using class strings::util::Token).
+                nullptr, 0                        ,      // No arguments (otherwise an array of sample boxes defining expected argument types).
+                CALCULUS_CALLBACK(getName)        ,      // The callback function. In debug mode, also the name of the callback.
+                &Types::String                    ,      // The return type of the callback function, given as pointer to sample box.
+                ETI                                      // Denotes "evaluation time invokable only". Alternative is "CTI".
             },
         };
     }
@@ -459,7 +490,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0   );
 }
 
@@ -483,7 +514,12 @@ namespace
     Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
     {
         auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-        return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+        #if ALIB_CPPVER <= 17  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+            return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+        #else
+            return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                               chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+        #endif
     }
 
     Box getPerm( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -509,8 +545,6 @@ namespace
 //! [DOX_ALIB_EXPR_TUT_FF_MoreIdentifiersConstants]
 
 
-
-
 //! [DOX_ALIB_EXPR_TUT_FF_MoreIdentifiersPlugin]
 struct FFCompilerPlugin : public plugins::Calculus
 {
@@ -520,24 +554,24 @@ struct FFCompilerPlugin : public plugins::Calculus
         ConstantIdentifiers=
         {
           // Parameters: "1, 1" denote the minimum abbreviation of each "camel hump"
-          { { A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { { A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { { A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { { A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { { A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { { A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { { A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { { A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { { A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { { A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { { A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { { A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { { A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { { A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { { A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { { A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { { A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { { A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm ), &Types::Integer , ETI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm ), &Types::Integer , ETI },
         };
     }
 };
@@ -581,7 +615,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -602,7 +636,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+            return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                               chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box getPerm( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -649,29 +688,29 @@ struct FFCompilerPlugin : public plugins::Calculus
     {
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm  ), &Types::Integer , ETI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm  ), &Types::Integer , ETI },
 
           // the new functions:
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -715,7 +754,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -736,7 +775,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+            return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                               chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box kiloBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -794,30 +838,30 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
 
           // change return type to TypePermission
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
 
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -862,7 +906,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -883,7 +927,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+        return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                           chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box kiloBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -940,27 +989,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -1003,7 +1052,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -1024,7 +1073,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+        return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                           chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box kiloBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1046,28 +1100,28 @@ Box getPerm( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeOperatorCallbacks]
 Box opPermAnd( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return    argsBegin     ->Unbox<std::experimental::filesystem::v1::perms>()
-           & (argsBegin + 1)->Unbox<std::experimental::filesystem::v1::perms>();
+    return    argsBegin     ->Unbox<fs::perms>()
+           & (argsBegin + 1)->Unbox<fs::perms>();
 }
 Box opPermOr( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return    argsBegin     ->Unbox<std::experimental::filesystem::v1::perms>()
-           | (argsBegin + 1)->Unbox<std::experimental::filesystem::v1::perms>();
+    return    argsBegin     ->Unbox<fs::perms>()
+           | (argsBegin + 1)->Unbox<fs::perms>();
 }
 Box opPermXOr( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return    argsBegin     ->Unbox<std::experimental::filesystem::v1::perms>()
-           ^ (argsBegin + 1)->Unbox<std::experimental::filesystem::v1::perms>();
+    return    argsBegin     ->Unbox<fs::perms>()
+           ^ (argsBegin + 1)->Unbox<fs::perms>();
 }
 Box opPermEq( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return    argsBegin     ->Unbox<std::experimental::filesystem::v1::perms>()
-           ==(argsBegin + 1)->Unbox<std::experimental::filesystem::v1::perms>();
+    return    argsBegin     ->Unbox<fs::perms>()
+           ==(argsBegin + 1)->Unbox<fs::perms>();
 }
 Box opPermNEq( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
-    return    argsBegin     ->Unbox<std::experimental::filesystem::v1::perms>()
-           !=(argsBegin + 1)->Unbox<std::experimental::filesystem::v1::perms>();
+    return    argsBegin     ->Unbox<fs::perms>()
+           !=(argsBegin + 1)->Unbox<fs::perms>();
 }
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeOperatorCallbacks]
 
@@ -1117,27 +1171,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeFeedTable]
@@ -1184,7 +1238,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -1205,7 +1259,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+        return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                           chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box kiloBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1266,27 +1325,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
     }
@@ -1384,7 +1443,7 @@ struct FFScope : public ExpressionScope
 Box getName( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     return MAString( scope.Allocator,
-                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().generic_u8string(),
+                      dynamic_cast<FFScope&>( scope ).directoryEntry->path().filename().string(),
                       0 );
 }
 
@@ -1405,7 +1464,12 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    return DateTime::FromEpochSeconds( decltype(fsTime)::clock::to_time_t(fsTime) );
+    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
+    #else
+        return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
+                                           chrono::clock_cast<chrono::system_clock>(fsTime) ) );
+    #endif
 }
 
 Box kiloBytes( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
@@ -1458,27 +1522,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
 //! [DOX_ALIB_EXPR_TUT_FF_AutoCastCalculus]
@@ -1564,7 +1628,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
 
 
 
-UT_CLASS()
+UT_CLASS
 
 
 UT_METHOD( FileSystemIntro )
@@ -1573,14 +1637,13 @@ UT_METHOD( FileSystemIntro )
     {
 //! [DOX_ALIB_EXPR_TUT_FF_1]
 // search source path from current
-auto sourceDir = fs::current_path().parent_path();
-while( ! fs::exists( fs::path( sourceDir ) += "/src/alib/expressions" ) )
-    sourceDir= sourceDir.parent_path();
+auto sourceDir = fs::path(ALIB_BASE_DIR);
 sourceDir+= "/src/alib/expressions";
+ALIB_ASSERT_ERROR( fs::exists(sourceDir), "UNITTESTS", String512("Test directory not found: ") << sourceDir.c_str() )
 
 // list files
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
-    cout << directoryEntry.path().filename().generic_u8string() << endl;
+    cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_1]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_INTRO-1.txt", testOutputStreamN.str() );
@@ -1592,7 +1655,7 @@ step1::FileFilter filter(A_CHAR("expression string syntax not defined yet"));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_FilterLoop]
     testOutputStreamN.str("");
 
@@ -1604,7 +1667,7 @@ step2::FileFilter trueFilter(A_CHAR("true"));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( trueFilter.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_TRUE]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_TRUE.txt", testOutputStreamN.str() );
@@ -1617,7 +1680,7 @@ step2::FileFilter falseFilter(A_CHAR("false"));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( falseFilter.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_FALSE]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_FALSE.txt", testOutputStreamN.str() );
@@ -1631,7 +1694,7 @@ step5::FileFilter filter1(A_CHAR("name == \"compiler.hpp\""));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter1.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_Name1]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Name1.txt", testOutputStreamN.str() );
@@ -1646,7 +1709,7 @@ step5::FileFilter filter2(A_CHAR("WildcardMatch(name, \"*.hpp\")"));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter2.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_Name2]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Name2.txt", testOutputStreamN.str() );
@@ -1659,7 +1722,7 @@ step5::FileFilter filter3(A_CHAR("name * \"*.cpp\""));
 
 for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     if( filter3.Includes( directoryEntry ) )
-        cout << directoryEntry.path().filename().generic_u8string() << endl;
+        cout << directoryEntry.path().filename().string() << endl;
 //! [DOX_ALIB_EXPR_TUT_FF_Name3]
 
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Name3.txt", testOutputStreamN.str() );
@@ -1679,14 +1742,14 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter62.Includes( directoryEntry ) )
             ++cnt;
-    UT_EQ(3, cnt)
+    UT_EQ(4, cnt)
 
     cnt= 0;
     step6::FileFilter filter63(A_CHAR("name * \"*.hpp\""));
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter63.Includes( directoryEntry ) )
             ++cnt;
-    UT_EQ(5, cnt)
+    UT_EQ(6, cnt)
 
     //---------------- samples after more  functionality was added ------------------
     cout << "--- Filter Expression {IsDirectory}: ---" << endl;
@@ -1694,8 +1757,8 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter71.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
-    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-1.txt", testOutputStreamN.str() );
+            cout << directoryEntry.path().filename().string() << endl;
+    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-1.txt", testOutputStreamN.str() ,"");
     testOutputStreamN.str("");
 
     cout << "--- Filter Expression {!IsDirectory && size < 20000}: ---" << endl;
@@ -1703,8 +1766,8 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter72.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
-    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-2.txt", testOutputStreamN.str() );
+            cout << directoryEntry.path().filename().string() << endl;
+    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-2.txt", testOutputStreamN.str() ,"");
     testOutputStreamN.str("");
 
     cout << "--- Filter Expression {date > DateTime(2019,2,5)}: ---" << endl;
@@ -1712,8 +1775,8 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter73.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
-    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-3.txt", testOutputStreamN.str()) ;
+            cout << directoryEntry.path().filename().string() << endl;
+    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-3.txt", testOutputStreamN.str() ,"") ;
     testOutputStreamN.str("");
 
     cout << "--- Filter Expression {(permissions & OwnerExecute) != 0}: ---" << endl;
@@ -1721,27 +1784,27 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter74.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
-    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-4.txt", testOutputStreamN.str()) ;
+            cout << directoryEntry.path().filename().string() << endl;
+    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-4.txt", testOutputStreamN.str() ,"") ;
     testOutputStreamN.str("");
 
-    cout << "--- Filter Expression {size > 81920}: ---" << endl;
-    step7::FileFilter filter75(A_CHAR("size > 81920"));
+    cout << "--- Filter Expression {size > 20480}: ---" << endl;
+    step7::FileFilter filter75(A_CHAR("size > 20480"));
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter75.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
-    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-5.txt", testOutputStreamN.str() );
+            cout << directoryEntry.path().filename().string() << endl;
+    ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_More-5.txt", testOutputStreamN.str() ,"");
     testOutputStreamN.str("");
 
 
     //---------------- samples after more  functionality was added ------------------
-    cout << "--- Filter Expression {size > kilobytes(80)}: ---" << endl;
-    step8::FileFilter filter81(A_CHAR("size > kilobytes(80)"));
+    cout << "--- Filter Expression {size > kilobytes(20)}: ---" << endl;
+    step8::FileFilter filter81(A_CHAR("size > kilobytes(20)"));
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter81.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
+            cout << directoryEntry.path().filename().string() << endl;
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Func-1.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
@@ -1774,7 +1837,7 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter111.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
+            cout << directoryEntry.path().filename().string() << endl;
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Func-3.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
@@ -1785,7 +1848,7 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter121.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
+            cout << directoryEntry.path().filename().string() << endl;
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Func-4.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
@@ -1794,7 +1857,7 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter122.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
+            cout << directoryEntry.path().filename().string() << endl;
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Func-5.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
@@ -1804,7 +1867,7 @@ for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
 
     for( auto& directoryEntry : fs::directory_iterator( sourceDir ) )
         if( filter13.Includes( directoryEntry ) )
-            cout << directoryEntry.path().filename().generic_u8string() << endl;
+            cout << directoryEntry.path().filename().string() << endl;
     ut.WriteResultFile( "DOX_ALIB_EXPR_TUT_FF_Func-6.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
@@ -2203,7 +2266,7 @@ void printProgram( AWorxUnitTesting& ut, const String& expressionString, const N
         SPExpression expression= compiler.Compile( expressionString );
         AString listing=  lib::expressions::detail::VirtualMachine::DbgList(
             *dynamic_cast<lib::expressions::detail::Program*>( expression->GetProgram() ) );
-        ut.WriteResultFile( outputfilename, listing );
+        ut.WriteResultFile( outputfilename, listing , "" ); // , "" -> all \verbinclude
 
     }
     catch( Exception& e )
@@ -2236,4 +2299,4 @@ UT_METHOD( VMListings )
 
 ALIB_WARNINGS_RESTORE
 
-#endif //  ALIB_UT_DOCS
+#endif //  ALIB_UT_DOCS && ALIB_EXPRESSIONS

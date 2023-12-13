@@ -14,24 +14,27 @@ at the [ALib Homepage](https://alib.dev).
 **ALib** is a general purpose, use-case agnostic, platform independent, low-level C++ class library.
 
 Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
-As of today, **ALib** consists of **16 modules**, each addressing
+As of today, **ALib** consists of **17 modules**, each addressing
 different topics.
 A subset of the available modules can be selectively included in a custom library build.
 
 ## Main Characteristics And Design Goals ##
 
-- **ALib** is <b>free software</b>.
-- The minimum C++ language standard is <b>C++ 11</b>, selective support for more modern C++
-  versions included.
+- **ALib** is <b>free software**.
+- Compiles and tested with **C++ 11, 14, 17 and  20**.
 - **Modularization**: Possible selective use of only parts of the library.
 - Extensive **documentation**.
-- <b>Least intrusive</b>: Designed to keep user code as independent from **ALib** types and idioms as possible.
-- Developed and steadily tested under <b>GNU/Linux</b>, <b>Windows OS</b> and <b>Mac OS</b>
-  with compilers GNU,  Clang and Microsoft Visual C++.
+- **Least intrusive**: Designed to keep user code as independent from **ALib** types and idioms as possible.
+- Developed and steadily tested under
+  - **GNU/Linux**,
+  - **Windows OS**,
+  - **Mac OS (Intel/ARM)**, and
+  - **Raspberry (V3 and V4, 32/64-bit)**
+ 
 
 ## Library Dependencies ##
 
-**ALib** compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
+**ALib** compiles as is, hence it is **not dependent on any 3rd-party library**.
 Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
 **ALib Strings** are using its regex search.<br>
 In contrast, **ALib** provides optional compatibility headers for 3rd-party libraries
@@ -42,22 +45,24 @@ for QT-types.
 
 The following documentation is provided.
 
-1. **Reference Documentation** covering 100% of types, members, functions, namespaces, macros
-   and other C++ entities.
+1. [Reference Documentation](https://alib.dev/annotated.html), ** covering 100% of the types, 
+   members, functions, namespaces, macros  and other C++ entities.
 
-2. **Programmer's Manuals** are available for (almost) each module of the library.<br>
-   Together more than <b>450 pages</b> of well structured in-depth discussion of library
-   features as well as <b>step by step tutorials</b> are available.
+2. [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are 
+   available for each module of the library.<br>
+   Together more than **450 pages** of well structured in-depth discussion of library
+   features as well as **step by step tutorials** are available.
 
-3. A detailed version history is given.
+3. Page [Changelog](https://alib.dev/alib_changelog.html) provides a detailed version history.
 
-4. A separated **General Manual** is available describing the library structure,
-   project setup, bootstrapping, etc.
+4. A separated [General Manual](https://alib.dev/alib_manual.html) is available describing the 
+   library structure, project setup, bootstrapping, etc.
 
-5. Reference documentation to C++ compiler symbols and macros.
+5. [Reference documentation](https://alib.dev/alib_ref_prepro.html) for C++ compiler symbols and macros.
 
-6. Tutorial and reference documentation's <b> code samples</b> are implemented as unit tests and
-   are integrated as source and output text snippets into the documentation.
+6. Tutorial and reference documentation's ** code samples** are implemented as unit tests and
+   are integrated as source and output text snippets into the documentation.<br>
+   (As for example [done here](https://alib.dev/alib_mod_enums.html#alib_enums_records)).
    
 7. For module **ALox**, a separated website exists. This includes plenty of **ALox**-specific
    documentation, a lengthy
@@ -68,19 +73,15 @@ The following documentation is provided.
 
 ## IDE / Build System Setup ##
 The C++ Version got tested on the following platform combinations:
-- GNU/Linux (Arch Linux)
-    - [GNU Compiler Collection 9.2.0](https://gcc.gnu.org/)
-    - [clang compiler 9.0.0](http://llvm.org/)
-    - [CMake 3.16](https://cmake.org/)
-    - [CLion 2019.3](https://www.jetbrains.com/cpp)
-    - [Valgrind V. 3.15.0](http://valgrind.org/)
-
-- Windows 10
-    - Visual Studio 2017, Version 15.9.18
-
-- macOS Catalina 10.15.1
-    - Apple Clang Version 11.0.0
-    - [CLion 2019.3.1](https://www.jetbrains.com/cpp)
+- GNU/Linux Arch 6.6.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 11 - 20, 32-Bit / 64-Bit<br>
+  (This is the main development platform.)
+- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), , C++ 11 - 20, 32-Bit / 64-Bit
+- Windows 10/11, MinGW 11.0,  C++ 11 - 17, 64-Bit ( <c>C++ 20 does  not compile! with current MinGW!</c>)
+- MacOS 13, Intel i9, AppleClang 14.0.3, C++ 11 - 20 C++, 64-Bit
+- MacOS 13, Apple M1/ARM64, C++ 11-20, 64-Bit
+- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 11 - 20, 64-Bit
+- Raspberry 4, ARM, 32-bit OS, GNU C++ 12.2.0, C++11-20
+- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++11-20
 
 The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
 C++ environment.
@@ -90,9 +91,9 @@ C++ environment.
 
 Parts of **ALib** have sibling incarnations in programming languages C# and JAVA. Historically,
 **ALib** aimed to be a cross platform/cross language library. This goal was (mostly) dropped
-in favour to be able to independently develop <b>ALib for C++</b>.
+in favour to be able to independently develop **ALib for C++**.
 
-<b>ALib for C#</b> and <b>ALib for Java</b> are included in and distributed with the
+**ALib for C#** and **ALib for Java** are included in and distributed with the
 cross platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Library/).
 
 
@@ -121,7 +122,8 @@ to just all of these millions of supporters of *free software*, including:
 - To company [JetBrains](https://www.jetbrains.com) for providing a 
   [free license to open source developers](https://www.jetbrains.com/buy/opensource/)
   of their absolutely superb and unrivalled set of IDEs for various programming languages.
-- To <b>Dimitri van Heesch</b> for providing marvelous documentation software [Doxygen](http://doxygen.nl).
+- To **Dimitri van Heesch** for providing marvelous documentation software [Doxygen](http://doxygen.nl).
+- [Uniki GmbH](https://uniki.de) for supporting cross-platform compatibility tests.
 
 Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
 until he - when things became too crazy - disappeared in 1882.

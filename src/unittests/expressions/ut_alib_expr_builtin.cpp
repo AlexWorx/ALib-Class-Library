@@ -1,7 +1,7 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -31,11 +31,17 @@
 #include "alib/expressions/scope.hpp"
 #include "alib/expressions/detail/program.hpp"
 
-
-#if defined(_MSC_VER)
-#   define _USE_MATH_DEFINES
+#include <cmath>
+#if !defined(M_PI)
+#   define M_PI		    3.14159265358979323846
 #endif
-#include <math.h>
+#if !defined(M_E)
+#   define M_E		    2.7182818284590452354
+#endif
+#if !defined(M_LN10)
+#   define M_LN10		2.30258509299404568402
+#endif
+
 
 
 #define TESTCLASSNAME       CPP_ALib_Expr_Builtin
@@ -61,7 +67,7 @@ extern void TestTokenConsistency(AWorxUnitTesting& ut, Token* tokens, int qtyTok
 // ### Test Class
 // #################################################################################################
 
-UT_CLASS()
+UT_CLASS
 
 // #################################################################################################
 // #### Math
@@ -208,7 +214,7 @@ UT_METHOD(DateTime)
       EXPRESSION( Age(Now)  < milliseconds(1)          , true    , 4);
       EXPRESSION( IsOlderThan(Now, milliseconds(1) )   , false   , 3);
     #endif
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__MINGW32__)
     EXPRESSION( IsOlderThan(Now, nanoseconds(0) )    , true    , 3);
     EXPRESSION( now == now                           , false   , 3);
     EXPRESSION( now != now                           , true    , 3);
@@ -417,6 +423,7 @@ UT_METHOD(TokenConsistency)
     #else
         constexpr int SSZ= 24;
     #endif
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token tokens[9+1+58+34+SSZ];
     Token::LoadResourcedTokens( EXPRESSIONS, "CPA"     ,&tokens[0]             ALIB_DBG(,9)   );
     Token::LoadResourcedTokens( EXPRESSIONS, "CPALen"  ,&tokens[9]             ALIB_DBG(,1)   );
@@ -425,6 +432,7 @@ UT_METHOD(TokenConsistency)
     Token::LoadResourcedTokens( EXPRESSIONS, "CPS"     ,&tokens[9+1+58+34]     ALIB_DBG(,SSZ) );
 
     TestTokenConsistency(ut, tokens, 9+1+58+34+SSZ );
+    ALIB_WARNINGS_RESTORE
 }
 #endif
 

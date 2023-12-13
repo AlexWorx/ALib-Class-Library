@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -24,7 +24,7 @@
 # -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_1]
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.18.0 )
     project("ALox.Samples")
 #! [DOXYGEN_CMAKE_INCLUDE_1]
 
@@ -34,11 +34,11 @@
 ## -------------------------------------------------------------------------------------------------
 
 #! [DOXYGEN_CMAKE_INCLUDE_2]
-    list( APPEND  ALIB_DISTRIBUTION             "ALOX"       )
+    list( APPEND  ALIB_DISTRIBUTION        "ALOX"       )
 #! [DOXYGEN_CMAKE_INCLUDE_2]
 
 #! [DOXYGEN_CMAKE_INCLUDE_3]
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_11" )
+    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
 #! [DOXYGEN_CMAKE_INCLUDE_3]
 
 
@@ -63,7 +63,7 @@
 #! [DOXYGEN_CMAKE_INCLUDE_7]
 
 #! [DOXYGEN_CMAKE_INCLUDE_8]
-    target_link_libraries     ( ALoxSamples   ALib_SharedLib  )
+    target_link_libraries     ( ALoxSamples   PRIVATE ALib_SharedLib  )
 #! [DOXYGEN_CMAKE_INCLUDE_8]
 
 # -------------------------------------------------------------------------------------------------
@@ -96,12 +96,4 @@
 # -------------------------------------------------------------------------------------------------
 
 # uncomment for debug
-#ALibDumpCMakeStatus()
-
-
-
-
-
-
-
-
+#ALibDumpCMakeVariables()

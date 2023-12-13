@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_PARAGRAPHS
@@ -67,8 +67,8 @@ class Paragraphs
         character               JustifyChar                                                  = '\0';
 
         /**
-         * Used to detect special commands given with format strings. \see Method #AddMarked
-         * for more information.
+         * Used to detect special commands given with format strings.
+         * \see Method #AddMarked for more information.
          *
          * Defaults to <c>'@'</c>.
          */

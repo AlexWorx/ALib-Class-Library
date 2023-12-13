@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHSET
@@ -73,7 +73,7 @@ template< typename T,
           typename TEqual       = std::equal_to<T>,
           Caching  THashCaching = Caching::Auto,
           typename TRecycling   = Recycling::Private >
-using HashSet= lib::monomem::HashTable<T, T,
+using HashSet= lib::monomem::HashTable< T, T,
                                        T, void,
                                        THash,
                                        TEqual,
@@ -87,10 +87,10 @@ using HashSet= lib::monomem::HashTable<T, T,
 
 /// Type alias in namespace #aworx. See type definition \ref aworx::lib::monomem::HashSet.
 template< typename T,
-          typename THash        = std::hash    <T>,
-          typename TEqual       = std::equal_to<T>,
-          Caching  THashCaching = Caching::Auto,
-          typename TRecycling   = lib::monomem::Recycling::Private >
+          typename THash             = std::hash    <T>,
+          typename TEqual            = std::equal_to<T>,
+          lib::Caching  THashCaching = lib::Caching::Auto,
+          typename TRecycling        = lib::monomem::Recycling::Private >
 using HashSet= lib::monomem::HashSet<T, THash, TEqual, THashCaching, TRecycling >;
 
 

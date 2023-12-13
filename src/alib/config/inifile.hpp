@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_INI_FILE
@@ -10,6 +10,9 @@
 
 #if !defined (HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
 #   include "alib/config/inmemoryplugin.hpp"
+#endif
+#if !defined(HPP_ALIB_RESULTS_REPORT)
+#   include "alib/results/report.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace strings { namespace compatibility { namespace std {
@@ -92,7 +95,7 @@ namespace aworx { namespace lib { namespace config {
  *   - Erroneous lines are ignored and not written back. Line numbers with erroneous lines
  *     are collected in field #LinesWithReadErrors.
  *
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
  * # Reference Documentation #
  * @throws aworx::lib::config::Exceptions
  *   - \alib{config::Exceptions::ErrorOpeningFile}
@@ -177,11 +180,11 @@ namespace aworx { namespace lib { namespace config {
             #if ALIB_DEBUG
             for( auto& section : sections )
                 if( section.Name().IsNotEmpty() && section.Comments.IsNull() )
-                    ALIB_WARNING( NString1K()
-                       << "Hint: New section \"" << section.Name()
-                       << "\", which was programatically added to\n    "
-                          "INI-file \"" << FileName << "\", has no comments.\n    "
-                          "The use of method IniFile::AddResourcedSectionComments() is recommened." )
+                    ALIB_WARNING( "CONFIG",
+                                  "Hint: New section {!Q} , which was programatically added to\n"
+                                  "      INI-file {!Q}, has no comments.\n    "
+                                  "      The use of method IniFile::AddResourcedSectionComments() is recommended.",
+                                  section.Name(), FileName )
             #endif
         }
 

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_characters of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARARRAY
@@ -70,15 +70,15 @@ struct CharArray
         using TLhs= TChar;
         bool sensitive=  (sensitivity == Case::Sensitive);
 
-             if ALIB_CONSTEXPR_IF ( sizeof(TLhs) == sizeof(TRhs) )
+             if ALIB_CONSTEXPR17 ( sizeof(TLhs) == sizeof(TRhs) )
             return  sensitive ?                             lhs  ==                            rhs
                               :  ToUpper(                   lhs) ==  ToUpper(                  rhs);
 
-        else if ALIB_CONSTEXPR_IF ( sizeof(TLhs) < sizeof(TRhs) )
+        else if ALIB_CONSTEXPR17 ( sizeof(TLhs) < sizeof(TRhs) )
             return  sensitive ?           static_cast<TRhs>(lhs)  ==                           rhs
                               :  ToUpper( static_cast<TRhs>(lhs)) == ToUpper(                  rhs);
 
-        else if ALIB_CONSTEXPR_IF ( sizeof(TLhs) > sizeof(TRhs) )
+        else if ALIB_CONSTEXPR17 ( sizeof(TLhs) > sizeof(TRhs) )
             return  sensitive ?                             lhs   ==         static_cast<TLhs>(rhs)
                               :  ToUpper(                   lhs ) == ToUpper(static_cast<TLhs>(rhs));
         ALIB_WARNINGS_RESTORE
@@ -155,7 +155,7 @@ struct CharArray
      * Converts a character sequence to upper case.
      *
      * @param src     Pointer to the character array.
-     * @param length  The of the string length to convert.
+     * @param length  The length of the array.
      **********************************************************************************************/
     static
     void        ToUpper( TChar* src, integer length );
@@ -173,10 +173,21 @@ struct CharArray
      * Converts a character sequence to lower case.
      *
      * @param src     Pointer to the character array.
-     * @param length  The of the string length to convert.
+     * @param length  The length of the array.
      **********************************************************************************************/
     static
     void        ToLower( TChar* src, integer length );
+
+    /** ********************************************************************************************
+     * Reverses the order of the characters.
+     *
+     * @param src     Pointer to the character array.
+     * @param length  The length of the array.
+     **********************************************************************************************/
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    static
+    void        Reverse( TChar* src, integer length );
+    ALIB_WARNINGS_RESTORE
 
     /** ********************************************************************************************
      * Searches the character. Returns a pointer to the location of \p{needle} in \p{haystack},
@@ -198,6 +209,7 @@ struct CharArray
         return std::char_traits<TChar>::find( haystack, static_cast<size_t>(haystackLength), needle );
     }
 
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     /** ********************************************************************************************
      * Returns the index of the first character in \p{haystack} which is included in a given set
      * of \p{needles}.
@@ -336,7 +348,7 @@ struct CharArray
     integer IndexOfFirstDifference( const TChar*  haystack,   integer  haystackLength,
                                     const TChar*  needle,     integer  needleLength,
                                     Case    sensitivity                         );
-
+    ALIB_WARNINGS_RESTORE
 
     /** ********************************************************************************************
      * Searches for a difference in two character arrays of equal length.
@@ -408,6 +420,7 @@ template<> inline nchar   CharArray<nchar>::ToLower(nchar c)
     return static_cast<nchar>( tolower(c) );
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template<> inline void    CharArray<nchar>::ToUpper(nchar* src, integer length)
 {
     nchar* end= src  + length;
@@ -427,10 +440,11 @@ template<> inline void    CharArray<nchar>::ToLower(nchar* src, integer length)
         ++src;
     }
 }
+ALIB_WARNINGS_RESTORE
 
 template<> inline int     CharArray<nchar>::CompareIgnoreCase( const nchar* lhs,  const nchar* rhs, integer cmpLength  )
 {
-    #if defined (__GLIBCXX__)  || defined(__APPLE__)
+    #if defined (__GLIBCXX__)  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return  ::strncasecmp( lhs, rhs, static_cast<size_t>(cmpLength) );
     #elif defined ( _WIN32 )
         return  _strnicmp  ( lhs, rhs, static_cast<size_t>(cmpLength)  );
@@ -458,6 +472,7 @@ extern template ALIB_API integer CharArray<nchar>::IndexOfAnyExcluded    (const 
 extern template ALIB_API integer CharArray<nchar>::LastIndexOfAnyInclude (const nchar*,integer,const nchar*,integer);
 extern template ALIB_API integer CharArray<nchar>::LastIndexOfAnyExclude (const nchar*,integer,const nchar*,integer);
 extern template ALIB_API integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,Case);
+extern template ALIB_API void    CharArray<nchar>::Reverse               (      nchar*,integer );
 
 
 // #################################################################################################
@@ -473,6 +488,7 @@ template<> inline wchar   CharArray<wchar>::ToLower(wchar c)
     return static_cast<wchar>(towlower(static_cast<wint_t>(c)));
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template<> inline void    CharArray<wchar>::ToUpper(wchar* src, integer length)
 {
     wchar* end= src  + length;
@@ -492,6 +508,7 @@ template<> inline void    CharArray<wchar>::ToLower(wchar* src, integer length)
         ++src;
     }
 }
+ALIB_WARNINGS_RESTORE
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> inline void    CharArray<wchar>::Fill( wchar* dest, integer length, wchar c )
@@ -501,10 +518,10 @@ template<> inline void    CharArray<wchar>::Fill( wchar* dest, integer length, w
 
 template<> inline int     CharArray<wchar>::CompareIgnoreCase( const wchar* lhs,  const wchar* rhs, integer cmpLength  )
 {
-    #if defined (__GLIBCXX__)  || defined(__APPLE__)
-        return  ::wcsncasecmp( lhs, rhs, static_cast<size_t>(cmpLength) );
-    #elif defined ( _WIN32 )
+    #if defined ( _WIN32 )
         return  _wcsnicmp  ( lhs, rhs, static_cast<size_t>(cmpLength)  );
+    #elif defined (__GLIBCXX__)  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return  ::wcsncasecmp( lhs, rhs, static_cast<size_t>(cmpLength) );
     #else
         #pragma message ( "Unknown Platform in file: " __FILE__ )
     #endif
@@ -535,6 +552,7 @@ extern template ALIB_API integer CharArray<wchar>::IndexOfAnyExcluded    (const 
 extern template ALIB_API integer CharArray<wchar>::LastIndexOfAnyInclude (const wchar*,integer,const wchar*,integer);
 extern template ALIB_API integer CharArray<wchar>::LastIndexOfAnyExclude (const wchar*,integer,const wchar*,integer);
 extern template ALIB_API integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,Case);
+extern template ALIB_API void    CharArray<wchar>::Reverse               (      wchar*,integer );
 
 
 
@@ -551,6 +569,7 @@ template<> inline xchar     CharArray<xchar>::ToLower(xchar c)
     return static_cast<xchar>(towlower(static_cast<wint_t>(c)));
 }
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template<> inline void    CharArray<xchar>::ToUpper(xchar* src, integer length)
 {
     xchar* end= src  + length;
@@ -570,6 +589,8 @@ template<> inline void    CharArray<xchar>::ToLower(xchar* src, integer length)
         ++src;
     }
 }
+ALIB_WARNINGS_RESTORE
+
 #if ALIB_CHARACTERS_NATIVE_WCHAR
 template<> ALIB_API void    CharArray<xchar>::Fill( xchar* dest, integer length, xchar c );
 template<> ALIB_API int     CharArray<xchar>::CompareIgnoreCase   ( const xchar* lhs,  const xchar* rhs, integer cmpLength  );
@@ -611,6 +632,7 @@ extern template ALIB_API integer CharArray<xchar>::IndexOfAnyExcluded    (const 
 extern template ALIB_API integer CharArray<xchar>::LastIndexOfAnyInclude (const xchar*,integer,const xchar*,integer);
 extern template ALIB_API integer CharArray<xchar>::LastIndexOfAnyExclude (const xchar*,integer,const xchar*,integer);
 extern template ALIB_API integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,Case);
+extern template ALIB_API void    CharArray<xchar>::Reverse               (      xchar*,integer );
 
 
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALox Samples
 //
-//  Copyright 2019 A-Worx GmbH, Germany
+//  Copyright 2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -104,7 +104,7 @@ void PerformanceTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
 
                                     Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priorities::ProtectedValues   )
     Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priorities::ProtectedValues   ) )
@@ -137,7 +137,7 @@ void PerformanceTest()
             for ( int l= 0 ; l < qtyLines ; ++l )
             {
                 Log_Info ( "/MEM", "Test Line ", l  )
-                Log_Prune( if( i== 0 && l == 0) Log_Info( "/CON", "Sample Output:\\n{}", ml.MemoryLog ); )
+                Log_Prune( if( i== 0 && l == 0) Log_Info( "/CON", "Sample Output:\n{}", ml.MemoryLog ); )
             }
         auto t= tt.Age();
         auto recent= t.InAbsoluteMicroseconds();
@@ -213,7 +213,7 @@ void PerformanceTestRL()
             for ( int l= 0 ; l < qtyLines ; ++l )
             {
                 Lox_Info ( "Test Line ", l  )
-                Lox_Prune( if( i== 0 && l == 0) Lox_Info( "/CON", "Sample Output:\\n{}", ml.MemoryLog ); )
+                Lox_Prune( if( i== 0 && l == 0) Lox_Info( "/CON", "Sample Output:\n{}", ml.MemoryLog ); )
             }
         auto t= tt.Age();
         auto recent= t.InAbsoluteMicroseconds();
@@ -257,7 +257,7 @@ void LogColors()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
 
     cout << "cout: Colorful logging:" <<  endl;
 
@@ -320,7 +320,7 @@ void WCharTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
 
     Log_SetDomain( "WCHAR", Scope::Method )
 
@@ -348,7 +348,7 @@ void textFileLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
 
     Log_Info( "Creating a text file logger with file 'Test.log.txt'" )
 
@@ -373,7 +373,7 @@ void SampleALibReport()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
 
     Log_Info( "Sample: ALib Report Writer\n"
               "Method \"Log::AddDebugLogger()\" by default creates a replacement for the\n"
@@ -384,8 +384,8 @@ void SampleALibReport()
     #if ALIB_DEBUG
 
     lib::results::Report::GetDefault().PushHaltFlags( false, false );
-        ALIB_ERROR(   "This is an error report!" )
-        ALIB_WARNING( "And this is a warning. A next one should follow:"   )
+        ALIB_ERROR(   "SAMPLE", "This is an error report!" )
+        ALIB_WARNING( "SAMPLE", "And this is a warning. A next one should follow:"   )
         AString test("12345");
         test.GrowBufferAtLeastBy(1);
 
@@ -394,7 +394,7 @@ void SampleALibReport()
     #endif
 
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
-    ALIB_MESSAGE( "This is an ALib Report. Types other than '0' and '1' are user defined.\n"
+    ALIB_MESSAGE( "This is an ALib Report. Types other than 'message', 'warning' and 'error' are user defined.\n"
                   "Verbosity of Lox::InternalDomains has to be increased to see them when using "
                   "ALoxReportWriter."  )
 
@@ -414,7 +414,7 @@ void ALoxSampleReset()
     #endif
 
     Log_Prune( LOG_LOX.Reset(); )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include )
+    Log_SetSourcePathTrimRule( "*/src/", lib::Inclusion::Include )
 }
 
 
@@ -440,7 +440,7 @@ int main( int argc, char *argv[] )
         "##################################################################################################\n"
         "# ALox Samples INI file (created when running ALox Samples)\n"
         "#\n"
-        "# Copyright 2013-2019 A-Worx GmbH, Germany\n"
+        "# Copyright 2013-2023 A-Worx GmbH, Germany\n"
         "# Published under 'Boost Software License' (a free software license, see LICENSE.txt)\n"
         "##################################################################################################\n"
         );
@@ -451,7 +451,7 @@ int main( int argc, char *argv[] )
     //... and then initialize ALib completely
     ALIB.Bootstrap();
 
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include )
+    Log_SetSourcePathTrimRule( "*/src/", lib::Inclusion::Include )
 
     // Suppress setting "writeback" for verbosities. We need to do this as this main()
     // method invokes a list of independent samples. Those would now read from the INI file wrong
@@ -460,8 +460,8 @@ int main( int argc, char *argv[] )
     Variable var;
     lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_DEBUG_LOGGER_VERBOSITY=")  ),  A_CHAR("") );
     lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_CONSOLE_VERBOSITY=")),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MONOMEM_VERBOSITY=")       ),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MONOMEM_VERBOSITY=")),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MEMORY_VERBOSITY=")       ),  A_CHAR("") );
+    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MEMORY_VERBOSITY=")),  A_CHAR("") );
     lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_TEXTFILE_VERBOSITY=")      ),  A_CHAR("") );
 
     DebugLog();                 ALoxSampleReset();
@@ -483,6 +483,3 @@ int main( int argc, char *argv[] )
     cout << "ALox Samples finished" << endl;
     return 0;
 }
-
-
-

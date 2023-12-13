@@ -1,13 +1,16 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
 #if ALIB_UT_STRINGS
 
+#if defined(QT_CORE_LIB) // needed here for unity builds to be included before boxing (!)
+#   include "alib/compatibility/qt_characters.hpp"
+#endif
 
 #if !defined (HPP_ALOX)
 #   include "alib/alox.hpp"
@@ -21,6 +24,7 @@
 #if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
     #include "alib/strings/numberformat.hpp"
 #endif
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -42,7 +46,7 @@ using namespace aworx;
 namespace ut_aworx {
 
 
-UT_CLASS()
+UT_CLASS
 
 //--------------------------------------------------------------------------------------------------
 //--- Test Substring

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHTABLE
@@ -23,21 +23,21 @@ namespace aworx { namespace lib { namespace monomem {
 
 /** ************************************************************************************************
  * # Contents #
- * \ref alib_namespace_monomem_hashtable_intro                   "1. Introduction"                 <br>
- * \ref alib_namespace_monomem_hashtable_setandmap               "2. Hash Set vs. Hash Map Mode"   <br>
- * \ref alib_namespace_monomem_hashtable_single_multi            "3. Single And Multiple Entries"  <br>
- * \ref alib_namespace_monomem_hashtable_rehashing               "4. Re-Hashing"                   <br>
- * \ref alib_namespace_monomem_hashtable_iterators               "5. Iterators"                    <br>
- * \ref alib_namespace_monomem_hashtable_hashcodes               "6. Hash Codes"                   <br>
- * &nbsp;&nbsp;\ref alib_namespace_monomem_hashtable_caching       "6.1 Caching Hash Codes"        <br>
- * &nbsp;&nbsp;\ref alib_namespace_monomem_hashtable_hashprecalc   "6.2 Hash Codes Precalculation" <br>
- * &nbsp;&nbsp;\ref alib_namespace_monomem_hashtable_hashquality   "6.3 Hash Codes Precalculation" <br>
- * \ref alib_namespace_monomem_hashtable_monomem                 "7. Memory Use"                   <br>
- * \ref alib_namespace_monomem_hashtable_comparision             "8. Comparison To Standard Library Hash-Types" <br>
- * \ref alib_namespace_monomem_hashtable_referencedoc            "Reference Documentation"                      <br>
+ * \ref alib_ns_monomem_hashtable_intro                   "1. Introduction"                  <br>
+ * \ref alib_ns_monomem_hashtable_setandmap               "2. Hash Set vs. Hash Map Mode"    <br>
+ * \ref alib_ns_monomem_hashtable_single_multi            "3. Single And Multiple Entries"   <br>
+ * \ref alib_ns_monomem_hashtable_rehashing               "4. Re-Hashing"                    <br>
+ * \ref alib_ns_monomem_hashtable_iterators               "5. Iterators"                     <br>
+ * \ref alib_ns_monomem_hashtable_hashcodes               "6. Hash Codes"                    <br>
+ * &nbsp;&nbsp;\ref alib_ns_monomem_hashtable_caching       "6.1 Caching Hash Codes"         <br>
+ * &nbsp;&nbsp;\ref alib_ns_monomem_hashtable_hashprecalc   "6.2 Hash Codes Pre-calculation" <br>
+ * &nbsp;&nbsp;\ref alib_ns_monomem_hashtable_hashquality   "6.3 Hash Codes Pre-calculation" <br>
+ * \ref alib_ns_monomem_hashtable_memory                 "7. Memory Use"                     <br>
+ * \ref alib_ns_monomem_hashtable_comparison             "8. Comparison To Standard Library Hash-Types" <br>
+ * \ref alib_ns_monomem_hashtable_referencedoc            "Reference Documentation"                     <br>
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_intro
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_intro
  * # 1. Introduction #
  * This class implements a \https{hash table,en.wikipedia.org/wiki/Hash_table} that
  * stores and retrieves objects very efficiently in respect to execution performance.
@@ -52,8 +52,8 @@ namespace aworx { namespace lib { namespace monomem {
  * In most cases, one of the two definitions are to be used instead of instantiating this type
  * directly. The meaning of these types are discussed in the next section.
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_setandmap
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_setandmap
  * # 2. Hash Set vs. Hash Map Mode Of Operation#
  * Besides storing values of custom type \p{T}, the template parameters and implementation of this
  * class support the concept of "hash maps" which are hash tables that store objects of
@@ -124,8 +124,8 @@ namespace aworx { namespace lib { namespace monomem {
  *
  *    In addition, the following method overloads of inner types are also exclusively available
  *    with hash \b maps.
- *    - \alib{monomem::HashTable,TIterator::Mapped}
- *    - \alib{monomem::HashTable,TLocalIterator::Mapped}
+ *    - \alib{monomem::detail::HashTableBase,TIterator::Mapped}
+ *    - \alib{monomem::detail::HashTableBase,TLocalIterator::Mapped}
  *    - \alib{monomem::HashTable,ElementHandle::Mapped}
  *
  * A hint to restrictions is given with the documentation of each method of concern.
@@ -136,8 +136,8 @@ namespace aworx { namespace lib { namespace monomem {
  *   Technically, the availability of the methods is selected at compile-time (using
  *   <c>std::enable_if</c>).
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_single_multi
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_single_multi
  * # 3. Single And Multiple Entries #
  * The standard C++ library differentiates between hashing containers that accept only one
  * element with a specific <em>key-portion</em> of the value (see <c>std::unordered_set</c> and
@@ -159,7 +159,7 @@ namespace aworx { namespace lib { namespace monomem {
  * In contrast to this, methods #Insert and #Emplace (and their overloads) will insert
  * an equal value without giving further notice (for example by providing a special return value
  * that indicates if the inserted key existed before).<br>
- * Method #EraseUnique(const KeyType&) is more efficient than #EraseUnique(const KeyType&)
+ * Method #EraseUnique(const KeyType&) is more efficient than #Erase(const KeyType&)
  * and a further advantage is that it asserts (in debug-compilations) that not more than one
  * element is found in the table.
  *
@@ -183,9 +183,8 @@ namespace aworx { namespace lib { namespace monomem {
  *      In contrast, the two types found in <c>std</c> have equally named methods that act
  *      differently and return different result types.
  *
- *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_rehashing
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_rehashing
  * # 4. Re-Hashing #
  * A check for the need to perform re-hashing is made with every insertion of an element.
  * The policy for re-hashing is described as follows:
@@ -194,27 +193,28 @@ namespace aworx { namespace lib { namespace monomem {
  * - When increased, the new minimum number of buckets is calculated as #Size divided by
  *   #BaseLoadFactor. Starting from this minimum, the effective number of buckets is chosen as a
  *   next higher prime number from a static table.
- * - A rehash may be triggered "manually" with method #Rehash.
  * - Automatic rehashes may be disabled by setting #MaxLoadFactor to a very high value, e.g.
  *   <c>std::numeric_limits<float>::max()</c>
  *
- * The number of buckets is never decreased, unless method #Rehash is invoked providing a
- * reasonably lower value for parameter \p{newMinBucketCount} than #BucketCount reports.
- * If this was done without adjusting #MaxLoadFactor, chances are high that a next insertion
- * triggers an increase of the buckets and rehashes again.
+ * The number of buckets is never decreased, unless method #Reset is invoked.
  *
- * In common scenarios, manual re-hashes are not advised. To a user of the class, usually only
- * values #BaseLoadFactor and #MaxLoadFactor are of concern, which both can be specified once
- * with \ref HashTable::HashTable "construction".
+ * Manual re-hashing is not supported by design. In our view, with monotonic growth (or stability
+ * in size) and hence the absence of dynamic increase/decrease scenarios, manual rehashing is not
+ * needed. Only the base and maximum load factors are of concern, which both can be
+ * specified with \ref HashTable::HashTable "construction" and with methods #MaxLoadFactor
+ * respectively #MaxLoadFactor.<br>
+ * What can be done however is to use method #MaxLoadFactor to "disable" rehashing temporarily
+ * and thus to allow an efficient mass insertion. Nevertheless, if the number of elements to be
+ * inserted is known upfront, the use of method #Reserve, respectively #ReserveRecyclables is
+ * the preferred approach.
  *
- *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_iterators
+ *  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_iterators
  * # 5. Iterators #
  * ## 5.1 Iterator Types ##
  * There are two types of iterators provided:
  * - \alib{monomem::HashTable,Iterator} and its constant sibling
- *   \alib{monomem::HashTable,LocalIterator}, used to iterate over all elements of the hash table,
+ *   \alib{monomem::HashTable,ConstIterator}, used to iterate over all elements of the hash table,
  * - \alib{monomem::HashTable,LocalIterator} and its constant sibling
  *   \alib{monomem::HashTable,ConstLocalIterator} used to iterate over the elements of a certain
  *   bucket only.
@@ -237,12 +237,12 @@ namespace aworx { namespace lib { namespace monomem {
  *   erase individual elements while iterating through the container.
  *
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_hashcodes
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_hashcodes
  * # 6. Hash Codes #
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_caching
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_caching
  * ## 6.1 Caching Hash Codes ##
  *
  * Template parameter \p{THashCaching} may be used to control if hash codes are cached.
@@ -253,7 +253,7 @@ namespace aworx { namespace lib { namespace monomem {
  * <c>key-portion</c> of the inserted value.
  *
  * The cached hash code is used when the table is
- * \ref alib_namespace_monomem_hashtable_rehashing "re-hashed". In addition, the cached
+ * \ref alib_ns_monomem_hashtable_rehashing "re-hashed". In addition, the cached
  * hash code is also used with almost all interface methods (insertion, deletion and search
  * operations): If cached, any needed comparison of two elements will first compare the hash
  * codes and only invoke templated functor \p{TEqual} if those match.
@@ -265,8 +265,8 @@ namespace aworx { namespace lib { namespace monomem {
  * The caching option of an instance of this class can be queried with enum #CachedHashCodes.
  *
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_hashprecalc
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_hashprecalc
  * ## 6.2 Hash Codes Precalculation ##
  * The following overloaded methods accept parameter \p{hashCode} in addition to the parameters
  * accepted by their corresponding base version:
@@ -289,8 +289,8 @@ namespace aworx { namespace lib { namespace monomem {
  * - Situations where the result of a find operation may may lead to further operations with the
  *   same object.
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_hashquality
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_hashquality
  * ## 6.3 Hash Code Quality ##
  * To have hash tables perform in constant time <em>O(1)</em> in the average case, a well
  * implemented calculation of hash-codes has to be provided for template type \p{TKey} with
@@ -304,8 +304,8 @@ namespace aworx { namespace lib { namespace monomem {
  *
  * These methods may be used to assert the quality of custom hash algorithms.
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_monomem
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_memory
  * # 7. Memory Use #
  * With template parameter \p{TRecycling} being either \alib{monomem,Recycling::Private}
  * (the default) or \alib{monomem,Recycling::Shared} the internal <em>"node objects"</em> are
@@ -329,11 +329,11 @@ namespace aworx { namespace lib { namespace monomem {
  * \alib{monomem,MonoAllocator::TakeSnapshot,snapshot} of the allocator can be taken and
  * later used to reset the allocator to the minimum that preserves all memory in the according
  * hash table instance.<br>
- * For such use advanced use, it is advisable to fully understand the concept of monotonic
- * allocation implemented with this module \alib_monomem.
+ * For advanced usage, it is advisable to fully understand the concept of monotonic allocation
+ * implemented with this module \alib_monomem.
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_comparision
+ *  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_comparison
  * # 8. Comparison To Standard Library Hash-Types #
  * In the previous sections, it was already referred several times to types
  * - <c>std::unordered_map</c>,
@@ -367,7 +367,7 @@ namespace aworx { namespace lib { namespace monomem {
  *   \alib{monomem,HashMap} offers exactly this.
  * - This \alib type does not distinguish sets/maps from multi-sets/maps.
  *   The rational for this design decision has been described in section
- *   \ref alib_namespace_monomem_hashtable_single_multi "3. Single And Multiple Entries".
+ *   \ref alib_ns_monomem_hashtable_single_multi "3. Single And Multiple Entries".
  * - Almost all members of the four standard library types are implemented with this type
  *   in a very compatible fashion. The member names were translated from <em>lower_snake_case</em>
  *   to <em>UpperCamelCase</em> and then sometimes slightly changed.<br>
@@ -390,45 +390,45 @@ namespace aworx { namespace lib { namespace monomem {
  *   to implemented by a user (full iteration with copying elements from one instance to another).
  *
  *
- * \~Comment #################################################################################### \~
- * \anchor alib_namespace_monomem_hashtable_referencedoc
+*  \I{#############################################################################################}
+ * \anchor alib_ns_monomem_hashtable_referencedoc
  * # Reference Documentation #
  *
  * @tparam T            The values that this hash table stores. In case of
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash map mode",
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash map mode",
  *                      this type needs to contain both, the <em>key-portion</em> and the
  *                      <em>mapped-portion</em> of the data.
  * @tparam TStored      Internal storage version of \p{T}. This is used with
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash map mode"
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash map mode"
  *                      to provide a data type which is storage-compatible to \p{T} but with a
  *                      constant <em>key-portion</em>.
  *                      The internally stored (mutable) data is reinterpreted (!) as \p{T} in this
  *                      case. Hence, a reinterpret cast from this type to \p{T} has to be "legal".
- *                      With \ref alib_namespace_monomem_hashtable_setandmap "hash set mode", this
+ *                      With \ref alib_ns_monomem_hashtable_setandmap "hash set mode", this
  *                      type should be the same as \p{T}.
  * @tparam TKey         The key type. In case of
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash set mode", the type
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash set mode", the type
  *                      given has to be the same as \p{T}.
  *                      This type is published as \alib{monomem,HashTable::KeyType}.
  * @tparam TIfMapped    The type of the mapped portion of the data.
  *                      This type is published as \alib{monomem,HashTable::MappedType}.
- *                      In case of \ref alib_namespace_monomem_hashtable_setandmap "hash set mode",
+ *                      In case of \ref alib_ns_monomem_hashtable_setandmap "hash set mode",
  *                      type <c>void</c> has to be given and the resulting type
  *                      \b HashTable::MappedType is "undefined" (not usable).
- * @tparam THash        With \ref alib_namespace_monomem_hashtable_setandmap "hash map mode",
+ * @tparam THash        With \ref alib_ns_monomem_hashtable_setandmap "hash map mode",
  *                      this type needs to be a hash functor on type \p{TKey}, which in
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash set mode", equals
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash set mode", equals
  *                      \p{T}.<br>
  *                      This type is published as \alib{monomem,HashTable::HashType}.
- * @tparam TEqual       With \ref alib_namespace_monomem_hashtable_setandmap "hash map mode", this
+ * @tparam TEqual       With \ref alib_ns_monomem_hashtable_setandmap "hash map mode", this
  *                      type needs to be a comparison functor on \p{TKey}, which in
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash set mode", equals
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash set mode", equals
  *                      \p{T}.<br>
  *                      The type is published as \alib{monomem,HashTable::EqualType}.
  * @tparam TAccess      A functor-like struct used to access the <em>key-</em> and
  *                      <em>mapped-portion</em> of type \p{T}.<br>
  *                      Needs to provide static method, \b Key with
- *                      \ref alib_namespace_monomem_hashtable_setandmap "hash set mode" and
+ *                      \ref alib_ns_monomem_hashtable_setandmap "hash set mode" and
  *                      with <em>hash map mode</em>, in addition method \b Mapped() has to be
  *                      defined.<br>
  *                      For details on required method signatures see provided implementations
@@ -485,12 +485,12 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     using AccessType  = TAccess;
 
     /** This type definition may be used to define an externally managed shared recycler,
-     *  which can be passed to the alterative constructor of this class when template
+     *  which can be passed to the alternative constructor of this class when template
      *  parameter \p{TRecycling} equals \alib{monomem,Recycling::Shared}.
      *  \see
      *    Chapter \ref alib_monomem_intro_recycling of the Programmer's Manual
      *    for this \alibmod.                                                          */
-    using TSharedRecycler=  ForwardList<Element>;
+    using TSharedRecycler=  lib::detail::SidiListHelper<Element>;
 
     /** TMP constant that denotes whether hash codes are cached or not. */
     static constexpr bool CachedHashCodes = base::Element::CachedHashCodes;
@@ -573,7 +573,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
                 if( element != nullptr )
                 {
                     element->destruct();
-                    table->recycle(element);
+                    table->recycler.recycle(element);
                 }
                 table  = other.table;
                 element= other.element;
@@ -591,7 +591,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
                 if( element != nullptr )
                 {
                     element->destruct();
-                    table->recycle(element);
+                    table->recycler.recycle(element);
                 }
             }
 
@@ -616,7 +616,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
              *
              *  ## Availability ##
              *  This method is only available with
-             *  \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+             *  \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
              *
              *  @tparam  TEnableIf Used to select this method if applicable. Do not specify.
              *  @return Returns a mutable reference to the mapped object.                   */
@@ -681,7 +681,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     ~HashTable()
     {
-        if ALIB_CONSTEXPR_IF( !std::is_trivially_destructible<TStored>::value )
+        if ALIB_CONSTEXPR17( !std::is_trivially_destructible<TStored>::value )
             Clear();
     }
 
@@ -694,7 +694,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     void            SetAllocatorPostConstruction( MonoAllocator* pAllocator )
     {
-        ALIB_ASSERT_ERROR( base::allocator == nullptr,
+        ALIB_ASSERT_ERROR( base::allocator == nullptr, "MONOMEM/HASHTABLE"
                            "Allocator already set.")
         base::allocator= pAllocator;
     }
@@ -761,40 +761,51 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     /** ********************************************************************************************
      * Reserves space for at least the given number of elements.
      * This might re-hash this table.
-     * @param expectedSize The expected number of elements to be stored in the hash table.
+     * \see Method #ReserveRecyclables.
+     * @param expected  The expected number or increase of elements to be stored in the hash table.
+     * @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
      **********************************************************************************************/
-    void            Reserve( integer expectedSize )
+    void            Reserve( integer expected, lib::ValueReference reference )
     {
-        return base::rehash( static_cast<uinteger>(std::ceil(expectedSize/base::baseLoadFactor)) );
+        float expectedSize= float(  expected +  (reference == lib::ValueReference::Relative ? Size()
+                                                                                        : 0     ) );
+        return base::rehash( uinteger(std::ceil(  expectedSize / base::baseLoadFactor)) );
     }
 
     /** ********************************************************************************************
      * Same as #Reserve but in addition also already allocates the required space for the number
      * of additional elements expected.
      *
-     * This method may be helpful if the definite number of stored elements that is never
-     * exceeded is known. In this case, a \alib{monomem,MonoAllocator::TakeSnapshot,snapshot}
-     * of the monotonic allocator could be taken after the invocation of this method and
-     * then used to reset the monotonic allocator with preserving the memory used by this container.
+     * \note
+     *   If the definite number of stored elements that is never exceeded is known,
+     *   a \alib{monomem,MonoAllocator::TakeSnapshot,snapshot} of the monotonic allocator could
+     *   be taken after the invocation of this method and then used to reset the monotonic
+     *   allocator with preserving the memory used by this container.
      *
+     * 
      * \note
      *   This method is not available (aka does not compile) with instantiations
      *   that specify template parameter \p{TRecycling} as \alib{monomem,Recycling::None}.
      *
-     * @param expectedSize The expected number of elements to be stored in the hash table.
+     * @param expected  The expected number or increase of elements to be stored in the hash table.
+     * @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
      **********************************************************************************************/
-    void            ReserveRecyclables( integer expectedSize )
+    void            ReserveRecyclables( integer expected, lib::ValueReference reference )
     {
-        Reserve( expectedSize );
+        Reserve( expected, reference );
 
-        auto requiredRecyclables= ( expectedSize - Size()) - RecyclablesCount();
+        auto requiredRecyclables= ( expected - (reference == lib::ValueReference::Absolute ? Size()
+                                                                                       : 0     ) )
+                                         - RecyclablesCount();
         if( requiredRecyclables > 0 )
         {
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             Element* newElements= base::allocator->template AllocArray<Element>(requiredRecyclables);
             for( auto i= requiredRecyclables - 2; i >= 0   ; --i )
-                newElements[i].makePointTo( &newElements[i + 1] );
+                newElements[i].next( &newElements[i + 1] );
 
-            base::recycle( &newElements[0], &newElements[requiredRecyclables - 1] );
+            base::recycler.recycle( &newElements[0], &newElements[requiredRecyclables - 1] );
+            ALIB_WARNINGS_RESTORE
         }
     }
 
@@ -812,7 +823,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     integer         RecyclablesCount()                                                         const
     {
-        return base::TRecycler::count();
+        return base::recycler.count();
     }
 
     /** ############################################################################################
@@ -822,8 +833,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     /** ********************************************************************************************
      * Sets a new value for the "base load factor" used with this container.
      * The base load factor determines the minimum number of buckets
-     * when re-hashing is performed, either automatically or by invoking method #Rehash
-     * with a value of \c 0 for parameter \p{newMinBucketCount}.
+     * when re-hashing is performed.
      *
      * The formula to determine the minimum number of buckets is #Size divided by this factor.
      * A static table of prime numbers is searched for the next higher number and this value
@@ -837,7 +847,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \see
      *   Overloaded method #BaseLoadFactor() and this class's documentation section
-     *   \ref alib_namespace_monomem_hashtable_rehashing "4. Re-Hashing".
+     *   \ref alib_ns_monomem_hashtable_rehashing "4. Re-Hashing".
      *
      * @param newBaseLoadFactor The new base load factor to use when a rehash is performed.
      **********************************************************************************************/
@@ -851,7 +861,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \see
      *   Overloaded method #BaseLoadFactor(float) and this class's documentation section
-     *   \ref alib_namespace_monomem_hashtable_rehashing "4. Re-Hashing".
+     *   \ref alib_ns_monomem_hashtable_rehashing "4. Re-Hashing".
      *
      * @return The current value of the base load factor.
      **********************************************************************************************/
@@ -877,7 +887,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \see
      *   Overloaded method #MaxLoadFactor() and this class's documentation section
-     *   \ref alib_namespace_monomem_hashtable_rehashing "4. Re-Hashing".
+     *   \ref alib_ns_monomem_hashtable_rehashing "4. Re-Hashing".
      *
      * @param newMaxLoadFactor The maximum load factor used to determine the need of re-hashing.
      **********************************************************************************************/
@@ -891,34 +901,13 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \see
      *   Overloaded method #MaxLoadFactor(float) and this class's documentation section
-     *   \ref alib_namespace_monomem_hashtable_rehashing "4. Re-Hashing".
+     *   \ref alib_ns_monomem_hashtable_rehashing "4. Re-Hashing".
      *
      * @return The current value of the maximum load factor.
      **********************************************************************************************/
     float          MaxLoadFactor()                                                         const
     {
         return base::maxLoadFactor;
-    }
-
-    /** ********************************************************************************************
-     * Potentially changes the number of buckets and rehashes all elements of this hash table.
-     * If parameter \p{newMinBucketCount} equals \c 0 (the default), then the new size is
-     * calculated as #Size divided by #BaseLoadFactor.
-     *
-     * The final bucket count is chosen as the next higher value found in a predefined table of
-     * prime numbers. This is made to achieve a better distribution of the entries.
-     *
-     * @param newMinBucketCount The minimum new bucket count.<br>
-     *                          Defaults to \c 0, which chooses a size according to
-     *                          #BaseLoadFactor.
-     **********************************************************************************************/
-    void            Rehash( uinteger newMinBucketCount= 0 )
-    {
-        if( newMinBucketCount > 0 )
-            base::rehash( newMinBucketCount );
-        else
-            base::rehash( static_cast<uinteger>(std::ceil( base::size/base::baseLoadFactor )) );
-
     }
 
     /** ############################################################################################
@@ -943,8 +932,11 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     uinteger        BucketSize( uinteger bucketNumber )                                        const
     {
-        ALIB_ASSERT_ERROR(  bucketNumber <  base::bucketCount, "Bucket number out of range." )
+        ALIB_ASSERT_ERROR(  bucketNumber <  base::bucketCount, "MONOMEM/HASHTABLE",
+                            "Bucket number out of range." )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         return static_cast<uinteger>(base::buckets[bucketNumber].count());
+        ALIB_WARNINGS_RESTORE
     }
 
     /** ********************************************************************************************
@@ -976,7 +968,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Insert(const T&)} which
      * accepts the \p{hashCode} of the given \p{value} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  value    A value to copy and insert.
      * @param  hashCode Pre-calculated hash code of \p{value}.
@@ -995,7 +987,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *   The use of this method may insert elements sharing the same key as already existing
      *   elements.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * @param  value   An rvalue reference of contained type \p{T} to insert.
@@ -1011,7 +1003,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Insert(T&&)} which
      * accepts the \p{hashCode} of the given \p{value} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      *
      * @param  value    An rvalue reference of contained type \p{T} to insert.
@@ -1040,7 +1032,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *   The use of this method may insert elements sharing the same key as already existing
      *   elements.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * <p>
@@ -1083,7 +1075,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,InsertUnique(const T&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  value    An element to insert whose <em>key-portion</em> has to be different to
      *                  all currently contained elements.
@@ -1113,7 +1105,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \attention
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      *
@@ -1131,7 +1123,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,InsertUnique(T&&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  value    An element to insert whose <em>key-portion</em> has to be different to
      *                  all currently contained elements.
@@ -1142,9 +1134,11 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     {
         Element* element  = base::allocElement( hashCode );
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         base::increaseSize( 1 );
-        auto    bucketIdx= hashCode % base::bucketCount;
+        auto bucketIdx= hashCode % base::bucketCount;
         base::buckets[bucketIdx].pushFront( element );
+        ALIB_WARNINGS_RESTORE
 
         new ( &element->value )   T ( std::move(value) );
 
@@ -1154,7 +1148,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
             ALIB_ASSERT( it.element == element ) // has to be the first inserted
             while( ++it != cend(bucketIdx) )
             {
-                ALIB_ASSERT_ERROR( !base::areEqual(element, it.element ),
+                ALIB_ASSERT_ERROR( !base::areEqual(element, it.element ), "MONOMEM/HASHTABLE",
                                    "InsertUnique used while element with same key-portion "
                                    "existed!" )
             }
@@ -1169,7 +1163,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * ## Availability ##
      * This method is only available with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
      *
      * @tparam  TEnableIf Used to disable this method for instantiations of this
      *                    template type with <em>hash set mode</em>.
@@ -1192,12 +1186,12 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * ## Availability ##
      * This method is only available with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
      *
      * @tparam TEnableIf Used to disable this method for instantiations of this
      *                   template type with <em>hash set mode</em>.
@@ -1219,11 +1213,11 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \alib{monomem::HashTable,InsertOrAssign(const KeyType&, MappedType&&)} which
      * accepts the \p{hashCode} of the given \p{key} as a third  parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * ## Availability ##
      * This method is only available with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
      *
      * @tparam TEnableIf Used to disable this method for instantiations of this
      *                   template type with <em>hash set mode</em>.
@@ -1260,7 +1254,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * ## Availability ##
      * This method is only available with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
      *
      * @tparam TEnableIf Used to disable this method for instantiations of this
      *                   template type with <em>hash set mode</em>.
@@ -1282,7 +1276,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \alib{monomem::HashTable,InsertIfNotExistent(const KeyType&\,MappedType&&)} which
      * accepts the \p{hashCode} of the given \p{key} as a third parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @tparam TEnableIf Used to disable this method for instantiations of this
      *                   template type with <em>hash set mode</em>.
@@ -1320,12 +1314,12 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * ## Availability ##
      * This method is only available with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode".
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode".
      *
      * @tparam TEnableIf Used to disable this method for instantiations of this
      *                   template type with <em>hash set mode</em>.
@@ -1362,7 +1356,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * @param  value   A rvalue reference of a \p{T} to insert.
@@ -1381,7 +1375,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,InsertIfNotExistent(T&&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  value    A rvalue reference of a \p{T} to insert.
      * @param  hashCode Pre-calculated hash code of \p{value}.
@@ -1415,7 +1409,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * <p>
@@ -1449,7 +1443,9 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
         element->fixHashCode( hashCode ); // the key might have been changed outside
 
         bucketIdx= base::increaseSize( 1, hashCode );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         base::buckets[bucketIdx].pushFront( element );
+        ALIB_WARNINGS_RESTORE
         return Iterator( this, bucketIdx, element);
     }
 
@@ -1460,7 +1456,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *   The use of this method may insert elements sharing the same key as already existing
      *   elements.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
@@ -1505,7 +1501,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * \attention
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
@@ -1530,7 +1526,9 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
 
         // insert to hash table
         auto bucketIdx= base::increaseSize( 1, hashCode );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         base::buckets[bucketIdx].pushFront( element );
+        ALIB_WARNINGS_RESTORE
         auto result= Iterator( this, bucketIdx, element);
 
         #if ALIB_DEBUG
@@ -1539,7 +1537,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
             ALIB_ASSERT( it.element == result.element ) // has to be the first inserted
             while( ++it != cend(result.bucketIdx) )
             {
-                ALIB_ASSERT_ERROR( !base::areEqual(result.element, it.element ),
+                ALIB_ASSERT_ERROR( !base::areEqual(result.element, it.element ), "MONOMEM/HASHTABLE",
                                    "EmplaceUnique used while element with same key-portion "
                                    "existed!" )
             }
@@ -1555,12 +1553,12 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * ## Availability ###
      * This method is available if this templated type is instantiated with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode"
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode"
      * or for hash sets that only define a subset of \p{T} as a key type \p{TKey} and whose
      * value type \p{T} is constructible if given a key value and the variadic template arguments.
      *
@@ -1607,7 +1605,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     EmplaceOrAssign( const KeyType& key, TArgs&&... args)
     {
         // insert to hash table
-        std::pair<Iterator, bool> result= base::insertOrGet( key );
+        std::pair<Iterator, bool> result= base::insertOrGet( key, THash()(key) );
 
         // if an existing element was found, we have to destruct the whole object
         if( result.second == false )
@@ -1628,7 +1626,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      * <p>
      * \note
@@ -1637,7 +1635,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * ## Availability ###
      * This method is available only if this templated type is instantiated with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash set mode". For <em>hash map mode</em>,
+     * \ref alib_ns_monomem_hashtable_setandmap "hash set mode". For <em>hash map mode</em>,
      * use overloaded version #EmplaceIfNotExistent(const KeyType& key, TArgs&&... args).
      *
      * Furthermore is available only if custom type \p{T} has a move constructor.
@@ -1692,12 +1690,12 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * \note
      *   This method allows to prevent the insertion of double entries.
      *   For more information, see
-     *   \ref alib_namespace_monomem_hashtable_single_multi "Single And Multiple Entries"
+     *   \ref alib_ns_monomem_hashtable_single_multi "Single And Multiple Entries"
      *   of the documentation of this class.
      *
      * ## Availability ###
      * This method is available if this templated type is instantiated with
-     * \ref alib_namespace_monomem_hashtable_setandmap "hash map mode"
+     * \ref alib_ns_monomem_hashtable_setandmap "hash map mode"
      * or for hash sets that only define a subset of \p{T} as a key type \p{TKey} and whose
      * value type \p{T} is constructible if given a key value and the variadic template arguments.
      *
@@ -1804,7 +1802,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Find(const KeyType&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  key      The key to search for.
      * @param  hashCode Pre-calculated hash code of \p{key}.
@@ -1822,7 +1820,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Find(const KeyType&)const} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  key      The key to search for.
      * @param  hashCode Pre-calculated hash code of \p{key}.
@@ -1904,7 +1902,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Extract(const KeyType&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  key      The key to search a first element for.
      * @param  hashCode Pre-calculated hash code of \p{key}.
@@ -1945,15 +1943,18 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     ElementHandle      Extract( ConstIterator pos )
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         ALIB_ASSERT_ERROR(    pos.element        != nullptr
-                           && pos.table          != nullptr   , "Illegal iterator." )
+                           && pos.table          != nullptr   , "MONOMEM/HASHTABLE",
+                           "Illegal iterator." )
 
         Node*    previous= base::buckets[pos.bucketIdx].findLastBefore( pos.element );
-        ALIB_ASSERT_ERROR( previous != nullptr,  "Illegal iterator: Element not found." )
+        ALIB_ASSERT_ERROR( previous != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator: Element not found." )
 
         previous->removeNext();
         --base::size;
         return ElementHandle( this, pos.element );
+        ALIB_WARNINGS_RESTORE
     }
 
     /** ********************************************************************************************
@@ -1971,7 +1972,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,Erase(const KeyType&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      *
      * @param  key   The key to search elements for deletion.
@@ -1990,7 +1991,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
         Element* last= static_cast<Element*>(beforeFirst); // OK, because moved in the next line
         do
         {
-            Node::moveForward(last);
+            last= last->next();
             last->destruct();
             ++count;
         }
@@ -1999,7 +2000,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
 
         // erase
         Element* first= beforeFirst->removeRangeBehind( last );
-        base::recycle( first, last );
+        base::recycler.recycle( first, last );
         base::size-= count;
         return count;
     }
@@ -2013,8 +2014,8 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *   In debug-compilations, the method asserts that no second element with the same \p{key}
      *   is available.<br>
      *   If this table is supposed to
-     *   \ref alib_namespace_monomem_hashtable_single_multi "store only unique elements", the
-     *   use of this method is therefore recommended, as an assertions hints to an erorrneous use
+     *   \ref alib_ns_monomem_hashtable_single_multi "store only unique elements", the
+     *   use of this method is therefore recommended, as an assertions hints to an erroneous use
      *   of the insertion methods.
      *
      * @param  key   The key to search elements for deletion.
@@ -2030,7 +2031,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * Overloaded version of method \alib{monomem::HashTable,EraseUnique(const KeyType&)} which
      * accepts the \p{hashCode} of the given \p{key} as a second parameter.
      *
-     * See \ref alib_namespace_monomem_hashtable_hashprecalc for use cases of this method.
+     * See \ref alib_ns_monomem_hashtable_hashprecalc for use cases of this method.
      *
      * @param  key      The key to search elements for deletion.
      * @param  hashCode Pre-calculated hash code of \p{key}.
@@ -2042,13 +2043,13 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
         if( before == nullptr )
             return false;
 
-        ALIB_ASSERT_ERROR( before->next()->next() == nullptr
+        ALIB_ASSERT_ERROR(    before->next()->next() == nullptr
                            || !base::areEqual( before->next()->next(), key, hashCode ),
-                           "More than one element found matching the given key"          )
+                           "MONOMEM/HASHTABLE", "More than one element found matching the given key")
 
         Element* elem= before->removeNext();
         elem->destruct();
-        base::recycle( elem );
+        base::recycler.recycle( elem );
         --base::size;
         return true;
     }
@@ -2068,41 +2069,46 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
     Iterator            Erase( ConstIterator pos )
     {
         ALIB_ASSERT_ERROR(    pos.element        != nullptr
-                           && pos.table          != nullptr   , "Illegal iterator." )
+                           && pos.table          != nullptr , "MONOMEM/HASHTABLE",
+                           "Illegal iterator." )
 
         Iterator result( this, pos.bucketIdx, pos.element );
         ++result;
 
         // search pointer to element before pos
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Node* previous= base::buckets[pos.bucketIdx].findLastBefore( pos.element );
-        ALIB_ASSERT_ERROR( previous != nullptr,  "Illegal iterator: Element not found." )
+        ALIB_WARNINGS_RESTORE
+        ALIB_ASSERT_ERROR( previous != nullptr, "MONOMEM/HASHTABLE",
+                           "Illegal iterator: Element not found." )
 
 
         Element* toDelete= previous->removeNext();
         toDelete->destruct();
-        base::recycle( toDelete );
+        base::recycler.recycle( toDelete );
         --base::size;
         return result;
     }
 
 ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
     /** ********************************************************************************************
-     * Removes all element from the given position \p{start} to the element
+     * Removes all elements from the given position \p{start} to the element
      * before given position \p{end}.
      *
      * The order of the elements that are not erased is preserved, what makes it possible to
      * erase individual elements while iterating through the container.
      *
      * @param  start The iterator to the element to remove.
-     * @param  end   the first element not to remove.
-     * @return An iterator following the removed element.
+     * @param  end   The first element not to remove.
+     * @return An iterator following the last removed element.
      **********************************************************************************************/
     Iterator            Erase( ConstIterator start, ConstIterator end )
     {
         ALIB_ASSERT_ERROR(    start.element        != nullptr
-                           && start.table          != nullptr   , "Illegal iterator." )
+                           && start.table          != nullptr , "MONOMEM/HASHTABLE",
+                           "Illegal iterator." )
 
-        ALIB_ASSERT_ERROR( start.table == end.table,
+        ALIB_ASSERT_ERROR( start.table == end.table, "MONOMEM/HASHTABLE",
                            "Iterators are referring to different hash tables." )
 
         if( start.element == end.element )
@@ -2111,42 +2117,47 @@ ALIB_WARNINGS_IGNORE_NOTHING_RETURNED
         // loop over all buckets in question
         for( auto bucketIdx= start.bucketIdx; bucketIdx <= end.bucketIdx; ++bucketIdx )
         {
+            // end of buckets? Return iterator that marks hashtable end
             if( bucketIdx == base::bucketCount )
                 return HashTable::end();
 
+            // find the previous pointer to the start node:
             Node* previous;
-            if( bucketIdx == start.bucketIdx ) // first bucket?
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            if( bucketIdx == start.bucketIdx ) // With the first bucket in the loop, this has to be searched...
             {
                 // search pointer to element before start
                 previous= base::buckets[start.bucketIdx].findLastBefore( start.element );
-                ALIB_ASSERT_ERROR( previous != nullptr,  "Illegal iterator: Element not found." )
+                ALIB_ASSERT_ERROR( previous != nullptr, "MONOMEM/HASHTABLE",
+                                   "Illegal iterator: Element not found." )
             }
-            else
+            else                              // ...afterwards, its of-course just the bucket that points to it
             {
                 if( base::buckets[bucketIdx].isEmpty() )
                     continue;
-                previous= base::buckets[bucketIdx].castToNode();
+                previous= &base::buckets[bucketIdx].hook;
             }
+            ALIB_WARNINGS_RESTORE
             // previous next not null here
 
             bool isLastBucketOfRange= bucketIdx == end.bucketIdx;
 
             // destruct either to end of list or to end-iterator element
             integer  count= 0;
-            Element* first= previous->next();    first->destruct();
-            Element* endE = isLastBucketOfRange ? end.element : nullptr;
-            Element* last = static_cast<Element*>(previous); // allowed, because next line moves
-            do
+            Element* first= previous->next();
+            Element* next = first;
+            Element* last = nullptr;
+            Element* stop = isLastBucketOfRange ? end.element : nullptr;
+            while( next != stop )
             {
-                Node::moveForward(last);
-                last->destruct();
+                last= next;
+                next->destruct();
+                next= next->next();
                 ++count;
             }
-            while( last->next() != endE );
 
-            Element* next = last->next();
             previous->removeRangeBehind( last );
-            base::recycle( first, last );
+            base::recycler.recycle( first, last );
             base::size-= count;
 
             if( isLastBucketOfRange )
@@ -2175,14 +2186,16 @@ ALIB_WARNINGS_RESTORE
      **********************************************************************************************/
     LocalIterator       Erase( ConstLocalIterator pos )
     {
-        ALIB_ASSERT_ERROR( pos.element != nullptr, "Illegal iterator." )
+        ALIB_ASSERT_ERROR( pos.element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
 
         LocalIterator result( pos.bucketIdx, pos.element->next() );
 
         Element* element= pos.element;
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         base::buckets[pos.bucketIdx].findAndRemove( element );
+        ALIB_WARNINGS_RESTORE
         element->destruct();
-        base::recycle( element);
+        base::recycler.recycle( element);
         --base::size;
 
         return result;
@@ -2201,10 +2214,11 @@ ALIB_WARNINGS_RESTORE
      **********************************************************************************************/
     LocalIterator       Erase( ConstLocalIterator start, ConstLocalIterator end )
     {
-        ALIB_ASSERT_ERROR( start.element != nullptr, "Illegal iterator." )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        ALIB_ASSERT_ERROR( start.element != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
 
         Node* previous= base::buckets[start.bucketIdx].findLastBefore( start.element);
-        ALIB_ASSERT_ERROR( previous != nullptr, "Illegal iterator." )
+        ALIB_ASSERT_ERROR( previous != nullptr, "MONOMEM/HASHTABLE", "Illegal iterator." )
         if( start.element == end.element )
             return LocalIterator( start.bucketIdx, start.element );
 
@@ -2213,7 +2227,7 @@ ALIB_WARNINGS_RESTORE
         integer  count= 0;
         do
         {
-            Node::moveForward(last);
+            last= last->next();
             last->destruct();
             ++count;
         }
@@ -2222,15 +2236,16 @@ ALIB_WARNINGS_RESTORE
         Element* next = last->next();
 
         previous->removeRangeBehind( last );
-        base::recycle( first, last );
+        base::recycler.recycle( first, last );
 
         base::size-= count;
 
         return LocalIterator( start.bucketIdx, next );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     }
 
     /** ############################################################################################
-     * @name std::iterator Interface
+     * @name std::iterator_traits Interface
      ##@{ ########################################################################################*/
 
     /** Returns an iterator referring to a mutable element at the start of this table.
@@ -2265,8 +2280,11 @@ ALIB_WARNINGS_RESTORE
      *  @return The first element in bucket \p{bucketNumber}.              */
     LocalIterator       begin( uinteger bucketNumber )
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
-        return LocalIterator( bucketNumber, base::buckets[bucketNumber].start() );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
+        return LocalIterator( bucketNumber, base::buckets[bucketNumber].first() );
+        ALIB_WARNINGS_RESTORE
     }
 
     /** Returns an iterator referring to a constant, non-existing element in bucket of index
@@ -2275,7 +2293,8 @@ ALIB_WARNINGS_RESTORE
      *  @return The end of the list of elements in bucket \p{bucketNumber}.  */
     LocalIterator       end( uinteger bucketNumber )
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
         return LocalIterator( bucketNumber, nullptr );
     }
 
@@ -2285,8 +2304,11 @@ ALIB_WARNINGS_RESTORE
      *  @return The first element in bucket \p{bucketNumber}.              */
     ConstLocalIterator  begin( uinteger bucketNumber )                                         const
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
         return ConstLocalIterator( bucketNumber, base::buckets[bucketNumber].start() );
+        ALIB_WARNINGS_RESTORE
     }
 
     /** Returns an iterator referring to a constant, non-existing element in bucket of index
@@ -2295,7 +2317,8 @@ ALIB_WARNINGS_RESTORE
      *  @return The end of the list of elements in bucket \p{bucketNumber}.  */
     ConstLocalIterator  end( uinteger bucketNumber )                                           const
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
         return ConstLocalIterator( bucketNumber, nullptr );
     }
 
@@ -2305,8 +2328,11 @@ ALIB_WARNINGS_RESTORE
      *  @return The first element in bucket \p{bucketNumber}.              */
     ConstLocalIterator  cbegin( uinteger bucketNumber )                                        const
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
-        return ConstLocalIterator( bucketNumber, base::buckets[bucketNumber].start() );
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
+        return ConstLocalIterator( bucketNumber, base::buckets[bucketNumber].first() );
+        ALIB_WARNINGS_RESTORE
     }
 
     /** Returns an iterator referring to a constant, non-existing element in bucket of index
@@ -2315,7 +2341,8 @@ ALIB_WARNINGS_RESTORE
      *  @return The end of the list of elements in bucket \p{bucketNumber}.  */
     ConstLocalIterator  cend( uinteger bucketNumber )                                          const
     {
-        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount,  "Bucket number out of range." )
+        ALIB_ASSERT_ERROR( bucketNumber < base::bucketCount, "MONOMEM/HASHTABLE",
+                           "Bucket number out of range." )
         return ConstLocalIterator( bucketNumber, nullptr );
     }
 
@@ -2389,19 +2416,19 @@ DbgGetHashTableDistribution(const THashtable& hashtable )
         if( minimum > bucketSize ) minimum= bucketSize;
         if( maximum < bucketSize ) maximum= bucketSize;
 
-        double diff= averageExpected - bucketSize;
+        double diff= averageExpected - double(bucketSize);
         diffs+=  diff > 0 ?  diff : - diff;
     }
 
     #if ALIB_RESULTS
-        ALIB_ASSERT_ERROR( sumCheck == hashtable.Size(),
+        ALIB_ASSERT_ERROR( sumCheck == hashtable.Size(), "MONOMEM/HASHTABLE",
                            "Error: Hashtable::Size() and sum of bucket sizes differ: {} != {}",
                            hashtable.Size(), sumCheck )
     #else
-        ALIB_ASSERT_ERROR( sumCheck == hashtable.Size(),
+        ALIB_ASSERT_ERROR( sumCheck == hashtable.Size(), "MONOMEM/HASHTABLE",
                            "Error: Hashtable::Size() and sum of bucket sizes differ" )
     #endif
-    double deviation= diffs/qtyBuckets;
+    double deviation= diffs / double(qtyBuckets);
 
     return std::make_tuple( averageExpected, deviation, minimum, maximum );
 }
@@ -2440,12 +2467,12 @@ AString DbgDumpDistribution(const THashtable& hashtable, bool detailedBucketList
     integer maxSize   = std::get<3>( values );
     auto formatter = aworx::Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
         // statistics
-        formatter->Format( result, "Size:        {}\\n"
-                                   "#Buckets:    {}\\n"
-                                   "Load Factor: {:.02}  (Base: {:.01}  Max: {:.01}) \\n"
-                                   "Deviation:   {:.02} (~{:%.1})\\n"
-                                   "Minimum:     {}\\n"
-                                   "Maximum:     {}\\n",
+        formatter->Format( result, "Size:        {}\n"
+                                   "#Buckets:    {}\n"
+                                   "Load Factor: {:.02}  (Base: {:.01}  Max: {:.01})\n"
+                                   "Deviation:   {:.02} (~{:%.1})\n"
+                                   "Minimum:     {}\n"
+                                   "Maximum:     {}\n",
                            hashtable.Size(),
                            hashtable.BucketCount(),
                            loadFactor, hashtable.BaseLoadFactor(), hashtable.MaxLoadFactor(),
@@ -2466,7 +2493,7 @@ AString DbgDumpDistribution(const THashtable& hashtable, bool detailedBucketList
         formatter->Format( result, "Bucket Fills:  Size    #Buckets\n" );
         formatter->Format( result, "              -----------------\n" );
         for( integer i= 0; i < maxSize ; ++i)
-            formatter->Format( result, "               {}      {}\\n", i, bucketFills[i] );
+            formatter->Format( result, "               {}      {}\n", i, bucketFills[i] );
         delete[] bucketFills;
 
 
@@ -2478,7 +2505,7 @@ AString DbgDumpDistribution(const THashtable& hashtable, bool detailedBucketList
             for( uinteger i= 0 ; i < qtyBuckets ; ++i )
             {
                 auto bucketSize= hashtable.BucketSize( i );
-                formatter->Format(result, "{:3} ({:2}): {!FillCX}\\n", i, bucketSize,
+                formatter->Format(result, "{:3} ({:2}): {!FillCX}\n", i, bucketSize,
                                   static_cast<int>(bucketSize) );
             }
 
@@ -2536,7 +2563,7 @@ AString DbgDumpHashtable(const THashtable& hashtable )
             {
                if( entryNo!=0)
                    result << "          ";
-               formatter->Format(result, "{}: {}\\n", entryNo, *bucketIt );
+               formatter->Format(result, "{}: {}\n", entryNo, *bucketIt );
                ++entryNo;
             }
             if( bucketSize == 0)

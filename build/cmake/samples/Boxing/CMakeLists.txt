@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2019 A-Worx GmbH, Germany
+#  Copyright 2015-2023 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -19,12 +19,12 @@
     # set( ALIB_CMAKE_COTIRE  "On" )
 
     # C++ 17 needed for sampled std::string_view
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
+    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
 
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-    cmake_minimum_required( VERSION 3.3.0 )
+    cmake_minimum_required( VERSION 3.18.0 )
     project("ALib.Boxing.Sample")
 
 
@@ -48,7 +48,7 @@
     add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Boxing/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
     ALibSetCotire             ( Sample )
-    target_link_libraries     ( Sample   ALib_SharedLib  )
+    target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 
 
 # -------------------------------------------------------------------------------------------------
@@ -56,12 +56,4 @@
 # -------------------------------------------------------------------------------------------------
 
 # uncomment for debug
-#ALibDumpCMakeStatus()
-
-
-
-
-
-
-
-
+#ALibDumpCMakeVariables()

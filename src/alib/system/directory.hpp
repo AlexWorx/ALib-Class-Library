@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_system of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_SYSTEM_DIRECTORY
 #define HPP_ALIB_SYSTEM_DIRECTORY 1
 
-#if !defined(HPP_ALIB_SYSTEM_SYSTEM)
-#   include "alib/system/system.hpp"
+#if !defined(HPP_ALIB_SYSTEM_ERRORS)
+#   include "alib/system/systemerrors.hpp"
 #endif
 
 #if !defined(HPP_ALIB_STRINGS_STRINGNZT)
@@ -32,7 +32,11 @@ namespace macos
 
 
 /** ************************************************************************************************
- *  Represents a directory (folder) in a file system.
+ * Represents a directory (folder) in a file system.
+ *
+ * \note
+ *  This class is not recommended to be used. It was created once to have something for
+ *  class \alib{config,IniFile}, but never came to a state of true usability.
  **************************************************************************************************/
 class Directory
 {
@@ -136,6 +140,13 @@ class Directory
     // Constructors
     // #############################################################################################
     public:
+        /** ****************************************************************************************
+         * Constructs an object representing no directory.
+         * Field #Path remains empty.
+         ******************************************************************************************/
+                                Directory()
+        {}
+
         /** ****************************************************************************************
          * Constructs an object representing one of the known special directories.
          * @param special  The special directory to initialize this instance to.

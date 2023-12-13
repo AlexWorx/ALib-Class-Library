@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -46,7 +46,7 @@ ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
     // define unary ops
     for( auto& op : compiler.UnaryOperators )
     {
-        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op),
+        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op), "EXPR",
                            "Doubly defined unary operator symbol {!Q'}.", op )
 
         unaryOperators.EmplaceUnique(op);
@@ -56,7 +56,7 @@ ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
 
     for( auto& op : compiler.AlphabeticUnaryOperatorAliases )
     {
-        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op.first),
+        ALIB_ASSERT_ERROR( !unaryOperators.Contains(op.first), "EXPR",
                            "Doubly defined unary operator symbol {!Q'}.", op.first )
 
         unaryOperators.EmplaceUnique(op.first);
@@ -68,7 +68,7 @@ ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
 
     for( auto op : compiler.BinaryOperators )
     {
-        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first),
+        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first), "EXPR",
                            "Doubly defined binary operator symbol {!Q'}.", op.first )
         if( op.first == A_CHAR("[]") )
         {
@@ -85,12 +85,12 @@ ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
 
     for( auto op : compiler.AlphabeticBinaryOperatorAliases )
     {
-        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first),
+        ALIB_ASSERT_ERROR( !binaryOperators.Contains(op.first), "EXPR",
                            "Doubly defined binary operator symbol {!Q'}.", op.first )
 
         ALIB_DBG( auto originalOp= )
         compiler.BinaryOperators.Find( op.second );
-        ALIB_ASSERT_ERROR( originalOp != compiler.BinaryOperators.end(),
+        ALIB_ASSERT_ERROR( originalOp != compiler.BinaryOperators.end(), "EXPR",
                            "Alias {!Q'} defined for unknown operator {!Q'}.",
                            op.first, op.second )
 
@@ -143,8 +143,10 @@ void ParserImpl::NextToken()
             }
         }
 
-        token= Tokens::Operator;
+        token= Tokens::SymbolicOp;
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         tokString= String( expression.Buffer() + tokPosition, operatorLength );
+        ALIB_WARNINGS_RESTORE
 
         // special treatment for Elvis with spaces "? :"
         if(    tokString == A_CHAR("?") && compiler.BinaryOperators.Contains( A_CHAR("?:") )   )
@@ -165,25 +167,38 @@ void ParserImpl::NextToken()
     //------------------------------  alphabetic operators ------------------------------
     if( isalpha( first ) )
     {
-        Substring lookAhead( scanner );
-        lookAhead.ConsumeChar<false>();
-        while( isalpha( lookAhead.CharAtStart() ) || lookAhead.CharAtStart() =='_' )
-            lookAhead.ConsumeChar<false>();
-        tokString= scanner.Substring<false>( 0, scanner.Length() - lookAhead.Length() );
+        integer len= 1;
+        while( len < scanner.Length() && ( isalpha( scanner[len] ) || scanner[len] == '_' ) )
+            ++len;
+        tokString= scanner.Substring<false>( 0, len );
         auto hashCode=  tokString.HashcodeIgnoreCase();
-        decltype(unaryOperators)::Iterator it;
-        if(   (   (it= unaryOperators .Find( tokString, hashCode )) != unaryOperators.end()
-               && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                    || tokString.Equals( it.Value() ) ) )
-           || (   (it= binaryOperators.Find( tokString, hashCode )) != binaryOperators.end()
-               && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                    || tokString.Equals( it.Value() ) ) )
-            )
+
+        // unary
         {
-            scanner.ConsumeChars<false>( tokString.Length() );
-            token= Tokens::Operator;
-            return;
+            decltype(unaryOperators)::Iterator it;
+            if(    (it= unaryOperators .Find( tokString, hashCode )) != unaryOperators.end()
+                && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
+                     || tokString.Equals( it.Value() ) ) )
+            {
+                scanner.ConsumeChars<false>( tokString.Length() );
+                token= Tokens::AlphaUnOp;
+                return;
+            }
         }
+
+        // binary
+        {
+            decltype(binaryOperators)::Iterator it;
+            if(    (it= binaryOperators .Find( tokString, hashCode )) != binaryOperators.end()
+                && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
+                     || tokString.Equals( it.Value() ) ) )
+            {
+                scanner.ConsumeChars<false>( tokString.Length() );
+                token= Tokens::AlphaBinOp;
+                return;
+            }
+        }
+
     }
 
     //------------------------------  Identifiers ------------------------------
@@ -196,7 +211,9 @@ void ParserImpl::NextToken()
                      || next == '_'                         ) );
 
         token= Tokens::Identifier;
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         tokString= String( expression.Buffer() + tokPosition, endOfIdent );
+        ALIB_WARNINGS_RESTORE
         scanner.ConsumeChars<false>( endOfIdent );
         return;
     }
@@ -275,8 +292,10 @@ void ParserImpl::NextToken()
             throw e;
         }
 
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         String quoted( expression.Buffer() + tokPosition + 1,
                        expression.Length() - scanner.Length() - tokPosition -2 );
+        ALIB_WARNINGS_RESTORE
 
 
         MAString internalizer( *compileTimeAllocator, quoted.Length() + 1 );
@@ -319,7 +338,7 @@ detail::AST* ParserImpl::Parse( const String& exprString, NumberFormat* nf, Mono
     AST* ast= Start();
 
 
-    // check if tokens remain
+    // if tokens remain, an "operator" would be expected
     if( token != Tokens::EOT )
     {
         Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE5") );
@@ -339,15 +358,13 @@ AST* ParserImpl::parseConditional()
     integer qmPosition= tokPosition;
 
 
-    if(     token        == Tokens::Operator
-        &&  tokString == A_CHAR("?")           )
+    if( token == Tokens::SymbolicOp && tokString == A_CHAR("?") )
     {
         NextToken();
         push( Start() ); // T
 
         // expect colon
-        if(    token        != Tokens::Operator
-            || tokString != A_CHAR(":")          )
+        if( token != Tokens::SymbolicOp || tokString != A_CHAR(":") )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE6") );
             e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
@@ -362,6 +379,7 @@ AST* ParserImpl::parseConditional()
         AST* Q= pop();
         return compileTimeAllocator->Emplace<ASTConditional>( Q, T, F, qmPosition, colonPosition );
     }
+
     // was no conditional
     return pop();
 }
@@ -390,7 +408,7 @@ AST* ParserImpl::parseBinary()
         break;
     }
 
-   // check if tokens remain
+    // check if tokens remain
     if( token == Tokens::EOT )
     {
         Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE7") );
@@ -424,7 +442,7 @@ AST* ParserImpl::parseBinary()
 
 AST* ParserImpl::parseSimple()
 {
-    //  '('  expr  ')'
+    //  '('  expr  ')'   (brackets)
     if( token == Tokens::BraceOpen )
     {
         NextToken();
@@ -441,6 +459,7 @@ AST* ParserImpl::parseSimple()
         return pop();
     }
 
+    //  unary operator
     integer position= tokPosition;
     {
         String unOp= getUnaryOp();
@@ -452,12 +471,11 @@ AST* ParserImpl::parseSimple()
         }
     }
 
-
+    // terminals
     if( token == Tokens::LitInteger ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokInteger, position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
     if( token == Tokens::LitFloat   ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokFloat  , position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
     if( token == Tokens::LitString  ) { push(compileTimeAllocator->Emplace<ASTLiteral>( compileTimeAllocator->EmplaceString(tokString), position )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
-
-    if( token == Tokens::Identifier )
+    if( token == Tokens::Identifier || token == Tokens::AlphaBinOp )   // allow bin op's names here! This is tricky but right!
     {
         String name= tokString;
         NextToken();
@@ -498,6 +516,7 @@ AST* ParserImpl::parseSimple()
         return pop();
     }
 
+    // ----------------------------------------   ERRORS   -----------------------------------------
     if( token == Tokens::EOT )
     {
         Exception e( ALIB_CALLER_NULLED, Exceptions::SyntaxErrorExpectation, EXPRESSIONS.GetResource("EE20") );
@@ -526,8 +545,7 @@ AST* ParserImpl::parseSimple()
         throw e;
     }
 
-
-    ALIB_ERROR( "Internal parser Error. This should never happen")
+    ALIB_ERROR( "EXPR", "Internal parser Error. This should never happen")
     return nullptr;
 }
 
@@ -563,65 +581,83 @@ AST* ParserImpl::parseSubscript( AST *function )
 
 String ParserImpl::getUnaryOp()
 {
-    if( token != Tokens::Operator )
-        return NullString();
-
-    // unary ops may be nested. Hence, we find one by one from the actual token and consume the
-    // token only if all is consumed.
-    for( integer partialRead= 1 ; partialRead <= tokString.Length()    ; ++partialRead )
+    if( token == Tokens::SymbolicOp )
     {
-        Substring key= Substring( tokString.Buffer(), partialRead );
-        if( unaryOperators.Contains( key ) )
+        // symbolic unary ops may be nested. Hence, we find one by one from the actual token and consume the
+        // token only if all is consumed.
+        for( integer partialRead= 1 ; partialRead <= tokString.Length()    ; ++partialRead )
         {
-            if( partialRead == tokString.Length() )
-                NextToken();
-            else
+            Substring key= Substring( tokString.Buffer(), partialRead );
+            if( unaryOperators.Contains( key ) )
             {
-                tokString= String( tokString.Buffer() + partialRead,
-                                              tokString.Length() - partialRead );
-                tokPosition+= partialRead;
+                if( partialRead == tokString.Length() )
+                    NextToken();
+                else
+                {
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+                    tokString= String( tokString.Buffer() + partialRead,
+                                       tokString.Length() - partialRead );
+                    tokPosition+= partialRead;
+                    ALIB_WARNINGS_RESTORE
+                }
+                return key;
             }
-            return key;
         }
+        Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownUnaryOperatorSymbol, tokString );
+        e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+    else if ( token == Tokens::AlphaUnOp )
+    {
+        String alphabeticOperator= tokString;
+        NextToken();
+        return alphabeticOperator;
     }
 
-    Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownUnaryOperatorSymbol, tokString );
-    e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
-    throw e;
+    return NullString();
 }
 
 String ParserImpl::getBinaryOp()
 {
-    if( token != Tokens::Operator )
-        return NullString();
-
-    // ignore ternary
-    if(    tokString == A_CHAR("?")
-        || tokString == A_CHAR(":") )
-        return NullString();
-
-    // binary ops may be longer and concatenated with unaries. So we consume as much as possible
-    // but are happy with less than available
-    for( integer partialRead= tokString.Length() ; partialRead > 0    ; --partialRead )
+    if ( token == Tokens::SymbolicOp )
     {
-        Substring key= Substring( tokString.Buffer(), partialRead );
-        if( binaryOperators.Contains( key ) )
+        // ignore ternary
+        if ( tokString == A_CHAR( "?" ) || tokString == A_CHAR( ":" ) )
+            return NullString();
+
+        // binary ops may be longer and concatenated with unaries. So we consume as much as possible
+        // but are happy with less than available
+        for ( integer partialRead = tokString.Length(); partialRead > 0; --partialRead )
         {
-            if( partialRead == tokString.Length() )
-                NextToken();
-            else
+            Substring key = Substring( tokString.Buffer(), partialRead );
+            if ( binaryOperators.Contains( key ) )
             {
-                tokString= String( tokString.Buffer() + partialRead,
-                                   tokString.Length() - partialRead );
-                tokPosition+= partialRead;
+                if ( partialRead == tokString.Length() )
+                    NextToken();
+                else
+                {
+                    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+                    tokString = String( tokString.Buffer() + partialRead,
+                                        tokString.Length() - partialRead );
+                    tokPosition += partialRead;
+                    ALIB_WARNINGS_RESTORE
+                }
+                return key;
             }
-            return key;
         }
+
+        Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownBinaryOperatorSymbol, tokString );
+        e.Add( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
+        throw e;
+    }
+    else if ( token == Tokens::AlphaBinOp )
+    {
+        String alphabeticOperator= tokString;
+        NextToken();
+        return alphabeticOperator;
     }
 
-    Exception e( ALIB_CALLER_NULLED, Exceptions::UnknownBinaryOperatorSymbol, tokString );
-    e.Add      ( ALIB_CALLER_NULLED, Exceptions::ExpressionInfo, expression, tokPosition );
-    throw e;
+    return NullString();
 }
 
 

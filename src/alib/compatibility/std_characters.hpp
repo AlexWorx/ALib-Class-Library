@@ -4,7 +4,7 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_CHARACTERS
@@ -201,21 +201,23 @@ template<typename TChar>
 struct     T_CharArray<std::vector<TChar>, TChar, typename std::enable_if<
  TT_IsChar<TChar>::value                                                  >::type >
 {
-  #if !defined(ALIB_DOX)
-    static constexpr AccessType          Access       =       AccessType::Implicit;
-    static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
-    static const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
-    static integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
-    static std::vector<TChar>            Construct(const TChar* array, integer length )
-    {
-        std::vector<TChar> result;
-        result.reserve( static_cast<size_t>(length) );
-        const TChar* end= array + length;
-        while( array < end )
-            result.push_back( *array++ );
-        return  result;
-    }
-  #endif
+    #if !defined(ALIB_DOX)
+        static constexpr AccessType          Access       =       AccessType::Implicit;
+        static constexpr ConstructionType    Construction = ConstructionType::ExplicitOnly;
+        static const TChar*                  Buffer   (std::vector<TChar> const & src) { return                       src.data()  ; }
+        static integer                       Length   (std::vector<TChar> const & src) { return static_cast<integer>( src.size() ); }
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        static std::vector<TChar>            Construct(const TChar* array, integer length )
+        {
+            std::vector<TChar> result;
+            result.reserve( static_cast<size_t>(length) );
+            const TChar* end= array + length;
+            while( array < end )
+                result.push_back( *array++ );
+            return  result;
+        }
+        ALIB_WARNINGS_RESTORE
+    #endif
 };
 
 /**

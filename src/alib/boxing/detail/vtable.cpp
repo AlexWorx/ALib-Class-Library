@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,8 +34,8 @@
 #   if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
 #      include <unordered_map>
 #   endif
-#   if !defined(_GLIBCXX_SET) && !defined(_SET_)
-#      include <set>
+#   if !defined(_GLIBCXX_UNORDERED_SET) && !defined(_UNORDERED_SET_)
+#      include <unordered_set>
 #   endif
 #endif
 
@@ -46,11 +46,11 @@ namespace aworx { namespace lib { namespace boxing { namespace detail {
 #if !defined(ALIB_DOX)
 
 #if ALIB_MONOMEM
-    extern HashSet           <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern HashSet           <TypeFunctors::Key,                  TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
     extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
     extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
 #else
-    extern std::set          <TypeFunctors::Key                 , TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern std::unordered_set<TypeFunctors::Key,                  TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
     extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
     extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
 #endif
@@ -152,7 +152,7 @@ void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
             #if ALIB_MONOMEM
                 DbgKnownCustomFunctions.InsertIfNotExistent( &rtti );
             #else
-                DbgKnownCustomFunctions.emplace( rtti );
+                DbgKnownCustomFunctions.emplace( &rtti );
             #endif
         detail::DbgLockMaps(false);
     #endif
@@ -160,7 +160,7 @@ void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
     // search existing (replace)
     #if ALIB_MONOMEM
         if( customFunctionMap.Size() == 0 )
-            customFunctionMap.Reserve( 50 );
+            customFunctionMap.Reserve( 50, ValueReference::Absolute );
 
         customFunctionMap.InsertOrAssign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
     #else
@@ -273,7 +273,7 @@ void DbgBoxing::getFunctionTypes( const detail::FunctionTable&                  
 }
 
 
-#if ALIB_DEBUG_MONOMEM
+#if ALIB_MONOMEM && ALIB_DEBUG_MONOMEM
 void DbgBoxing::DumpCustomFunctionHashMapMetrics( AString& target, bool detailedBucketList )
 {
     target << monomem::DbgDumpDistribution( customFunctionMap, detailedBucketList );
@@ -324,7 +324,7 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
 #endif
 
     ALIB_BOXING_VTABLE_DEFINE(      double, vt_double )
-#if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+#if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
     ALIB_BOXING_VTABLE_DEFINE( long double, vt_long_double )
 #endif
 #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
@@ -346,3 +346,36 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_2])
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( wchar_t  , vt_arr_wchar_t )
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char16_t , vt_arr_char16_t)
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char32_t , vt_arr_char32_t)
+
+// #################################################################################################
+// Static VTables for standard types
+// #################################################################################################
+ALIB_BOXING_VTABLE_DEFINE( std::type_info*              , vt_std_type_info          )
+
+// #################################################################################################
+// Static VTables for low-level ALib types
+// #################################################################################################
+// CodeMarker_CommonEnums
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Alignment        , vt_alib_Alignment         )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Bool             , vt_alib_Bool              )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Caching          , vt_alib_Caching           )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Case             , vt_alib_Case              )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::ContainerOp      , vt_alib_ContainerOp       )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CreateDefaults   , vt_alib_CreateDefaults    )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CreateIfNotExists, vt_alib_CreateIfNotExists )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CurrentData      , vt_alib_CurrentData       )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Inclusion        , vt_alib_Inclusion         )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Initialization   , vt_alib_Initialization    )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Phase            , vt_alib_Phase             )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Propagation      , vt_alib_Propagation       )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Reach            , vt_alib_Reach             )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Responsibility   , vt_alib_Responsibility    )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Safeness         , vt_alib_Safeness          )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Side             , vt_alib_Side              )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::SortOrder        , vt_alib_SortOrder         )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::SourceData       , vt_alib_SourceData        )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Switch           , vt_alib_Switch            )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Timezone         , vt_alib_Timezone          )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Timing           , vt_alib_Timing            )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::ValueReference   , vt_alib_ValueReference    )
+ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Whitespaces      , vt_alib_Whitespaces       )

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_PROPERTY_FORMATTERS
@@ -39,7 +39,7 @@ namespace aworx { namespace lib { namespace text {
 
 
 /** ************************************************************************************************
- * # Introduction # {#alib_namespace_strings_propertyformatter_map_overview}
+ * # Introduction # {#alib_ns_strings_propertyformatter_map_overview}
  *
  * This template class provides a map of \alib{text,PropertyFormatter} objects that use
  * format strings which are defined by variables of a \alib{config,Configuration}.
@@ -47,11 +47,10 @@ namespace aworx { namespace lib { namespace text {
  * The use case is about having different versions of how an object is formatted and
  * to have these versions configurable to end users through the \alib configuration system.
  *
-\~Comment ####################################################################################### \~
- * # Sample # {#alib_namespace_strings_propertyformatter_map_sample}
+\I{################################################################################################}
+ * # Sample # {#alib_ns_strings_propertyformatter_map_sample}
  * The concept is best explained by a code sample. From the documentation of class
- * \alib{text,PropertyFormatter}, we are using the same setup as introduced in
- * documentation of class \alib{text,PropertyFormatter}:
+ * \alib{text,PropertyFormatter}, we are using the sample setup:
  *
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_1
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_2
@@ -99,16 +98,16 @@ namespace aworx { namespace lib { namespace text {
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_4
  *
  * Running the code above produces the following output:
- * \snippet "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP.txt"     OUTPUT
+ * \verbinclude "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP.txt"
  *
  * To make the code even shorter, macros may be used:
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_5
  *
  * The output is:
- * \snippet "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2.txt"   OUTPUT
+ * \verbinclude "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2.txt"
  *
-\~Comment ####################################################################################### \~
- * # Using The Appendable With Formatters # {#alib_namespace_strings_propertyformatter_map_usingwithfmts}
+\I{################################################################################################}
+ * # Using The Appendable With Formatters # {#alib_ns_strings_propertyformatter_map_usingwithfmts}
  * The sample above showcased how to \ref alib_strings_assembly_ttostring "append" a lightweight
  * object of helper class \alib{text,PropertyFormatterMapAppendable} to objects of class
  * \alib{strings,TAString,AString}.
@@ -125,13 +124,13 @@ namespace aworx { namespace lib { namespace text {
  * \snippet "DOX_ALIB_STRINGS.cpp"     DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_7
  *
  * This code produces the following output.
- * \snippet "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_3.txt"   OUTPUT
+ * \verbinclude "DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_3.txt"
  *
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
  * # Module Dependencies #
  * This class is only available if module \alib_config is included in the \alibdist.
  *
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
  * # Reference Documentation #
  * @throws aworx::lib::text::Exceptions::MissingConfigurationVariable
  *
@@ -241,8 +240,8 @@ class PropertyFormatters
                         break;
                     }
 
-                ALIB_ASSERT_ERROR( formatter != formatters.end(),
-                   "No entry for option {!Q<>} found in option table of PropertyFormatters.",
+                ALIB_ASSERT_ERROR( formatter != formatters.end(), "TEXT/FMT",
+                                   "No entry for option {!Q<>} found in option table of PropertyFormatters.",
                     option  )
             }
 

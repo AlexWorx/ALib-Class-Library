@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -10,7 +10,7 @@
 
 \tableofcontents
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 1. Class Message # {#alib_results_message}
 
 When measured in source code, the size of class \alib{results,Message} is very short.
@@ -22,7 +22,7 @@ discussed in the next chapter. While class \b Exception stores a whole list of m
 single object is used with class \alib{results,Report}, which is discussed in the final chapter of
 this small manual.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.1 Source Location ## {#alib_results_message_location}
 Objects of type \alib{results,Message} relate to a source code location, which is reflected by fields
 \alib{results::Message,File}, \alib{results::Message,Line} and \alib{results::Message,Function}.
@@ -52,7 +52,7 @@ may not be wanted.
   parameters in release compilations, which is not true for class \b Message and therefore not
   applicable with the creation of \b Message objects.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.2 Message Types ## {#alib_results_message_types}
 To define the type of a message, class \alib{boxing,Enum} provided by module \alib_boxing
 is used, by letting field \alib{results,Message::Type} be of type \b %Enum.
@@ -82,7 +82,7 @@ accessed with method \alib{boxing,Enum::IsType}. With that it can be determined 
     the use of \alib{boxing,Enum::IsType} is rather tricky and not well readable: the declaration
     type of a sample element has to be given as the template parameter to the method.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.3 Message Arguments ## {#alib_results_message_args}
 The contents of the message is comprised by a list of boxed objects. For this, class \b Message
 inherits class \alib{boxing,Boxes}, which itself is a container (vector) of objects of type
@@ -91,7 +91,7 @@ As described in a later section of this manual, \alib class \b Exception, which 
 list of \b Message objects, proposes a certain schematic for the attached data.
 But also in this case, the proposal is just a recommendation, not a mandatory requirement.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.4 Memory Allocation ## {#alib_results_message_alloc}
 As documented with class \alib{boxing,Boxes}, its underlying <c>std::vector</c> may use
 either standard dynamic memory or "monotonic allocation" introduced by module \alib_monomem.
@@ -108,7 +108,7 @@ message's arguments using that same allocator.
   Later in this manual, class \alib{results,Exception} is discussed, which carries a whole list of
   messages that share one monotonic allocator.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 1.5 Argument Life-Cycle ## {#alib_results_message_lifecycle}
 Restricted life-cycles of a message's arguments is a potential pitfall.
 Because class \alib{results,Message} is a \alib{boxing,Boxes,vector of boxes} (by inheritance),
@@ -143,11 +143,11 @@ which is a simple inline that passes the internal allocator to inherited method
 
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 # 2. Exceptions # {#alib_results_exceptions}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.1 Exception Handling Paradigms ## {#alib_results_exception_paradigm}
 
 Class \alib{results,Exception} is used within \alib as <b>the one and only type</b> thrown with
@@ -204,7 +204,7 @@ is not recommended, no \alibmod uses derived types and only this type needs to b
 invoking \alib code that throws.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.2 Exception Types ## {#alib_results_exception_types}
 
 With the paradigm/design pattern implemented (as discussed in the previous introductory section),
@@ -243,7 +243,7 @@ Consequently, if the a catch handler uses method \alib{results,Exception::Type} 
 switch over just all possible entry types (aka enumeration elements), but just over those that are
 positive and that therefore bring a different meaning to an exception.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.3 Self-Contained Allocation ## {#alib_results_exception_selfcontained}
 
 When an exception is thrown, something "bad" happened. In that situation a software should not
@@ -288,7 +288,7 @@ also performs only one single memory allocation to store all information collect
 unwinding the stack.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.4 Exception Entries And Arguments ## {#alib_results_exceptions_args}
 We learned so far that class \alib{results,Exception} uses a list of entries
 of type \alib{results,Message}, discussed in the \ref alib_results_message "first chapter"
@@ -336,7 +336,7 @@ would suppress an argument completely. (Note: This is an extension to the origin
 syntax.)
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 2.5 Catching Exceptions, Adding Information, Rethrowing ## {#alib_results_exceptions_catch}
 
 While objects of type \alib{results,Exception} is extremely lightweight, consisting only of a
@@ -372,8 +372,8 @@ Here is the right way to do it:
        }
 
 
-\~Comment ####################################################################################### \~
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
+\I{################################################################################################}
 ## 2.6 Resourced Exceptions ## {#alib_results_exceptions_res}
 
 To enable the external maintenance of the description strings of exception entries (as explained
@@ -391,7 +391,7 @@ which internally adds the resourced description string.
 Please consult the reference documentation provided with the links in this section for further
 information.
 
- \~Comment ####################################################################################### \~
+ \I{################################################################################################}
 # 3. Reports # {#alib_results_reports}
 
 What today is called <b>"ALib Reports"</b> is a rather simple concept of raising C++ assertions,

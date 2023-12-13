@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_CUSTOMIZATIONS
@@ -156,7 +156,7 @@ DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
     ALIB_BOXING_VTABLE_DECLARE(                   double     , vt_double    )
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( double     ,  double      )
 
-#if ALIB_SIZEOF_LONGDOUBLE <= 2 * ALIB_SIZEOF_INTEGER
+#if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
     ALIB_BOXING_VTABLE_DECLARE(                   long double, vt_long_double )
     ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( long double, long double    )
 #endif
@@ -272,16 +272,56 @@ ATMP_VOID_IF(                                                                   
     }                                                                                           }; \
 
 
-ALIBTMP_BOXER_WITHOUT_UNBOXING(nchar)  ALIBTMP_BOXER_WITH_UNBOXING(   nchar)
-ALIBTMP_BOXER_WITHOUT_UNBOXING(wchar)  ALIBTMP_BOXER_WITH_UNBOXING(   wchar)
-ALIBTMP_BOXER_WITHOUT_UNBOXING(xchar)  ALIBTMP_BOXER_WITH_UNBOXING(   xchar)
+ALIBTMP_BOXER_WITHOUT_UNBOXING(nchar)  ALIBTMP_BOXER_WITH_UNBOXING(nchar)
+ALIBTMP_BOXER_WITHOUT_UNBOXING(wchar)  ALIBTMP_BOXER_WITH_UNBOXING(wchar)
+ALIBTMP_BOXER_WITHOUT_UNBOXING(xchar)  ALIBTMP_BOXER_WITH_UNBOXING(xchar)
 
 #undef ALIBTMP_BOXER_WITHOUT_UNBOXING
 #undef ALIBTMP_BOXER_WITH_UNBOXING
-
-
-
 }}}
+
+
+// #################################################################################################
+// Static VTables for standard types
+// #################################################################################################
+ALIB_BOXING_VTABLE_DECLARE( std::type_info*              , vt_std_type_info          )
+
+// #################################################################################################
+// Static VTables for low-level ALib types
+// #################################################################################################
+// CodeMarker_CommonEnums
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Alignment        , vt_alib_Alignment         )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Bool             , vt_alib_Bool              )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Caching          , vt_alib_Caching           )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Case             , vt_alib_Case              )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::ContainerOp      , vt_alib_ContainerOp       )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::CreateDefaults   , vt_alib_CreateDefaults    )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::CreateIfNotExists, vt_alib_CreateIfNotExists )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::CurrentData      , vt_alib_CurrentData       )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Inclusion        , vt_alib_Inclusion         )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Initialization   , vt_alib_Initialization    )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Phase            , vt_alib_Phase             )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Propagation      , vt_alib_Propagation       )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Reach            , vt_alib_Reach             )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Responsibility   , vt_alib_Responsibility    )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Safeness         , vt_alib_Safeness          )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Side             , vt_alib_Side              )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::SortOrder        , vt_alib_SortOrder         )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::SourceData       , vt_alib_SourceData        )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Switch           , vt_alib_Switch            )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Timezone         , vt_alib_Timezone          )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Timing           , vt_alib_Timing            )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::ValueReference   , vt_alib_ValueReference    )
+ALIB_BOXING_VTABLE_DECLARE( aworx::lib::Whitespaces      , vt_alib_Whitespaces       )
+
+// #################################################################################################
+// Static VTables for wrapped string types
+// #################################################################################################
+#if ALIB_STRINGS
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<aworx::lib::strings::TAString<nchar>>, vt_alib_wrapped_tanstring )
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<aworx::lib::strings::TAString<wchar>>, vt_alib_wrapped_tawstring )
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<aworx::lib::strings::TAString<xchar>>, vt_alib_wrapped_taxstring )
+#endif
 
 #endif //ALIB_DOX
 

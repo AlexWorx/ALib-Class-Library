@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -13,7 +13,7 @@
 \tableofcontents
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 1. Introduction # {#alib_singleton_intro}
 This namespace is the home of the very tiny and low-level \alibmod "Singleton". While the
 scope is almost too small to be named a module, for organizing the library as "orthogonal" as
@@ -29,7 +29,7 @@ Consequently, experienced programmers might want to read sections \ref alib_sing
 and \ref alib_singleton_uao_alt first!
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. C++ Singletons # {#alib_singleton_background}
 
 The only class found in this module is \alib{singletons,Singleton}, which implements the well known
@@ -70,7 +70,7 @@ This is achieved by creating a static hash map (only once) and collecting all si
 The C++ runtime type information struct \c std::type_info is used as the key to the singletons in
 the hash map.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 3. Switching Compilation Mode #  {#alib_singleton_mode}
 As said above, the effort done with this implementation is needed only if a software process
 uses different data segments for different portions of the code, for example processes which open
@@ -90,7 +90,7 @@ Changing these defaults could be done for the following reasons:
   <b>ALIB_FEAT_SINGLETON_MAPPED=1</b> may be passed to the compiler to switch compilation
   to use the hash map, even though this is otherwise not needed for that platform.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. Usage # {#alib_singleton_usage}
 The implementation details described above are transparent in respect to using the class.
 
@@ -107,7 +107,7 @@ Now, the singleton can be requested as follows:
 
  \snippet "DOX_ALIB_SINGLETON.cpp"     DOX_ALIB_SINGLETON_2
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Strict Singletons #  {#alib_singleton_strict}
 Note that the object returned by method \alib{singletons,Singleton::GetSingleton} is
 not automatically the only instance of the custom class: While it is "the singleton" object,
@@ -127,7 +127,7 @@ This is shown in the following sample:
  \snippet "DOX_ALIB_SINGLETON.cpp"     DOX_ALIB_SINGLETON_STRICT_1
  \snippet "DOX_ALIB_SINGLETON.cpp"     DOX_ALIB_SINGLETON_STRICT_2
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 6. Memory Cleanup #  {#alib_singleton_termination}
 Prior to terminating the process, the singletons collected in the global map, can be destructed and
 deleted using namespace function \alib{singletons,Shutdown}.
@@ -138,7 +138,7 @@ method \alib{Module,Shutdown} on singleton \ref aworx::ALIB of type \alib{ALibDi
 invokes this method already.
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 7. Restrictions / Penalties#  {#alib_singleton_restrictions}
 
 - The singleton class needs to have a default (parameterless) constructor.
@@ -170,7 +170,7 @@ invokes this method already.
   Your answer to them is: Each and every created instance of a virtual C++ class contains
   a pointer to a singleton, namely the \https{vtable,en.wikipedia.org/wiki/Virtual_method_table}!
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 8. Listing Types in Debug Compilations #  {#alib_singleton_debug}
 As described above, to extend the singleton concept across DLL bounds, a static hash map is
 needed. Now, with debug builds (see compiler symbol \ref ALIB_DEBUG), this map can be
@@ -180,10 +180,10 @@ If the \alibdist includes module \alib_strings, then an overloaded version exist
 \alib{singletons,DbgGetSingletons(NAString&)}.
 This function performs a simple dump of all singleton types into the given \b %AString.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 9. Use-Cases, Alternatives, Optimization #  {#alib_singleton_uao}
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 9.1 Use-Cases ##  {#alib_singleton_uao_usecase}
 
 With the explanations given in the previous chapters, the precise use-case for this library
@@ -218,7 +218,7 @@ corresponding global object definition.
 
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 9.2 Alternatives ##  {#alib_singleton_uao_alt}
 
 This module should maybe not be used (to avoid unnecessary dependencies of your code to this library)
@@ -236,7 +236,7 @@ in the following situations:
   similar to the one \ref alib_singleton_background "sampled above".
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 ## 9.3 Optimization With Mixed Approach ##  {#alib_singleton_uao_opt}
 
 It is possible to "optimize" the creation of singletons, when using this module, by providing

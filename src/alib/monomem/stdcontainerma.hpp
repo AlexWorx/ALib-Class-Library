@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_STDCONTAINERMA
@@ -12,13 +12,11 @@
 #   include "alib/monomem/util/rttrallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_FORWARDLIST)
-#   include "alib/lib/fs_lists/forwardlist.hpp"
+#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
+#   include "alib/lib/fs_lists/sidilist.hpp"
 #endif
 
 namespace aworx { namespace lib { namespace monomem {
-
-
 namespace detail {
 
 /** ************************************************************************************************
@@ -141,7 +139,7 @@ struct StdContainerMABase
  * switches to dynamic allocation.
  *
  *
- * \anchor alib_namespace_monomem_StdContMA_reset
+ * \anchor alib_ns_monomem_StdContMA_reset
  * ### Resetting A Container ###
  * While the dedicated container types provided with this \alibmod_nl offer a method named \b Reset
  * (see for example \alib{monomem,HashTable::Reset}), the C++ \b std containers of-course do not.
@@ -154,7 +152,7 @@ struct StdContainerMABase
  * The way out is as simple as radical: The container is just to be reconstructed without
  * prior destruction. This can be done using a <em>C++ placement new</em>. The following
  * code snippet demonstrates this:
- * \snippet "ut_alib_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW
+ * \snippet "ut_alib_monomem_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW
  *
  *
  * @tparam T The type of objects to be allocated.
@@ -203,7 +201,7 @@ struct StdContMA : public detail::StdContainerMABase<T>
      *   that field #allocator is of reference type, no declaration can be made.<br>
      *   With the construction of a container type that uses this allocator, it has to be assured
      *   that a valid instance is passed. Otherwise the compiler will complain about not
-     *   finding this constructor's defintion.
+     *   finding this constructor's definition.
      */
     inline
     StdContMA();
@@ -232,9 +230,9 @@ ALIB_DBG( ,dbgDeallocationWarning(origin.dbgDeallocationWarning) )
      *
      * Parameter \p{dbgDisableDeallocationWarning}, which defaults to \c true might be given
      * after a code is tested to be stict in respect to allocation.
-     * (Note: unfortunately, due to the design of <c>std::allocator</c> and its use, this flag can
+     * (Note: unfortunately, due to the ^design of <c>std::allocator</c> and its use, this flag can
      * not be changed once a container is constructed. This is why it has to be decided upfront
-     * if a warning is to be raised or not).
+     * if a warning is to be raised or not).  ^
      *
      * @param pAllocator             The recycler for allocations and de-allocations.
      * @param dbgDeallocationWarning As described with this method. Available only in debug builds.
@@ -250,7 +248,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
 
 
     // #############################################################################################
-    // ### Comparision
+    // ### Comparison
     // #############################################################################################
     /**
      * Comparison operator.
@@ -281,8 +279,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
     // ### Allocate/de-allocate
     // #############################################################################################
     /** ********************************************************************************************
-     * If #allocator is set, passes the allocation request to #allocator.
-     * Otherwise invokes <c>std::malloc</c>.
+     * Passes the allocation request to field #allocator.
      *
      * @param n  The number of requested objects to allocate storage for.
      * @return Pointer to the first byte of a memory block suitably aligned and sufficient to hold
@@ -291,7 +288,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
     ALIB_NODISCARD
     T*      allocate( size_t n, const void* = nullptr )
     {
-        MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. ", typeid(T) )
+        DBG_MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. ", typeid(T) )
         return reinterpret_cast<T*>( allocator.AllocArray<T>( n ) );
     }
 
@@ -305,8 +302,8 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
         (void) p;
         (void) n;
 
-        ALIB_ASSERT_WARNING( !dbgDeallocationWarning || n == 1,
-            "De-allocation with strict allocator. If this is container destruction, set flag \n"
+        ALIB_ASSERT_WARNING( !dbgDeallocationWarning || n == 1, "MONOMEM/STDCNTMA",
+            "De-allocation with strict allocator. If this is container destruction, set flag\n"
             "StdContMA::dbgDeallocationWarning to disable this warning. " )
         ALIB_DBG( dbgDeallocationWarning = false; )
     }
@@ -396,7 +393,7 @@ ALIB_DBG( ,dbgDeallocationWarning(origin.dbgDeallocationWarning) )
      * @param dbgDeallocationWarning As described with this method. Available only in debug builds.
      */
     constexpr StdContMAOptional( MonoAllocator& pAllocator,
-                                    bool           dbgDeallocationWarning= true );
+                                 bool           dbgDeallocationWarning= true );
 #else
     constexpr StdContMAOptional( MonoAllocator* pAllocator ALIB_DBG(, bool dbgDAWarning= false) )
     : allocator(pAllocator)
@@ -406,7 +403,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
 
 
     // #############################################################################################
-    // ### Comparision
+    // ### Comparison
     // #############################################################################################
     /**
      * Comparison operator.
@@ -447,7 +444,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
     ALIB_NODISCARD
     T*      allocate( size_t n, const void* = nullptr )
     {
-        MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. "
+        DBG_MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. "
                          "Optional allocator set: ",
                          typeid(T), (allocator == nullptr ? "No" : "Yes") )
         if( allocator == nullptr )
@@ -471,8 +468,8 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
             std::free( p );
             return;
         }
-        ALIB_ASSERT_WARNING( !dbgDeallocationWarning || n == 1,
-            "De-allocation with strict allocator. If this is container destruction, set flag \n"
+        ALIB_ASSERT_WARNING( !dbgDeallocationWarning || n == 1, "MONOMEM/STDCNTMA",
+            "De-allocation with strict allocator. If this is container destruction, set flag\n"
             "StdContMAOptional::dbgDeallocationWarning to disable this warning. " )
         ALIB_DBG( dbgDeallocationWarning = false; )
     }
@@ -554,7 +551,7 @@ struct StdContMARecycling : public detail::StdContainerMABase<T>
     {}
 
     // #############################################################################################
-    // ### Comparision
+    // ### Comparison
     // #############################################################################################
     /**
      * Comparison operator.

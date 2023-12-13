@@ -1,12 +1,12 @@
 // #################################################################################################
-//  aworx - Unit Tests
+//  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_STRINGS && ALIB_TIME
 
 
 //! [DOX_ALIB_APPEND_DEFINITION]
@@ -14,6 +14,7 @@
 #include "alib/strings/format.hpp"
 #include "alib/time/datetime.hpp"
 #include "alib/system/calendar.hpp"
+#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 namespace aworx { namespace lib { namespace strings {
 
@@ -115,7 +116,7 @@ cout << centered << endl;
 
 namespace ut_aworx {
 
-UT_CLASS()
+UT_CLASS
 
 UT_METHOD( DOX_ALIB_APPEND )
 {
@@ -143,4 +144,4 @@ UT_METHOD( DOX_ALIB_APPEND )
 
 } //namespace
 
-#endif // ALIB_UT_DOCS
+#endif // ALIB_UT_DOCS && ALIB_STRINGS

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -10,7 +10,7 @@
 
 \tableofcontents
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 1. Introduction # {#alib_threads_intro}
 
 Generally, a class library that offers "multi-threaded programming" can be separated into two different
@@ -52,13 +52,13 @@ imposed by the standard library of C++ 11 and later.
   More details on this topic is found in chapter \ref alib_manual_modules_impact_singlethreaded
   of the Programmer's Manual of this library.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 2. Bootstrapping and Termination # {#alib_threads_bootstrap}
 
 In case this module is used within a very limited \alibdist, please note the explanations found
 in the \ref alib_manual, chapter \ref alib_manual_bootstrapping_smallmods.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 3. Thread Creation And Management# {#alib_threads_creation}
 As explained in the introduction this module is not deemed to be very feature-rich in respect
 to the creation of threads. Especially as of today, there is no functionality on thread pools or
@@ -77,7 +77,7 @@ If not stated differently in the detailed documentation, from this point in time
 the thread can be interfaced with \alib classes in the same manner as if it was created
 using them. The same or similar should be \c true for the opposite situation.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 4. Locks# {#alib_threads_locks}
 In the area of data protection and controlling concurrent access, this module provides the
 following types:
@@ -101,7 +101,7 @@ For details on the types, consult their reference documentation. All of them sup
   macro \ref ALIB_LOCK is a shortcut to \ref ALIB_OWN "ALIB_OWN(*this)".
 
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 # 5. Optional Use# {#alib_threads_optional}
 
 When looking at the \ref alib_manual_modules_dependency_graph "module dependency graph" it
@@ -111,7 +111,7 @@ module in the \alibdist. This does not mean that these modules are not implement
 do this only "optionally": While the dependency graph shows only \e mandatory dependencies, there
 are a lot of "optional dependencies" between other modules and this one.
 
-For example, class \alib{config,Configuration} inherits from library class \alib{PluginContainer}
+For example, class \alib{config,Configuration} inherits from library class \alib{detail::PluginContainer}
 which, in case code selector symbol \b ALIB_THREADS evaluates to \c true, inherits from
 class \alib{threads,ThreadLock}. Then class \b %Configuration uses macro \ref ALIB_LOCK to
 lock critical code sections against concurrent thread access. This macro is empty in the case
@@ -120,7 +120,7 @@ this module is not included in the \alibdist.
 This way, single threaded applications may be using an \alibdist that excludes this module and
 have a (very small) gain in application footprint size and execution time.
 
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
 
 */
 

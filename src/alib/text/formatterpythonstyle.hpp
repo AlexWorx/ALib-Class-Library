@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_FORMATTER_PYTHONSTYLE
@@ -194,10 +194,9 @@ namespace aworx { namespace lib { namespace text {
  *
  *   With this implementation, the approach is very similar. The only difference is that the
  *   "Format Specification Mini Language" is implemented for standard types right within this class.
- *   But before processing \b format_spec, this class will check if the argument assigned to the
- *   placeholder provides a custom implementation of formatting interface
- *   \alib{text,FFormat} is available. This interface is invoked and string
- *   \b format_spec is passed for custom processing.
+ *   But before processing \b format_spec, this class will check if the argument type assigned to
+ *   the placeholder disposes about a custom implementation of box function \alib{text,FFormat}.
+ *   If so, this function is invoked and string \b format_spec is passed for custom processing.
  *
  *   Information and sample code on how to adopt custom types to support this interface is
  *   found in the Programmer's Manual of this module, with chapter
@@ -312,7 +311,7 @@ namespace aworx { namespace lib { namespace text {
  *     enclosed by characters \c '<' and \c '>'. In the special case that \p{search} is empty
  *     (<c>\<\></c>), string \p{replace} will be inserted if the field argument is an empty string.
  *
-\~Comment ####################################################################################### \~
+\I{################################################################################################}
  * # Reference Documentation #
  * @throws <b>aworx::lib::text::Exceptions</b>
  *   - \alib{text::Exceptions,ArgumentIndexOutOfBounds}
@@ -446,15 +445,14 @@ class FormatterPythonStyle : public FormatterStdImpl
         virtual bool        parseStdFormatSpec()                                           override;
 
         /** ****************************************************************************************
-         * Implementation of abstract method.<br>
-         * Replaces \c "{{" with \c "{" and \c "}}" with \c "}". In addition applies
-         * \alib{strings,TFormat::Escape,Format::Escape} on \p{target} which replaces
+         * Implementation of abstract method \alib{text,FormatterStdImpl::writeStringPortion}.<br>
+         * While writing, replaces \c "{{" with \c "{" and \c "}}" with \c "}" as well as
          * standard codes like \c "\\n", \c "\\r" or \c "\\t" with corresponding ascii codes.
          *
-         * @param startIdx The start of the region to replace
+         * @param length The number of characters to write.
          ******************************************************************************************/
         ALIB_API
-        virtual void        replaceEscapeSequences( integer startIdx )                     override;
+        virtual void        writeStringPortion( integer length )                           override;
 
         /** ****************************************************************************************
          * Processes "conversions" which are specified with \c '!'.

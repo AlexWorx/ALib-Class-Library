@@ -2,12 +2,12 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS
+#if ALIB_UT_DOCS && ALIB_ALOX
 
 
 #include "alib/alox.hpp"
@@ -85,7 +85,7 @@ using namespace ut_aworx;
 
 namespace ut_alox {
 
-UT_CLASS()
+UT_CLASS
 
 UT_METHOD( ALoxDocSamples )
 {

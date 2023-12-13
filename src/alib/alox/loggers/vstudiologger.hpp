@@ -2,20 +2,18 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
 #ifndef HPP_ALOX_VSTUDIO_LOGGER
 #define HPP_ALOX_VSTUDIO_LOGGER 1
 
+#if defined(_MSC_VER) && ALIB_DEBUG
+
 #if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER)
     #include "alib/alox/detail/textlogger/plaintextlogger.hpp"
 #endif
-
-#if defined(_WIN32) && ALIB_DEBUG
-
-
 
 
 namespace aworx { namespace lib { namespace lox { namespace loggers {
@@ -108,7 +106,7 @@ using     VStudioLogger=           lib::lox::loggers::VStudioLogger;
 }  // namespace [aworx]
 
 
-#endif // ALIB_IDE_VSTUDIO && ALIB_DEBUG
+#endif // defined(_MSC_VER) && ALIB_DEBUG
 
 #endif // HPP_ALOX_VSTUDIO_LOGGER
 

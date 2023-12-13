@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -20,6 +20,10 @@
 #if !defined (HPP_ALIB_RESOURCES_RESOURCES)
 #   include "alib/resources/resources.hpp"
 #endif
+
+#   if ALIB_THREADS && ALIB_ENUMS
+#      include "alib/threads/thread.hpp"
+#   endif
 
 #if ALIB_CONFIGURATION
 #   if !defined (HPP_ALIB_CONFIG_CONFIG)
@@ -40,7 +44,7 @@
 #endif
 
 #if  ALIB_SYSTEM
-#   if !defined (HPP_ALIB_SYSTEM_S)
+#   if !defined (HPP_ALIB_SYSTEM_SYSTEM)
 #      include "alib/system/system.hpp"
 #   endif
 #   if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
@@ -72,13 +76,22 @@
 #   endif
 #endif
 
-#if ALIB_RESULTS
-#   if !defined (HPP_ALIB_RESULTS_EXCEPTION)
-#      include "alib/results/exception.hpp"
+#if ALIB_BITBUFFER
+#   if !defined (HPP_AWORX_ALIB_BITBUFFER_ARRAY_COMPRESSOR)
+#      include "alib/bitbuffer/arraycompressor.hpp"
+#   endif
+#endif
+
+#if ALIB_MONOMEM
+#   if !defined (HPP_ALIB_MONOMEM_HASHTABLE)
+#      include "alib/monomem/hashtable.hpp"
 #   endif
 #endif
 
 #if ALIB_RESULTS
+#   if !defined (HPP_ALIB_RESULTS_EXCEPTION)
+#      include "alib/results/exception.hpp"
+#   endif
 #   if !defined (HPP_ALIB_RESULTS_RESULTS)
 #      include "alib/results/results.hpp"
 #   endif
@@ -120,8 +133,9 @@ namespace lib {
 ALibDistribution::ALibDistribution()
 : Module( ALIB_VERSION, ALIB_REVISION, "ALIB", ALIB_COMPILATION_FLAGS )
 , Modules(&monomem::GlobalAllocator)
+, LocaleFound(nullptr)
 {
-   ALIB_ASSERT_ERROR( this == &ALIB,
+   ALIB_ASSERT_ERROR( this == &ALIB, "MODULES",
        "Instances of class ALibDistribution must not be created. Use singleton aworx::ALIB" )
 
    CompilationFlagMeanings=
@@ -135,6 +149,7 @@ ALibDistribution::ALibDistribution()
        { "ALIB_TIME"                                , ALIB_VFYBIT_MODULE_TIME                     },
        { "ALIB_BOXING"                              , ALIB_VFYBIT_MODULE_BOXING                   },
        { "ALIB_STRINGS"                             , ALIB_VFYBIT_MODULE_STRINGS                  },
+       { "ALIB_BITBUFFER"                           , ALIB_VFYBIT_MODULE_BITBUFFER                },
        { "ALIB_RESOURCES"                           , ALIB_VFYBIT_MODULE_RESOURCES                },
        { "ALIB_THREADS"                             , ALIB_VFYBIT_MODULE_THREADS                  },
        { "ALIB_TEXT"                                , ALIB_VFYBIT_MODULE_TEXT                     },
@@ -156,7 +171,7 @@ ALibDistribution::ALibDistribution()
 
        { "ALIB_DEBUG_STRINGS"                       , ALIB_VFYBIT_DEBUG_STRINGS                   },
        { "ALIB_DEBUG_BOXING"                        , ALIB_VFYBIT_DEBUG_BOXING                    },
-       { "ALIB_DEBUG_MONOMEM"                       , ALIB_VFYBIT_DEBUG_MONOMEM                   },
+       { "ALIB_DEBUG_MONOMEM"                       , ALIB_VFYBIT_DEBUG_MONOMEM_MONOMEM            },
        { "ALIB_DEBUG_RESOURCES"                     , ALIB_VFYBIT_DEBUG_RESOURCES                 },
 
        { "ALOX_DBG_LOG"                             , ALOX_VFYBIT_DBG_LOG                         },
@@ -175,7 +190,7 @@ ALibDistribution::ALibDistribution()
 
 void ALibDistribution::BootstrapFillDefaultModuleList()
 {
-    ALIB_ASSERT_ERROR( ALIB.Modules.IsEmpty(),
+    ALIB_ASSERT_ERROR( ALIB.Modules.IsEmpty(), "MODULES",
                        "List Modules::BootstrapModules already set." )
 
 
@@ -211,74 +226,78 @@ void ALibDistribution::bootstrap( BootstrapPhases phase, int argc, const char** 
 #if !ALIB_RESOURCES_OMIT_DEFAULTS
        resourcePool->BootstrapBulk(     ResourceCategory,
 
-       "Bool",        A_CHAR("0,False,1,"
-                             "1,True,1,"
-                             "0,0,1,"
-                             "1,1,1,"
-                             "0,No,1,"
-                             "1,Yes,1,"
-                             "0,Off,2,"
-                             "1,On,2,"
-                             "0,-,1,"
-                             "1,Ok,2"    ),
-
-       "Case",         A_CHAR("0,Sensitive,1,"
-                              "1,Ignore,1"     ),
-
-       "ContainerOp",  A_CHAR("0,Insert,1,"
-                             "1,Remove,1,"
-                             "3,GetCreate,4,"
-                             "2,Get,1,"
-                             "4,Create,1"     ),
-
        // CodeMarker_CommonEnums
-       "Switch",            A_CHAR("0"  ","  "Off"                ","  "2" ","
-                                   "1"  ","  "On"                 ","  "2"     ),
-
        "Alignment",         A_CHAR("0"  ","  "Left"               ","  "1" ","
                                    "1"  ","  "Right"              ","  "1" ","
                                    "2"  ","  "Center"             ","  "1"     ),
 
-       "SortOrder",         A_CHAR("0"  ","  "Ascending"          ","  "1" ","
-                                   "1"  ","  "Descending"         ","  "1"     ),
+       "Bool",              A_CHAR("0"  ","  "False"              ","  "1"  ","
+                                   "1"  ","  "True"               ","  "1"  ","
+                                   "0"  ","  "0"                  ","  "1"  ","
+                                   "1"  ","  "1"                  ","  "1"  ","
+                                   "0"  ","  "No"                 ","  "1"  ","
+                                   "1"  ","  "Yes"                ","  "1"  ","
+                                   "0"  ","  "Off"                ","  "2"  ","
+                                   "1"  ","  "On"                 ","  "2"  ","
+                                   "0"  ","  "-"                  ","  "1"  ","
+                                   "1"  ","  "Ok"                 ","  "2"     ),
 
-       "Inclusion",         A_CHAR("0"  ","  "Include"            ","  "1" ","
-                                   "1"  ","  "Exclude"            ","  "1"     ),
+       "Caching",           A_CHAR("0"  ","  "Disabled"           ","  "1" ","
+                                   "1"  ","  "Enabled"            ","  "1" ","
+                                   "1"  ","  "Auto"               ","  "1"     ),
 
-       "Reach",             A_CHAR("0"  ","  "Global"             ","  "1" ","
-                                   "1"  ","  "Local"              ","  "1"     ),
+       "Case",              A_CHAR("0"  ","  "Sensitive"          ","  "1" ","
+                                   "1"  ","  "Ignore"             ","  "1"     ),
+
+       "ContainerOp",       A_CHAR("0"  ","  "Insert"             ","  "1" ","
+                                   "1"  ","  "Remove"             ","  "1" ","
+                                   "3"  ","  "GetCreate"          ","  "4" ","
+                                   "2"  ","  "Get"                ","  "1" ","
+                                   "4"  ","  "Create"             ","  "1"     ),
+
+       // CreateDefaults:    using Bool
+       // CreateIfNotExists: using Bool
 
        "CurrentData",       A_CHAR("0"  ","  "Keep"               ","  "1" ","
                                    "1"  ","  "Clear"              ","  "1"     ),
 
-       "SourceData",        A_CHAR("0"  ","  "Copy"               ","  "1" ","
-                                   "1"  ","  "Move"               ","  "1"     ),
-
-       "Safeness",          A_CHAR("0"  ","  "Safe"               ","  "1" ","
-                                   "1"  ","  "Unsafe"             ","  "1"     ),
-
-       "Responsibility",    A_CHAR("0"  ","  "KeepWithSender"     ","  "1" ","
-                                   "1"  ","  "Transfer"           ","  "1"     ),
-
-       "Side",              A_CHAR("0"  ","  "Left"               ","  "1" ","
-                                   "1"  ","  "Right"              ","  "1"     ),
-
-       "Timezone",          A_CHAR("0"  ","  "Local"              ","  "1" ","
-                                   "1"  ","  "UTC"                ","  "1"     ),
-
-       "Whitespaces",       A_CHAR("0"  ","  "Trim"               ","  "1" ","
-                                   "1"  ","  "Keep"               ","  "1"     ),
-
-       "Propagation",       A_CHAR("0"  ","  "Omit"               ","  "1" ","
-                                   "1"  ","  "ToDescendants"      ","  "1"     ),
-
-       "Phase",             A_CHAR("0"  ","  "Begin"              ","  "1" ","
-                                   "1"  ","  "End"                ","  "1"     ),
+       "Inclusion",         A_CHAR("0"  ","  "Include"            ","  "1" ","
+                                   "1"  ","  "Exclude"            ","  "1"     ),
 
        "Initialization",    A_CHAR("0"  ","  "DontInitialize"     ","  "1" ","
                                    "1"  ","  "Initialize"         ","  "1" ","
                                    "0"  ","  "Suppress"           ","  "1" ","
-                                   "1"  ","  "Perform"            ","  "1"    ),
+                                   "1"  ","  "Perform"            ","  "1"     ),
+
+       "Phase",             A_CHAR("0"  ","  "Begin"              ","  "1" ","
+                                   "1"  ","  "End"                ","  "1"     ),
+
+       "Propagation",       A_CHAR("0"  ","  "Omit"               ","  "1" ","
+                                   "1"  ","  "ToDescendants"      ","  "1"     ),
+
+       "Reach",             A_CHAR("0"  ","  "Global"             ","  "1" ","
+                                   "1"  ","  "Local"              ","  "1"     ),
+
+       "Responsibility",    A_CHAR("0"  ","  "KeepWithSender"     ","  "1" ","
+                                   "1"  ","  "Transfer"           ","  "1"     ),
+
+       "Safeness",          A_CHAR("0"  ","  "Safe"               ","  "1" ","
+                                   "1"  ","  "Unsafe"             ","  "1"     ),
+
+       "Side",              A_CHAR("0"  ","  "Left"               ","  "1" ","
+                                   "1"  ","  "Right"              ","  "1"     ),
+
+       "SortOrder",         A_CHAR("0"  ","  "Ascending"          ","  "1" ","
+                                   "1"  ","  "Descending"         ","  "1"     ),
+
+       "SourceData",        A_CHAR("0"  ","  "Copy"               ","  "1" ","
+                                   "1"  ","  "Move"               ","  "1"     ),
+
+       "Switch",            A_CHAR("0"  ","  "Off"                ","  "2" ","
+                                   "1"  ","  "On"                 ","  "2"     ),
+
+       "Timezone",          A_CHAR("0"  ","  "Local"              ","  "1" ","
+                                   "1"  ","  "UTC"                ","  "1"     ),
 
        "Timing",            A_CHAR("0"  ","  "Async"              ","  "1" ","
                                    "1"  ","  "Sync"               ","  "1" ","
@@ -286,78 +305,106 @@ void ALibDistribution::bootstrap( BootstrapPhases phase, int argc, const char** 
                                    "1"  ","  "Synchronous"        ","  "1" ","
                                    "1"  ","  "Synchronized"       ","  "1"     ),
 
-       "Caching",           A_CHAR("0"  ","  "Disabled"           ","  "1" ","
-                                   "1"  ","  "Enabled"            ","  "1" ","
-                                   "1"  ","  "Auto"               ","  "1"     ),
+       "ValueReference",    A_CHAR("0"  ","  "Absolute"           ","  "1" ","
+                                   "1"  ","  "Relative"           ","  "1"     ),
+
+       "Whitespaces",       A_CHAR("0"  ","  "Trim"               ","  "1" ","
+                                   "1"  ","  "Keep"               ","  "1"     ),
+
+
+       #if ALIB_THREADS
+       "TSts",             A_CHAR( "0"  ","  "Unstarted"          ","  "1" ","
+                                   "1"  ","  "Started"            ","  "3" ","
+                                   "2"  ","  "Running"            ","  "1" ","
+                                   "3"  ","  "Stopped"            ","  "3" ","
+                                   "4"  ","  "Terminated"         ","  "1"      ),
+       #endif
 
 
        #if ALIB_CONFIGURATION
        // variables
-       "Var0",    A_CHAR("1|ALIB|LOCALE|ES||||VC1"),
-       "Var1",    A_CHAR("2|ALIB|WAIT_FOR_KEY_PRESS|N||||VC2"),
-       "Var2",    A_CHAR("3|ALIB|HAS_CONSOLE_WINDOW|N||||VC3"),
+       "Var0",    A_CHAR("1|ALIB|LOCALE|||"),
+       "Var1",    A_CHAR("2|ALIB|WAIT_FOR_KEY_PRESS|||"),
+       "Var2",    A_CHAR("3|ALIB|HAS_CONSOLE_WINDOW|||"),
 
 
-       "VC1",
-       A_CHAR("Defines the locale of the application. If empty or not set, the system's locale is used.")
-       ,
-       "VC2",
-       A_CHAR("If true, the process waits for a key stroke on termination. If empty, under Windows"   "\n"
-            "behavior is detected, under other OSes, defaults to false."                               )
-       ,
-       "VC3",
-       A_CHAR("Boolean value that denotes what its name indicates. If empty, under Windows value is " "\n"
-            "detected, under other OSes, defaults to true."                                            )
-       ,
-
-       // Empty string. This is set for recursive values which are blank.
-       "ES",   A_CHAR(""),
+       "Var_C1",  A_CHAR("Defines the locale of the application. If empty or not set, the system's locale is used."),
+       "Var_C2",  A_CHAR("If true, the process waits for a key stroke on termination. If empty, under Windows"   "\n"
+                         "behavior is detected, under other OSes, defaults to false."                               ),
+       "Var_C3",  A_CHAR("Boolean value that denotes what its name indicates. If empty, under Windows value is " "\n"
+                         "detected, under other OSes, defaults to true."                                            ),
 
        // default values
-       "N",  A_CHAR("No"),
+       "Var_D2",  A_CHAR("No"),
+       "Var_D3",  A_CHAR("No"),
 
        #endif // ALIB_CONFIGURATION
 
        // INI-File comment for section ALIB
-       "INI_CMT_ALIB",    A_CHAR("@>'/// '@HL-General ALib library settings.\n@HL-"),
+       "INI_CMT_ALIB", A_CHAR("@>'/// '@HL-General ALib library settings.\n@HL-"),
 
        // Exit message when waiting for key-press requested with variable WAIT_FOR_KEY_PRESS
        "EXIT_MSG"    , A_CHAR( "ALIB: Press 'Enter' to exit..." ),
 
+    #if ALIB_BITBUFFER && ALIB_ENUMS
+       "ACAlgos"     , A_CHAR(  "0"    ",NONE"                 ","   "1"      ","
+                               "31"    ",ALL"                  ","   "1"      ","
+                                "1"    ",Uncompressed"         ","   "1"      ","
+                                "2"    ",MinMax"               ","   "1"      ","
+                                "4"    ",Sparse"               ","   "1"      ","
+                                "8"    ",VerySparse"           ","   "1"      ","
+                               "16"    ",Incremental"          ","   "1"      ","
+                               "32"    ",Huffman"              ","   "1"            ),
+    #endif
        // end of BootstrapBulk()
        nullptr );
 #endif // !ALIB_RESOURCES_OMIT_DEFAULTS
+
+    #if ALIB_BITBUFFER && ALIB_BOXING && ALIB_ENUMS
+       ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm  )
+    #endif
+
    }
 
     else if( phase == BootstrapPhases::PrepareConfig )
     {
         ALIB_IF_CONFIGURATION( EnumRecords<Variables>::Bootstrap('|'); )
 
+#if ALIB_BITBUFFER
+        EnumRecords<aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm>::Bootstrap( *this, "ACAlgos"  );
+#endif
+
         // CodeMarker_CommonEnums
-        EnumRecords<aworx::lib::Bool             >::Bootstrap( *this, "Bool"           );
-        EnumRecords<aworx::lib::Switch           >::Bootstrap( *this, "Switch"         );
-DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
-EnumRecords<aworx::lib::Case>::Bootstrap( *this, "Case"  );
-DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
         EnumRecords<aworx::lib::Alignment        >::Bootstrap( *this, "Alignment"      );
-        EnumRecords<aworx::lib::SortOrder        >::Bootstrap( *this, "SortOrder"      );
-        EnumRecords<aworx::lib::Inclusion        >::Bootstrap( *this, "Inclusion"      );
-        EnumRecords<aworx::lib::Reach            >::Bootstrap( *this, "Reach"          );
-        EnumRecords<aworx::lib::CurrentData      >::Bootstrap( *this, "CurrentData"    );
-        EnumRecords<aworx::lib::SourceData       >::Bootstrap( *this, "SourceData"     );
-        EnumRecords<aworx::lib::Safeness         >::Bootstrap( *this, "Safeness"       );
-        EnumRecords<aworx::lib::Responsibility   >::Bootstrap( *this, "Responsibility" );
-        EnumRecords<aworx::lib::Side             >::Bootstrap( *this, "Side"           );
-        EnumRecords<aworx::lib::Timezone         >::Bootstrap( *this, "Timezone"       );
-        EnumRecords<aworx::lib::Whitespaces      >::Bootstrap( *this, "Whitespaces"    );
-        EnumRecords<aworx::lib::CreateIfNotExists>::Bootstrap( *this, "Bool"           );
-        EnumRecords<aworx::lib::CreateDefaults   >::Bootstrap( *this, "Bool"           );
-        EnumRecords<aworx::lib::Propagation      >::Bootstrap( *this, "Propagation"    );
-        EnumRecords<aworx::lib::Phase            >::Bootstrap( *this, "Phase"          );
-        EnumRecords<aworx::lib::ContainerOp      >::Bootstrap( *this, "ContainerOp"    );
-        EnumRecords<aworx::lib::Initialization   >::Bootstrap( *this, "Initialization" );
-        EnumRecords<aworx::lib::Timing           >::Bootstrap( *this, "Timing"         );
+        EnumRecords<aworx::lib::Bool             >::Bootstrap( *this, "Bool"           );
         EnumRecords<aworx::lib::Caching          >::Bootstrap( *this, "Caching"        );
+DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
+        EnumRecords<aworx::lib::Case>::Bootstrap( *this, "Case"  );
+DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
+        EnumRecords<aworx::lib::ContainerOp      >::Bootstrap( *this, "ContainerOp"    );
+        EnumRecords<aworx::lib::CreateDefaults   >::Bootstrap( *this, "Bool"           );
+        EnumRecords<aworx::lib::CreateIfNotExists>::Bootstrap( *this, "Bool"           );
+        EnumRecords<aworx::lib::CurrentData      >::Bootstrap( *this, "CurrentData"    );
+        EnumRecords<aworx::lib::Inclusion        >::Bootstrap( *this, "Inclusion"      );
+        EnumRecords<aworx::lib::Initialization   >::Bootstrap( *this, "Initialization" );
+        EnumRecords<aworx::lib::Phase            >::Bootstrap( *this, "Phase"          );
+        EnumRecords<aworx::lib::Propagation      >::Bootstrap( *this, "Propagation"    );
+        EnumRecords<aworx::lib::Reach            >::Bootstrap( *this, "Reach"          );
+        EnumRecords<aworx::lib::Responsibility   >::Bootstrap( *this, "Responsibility" );
+        EnumRecords<aworx::lib::Safeness         >::Bootstrap( *this, "Safeness"       );
+        EnumRecords<aworx::lib::Side             >::Bootstrap( *this, "Side"           );
+        EnumRecords<aworx::lib::SortOrder        >::Bootstrap( *this, "SortOrder"      );
+        EnumRecords<aworx::lib::SourceData       >::Bootstrap( *this, "SourceData"     );
+        EnumRecords<aworx::lib::Switch           >::Bootstrap( *this, "Switch"         );
+        EnumRecords<aworx::lib::Timezone         >::Bootstrap( *this, "Timezone"       );
+        EnumRecords<aworx::lib::Timing           >::Bootstrap( *this, "Timing"         );
+        EnumRecords<aworx::lib::ValueReference   >::Bootstrap( *this, "ValueReference" );
+        EnumRecords<aworx::lib::Whitespaces      >::Bootstrap( *this, "Whitespaces"    );
+
+#if ALIB_THREADS
+        // Enums from non-resourced modules
+        EnumRecords<aworx::lib::threads::Thread::State    >::Bootstrap( *this, "TSts"        );
+#endif
     }
 
 
@@ -366,53 +413,51 @@ DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
         ALIB_IF_CONFIGURATION( Variable variable; )
 
         //############### set locale ###############
-        #if ( defined (__GLIBCXX__)  || defined(__APPLE__) )
-        {
-            int receivedFrom= 0;
-            String256 locale;
-            #if ALIB_CONFIGURATION
-                variable.Declare( Variables::LOCALE );
-                if (     config->Load( variable ) != Priorities::NONE
-                     &&  variable.GetString().IsNotEmpty()        )
-                {
-                    receivedFrom= 1;
-                    locale._( variable.GetString() );
-                }
-                else
-            #endif
-
-            ALIB_IF_SYSTEM(
-                     if ( system::GetEnvironmentVariable( A_CHAR("LANG")      ,locale ) )        receivedFrom= 2;
-                else if ( system::GetEnvironmentVariable( A_CHAR("LANGUAGE")  ,locale ) )        receivedFrom= 3;  )
-
-            if( receivedFrom > 0 && !locale.Equals<Case::Ignore>( A_CHAR("none") ) )
+        int receivedFrom= 0;
+        String256 locale;
+        #if ALIB_CONFIGURATION
+            variable.Declare( Variables::LOCALE );
+            if (     config->Load( variable ) != Priorities::NONE
+                 &&  variable.GetString().IsNotEmpty()        )
             {
-                ALIB_STRINGS_TO_NARROW( locale, nLocale, 1024)
-                if( !setlocale(LC_ALL, nLocale ) )
+                receivedFrom= 1;
+                locale._( variable.GetString() );
+            }
+            else
+        #endif
+
+        ALIB_IF_SYSTEM(
+                 if ( EnvironmentVariables::Get( A_CHAR("LANG")      ,locale ) )        receivedFrom= 2;
+            else if ( EnvironmentVariables::Get( A_CHAR("LANGUAGE")  ,locale ) )        receivedFrom= 3;  )
+
+        if( receivedFrom > 0 && !locale.Equals<Case::Ignore>( A_CHAR("none") ) )
+        {
+            ALIB_STRINGS_TO_NARROW( locale, nLocale, 1024)
+            if( !setlocale(LC_ALL, nLocale ) )
+            {
+                NString256 msg( "ALib Error: setlocale(\""); msg << nLocale <<"\") failed. Setting read from ";
+                msg << (   receivedFrom == 1 ? "config variable 'ALIB_LOCALE'"   :
+                           receivedFrom == 2 ? "environment variable 'LANG'"     :
+                           receivedFrom == 3 ? "environment variable 'LANGUAGE'" : "ERROR"  );
+
+                std::cerr.write( msg.Buffer(), msg.Length() );
+
+                std::cerr << ". Trying  'setlocale(LC_ALL, \"\")': ";
+                if ( setlocale(LC_ALL, ""  ) )
+                    std::cerr << " success.";
+                else
                 {
-                    NString256 msg( "ALib Error: setlocale(\""); msg << nLocale <<"\") failed. Setting read from ";
-                    msg << (   receivedFrom == 1 ? "config variable 'LOCALE'"        :
-                               receivedFrom == 2 ? "environment variable 'LANG'"     :
-                               receivedFrom == 3 ? "environment variable 'LANGUAGE'" : "ERROR"  );
-
-                    std::cerr.write( msg.Buffer(), msg.Length() );
-
-                    std::cerr << ". Trying  'setlocale(LC_ALL, \"\")': ";
-                    if ( setlocale(LC_ALL, ""  ) )
+                    std::cerr << "failed. Trying  'setlocale(LC_ALL, \"C\")': ";
+                    if ( setlocale(LC_ALL, "C" ) )
                         std::cerr << " success.";
                     else
-                    {
-                        std::cerr << "failed. Trying  'setlocale(LC_ALL, \"C\")': ";
-                        if ( setlocale(LC_ALL, "C" ) )
-                            std::cerr << " success.";
-                        else
-                            std::cerr << std::endl << "     Panic: No standard locale setting was successful!";
-                    }
-                    std::cerr << std::endl;
+                        std::cerr << std::endl << "     Panic: No standard locale setting was successful!";
                 }
+                std::cerr << std::endl;
             }
+            else
+                LocaleFound= monomem::GlobalAllocator.EmplaceString(locale);
         }
-        #endif
 
         // set the system's locale as the default for our static default number format
         #if ALIB_STRINGS
@@ -467,12 +512,12 @@ DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
 
         // test if all modules have been initialized
         #if ALIB_DEBUG
-            ALIB_IF_EXPRESSIONS  ( assert( lib::EXPRESSIONS.IsBootstrapped ( ) ); )
-            ALIB_IF_CLI          ( assert( lib::CLI.IsBootstrapped         ( ) ); )
-            ALIB_IF_ALOX         ( assert( lib::ALOX.IsBootstrapped        ( ) ); )
-            ALIB_IF_CONFIGURATION( assert( lib::CONFIG.IsBootstrapped      ( ) ); )
-            ALIB_IF_SYSTEM       ( assert( lib::SYSTEM.IsBootstrapped      ( ) ); )
-            ALIB_IF_RESULTS      ( assert( lib::RESULTS.IsBootstrapped     ( ) ); )
+            ALIB_IF_EXPRESSIONS  ( assert( lib::EXPRESSIONS.IsBootstrapped( ) ); )
+            ALIB_IF_CLI          ( assert( lib::CLI        .IsBootstrapped( ) ); )
+            ALIB_IF_ALOX         ( assert( lib::ALOX       .IsBootstrapped( ) ); )
+            ALIB_IF_CONFIGURATION( assert( lib::CONFIG     .IsBootstrapped( ) ); )
+            ALIB_IF_SYSTEM       ( assert( lib::SYSTEM     .IsBootstrapped( ) ); )
+            ALIB_IF_RESULTS      ( assert( lib::RESULTS    .IsBootstrapped( ) ); )
             ALIB_IF_TEXT ( assert( lib::TEXT.IsBootstrapped( ) ); )
         #endif // ALIB_DEBUG
 
@@ -564,7 +609,7 @@ void ALibDistribution::shutdown( ShutdownPhases phase )
 // #############################################################################################
 // CheckDistribution
 // #############################################################################################
-void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t compilationFlags )
+void ALibDistribution::CheckDistribution( int alibVersion, uint64_t compilationFlags )
 {
    if (Version != alibVersion )
    {
@@ -610,6 +655,16 @@ void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t com
 /**
  * \dir alib/alox/loggers
  * This directory contains header files and compilation units of module \alib_alox.
+ */
+
+/**
+ * \dir alib/bitbuffer
+ * This directory contains header files and compilation units of module \alib_bitbuffer.
+ */
+
+/**
+ * \dir alib/bitbuffer/ac_v1
+ * This directory contains detail header files and compilation units of module \alib_bitbuffer.
  */
 
 /**
@@ -682,53 +737,41 @@ void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t com
 /**
  * \dir alib/lib
  * This directory contains headers of \alib that mostly concern preprocessor definitions.
+ * In addition, several sub-directories reside here, which correspond to the different
+ * \ref alib_manual_modules_filesets "ALib Filesets".
  */
 
 /**
  * \dir alib/lib/fs_commonenums
- * This directory contains files contained in fileset "Common Enums".
+ * This directory contains files contained in \ref alib_manual_modules_filesets "fileset" "Common Enums".
  * The availability of this directory depends on the \alibdist and can be tested with
  * code selection symbol ALIB_FILESET_COMMON_ENUMS.
  */
 
 /**
- * \dir alib/lib/fs_debug
- * This directory contains files contained in fileset "Debug".
- * The availability of this directory depends on the \alibdist and can be tested with
- * code selection symbol ALIB_FILESET_DEBUG.
- */
-
-/**
- * \dir alib/lib/fs_integers
- * This directory contains files contained in fileset "Integers".
- * The availability of this directory depends on the \alibdist and can be tested with
- * code selection symbol ALIB_FILESET_INTEGERS.
- */
-
-/**
  * \dir alib/lib/fs_lists
- * This directory contains files contained in fileset "Lists".
+ * This directory contains files contained in \ref alib_manual_modules_filesets "fileset" "Lists".
  * The availability of this directory depends on the \alibdist and can be tested with
  * code selection symbol ALIB_FILESET_LISTS.
  */
 
 /**
  * \dir alib/lib/fs_modules
- * This directory contains files contained in fileset "Modules".
+ * This directory contains files contained in \ref alib_manual_modules_filesets "fileset" "Modules".
  * The availability of this directory depends on the \alibdist and can be tested with
  * code selection symbol ALIB_FILESET_MODULES.
  */
 
 /**
  * \dir alib/lib/fs_owner
- * This directory contains files contained in fileset "Owner".
+ * This directory contains files contained in \ref alib_manual_modules_filesets "fileset" "Owner".
  * The availability of this directory depends on the \alibdist and can be tested with
  * code selection symbol ALIB_FILESET_OWNER.
  */
 
 /**
  * \dir alib/lib/fs_plugins
- * This directory contains files contained in fileset "Plugins".
+ * This directory contains files contained in \ref alib_manual_modules_filesets "fileset" "Plugins".
  * The availability of this directory depends on the \alibdist and can be tested with
  * code selection symbol ALIB_FILESET_PLUGINS.
  */
@@ -741,6 +784,11 @@ void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t com
 /**
  * \dir alib/monomem/detail
  * This directory contains detail header files and compilation units of module \alib_monomem.
+ */
+
+/**
+ * \dir alib/monomem/util
+ * This directory contains header files and compilation units of utility types of module \alib_monomem.
  */
 
 /**
@@ -764,23 +812,18 @@ void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t com
  */
 
 /**
- * \dir alib/text
- * This directory contains header files and compilation units of module \alib_text.
- */
-
-/**
  * \dir alib/strings
  * This directory contains header files and compilation units of module \alib_strings.
  */
 
 /**
  * \dir alib/strings/detail
- * This directory contains header files and compilation units of module \alib_strings.
+ * This directory contains detail header files and compilation units of module \alib_strings.
  */
 
 /**
  * \dir alib/strings/util
- * This directory contains header files and compilation units of module \alib_strings.
+ * This directory contains header files and compilation units of utility types of module \alib_strings.
  */
 
 /**
@@ -789,12 +832,21 @@ void ALibDistribution::CheckDistribution( int alibVersion, volatile uint64_t com
  */
 
 /**
+ * \dir alib/text
+ * This directory contains header files and compilation units of module \alib_text.
+ */
+
+/**
  * \dir alib/threads
  * This directory contains header files and compilation units of module \alib_threads.
+ */
+
+/**
+ * \dir alib/threads/detail
+ * This directory contains detail header files and compilation units of module \alib_threads.
  */
 
 /**
  * \dir alib/time
  * This directory contains header files and compilation units of module \alib_time.
  */
-

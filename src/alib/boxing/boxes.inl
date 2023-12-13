@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOXES
@@ -118,7 +118,7 @@ struct BoxesAllocator
 namespace aworx { namespace lib { namespace boxing {
 /** ************************************************************************************************
  * A vector of objects of type \alib{boxing,Box}.
- * Specializes class \c std::vector<Box> (publically) with a constructor and methods to add a
+ * Specializes class \c std::vector<Box> (publicly) with a constructor and methods to add a
  * variable amount of arbitrary values with one invocation.
  *
  * If another \b %Boxes object or an array of boxes, or boxed versions of such, are added, this
@@ -193,7 +193,7 @@ class Boxes
         }
 
         /** ****************************************************************************************
-         * Adds one box for each given variadic argument.
+         * Adds one boxt.
          *
          * @param  box The box to append.
          * @return A reference to this object.

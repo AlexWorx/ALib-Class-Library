@@ -1,9 +1,11 @@
 /** ************************************************************************************************
  * \file
- * This header file  is part of file set \alibfs_typemap of the \aliblong.
+ * This header file is part of the \aliblong.<br>
+ * With the inclusion of this header compatibility features between \alib and the C++ standard
+ * library are provided.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * Published under \ref mainpage_license "Boost Software License".                                                                                 >
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_TYPEINFO
 #define HPP_ALIB_COMPATIBILITY_STD_TYPEINFO 1
@@ -23,6 +25,8 @@
 #if !defined(_GLIBCXX_FUNCTIONAL) && !defined(_FUNCTIONAL_)
     #include <functional>
 #endif
+
+#include <stddef.h>
 
 
 namespace aworx { namespace lib {

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -120,14 +120,14 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                                                     stack.end() ,
                                                                     stack.end()  ) );
 
-                        ALIB_ASSERT_ERROR( cmd.ResultType.IsSameType(stack.back()),
-                               "Result type mismatch during command execution:\\n"
-                               "       In expression: {!Q} {{{}}}\\n"
-                               "              Plugin: {}\\n"
-                               "          Identifier: {} ({})\\n"
-                               "       Expected type: {!Q<>} (aka {})\\n"
-                               "         Result type: {!Q<>} (aka {})\\n"
-                               "        Result value: {}\\n",
+                        ALIB_ASSERT_ERROR( cmd.ResultType.IsSameType(stack.back()), "EXPRVM",
+                               "Result type mismatch during command execution:\n"
+                               "       In expression: {!Q} {{{}}}\n"
+                               "              Plugin: {}\n"
+                               "          Identifier: {} ({})\n"
+                               "       Expected type: {!Q<>} (aka {})\n"
+                               "         Result type: {!Q<>} (aka {})\n"
+                               "        Result value: {}\n",
                                program.expression.Name(),
                                program.expression.GetNormalizedString(),
                                cmd.DbgInfo.Plugin->Name,
@@ -174,19 +174,19 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                         break;
                                     case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                                     case DCT::OptimizationConstant:
-                                        ALIB_ERROR("Must not be set with function calls")
+                                        ALIB_ERROR("EXPRVM", "Must not be set with function calls")
                                 }
 
                                 String512 msg;
                                 auto fmt= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
-                                fmt->Format( msg, "Result type mismatch during command execution:\\n"
-                                                 "       In expression: {!Q} {{{}}}\\n"
-                                                 "              Plugin: {}\\n"
-                                                 "                Info: {}\\n"
-                                                 "            Callback: {}\\n"
-                                                 "       Expected type: {!Q<>} (aka {})\\n"
-                                                 "         Result type: {!Q<>} (aka {})\\n"
-                                                 "        Result value: {}\\n"
+                                fmt->Format( msg, "Result type mismatch during command execution:\n"
+                                                 "       In expression: {!Q} {{{}}}\n"
+                                                 "              Plugin: {}\n"
+                                                 "                Info: {}\n"
+                                                 "            Callback: {}\n"
+                                                 "       Expected type: {!Q<>} (aka {})\n"
+                                                 "         Result type: {!Q<>} (aka {})\n"
+                                                 "        Result value: {}\n"
                                                  "    Parameter values: ",
                                                  program.expression.Name(),
                                                  program.expression.GetNormalizedString(),
@@ -205,7 +205,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                                      program.compiler.TypeName( *(stack.end()-i))   );
                                 msg << ')';
                                 fmt->Release();
-                                ALIB_ERROR( msg )
+                                ALIB_ERROR( "EXPRVM", msg )
                             }
                         #endif
 
@@ -326,16 +326,16 @@ void  VirtualMachine::run( Program& program, Scope& scope )
 
     // This assertion should never happen. It indicates rather a library error than an
     // erroneous plug-in.
-    ALIB_ASSERT_ERROR( stack.size() == initialStackSize + 1,
+    ALIB_ASSERT_ERROR( stack.size() == initialStackSize + 1, "EXPRVM",
                        "Internal error: Stack increased by {} (instead of 1) after run of expression program.",
                         stack.size() - initialStackSize      )
 
     // Usually a function did not return what it is defined to return.
-    ALIB_ASSERT_ERROR( program.ResultType().IsSameType(stack.back()),
-                       "Wrong result type of program execution:\\n"
-                       "   Expected Type: {!Q<>} (aka {})\\n"
-                       "     Result Type: {!Q<>} (aka {})\\n"
-                       "    Result value: {}\\n"
+    ALIB_ASSERT_ERROR( program.ResultType().IsSameType(stack.back()), "EXPRVM",
+                       "Wrong result type of program execution:\n"
+                       "   Expected Type: {!Q<>} (aka {})\n"
+                       "     Result Type: {!Q<>} (aka {})\n"
+                       "    Result value: {}\n"
                        "   In expression: {!Q}"
                        ,
                        program.compiler.TypeName( program.ResultType() ), program.ResultType().TypeID(),
@@ -481,9 +481,9 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
     #undef Rhs
     #undef Arg
 
-    ALIB_ASSERT_ERROR( nodeStack.size() == 1,
+    ALIB_ASSERT_ERROR( nodeStack.size() == 1, "EXPRVM",
         "VM AST generation error: NodeImpl stack must contain one element. Elements: {}", nodeStack.size())
-    ALIB_ASSERT_ERROR( conditionalStack.size() == 0,
+    ALIB_ASSERT_ERROR( conditionalStack.size() == 0, "EXPRVM",
         "VM Program List error: Conditional stack after listing not 0 but {}", conditionalStack.size())
 
     return nodeStack.back();
@@ -542,6 +542,8 @@ AString VirtualMachine::DbgList( Program& program )
 
         text.LineWidth= 0;
         NString hdlKey= "ProgListHdl";
+
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Box hdlArgs[10];
         hdlArgs[0]= fmtLine;
         NString64 hdlKeyNumbered(hdlKey);
@@ -557,6 +559,7 @@ AString VirtualMachine::DbgList( Program& program )
         text.LineWidth= text.DetectedMaxLineWidth;
             text.AddMarked("@HL-");
         text.LineWidth= 0;
+        ALIB_WARNINGS_RESTORE
 
 
         #define FMT(qtyArgs)                                                                       \
@@ -664,7 +667,7 @@ AString VirtualMachine::DbgList( Program& program )
                             break;
                         case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                         case DCT::OptimizationConstant:
-                            ALIB_ERROR("Must not be set with function calls")
+                            ALIB_ERROR("EXPRVM", "Must not be set with function calls")
                     }
                     if( descr.IsNotNull() )
                         description << descr << ' ' << decSym << cmd.DecompileSymbol << decSym;
@@ -716,16 +719,16 @@ AString VirtualMachine::DbgList( Program& program )
         #undef PopResult
         #undef ResultPos
 
-        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || stackSize == 1,
-            "VM Program List error: Stack size after listing not 1 but {}. Listing follows.\\n",
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || stackSize == 1, "EXPRVM",
+            "VM Program List error: Stack size after listing not 1 but {}. Listing follows.\n",
              stackSize, text.Buffer )
 
-        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || resultStack.size() == 1,
-            "VM Program List error: Resultstack after listing not 1 but {}. Listing follows.\\n",
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || resultStack.size() == 1, "EXPRVM",
+            "VM Program List error: Resultstack after listing not 1 but {}. Listing follows.\n",
              resultStack.size(), text.Buffer )
 
-        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || conditionalStack.size() == 0,
-            "VM Program List error: Conditional stack after listing not 0 but {}.Listing follows.\\n",
+        ALIB_ASSERT_ERROR( lastLineWidth!= 0 || conditionalStack.size() == 0, "EXPRVM",
+            "VM Program List error: Conditional stack after listing not 0 but {}.Listing follows.\n",
              conditionalStack, text.Buffer )
     } // main loop
 

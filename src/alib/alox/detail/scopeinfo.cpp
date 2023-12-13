@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -62,7 +62,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
 {
     loxName= allocator->EmplaceString( pName );
     characters::CharArray<nchar>::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
-    ALIB_ASSERT_ERROR( !loxName.Equals( "GLOBAL" ), "Name \"GLOBAL\" not allowed for Lox instances" )
+    ALIB_ASSERT_ERROR( !loxName.Equals( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
     cache= allocator->EmplaceArray<SourceFile>( cacheSize= DefaultCacheSize );
 
     lastSourceFile= &cache[0];
@@ -151,6 +151,7 @@ void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCSt
     // if different file than before, search file in cache
     if ( s.sourceFile->origFile.Buffer() != sourceFileName.Buffer() )
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         int           oldestIdx= -1;
         uint64_t  oldestTime= ++cacheRun;
 
@@ -180,8 +181,8 @@ void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCSt
 
         // mark as used
         s.sourceFile->timeStamp= cacheRun;
+        ALIB_WARNINGS_RESTORE
     }
-
 }
 
 void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
@@ -193,8 +194,10 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
                                         Priorities          priority )
 {
     // clear cache to have lazy variables reset with the next invocation
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     for ( int i= 0; i< cacheSize; ++i )
         cache[i].Clear();
+    ALIB_WARNINGS_RESTORE
 
     // clear command
     if ( trimOffset == 999999 )

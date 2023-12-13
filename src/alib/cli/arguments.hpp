@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_cli of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_ARGUMENTS
@@ -27,8 +27,8 @@ namespace aworx { namespace lib { namespace  cli {
  * - \alib{cli,Parameter}.
  *
  * Stores
- * - a pointer to the parent application,
- * - the position in \alib{cli,CLIApp::ArgNOriginal}, respectively \alib{cli,CLIApp::ArgWOriginal}
+ * - a pointer to the \alib{cli,CommandLine} object.
+ * - the position in \alib{cli,CommandLine::ArgNOriginal}, respectively \alib{cli,CommandLine::ArgWOriginal}
  *   where the object was found and
  * - number of arguments consumed when reading the object.
  *
@@ -38,23 +38,24 @@ namespace aworx { namespace lib { namespace  cli {
  */
 struct Parsed
 {
-    /** The cli application. */
-    CLIApp*     Parent;
+    /** The cli command line. */
+    CommandLine* CmdLine;
 
-    /** The index in \alib{cli,CLIApp::ArgNOriginal}, respectively \alib{cli,CLIApp::ArgWOriginal}
-     *  that this instance was found. */
-    integer     Position;
+    /** The index in \alib{cli,CommandLine::ArgNOriginal}, respectively \alib{cli,CommandLine::ArgWOriginal}
+     *  that this instance (derived option or parameter ) was found. */
+    integer      Position;
 
     /** The number of command line arguments that a command consumed. This includes the command name
-        itself. Not essential, to whom it may concern...                                          */
-    integer     QtyArgsConsumed;
+     *  itself. If method \b Read of derived types leaves this to <c>0</c>, then the option or
+     *  parameter was not found.  */
+    integer      QtyArgsConsumed;
 
     /**
      * Constructor
-     * @param parent   The application.
+     * @param cmdLine   The command line instance.
      */
-    Parsed( CLIApp* parent )
-    : Parent         (parent)
+    Parsed( CommandLine* cmdLine )
+    : CmdLine        (cmdLine)
     , Position       ((std::numeric_limits<integer>::max)())
     , QtyArgsConsumed(0)
     {}
@@ -107,7 +108,7 @@ struct Parsed
  * Construction is done by passing a custom enum element of an enum type equipped with
  * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERParameterDecl}.
  *
- * When bootstrapping \alib_cli_nl, method \alib{cli,CLIApp::DefineParameters} has to be
+ * When bootstrapping \alib_cli_nl, method \alib{cli,CommandLine::DefineParameters} has to be
  * invoked for (each) enum type.
  */
 class ParameterDecl
@@ -263,15 +264,16 @@ struct Parameter : public Parsed
 
     /**
      * Constructor
-     * @param parent   The application.
+     * @param cmdLine   The command line instance.
      */
     inline
-    Parameter( CLIApp* parent );
+    Parameter( CommandLine* cmdLine );
 
     /**
-     * Tries to reads the object from the front of \alib{cli,CLIApp::ArgsLeft}.
+     * Tries to read the object from the front of \alib{cli,CommandLine::ArgsLeft}.
+     * Success is indicated by setting inherited fields \alib{cli,Parsed::Position} and
+     * \alib{cli,Parsed::QtyArgsConsumed} to values greater than \c 0.
      *
-     * The \c true on success.
      * If it could not be decided if the actual CLI argument contains this parameter \c false
      * is returned to indicate that parsing commands has to stop now.
      *
@@ -281,7 +283,7 @@ struct Parameter : public Parsed
      * - When it was successfully read, but  \alib{cli,ParameterDecl::QtyExpectedArgsFollowing}
      *   is defined \c -1.
      *
-     * See \alib{cli,CLIApp,ReadNextCommands} for details
+     * See \alib{cli,CommandLine,ReadNextCommands} for details
      *
      * @param decl   The declaration used for reading
      * @return The \c true on success, \c false indicates that parsing has to end here.
@@ -310,12 +312,6 @@ struct EROptionDecl : public enums::ERSerializable
      *  separator string leads to a parsing exception.                                       */
     integer qtyExpectedArgsFollowing;
 
-    /** If \c true, a next occurrence overwrites previous. This flag is not used by the
-     *  default implementations given by the types of this module. Instead, when processing
-     *  options, an application either uses \alib{cli,CLIApp::GetOption} to retrieve the last
-     *  occurrence, or walks list \alib{cli,CLIApp::Options} by itself to fetch all occurrences.*/
-    bool    multiIgnored;
-
     /** If not empty, the argument string will be replaced by this and the search for next options
      *  continues.
      *  Note: Shortcut options have to occur earlier in the enumeration's resource definition.  */
@@ -337,7 +333,7 @@ struct EROptionDecl : public enums::ERSerializable
  * Construction is done by passing a custom enum element of an enum type equipped with
  * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,EROptionDecl}.
  *
- * When bootstrapping \alib_cli_nl, method \alib{cli,CLIApp::DefineOptions} has to be
+ * When bootstrapping \alib_cli_nl, method \alib{cli,CommandLine::DefineOptions} has to be
  * invoked for (each) enum type.
  *
  */
@@ -429,22 +425,6 @@ class OptionDecl
         }
 
         /**
-         * Denotes whether multiple occurrences of the option are evaluated or if only the last
-         * occurrence is relevant.
-         *
-         * This flag is not used by the default implementation given by the types of this module.
-         * Instead, when processing options, an application either uses \alib{cli,CLIApp::GetOption}
-         * to retrieve the last occurrence, or walks list \alib{cli,CLIApp::Options} by itself to
-         * fetch all occurrences.
-         *
-         * @return \c true, if only the last option given is used..
-         */
-        bool            MultiIgnored()
-        {
-            return record.multiIgnored;
-        }
-
-        /**
          * If an option is a shortcut to another one, this string replaces the argument given.
          * @return The option identifier.
          */
@@ -478,7 +458,7 @@ class OptionDecl
 }; // OptionDecl
 
 /**
- * An option of a cli application. Options are read "automatically" using their declaration
+ * An option of a command line. Options are read "automatically" using their declaration
  * information defined with externalized strings (resources) accessed through
  * \ref alib_enums_records "ALib Enum Records" associated with enum elements of enum custom types.
  *
@@ -486,11 +466,11 @@ class OptionDecl
  * defined with \alib{cli,OptionDecl}, can not provide the flexibility needed to perfectly
  * parse options with a complex syntax.
  *
- * In this case, the way out is to use custom code that invokes \alib{cli,CLIApp,ReadOptions}
+ * In this case, the way out is to use custom code that invokes \alib{cli,CommandLine,ReadOptions}
  * and then processes all options that may have remaining arguments left in the list.
- * Using field #Position further arguments may be consumed from \alib{cli,CLIApp::ArgsLeft}.<br>
+ * Using field #Position further arguments may be consumed from \alib{cli,CommandLine::ArgsLeft}.<br>
  * Note, "processing all options" may mean a nested loop. The outer is over the option types
- * of  \alib{cli,CLIApp,OptionsFound}, the inner is over the vector of options per type.
+ * of  \alib{cli,CommandLine,OptionsFound}, the inner is over the vector of options per type.
  *
  */
 struct Option : public Parsed
@@ -503,10 +483,10 @@ struct Option : public Parsed
 
     /**
      * Constructor
-     * @param parent   The application.
+     * @param cmdLine   The command line main object.
      */
     inline
-    Option( CLIApp* parent );
+    Option( CommandLine* cmdLine );
 
     /**
      * Tries to read the object from the current CLI arg(s).
@@ -550,7 +530,7 @@ struct Option : public Parsed
  * Construction is done by passing a custom enum element of an enum type equipped with
  * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERCommandDecl}.
  *
- * When bootstrapping \alib_cli_nl, method \alib{cli,CLIApp::DefineCommands} has to be
+ * When bootstrapping \alib_cli_nl, method \alib{cli,CommandLine::DefineCommands} has to be
  * invoked for (each) enum type.
  *
  */
@@ -567,8 +547,8 @@ class CommandDecl
         ResourceInfo            resourceInfo;
 
     public :
-        /** The cli application we are belong to */
-        CLIApp&                 Parent;
+        /** The command line instance we belong to. */
+        CommandLine&            CmdLine;
 
         /** Command parameters. */
         List<ParameterDecl*>    Parameters;
@@ -581,17 +561,17 @@ class CommandDecl
          *
          * @tparam TEnum    C++ enum type equipped with corresponding \alib Enum Records.
          * @param element   The enum element
-         * @param parent    The application object. Will be stored.
+         * @param cmdLine   The command line  object. Will be stored.
          */
         template<typename TEnum>
         inline
-        CommandDecl( TEnum element, CLIApp& parent );
+        CommandDecl( TEnum element, CommandLine& cmdLine );
 
        /**
         * Returns the type and integral value of the enumeration element used with construction.
         * @return The enumeration element used with construction.
         */
-        const Enum&     Element()                                                                  const
+        const Enum&     Element()                                                              const
         {
             return declElement;
         }
@@ -655,7 +635,7 @@ class CommandDecl
 };
 
 /**
- * A command of a \alib_cli_nl application.
+ * A command of a \alib_cli_nl command line.
  */
 struct Command  : public Parsed
 {
@@ -670,13 +650,13 @@ struct Command  : public Parsed
 
     /**
      * Constructor
-     * @param parent   The application.
+     * @param cmdLine   The command line instance.
      */
     inline
-    Command( CLIApp* parent );
+    Command( CommandLine* cmdLine );
 
     /**
-     * Tries to read the object from the front of \alib{cli,CLIApp::ArgsLeft}.
+     * Tries to read the object from the front of \alib{cli,CommandLine::ArgsLeft}.
      * @param decl   The declaration used for reading.
      * @return The \c true on success, \c false otherwise.
      */
@@ -724,17 +704,17 @@ struct ERExitCodeDecl : public enums::ERSerializable
 };
 
 /**
- * An exit code of the cli application.
+ * An exit code of a cli application.
  *
  * Construction is done by passing a custom enum element of an enum type equipped with
  * \ref alib_enums_records "ALib Enum Records" of type \alib{cli,ERExitCodeDecl}.
  *
- * When bootstrapping \alib_cli_nl, method \alib{cli,CLIApp::DefineExitCodes} has to be
+ * When bootstrapping \alib_cli_nl, method \alib{cli,CommandLine::DefineExitCodes} has to be
  * invoked for (each) enum type.
  *
  * Announcing the main application's exit codes to the \alib_cli_nl module has two reasons:
  * - The exit codes are included in the help output text utility methods provided by class
- *   \alib{cli,CLIApp}.
+ *   \alib{cli,CommandLine}.
  * - \alib_cli_nl module exit codes can be translated to valid exit codes using
  *   method \alib{cli,CLIUtil::GetExitCode}.
  */

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_text of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TEXT_FORMATTER_STD
@@ -36,8 +36,8 @@ namespace aworx { namespace lib { namespace text {
  * When parsing a placeholder of a format string, abstract method #parsePlaceholder
  * may set field \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec} to reflect
  * a format-specific portion the placeholder string.
- * If it does, it will be checked if the argument supports box-function \alib{text,FFormat},
- * and if so, the box-function is invoked with this string as parameter.
+ * It will be checked if the argument supports box-function \alib{text,FFormat},
+ * and if so, this string is passed to the box-function.
  * If the argument does not support the interface, method #parseStdFormatSpec is invoked to
  * now parse this portion of the placeholder string in a default way.<br>
  * This concept allows customized format specifications for custom argument types! As an example,
@@ -53,30 +53,27 @@ namespace aworx { namespace lib { namespace text {
  * The following describes the formatting process in detail (the implementation of method #format)
  * and this way helps to understand what is required from the implementation of the abstract methods:
  *
- * 1.  A newline character check is made and formatting is aborted if one was found
- *     (as proposed by contract with parent class).
- *
- * 2.  Method parameters are stored in fields #targetString, #formatString, #arguments and
+ * 1.  Method parameters are stored in fields #targetString, #formatString, #arguments and
  *     #argOffset. This way, the parameters can be accessed from any implemented method without
  *     the need of passing them as parameters once more.<br>
  *     In addition, field #parser is initialized. This \b Substring is used to parse
  *     the format string. Parsed portions will be consumed from the front of the string.
  *     Finally fields #argsConsumed and #nextAutoIdx are initialized to value \c 0.
  *
- * 3.  <b>Start of the loop</b> to find and process placeholders in the format string.
+ * 2.  <b>Start of the loop</b> to find and process placeholders in the format string.
  *
- * 4.  Abstract method #findPlaceholder is invoked. If this fails (no further placeholder was found)
- *     parsing stops. If, and only if, a placeholder was found before, the rest of the string
- *     in #parser is written and abstract method #replaceEscapeSequences is invoked for this rest.
+ * 3.  Abstract method #findPlaceholder is invoked. If this fails (no further placeholder was found)
+ *     parsing stops. If, and only if, a placeholder was found before, method #writeStringPortion is
+ *     invoked for the rest of the string prior to exiting the function.
  *
- * 5.  The portion of the format string before the placeholder position is written and abstract
- *     method #replaceEscapeSequences is invoked on this portion (if not empty).
+ * 4.  Method #writeStringPortion is invoked to write the current parser contents up to the
+ *     placeholder position.
  *
- * 6.  Method #resetPlaceholder is invoked, to reset the attributes that will be parsed in the next
+ * 5.  Method #resetPlaceholder is invoked, to reset the attributes that will be parsed in the next
  *     step. The values that are set are implementation specific and need to reflect the
  *     default formatting options if no specific options are given in the format string.
  *
- * 7.  Abstract Method #parsePlaceholder is invoked to parse and consume tokens from string #parser
+ * 6.  Abstract Method #parsePlaceholder is invoked to parse and consume tokens from string #parser
  *     and while doing this, to store the parsed format attributes in the fields with
  *     name prefix \c pha (or extended attributes of a derived formatter type).<br>
  *     If an argument (positional) index is found during parsing, then method
@@ -86,7 +83,7 @@ namespace aworx { namespace lib { namespace text {
  *     sub-string in field
  *     \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec}.
  *
- * 8.  Next, it is checked if an argument was set by \b %parsePlaceholder. If not, #setArgument
+ * 7.  Next, it is checked if an argument was set by \b %parsePlaceholder. If not, #setArgument
  *     is invoked providing \c -1 for the index to indicate auto-indexing.
  *     \note
  *       If auto-indexing should be implemented differently than done with default method
@@ -101,30 +98,28 @@ namespace aworx { namespace lib { namespace text {
  *     (indicating pre-processing). This allows for example to insert tab fill-characters
  *     (tab stops) prior to writing the contents of the field.
  *
- * 10. Method  #writeCustomFormat is invoked. This allows derived formatters to write arguments in a
+ * 9.  Method  #writeCustomFormat is invoked. This allows derived formatters to write arguments in a
  *     custom way. If the method returns \c true, the loop is continued ( &rarr; Step 4.). <br>
- *     The default implementation checks if a format specification was stored in
- *     \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec}
- *     and if yes, if box-function \alib{text,FFormat} is defined for
+ *     The default implementation checks whether  box-function \alib{text,FFormat} is defined for
  *     \alib{text::FormatterStdImpl::PlaceholderAttributes,Arg}.
  *     In this case, the interface is invoked and \c true returned.
  *
- * 11. Again, if a format specification was stored in
+ * 10. Again, if a format specification was stored in
  *     \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec}
  *     method #parseStdFormatSpec is invoked which needs to set further attributes
  *     in the \b %Placeholder object according to the standard format specification of the formatter.
  *
- * 12. Now, as all fields that represent formatting attributes are well set (or kept with their
+ * 11. Now, as all fields that represent formatting attributes are well set (or kept with their
  *     defaulted value), method #checkStdFieldAgainstArgument is invoked.
  *     This method is virtual but not abstract. Its default implementation checks the
  *     placeholder attributes against the provided argument type and raises an error if the
  *     argument does not fit to the placeholder format specification.
  *
- * 13. Method #writeStdArgument is invoked. This method is virtual but not abstract.
+ * 12. Method #writeStdArgument is invoked. This method is virtual but not abstract.
  *     Its default implementation writes the argument value formatted according to the attribute
  *     fields.
  *
- * 14. Finally #preAndPostProcess is invoked with parameter \p{startIdx} pointing to the first
+ * 13. Finally #preAndPostProcess is invoked with parameter \p{startIdx} pointing to the first
  *     character in #targetString of the argument written.
  *     Here, actions like case conversion might be done on the field written.
  *
@@ -353,7 +348,7 @@ class FormatterStdImpl : public Formatter
          *
          * @return The index found, \c -1 if not found.
          ******************************************************************************************/
-        virtual integer        findPlaceholder()                                               = 0;
+        virtual integer        findPlaceholder()                                                = 0;
 
         /** ****************************************************************************************
          * Overridable method to clean and reset the fields representing the current placeholder
@@ -383,14 +378,14 @@ class FormatterStdImpl : public Formatter
 
         /** ****************************************************************************************
          * Virtual method that may write an argument using a custom method/format.
-         * The default implementation checks if
-         * \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec} is set and object
-         * \alib{text::FormatterStdImpl::PlaceholderAttributes,Arg}
-         * supports an own format specifier by providing box-function
-         * \alib{text,FFormat}.
-         * If so, the result of the formatting is written directly into the #targetString
-         * and \c true is returned which causes method #format (which invokes this method) to
-         * continue with the next replacement field.
+         * The default implementation checks if object
+         * \alib{text::FormatterStdImpl::PlaceholderAttributes,Arg} supports an own format specifier
+         * by disposing about box-function \alib{text,FFormat}.
+         * If so, the function is invoked with passing
+         * \alib{text::FormatterStdImpl::PlaceholderAttributes,FormatSpec}, the result of the
+         * formatting is written directly into the #targetString and \c true is returned.
+         * The latter causes method #format (which invokes this method) to continue with the next
+         * replacement field.<br>
          * If \c false is returned, method #format continues the field processing by invoking
          * #parseStdFormatSpec, #checkStdFieldAgainstArgument and #writeStdArgument.
          *
@@ -485,14 +480,15 @@ class FormatterStdImpl : public Formatter
         virtual bool            setArgument( int pos );
 
         /** ****************************************************************************************
-         * Replace "escaped" placeholder field characters. For example these are \c "{{" in
-         * python style or \c "%%" in JAVA style.<br>
-         * In addition other escape sequences defined with the format are to be replaced
-         * with this method.
+         * Implementations of this abstract virtual method need to copy the given amount of
+         * characters from sting #parser to \b AString #targetString. With that
+         * "escaped" placeholder field characters (for example these are \c "{{" in python style
+         * or \c "%%" in JAVA style) as well as other escape sequences defined with the format are
+         * to be replaced with this method.
          *
-         * @param startIdx The start of the region to replace
+         * @param length The number of characters to write.
          ******************************************************************************************/
-        virtual void            replaceEscapeSequences( integer startIdx )  = 0;
+        virtual void            writeStringPortion( integer length )                            = 0;
 };
 
 }}} // namespace [aworx::lib::text]

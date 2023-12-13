@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -235,7 +235,7 @@ class AnsiLogger : public aworx::lib::lox::detail::textlogger::TextLogger
          * Destructs an AnsiLogger
          ******************************************************************************************/
         ALIB_API
-        virtual        ~AnsiLogger();
+        virtual        ~AnsiLogger()                                                       override;
 
     // #############################################################################################
     // Interface
@@ -260,16 +260,16 @@ class AnsiLogger : public aworx::lib::lox::detail::textlogger::TextLogger
          *                    single line messages this is -1.
          ******************************************************************************************/
         ALIB_API
-        virtual void logText(  detail::Domain&       domain,
-                               Verbosity           verbosity,
-                               AString&            msg,
-                               detail::ScopeInfo&    scope,
-                               int                 lineNumber);
+        virtual void logText(  detail::Domain&      domain,
+                               Verbosity            verbosity,
+                               AString&             msg,
+                               detail::ScopeInfo&   scope,
+                               int                  lineNumber)                            override;
 
         /** ****************************************************************************************
          * Empty implementation.
          ******************************************************************************************/
-        virtual void notifyMultiLineOp ( Phase ) {}
+        virtual void notifyMultiLineOp ( Phase )                                        override  {}
 
 
         /** ****************************************************************************************
@@ -310,7 +310,7 @@ class AnsiConsoleLogger : public AnsiLogger
          * Destructs an AnsiConsoleLogger
          ******************************************************************************************/
         ALIB_API
-        virtual            ~AnsiConsoleLogger();
+        virtual            ~AnsiConsoleLogger()                                            override;
 }; // class AnsiConsoleLogger
 
 

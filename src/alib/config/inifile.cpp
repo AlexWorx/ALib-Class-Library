@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -37,9 +37,7 @@
 #if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
 #   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
-#if !defined(HPP_ALIB_RESULTS_REPORT)
-#   include "alib/results/report.hpp"
-#endif
+
 #if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
 #   include <fstream>
 #endif
@@ -85,7 +83,7 @@ void IniFile::ToVariable( Entry& entry, Variable& variable )                    
         raw.DeleteStart(1).TrimStart();
     else
     {
-        ALIB_WARNING( "No equal sign in INI-file variable {!Q}.", variable.Fullname() )
+        ALIB_WARNING( "CONFIG", "No equal sign in INI-file variable {!Q}.", variable.Fullname() )
     }
 
     // remove "\\n"
@@ -461,9 +459,7 @@ void IniFile::WriteFile()
             // either write raw value (if it was not changed by the application, which
             // clears the original value)
             if ( entry.RawValue.IsNotEmpty() )
-            {
                 writer.Write( entry.RawValue );
-            }
 
             // or write the values parsed by the software
             else
@@ -492,7 +488,7 @@ void IniFile::WriteFile()
                             value= &*entryIt;
                             ++entryIt;
 
-                            ALIB_ASSERT_ERROR( entry.Delim != 0,
+                            ALIB_ASSERT_ERROR( entry.Delim != 0, "CONFIG",
                                                "No delimiter given for multi-value variable {!Q}.",
                                                entry.Name() )
 
@@ -562,7 +558,7 @@ void IniFile::WriteFile()
                         {
                             value= &*entryIt;
                             ++entryIt;
-                            ALIB_ASSERT_ERROR( entry.Delim != 0,
+                            ALIB_ASSERT_ERROR( entry.Delim != 0, "CONFIG",
                                                "No delimiter given for multi-value variable {!Q}.",
                                                entry.Name() )
                             writer.Write( String8() << entry.Delim );

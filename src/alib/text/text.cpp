@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -61,8 +61,8 @@ namespace text {
 Text::Text()
 : Module( ALIB_VERSION, ALIB_REVISION, "TEXT" )
 {
-    ALIB_ASSERT_ERROR( this == &TEXT,
-     "Instances of class Text must not be created. Use singleton aworx::lib::TEXT" )
+    ALIB_ASSERT_ERROR( this == &TEXT, "TEXT",
+                       "Instances of class Text must not be created. Use singleton aworx::lib::TEXT" )
 }
 
 
@@ -116,66 +116,66 @@ resourcePool->BootstrapBulk( ResourceCategory,
     "E22" , A_CHAR( "602,EndmarkerWithoutStart"                ",ST602"   ),
 
     // general formatter errors
-    "FMG11"      , A_CHAR( "Argument index 0 not allowed.\\n"
-                           "In: {!Q}\\n     {!Fill}^" ),
-    "FMG12"      , A_CHAR( "Argument index #{} is out of bounds. {} arguments are available.\\n"
-                           "In: {!Q}\\n     {!Fill}^" ),
-    "FMG13"      , A_CHAR( "Incompatible type code {!Q'} for argument #{} which is of type {!Q}.\\n"
-                           "In: {!Q}\\n     {!Fill}^" ),
+    "FMG11"      , A_CHAR( "Argument index 0 not allowed.\n"
+                           "In: {!Q}\n     {!Fill}^" ),
+    "FMG12"      , A_CHAR( "Argument index #{} is out of bounds. {} arguments are available.\n"
+                           "In: {!Q}\n     {!Fill}^" ),
+    "FMG13"      , A_CHAR( "Incompatible type code {!Q'} for argument #{} which is of type {!Q}.\n"
+                           "In: {!Q}\n     {!Fill}^" ),
 
     // Formatter Python Style
-    "FPS101"     , A_CHAR( "Closing bracket '}}' of placeholder not found (or syntax error).\\n"
-                           "In: {!Q}\\n     {!Fill}^" ),
+    "FPS101"     , A_CHAR( "Closing bracket '}}' of placeholder not found (or syntax error).\n"
+                           "In: {!Q}\n     {!Fill}^" ),
     //...
     //...
     //...
     "FPS102"     , A_CHAR( "Missing precision value after '.' character."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FPS103"     , A_CHAR( "Duplicate type code {!Q'} given (previous was {!Q'})."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
-    "FPS104"     , A_CHAR( "Unknownw type code {!Q'} given."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
-    "FPS105"     , A_CHAR( "Excpected '!' in continuation of placeholder."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+    "FPS104"     , A_CHAR( "Unknown type code {!Q'} given."
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+    "FPS105"     , A_CHAR( "Expected '!' in continuation of placeholder."
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FPS106"     , A_CHAR( "Unknown conversion \"!{}\"."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FPS107"     , A_CHAR( "Precision not allowed with integer format."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FPS108"     , A_CHAR( "Missing pair of replacement strings \")<src><repl>\" after \"!Replace\"."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
 
 
     // Formatter Java Style
     "FJS101"     , A_CHAR( "Brackets for negative values not implemented/supported."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS102"     , A_CHAR( "Missing precision value after '.' character."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS103"     , A_CHAR( "Hexadecimal float format not implemented/supported."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS104"     , A_CHAR( "Alternate form '#' not supported with conversion {!Q}."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS105"     , A_CHAR( "Precision specification (\".{}\") is not supported with conversion {!Q}."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS106"     , A_CHAR( "Unknown date/time conversion suffix {!Q'}."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
     "FJS107"     , A_CHAR( "Unknown conversion character {!Q'}."
-                           "\\nIn: {!Q}\\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
 
 
     // PropertyFormatter and PropertyFormatters
-    "PFM501"     , A_CHAR( "Unknown property identifier \"{}{}\" in format string.\\n"
-                           "Format string: {!Q}.\\n"
+    "PFM501"     , A_CHAR( "Unknown property identifier \"{}{}\" in format string.\n"
+                           "Format string: {!Q}.\n"
                            "Allowed identifiers: "                                                               ),
-    "PFM502"     , A_CHAR( "Error in resulting format string.\\nSource format: {!Q}."                            ),
+    "PFM502"     , A_CHAR( "Error in resulting format string.\nSource format: {!Q}."                             ),
     "PFM510"     , A_CHAR( "Missing or empty configuration variable {!Q} containing user defined format string." ),
 
     // class Paragraphs
-    "ST601"     ,  A_CHAR( "Unknown marker at position {}.\\n"
-                           "  Marked text: {!Q}.\\n"
-                           "                {!Fill}^\\n"                                                         ),
-    "ST602"     ,  A_CHAR( "Found an end-marker without a start marker at position {}.\\n"
-                           "  Marked text: {!Q}.\\n"
-                           "                {!Fill}^\\n"                                                         ),
+    "ST601"     ,  A_CHAR( "Unknown marker at position {}.\n"
+                           "  Marked text: {!Q}.\n"
+                           "                {!Fill}^\n"                                                          ),
+    "ST602"     ,  A_CHAR( "Found an end-marker without a start marker at position {}.\n"
+                           "  Marked text: {!Q}.\n"
+                           "                {!Fill}^\n"                                                          ),
 
 // end of BootstrapBulk()
 nullptr );
@@ -205,8 +205,8 @@ void Text::shutdown( ShutdownPhases phase )
         return;
 
     ALIB_ASSERT_WARNING( Formatter::defaultFormatter.use_count() == 1,
-                         "DefaultFormatter still shared more than once: ",
-                         Formatter::defaultFormatter.use_count() )
+                         "TEXT", "DefaultFormatter still shared more than once: ",
+                         int(Formatter::defaultFormatter.use_count()) )
 
     Formatter::defaultFormatter.reset();
 }

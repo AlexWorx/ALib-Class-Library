@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -12,23 +12,31 @@
 \alib is a general purpose, use-case agnostic, platform independent, low-level C++ class library.
 
 Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
-As of today, \alib consists of \ref alib_manual_modules_dependencies "16 modules", each addressing
+As of today, \alib consists of \ref alib_manual_modules_dependencies "17 modules", each addressing
 different topics like for example
 \"\ref alib_mod_boxing "boxing arbitrary values"\",
 \"\ref alib_mod_text "character string formatting"\", or
-\"\ref alib_mod_expressions "regular expression parsing"\".<br>
+\"\ref alib_mod_expressions "run-time expression evaluation"\".<br>
 A subset of the available modules can be selectively included in a custom library build.
 
 ## Main Characteristics And Design Goals ##
 
 - \alib is <b>free software</b>.
-- The minimum C++ language standard is <b>C++ 11</b>, selective support for more modern C++
-  versions included.
+- Compiles and tested with <b>C++ 11, 14, 17 and  20</b>.
 - \b Modularization: Possible selective use of only parts of the library.
 - Extensive \b documentation.
 - <b>Least intrusive</b>: Designed to keep user code as independent from \alib types and idioms as possible.
-- Developed and steadily tested under <b>GNU/Linux</b>, <b>Windows OS</b> and <b>Mac OS</b>
-  with compilers GNU,  Clang and Microsoft Visual C++.
+- Developed and steadily tested under
+  - <b>GNU/Linux</b>,
+  - <b>Windows OS</b>,
+  - <b>Mac OS (Intel/ARM)</b>, and
+  - <b>Raspberry (V3 and V4, 32/64-bit)</b>
+
+  with compilers
+  - <b>GNU GCC</b>,
+  - <b>Clang</b>,
+  - <b>Microsoft C++ (MSC)</b>, and
+  - <b>MinGW (GNU/Windows)</b>.
 
 ## Library Dependencies ##
 
@@ -43,12 +51,12 @@ for QT-types.
 
 The following documentation is provided.
 
-1. \ref aworx::lib "Reference Documentation" covering 100% of types, members, functions, namespaces, macros
-   and other C++ entities.
+1. \ref aworx::lib "Reference Documentation"  <b>covering100% of</b> the provided types, members,
+   functions, namespaces, macros and all other C++ entities.
 
 2. \ref alib_manual_modules_overview "Programmer's Manuals" are available for (almost)
    each \alibmod_nl.<br>
-   Together more than <b>450 pages</b> of well structured in-depth discussion of library
+   Together more than <b>500 pages</b> of well structured in-depth discussion of library
    features as well as <b>step by step tutorials</b> are available.
 
 3. Page \ref alib_changelog provides a detailed version history.
@@ -60,7 +68,7 @@ The following documentation is provided.
 
 6. Tutorial and reference documentation's <b> code samples</b> are implemented as unit tests and
    are integrated as source and output text snippets into the documentation.
-   (As for example as \ref alib_enums_records "done here").
+   (As for example \ref alib_enums_records "done here").
 
 7. For module \alib_alox, a
    \https{separated website,alexworx.github.io/ALox-Logging-Library/index.html} exists.
@@ -71,24 +79,19 @@ The following documentation is provided.
 
 
 ## IDE / Build System Setup ##
-The C++ Version got tested on the following platform combinations:
-- GNU/Linux (Arch Linux)
-    - \https{GNU Compiler Collection 9.2.0,gcc.gnu.org/}
-    - \https{clang compiler 9.0.0,llvm.org/}
-    - \https{CMake 3.16,cmake.org/}
-    - \https{CLion 2019.3,www.jetbrains.com/cpp}
-    - \http{Valgrind V. 3.15.0,valgrind.org/}
-
-- Windows 10
-    - Visual Studio 2017, Version 15.9.18
-
-- macOS Catalina 10.15.1
-    - Apple Clang Version 11.0.0
-    - \https{CLion 2019.3.1,www.jetbrains.com/cpp}
+The current release got tested on the following platform combinations:
+- GNU/Linux Arch 6.6.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 11 - 20, 32-Bit / 64-Bit<br>
+  (This is the main development platform.)
+- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), , C++ 11 - 20, 32-Bit / 64-Bit
+- Windows 10/11, MinGW 11.0,  C++ 11 - 17, 64-Bit ( <c>C++ 20 does  not compile! with current MinGW!</c>)
+- MacOS 13, Intel i9, AppleClang 14.0.3, C++ 11 - 20 C++, 64-Bit
+- MacOS 13, Apple M1/ARM64, C++ 11-20, 64-Bit
+- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 11 - 20, 64-Bit
+- Raspberry 4, ARM, 32-bit OS, GNU C++ 12.2.0, C++11-20
+- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++11-20
 
 Check out chapter \ref alib_manual_build "4. Building The Library" for details of how to compile
 and use ALib in your C++ environment.
-
 
 ##  C# and Java Versions Of ALib ##
 
@@ -131,6 +134,7 @@ to just all of these millions of supporters of *free software*, including:
   of their absolutely superb and unrivalled set of IDEs for various programming languages.
 - The \https{QT Creator,doc.qt.io/qtcreator} team,
 - Microsoft for providing \https{Visual Studio Community Edition,www.visualstudio.com/vs/community/} project,
+- \https{Uniki GmbH,uniki.de} for supporting cross-platform compatibility tests.
 
 Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
 until he - when things became too crazy - disappeared in 1882.

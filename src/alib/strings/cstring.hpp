@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_CSTRING
@@ -77,9 +77,13 @@ class TCString : public TString<TChar>
         TCString( const TChar* pBuffer, integer contentLength )
         : TString<TChar>( pBuffer, contentLength )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Explicit construction of CString with unterminated string."     )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Explicit construction of CString with unterminated string."     )
+                    ALIB_WARNINGS_RESTORE
+            #endif
         }
 
 
@@ -152,6 +156,7 @@ class TCString : public TString<TChar>
     #else // no doxygen now
 
         // ##################### Constructors selected with std::enable_if #########################
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
         ATMP_SELECT_IF_1TP( typename T, std::is_same<std::nullptr_t,T>::value )
         constexpr
@@ -165,9 +170,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Buffer(  src ),
                            characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Length(  src ) )
         {
-            ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Implicit construction of CString with unterminated string."     )
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
+                    ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
+                                      || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                    "Error: Implicit construction of CString with unterminated string."     )
+            #endif
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit )
@@ -176,9 +183,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Buffer(  *src ),
                            characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Length(  *src ) )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Implicit construction of CString with unterminated string."     )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Implicit construction of CString with unterminated string."     )
+            #endif
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::ExplicitOnly )
@@ -188,9 +197,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( src ),
                            characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Length( src ) )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Explicit construction of CString with unterminated string."     )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Explicit construction of CString with unterminated string."     )
+            #endif
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::ExplicitOnly  )
@@ -200,9 +211,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( *src ),
                            characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Length( *src ) )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Explicit construction of CString with unterminated string."     )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Explicit construction of CString with unterminated string."     )
+            #endif
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::MutableOnly && !std::is_const<T>::value )
@@ -212,9 +225,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( const_cast<T&>( src ) ),
                            characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Length( const_cast<T&>( src ) ) )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Construction of CString (from mutable object) with unterminated string." )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Construction of CString (from mutable object) with unterminated string." )
+            #endif
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::MutableOnly && !std::is_const<T>::value )
@@ -224,9 +239,11 @@ class TCString : public TString<TChar>
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( *src ),
                            characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Length( *src ) )
         {
+            #if ALIB_DEBUG // needed to avoid empty {} in constexpr constructor
             ALIB_ASSERT_ERROR(   TString<TChar>::IsNull()
-                              || TString<TChar>::buffer[TString<TChar>::length] == '\0'
-                 ,"Error: Construction of CString (from mutable object) with unterminated string." )
+                              || TString<TChar>::buffer[TString<TChar>::length] == '\0', "STRINGS",
+                 "Error: Construction of CString (from mutable object) with unterminated string." )
+            #endif
         }
 
         // ##############################    casting  back    ######################################
@@ -263,6 +280,7 @@ class TCString : public TString<TChar>
             return  characters::T_ZTCharArray<T,TChar>::Construct( TString<TChar>::buffer, TString<TChar>::length );
         }
 
+    ALIB_WARNINGS_RESTORE
     #endif // doxygen
 
 
@@ -284,8 +302,11 @@ class TCString : public TString<TChar>
          ******************************************************************************************/
          TChar    operator[] (integer  op) const
          {
-            ALIB_ASSERT_ERROR( op >= 0  && op <= TString<TChar>::length, "Index out of bounds" )
+            ALIB_ASSERT_ERROR( op >= 0  && op <= TString<TChar>::length, "STRINGS",
+                               "Index out of bounds" )
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return TString<TChar>::buffer[op];
+            ALIB_WARNINGS_RESTORE
          }
 
         /** ****************************************************************************************
@@ -338,11 +359,12 @@ class TCString : public TString<TChar>
             {
                 ALIB_ASSERT_ERROR(    startIdx >= 0
                                    && startIdx < TString<TChar>::length
-                                   && needles.Length() != 0,
+                                   && needles.Length() != 0, "STRINGS",
                                    "Non checking and illegal parameters" )
             }
 
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             if ( inclusion == Inclusion::Include )
             {
                 integer idx=  characters::CharArray<TChar>
@@ -355,9 +377,31 @@ class TCString : public TString<TChar>
                 integer idx=  characters::CharArray<TChar>::IndexOfAnyExcludedZT( haystack, needles );
                 return idx < 0 || *( haystack + idx ) == '\0' ? -1 : startIdx + idx;
             }
+            ALIB_WARNINGS_RESTORE
         }
 
 }; // class TCString
+
+#if (ALIB_CPPVER >= 20 && !defined(_MSC_VER))           && !defined(ALIB_DOX)
+// The following operators are re-implementations of those found with class String.
+// They are needed to mitigate typical C++ 20 comparison operator ambiguities.
+
+// CString/CString
+inline bool  operator==  (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+
+// CString/char*
+inline bool  operator==  (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+#endif
 
 
 /** ************************************************************************************************

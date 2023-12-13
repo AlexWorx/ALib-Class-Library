@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  aworx::lib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -35,7 +35,7 @@ ALoxReportWriter::ALoxReportWriter ( Lox* pLox )
     #endif
 }
 
-void ALoxReportWriter::Report( const lib::results::Message& msg )
+void ALoxReportWriter::Report( lib::results::Message& msg )
 {
     #if ALIB_DEBUG
         lox->Acquire( msg.File, msg.Line, msg.Function );
@@ -43,11 +43,47 @@ void ALoxReportWriter::Report( const lib::results::Message& msg )
             auto& logables= lox->GetLogableContainer();
             logables.Add( msg );
 
-            lox->Entry( ALoxReportWriter::LogDomain(),
-                        msg.Type == results::Report::Types::Error    ? Verbosity::Error   :
-                        msg.Type == results::Report::Types::Warning  ? Verbosity::Warning :
-                        msg.Type == results::Report::Types::Message  ? Verbosity::Info    :
-                                                                       Verbosity::Verbose     );
+            auto verbosity= msg.Type == results::Report::Types::Error    ? Verbosity::Error   :
+                            msg.Type == results::Report::Types::Warning  ? Verbosity::Warning :
+                            msg.Type == results::Report::Types::Message  ? Verbosity::Info    :
+                                                                           Verbosity::Verbose ;
+
+            NString256 domain= ALoxReportWriter::LogDomain();
+
+            // detect subdomain
+            NString256 detectedDomain;
+            if(     logables.Size() > 1
+                &&  logables[0].IsArrayOf<nchar>() )
+            {
+                bool illegalCharacterFound= false;
+                NString firstArg= logables[0].Unbox<NString>();
+                for( integer idx= 0 ;  idx< firstArg.Length() ; ++idx )
+                {
+                    char c= firstArg[idx];
+                    if (!    (    isdigit( c )
+                               || ( c >= 'A' && c <= 'Z' )
+                               || c == '-'
+                               || c == '_'
+                               || c == '/'
+                               || c == '.'
+                      )      )
+                    {
+                        illegalCharacterFound= true;
+                        break;
+                    }
+                }
+
+                if(!illegalCharacterFound)
+                {
+                    detectedDomain << domain << '/' << firstArg;
+                    domain= detectedDomain;
+                    logables.erase( logables.begin() );
+                }
+                else
+                    domain= ALoxReportWriter::LogDomain();
+            }
+
+            lox->Entry( domain, verbosity );
 
         lox->Release ();
     #else

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_DETAIL_VTABLE
@@ -12,20 +12,12 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-#if ALIB_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCKNR)
-#   include "alib/threads/threadlocknr.hpp"
-#endif
-
-
 namespace aworx { namespace lib { namespace boxing {
-
 
 /**
  * This namespace implements internals of namespace #aworx::lib::boxing.
  */
 namespace detail {
-
-
 
 /** ************************************************************************************************
  * This struct is used internally with \alib_boxing_nl  to provide run-time type information
@@ -153,6 +145,7 @@ struct FunctionTable
         * @param  rtti         The \c typeid of the function to get.
         * @param  isInvocation If \c true, the invocation counter is increased.
         *                      This parameter is defined only in debug-compilations.
+        * @return The pointer to the box-function.
         */
        ALIB_API void*    getCustom( const std::type_info& rtti, bool isInvocation )  const;
        #else
@@ -510,7 +503,7 @@ aworx::lib::boxing::detail::VTable aworx::lib::boxing::detail::SNGLTN_ ## Identi
 
 
 #if ALIB_DEBUG_BOXING
-#   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )                                           \
+#   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )                                 \
 DbgRegisterVTable( &aworx::lib::boxing::detail::SNGLTN_ ## Identifier,                             \
                    aworx::lib::boxing::detail::VTable::DbgFactoryType::Static );
 #else

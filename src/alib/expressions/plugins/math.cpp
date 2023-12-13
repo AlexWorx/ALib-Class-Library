@@ -1,23 +1,29 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2019 A-Worx GmbH, Germany
+//  Copyright 2013-2023 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_MATH)
-#   include "alib/expressions/plugins/math.hpp"
-#endif
-#if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
+#   if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_MATH)
+#      include "alib/expressions/plugins/math.hpp"
+#   endif
+
 #   include <cmath>
-#endif
-#if defined(_MSC_VER)
-#   define _USE_MATH_DEFINES
-#   include <math.h>
-#endif
 #endif // !defined(ALIB_DOX)
+
+#if !defined(M_PI)
+#   define M_PI		    3.14159265358979323846
+#endif
+#if !defined(M_E)
+#   define M_E		    2.7182818284590452354
+#endif
+#if !defined(M_LN10)
+#   define M_LN10		2.30258509299404568402
+#endif
+
 
 //! @cond NO_DOX
 
@@ -73,7 +79,7 @@ FUNC(  atanh     , return  ::atanh    (FLT(*args)); )
 
 FUNC(   exp      , return  ::exp      (FLT(*args)); )
 FUNC(   exp2     , return  ::exp2     (FLT(*args)); )
-#if defined(_MSC_VER) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)  || defined(__ANDROID_NDK__)
    FUNC(exp10    , return  ::pow      (10.0 ,FLT(*args)); )
 #else
    FUNC(exp10    , return  ::exp10    (FLT(*args)); )
@@ -82,14 +88,14 @@ FUNC(   exp2     , return  ::exp2     (FLT(*args)); )
 
 FUNC(   log      , return  ::log      (FLT(*args)); )
 FUNC(   log2     , return  ::log2     (FLT(*args)); )
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   FUNC( log10    , return  ::log      (FLT(*args)) / M_LN10; )
 #else
   FUNC( log10    , return  ::log10    (FLT(*args)); )
 #endif
 
 FUNC(   pow      , return  ::pow      (FLT(*args++),FLT(*args)); )
-#if defined(_MSC_VER) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)   || defined(__ANDROID_NDK__)
    FUNC(pow10    , return  ::pow      (10.0        ,FLT(*args)); )
 #else
    FUNC(pow10    , return  ::exp10    (FLT(*args)); )
@@ -116,6 +122,8 @@ Math::Math( Compiler& compiler )
     Token functionNames[tableSize];
     Token::LoadResourcedTokens( EXPRESSIONS, "CPM", functionNames
                                 ALIB_DBG(,tableSize)                               );
+
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
 
     // Constant identifiers
@@ -164,9 +172,10 @@ Math::Math( Compiler& compiler )
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::F ), CALCULUS_CALLBACK(cbrt     ), &Types::Float    , CTI },
     };
 
-    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize,
+    ALIB_ASSERT_ERROR( descriptor - functionNames == tableSize, "EXPR",
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize                                     )
+    ALIB_WARNINGS_RESTORE
 }
 
 

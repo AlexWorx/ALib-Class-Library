@@ -2,13 +2,13 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDPARSER
 #define HPP_ALIB_ENUMS_RECORDPARSER 1
 
-#if !defined(HPP_ALIB_MODULES)
+#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
 #   include "alib/lib/modules.hpp"
 #endif
 
@@ -68,7 +68,7 @@ namespace aworx { namespace lib { namespace enums {
  * Note that it is still is possible to deserialize elements, but not with abbreviated names.
  *
  * An implementation for a custom record type might perform more complex parsing operations.
- * For this, some helper methods are publically provided and finally, the direct use of the
+ * For this, some helper methods are publicly provided and finally, the direct use of the
  * substring #Input is likewise allowed.
  */
 struct EnumRecordParser
@@ -221,10 +221,10 @@ struct EnumRecordParser
 #else
     template<typename TIntegral>
     static
-    ATMP_VOID_IF( std::is_integral<TIntegral>::value )
+    ATMP_VOID_IF( ATMP_IS_INT(TIntegral) )
     Get( TIntegral& result, bool isLastField= false )
     {
-        integer bigInt= getInteger( isLastField );
+        integer  bigInt= getInteger( isLastField );
              if( bigInt == (std::numeric_limits<integer>::max)() )     result= (std::numeric_limits<TIntegral>::max)();
         else if( bigInt == (std::numeric_limits<integer>::min)() )     result= (std::numeric_limits<TIntegral>::min)();
         else                                                           result= static_cast<TIntegral>( bigInt );

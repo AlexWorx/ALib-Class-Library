@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2019 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_SUBSTRING
@@ -95,8 +95,10 @@ class TSubstring : public TString<TChar>
                                                                                       whiteSpaces.Buffer(),        whiteSpaces.Length() );
                 if(  idx < 0 )
                     idx= TString<TChar>::length;
+                ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 TString<TChar>::buffer+= idx;
                 TString<TChar>::length-= idx;
+                ALIB_WARNINGS_RESTORE
             }
             return *this;
         }
@@ -153,22 +155,25 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                    Whitespaces TTrimBeforeConsume= Whitespaces::Keep  >
         TChar       ConsumeChar()
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
-                if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+                if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
             }
             else
             {
-                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "NC: empty string" )
-                if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "STRINGS",
+                                   "Non checking but called on empty string" )
+                if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                     TrimStart();
             }
 
             --TString<TChar>::length;
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             return *TString<TChar>::buffer++;
+            ALIB_WARNINGS_RESTORE
         }
 
         /** ****************************************************************************************
@@ -196,8 +201,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                                          != characters::CharArray<TChar>::ToUpper(consumable) ) )
                 return false;
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             ++TString<TChar>::buffer;
             --TString<TChar>::length;
+            ALIB_WARNINGS_RESTORE
             return true;
         }
 
@@ -244,19 +251,22 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         TChar     ConsumeCharFromEnd()
         {
-            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
             }
             else
             {
-                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "NC: empty string" )
+                ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "STRINGS",
+                                   "Non checking but called on empty string" )
             }
             return *(TString<TChar>::buffer + --TString<TChar>::length );
+            ALIB_WARNINGS_RESTORE
         }
 
         /** ****************************************************************************************
@@ -280,7 +290,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -294,14 +304,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= TString<TChar>::length,
-                                   "NC: regionLength out of bounds"            )
+                                   "STRINGS", "Non checking but regionLength out of bounds"        )
             }
 
             if ( target != nullptr )
                 *target= this->TString<TChar>::template Substring<false>( 0, regionLength );
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar>::buffer+= regionLength;
             TString<TChar>::length-= regionLength;
+            ALIB_WARNINGS_RESTORE
             return TString<TChar>::length;
         }
 
@@ -325,7 +337,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -339,7 +351,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( regionLength >=0 && regionLength <= TString<TChar>::length,
-                                   "NC: regionLength out of bounds"             )
+                                   "STRINGS", "Non checking but regionLength out of bounds"             )
             }
 
             if ( target != nullptr )
@@ -380,10 +392,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                               TAString<TChar>&  target,
                               integer           separatorWidth   =0         )
         {
-            if ALIB_CONSTEXPR_IF ( TTargetData == CurrentData::Clear  )
+            if ALIB_CONSTEXPR17 ( TTargetData == CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( separatorWidth < 0 )
                     separatorWidth= 0;
@@ -402,17 +414,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( separatorWidth  >= 0,
-                                   "NC: separator width negative"  )
+                                   "STRINGS", "Non checking but separator width negative"  )
                 ALIB_ASSERT_ERROR(    regionLength >= 0
                                    && regionLength + separatorWidth <= TString<TChar>::length,
-                                   "NC: regionLength out of bounds"             )
+                                   "STRINGS", "Non checking but regionLength out of bounds"      )
             }
 
             target.template _<false>( *this, 0, regionLength );
 
             regionLength+= separatorWidth;
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar>::buffer+= regionLength ;
             TString<TChar>::length-= regionLength;
+            ALIB_WARNINGS_RESTORE
             return TString<TChar>::length;
         }
 
@@ -444,7 +458,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                               TString<TChar>&  target,
                               integer          separatorWidth   =0         )
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( separatorWidth < 0 )
                     separatorWidth= 0;
@@ -462,17 +476,19 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             else
             {
                 ALIB_ASSERT_ERROR( separatorWidth  >= 0,
-                                   "NC: separator width negative"  )
+                                   "STRINGS", "Non checking but separator width negative"  )
                 ALIB_ASSERT_ERROR(    regionLength >= 0
                                    && regionLength + separatorWidth <= TString<TChar>::length,
-                                   "NC: regionLength out of bounds"             )
+                                   "STRINGS", "Non checking but regionLength out of bounds"   )
             }
 
             target= String( TString<TChar>::buffer, regionLength );
 
             regionLength+= separatorWidth;
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar>::buffer+= regionLength ;
             TString<TChar>::length-= regionLength;
+            ALIB_WARNINGS_RESTORE
             return TString<TChar>::length;
         }
 
@@ -505,10 +521,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                      AString&            target,
                                      integer             separatorWidth   =0      )
         {
-            if ALIB_CONSTEXPR_IF ( TTargetData == CurrentData::Clear  )
+            if ALIB_CONSTEXPR17 ( TTargetData == CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 if ( separatorWidth < 0 )                        separatorWidth= 0;
                 if ( regionLength   < 0 )                        return  TString<TChar>::length;
@@ -517,9 +533,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
             else
             {
-                ALIB_ASSERT_ERROR( separatorWidth >=0 , "NC: separator width negative"  )
+                ALIB_ASSERT_ERROR( separatorWidth >=0 ,
+                                   "STRINGS", "Non checking but separator width negative"  )
                 ALIB_ASSERT_ERROR( regionLength >=0 && regionLength + separatorWidth <= TString<TChar>::length,
-                                   "NC: regionLength out of bounds"             )
+                                   "STRINGS", "Non checking but regionLength out of bounds"       )
             }
 
             target._<false>( *this, TString<TChar>::length - regionLength, regionLength );
@@ -541,10 +558,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         TString<TChar>  ConsumeToken( TChar separator= ',' )
         {
-            ALIB_ASSERT_ERROR( TString<TChar>::IsNotNull() , "ConsumeToken on nulled Substring" )
+            ALIB_ASSERT_ERROR( TString<TChar>::IsNotNull() ,
+                               "STRINGS", "ConsumeToken on nulled Substring" )
             integer        separatorPos= TString<TChar>::IndexOfOrLength( separator );
             TString<TChar> result      = TString<TChar>( TString<TChar>::buffer, separatorPos );
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar>::buffer+= separatorPos;
             TString<TChar>::length-= separatorPos;
             if( TString<TChar>::length > 0 )
@@ -552,6 +571,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 ++TString<TChar>::buffer;
                 --TString<TChar>::length;
             }
+            ALIB_WARNINGS_RESTORE
             return result;
         }
 
@@ -571,14 +591,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         bool        ConsumeString( const TString<TChar>&     consumable  )
         {
-            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
             if ( !TString<TChar>::template StartsWith<true,TSensitivity>( consumable ) )
                 return false;
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar>::buffer+= consumable.Length();
             TString<TChar>::length-= consumable.Length();
+            ALIB_WARNINGS_RESTORE
             return true;
         }
 
@@ -598,7 +620,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         bool        ConsumeStringFromEnd( const TString<TChar>&  consumable )
         {
-            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimEnd();
 
             if ( !TString<TChar>::template EndsWith<true,TSensitivity>( consumable ) )
@@ -630,9 +652,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template< Case        TSensitivity=       Case::Ignore,
                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         integer    ConsumePartOf(  const TString<TChar>&     consumable,
-                                   int                          minChars           = 1 )
+                                   int                       minChars           = 1 )
         {
-            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
             if ( minChars <= 0 )
                 minChars= static_cast<int>( consumable.Length() );
@@ -663,7 +685,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template< Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
         TString<TChar>  ConsumeField( TChar startChar, TChar endChar  )
         {
-            if ALIB_CONSTEXPR_IF ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
                 TrimStart();
 
             integer endIdx;
@@ -672,9 +694,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                 return nullptr;
 
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             TString<TChar> result= TString<TChar>( TString<TChar>::buffer + 1, endIdx - 1 );
             TString<TChar>::buffer+= (endIdx + 1);
             TString<TChar>::length-= (endIdx + 1);
+            ALIB_WARNINGS_RESTORE
             return result;
         }
 
@@ -700,7 +724,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool   ConsumeDecDigits( TIntegral& result );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ATMP_T_IF(bool, ATMP_IS_INT(TIntegral))
         ConsumeDecDigits( TIntegral& result )
         {
             uint64_t resultImpl;
@@ -733,7 +757,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool ConsumeInt( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool, std::is_integral<TIntegral>::value )
+        ATMP_T_IF(bool, ATMP_IS_INT(TIntegral) )
         ConsumeInt( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             int64_t resultImpl;
@@ -769,7 +793,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool   ConsumeDec( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ATMP_T_IF(bool, ATMP_IS_INT(TIntegral))
         ConsumeDec( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
@@ -801,7 +825,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool   ConsumeBin( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool,  std::is_integral<TIntegral>::value)
+        ATMP_T_IF(bool,  ATMP_IS_INT(TIntegral))
         ConsumeBin( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
@@ -834,7 +858,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool   ConsumeHex( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ATMP_T_IF(bool, ATMP_IS_INT(TIntegral))
         ConsumeHex( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
@@ -867,7 +891,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         bool   ConsumeOct( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr );
         #else
         template<typename TIntegral>
-        ATMP_T_IF(bool, std::is_integral<TIntegral>::value)
+        ATMP_T_IF(bool, ATMP_IS_INT(TIntegral))
         ConsumeOct( TIntegral& result, TNumberFormat<TChar>* numberFormat= nullptr )
         {
             uint64_t resultImpl;
@@ -924,16 +948,16 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                            bool trim= false )
 
         {
-            if ALIB_CONSTEXPR_IF ( TCheck )
+            if ALIB_CONSTEXPR17 ( TCheck )
             {
                 TString<TChar>::AdjustRegion( position, separatorWidth );
             }
             else
             {
                 ALIB_ASSERT_ERROR( position >=0 && position <= TString<TChar>::length,
-                                   "NC: position out of bounds"             )
+                                   "STRINGS", "Non checking but position out of bounds"        )
                 ALIB_ASSERT_ERROR( position + separatorWidth <= TString<TChar>::length,
-                                   "NC: position + separator width out of bounds" )
+                                   "STRINGS", "Non checking but position + separator width out of bounds" )
             }
 
             target= this->TString<TChar>::template Substring<false>( position + separatorWidth,
