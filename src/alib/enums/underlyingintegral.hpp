@@ -2,40 +2,43 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL
 #define HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(ENUMS)
 
-#if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
+#if !defined(HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
-namespace aworx {
+
+#define ALIB_ENUMS_UNDERLYING_TYPE(TEnum)  typename std::underlying_type<TEnum>::type
+
+namespace alib {
 
 // For documentation, all operators and enum related template functions are faked into namespace
-// aworx::lib
+// alib
 #if defined(ALIB_DOX)
-namespace lib { namespace enums {
+ namespace enums {
 #endif
 
 #if defined(ALIB_DOX)
 /**
  * Simple alias to nested statment <c>static_cast</c> and type traits <c>std::underlying_type</c>,
- * which is
- * - selected by the compiler only if template parameter \p{TEnum} represents an enum type, and
+ * which
+ * - is selected by the compiler only if template parameter \p{TEnum} represents an enum type, and
  * - is probably better readable.
  *
  * \note
- *   While documented in namespace <c>%aworx::lib::enums</c> in fact this function resides in
- *   namespace #aworx.
+ *   While documented in namespace <c>%alib::enums</c> in fact this function resides in
+ *   namespace #alib.
  *
  * \see
  *   Class \alib{boxing,Enum} introduced with module \alib_boxing.
@@ -50,7 +53,7 @@ typename std::underlying_type<TEnum>::type    UnderlyingIntegral(TEnum  element)
 #else
 template<typename TEnum>
 constexpr
-ATMP_T_IF(typename std::underlying_type<TEnum>::type, std::is_enum<TEnum>::value)
+ATMP_T_IF(ALIB_ENUMS_UNDERLYING_TYPE(TEnum), std::is_enum<TEnum>::value)
 UnderlyingIntegral(TEnum  element) noexcept(true)
 {
     return static_cast<typename std::underlying_type<TEnum>::type>( element );
@@ -59,10 +62,9 @@ UnderlyingIntegral(TEnum  element) noexcept(true)
 
 // Reset documentation fake
 #if defined(ALIB_DOX)
-}} // namespace aworx[::lib::enums]
+} // namespace alib[::enums]
 #endif
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL
-

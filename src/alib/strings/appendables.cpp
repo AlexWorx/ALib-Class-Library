@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,10 +19,13 @@
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
 
+#if ALIB_DEBUG && !defined (HPP_ALIB_LANG_DBGTYPEDEMANGLER)
+#   include "alib/lang/dbgtypedemangler.hpp"
+#endif
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 #if defined(ALIB_DOX)
 /**
@@ -32,9 +35,9 @@ namespace aworx { namespace lib { namespace strings {
  *
  * In this <b>"documentation namespace"</b>, you will find specializations of functor
  * \alib{strings,T_Append} which in reality are implemented in parent
- * namespace \ref aworx::lib::strings (as required by C++ language syntax).<br>
+ * namespace \ref alib::strings (as required by C++ language syntax).<br>
  * The rational for tricking the documentation to this pseude-namespace, is to twofold:
- * On the one hand to keep namespace \b %aworx::lib::strings clean and on the other to have
+ * On the one hand to keep namespace \b %alib::strings clean and on the other to have
  * an overview of all specializations in one place.
  */
 namespace APPENDABLES {
@@ -101,7 +104,7 @@ template void T_Append<double   , xchar>::operator()( TAString<xchar>&, double  
     template<typename TChar>
     void T_Append<std::type_info, TChar>::operator()( TAString<TChar>& target, const std::type_info& type )
     {
-        target.template _<false>( DbgTypeDemangler( type ).Get() );
+        target.template _<false>( lang::DbgTypeDemangler( type ).Get() );
     }
     template void T_Append<std::type_info , nchar>::operator()( TAString<nchar>&, const std::type_info& );
     template void T_Append<std::type_info , wchar>::operator()( TAString<wchar>&, const std::type_info& );
@@ -118,14 +121,14 @@ void T_Append<typename TFormat<TChar>::Tab, TChar>::operator()( TAString<TChar>&
     if (reference < 0 )
     {
         // search backwards
-        reference= target.template LastIndexOfAny<Inclusion::Include>( TT_StringConstants<TChar>::NewLine(), target.Length() -1 );
+        reference= target.template LastIndexOfAny<lang::Inclusion::Include>( TT_StringConstants<TChar>::NewLine(), target.Length() -1 );
         if ( reference < 0 )
             reference= 0;
         else
         {
             // if new line has more than one character (windows) we have to now search the first
             // character that is not in newline
-            reference= target.template IndexOfAny<Inclusion::Exclude, false>( TT_StringConstants<TChar>::NewLine(), reference );
+            reference= target.template IndexOfAny<lang::Inclusion::Exclude, false>( TT_StringConstants<TChar>::NewLine(), reference );
             if (reference < 0 )
                 reference= target.Length();
 
@@ -174,7 +177,7 @@ void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar
                     - theContent.WStringLength();
 
     // check pad field.width
-    if (padSize <= 0 || field.alignment == Alignment::Left )
+    if (padSize <= 0 || field.alignment == lang::Alignment::Left )
     {
                                 target.template _          <false>( theContent );
         if (padSize > 0 )       target.template InsertChars<false>( field.padChar, padSize );
@@ -182,7 +185,7 @@ void T_Append<typename TFormat<TChar>::Field, TChar>::operator()( TAString<TChar
     }
 
     // align Right
-    if ( field.alignment == Alignment::Right )
+    if ( field.alignment == lang::Alignment::Right )
     {
         if( padSize > 0 )
             target.template InsertChars<false>( field.padChar, padSize );
@@ -213,7 +216,7 @@ void T_Append<typename TFormat<TChar>::Escape, TChar>::operator()( TAString<TCha
     //
     // To escape sequences
     //
-    if (escape.pSwitch == Switch::On)
+    if (escape.pSwitch == lang::Switch::On)
     {
         for( integer idx= escape.startIdx; idx < regionEnd ; ++idx )
         {
@@ -403,4 +406,4 @@ template void T_Append<TFormat<xchar>::Oct   , xchar>::operator()( TAString<xcha
 #endif // !defined(ALIB_DOX)
 
 
-}}}// namespace [aworx::lib::strings]
+}} // namespace [alib::strings]

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_CHARARRAYTRAITS
@@ -11,18 +11,14 @@
 #if !defined(HPP_ALIB_STRINGS_STRING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
-
-namespace aworx { namespace lib { namespace strings {
-
-
 #if !defined(ALIB_DOX)
+
+namespace alib {  namespace strings {
+
+
 template<typename TChar>  struct T_SuppressAutoCast<TAString<TChar>, characters::ConstructionType::Implicit,   TCString<TChar> > : public std::true_type {};
 template<typename TChar>  struct T_SuppressAutoCast<TAString<TChar>, characters::ConstructionType::Implicit, TSubstring<TChar> > : public std::true_type {};
 template<typename TChar>  struct T_SuppressAutoCast<TCString<TChar>, characters::ConstructionType::Implicit, TSubstring<TChar> > : public std::true_type {};
-#endif
-
-
-#if !defined(ALIB_DOX)
 
 // #################################################################################################
 // Specializations of T_CharArray for ALib string types
@@ -149,9 +145,8 @@ struct  T_ZTCharArray<strings::TLocalString<TChar,TCapacity>, TChar>
 
 } namespace strings {
 
+
+}} // namespace [alib::strings]
+
 #endif // !defined(ALIB_DOX)
-
-
-}}} // namespace [aworx::lib::strings]
-
 #endif // HPP_ALIB_STRINGS_CHARARRAYTRAITS

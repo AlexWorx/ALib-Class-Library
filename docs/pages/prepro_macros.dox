@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -45,7 +45,7 @@ Followed to this, module-specific macros are documented:
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_characters    "Module Characters"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_enums         "Module Enums"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_expressions   "Module Expressions"
-<br> &nbsp;&nbsp; \ref GrpALibMacros_mod_resources     "Module Resources"
+<br> &nbsp;&nbsp; \ref GrpALibMacros_mod_camp          "Module BaseCamp"
 <br> &nbsp;&nbsp; \ref GrpALibMacros_mod_strings       "Module Strings"
 
 The last section provides macros used to include or exclude (prune) code:
@@ -53,7 +53,7 @@ The last section provides macros used to include or exclude (prune) code:
 
 @{
 
-\I{#########################    ALib Version And Feature Verification       ##################################  }
+\I{########################    ALib Version And Feature Verification      ######################## }
 \name ALib Version And Feature Verification
 
 \anchor GrpALibMacros_alib_version
@@ -65,31 +65,30 @@ directly clients of the library.
 
 @{
 \def  ALIB_VERSION
-  The \alib version number. The value of this macro is written into field
-  \alib{Module::Version} of each module's singleton.
+  The \alib version number.
+  The value of this macro is stored in namespace variable \ref alib::Version.
 
   \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
 
 
 \def  ALIB_REVISION
-  The \alib revision number. The value of this macro is written into field
-  \alib{Module::Revision} of each module singleton.
+  The \alib revision number.
+  The value of this macro is stored in namespace variable \ref alib::Revision.
+
+  \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
 
 
 \def  ALIB_COMPILATION_FLAGS
   Macro to provide a compilation flag verifier value to be used with method
-  \alib{Module::VerifyCompilationFlags} which is to be invoked on singleton \ref aworx::ALIB
-  of type \alib{ALibDistribution}.
+  \ref alib::AssertALibVersionAndFlags which is automatically invoked with function
+   \ref alib::Bootstrap (and overloads).
+  The value of this macro is stored in namespace variable \ref alib::Revision.
 
   \see Programmer's manual chapter \ref alib_manual_bootstrapping_assertcomp.
 
-\def  ALIB_ASSERT_FILESET
-  Asserts if a given fileset is included in the \alibdist.
-  @param filesetname   The code selection symbol of the fileset (\b ALIB_FILESET_XXX)
-
 \def  ALIB_ASSERT_MODULE
   Asserts if a given module is included in the \alibdist.
-  @param modulename   The code selection symbol of the fileset (\b ALIB_XXX)
+  @param modulename   The name of the module to assert as available.
 
 
 \def  ALIB_BASE_DIR
@@ -194,35 +193,13 @@ specific utilities.
   Used as alias to C++ attribute <c>[[noreturn]]</c>.
   Defined if the compiler has support for it, else empty.
 
+\def ALIB_ASSERT_GLOBAL_NAMESPACE
+  If this macro is placed outside the global namespace, a <c>static_assert</c> is raised at
+  compile time.
+
 \def  ALIB_SIZEOF_WCHAR_T
   Compiler/platform dependent value. Gives the sizeof values of type \c wchar_t in bytes.
   Possible values are \b 2 and \b 4.
-
-
-\def  ALIB_CPP14_CONSTEXPR
-  Macro used in situations when C++ keyword \c constexpr is not allowed in <b>C++ 11</b> but in
-  <b>C++ 14</b> and onwards.
-
-\def  ALIB_CPP14_REL_CONSTEXPR
-  Macro used in situations when C++ keyword \c constexpr is only allowed in release-compilations
-  with <b>C++ 11</b> but with <b>C++ 14</b> onwards in debug- and release-compilations.<br>
-  This for example is the case when constructors exclusively contain assertion code that exists only
-  in debug-compilations, but not in release-compilations.
-
-\def  ALIB_CONSTEXPR17
-  Evaluates to to <c>constexpr</c> with <b>C++ 17</b> onwards and is empty below <c>C++ 17</c>.
-  Used to phrase the so called <em>constexpr-if</em>.
-
-\def  ALIB_CPP17_CONSTEXPR
-  Macro used in situations when C++ keyword \c constexpr is not allowed in <b>C++ 14</b> but in
-  <b>C++ 17</b> onwards.
-
-\def  ALIB_CPP17_REL_CONSTEXPR
-  Macro used in situations when C++ keyword \c constexpr is only allowed in release-compilations
-  with <b>C++ 14</b> but with <b>C++ 17</b> onwards in debug- and release-compilations.<br>
-
-\def  ALIB_NODISCARD
-  Evaluates to <c>[[nodiscard]]</c> with <b>C++ 17</b> and onwards. Otherwise is empty.
 
 \def ALIB_FORCE_INLINE
   Uses compiler-specific annotation (including keyword \c inline if necessary) to mark a method
@@ -253,6 +230,15 @@ specific utilities.
   In comparison to \ref ALIB_CALLER_PRUNED, this macro is to be used with invocations of
   methods that keep the corresponding parameters in release compilations.
 
+\def  bitsof(type)
+  Like C++ keyword <c>sizeof</c> but returns the number of bits of the type of the given value.
+  The return type is <c>int</c> instead of <c>size_t</c>, which satisfies \alib code conventions.
+
+  \note To improve code readability, namely to a) indicate that this is an inlined, constant
+        expression and b) to indicate that this is just using keyword <c>sizeof</c>,
+        as an exception from the naming rules, this function is spelled in lower case.
+
+  @see Function \ref alib::lang::bitsofval(const T&)
 @}
 
 
@@ -340,10 +326,6 @@ this in a compiler agnostic way.
  Used with keyword \c switch to annotate a \c case block that has no \b break or (\c return, etc.).
  Avoids a warning with some compilers.
 
-\def ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
- Preprocessor macro to disable compiler warnings concerning expressions that evaluate at
- compile time.
-
 \def ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
  Preprocessor macro to disable compiler warnings about code that may cause an overflow of an
  integral constant.
@@ -362,8 +344,8 @@ this in a compiler agnostic way.
 
 The macros listed here are defined in two different versions, depending on the \alib distribution.
 With single <b>%ALib Modules</b> that do not incorporate class
-\ref aworx::lib::results::Report and family, namespace function
-\ref aworx::lib::DbgSimpleALibMsg (and overloads) are used to write the messages.
+\ref alib::lang::Report and family, namespace function
+\ref alib::lang::DbgSimpleALibMsg (and overloads) are used to write the messages.
 The default implementation of this message invokes \b %assert(false) if the message is of
 error type.<br>
 There is a very simple "plug-in" concept in place that allows to redirect this method to
@@ -619,7 +601,7 @@ complex type expressions.
  The macro is to be placed at the start of the method declaration, replacing the otherwise
  necessary statement <c>template< ></c>.<br>
  In addition to the template statement, the macro adds macro \ref ALIB_FORCE_INLINE.
- Therefore, no additional use of keyword \c inline must not made after the macro and the method's
+ Therefore, no additional use of keyword \c inline must be made after the macro and the method's
  return type (or constructor name).
 
  @param TParam   Type and name of the template parameter of the method, for example "typename T".
@@ -795,6 +777,7 @@ For proper pruning of code that is using the C++ API, such code has to be enclos
 \verbatim
 #if ALOX_DBG_LOG
    ...
+   ...
 #endif
 \endverbatim
 lines, or embedded in macro \ref Log_Prune.
@@ -807,7 +790,7 @@ prefixed "Lox_". (The choice of the prefixes *Log_* and *Lox* provide  maximum s
 compatibility of <b>%ALox for C++</b> log lines in comparison to ALox for C# and ALox for Java.<p>
 
 Most macros make use of the macro \ref LOG_LOX, which references a singleton
-object of class \ref aworx::lib::lox::Lox "Lox" that is used for all debug logging.
+object of class \ref alib::lox::Lox "Lox" that is used for all debug logging.
 This singleton concept covers most
 uses cases for debug logging. If more flexibility is wanted, then either macro
 \ref LOG_LOX might be changed for different compilation units or the <b>%ALox for C++ API</b>
@@ -844,7 +827,7 @@ Changing this macro, might cause these mechanism to fail.
   @param ...  The parameters to pass.
 
 \def Log_RemoveDebugLogger
-  Invokes \alox{Log::RemoveDebugLogger} to remove and delete a debug logger created by \ref aworx::lib::lox::Log::AddDebugLogger "Log::AddDebugLogger".
+  Invokes \alox{Log::RemoveDebugLogger} to remove and delete a debug logger created by \ref alib::lox::Log::AddDebugLogger "Log::AddDebugLogger".
   @param ...  The parameters to pass.
 
 \def Log_GetLogger
@@ -958,6 +941,7 @@ Code that is using the C++ API might be enclosed by preprocessor directives<br>
 \verbatim
 #if ALOX_REL_LOG
    ...
+   ...
 #endif
 \endverbatim
 to remove them when compiling a release version of the software unit with pruned
@@ -980,7 +964,7 @@ in other programming languages, which provide a class Log as a kind of 'mirror' 
 class Lox. Invocations to class Log get pruned in these languages. <p>
 
 Most macros make use of the macro \ref LOX_LOX, which references a singleton
-object of class \ref aworx::lib::lox::Lox "Lox" that is used for all release logging.
+object of class \ref alib::lox::Lox "Lox" that is used for all release logging.
 This singleton concept covers most
 uses cases for release logging. If more flexibility is wanted, then either the macro
 \ref LOX_LOX might be changed for different compilation units or the <b>%ALox C++ API</b>
@@ -1028,8 +1012,7 @@ might be used instead of the macros listed here.
     If \ref ALOX_REL_LOG_CI is not set, which is the default for release logging, and when used with language-related
     \e Scopes, this method will log an internal warning and will not be effective in respect to
     \e %Scope::Path, \e %Scope::Filename, and \e %Scope::Method.
-    See \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html} for
-    detailed information.
+    See \ref alib_mod_alox for detailed information.
 
     If Scope Domains based on source-related scopes should be supported in release logging, the
     \alibdist as well as the software entity have to be compiled with compiler symbol \ref ALOX_REL_LOG_CI.
@@ -1368,7 +1351,7 @@ The macros in this section are introduced by module \alib_boxing.
 
 \def  ALIB_BOXING_VTABLE_DECLARE
   Declares an \c extern object of type \alib{boxing::detail,VTable} named \p{TMapped} in
-  namespace \ref aworx::lib::boxing::detail.<br>
+  namespace \ref alib::boxing::detail.<br>
   Furthermore specializes template struct \alib{boxing,detail::T_VTableFactory} for type
   \alib{boxing,TMappedTo,TMappedTo<TMapped>} to have its method \b Get return the object named
   \p{Identifier}.
@@ -1525,8 +1508,8 @@ The macros in this section are introduced by module \alib_characters.
   the string types, the string literals have to change as well. To be able to compile on different
   platforms while using different compiler symbols to manipulate the character width, almost all string
   literals in \alib sources are enclosed by this macro. The exclamation are of-course such
-  literals which are assigned to narrow string type \aworx{NString}, or those where explicit
-  string types \aworx{WString} or \aworx{XString} are used.
+  literals which are assigned to narrow string type \alib{NString}, or those where explicit
+  string types \alib{WString} or \alib{XString} are used.
 
   \note To avoid too much code clutter, this macro, as well as its siblings
         \ref A_CCHAR, \ref A_SCHAR, \ref A_NCHAR, \ref A_WCHAR and \ref A_XCHAR,
@@ -1622,8 +1605,8 @@ The macros in this section are introduced by module \alib_characters.
 \def  ATMP_CHAR_COMPLEMENT
  Gives the complementary character type to the given type. This is specific to \alib
  character definitions. Converts
- - \aworx{character} to \aworx{complementChar}
- - \aworx{complementChar} to \aworx{character}
+ - \alib{character} to \alib{complementChar}
+ - \alib{complementChar} to \alib{character}
 
 
  \see
@@ -1768,7 +1751,7 @@ The macros in this section are introduced by module \alib_characters.
 
   The argument providing a constant reference of type \p{TString} to the method's implementation, and
   which has to be accessed in the given implementation code, is named \p{src}.
-  The implementation has to return the length of the character array as type \aworx{integer}.
+  The implementation has to return the length of the character array as type \alib{integer}.
 
   @param TString      The type to provide the specialized static method for.
   @param TChar        The character type of character arrays that \p{TString} represents or might be created of.
@@ -1847,13 +1830,17 @@ type-traits structs
 \alib{enums,T_EnumIsIterable} for scoped or non-scoped enum types.
 
 \attention
-- All macros in this section have to be placed in global scope (outside of namespaces and types).
+- All macros (except \ref ALIB_ENUMS_UNDERLYING_TYPE) in this section have to be placed in global scope
+  (outside of namespaces and types).
 - For technical reasons, neither the macros nor the concepts behind them are applicable to
   enum types that are defined as \c private or \c protected inner types of structs or classes.
 
 @{
 
 \I{################################################################################################}
+\def  ALIB_ENUMS_UNDERLYING_TYPE
+  Simple shortcut to <c>typename std::underlying_type<TEnum>::type</c>.
+
 \def  ALIB_ENUMS_ASSIGN_RECORD
   Macro used to specialize type-traits struct
   \alib{enums,T_EnumRecords,T_EnumRecords<TEnum>} to associate C++ enumeration type \p{TEnum} with
@@ -2007,13 +1994,13 @@ The macros in this section are introduced by module \alib_strings.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_N
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref aworx::nchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref alib::nchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_W
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref aworx::wchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE but for character type \ref alib::wchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
 
@@ -2029,14 +2016,14 @@ The macros in this section are introduced by module \alib_strings.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_DEF_N
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref aworx::nchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref alib::nchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_DEF_W
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref aworx::wchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_DEF but for character type \ref alib::wchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
   @param IMPL The implementation code for \b operator().
@@ -2062,14 +2049,14 @@ The macros in this section are introduced by module \alib_strings.
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_INLINE_N
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref aworx::nchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref alib::nchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
   @param IMPL The implementation code for \b operator().
 
 
 \def ALIB_STRINGS_APPENDABLE_TYPE_INLINE_W
-  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref aworx::wchar.
+  Same as \ref ALIB_STRINGS_APPENDABLE_TYPE_INLINE but for character type \ref alib::wchar.
 
   @param TYPE The type to specialize functor \b T_Append for.
   @param IMPL The implementation code for \b operator().
@@ -2198,43 +2185,47 @@ The macros in this section are introduced by module \alib_strings.
   @param src        The source string.
   @param bufSize    The local buffer size used for the conversion.
 
+\def  ALIB_STRING_RESETTER
+  Creates an \e 'anonymous' instance of class \alib{strings,TStringLengthResetter}. Its
+  identifier name is assembled using macro \ref ALIB_IDENTIFIER, hence from the given
+  \b AString's identifier and the line number in the code.
+
+  @param astring The \alib{strings,TAString,AString} to reset to its original length when the
+                 C++ block scope where this macro is placed, is left.
 @}
 
 
 \I{################################################################################################}
-\I{################################     ALib Module Resources      ##############################  }
+\I{################################     ALib Module BaseCamp       ##############################  }
 \I{################################################################################################}
-\name ALib Module Resources
+\name ALib Module BaseCamp
 
-\anchor GrpALibMacros_mod_resources
-The macros in this section are introduced by module \alib_resources.
+\anchor GrpALibMacros_mod_camp
+The macros in this section are introduced by sub-namespace #alib::lang::resources of
+module \alib_basecamp_nl.
 
 @{
 \def  ALIB_RESOURCED
-   Macro used to specialize type-traits struct \alib{resources,T_Resourced} for given type \p{T}.
+   Macro used to specialize type-traits struct \alib{lang::resources,T_Resourced} for given type \p{T}.
 
    @param T            The type to specialize TMP struct \b %T_Resourced for.
-   @param ResPool      Expression providing a pointer to the \alib{resources,ResourcePool} object.
+   @param ResPool      Expression providing a pointer to the \alib{lang::resources,ResourcePool} object.
    @param ResCategory  Expression providing the resource category.
    @param ResName      Expression providing the resource name.
 
 \def ALIB_RESOURCED_IN_MODULE
    Variant of macro \ref ALIB_RESOURCED, which specializes type-traits struct
-   \alib{resources,T_Resourced} for type \p{T} to use the resource-backend found in the given
-   \alib{Module}, as well as its default \alib{Module,ResourceCategory}.
+   \alib{lang::resources,T_Resourced} for type \p{T} to use the resource-backend found in the given
+   \alib{lang,Camp}, as well as its default \alib{lang::Camp,ResourceCategory}.
 
    ### Availability ###
-   This macro is available only if \ref ALIB_FILESET_MODULES equals \c true.
+   This macro is available only if \ref ALIB_CAMP equals \c true.
 
    @param T            The type to specialize TMP struct \b %T_Resourced for.
-   @param Module       Pointer to the \alib{Module} that provides the \alib{resources,ResourcePool}
-                       object.
+   @param Camp   Pointer to the \alib{lang,Camp} that provides the
+                       \alib{lang::resources,ResourcePool} object.
    @param ResName      Expression providing the resource name.
 @}
-
-
-
-
 
 
 \I{##############################    Code Selection / Pruning       #############################  }
@@ -2254,6 +2245,8 @@ code pieces.
 \verbatim
     #if ALIB_DEBUG
         // do stuff
+        ...
+        ...
     #endif
 \endverbatim
    and is useful especially for single line statements.
@@ -2274,12 +2267,21 @@ code pieces.
   be used seldom and with care, as it generally implies more intense release code testing.
   As of Version 1810, \alib does not use this macro internally.
 
+\def  ALIB_CPP_23
+  This simple macro may be used for placing code that is only applicable to the C++ language
+  standard \c 23 or higher. With lower standard the code given is pruned.
+  @see Macro \ref ALIB_CPP_BEFORE_23
+
+ \def  ALIB_CPP_BEFORE_23
+  This simple macro may be used for placing code that is only applicable to the C++ language
+  standard \c 20 or below. With higher standard the code given is pruned.
+  @see Macro \ref ALIB_CPP_23
 
 
 This group of simple macros either include or prune code dependent on the inclusion
 of \alibmods_nl in an \alibdist.
 
-The symbols are defined in header \alibheader{lib/modules.hpp} which always is and has to
+The symbols are defined in header \alibheader{alib.hpp} which always is and has to
 be the first \alib header file included (directly or indirectly).
 
 \def  ALIB_IF_ALOX
@@ -2294,18 +2296,29 @@ be the first \alib header file included (directly or indirectly).
     Symbol \ref ALIB_ALOX and sibling macro \ref ALIB_IF_ALOX.
   @param ... The source to select.
 
-\def  ALIB_IF_EXPRESSIONS
-  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
+\def  ALIB_IF_BOXING
+  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref ALIB_IFN_EXPRESSIONS.
+    Symbol \ref ALIB_BOXING and sibling macro \ref ALIB_IFN_BOXING.
   @param ... The source to select.
 
-\def  ALIB_IFN_EXPRESSIONS
-  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
+\def  ALIB_IFN_BOXING
+  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref ALIB_IF_EXPRESSIONS.
+    Symbol \ref ALIB_BOXING and sibling macro \ref ALIB_IF_BOXING.
   @param ... The source to select.
 
+\def  ALIB_IF_BITBUFFER
+  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibdist.
+  \see
+    Symbol \ref ALIB_BITBUFFER and sibling macro \ref ALIB_IFN_BITBUFFER.
+  @param ... The source to select.
+
+\def  ALIB_IFN_BITBUFFER
+  Prunes given code \p{...} if \alib_bitbuffer is not included in the \alibdist.
+  \see
+    Symbol \ref ALIB_BITBUFFER and sibling macro \ref ALIB_IF_BITBUFFER.
+  @param ... The source to select.
 
 \def  ALIB_IF_CONFIGURATION
   Prunes given code \p{...} if \alib_config is not included in the \alibdist.
@@ -2332,52 +2345,16 @@ be the first \alib header file included (directly or indirectly).
     Symbol \ref ALIB_CLI and sibling macro \ref ALIB_IF_CLI.
   @param ... The source to select.
 
-\def  ALIB_IF_SYSTEM
-  Prunes given code \p{...} if \alib_system is not included in the \alibdist.
+\def  ALIB_IF_CAMP
+  Prunes given code \p{...} if \alib_basecamp is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_SYSTEM and sibling macro \ref ALIB_IFN_SYSTEM.
+    Symbol \ref ALIB_CAMP and sibling macro \ref ALIB_IFN_CAMP.
   @param ... The source to select.
 
-\def  ALIB_IFN_SYSTEM
-  Prunes given code \p{...} if \alib_system is not included in the \alibdist.
+\def  ALIB_IFN_CAMP
+  Prunes given code \p{...} if \alib_basecamp is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_SYSTEM and sibling macro \ref ALIB_IF_SYSTEM.
-  @param ... The source to select.
-
-\def  ALIB_IF_RESULTS
-  Prunes given code \p{...} if \alib_results is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_RESULTS and sibling macro \ref ALIB_IFN_RESULTS.
-  @param ... The source to select.
-
-\def  ALIB_IFN_RESULTS
-  Prunes given code \p{...} if \alib_results is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_RESULTS and sibling macro \ref ALIB_IF_RESULTS.
-  @param ... The source to select.
-
-\def  ALIB_IF_TEXT
-  Prunes given code \p{...} if \alib_text is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_TEXT and sibling macro \ref ALIB_IFN_TEXT.
-  @param ... The source to select.
-
-\def  ALIB_IFN_TEXT
-  Prunes given code \p{...} if \alib_text is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_TEXT and sibling macro \ref ALIB_IF_TEXT.
-  @param ... The source to select.
-
-\def  ALIB_IF_BOXING
-  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_BOXING and sibling macro \ref ALIB_IFN_BOXING.
-  @param ... The source to select.
-
-\def  ALIB_IFN_BOXING
-  Prunes given code \p{...} if \alib_boxing is not included in the \alibdist.
-  \see
-    Symbol \ref ALIB_BOXING and sibling macro \ref ALIB_IF_BOXING.
+    Symbol \ref ALIB_CAMP and sibling macro \ref ALIB_IF_CAMP.
   @param ... The source to select.
 
 \def  ALIB_IF_ENUMS
@@ -2392,16 +2369,28 @@ be the first \alib header file included (directly or indirectly).
     Symbol \ref ALIB_ENUMS and sibling macro \ref ALIB_IF_ENUMS.
   @param ... The source to select.
 
-\def  ALIB_IF_RESOURCES
-  Prunes given code \p{...} if \alib_resources is not included in the \alibdist.
+\def  ALIB_IF_EXPRESSIONS
+  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_RESOURCES and sibling macro \ref ALIB_IFN_RESOURCES.
+    Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref ALIB_IFN_EXPRESSIONS.
   @param ... The source to select.
 
-\def  ALIB_IFN_RESOURCES
-  Prunes given code \p{...} if \alib_resources is not included in the \alibdist.
+\def  ALIB_IFN_EXPRESSIONS
+  Prunes given code \p{...} if \alib_expressions is not included in the \alibdist.
   \see
-    Symbol \ref ALIB_RESOURCES and sibling macro \ref ALIB_IF_RESOURCES.
+    Symbol \ref ALIB_EXPRESSIONS and sibling macro \ref ALIB_IF_EXPRESSIONS.
+  @param ... The source to select.
+
+\def  ALIB_IF_FILES
+  Prunes given code \p{...} if \alib_files is not included in the \alibdist.
+  \see
+    Symbol \ref ALIB_FILES and sibling macro \ref ALIB_IFN_FILES.
+  @param ... The source to select.
+
+\def  ALIB_IFN_FILES
+  Prunes given code \p{...} if \alib_files is not included in the \alibdist.
+  \see
+    Symbol \ref ALIB_FILES and sibling macro \ref ALIB_IF_FILES.
   @param ... The source to select.
 
 \def  ALIB_IF_THREADS
@@ -2481,5 +2470,3 @@ be the first \alib header file included (directly or indirectly).
 
 @}
 */
-
-

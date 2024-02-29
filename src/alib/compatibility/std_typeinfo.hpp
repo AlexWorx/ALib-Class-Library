@@ -4,14 +4,14 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".                                                                                 >
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_TYPEINFO
 #define HPP_ALIB_COMPATIBILITY_STD_TYPEINFO 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if !defined (_TYPEINFO) && !defined(_TYPEINFO_)
@@ -29,7 +29,7 @@
 #include <stddef.h>
 
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /**
  * This namespace contains sub-namespaces that provide compatibility of 3rd-party types and
@@ -118,12 +118,11 @@ struct TypeFunctors
     };
 }; // struct TypeFunctors
 
-}}} // namespace aworx:[:lib::compatibility::std]
+}} // namespace alib[::compatibility::std]
 
-/// Type alias in namespace #aworx.
-using     TypeFunctors=       aworx::lib::compatibility::std::TypeFunctors;
+/// Type alias in namespace \b alib.
+using     TypeFunctors=       compatibility::std::TypeFunctors;
 
-
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_COMPATIBILITY_STD_TYPEINFO

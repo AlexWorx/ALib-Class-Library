@@ -2,29 +2,25 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOXING
 #define HPP_ALIB_BOXING_BOXING 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
 
 
-#if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
+#if !defined(HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
-
-#if !defined(HPP_ALIB_INTEGERS)
-#   include "alib/lib/integers.hpp"
+#if !defined(HPP_ALIB_LANG_INTEGERS)
+#   include "alib/lang/integers.hpp"
 #endif
 
 #if !defined(HPP_ALIB_SINGLETONS_SINGLETON)
@@ -43,42 +39,13 @@ ALIB_ASSERT_MODULE(BOXING)
 #   include "alib/boxing/fwds.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_COMMONENUMS_DEFS)
-#   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
-#endif
-
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+#if !defined(HPP_ALIB_LANG_COMMONENUMS_DEFS)
+#   include "alib/lang/commonenumdefs.hpp"
 #endif
 
 #if !defined (_GLIBCXX_TYPEINDEX) && !defined(_TYPEINDEX_)
 #   include <typeindex>
 #endif
-
-
-//##################################################################################################
-//#################################        Compiler Symbols        #################################
-//##################################################################################################
-#if !defined(ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS)
-#   define ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS     0
-#endif
-
-#if !defined(ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS)
-#   define ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS    0
-#endif
-
-#if !defined(ALIB_FEAT_BOXING_BIJECTIVE_FLOATS)
-#   define ALIB_FEAT_BOXING_BIJECTIVE_FLOATS        0
-#endif
-
-#if !defined(ALIB_DEBUG_BOXING)
-#   define ALIB_DEBUG_BOXING                        0
-#elif !ALIB_DEBUG && ALIB_DEBUG_BOXING
-#   undef    ALIB_DEBUG_BOXING
-#   define   ALIB_DEBUG_BOXING           0
-#   pragma message "Symbol ALIB_DEBUG_BOXING set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
-#endif
-
 
 
 //##################################################################################################
@@ -97,7 +64,7 @@ ALIB_ASSERT_MODULE(BOXING)
 //##################################################################################################
 //########      Namespace functions  (Bootstrap, BootstrapRegister, RegisterDefault)      ##########
 //##################################################################################################
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 /** ************************************************************************************************
  * This method needs to be called with bootstrapping a software.
@@ -106,15 +73,14 @@ namespace aworx { namespace lib { namespace boxing {
  * In addition, in debug-compilations, \ref alib_boxing_more_opt_staticvt "static vtables" are
  * registered.
  *
- * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib will perform this.
- * Only if fileset \alibfs_modules is not included in the \alibdist_nl, this
- * function has to be invoked "manually".
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Bootstrap will call this function.
  *
  * Multiple invocations of this method are ignored.
  *
  * \see
  *   For information about using this method, consult chapter
- *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
+ *   \ref alib_manual_bootstrapping_nocamps of the \ref alib_manual.
  * ************************************************************************************************/
 ALIB_API
 void        Bootstrap();
@@ -128,7 +94,7 @@ void        Bootstrap();
  *   of multi-threaded access. For this reason, it is advised to invoke this function exclusively
  *   while \ref alib_manual_bootstrapping "bootstrapping" a software, when no threads are started,
  *   yet. Registrations can be made prior to bootstrapping \alib, respectively during or after
- *   phase \alib{Module,BootstrapPhases::PrepareResources}.
+ *   phase \alib{BootstrapPhases::PrepareResources}.
  *
  * \attention
  *   If for any reason registration is performed \b after bootstrapping \alib and module
@@ -136,7 +102,7 @@ void        Bootstrap();
  *   \alib was bootstrapped, then prior to an invocation of this method, mutex
  *   \alib{monomem,GlobalAllocatorLock} has to be acquired. This can be done with:
  *
- *           ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+ *           ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
  *
  * \attention
  *   Note that even when this lock is set, still multi-threaded access to registration and/or
@@ -168,7 +134,7 @@ void BootstrapRegister( typename TFDecl::Signature function )
  *   of multi-threaded access. For this reason, it is advised to invoke this function exclusively
  *   while \ref alib_manual_bootstrapping "bootstrapping" a software, when no threads are started,
  *   yet. Registrations can be made prior to bootstrapping \alib, respectively during or after
- *   phase \alib{Module,BootstrapPhases::PrepareResources}.
+ *   phase \alib{BootstrapPhases::PrepareResources}.
  *
  * \attention
  *   If for any reason registration is performed \b after bootstrapping \alib and module
@@ -176,7 +142,7 @@ void BootstrapRegister( typename TFDecl::Signature function )
  *   \alib was bootstrapped, then prior to an invocation of this method, mutex
  *   \alib{monomem,GlobalAllocatorLock} has to be acquired. This can be done with:
  *
- *           ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+ *           ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
  *
  * \attention
  *   Note that even when this lock is set, still multi-threaded access to registration and/or
@@ -193,7 +159,7 @@ void BootstrapRegisterDefault( typename TFDecl::Signature function )
 }
 
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 
 // #################################################################################################
@@ -202,7 +168,7 @@ void BootstrapRegisterDefault( typename TFDecl::Signature function )
 #if ALIB_STRINGS
 #include "alib/strings/astring.hpp"
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -229,12 +195,11 @@ namespace APPENDABLES {
     };
 
 #if defined(ALIB_DOX)
-}    // namespace aworx::lib::strings[::appendables]
+}    // namespace alib::strings[::appendables]
 #endif
 
-}}}  // namespace [aworx::lib::strings]
+}}  // namespace [alib::strings]
 
 #endif // ALIB_STRINGS
 
 #endif // HPP_ALIB_BOXING_BOXING
-

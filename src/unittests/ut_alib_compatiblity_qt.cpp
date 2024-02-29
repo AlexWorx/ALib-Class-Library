@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -33,7 +33,7 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -83,9 +83,9 @@ UT_METHOD( QT_String )
 UT_METHOD( QT_StringBoxing )
 {
     UT_INIT()
-    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED) );
-    aworx::lib::boxing::compatibility::qt::BootstrapQTStringBoxing();
-    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release() );
+    ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED) );
+    alib::boxing::compatibility::qt::BootstrapQTStringBoxing();
+    ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Release() );
 
 
     UT_PRINT("") UT_PRINT( "### Boxing: Testing Equals: char*/char[]  with QByteArray ###" )

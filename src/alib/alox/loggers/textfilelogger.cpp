@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
+//  alib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,8 +11,8 @@
 #   include "alib/alox/loggers/textfilelogger.hpp"
 #endif
 
-#if !defined(HPP_ALIB_RESULTS_REPORT)
-#   include "alib/results/report.hpp"
+#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#   include "alib/lang/message/report.hpp"
 #endif
 
 #if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
@@ -21,10 +21,10 @@
 #endif // !defined(ALIB_DOX)
 
 
-using namespace aworx;
+using namespace alib;
 
-TextFileLogger::TextFileLogger( const aworx::String&  fileName,
-                                const aworx::NString& loggerName )
+TextFileLogger::TextFileLogger( const alib::String&  fileName,
+                                const alib::NString& loggerName )
 : PlainTextLogger( loggerName, "TEXTFILE", false )
 {
     FileName << fileName;
@@ -34,7 +34,7 @@ TextFileLogger::TextFileLogger( const aworx::String&  fileName,
     auto* os= new std::ofstream( nFileName, std::ios::app );
     if ( !os->is_open() )
     {
-        LastSystemError= system::SystemErrors(errno);
+        LastSystemError= SystemErrors(errno);
         ALIB_WARNING( "ALOX", "Could not open file: {!Q}. System error code: {}",
                       FileName, LastSystemError )
     }
@@ -52,14 +52,14 @@ void TextFileLogger::openFile()
     if ( !os->is_open() )
     {
         writer.SetStream( nullptr );
-        LastSystemError= system::SystemErrors(errno);
+        LastSystemError= SystemErrors(errno);
         ALIB_WARNING( "ALOX", "Could not open file: {!Q}. System error code: {}",
                       FileName, LastSystemError )
         delete os;  os= nullptr;
         return;
     }
     else
-        LastSystemError= system::SystemErrors::None;
+        LastSystemError= SystemErrors::None;
 
     writer.SetStream( os );
 }
@@ -77,39 +77,39 @@ void TextFileLogger::closeFile()
 }
 
 
-void TextFileLogger::notifyMultiLineOp( Phase phase )
+void TextFileLogger::notifyMultiLineOp( lang::Phase phase )
 {
     // save state (to have it in logText)
-    currentlyInMultiLineOp= (phase == Phase::Begin);
+    currentlyInMultiLineOp= (phase == lang::Phase::Begin);
 
     // open/close the file
-    if ( phase == Phase::Begin )
+    if ( phase == lang::Phase::Begin )
         openFile();
     else if( writer.GetStream() != nullptr )
         closeFile();
 }
 
-bool TextFileLogger::notifyLogOp( Phase phase )
+bool TextFileLogger::notifyLogOp( lang::Phase phase )
 {
     auto* stream= writer.GetStream();
-    if ( stream != nullptr && phase == Phase::End )
+    if ( stream != nullptr && phase == lang::Phase::End )
         *stream << std::endl;
 
     // open/close
     if( !currentlyInMultiLineOp )
     {
-        if ( phase == Phase::Begin )
+        if ( phase == lang::Phase::Begin )
             openFile();
         else
             closeFile();
     }
 
-    return LastSystemError == system::SystemErrors::None;
+    return LastSystemError == SystemErrors::None;
 }
 
 integer TextFileLogger::logSubstring( const String& buffer, integer start, integer length )
 {
-    if (writer.GetStream() != nullptr && LastSystemError == system::SystemErrors::None)
+    if (writer.GetStream() != nullptr && LastSystemError == SystemErrors::None)
         return writer.WriteAndGetWideLength( buffer.Substring<false>( start, length ) );
     return 0;
 }

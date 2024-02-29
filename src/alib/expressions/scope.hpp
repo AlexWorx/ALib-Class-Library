@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_SCOPE
 #define HPP_ALIB_EXPRESSIONS_SCOPE
 
-#ifndef HPP_ALIB_TEXT_FORMATTER_STD
-#   include "alib/text/formatterstdimpl.hpp"
+#ifndef HPP_ALIB_LANG_FORMAT_FORMATTER_STD
+#   include "alib/lang/format/formatterstdimpl.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_HASHMAP)
@@ -20,7 +20,7 @@
 #   include "alib/monomem/stdcontainerma.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 class Compiler;
 class Expression;
@@ -104,7 +104,7 @@ struct Scope
      * This is the argument stack used by class \alib{expressions,detail::VirtualMachine} when
      * evaluating expressions.
      */
-    std::vector<aworx::Box>                 Stack;
+    std::vector<alib::Box>                 Stack;
 
     /** Stack of nested expressions called during evaluation. Used to detect cyclic expressions. */
     std::vector<Expression*, StdContMA<Expression*>>        NestedExpressions;
@@ -128,8 +128,8 @@ struct Scope
      *
      * Hence, to support customized format strings, a different formatter is to be passed here.
      * Default format string conventions provided with \alib are
-     * \alib{text,FormatterPythonStyle,python style} and
-     * \alib{text,FormatterJavaStyle,java/printf-like style}.
+     * \alib{lang::format,FormatterPythonStyle,python style} and
+     * \alib{lang::format,FormatterJavaStyle,java/printf-like style}.
      *
      * The default implementation of method \alib{expressions,Compiler::getCompileTimeScope}
      * provides field \alib{expressions,Compiler::CfgFormatter} with the constructor of the
@@ -188,13 +188,13 @@ struct Scope
 
 };
 
-}} // namespace aworx[::lib::expressions]
+} // namespace alib[::expressions]
 
-/// Type alias in namespace #aworx. Renamed to not collide with #aworx::lib::lox::Scope.
-using     ExpressionScope=    lib::expressions::Scope;
+/// Type alias in namespace \b alib. Renamed to not collide with #alib::lox::Scope.
+using     ExpressionScope=    expressions::Scope;
 
 
-}// namespace [aworx]
+} // namespace [alib]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_SCOPE

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_DOMAIN
@@ -23,14 +23,14 @@
 #   include "alib/monomem/stdcontainerma.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib::lox::detail {
 
 // forward declarations
 class ScopeInfo;
 
 /** ************************************************************************************************
  * Used to store prefixes set. Those provided as
- * \ref aworx::lib::boxing::Box "boxes" of character arrays are copied into an internal AString
+ * \ref alib::boxing::Box "boxes" of character arrays are copied into an internal AString
  * and will be deleted with the object. This ensures, that simple strings might get assembled
  * on the stack and still be used as a prefix logable.
  **************************************************************************************************/
@@ -127,10 +127,10 @@ class Domain
 
         /** Data stored per logger. The index is corresponding to the list of loggers in 'our'
          *  Lox. */
-        std::vector<LoggerData,StdContMA<LoggerData>>   Data;
+        std::vector<LoggerData,StdContMA<LoggerData>>    Data;
 
         /** <em>Prefix Logables</em> associated with this domain. */
-        List<std::pair<PrefixLogable*, Inclusion>>      PrefixLogables;
+        List<std::pair<PrefixLogable*, lang::Inclusion>> PrefixLogables;
 
        /**
          * A counter for the quantity of calls on this domain.
@@ -248,7 +248,7 @@ class Domain
         detail::Logger*  GetLogger( const NString& loggerName )
         {
             for ( size_t i= 0; i < Data.size() ; ++i  )
-                if ( loggerName.Equals<Case::Ignore>( Data[i].Logger->GetName()) )
+                if ( loggerName.Equals<true, lang::Case::Ignore>( Data[i].Logger->GetName()) )
                     return Data[i].Logger;
             return nullptr;
         }
@@ -273,7 +273,7 @@ class Domain
         int  GetLoggerNo( const NString& loggerName )
         {
             for ( size_t i= 0; i < Data.size() ; ++i  )
-                if ( loggerName.Equals<Case::Ignore>( Data[i].Logger->GetName() ) )
+                if ( loggerName.Equals<true, lang::Case::Ignore>( Data[i].Logger->GetName() ) )
                     return static_cast<int>( i );
             return -1;
         }
@@ -425,10 +425,10 @@ class Domain
 
 }; // Domain
 
-}}}}// namespace [aworx::lib::lox::detail]
+}// namespace [alib::lox::detail]
 
 #if !defined(ALIB_DOX)
-    ALIB_STRINGS_APPENDABLE_TYPE_INLINE( aworx::lib::lox::detail::PrefixLogable,
+    ALIB_STRINGS_APPENDABLE_TYPE_INLINE( alib::lox::detail::PrefixLogable,
                                          target.Append(static_cast<const Box&>(src) ); )
 #endif
 

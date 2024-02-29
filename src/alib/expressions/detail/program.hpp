@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM
@@ -28,10 +28,10 @@
 #   include "alib/monomem/mastring.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 /**
- * This is the detail namespace of #aworx::lib::expressions implementing the abstract syntax tree,
+ * This is the detail namespace of #alib::expressions implementing the abstract syntax tree,
  * the expression parser, the expression program and the virtual machine to execute the program
  * with expression evaluation.
  */
@@ -354,7 +354,7 @@ class Program
 
 };
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM

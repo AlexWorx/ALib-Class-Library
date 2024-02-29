@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_SCOPEDUMP
@@ -17,14 +17,14 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 /** ************************************************************************************************
  * This class is an internal helper to export current scope values.
  * It was extracted from class \b %Lox to keep that class clean from this somehow 'cluttered' code.
  *
  * The current purpose of this class is to write information into an AString buffer. This is used
- * by method \ref aworx::lib::lox::Lox::State "Lox::State". In the future, other export formats,
+ * by method \ref alib::lox::Lox::State "Lox::State". In the future, other export formats,
  * like JSON might be implemented here.
  *
  * \note As this is a pure internal helper class. Documentation may be limited.
@@ -144,7 +144,7 @@ extern template   int ScopeDump::writeStoreMap( ScopeStore<std::map<NString, Box
 //! @endcond
 
 
-}}}}// namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]
 
 
 

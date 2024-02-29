@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_cli of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_ARGUMENTS
@@ -17,7 +17,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace  cli {
+namespace alib {  namespace  cli {
 
 
 /**
@@ -27,10 +27,9 @@ namespace aworx { namespace lib { namespace  cli {
  * - \alib{cli,Parameter}.
  *
  * Stores
- * - a pointer to the \alib{cli,CommandLine} object.
- * - the position in \alib{cli,CommandLine::ArgNOriginal}, respectively \alib{cli,CommandLine::ArgWOriginal}
- *   where the object was found and
- * - number of arguments consumed when reading the object.
+ * - a pointer to the \alib{cli,CommandLine} object,
+ * - the position in \alib{ArgVN}, respectively \alib{ArgVW} where the object was found, and
+ * - the number of arguments consumed when reading the object.
  *
  * \note
  *   For technical reasons, other members that are shared between the derived types named above,
@@ -41,8 +40,8 @@ struct Parsed
     /** The cli command line. */
     CommandLine* CmdLine;
 
-    /** The index in \alib{cli,CommandLine::ArgNOriginal}, respectively \alib{cli,CommandLine::ArgWOriginal}
-     *  that this instance (derived option or parameter ) was found. */
+    /** The index in \alib{ArgVN}, respectively \alib{ArgVW}, that this instance (derived option
+     *  or parameter ) was found at. */
     integer      Position;
 
     /** The number of command line arguments that a command consumed. This includes the command name
@@ -781,7 +780,7 @@ class ExitCodeDecl
         }
 };
 
-}}} // namespace [aworx::lib::cli]
+}} // namespace [alib::cli]
 
 
 #endif // HPP_ALIB_CLI_ARGUMENTS

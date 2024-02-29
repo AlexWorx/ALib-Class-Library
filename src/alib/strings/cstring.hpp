@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_CSTRING
@@ -20,7 +20,7 @@
     #pragma warning( disable : 4127 )
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /** ************************************************************************************************
  * This class specializes its base class \alib{strings,TString,String} in that respect that
@@ -36,8 +36,8 @@ namespace aworx { namespace lib { namespace strings {
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{CString}, \aworx{NCString},
- *   \aworx{WCString}, \aworx{XCString}, \aworx{ComplementCString} and \aworx{StrangeCString}.
+ *   are provided in namespace #alib with type definitions \alib{CString}, \alib{NCString},
+ *   \alib{WCString}, \alib{XCString}, \alib{ComplementCString} and \alib{StrangeCString}.
  **************************************************************************************************/
 template<typename TChar>
 class TCString : public TString<TChar>
@@ -68,11 +68,7 @@ class TCString : public TString<TChar>
          * @param pBuffer         The buffer to use.
          * @param contentLength   The length of the content in the given buffer.
          ******************************************************************************************/
-#if defined(ALIB_DOX)
         constexpr
-#else
-        ALIB_CPP14_REL_CONSTEXPR
-#endif
         explicit
         TCString( const TChar* pBuffer, integer contentLength )
         : TString<TChar>( pBuffer, contentLength )
@@ -164,8 +160,14 @@ class TCString : public TString<TChar>
         : TString<TChar>( nullptr, 0 )
         {}
 
-        ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit )
-        ALIB_CPP14_REL_CONSTEXPR
+        // Note: 240226:
+        //  We had to add an "intermediate" template  'v' here, which defaults to the expression
+        //  that is used with the enable_if template type. See corresponding constructor of
+        //  base String for further notes.
+        template <typename T,
+                  bool v= (characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit),
+                  typename std::enable_if<v, int>::type = 0 >
+        constexpr
         TCString(const T& src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Buffer(  src ),
                            characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Length(  src ) )
@@ -178,7 +180,7 @@ class TCString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit )
-        ALIB_CPP14_REL_CONSTEXPR
+        constexpr
         TCString(const T* src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Buffer(  *src ),
                            characters::T_ZTCharArray<ATMP_RCV(T), TChar>::Length(  *src ) )
@@ -191,7 +193,7 @@ class TCString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::ExplicitOnly )
-        ALIB_CPP14_REL_CONSTEXPR
+        constexpr
         explicit
         TCString(      T& src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( src ),
@@ -205,7 +207,7 @@ class TCString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::ExplicitOnly  )
-        ALIB_CPP14_REL_CONSTEXPR
+        constexpr
         explicit
         TCString(      T* src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( *src ),
@@ -219,7 +221,7 @@ class TCString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::MutableOnly && !std::is_const<T>::value )
-        ALIB_CPP14_REL_CONSTEXPR
+        constexpr
         explicit
         TCString(      T& src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( const_cast<T&>( src ) ),
@@ -233,7 +235,7 @@ class TCString : public TString<TChar>
         }
 
         ATMP_SELECT_IF_1TP( typename T, characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::MutableOnly && !std::is_const<T>::value )
-        ALIB_CPP14_REL_CONSTEXPR
+        constexpr
         explicit
         TCString(      T* src)
         : TString<TChar>(  characters::T_ZTCharArray<ATMP_RCV(T),TChar>::Buffer( *src ),
@@ -330,23 +332,23 @@ class TCString : public TString<TChar>
          *   On most platforms, this zero-terminated version should perform slightly faster than
          *   the original method in class \b %String.
          *
-         * @tparam TCheck    Defaults to \c true which is the normal invocation mode.
-         *                   If \c <false\> is added to the method name, no parameter checks are
-         *                   performed and the needles must not be empty.
-         * @tparam inclusion Denotes whether the search returns the first index that holds a value
-         *                   that is included or that is not excluded in the set of needle
-         *                   characters.
-         * @param needles    Set of characters to be taken into account.
-         * @param startIdx   The index to start the search at. If the given value is less than \c 0,
-         *                   it is set to \c 0. If it exceeds the length of the string, the length of
-         *                   the string is returned.
-         *                   Defaults to \c 0.
+         * @tparam TCheck     Defaults to \c true which is the normal invocation mode.
+         *                    If \c <false\> is added to the method name, no parameter checks are
+         *                    performed and the needles must not be empty.
+         * @tparam TInclusion Denotes whether the search returns the first index that holds a value
+         *                    that is included or that is not excluded in the set of needle
+         *                    characters.
+         * @param needles     Set of characters to be taken into account.
+         * @param startIdx    The index to start the search at. If the given value is less than \c 0,
+         *                    it is set to \c 0. If it exceeds the length of the string, the length of
+         *                    the string is returned.
+         *                    Defaults to \c 0.
          *
          * @return The index of the first character found which is included, respectively not
          *         included, in the given set of characters. If nothing is found, \c -1 is returned.
          ******************************************************************************************/
-        template <Inclusion   inclusion,
-                  bool        TCheck= true >
+        template <lang::Inclusion  TInclusion,
+                  bool             TCheck= true >
         integer  IndexOfAny( const TCString& needles, integer startIdx= 0 )
         const
         {
@@ -365,7 +367,7 @@ class TCString : public TString<TChar>
 
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ( inclusion == Inclusion::Include )
+            if constexpr ( TInclusion == lang::Inclusion::Include )
             {
                 integer idx=  characters::CharArray<TChar>
                               ::IndexOfAnyIncludedZT(TString<TChar>::buffer + startIdx, needles);
@@ -382,25 +384,25 @@ class TCString : public TString<TChar>
 
 }; // class TCString
 
-#if (ALIB_CPPVER >= 20 && !defined(_MSC_VER))           && !defined(ALIB_DOX)
+#if (ALIB_CPP_STANDARD >= 20 && !defined(_MSC_VER))           && !defined(ALIB_DOX)
 // The following operators are re-implementations of those found with class String.
 // They are needed to mitigate typical C++ 20 comparison operator ambiguities.
 
 // CString/CString
-inline bool  operator==  (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline auto  operator<=> (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline bool  operator==  (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TCString<nchar>& lhs, const NCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<wchar>& lhs, const WCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<xchar>& lhs, const XCString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
 
 // CString/char*
-inline bool  operator==  (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline auto  operator<=> (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+inline bool  operator==  (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const TCString<nchar>& lhs, const nchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<wchar>& lhs, const wchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const TCString<xchar>& lhs, const xchar* rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
 #endif
 
 
@@ -415,7 +417,7 @@ inline auto  operator<=> (const TCString<xchar>& lhs, const xchar* rhs) { return
  *
  * \note
  *   In non-templated code (that works with fixed or logical character sizes), it might lead to
- *   better readable code, if the following shortcut/alias functions of namespace #aworx are used:
+ *   better readable code, if the following shortcut/alias functions of namespace #alib are used:
  *   - \ref EmptyString, \ref EmptyComplementString, \ref EmptyStrangeString,
  *     \ref EmptyNString, \ref EmptyWString, \ref EmptyXString,
  *   - \ref NewLine, \ref ComplementNewLine, \ref StrangeNewLine,
@@ -460,123 +462,122 @@ template<typename TChar> struct TT_StringConstants
 
 template<> struct TT_StringConstants<nchar>
 {
-    ALIB_CPP14_CONSTEXPR static NCString  EmptyString()        { return         ""        ; }
+    constexpr static NCString  EmptyString()        { return         ""        ; }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static NCString  NewLine()            { return         "\r\n"    ; }
+    constexpr static NCString  NewLine()            { return         "\r\n"    ; }
   #else
-    ALIB_CPP14_CONSTEXPR static NCString  NewLine()            { return         "\n"      ; }
+    constexpr static NCString  NewLine()            { return         "\n"      ; }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static NCString  DefaultWhitespaces() { return         " \n\r\t" ; }
+    constexpr static NCString  DefaultWhitespaces() { return         " \n\r\t" ; }
 };
 
 template<> struct TT_StringConstants<wchar>
 {
-    ALIB_CPP14_CONSTEXPR static WCString  EmptyString()        { return A_WCHAR(""       ); }
+    constexpr static WCString  EmptyString()        { return A_WCHAR(""       ); }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static WCString  NewLine()            { return A_WCHAR("\r\n"   ); }
+    constexpr static WCString  NewLine()            { return A_WCHAR("\r\n"   ); }
   #else
-    ALIB_CPP14_CONSTEXPR static WCString  NewLine()            { return A_WCHAR("\n"     ); }
+    constexpr static WCString  NewLine()            { return A_WCHAR("\n"     ); }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static WCString  DefaultWhitespaces() { return A_WCHAR(" \n\r\t"); }
+    constexpr static WCString  DefaultWhitespaces() { return A_WCHAR(" \n\r\t"); }
 };
 
 template<> struct TT_StringConstants<xchar>
 {
-    ALIB_CPP14_CONSTEXPR static XCString  EmptyString()        { return A_XCHAR(""       ); }
+    constexpr static XCString  EmptyString()        { return A_XCHAR(""       ); }
 
   #if defined(_WIN32)
-    ALIB_CPP14_CONSTEXPR static XCString  NewLine()            { return A_XCHAR("\r\n"   ); }
+    constexpr static XCString  NewLine()            { return A_XCHAR("\r\n"   ); }
   #else
-    ALIB_CPP14_CONSTEXPR static XCString  NewLine()            { return A_XCHAR("\n"     ); }
+    constexpr static XCString  NewLine()            { return A_XCHAR("\n"     ); }
   #endif
 
-    ALIB_CPP14_CONSTEXPR static XCString  DefaultWhitespaces() { return A_XCHAR(" \n\r\t"); }
+    constexpr static XCString  DefaultWhitespaces() { return A_XCHAR(" \n\r\t"); }
 };
 
 #endif  //!defined(ALIB_DOX)
 
-}} // namespace aworx[::lib::strings]
-
+} // namespace alib[::strings]
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::EmptyString,TT_StringConstants<character>::EmptyString}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR CString             EmptyString()          { return lib::strings::TT_StringConstants<character>::EmptyString();        }
+inline constexpr CString             EmptyString()          { return strings::TT_StringConstants<character>::EmptyString();        }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::EmptyString,TT_StringConstants<complementChar>::EmptyString}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR ComplementCString   EmptyComplementString(){ return lib::strings::TT_StringConstants<complementChar>::EmptyString();   }
+inline constexpr ComplementCString   EmptyComplementString(){ return strings::TT_StringConstants<complementChar>::EmptyString();   }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::EmptyString,TT_StringConstants<strangeChar>::EmptyString}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR StrangeCString      EmptyStrangeString()   { return lib::strings::TT_StringConstants<strangeChar>::EmptyString();      }
+inline constexpr StrangeCString      EmptyStrangeString()   { return strings::TT_StringConstants<strangeChar>::EmptyString();      }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::EmptyString,TT_StringConstants<nchar>::EmptyString}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR NCString            EmptyNString()         { return lib::strings::TT_StringConstants<nchar    >::EmptyString();        }
+inline constexpr NCString            EmptyNString()         { return strings::TT_StringConstants<nchar    >::EmptyString();        }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::EmptyString,TT_StringConstants<wchar>::EmptyString}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR WCString            EmptyWString()         { return lib::strings::TT_StringConstants<wchar    >::EmptyString();        }
+inline constexpr WCString            EmptyWString()         { return strings::TT_StringConstants<wchar    >::EmptyString();        }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<xchar>::DefaultWhitespaces}.
 /// @return A zero-terminated, empty string.
-inline ALIB_CPP14_CONSTEXPR XCString            EmptyXString()         { return lib::strings::TT_StringConstants<xchar    >::DefaultWhitespaces(); }
+inline constexpr XCString            EmptyXString()         { return strings::TT_StringConstants<xchar    >::DefaultWhitespaces(); }
 
 
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<character>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR  CString            NewLine()             { return lib::strings::TT_StringConstants<character>::NewLine();            }
+inline constexpr  CString            NewLine()             { return strings::TT_StringConstants<character>::NewLine();            }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<complementChar>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR  ComplementCString  ComplementNewLine()   { return lib::strings::TT_StringConstants<complementChar>::NewLine();       }
+inline constexpr  ComplementCString  ComplementNewLine()   { return strings::TT_StringConstants<complementChar>::NewLine();       }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<strangeChar>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR  StrangeCString     StrangeNewLine()      { return lib::strings::TT_StringConstants<strangeChar>::NewLine();          }
+inline constexpr  StrangeCString     StrangeNewLine()      { return strings::TT_StringConstants<strangeChar>::NewLine();          }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<nchar>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR NCString            NNewLine()             { return lib::strings::TT_StringConstants<nchar    >::NewLine();            }
+inline constexpr NCString            NNewLine()             { return strings::TT_StringConstants<nchar    >::NewLine();            }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<wchar>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR WCString            WNewLine()             { return lib::strings::TT_StringConstants<wchar    >::NewLine();            }
+inline constexpr WCString            WNewLine()             { return strings::TT_StringConstants<wchar    >::NewLine();            }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::NewLine,TT_StringConstants<xchar>::NewLine}.
 /// @return A zero-terminated string containing the new-line character sequence.
-inline ALIB_CPP14_CONSTEXPR XCString            XNewLine()             { return lib::strings::TT_StringConstants<xchar    >::NewLine();            }
+inline constexpr XCString            XNewLine()             { return strings::TT_StringConstants<xchar    >::NewLine();            }
 
 
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<character>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR  CString            DefaultWhitespaces()  { return lib::strings::TT_StringConstants<character>::DefaultWhitespaces(); }
+inline constexpr  CString            DefaultWhitespaces()  { return strings::TT_StringConstants<character>::DefaultWhitespaces(); }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<complementChar>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR  ComplementCString  ComplementDefaultWhitespaces() { return lib::strings::TT_StringConstants<complementChar>::DefaultWhitespaces(); }
+inline constexpr  ComplementCString  ComplementDefaultWhitespaces() { return strings::TT_StringConstants<complementChar>::DefaultWhitespaces(); }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<strangeChar>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR  StrangeCString     StrangeDefaultWhitespaces() { return lib::strings::TT_StringConstants<strangeChar>::DefaultWhitespaces(); }
+inline constexpr  StrangeCString     StrangeDefaultWhitespaces() { return strings::TT_StringConstants<strangeChar>::DefaultWhitespaces(); }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<nchar>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR NCString            NDefaultWhitespaces()  { return lib::strings::TT_StringConstants<nchar    >::DefaultWhitespaces(); }
+inline constexpr NCString            NDefaultWhitespaces()  { return strings::TT_StringConstants<nchar    >::DefaultWhitespaces(); }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<wchar>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR WCString            WDefaultWhitespaces()  { return lib::strings::TT_StringConstants<wchar    >::DefaultWhitespaces(); }
+inline constexpr WCString            WDefaultWhitespaces()  { return strings::TT_StringConstants<wchar    >::DefaultWhitespaces(); }
 
 /// Inline shortcut to method \alib{strings,TT_StringConstants<TChar>::DefaultWhitespaces,TT_StringConstants<xchar>::DefaultWhitespaces}.
 /// @return A zero-terminated string of default whitespace characters.
-inline ALIB_CPP14_CONSTEXPR XCString            XDefaultWhitespaces()  { return lib::strings::TT_StringConstants<xchar    >::DefaultWhitespaces(); }
+inline constexpr XCString            XDefaultWhitespaces()  { return strings::TT_StringConstants<xchar    >::DefaultWhitespaces(); }
 
 /// A global instance of a \e nulled zero-terminated string of standard character size.
 ALIB_API extern CString                         EMPTY_STRING;
@@ -596,9 +597,7 @@ ALIB_API extern WCString                        EMPTY_W_STRING;
 /// A global instance of a \e nulled zero-terminated string of strange character size.
 ALIB_API extern XString                         EMPTY_X_STRING;
 
-
-} // namespace [aworx]
-
+} // namespace [alib]
 
 #if defined(_MSC_VER)
     #pragma warning( pop )

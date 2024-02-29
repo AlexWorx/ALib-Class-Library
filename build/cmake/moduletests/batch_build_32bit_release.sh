@@ -64,29 +64,14 @@ rm -r -f *
 "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  RESOURCES    ############################"
-rm -r -f *
-cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=RESOURCES"  ../../cmake/moduletests
-make -j
-
 echo "\n\n############################  THREADS    ############################"
 rm -r -f *
 cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=THREADS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  TEXT    ############################"
+echo "\n\n############################  CAMP    ############################"
 rm -r -f *
-cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=TEXT"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  RESULTS    ############################"
-rm -r -f *
-cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=RESULTS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  SYSTEM    ############################"
-rm -r -f *
-cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=SYSTEM"  ../../cmake/moduletests
+cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=CAMP"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CONFIGURATION    ############################"
@@ -166,9 +151,3 @@ echo "\n\n############################  SINGLETONS;TIME    #####################
 rm -r -f *
 cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=SINGLETONS;TIME"  ../../cmake/moduletests
 make -j
-
-echo "\n\n############################  RESOURCES;BOXING    ############################"
-rm -r -f *
-cmake "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=RESOURCES;BOXING"  ../../cmake/moduletests
-make -j
-

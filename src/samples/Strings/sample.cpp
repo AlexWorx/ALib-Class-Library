@@ -2,12 +2,12 @@
 //  ALib C++ Library
 //  String Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/compatibility/std_strings_iostream.hpp"
 
-using namespace aworx;
+using namespace alib;
 
 //  ALib string classes are comparable to similar classes from other C++ libraries. Therefore
 //  many features could be demonstrated here.
@@ -20,8 +20,8 @@ using namespace aworx;
 //  Consequently, a method which expects an ALib String as a parameter, accepts just any string type!
 //  This is why we call ALib strings to be "least intrusive".
 
-void AcceptAnyString( const aworx::NString& s );
-void AcceptAnyString( const aworx::NString& s )
+void AcceptAnyString( const alib::NString& s );
+void AcceptAnyString( const alib::NString& s )
 {
     std::cout << "  The original string type was: " << s  << std::endl;
 }
@@ -33,8 +33,8 @@ int main()
     std::string      stdString ( "std::string"      );
     std::string      stdStringP( "std::string *"    );
 
-    aworx::NAString   aString   ( "aworx::AString"   );
-    aworx::NAString   aStringP  ( "aworx::AString *" );
+    alib::NAString   aString   ( "alib::AString"   );
+    alib::NAString   aStringP  ( "alib::AString *" );
 
 
 

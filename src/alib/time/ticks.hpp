@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKS
@@ -12,7 +12,7 @@
 #   include "alib/time/timepointbase.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace time {
+namespace alib {  namespace time {
 
 
 /** ************************************************************************************************
@@ -108,21 +108,20 @@ class Ticks : public TimePointBase<std::chrono::steady_clock, Ticks>
         }
 };
 
+} // namespace alib[::time]
 
-}} // namespace lib::time
+/// Type alias in namespace \b alib.
+using     Ticks   =                time::Ticks;
 
-/// Type alias in namespace #aworx.
-using     Ticks   =                lib::time::Ticks;
-
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #if ALIB_BOXING
     #if !defined(HPP_ALIB_BOXING_BOXING)
     #   include "alib/boxing/boxing.hpp"
     #endif
 
-    ALIB_BOXING_VTABLE_DECLARE( aworx::Ticks           , vt_time_ticks          )
-    ALIB_BOXING_VTABLE_DECLARE( aworx::Ticks::Duration , vt_time_ticks_duration )
+    ALIB_BOXING_VTABLE_DECLARE( alib::Ticks           , vt_time_ticks          )
+    ALIB_BOXING_VTABLE_DECLARE( alib::Ticks::Duration , vt_time_ticks_duration )
 #endif
 
 

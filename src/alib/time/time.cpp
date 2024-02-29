@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,13 +20,13 @@
 using namespace std::chrono;
 
 #if ALIB_BOXING
-    ALIB_BOXING_VTABLE_DEFINE( aworx::Ticks              , vt_time_ticks             )
-    ALIB_BOXING_VTABLE_DEFINE( aworx::Ticks::Duration    , vt_time_ticks_duration    )
-    ALIB_BOXING_VTABLE_DEFINE( aworx::DateTime           , vt_time_datetime          )
-    ALIB_BOXING_VTABLE_DEFINE( aworx::DateTime::Duration , vt_time_datetime_duration )
+    ALIB_BOXING_VTABLE_DEFINE( alib::Ticks              , vt_time_ticks             )
+    ALIB_BOXING_VTABLE_DEFINE( alib::Ticks::Duration    , vt_time_ticks_duration    )
+    ALIB_BOXING_VTABLE_DEFINE( alib::DateTime           , vt_time_datetime          )
+    ALIB_BOXING_VTABLE_DEFINE( alib::DateTime::Duration , vt_time_datetime_duration )
 #endif
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /**
  * This namespace of \alib provides types for calendrical date and time processing as well as
@@ -38,7 +38,7 @@ namespace aworx { namespace lib {
 namespace time {
 
 // #################################################################################################
-// Micro module Bootstrap/Termination
+// Module Bootstrap/Termination
 // #################################################################################################
 #if !defined(ALIB_DOX)
 namespace
@@ -49,7 +49,7 @@ namespace
 
 void    Bootstrap()
 {
-    // create a ticks object that marks the time of creation of this micro module
+    // create a ticks object that marks the time of creation of this non-camp module
     if( !creationTime )
         creationTime= new Ticks();
 
@@ -168,11 +168,11 @@ DateTime DateTime::FromFileTime( const ULARGE_INTEGER& ft )
     return FromFileTime( fileTime );
 }
 
-SYSTEMTIME  DateTime::ToSystemTime( Timezone timezone ) const
+SYSTEMTIME  DateTime::ToSystemTime( lang::Timezone timezone ) const
 {
     FILETIME ft= ToFileTime();
     SYSTEMTIME result;
-    if ( timezone == Timezone::UTC )
+    if ( timezone == lang::Timezone::UTC )
         FileTimeToSystemTime( &ft, &result );
     else
     {
@@ -183,10 +183,10 @@ SYSTEMTIME  DateTime::ToSystemTime( Timezone timezone ) const
     return result;
 }
 
-DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, Timezone timezone )
+DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, lang::Timezone timezone )
 {
     FILETIME ft;
-    if ( timezone == Timezone::UTC )
+    if ( timezone == lang::Timezone::UTC )
         SystemTimeToFileTime( &st, &ft );
     else
     {
@@ -196,16 +196,5 @@ DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, Timezone timezone )
     }
     return DateTime::FromFileTime( ft );
 }
-
 #endif // defined( _WIN32 ) && !defined(ALIB_DOX)
-
-
-}}}// namespace [aworx::lib::time]
-
-
-
-
-
-
-
-
+}} // namespace [alib::time]

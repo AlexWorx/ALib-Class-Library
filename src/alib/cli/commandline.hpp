@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_cli of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_COMMANDLINE
@@ -25,7 +25,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace cli {
+namespace alib {  namespace cli {
 
 class CLIUtil;
 
@@ -43,7 +43,7 @@ class CLIUtil;
  * class \alib{cli,CLIUtil}
  *
 \I{################################################################################################}
- * @throws aworx::lib::cli::Exceptions
+ * @throws alib::cli::Exceptions
  **************************************************************************************************/
 class CommandLine
 {
@@ -91,23 +91,6 @@ class CommandLine
         String                              AppInfo;
 
         // ################################## Arguments ############################################
-        /**
-         * The original number of command line arguments (provided in constructor)
-         */
-        int                                 ArgcOriginal;
-
-        /**
-         * The original command line arguments (provided in constructor). Might be nullptr, if
-         * \c wchar_t variant of constructor was used.
-        */
-        const char**                        ArgNOriginal;
-
-        /**
-         * The original command line arguments (provided in constructor) Might be nullptr, if
-         * \c char variant of constructor was used.
-         */
-        const wchar_t**                     ArgWOriginal;
-
         /**
          * A vector of args. If the type of CLI argument strings provided with the constructor does
          * not match the \ref ALIB_CHARACTERS_WIDE "default ALib string width", the strings get
@@ -172,7 +155,7 @@ class CommandLine
          * It is recommended to have the main application implement a custom module, as
          * \ref alib_manual_bootstrapping_custommods "described here".
          */
-        resources::ResourcePool*            Resources                                     = nullptr;
+        lang::resources::ResourcePool*    Resources                                     = nullptr;
 
         /**
          * The resource category to fetch CLI resources within field #Resources.
@@ -259,28 +242,28 @@ class CommandLine
 
 
         /** ****************************************************************************************
-         * Simple helper method that invokes #Init(resources::ResourcePool*, NCString )
+         * Simple helper method that invokes #Init(lang::resources::ResourcePool*, NCString )
          * providing the resource pool and categery of the given \p{resModule}.
          *
          * @param resModule The module used to load resource strings.
          ******************************************************************************************/
-        void      Init( Module* resModule )
+        void      Init( lang::Camp* resModule )
         {
            Init( &resModule->GetResourcePool(), resModule->ResourceCategory );
         }
 
         /** ****************************************************************************************
          * Initializes this class. This function has to be invoked after construction and
-         * after the \alib module system is \ref alib_manual_bootstrapping "bootstrapped".
-         * With bootstrapping of the library, the command line arguments of the application
-         * have to be passed (with a call to \alib{Module::Bootstrap}. This method then accesses
-         * such parameters through fields \b ArgC, \b ArgVN and \b ArgVW of class
-         * \alib{ALibDistribution}.
+         * after this object \alib \ref alib_manual_bootstrapping "was bootstrapped".
+         *
+         * This method accesses global \alib variables \alib{ArgC}, \alib{ArgVN} and
+         * \alib{ArgVW}, and thus those have to be set by the user's <c>main()</c>-function
+         * properly.
          *
          * A resource pool has to be provided along with a corresponding resource category
          * to use. While it is not necessary to do, it is recommended to create a custom
-         * \alib module, which holds such resource pool. For this cases, overloaded
-         * helper method #Init(Module*) is provided wich calls this method by forwarding
+         * \alib module, which holds such resource pool. For this case, overloaded
+         * helper method #Init(lang::Camp*) is provided which calls this method by forwarding
          * the pool and category name from that module.
          *
          * @param resourcePool The resource pool used to load resource strings.
@@ -288,7 +271,7 @@ class CommandLine
          ******************************************************************************************/
         ALIB_API
         virtual
-        void      Init( resources::ResourcePool* resourcePool, NCString resCategory );
+        void      Init( lang::resources::ResourcePool* resourcePool, NCString resCategory );
 
         #if defined(ALIB_DOX)
         /** ****************************************************************************************
@@ -444,7 +427,7 @@ class CommandLine
          *  invocation, similar to this may be used with all \alibmods that use an own configuration
          *  object:
          *
-         *          XYZModule.GetConfig().GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
+         *          XYZModule.GetConfig().GetPluginTypeSafe<alib::config::CLIArgs>()->SetArgs( &OptionArgsIgnored );
          *
          * In the case that other libraries have more complex option syntax, e.g. options
          * consisting of multiple arguments or such that do not even start with a hyphen character,
@@ -627,13 +610,13 @@ Command::Command( CommandLine* cmdLine )
 {}
 
 
-}} // namespace lib::system
+} // namespace alib[::basecamp]
 
-/// Type alias in namespace #aworx.
-using     CommandLine=           lib::cli::CommandLine;
+/// Type alias in namespace \b alib.
+using     CommandLine=           cli::CommandLine;
 
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 

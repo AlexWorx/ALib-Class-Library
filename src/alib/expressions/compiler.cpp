@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,12 +34,17 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
 #   include "alib/expressions/plugins/strings.hpp"
 #endif
-#if ALIB_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
+#if ALIB_CAMP && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
 #   include "alib/expressions/plugins/dateandtime.hpp"
 #endif
+
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
+
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 using namespace detail;
 
@@ -82,7 +87,7 @@ void    Scope::Reset()
     // reserve storage of previous size for the next run.
     NestedExpressions.reserve(nestedExpressionsSize );
             Resources.reserve(        ResourcesSize );
-       NamedResources.Reserve(   NamedResourcesSize, ValueReference::Absolute);
+       NamedResources.Reserve(   NamedResourcesSize, lang::ValueReference::Absolute);
 }
 
 
@@ -107,14 +112,14 @@ Compiler::Compiler()
 
     // register compiler types
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    ALIB_CPP14_CONSTEXPR std::pair<Box&,NString> typeKeys[]=
+    constexpr std::pair<Box&,NString> typeKeys[]=
     {
        { Types::Void     , "T_VOID"  },
        { Types::Boolean  , "T_BOOL"  },
        { Types::Integer  , "T_INT"   },
        { Types::Float    , "T_FLOAT" },
        { Types::String   , "T_STR"   },
-     ALIB_IF_SYSTEM(
+     ALIB_IF_CAMP(
        { Types::DateTime , "T_DATE"  },
        { Types::Duration , "T_DUR"   }, )
     };
@@ -183,7 +188,7 @@ void Compiler::SetupDefaults()
         while( ++enumRecordIt != EnumRecords<DefaultBinaryOperators>::end() )
         {
             // get symbol
-            if( enumRecordIt->Symbol.Equals( A_CHAR( "[]") )
+            if( enumRecordIt->Symbol.Equals<false>( A_CHAR( "[]") )
                 && !HasBits( CfgCompilation, Compilation::AllowSubscriptOperator) )
                 continue;
 
@@ -211,33 +216,33 @@ void Compiler::SetupDefaults()
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::ElvisOperator     ) )
         InsertPlugin( new plugins::ElvisOperator(*this),
                       CompilePriorities::ElvisOperator,
-                      Responsibility::Transfer );
+                      lang::Responsibility::Transfer );
 
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::AutoCast          ) )
         InsertPlugin( new plugins::AutoCast(*this),
                       CompilePriorities::AutoCast,
-                      Responsibility::Transfer );
+                      lang::Responsibility::Transfer );
 
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Arithmetics       ) )
         InsertPlugin( new plugins::Arithmetics(*this),
                       CompilePriorities::Arithmetics,
-                      Responsibility::Transfer );
+                      lang::Responsibility::Transfer );
 
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Math              ) )
         InsertPlugin( new plugins::Math(*this),
                       CompilePriorities::Math,
-                      Responsibility::Transfer );
+                      lang::Responsibility::Transfer );
 
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::Strings           ) )
         InsertPlugin( new plugins::Strings(*this),
                       CompilePriorities::Strings,
-                      Responsibility::Transfer );
+                      lang::Responsibility::Transfer );
 
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     if( HasBits( CfgBuiltInPlugins, BuiltInPlugins::DateAndTime       ) )
         InsertPlugin( new plugins::DateAndTime(*this),
                       CompilePriorities::DateAndTime,
-                      Responsibility::Transfer );                              )
+                      lang::Responsibility::Transfer );                              )
 }
 
 // #############################################################################################
@@ -479,5 +484,4 @@ void Compiler::WriteFunctionSignature( ArgIterator  begin,
 
 
 
-}}} // namespace [aworx::lib::expressions]
-
+}} // namespace [alib::expressions]

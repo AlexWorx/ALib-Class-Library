@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -24,15 +24,13 @@
     #include "alib/monomem/stdcontainerma.hpp"
 #endif
 
-#if !defined (HPP_ALIB_RESOURCES_LOCALRESOURCEPOOL)
-    #include "alib/resources/localresourcepool.hpp"
+#if !defined (HPP_ALIB_LANG_RESOURCES_LOCALRESOURCEPOOL)
+    #include "alib/lang/resources/localresourcepool.hpp"
 #endif
 
-#if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-    #include "alib/lib/fs_modules/distribution.hpp"
+#if !defined (HPP_ALIB_LANG_BASECAMP)
+    #include "alib/lang/basecamp/basecamp.hpp"
 #endif
-
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
 #   include <vector>
@@ -44,9 +42,15 @@
 #   include <map>
 #endif
 
+#if !defined(_GLIBCXX_LIST) && !defined(_LIST_)
+#   include <list>
+#endif
+
 #if !defined(_GLIBCXX_UTILITY) && !defined(_UTILITY_) && !defined(_LIBCPP_UTILITY)
 #   include <utility>
 #endif
+
+#include <assert.h>
 
 #define TESTCLASSNAME       CPP_ALib_Monomem
 #include "unittests/aworx_unittests.hpp"
@@ -60,12 +64,14 @@
 #endif
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx
 {
     namespace
     {
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
+        
 //#define DBGOUT(val)   cout << val << endl;
 #define DBGOUT( val )
 
@@ -172,6 +178,7 @@ integer CharDyn::instCounter= 0;
 
         static_assert( std::is_nothrow_move_constructible<CharTriv>::value, "error" );
         static_assert( std::is_nothrow_move_constructible<CharDyn>::value, "error" );
+#endif //if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 
 
 
@@ -183,9 +190,9 @@ integer CharDyn::instCounter= 0;
 
 DOX_MARKER( [DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW] )
 // field members  or global objects
-aworx::MonoAllocator allocator( 4096 );
-std::vector<MyData, aworx::StdContMA<MyData>> transactionObjects(
-    ( aworx::StdContMA<MyData>( allocator ) ) );
+alib::MonoAllocator allocator( 4096 );
+std::vector<MyData, alib::StdContMA<MyData>> transactionObjects(
+    ( alib::StdContMA<MyData>( allocator ) ) );
 
 // method using the allocator and the vector
 void processTransaction( /* transaction data */)
@@ -204,8 +211,8 @@ void processTransaction( /* transaction data */)
     allocator.Reset();
 
     // 3. Placement new on the vector object
-    new( &transactionObjects ) std::vector<MyData, aworx::StdContMA<MyData>>(
-        aworx::StdContMA<MyData>( allocator ) );
+    new( &transactionObjects ) std::vector<MyData, alib::StdContMA<MyData>>(
+        alib::StdContMA<MyData>( allocator ) );
 }
 
 DOX_MARKER( [DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW] )
@@ -214,6 +221,7 @@ DOX_MARKER( [DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW] )
     // ########################################################################################
     // List helper function
     // ########################################################################################
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
     template<typename TChar>
     void testCharList( AWorxUnitTesting & ut, List<TChar> & list,
                        const NString & exp, integer recyclablesCount )
@@ -291,7 +299,7 @@ DOX_MARKER( [DOX_ALIB_MONOMEM_STDCONTMA_PLACEMENT_NEW] )
     // List test
     // ########################################################################################
     template<typename TChar>
-    void ListTest( AWorxUnitTesting & ut )
+    void TListTest( AWorxUnitTesting & ut )
     {
         MonoAllocator ba( 512 );
 
@@ -538,20 +546,20 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
 {
                                          testConsistency(ut, hashSet,     0 ,   0,  0 );
 
-    hashSet.Emplace( 1 );                testConsistency(ut, hashSet,     1 ,  11,  0 );
+    hashSet.Emplace( 1 );                testConsistency(ut, hashSet,     1 ,  97,  0 );
                                          UT_EQ( 1l, hashSet.Erase  ( 1  ) )
-                                         testConsistency(ut, hashSet,     0 ,  11,  1 );
-    auto it1= hashSet.Emplace( 1 );      testConsistency(ut, hashSet,     1 ,  11,  0 );
+                                         testConsistency(ut, hashSet,     0 ,  97,  1 );
+    auto it1= hashSet.Emplace( 1 );      testConsistency(ut, hashSet,     1 ,  97,  0 );
                                          UT_EQ( it1.Value(), 1 )
-    auto it2= hashSet.Emplace( 1 );      testConsistency(ut, hashSet,     2 ,  11,  0 );
+    auto it2= hashSet.Emplace( 1 );      testConsistency(ut, hashSet,     2 ,  97,  0 );
                                          UT_EQ( it2.Value(), 1 )
     ++it2;                               UT_TRUE( it1 == it2 )
 
-    UT_EQ( 2l, hashSet.Erase  ( 1  ) )   testConsistency(ut, hashSet,     0 ,  11,  2 );
+    UT_EQ( 2l, hashSet.Erase  ( 1  ) )   testConsistency(ut, hashSet,     0 ,  97,  2 );
 
     {
-        hashSet.Emplace( 1 );            testConsistency(ut, hashSet,     1 ,  11,  1 );
-        hashSet.Emplace( 2 );            testConsistency(ut, hashSet,     2 ,  11,  0 );
+        hashSet.Emplace( 1 );            testConsistency(ut, hashSet,     1 ,  97,  1 );
+        hashSet.Emplace( 2 );            testConsistency(ut, hashSet,     2 ,  97,  0 );
         auto
         it= hashSet.Find( 1 );           UT_FALSE( it == hashSet.end() )     UT_EQ(1, it.Value())
         it= hashSet.Find( 2 );           UT_FALSE( it == hashSet.end() )     UT_EQ(2, *it       )
@@ -561,7 +569,7 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
 
     // automatic rehash
     {
-        hashSet.Clear();                  testConsistency(ut, hashSet,     0 ,  11,  2 );
+        hashSet.Clear();                  testConsistency(ut, hashSet,     0 ,  97,  2 );
         auto inserts= static_cast<int>(   hashSet.MaxLoadFactor() * static_cast<float>( hashSet.BucketCount() )
                                         - static_cast<float>(hashSet.Size())                                    );
         for( int i= 0 ; i < inserts -1 ; ++i )
@@ -571,20 +579,20 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
         hashSet.Emplace( 1000 );
         UT_TRUE( oldBucketCount < hashSet.BucketCount() )
 
-        testConsistency(ut, hashSet,   hashSet.Size(), 23, -1 );
+        testConsistency(ut, hashSet,   hashSet.Size(), 199, -1 );
     }
 
     // EqualRange
     hashSet.Reset();
     auto cntRecylables= hashSet.RecyclablesCount();
     {
-        hashSet.Emplace(  0 );            testConsistency(ut, hashSet,     1 ,  11,  cntRecylables );
+        hashSet.Emplace(  0 );            testConsistency(ut, hashSet,     1 ,  97,  cntRecylables );
         hashSet.Emplace(  0 );
-        hashSet.Emplace( 11 );
-        hashSet.Emplace( 11 );
+        hashSet.Emplace( 97 );
+        hashSet.Emplace( 97 );
 
         hashSet.Emplace(  1 );
-        hashSet.Emplace( 12 );            testConsistency(ut, hashSet,     6 ,  11,  cntRecylables );
+        hashSet.Emplace( 12 );            testConsistency(ut, hashSet,     6 ,  97,  cntRecylables );
 
         auto
         result= hashSet.EqualRange(  0 ); UT_EQ(     0, result.first.Value() )
@@ -593,9 +601,9 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
                                           UT_TRUE (  result.first == result.second )
         result= hashSet.EqualRange(  1 ); UT_EQ(     1, result.first.Value() )
         ++result.first;                   UT_TRUE (  result.first == result.second )
-        result= hashSet.EqualRange( 11 ); UT_EQ(    11, result.first.Value() )
-        ++result.first;                   UT_EQ(    11, result.first.Value() )
-        ++result.first;                   UT_FALSE( 11  == result.first.Value() )
+        result= hashSet.EqualRange( 97 ); UT_EQ(    97, result.first.Value() )
+        ++result.first;                   UT_EQ(    97, result.first.Value() )
+        ++result.first;                   UT_FALSE( 97  == result.first.Value() )
                                           UT_TRUE (  result.first == result.second )
         result= hashSet.EqualRange( 12 ); UT_EQ(    12, result.first.Value() )
         ++result.first;                   UT_TRUE (  result.first == result.second )
@@ -607,91 +615,91 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
 
         hashSet.Clear();
         cntRecylables= hashSet.RecyclablesCount();
-                                          testConsistency(ut, hashSet,     0 ,  11,  cntRecylables );
+                                          testConsistency(ut, hashSet,     0 ,  97,  cntRecylables );
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);              testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);              testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                           testBucket(ut, hashSet,     0, 3 );
                                           testBucket(ut, hashSet,     1, 2 );
 
-        auto start= hashSet.begin();      testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
-                                          UT_EQ( 11,  start.Value() )
+        auto start= hashSet.begin();      testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
+                                          UT_EQ( 97,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 4 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 4 );
                                           testBucket(ut, hashSet,     0, 2 );
                                           UT_EQ(  0,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     3 ,  11,  cntRecylables - 3 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     3 ,  97,  cntRecylables - 3 );
                                           testBucket(ut, hashSet,     0, 1 );
                                           UT_EQ(  0,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
                                           testBucket(ut, hashSet,     0, 0 );
-                                          UT_EQ( 12 ,  start.Value() )
+                                          UT_EQ( 98 ,  start.Value() )
 
         ++start;                          UT_EQ(  1 ,  start.Value() )
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     1 ,  11,  cntRecylables - 1 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     1 ,  97,  cntRecylables - 1 );
                                           testBucket(ut, hashSet,     1, 1 );
                                           UT_TRUE( hashSet.end() == start )
         start= hashSet.begin();
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     0 ,  11,  cntRecylables  );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     0 ,  97,  cntRecylables  );
                                           testBucket(ut, hashSet,     1, 0 );
                                           UT_TRUE( hashSet.end() == start )
     }
 
     // Erase( key )
     {
-        hashSet.Clear();                        testConsistency ( ut, hashSet,     0 ,  11,  cntRecylables );
+        hashSet.Clear();                        testConsistency ( ut, hashSet,     0 ,  97,  cntRecylables );
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);                    testConsistency ( ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);                    testConsistency ( ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                 testBucket      ( ut, hashSet,     0, 3 );
                                                 testBucket      ( ut, hashSet,     1, 2 );
 
-        UT_EQ( 0, hashSet.Erase(99)      )      testConsistency ( ut, hashSet,     5 ,  11,  cntRecylables - 5 );
-        UT_EQ( 1, hashSet.Erase(12)      )      testConsistency ( ut, hashSet,     4 ,  11,  cntRecylables - 4 );
+        UT_EQ( 0, hashSet.Erase(99)      )      testConsistency ( ut, hashSet,     5 ,  97,  cntRecylables - 5 );
+        UT_EQ( 1, hashSet.Erase(98)      )      testConsistency ( ut, hashSet,     4 ,  97,  cntRecylables - 4 );
                                                 testBucket      ( ut, hashSet,     1, 1 );
-        UT_EQ( 2, hashSet.Erase(0)       )      testConsistency ( ut, hashSet,     2 ,  11,  cntRecylables - 2 );
-        UT_EQ( 0, hashSet.Erase(0)       )      testConsistency ( ut, hashSet,     2 ,  11,  cntRecylables - 2 );
+        UT_EQ( 2, hashSet.Erase(0)       )      testConsistency ( ut, hashSet,     2 ,  97,  cntRecylables - 2 );
+        UT_EQ( 0, hashSet.Erase(0)       )      testConsistency ( ut, hashSet,     2 ,  97,  cntRecylables - 2 );
                                                 testBucket      ( ut, hashSet,     0, 1 );
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         UT_PRINT( "An error should follow" )
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        UT_EQ( true, hashSet.EraseUnique(0)  )  testConsistency(ut, hashSet,     3 ,  11,  cntRecylables - 3 );
-        lib::results::Report::GetDefault().PopHaltFlags();
-        UT_EQ( true , hashSet.EraseUnique( 0) )  testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
-        UT_EQ( false, hashSet.EraseUnique( 0) )  testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
-        UT_EQ( true , hashSet.EraseUnique(11) )  testConsistency(ut, hashSet,     1 ,  11,  cntRecylables - 1 );
-        UT_EQ( true , hashSet.EraseUnique( 1) )  testConsistency(ut, hashSet,     0 ,  11,  cntRecylables );
-        UT_EQ( false, hashSet.EraseUnique(12) )  testConsistency(ut, hashSet,     0 ,  11,  cntRecylables );
+        UT_EQ( true, hashSet.EraseUnique(0)  )  testConsistency(ut, hashSet,     3 ,  97,  cntRecylables - 3 );
+        lang::Report::GetDefault().PopHaltFlags();
+        UT_EQ( true , hashSet.EraseUnique( 0) )  testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
+        UT_EQ( false, hashSet.EraseUnique( 0) )  testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
+        UT_EQ( true , hashSet.EraseUnique(97) )  testConsistency(ut, hashSet,     1 ,  97,  cntRecylables - 1 );
+        UT_EQ( true , hashSet.EraseUnique( 1) )  testConsistency(ut, hashSet,     0 ,  97,  cntRecylables );
+        UT_EQ( false, hashSet.EraseUnique(98) )  testConsistency(ut, hashSet,     0 ,  97,  cntRecylables );
     }
 
 
     // Erase( start, end )
     {
-        hashSet.Clear();                        testConsistency(ut, hashSet,     0 ,  11,  cntRecylables );
+        hashSet.Clear();                        testConsistency(ut, hashSet,     0 ,  97,  cntRecylables );
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);                    testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);                    testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                 testBucket(ut, hashSet,     0, 3 );
                                                 testBucket(ut, hashSet,     1, 2 );
 
-        auto start= hashSet.begin();            UT_EQ( 11,  start.Value() )
-        auto end  = hashSet.begin();            UT_EQ( 11,  end  .Value() )
-        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
-                                                UT_EQ( 11,  start.Value() )
+        auto start= hashSet.begin();            UT_EQ( 97,  start.Value() )
+        auto end  = hashSet.begin();            UT_EQ( 97,  end  .Value() )
+        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
+                                                UT_EQ( 97,  start.Value() )
 
-        start= hashSet.begin();                 UT_EQ( 11,  start.Value() )
+        start= hashSet.begin();                 UT_EQ( 97,  start.Value() )
         end  = hashSet.begin(); ++end;          UT_EQ(  0,  end  .Value() )
-        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 4 );
+        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 4 );
                                                 UT_TRUE(  start == end )
                                                 UT_EQ(  0,  start.Value() )
 
@@ -699,55 +707,55 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
                                                 testBucket(ut, hashSet,     0, 2 );
                                                 testBucket(ut, hashSet,     1, 2 );
         end= start; ++end;  ++end;              UT_EQ(  1,  end  .Value() )
-        start= hashSet.Erase( start, end );     testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
+        start= hashSet.Erase( start, end );     testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
                                                 testBucket(ut, hashSet,     0, 1 );
                                                 testBucket(ut, hashSet,     1, 1 );
                                                 UT_EQ(  1,  start.Value() )
 
         hashSet.Erase( hashSet.begin(),
-                       hashSet.end()   );       testConsistency(ut, hashSet,     0 ,  11,  cntRecylables     );
+                       hashSet.end()   );       testConsistency(ut, hashSet,     0 ,  97,  cntRecylables     );
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);                    testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);                    testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
         hashSet.Erase( hashSet.begin(),
-                       hashSet.end() );         testConsistency(ut, hashSet,     0 ,  11,  cntRecylables     );
+                       hashSet.end() );         testConsistency(ut, hashSet,     0 ,  97,  cntRecylables     );
     }
 
 
     // Erase( pos ) with bucket iterator
     {
-        hashSet.Clear();                  testConsistency(ut, hashSet,     0 ,  11,  cntRecylables );
+        hashSet.Clear();                  testConsistency(ut, hashSet,     0 ,  97,  cntRecylables );
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);              testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);              testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                           testBucket(ut, hashSet,     0, 3 );
                                           testBucket(ut, hashSet,     1, 2 );
 
-        auto start= hashSet.begin(0);     UT_EQ( 11,  start.Value() )
+        auto start= hashSet.begin(0);     UT_EQ( 97,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 4 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 4 );
                                           testBucket(ut, hashSet,     0, 2 );
                                           UT_EQ(  0,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     3 ,  11,  cntRecylables - 3 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     3 ,  97,  cntRecylables - 3 );
                                           testBucket(ut, hashSet,     0, 1 );
                                           UT_EQ(  0,  start.Value() )
 
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
                                           testBucket(ut, hashSet,     0, 0 );
         hashSet.begin(0);                 UT_TRUE( hashSet.end(0) == start )
 
-        start= hashSet.begin(1);          UT_EQ( 12  ,  start.Value() )
+        start= hashSet.begin(1);          UT_EQ( 98  ,  start.Value() )
         ++start;                          UT_EQ(  1  ,  start.Value() )
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     1 ,  11,  cntRecylables - 1 );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     1 ,  97,  cntRecylables - 1 );
                                           testBucket(ut, hashSet,     1, 1 );
                                           UT_TRUE( hashSet.end(1) == start )
         start= hashSet.begin(1);
-        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     0 ,  11,  cntRecylables  );
+        start= hashSet.Erase( start );    testConsistency(ut, hashSet,     0 ,  97,  cntRecylables  );
                                           testBucket(ut, hashSet,     1, 0 );
                                           UT_TRUE( hashSet.end(1) == start )
     }
@@ -757,32 +765,32 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
         hashSet.Clear();
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);                    testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);                    testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                 testBucket(ut, hashSet,     0, 3 );
                                                 testBucket(ut, hashSet,     1, 2 );
 
-        auto start= hashSet.begin(0);           UT_EQ( 11,  start.Value() )
-        auto end  = hashSet.begin(0);           UT_EQ( 11,  end  .Value() )
-        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
-                                                UT_EQ( 11,  start.Value() )
+        auto start= hashSet.begin(0);           UT_EQ( 97,  start.Value() )
+        auto end  = hashSet.begin(0);           UT_EQ( 97,  end  .Value() )
+        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
+                                                UT_EQ( 97,  start.Value() )
 
         end  = hashSet.begin(0); ++end;         UT_EQ(  0,  end  .Value() )
-        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 4 );
+        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 4 );
                                                 UT_TRUE(  start == end )
                                                 UT_EQ(  0,  start.Value() )
                                                 testBucket(ut, hashSet,     0, 2 );
 
         start++;                                UT_EQ(  0,  start.Value() )
         start= hashSet.Erase(start,
-                             hashSet.end(0));   testConsistency(ut, hashSet,     3 ,  11,  cntRecylables - 3 );
+                             hashSet.end(0));   testConsistency(ut, hashSet,     3 ,  97,  cntRecylables - 3 );
                                                 testBucket(ut, hashSet,     0, 1 );
                                                 testBucket(ut, hashSet,     1, 2 );
                                                 UT_TRUE(start == hashSet.end(0) )
 
         start= hashSet.Erase(hashSet.begin(0),
-                             hashSet.end  (0)); testConsistency(ut, hashSet,     2 ,  11,  cntRecylables - 2 );
+                             hashSet.end  (0)); testConsistency(ut, hashSet,     2 ,  97,  cntRecylables - 2 );
                                                 testBucket(ut, hashSet,     0, 0 );
                                                 testBucket(ut, hashSet,     1, 2 );
                                                 UT_TRUE(start == hashSet.end(0) )
@@ -791,11 +799,11 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
 
         start= hashSet.begin(1); ++start;       UT_EQ(  1,  start.Value() )
         end  = hashSet.end(1);
-        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     1 ,  11,  cntRecylables - 1 );
+        start= hashSet.Erase(start,end);        testConsistency(ut, hashSet,     1 ,  97,  cntRecylables - 1 );
                                                 UT_TRUE(start == hashSet.end(1) )
                                                 testBucket(ut, hashSet,     1, 1 );
         start= hashSet.Erase(hashSet.begin(1),
-                             hashSet.end  (1)); testConsistency(ut, hashSet,     0 ,  11,  cntRecylables  );
+                             hashSet.end  (1)); testConsistency(ut, hashSet,     0 ,  97,  cntRecylables  );
                                                 testBucket(ut, hashSet,     0, 0 );
                                                 testBucket(ut, hashSet,     1, 0 );
     }
@@ -806,33 +814,33 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
         hashSet.Clear();
         hashSet.Emplace( 0);
         hashSet.Emplace( 0);
-        hashSet.Emplace(11);
+        hashSet.Emplace(97);
         hashSet.Emplace( 1);
-        hashSet.Emplace(12);                                testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        hashSet.Emplace(98);                                testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashSet,     0, 3 );
                                                             testBucket(ut, hashSet,     1, 2 );
 
         // extract by pos and add at the same spot with same key existing
-        auto start = hashSet.begin() ;                      UT_EQ( 11,  start.Value() )
-        auto handle= hashSet.Extract(start);                testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 5 );
+        auto start = hashSet.begin() ;                      UT_EQ( 97,  start.Value() )
+        auto handle= hashSet.Extract(start);                testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashSet,     0, 2 );
                                                             testBucket(ut, hashSet,     1, 2 );
                                                             UT_FALSE(   handle.IsEmpty() )
-                                                            UT_EQ( 11,  handle.Value  () )
-        auto result= hashSet.Insert(handle);                testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+                                                            UT_EQ( 97,  handle.Value  () )
+        auto result= hashSet.Insert(handle);                testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE(    handle.IsEmpty() )
-                                                            UT_TRUE(  result == hashSet.Find(11) )
+                                                            UT_TRUE(  result == hashSet.Find(97) )
                                                             UT_TRUE(   handle.IsEmpty() )
 
         // extract by pos and add somewhere else
-        start = hashSet.begin() ;                           UT_EQ( 11,  start.Value() )
-        handle= hashSet.Extract(start);                     testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 5 );
+        start = hashSet.begin() ;                           UT_EQ( 97,  start.Value() )
+        handle= hashSet.Extract(start);                     testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashSet,     0, 2 );
                                                             testBucket(ut, hashSet,     1, 2 );
                                                             UT_FALSE(   handle.IsEmpty() )
-                                                            UT_EQ( 11,  handle.Value  ()  )
+                                                            UT_EQ( 97,  handle.Value  ()  )
         handle.Value()= 5;                                  UT_EQ(  5,  handle.Value  ()   )
-        result= hashSet.Insert(handle);                     testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        result= hashSet.Insert(handle);                     testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE(    handle.IsEmpty() )
                                                             UT_TRUE(  result == hashSet.Find(5) )
                                                             UT_TRUE(   handle.IsEmpty() )
@@ -841,7 +849,7 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
                                                             testBucket(ut, hashSet,     5, 1 );
 
         // extract by key and add somewhere else
-        handle= hashSet.Extract(1);                         testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 5 );
+        handle= hashSet.Extract(1);                         testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashSet,     0, 2 );
                                                             testBucket(ut, hashSet,     1, 1 );
                                                             testBucket(ut, hashSet,     5, 1 );
@@ -849,7 +857,7 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
                                                             UT_EQ(  1,  handle.Value    () )
         // ...unsuccessful insert
         handle.Value()= 5;                                  UT_EQ(  5,  handle.Value  () )
-        result= hashSet.InsertIfNotExistent(handle);        testConsistency(ut, hashSet,     4 ,  11,  cntRecylables - 5 );
+        result= hashSet.InsertIfNotExistent(handle);        testConsistency(ut, hashSet,     4 ,  97,  cntRecylables - 5 );
                                                             UT_FALSE( handle.IsEmpty () )
                                                             UT_EQ(  5,  handle.Value   () )
                                                             testBucket(ut, hashSet,     0, 2 );
@@ -857,7 +865,7 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
                                                             testBucket(ut, hashSet,     5, 1 );
         // ...successful insert
         handle.Value()= 6;                                  UT_EQ(  6,  handle.Value  () )
-        result= hashSet.InsertIfNotExistent(handle);        testConsistency(ut, hashSet,     5 ,  11,  cntRecylables - 5 );
+        result= hashSet.InsertIfNotExistent(handle);        testConsistency(ut, hashSet,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE( handle.IsEmpty() )
                                                             UT_EQ(  6, result.Value()  )
                                                             testBucket(ut, hashSet,     0, 2 );
@@ -871,64 +879,64 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
     {
         hashSet.Reset();                                    testConsistency(ut, hashSet,     0 ,  0 ,  0 );
         auto
-        result= hashSet.InsertUnique(0);                    testConsistency(ut, hashSet,     1 ,  11,  0 );
+        result= hashSet.InsertUnique(0);                    testConsistency(ut, hashSet,     1 ,  97,  0 );
                                                             UT_EQ( 0 ,  result.Value() )
-        result= hashSet.InsertUnique(11);                   testConsistency(ut, hashSet,     2 ,  11,  0 );
-                                                            UT_EQ( 11,  result.Value() )
+        result= hashSet.InsertUnique(97);                   testConsistency(ut, hashSet,     2 ,  97,  0 );
+                                                            UT_EQ( 97,  result.Value() )
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         UT_PRINT( "An error should follow" )
 
-        result= hashSet.InsertUnique(0);                   testConsistency(ut, hashSet,     3 ,  11,  0 );
+        result= hashSet.InsertUnique(0);                   testConsistency(ut, hashSet,     3 ,  97,  0 );
                                                             UT_EQ( 0 ,  result.Value() )
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
 
 
-        result= hashSet.EmplaceUnique( 2);                 testConsistency(ut, hashSet,     4 ,  11,  0 );
+        result= hashSet.EmplaceUnique( 2);                 testConsistency(ut, hashSet,     4 ,  97,  0 );
                                                             UT_EQ( 2  ,  result.Value() )
-        result= hashSet.EmplaceUnique(12);                 testConsistency(ut, hashSet,     5 ,  11,  0 );
-                                                            UT_EQ( 12 ,  result.Value() )
+        result= hashSet.EmplaceUnique(98);                 testConsistency(ut, hashSet,     5 ,  97,  0 );
+                                                            UT_EQ( 98 ,  result.Value() )
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         UT_PRINT( "An error should follow" )
 
-        result= hashSet.EmplaceUnique(2);                  testConsistency(ut, hashSet,     6 ,  11,  0 );
+        result= hashSet.EmplaceUnique(2);                  testConsistency(ut, hashSet,     6 ,  97,  0 );
                                                             UT_EQ( 2 ,  result.Value() )
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
     }
 
     // EmplaceIfNotExistent
     {
         hashSet.Reset();                            testConsistency(ut, hashSet,     0 ,  0 ,  0 );
         auto
-        result= hashSet.EmplaceIfNotExistent(0);    testConsistency(ut, hashSet,     1 ,  11,  0 );
+        result= hashSet.EmplaceIfNotExistent(0);    testConsistency(ut, hashSet,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_EQ(   0 ,  hashSet.begin().Value() )
                                                     UT_TRUE( result.first == hashSet.Find(0) )
 
-        result= hashSet.EmplaceIfNotExistent(0);    testConsistency(ut, hashSet,     1 ,  11,  0 );
+        result= hashSet.EmplaceIfNotExistent(0);    testConsistency(ut, hashSet,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Value() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_EQ(   0 ,  hashSet.begin().Value() )
                                                     UT_TRUE( result.first == hashSet.Find(0) )
 
 
-        result= hashSet.EmplaceIfNotExistent(1);   testConsistency(ut, hashSet,     2 ,  11,  0 );
+        result= hashSet.EmplaceIfNotExistent(1);   testConsistency(ut, hashSet,     2 ,  97,  0 );
                                                     UT_EQ(   1 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(1) )
-        result= hashSet.EmplaceIfNotExistent(1);    testConsistency(ut, hashSet,     2 ,  11,  0 );
+        result= hashSet.EmplaceIfNotExistent(1);    testConsistency(ut, hashSet,     2 ,  97,  0 );
                                                     UT_EQ(   1 ,  result.first.Value() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_TRUE( result.first == hashSet.Find(1) )
 
-        result= hashSet.EmplaceIfNotExistent(2);    testConsistency(ut, hashSet,     3 ,  11,  0 ); // consumes recycle
+        result= hashSet.EmplaceIfNotExistent(2);    testConsistency(ut, hashSet,     3 ,  97,  0 ); // consumes recycle
                                                     UT_EQ(   2 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(2) )
 
-        result= hashSet.EmplaceIfNotExistent(3);    testConsistency(ut, hashSet,     4 ,  11,  0 );
+        result= hashSet.EmplaceIfNotExistent(3);    testConsistency(ut, hashSet,     4 ,  97,  0 );
                                                     UT_EQ(  3  ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(3) )
@@ -939,34 +947,34 @@ void UT_HashSet(AWorxUnitTesting&  ut, TTable& hashSet)
     {
         hashSet.Reset();                            testConsistency(ut, hashSet,     0 ,  0 ,  0 );
         auto
-        result= hashSet.InsertIfNotExistent(0);     testConsistency(ut, hashSet,     1 ,  11,  0 );
+        result= hashSet.InsertIfNotExistent(0);     testConsistency(ut, hashSet,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_EQ(   0 ,  hashSet.begin().Value() )
                                                     UT_TRUE( result.first == hashSet.Find(0) )
 
-        result= hashSet.InsertIfNotExistent(0);     testConsistency(ut, hashSet,     1 ,  11,  0 );
+        result= hashSet.InsertIfNotExistent(0);     testConsistency(ut, hashSet,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Value() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_EQ(   0 ,  hashSet.begin().Value() )
                                                     UT_TRUE( result.first == hashSet.Find(0) )
 
 
-        result= hashSet.InsertIfNotExistent(1);    testConsistency(ut, hashSet,     2 ,  11,  0 );
+        result= hashSet.InsertIfNotExistent(1);    testConsistency(ut, hashSet,     2 ,  97,  0 );
                                                     UT_EQ(   1 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(1) )
-        result= hashSet.InsertIfNotExistent(1);     testConsistency(ut, hashSet,     2 ,  11,  0 );
+        result= hashSet.InsertIfNotExistent(1);     testConsistency(ut, hashSet,     2 ,  97,  0 );
                                                     UT_EQ(   1 ,  result.first.Value() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_TRUE( result.first == hashSet.Find(1) )
 
-        result= hashSet.InsertIfNotExistent(2);     testConsistency(ut, hashSet,     3 ,  11,  0 ); // consumes recycle
+        result= hashSet.InsertIfNotExistent(2);     testConsistency(ut, hashSet,     3 ,  97,  0 ); // consumes recycle
                                                     UT_EQ(   2 ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(2) )
 
-        result= hashSet.InsertIfNotExistent(3);    testConsistency(ut, hashSet,     4 ,  11,  0 );
+        result= hashSet.InsertIfNotExistent(3);    testConsistency(ut, hashSet,     4 ,  97,  0 );
                                                     UT_EQ(  3  ,  result.first.Value() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashSet.Find(3) )
@@ -981,19 +989,19 @@ template<typename TTable>
 void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
 {
                                          testConsistency(ut, hashMap,     0 ,   0,  0 );
-    hashMap.Emplace( 1, 100 );           testConsistency(ut, hashMap,     1 ,  11,  0 );
-    UT_EQ( 1l, hashMap.Erase  ( 1  ) )   testConsistency(ut, hashMap,     0 ,  11,  1 );
-    auto it1= hashMap.Emplace( 1, 100 ); testConsistency(ut, hashMap,     1 ,  11,  0 );
+    hashMap.Emplace( 1, 100 );           testConsistency(ut, hashMap,     1 ,  97,  0 );
+    UT_EQ( 1l, hashMap.Erase  ( 1  ) )   testConsistency(ut, hashMap,     0 ,  97,  1 );
+    auto it1= hashMap.Emplace( 1, 100 ); testConsistency(ut, hashMap,     1 ,  97,  0 );
               UT_EQ( it1.Mapped(), 100 )
-    auto it2= hashMap.Emplace( 1, 101 ); testConsistency(ut, hashMap,     2 ,  11,  0 );
+    auto it2= hashMap.Emplace( 1, 101 ); testConsistency(ut, hashMap,     2 ,  97,  0 );
               UT_EQ( it2.Mapped(), 101 )
     ++it2;    UT_TRUE( it1 == it2 )
 
-    UT_EQ( 2l, hashMap.Erase  ( 1  ) )   testConsistency(ut, hashMap,     0 ,  11,  2 );
+    UT_EQ( 2l, hashMap.Erase  ( 1  ) )   testConsistency(ut, hashMap,     0 ,  97,  2 );
 
 
     {
-        hashMap.Emplace( 1, 100 );       testConsistency(ut, hashMap,     1 ,  11,  1 );
+        hashMap.Emplace( 1, 100 );       testConsistency(ut, hashMap,     1 ,  97,  1 );
         hashMap.Emplace( 2, 200 );
         auto it= hashMap.Find( 1 );      UT_FALSE( it == hashMap.end() )     UT_EQ(100, it.Mapped())
 
@@ -1004,8 +1012,8 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
 
     // automatic rehash
     {
-        hashMap.Emplace( static_cast<int>(1 + hashMap.BucketCount()), 102 );  testConsistency(ut, hashMap,     3 ,  11,  0 );
-        hashMap.Emplace( 1                        , 103 );  testConsistency(ut, hashMap,     4 ,  11,  0 );
+        hashMap.Emplace( static_cast<int>(1 + hashMap.BucketCount()), 102 );  testConsistency(ut, hashMap,     3 ,  97,  0 );
+        hashMap.Emplace( 1                        , 103 );  testConsistency(ut, hashMap,     4 ,  97,  0 );
 
         auto inserts= static_cast<int>(   hashMap.MaxLoadFactor() * static_cast<float>(hashMap.BucketCount() )
                                         - static_cast<float>(hashMap.Size())                                     );
@@ -1017,7 +1025,7 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
         hashMap.Emplace( 1000, 1000 );
         UT_TRUE( oldBucketCount < hashMap.BucketCount() )
 
-        testConsistency(ut, hashMap,   hashMap.Size(), 23, -1 );
+        testConsistency(ut, hashMap,   hashMap.Size(), 199, -1 );
         auto
         it= hashMap.Find( 1 );           UT_FALSE( it == hashMap.end() )     UT_TRUE( it->second == 100 || it->second== 103 )
         it= hashMap.Find( 2 );           UT_FALSE( it == hashMap.end() )     UT_EQ(200, it->second)
@@ -1031,13 +1039,13 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
     auto cntRecylables= 0;
     {
         hashMap.Clear();                  testConsistency(ut, hashMap,     0 ,   1,  cntRecylables );
-        hashMap.Emplace( 0,   0);         testConsistency(ut, hashMap,     1 ,  11,  cntRecylables );
+        hashMap.Emplace( 0,   0);         testConsistency(ut, hashMap,     1 ,  97,  cntRecylables );
         hashMap.Emplace( 0,   1);
-        hashMap.Emplace(11,   1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97,   1);
+        hashMap.Emplace(97, 110);
 
         hashMap.Emplace( 1,   110);
-        hashMap.Emplace( 12,  120);       testConsistency(ut, hashMap,     6 ,  11,  cntRecylables );
+        hashMap.Emplace( 98,  120);       testConsistency(ut, hashMap,     6 ,  97,  cntRecylables );
 
         auto
         result= hashMap.EqualRange(  0 ); UT_EQ(     0, result.first.Key() )
@@ -1046,47 +1054,47 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
                                           UT_TRUE (  result.first == result.second )
         result= hashMap.EqualRange(  1 ); UT_EQ(     1, result.first.Key() )
         ++result.first;                   UT_TRUE (  result.first == result.second )
-        result= hashMap.EqualRange( 11 ); UT_EQ(    11, result.first.Key() )
-        ++result.first;                   UT_EQ(    11, result.first.Key() )
-        ++result.first;                   UT_FALSE( 11  == result.first.Key() )
+        result= hashMap.EqualRange( 97 ); UT_EQ(    97, result.first.Key() )
+        ++result.first;                   UT_EQ(    97, result.first.Key() )
+        ++result.first;                   UT_FALSE( 97  == result.first.Key() )
                                           UT_TRUE (  result.first == result.second )
-        result= hashMap.EqualRange( 12 ); UT_EQ(    12, result.first.Key() )
+        result= hashMap.EqualRange( 98 ); UT_EQ(    98, result.first.Key() )
         ++result.first;                   UT_TRUE (  result.first == result.second )
         cntRecylables= 6;
     }
 
     // Erase( pos )
     {
-        hashMap.Clear();                  testConsistency(ut, hashMap,     0 ,  11,  cntRecylables );
+        hashMap.Clear();                  testConsistency(ut, hashMap,     0 ,  97,  cntRecylables );
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);         testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);         testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                           testBucket(ut, hashMap,     0, 3 );
                                           testBucket(ut, hashMap,     1, 2 );
 
-        auto start= hashMap.begin();      testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        auto start= hashMap.begin();      testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                           UT_EQ(110,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 4 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 4 );
                                           testBucket(ut, hashMap,     0, 2 );
                                           UT_EQ(  1,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     3 ,  11,  cntRecylables - 3 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     3 ,  97,  cntRecylables - 3 );
                                           testBucket(ut, hashMap,     0, 1 );
                                           UT_EQ(  0,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     2 ,  11,  cntRecylables - 2 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     2 ,  97,  cntRecylables - 2 );
                                           testBucket(ut, hashMap,     0, 0 );
                                           UT_EQ(120,  start.Mapped() )
 
         ++start;                          UT_EQ( 10,  start.Mapped() )
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     1 ,  11,  cntRecylables - 1 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     1 ,  97,  cntRecylables - 1 );
                                           testBucket(ut, hashMap,     1, 1 );
                                           UT_TRUE( hashMap.end() == start )
         start= hashMap.begin();
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     0 ,  11,  cntRecylables - 0 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     0 ,  97,  cntRecylables - 0 );
                                           testBucket(ut, hashMap,     1, 0 );
                                           UT_TRUE( hashMap.end() == start )
     }
@@ -1094,23 +1102,23 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
 
     // Erase( start, end )
     {
-        hashMap.Clear();                        testConsistency(ut, hashMap,     0 ,  11,  cntRecylables - 0 );
+        hashMap.Clear();                        testConsistency(ut, hashMap,     0 ,  97,  cntRecylables - 0 );
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);               testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);               testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                 testBucket(ut, hashMap,     0, 3 );
                                                 testBucket(ut, hashMap,     1, 2 );
 
         auto start= hashMap.begin();            UT_EQ(110,  start.Mapped() )
         auto end  = hashMap.begin();            UT_EQ(110,  end  .Mapped() )
-        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                 UT_EQ(110,  start.Mapped() )
 
         start= hashMap.begin();                 UT_EQ(110,  start.Mapped() )
         end  = hashMap.begin(); ++end;          UT_EQ(  1,  end  .Mapped() )
-        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 4 );
+        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 4 );
                                                 UT_TRUE(  start == end )
                                                 UT_EQ(  1,  start.Mapped() )
 
@@ -1118,55 +1126,55 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
                                                 testBucket(ut, hashMap,     0, 2 );
                                                 testBucket(ut, hashMap,     1, 2 );
         end= start; ++end;  ++end;              UT_EQ( 10,  end  .Mapped() )
-        start= hashMap.Erase( start, end );     testConsistency(ut, hashMap,     2 ,  11,  cntRecylables - 2 );
+        start= hashMap.Erase( start, end );     testConsistency(ut, hashMap,     2 ,  97,  cntRecylables - 2 );
                                                 testBucket(ut, hashMap,     0, 1 );
                                                 testBucket(ut, hashMap,     1, 1 );
                                                 UT_EQ( 10,  start.Mapped() )
 
         hashMap.Erase( hashMap.begin(),
-                       hashMap.end() );         testConsistency(ut, hashMap,     0 ,  11,  cntRecylables  );
+                       hashMap.end() );         testConsistency(ut, hashMap,     0 ,  97,  cntRecylables  );
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);               testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);               testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
         hashMap.Erase( hashMap.begin(),
-                       hashMap.end() );         testConsistency(ut, hashMap,     0 ,  11,  cntRecylables - 0 );
+                       hashMap.end() );         testConsistency(ut, hashMap,     0 ,  97,  cntRecylables - 0 );
     }
 
 
     // Erase( pos ) with bucket iterator
     {
-        hashMap.Clear();                  testConsistency(ut, hashMap,     0 ,  11,  cntRecylables );
+        hashMap.Clear();                  testConsistency(ut, hashMap,     0 ,  97,  cntRecylables );
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);         testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);         testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                           testBucket(ut, hashMap,     0, 3 );
                                           testBucket(ut, hashMap,     1, 2 );
 
         auto start= hashMap.begin(0);     UT_EQ(110,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 4 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 4 );
                                           testBucket(ut, hashMap,     0, 2 );
                                           UT_EQ(  1,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     3 ,  11,  cntRecylables - 3 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     3 ,  97,  cntRecylables - 3 );
                                           testBucket(ut, hashMap,     0, 1 );
                                           UT_EQ(  0,  start.Mapped() )
 
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     2 ,  11,  cntRecylables - 2 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     2 ,  97,  cntRecylables - 2 );
                                           testBucket(ut, hashMap,     0, 0 );
         hashMap.begin(0);                 UT_TRUE( hashMap.end(0) == start )
 
         start= hashMap.begin(1);          UT_EQ(120,  start.Mapped() )
         ++start;                          UT_EQ( 10,  start.Mapped() )
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     1 ,  11,  cntRecylables - 1 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     1 ,  97,  cntRecylables - 1 );
                                           testBucket(ut, hashMap,     1, 1 );
                                           UT_TRUE( hashMap.end(1) == start )
         start= hashMap.begin(1);
-        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     0 ,  11,  cntRecylables - 0 );
+        start= hashMap.Erase( start );    testConsistency(ut, hashMap,     0 ,  97,  cntRecylables - 0 );
                                           testBucket(ut, hashMap,     1, 0 );
                                           UT_TRUE( hashMap.end(1) == start )
     }
@@ -1176,33 +1184,33 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
         hashMap.Clear();
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);               testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);               testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                 testBucket(ut, hashMap,     0, 3 );
                                                 testBucket(ut, hashMap,     1, 2 );
 
         auto start= hashMap.begin(0);           UT_EQ(110,  start.Mapped() )
         auto end  = hashMap.begin(0);           UT_EQ(110,  end  .Mapped() )
-        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                 UT_EQ(110,  start.Mapped() )
 
         start= hashMap.begin(0);                UT_EQ(110,  start.Mapped() )
         end  = hashMap.begin(0); ++end;         UT_EQ(  1,  end  .Mapped() )
-        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 4 );
+        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 4 );
                                                 UT_TRUE(  start == end )
                                                 UT_EQ(  1,  start.Mapped() )
                                                 testBucket(ut, hashMap,     0, 2 );
 
         start++;                                UT_EQ(  0,  start.Mapped() )
         start= hashMap.Erase(start,
-                             hashMap.end(0));   testConsistency(ut, hashMap,     3 ,  11,  cntRecylables - 3 );
+                             hashMap.end(0));   testConsistency(ut, hashMap,     3 ,  97,  cntRecylables - 3 );
                                                 testBucket(ut, hashMap,     0, 1 );
                                                 testBucket(ut, hashMap,     1, 2 );
                                                 UT_TRUE(start == hashMap.end(0) )
 
         start= hashMap.Erase(hashMap.begin(0),
-                             hashMap.end  (0)); testConsistency(ut, hashMap,     2 ,  11,  cntRecylables - 2 );
+                             hashMap.end  (0)); testConsistency(ut, hashMap,     2 ,  97,  cntRecylables - 2 );
                                                 testBucket(ut, hashMap,     0, 0 );
                                                 testBucket(ut, hashMap,     1, 2 );
                                                 UT_TRUE(start == hashMap.end(0) )
@@ -1211,11 +1219,11 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
 
         start= hashMap.begin(1); ++start;       UT_EQ( 10,  start.Mapped() )
         end  = hashMap.end(1);
-        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     1 ,  11,  cntRecylables - 1 );
+        start= hashMap.Erase(start,end);        testConsistency(ut, hashMap,     1 ,  97,  cntRecylables - 1 );
                                                 UT_TRUE(start == hashMap.end(1) )
                                                 testBucket(ut, hashMap,     1, 1 );
         start= hashMap.Erase(hashMap.begin(1),
-                             hashMap.end  (1)); testConsistency(ut, hashMap,     0 ,  11,  cntRecylables - 0 );
+                             hashMap.end  (1)); testConsistency(ut, hashMap,     0 ,  97,  cntRecylables - 0 );
                                                 testBucket(ut, hashMap,     0, 0 );
                                                 testBucket(ut, hashMap,     1, 0 );
     }
@@ -1225,35 +1233,35 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
         hashMap.Clear();
         hashMap.Emplace(0, 0);
         hashMap.Emplace(0, 1);
-        hashMap.Emplace(11, 110);
+        hashMap.Emplace(97, 110);
         hashMap.Emplace(1, 10);
-        hashMap.Emplace(12, 120);                           testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        hashMap.Emplace(98, 120);                           testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashMap,     0, 3 );
                                                             testBucket(ut, hashMap,     1, 2 );
 
         // extract by pos and add at the same spot with same key existing
         auto start = hashMap.begin() ;                      UT_EQ(110,  start.Mapped() )
-        auto handle= hashMap.Extract(start);                testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 5 );
+        auto handle= hashMap.Extract(start);                testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashMap,     0, 2 );
                                                             testBucket(ut, hashMap,     1, 2 );
                                                             UT_FALSE(   handle.IsEmpty() )
-                                                            UT_EQ( 11,  handle.Key  ()   )
+                                                            UT_EQ( 97,  handle.Key  ()   )
                                                             UT_EQ(110,  handle.Mapped()  )
-        auto result= hashMap.Insert(handle);                testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        auto result= hashMap.Insert(handle);                testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE(    handle.IsEmpty() )
-                                                            UT_TRUE(  result == hashMap.Find(11) )
+                                                            UT_TRUE(  result == hashMap.Find(97) )
                                                             UT_TRUE(   handle.IsEmpty() )
 
         // extract by pos and add somewhere else
         start = hashMap.begin() ;                           UT_EQ(110,  start.Mapped() )
-        handle= hashMap.Extract(start);                     testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 5 );
+        handle= hashMap.Extract(start);                     testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashMap,     0, 2 );
                                                             testBucket(ut, hashMap,     1, 2 );
                                                             UT_FALSE(   handle.IsEmpty() )
-                                                            UT_EQ( 11,  handle.Key  ()   )
+                                                            UT_EQ( 97,  handle.Key  ()   )
                                                             UT_EQ(110,  handle.Mapped()  )
         handle.Key()= 5;                                    UT_EQ(  5,  handle.Key  ()   )
-        result= hashMap.Insert(handle);                     testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        result= hashMap.Insert(handle);                     testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE(    handle.IsEmpty() )
                                                             UT_TRUE(  result == hashMap.Find(5) )
                                                             UT_TRUE(   handle.IsEmpty() )
@@ -1262,7 +1270,7 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
                                                             testBucket(ut, hashMap,     5, 1 );
 
         // extract by key and add somewhere else
-        handle= hashMap.Extract(1);                         testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 5 );
+        handle= hashMap.Extract(1);                         testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 5 );
                                                             testBucket(ut, hashMap,     0, 2 );
                                                             testBucket(ut, hashMap,     1, 1 );
                                                             testBucket(ut, hashMap,     5, 1 );
@@ -1272,7 +1280,7 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
         // ...unsuccessful insert
         handle.Key()= 5;                                    UT_EQ(  5,  handle.Key  () )
                                                             UT_EQ( 10,  handle.Mapped() )
-        result= hashMap.InsertIfNotExistent(handle);        testConsistency(ut, hashMap,     4 ,  11,  cntRecylables - 5 );
+        result= hashMap.InsertIfNotExistent(handle);        testConsistency(ut, hashMap,     4 ,  97,  cntRecylables - 5 );
                                                             UT_FALSE( handle.IsEmpty () )
                                                             UT_EQ(  5,  handle.Key   () )
                                                             UT_EQ( 10,  handle.Mapped() )
@@ -1281,7 +1289,7 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
                                                             testBucket(ut, hashMap,     5, 1 );
         // ...successful insert
         handle.Key()= 6;                                    UT_EQ(  6,  handle.Key  () )
-        result= hashMap.InsertIfNotExistent(handle);        testConsistency(ut, hashMap,     5 ,  11,  cntRecylables - 5 );
+        result= hashMap.InsertIfNotExistent(handle);        testConsistency(ut, hashMap,     5 ,  97,  cntRecylables - 5 );
                                                             UT_TRUE( handle.IsEmpty() )
                                                             UT_EQ(  10, result.Mapped()  )
                                                             testBucket(ut, hashMap,     0, 2 );
@@ -1294,30 +1302,30 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
     {
         hashMap.Reset();                                         testConsistency(ut, hashMap,     0 ,  0 ,  0 );
         auto
-        result= hashMap.InsertUnique(std::make_pair( 0, 100));   testConsistency(ut, hashMap,     1 ,  11,  0 );
+        result= hashMap.InsertUnique(std::make_pair( 0, 100));   testConsistency(ut, hashMap,     1 ,  97,  0 );
                                                                   UT_EQ( 100 ,  result.Mapped() )
-        result= hashMap.InsertUnique(std::make_pair(11, 110));   testConsistency(ut, hashMap,     2 ,  11,  0 );
+        result= hashMap.InsertUnique(std::make_pair(97, 110));   testConsistency(ut, hashMap,     2 ,  97,  0 );
                                                                   UT_EQ( 110 ,  result.Mapped() )
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         UT_PRINT( "An error should follow" )
 
-        result= hashMap.InsertUnique(std::make_pair( 0, 101));   testConsistency(ut, hashMap,     3 ,  11,  0 );
+        result= hashMap.InsertUnique(std::make_pair( 0, 101));   testConsistency(ut, hashMap,     3 ,  97,  0 );
                                                                   UT_EQ( 101 ,  result.Mapped() )
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
 
 
-        result= hashMap.EmplaceUnique( 1, 200);                  testConsistency(ut, hashMap,     4 ,  11,  0 );
+        result= hashMap.EmplaceUnique( 1, 200);                  testConsistency(ut, hashMap,     4 ,  97,  0 );
                                                                   UT_EQ( 200 ,  result.Mapped() )
-        result= hashMap.EmplaceUnique(12, 210);                  testConsistency(ut, hashMap,     5 ,  11,  0 );
+        result= hashMap.EmplaceUnique(98, 210);                  testConsistency(ut, hashMap,     5 ,  97,  0 );
                                                                   UT_EQ( 210 ,  result.Mapped() )
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         UT_PRINT( "An error should follow" )
 
-        result= hashMap.EmplaceUnique(1, 201);                   testConsistency(ut, hashMap,     6 ,  11,  0 );
+        result= hashMap.EmplaceUnique(1, 201);                   testConsistency(ut, hashMap,     6 ,  97,  0 );
                                                                   UT_EQ( 201 ,  result.Mapped() )
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
     }
 
 
@@ -1325,67 +1333,67 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
     {
         hashMap.Reset();                            testConsistency(ut, hashMap,     0 ,  0 ,  0 );
         auto
-        result= hashMap.EmplaceOrAssign(0, 0);      testConsistency(ut, hashMap,     1 ,  11,  0 );
+        result= hashMap.EmplaceOrAssign(0, 0);      testConsistency(ut, hashMap,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_EQ(   0 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.EmplaceIfNotExistent(0, 0);      testConsistency(ut, hashMap,     1 ,  11,  0 );
+        result= hashMap.EmplaceIfNotExistent(0, 0);      testConsistency(ut, hashMap,     1 ,  97,  0 );
                                                     UT_EQ(   0 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_EQ(   0 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
 
-        result= hashMap.EmplaceOrAssign(0, 1);      testConsistency(ut, hashMap,     1 ,  11,  0 );
+        result= hashMap.EmplaceOrAssign(0, 1);      testConsistency(ut, hashMap,     1 ,  97,  0 );
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(0) )
-        result= hashMap.EmplaceOrAssign(0, 2);      testConsistency(ut, hashMap,     1 ,  11,  0 );
+        result= hashMap.EmplaceOrAssign(0, 2);      testConsistency(ut, hashMap,     1 ,  97,  0 );
                                                     UT_EQ(   2 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_EQ(   2 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.EmplaceOrAssign(1, 3);      testConsistency(ut, hashMap,     2 ,  11,  0 );
+        result= hashMap.EmplaceOrAssign(1, 3);      testConsistency(ut, hashMap,     2 ,  97,  0 );
                                                     UT_EQ(   3 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(1) )
-        result= hashMap.EmplaceOrAssign(1, 4);      testConsistency(ut, hashMap,     2 ,  11,  0 );
+        result= hashMap.EmplaceOrAssign(1, 4);      testConsistency(ut, hashMap,     2 ,  97,  0 );
                                                     UT_EQ(   4 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(1) )
-        result= hashMap.EmplaceIfNotExistent(1, 5); testConsistency(ut, hashMap,     2 ,  11,  0 );
+        result= hashMap.EmplaceIfNotExistent(1, 5); testConsistency(ut, hashMap,     2 ,  97,  0 );
                                                     UT_EQ(   4 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_TRUE( result.first == hashMap.Find(1) )
 
-        result= hashMap.EmplaceIfNotExistent(2, 12);testConsistency(ut, hashMap,     3 ,  11,  0 );
-                                                    UT_EQ(  12 ,  result.first.Mapped() )
+        result= hashMap.EmplaceIfNotExistent(2, 98);testConsistency(ut, hashMap,     3 ,  97,  0 );
+                                                    UT_EQ(  98 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(2) )
 
-        result= hashMap.EmplaceIfNotExistent(3, 13);testConsistency(ut, hashMap,     4 ,  11,  0 );
+        result= hashMap.EmplaceIfNotExistent(3, 13);testConsistency(ut, hashMap,     4 ,  97,  0 );
                                                     UT_EQ(  13 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(3) )
 
         // test that returned iterator survives rehash
-        result= hashMap.EmplaceOrAssign(4, 14);     testConsistency(ut, hashMap,     5 ,  11,  -1 );
-        result= hashMap.EmplaceOrAssign(5, 15);     testConsistency(ut, hashMap,     6 ,  11,  -1 );
+        result= hashMap.EmplaceOrAssign(4, 14);     testConsistency(ut, hashMap,     5 ,  97,  -1 );
+        result= hashMap.EmplaceOrAssign(5, 15);     testConsistency(ut, hashMap,     6 ,  97,  -1 );
 
         auto inserts= static_cast<int>(   hashMap.MaxLoadFactor() * static_cast<float>(hashMap.BucketCount())
                                         - static_cast<float>(hashMap.Size())                                   );
         for( int i= 0 ; i < inserts -1 ; ++i )
             hashMap.Emplace( 6000 + (rand() % 100), 1234 );
-                                                    testConsistency(ut, hashMap,    21 ,  11,  -1 );
+                                                    testConsistency(ut, hashMap,   193 ,  97,  -1 );
 
-        result= hashMap.EmplaceOrAssign(0, 5);      testConsistency(ut, hashMap,    21 ,  11,  -1 );
+        result= hashMap.EmplaceOrAssign(0, 5);      testConsistency(ut, hashMap,   193 ,  97,  -1 );
                                                     UT_EQ(   5 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.EmplaceOrAssign(100, 110);  testConsistency(ut, hashMap,    22 ,  23,  -1 );
+        result= hashMap.EmplaceOrAssign(100, 110);  testConsistency(ut, hashMap,   194 , 199,  -1 );
                                                     UT_EQ( 110 ,  result.first.Mapped() )
                                                     UT_EQ(true,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(100) )
@@ -1395,73 +1403,74 @@ void UT_HashMap(AWorxUnitTesting&  ut, TTable& hashMap)
     {
         hashMap.Reset();                           testConsistency(ut, hashMap,     0 ,  0 ,  -1 );
         auto
-        result= hashMap.InsertOrAssign(0, 0);      testConsistency(ut, hashMap,     1 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(0, 0);      testConsistency(ut, hashMap,     1 ,  97,  -1 );
                                                     UT_EQ(   0 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_EQ(   0 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.InsertIfNotExistent(0, 0);  testConsistency(ut, hashMap,     1 ,  11,  -1 );
+        result= hashMap.InsertIfNotExistent(0, 0);  testConsistency(ut, hashMap,     1 ,  97,  -1 );
                                                     UT_EQ(   0 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_EQ(   0 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
 
-        result= hashMap.InsertOrAssign(0, 1);       testConsistency(ut, hashMap,     1 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(0, 1);       testConsistency(ut, hashMap,     1 ,  97,  -1 );
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(0) )
-        result= hashMap.InsertOrAssign(0, 2);       testConsistency(ut, hashMap,     1 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(0, 2);       testConsistency(ut, hashMap,     1 ,  97,  -1 );
                                                     UT_EQ(   2 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_EQ(   2 ,  hashMap.begin().Mapped() )
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.InsertOrAssign(1, 3);       testConsistency(ut, hashMap,     2 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(1, 3);       testConsistency(ut, hashMap,     2 ,  97,  -1 );
                                                     UT_EQ(   3 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(1) )
-        result= hashMap.InsertOrAssign(1, 4);       testConsistency(ut, hashMap,     2 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(1, 4);       testConsistency(ut, hashMap,     2 ,  97,  -1 );
                                                     UT_EQ(   4 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(1) )
-        result= hashMap.InsertIfNotExistent(1, 5);  testConsistency(ut, hashMap,     2 ,  11,  -1 );
+        result= hashMap.InsertIfNotExistent(1, 5);  testConsistency(ut, hashMap,     2 ,  97,  -1 );
                                                     UT_EQ(   4 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // nothing done
                                                     UT_TRUE( result.first == hashMap.Find(1) )
 
-        result= hashMap.InsertIfNotExistent(2, 12); testConsistency(ut, hashMap,     3 ,  11,  -1 );
-                                                    UT_EQ(  12 ,  result.first.Mapped() )
+        result= hashMap.InsertIfNotExistent(2, 98); testConsistency(ut, hashMap,     3 ,  97,  -1 );
+                                                    UT_EQ(  98 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(2) )
 
-        result= hashMap.InsertIfNotExistent(3, 13); testConsistency(ut, hashMap,     4 ,  11,  -1 );
+        result= hashMap.InsertIfNotExistent(3, 13); testConsistency(ut, hashMap,     4 ,  97,  -1 );
                                                     UT_EQ(  13 ,  result.first.Mapped() )
                                                     UT_EQ(true ,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(3) )
 
         // test that returned iterator survives rehash
-        result= hashMap.InsertOrAssign(4, 14);      testConsistency(ut, hashMap,     5 ,  11,  -1 );
-        result= hashMap.InsertOrAssign(5, 15);      testConsistency(ut, hashMap,     6 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(4, 14);      testConsistency(ut, hashMap,     5 ,  97,  -1 );
+        result= hashMap.InsertOrAssign(5, 15);      testConsistency(ut, hashMap,     6 ,  97,  -1 );
 
         auto inserts= static_cast<int>(   hashMap.MaxLoadFactor() * static_cast<float>(hashMap.BucketCount())
                                         - static_cast<float>(hashMap.Size())                                   );
         for( int i= 0 ; i < inserts -1 ; ++i )
             hashMap.Insert( std::make_pair(4000 + rand() % 100, 999) );
 
-                                                    testConsistency(ut, hashMap,    21 ,  11,  -1 );
+                                                    testConsistency(ut, hashMap,   193 ,  97,  -1 );
 
-        result= hashMap.InsertOrAssign(0, 5);       testConsistency(ut, hashMap,    21 ,  11,  -1 );
+        result= hashMap.InsertOrAssign(0, 5);       testConsistency(ut, hashMap,   193 ,  97,  -1 );
                                                     UT_EQ(   5 ,  result.first.Mapped() )
                                                     UT_EQ(false,  result.second  ) // is replace
                                                     UT_TRUE( result.first == hashMap.Find(0) )
 
-        result= hashMap.InsertOrAssign(100, 110);   testConsistency(ut, hashMap,    22 ,  23,  -1 );
+        result= hashMap.InsertOrAssign(100, 110);   testConsistency(ut, hashMap,   194 , 199,  -1 );
                                                     UT_EQ( 110 ,  result.first.Mapped() )
                                                     UT_EQ(true,  result.second  ) // is insert
                                                     UT_TRUE( result.first == hashMap.Find(100) )
     }
 }
+#endif //if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 
 
 DOX_MARKER( [DOX_ALIB_MONOMEM_SELFCONTAINED_1] )
@@ -1484,7 +1493,7 @@ DOX_MARKER( [DOX_ALIB_MONOMEM_SELFCONTAINED_1] )
 #endif
 
 DOX_MARKER( [DOX_ALIB_MONOMEM_SELFCONTAINED_2] )
-struct Dictionary : protected aworx::lib::monomem::SelfContained<FieldsOfDictionary>
+struct Dictionary : protected alib::monomem::SelfContained<FieldsOfDictionary>
 {
     Dictionary()
     : SelfContained( 1024, 100 )
@@ -1539,7 +1548,7 @@ UT_INIT()
 // ### StdContMA
 // #################################################################################################
 {
-    lib::monomem::MonoAllocator ma( 512 );
+    monomem::MonoAllocator ma( 512 );
 
     {
         UT_PRINT(  "---- std::unordered_map, strict monotonic  ----")
@@ -1591,14 +1600,14 @@ ALIB_DBG(   stdContMa.dbgDeallocationWarning= false;    )
 DOX_MARKER([DOX_ALIB_MONOMEM_STDCONTMA_DECL])
 struct MyStruct
 {
-    std::vector<int, aworx::StdContMA<int>>  myField;
+    std::vector<int, alib::StdContMA<int>>  myField;
 };
 DOX_MARKER([DOX_ALIB_MONOMEM_STDCONTMA_DECL])
 
 DOX_MARKER([DOX_ALIB_MONOMEM_STDCONTMA_DEF])
-aworx::MonoAllocator myAllocator( 4096 );
+alib::MonoAllocator myAllocator( 4096 );
 
-std::vector<int, StdContMA<int>>  myVector( (aworx::StdContMA<int>(myAllocator)) );
+std::vector<int, StdContMA<int>>  myVector( (alib::StdContMA<int>(myAllocator)) );
 DOX_MARKER([DOX_ALIB_MONOMEM_STDCONTMA_DEF])
 
         for( int i= 0; i < 20 ; ++i)
@@ -1611,7 +1620,7 @@ DOX_MARKER([DOX_ALIB_MONOMEM_STDCONTMA_DEF])
 // #################################################################################################
 
 {
-    lib::monomem::MonoAllocator ma( 512 );
+    monomem::MonoAllocator ma( 512 );
 
     RTTRAllocator recyclerUM( &ma );
     RTTRAllocator recyclerMap( &ma );
@@ -1678,7 +1687,7 @@ MonoAllocator* monoAllocator= MonoAllocator::Create(1024);
 NString clone= monoAllocator->EmplaceString( NString128() << "Result is: " << 42 );
 
 // Destruct the allocator. Invokes monoAllocator->~MonoAllocator()
-lib::monomem::Destruct( monoAllocator );
+monomem::Destruct( monoAllocator );
                                                     DOX_MARKER( [DOX_ALIB_MONOMEM_ALLOCATOR_CREATE] )
 
 (void) clone;
@@ -1733,6 +1742,7 @@ UT_METHOD(HashTable_Distribution)
 //--------------------------------------------------------------------------------------------------
 //--- List
 //--------------------------------------------------------------------------------------------------
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 UT_METHOD(List)
 {
     UT_INIT()
@@ -1740,14 +1750,16 @@ UT_METHOD(List)
     CharTriv avoidUnneededDefaultConstructorWarning;
     (void)  avoidUnneededDefaultConstructorWarning;
 
-    ListTest<char     >( ut );
+    TListTest<char     >( ut );
 
-    ListTest<CharTriv >( ut );
+    TListTest<CharTriv >( ut );
 
     UT_EQ( CharDyn::InstanceCounter(), 0 )
-        ListTest<CharDyn >( ut );
+        TListTest<CharDyn >( ut );
     UT_EQ( CharDyn::InstanceCounter(), 0 )
 }
+#endif
+
 
 //--------------------------------------------------------------------------------------------------
 //--- Recycling
@@ -1763,7 +1775,7 @@ UT_METHOD(Recycling)
     // List private
     {
 MonoAllocator monoAllocator(1024);
-aworx::List<int>   list( &monoAllocator );
+alib::List<int>   list( &monoAllocator );
 
                         UT_EQ( 0, list.RecyclablesCount() )
 list.PushFront(1);      UT_EQ( 0, list.RecyclablesCount() )
@@ -1779,9 +1791,9 @@ list.PopFront();        UT_EQ( 2, list.RecyclablesCount() )
     {
 MonoAllocator monoAllocator(1024);
 
-aworx::List<int, Recycling::Shared>::TSharedRecycler sharedRecycler;
-aworx::List<int, Recycling::Shared>  list1( &monoAllocator, sharedRecycler );
-aworx::List<int, Recycling::Shared>  list2( &monoAllocator, sharedRecycler );
+alib::List<int, Recycling::Shared>::TSharedRecycler sharedRecycler;
+alib::List<int, Recycling::Shared>  list1( &monoAllocator, sharedRecycler );
+alib::List<int, Recycling::Shared>  list2( &monoAllocator, sharedRecycler );
 
                          UT_EQ( 0, list1.RecyclablesCount() )
                          UT_EQ( 0, list2.RecyclablesCount() )
@@ -1804,7 +1816,7 @@ list2.PopFront();        UT_EQ( 2, list1.RecyclablesCount() )
     {
 MonoAllocator monoAllocator(1024);
 
-aworx::List<int, Recycling::None>  list( &monoAllocator );
+alib::List<int, Recycling::None>  list( &monoAllocator );
 
 list.PushFront(1);
 list.PopFront();
@@ -1821,7 +1833,7 @@ MonoAllocator monoAllocator(1024);
 using MySet= HashSet< int,
                       std::hash<int>,
                       std::equal_to<int>,
-                      Caching::Disabled,
+                      lang::Caching::Disabled,
                       Recycling::Shared      >;  // <-- shared recycling!
 
 // The shared recycler instance
@@ -1853,7 +1865,7 @@ set2.Erase  (1);              UT_EQ( 1, set1.RecyclablesCount() )
 set1.Erase  (2);              UT_EQ( 2, set1.RecyclablesCount() )
                               UT_EQ( 2, set2.RecyclablesCount() )
 
-set1.ReserveRecyclables(10, lib::ValueReference::Absolute);
+set1.ReserveRecyclables(10, lang::ValueReference::Absolute);
                               UT_EQ( 10, set1.RecyclablesCount() )
                               UT_EQ( 10, set2.RecyclablesCount() )
 DOX_MARKER( [DOX_ALIB_MONOMEM_RECYCLER] )
@@ -1865,7 +1877,7 @@ MonoAllocator monoAllocator(1024);
 using MySharedSet= HashSet<int,
                            std::hash<int>,
                            std::equal_to<int>,
-                           Caching::Disabled,
+                           lang::Caching::Disabled,
                            Recycling::None >;
 MySharedSet  set( &monoAllocator );
 
@@ -1880,7 +1892,7 @@ MonoAllocator monoAllocator(1024);
 using MySharedMap= HashMap<int,int,
                            std::hash<int>,
                            std::equal_to<int>,
-                           Caching::Disabled,
+                           lang::Caching::Disabled,
                            Recycling::Shared >;
 MySharedMap::TSharedRecycler sharedRecycler;
 MySharedMap  map1( &monoAllocator, sharedRecycler );
@@ -1908,7 +1920,7 @@ MonoAllocator monoAllocator(1024);
 using MySharedMap= HashMap<int,int,
                            std::hash<int>,
                            std::equal_to<int>,
-                           Caching::Disabled,
+                           lang::Caching::Disabled,
                            Recycling::None >;
 MySharedMap  map( &monoAllocator );
 
@@ -1940,35 +1952,37 @@ UT_METHOD(HashTable)
     static_assert( HashSet<Box    , int >::CachedHashCodes == true , "Wrong default for caching" );
     static_assert( HashSet<String , int >::CachedHashCodes == true , "Wrong default for caching" );
 
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
+
     MonoAllocator ba(100);
-
     (void) ( DynInt() == DynInt() ); // avoid unneeded constructor, == warning for this test class
-
+    
     {
         UT_PRINT( "---------------------------- HashSet -------------------------------")
-        ba.Reset();   { HashSet<int           , IntHash       , std::equal_to<int> ,Caching::Disabled> hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
-        ba.Reset();   { HashSet<DynInt        , DynIntHash    , DynIntEqual        ,Caching::Disabled> hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
+        ba.Reset();   { HashSet<int           , IntHash       , std::equal_to<int> ,lang::Caching::Disabled> hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
+        ba.Reset();   { HashSet<DynInt        , DynIntHash    , DynIntEqual        ,lang::Caching::Disabled> hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashSet<int           , IntHash       , std::equal_to<int> ,Caching::Enabled > hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
-        ba.Reset();   { HashSet<DynInt        , DynIntHash    , DynIntEqual        ,Caching::Enabled > hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
+        ba.Reset();   { HashSet<int           , IntHash       , std::equal_to<int> ,lang::Caching::Enabled > hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
+        ba.Reset();   { HashSet<DynInt        , DynIntHash    , DynIntEqual        ,lang::Caching::Enabled > hashSetI(&ba);   UT_HashSet( ut, hashSetI ); }
         UT_EQ( DynInt::instCounter, 0)
 
         UT_PRINT( "---------------------------- HashMap -------------------------------")
-        ba.Reset();   { HashMap<int   , int   , IntHash       , std::equal_to<int> ,Caching::Disabled> hashMapII(&ba);  UT_HashMap( ut, hashMapII ); }
-        ba.Reset();   { HashMap<int   , DynInt, IntHash       , std::equal_to<int> ,Caching::Disabled> hashMapID(&ba);  UT_HashMap( ut, hashMapID ); }
+        ba.Reset();   { HashMap<int   , int   , IntHash       , std::equal_to<int> ,lang::Caching::Disabled> hashMapII(&ba);  UT_HashMap( ut, hashMapII ); }
+        ba.Reset();   { HashMap<int   , DynInt, IntHash       , std::equal_to<int> ,lang::Caching::Disabled> hashMapID(&ba);  UT_HashMap( ut, hashMapID ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashMap<DynInt, int   , DynIntHash    , DynIntEqual        ,Caching::Disabled> hashMapDI(&ba);  UT_HashMap( ut, hashMapDI ); }
+        ba.Reset();   { HashMap<DynInt, int   , DynIntHash    , DynIntEqual        ,lang::Caching::Disabled> hashMapDI(&ba);  UT_HashMap( ut, hashMapDI ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashMap<DynInt, DynInt, DynIntHash    , DynIntEqual        ,Caching::Disabled> hashMapDD(&ba);  UT_HashMap( ut, hashMapDD ); }
+        ba.Reset();   { HashMap<DynInt, DynInt, DynIntHash    , DynIntEqual        ,lang::Caching::Disabled> hashMapDD(&ba);  UT_HashMap( ut, hashMapDD ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashMap<int   , int   , IntHash       , std::equal_to<int> ,Caching::Enabled > hashMapII(&ba);  UT_HashMap( ut, hashMapII ); }
-        ba.Reset();   { HashMap<int   , DynInt, IntHash       , std::equal_to<int> ,Caching::Enabled > hashMapID(&ba);  UT_HashMap( ut, hashMapID ); }
+        ba.Reset();   { HashMap<int   , int   , IntHash       , std::equal_to<int> ,lang::Caching::Enabled > hashMapII(&ba);  UT_HashMap( ut, hashMapII ); }
+        ba.Reset();   { HashMap<int   , DynInt, IntHash       , std::equal_to<int> ,lang::Caching::Enabled > hashMapID(&ba);  UT_HashMap( ut, hashMapID ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashMap<DynInt, int   , DynIntHash    , DynIntEqual        ,Caching::Enabled > hashMapDI(&ba);  UT_HashMap( ut, hashMapDI ); }
+        ba.Reset();   { HashMap<DynInt, int   , DynIntHash    , DynIntEqual        ,lang::Caching::Enabled > hashMapDI(&ba);  UT_HashMap( ut, hashMapDI ); }
         UT_EQ( DynInt::instCounter, 0)
-        ba.Reset();   { HashMap<DynInt, DynInt, DynIntHash    , DynIntEqual        ,Caching::Enabled > hashMapDD(&ba);  UT_HashMap( ut, hashMapDD ); }
+        ba.Reset();   { HashMap<DynInt, DynInt, DynIntHash    , DynIntEqual        ,lang::Caching::Enabled > hashMapDD(&ba);  UT_HashMap( ut, hashMapDD ); }
         UT_EQ( DynInt::instCounter, 0)
     }
+#endif //if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 }
 
 #include "unittests/aworx_unittests_end.hpp"

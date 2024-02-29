@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -13,17 +13,17 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 
-template<typename TChar, Case TSensitivity>
+template<typename TChar, lang::Case TSensitivity>
 TSubstringSearch<TChar,TSensitivity>::~TSubstringSearch()
 {
     if( kmpTable )
         delete[] kmpTable;
 }
 
-template<typename TChar, Case TSensitivity>
+template<typename TChar, lang::Case TSensitivity>
 void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedle )
 {
     if (pNeedle.IsNull() )
@@ -49,7 +49,7 @@ void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedl
     {
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         while ((pfxLen != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
-	        pfxLen= kmpTable[pfxLen];
+            pfxLen= kmpTable[pfxLen];
         ++needleIdx;
         ++pfxLen;
         kmpTable[needleIdx]=     characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]) ? kmpTable[pfxLen] : pfxLen;
@@ -57,7 +57,7 @@ void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedl
     }
 }
 
-template<typename TChar, Case TSensitivity>
+template<typename TChar, lang::Case TSensitivity>
 integer TSubstringSearch<TChar,TSensitivity>::Search( const TString<TChar>& haystack, integer haystackIdx )
 {
     if ( needle.IsNull()  )
@@ -74,37 +74,35 @@ integer TSubstringSearch<TChar,TSensitivity>::Search( const TString<TChar>& hays
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         while ((needleIdx != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>( haystack.Buffer()[haystackIdx],
                                                                                                  needle  .Buffer()[needleIdx] ) )
-	        needleIdx= kmpTable[needleIdx];
+            needleIdx= kmpTable[needleIdx];
         ALIB_WARNINGS_RESTORE
         ++haystackIdx;
         ++needleIdx;
         if ( needleIdx >= needle.Length() )
-	        return (haystackIdx - needleIdx);
+            return (haystackIdx - needleIdx);
     }
 
   return -1;
 }
 
 //! @cond NO_DOX
-template         TSubstringSearch<nchar, Case::Sensitive>::TSubstringSearch(const TString<nchar>&);
-template         TSubstringSearch<nchar, Case::Ignore   >::TSubstringSearch(const TString<nchar>&);
-template         TSubstringSearch<wchar, Case::Sensitive>::TSubstringSearch(const TString<wchar>&);
-template         TSubstringSearch<wchar, Case::Ignore   >::TSubstringSearch(const TString<wchar>&);
-template         TSubstringSearch<nchar, Case::Sensitive>::~TSubstringSearch();
-template         TSubstringSearch<nchar, Case::Ignore   >::~TSubstringSearch();
-template         TSubstringSearch<wchar, Case::Sensitive>::~TSubstringSearch();
-template         TSubstringSearch<wchar, Case::Ignore   >::~TSubstringSearch();
-template void    TSubstringSearch<nchar, Case::Sensitive>::Compile            (const TString<nchar>&);
-template void    TSubstringSearch<nchar, Case::Ignore   >::Compile            (const TString<nchar>&);
-template void    TSubstringSearch<wchar, Case::Sensitive>::Compile            (const TString<wchar>&);
-template void    TSubstringSearch<wchar, Case::Ignore   >::Compile            (const TString<wchar>&);
-template integer TSubstringSearch<nchar, Case::Sensitive>::Search             (const TString<nchar>&, integer);
-template integer TSubstringSearch<nchar, Case::Ignore   >::Search             (const TString<nchar>&, integer);
-template integer TSubstringSearch<wchar, Case::Sensitive>::Search             (const TString<wchar>&, integer);
-template integer TSubstringSearch<wchar, Case::Ignore   >::Search             (const TString<wchar>&, integer);
+template         TSubstringSearch<nchar, lang::Case::Sensitive>:: TSubstringSearch(const TString<nchar>&);
+template         TSubstringSearch<nchar, lang::Case::Ignore   >:: TSubstringSearch(const TString<nchar>&);
+template         TSubstringSearch<wchar, lang::Case::Sensitive>:: TSubstringSearch(const TString<wchar>&);
+template         TSubstringSearch<wchar, lang::Case::Ignore   >:: TSubstringSearch(const TString<wchar>&);
+template         TSubstringSearch<nchar, lang::Case::Sensitive>::~TSubstringSearch();
+template         TSubstringSearch<nchar, lang::Case::Ignore   >::~TSubstringSearch();
+template         TSubstringSearch<wchar, lang::Case::Sensitive>::~TSubstringSearch();
+template         TSubstringSearch<wchar, lang::Case::Ignore   >::~TSubstringSearch();
+template void    TSubstringSearch<nchar, lang::Case::Sensitive>::Compile          (const TString<nchar>&);
+template void    TSubstringSearch<nchar, lang::Case::Ignore   >::Compile          (const TString<nchar>&);
+template void    TSubstringSearch<wchar, lang::Case::Sensitive>::Compile          (const TString<wchar>&);
+template void    TSubstringSearch<wchar, lang::Case::Ignore   >::Compile          (const TString<wchar>&);
+template integer TSubstringSearch<nchar, lang::Case::Sensitive>::Search           (const TString<nchar>&, integer);
+template integer TSubstringSearch<nchar, lang::Case::Ignore   >::Search           (const TString<nchar>&, integer);
+template integer TSubstringSearch<wchar, lang::Case::Sensitive>::Search           (const TString<wchar>&, integer);
+template integer TSubstringSearch<wchar, lang::Case::Ignore   >::Search           (const TString<wchar>&, integer);
 //! @endcond
 
 
-}}}} // namespace [aworx::lib::strings::util]
-
-
+}}} // namespace [alib::strings::util]

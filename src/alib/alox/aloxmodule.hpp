@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ALOXMODULE
@@ -18,8 +18,8 @@ ALIB_ASSERT_MODULE(ALOX)
     #include "alib/alox/detail/textlogger/textlogger.hpp"
 #endif
 
-#if !defined (HPP_ALIB_FS_MODULES_MODULE)
-#   include "alib/lib/fs_modules/module.hpp"
+#if !defined (HPP_ALIB_LANG_CAMP)
+#   include "alib/lang/basecamp/camp.hpp"
 #endif
 
 #if !defined(HPP_ALIB_CONFIG_CONFIG)
@@ -30,80 +30,86 @@ ALIB_ASSERT_MODULE(ALOX)
 #   include "alib/config/configuration.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 /** ************************************************************************************************
- * Configuration variables uses by ALox
+ * Configuration variables uses by ALox.
+ * \note
+ *  As required by module \alib_config, this enumerations is equipped with
+ *  \ref alib_enums_records "ALib Enum Records" of type \alib{config,VariableDecl}  and resourced
+ *  with this module \alib_alox_nl.<br>
+ *  Hence, all variable categories, names, default values and such can be modified
+ *  by modifying the resource data of the singleton of class \alib{lang::basecamp,BaseCamp}.
  **************************************************************************************************/
 enum class Variables
 {
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by \alox{Log::AddDebugLogger}. */
+    /** Denotes configuration variable \ref ALOX_NO_IDE_LOGGER used by \alox{Log::AddDebugLogger}. */
     NO_IDE_LOGGER        = 1,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by \alox{Lox::CreateConsoleLogger}. */
+    /** Denotes configuration variable \ref ALOX_CONSOLE_TYPE used by \alox{Lox::CreateConsoleLogger}. */
     CONSOLE_TYPE         = 2,
 
-    /** Configuration variable \https{ALOX_LOXNAME_LOGGERNAME_VERBOSITY,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}. */
+    /** Denotes configuration variable \ref ALOX_LOXNAME_LOGGERNAME_VERBOSITY. */
     VERBOSITY            = 3,
 
-    /** Configuration variable \https{ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}. */
+    /** Denotes configuration variable \ref ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES. */
     SPTR_GLOBAL          = 4,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref ALOX_LOXNAME_SOURCE_PATH_TRIM_RULES used by class \alox{Lox}. */
     SPTR_LOX             = 5,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref ALOX_LOXNAME_DOMAIN_SUBSTITUTION used by class \alox{Lox}. */
     DOMAIN_SUBSTITUTION  = 6,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref ALOX_LOXNAME_PREFIXES used by class \alox{Lox}. */
     PREFIXES             = 7,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT used by class \alox{Lox}. */
     DUMP_STATE_ON_EXIT   = 8,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_AUTO_SIZES used by class \alox{detail::textlogger,TextLogger}. */
     AUTO_SIZES           = 20,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT               = 21,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_DATE_TIME used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_DATE_TIME     = 22,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_MULTILINE used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_MULTILINE     = 23,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_TIME_DIFF used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_TIME_DIFF     = 24,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_MAX_ELAPSED_TIME used by class \alox{detail::textlogger,TextLogger}. */
     MAX_ELAPSED_TIME     = 25,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_LOGGERNAME_REPLACEMENTS used by class \alox{detail::textlogger,TextLogger}. */
     REPLACEMENTS         = 26,
 
-    /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by colorful specializations of class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref ALOX_CONSOLE_LIGHT_COLORS used by colorful specializations of class \alox{detail::textlogger,TextLogger}. */
     CONSOLE_LIGHT_COLORS = 27,
 
     #if defined(_WIN32)
-        /** \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html} used by class \alox{loggers,WindowsConsoleLogger}. */
+        /** Denotes configuration variable \ref ALOX_CODE_PAGE used by class \alox{loggers,WindowsConsoleLogger}. */
         CODEPAGE           = 28,
     #endif
 };
 
 /** ************************************************************************************************
- * This is the module class for \alox logging library residing in namespace \ref aworx::lib::lox.
+ * This is the module class for \alox logging library residing in namespace \ref alib::lox.
  *
  * This is a strict singleton class. The only instance is found with namespace variable
- * \ref aworx::lib::ALOX.
+ * \ref alib::ALOX.
  **************************************************************************************************/
-class ALox : public Module
+class ALox : public lang::Camp
 {
     public:
         /** ****************************************************************************************
          * Constructor.<br>
          * While this is public, it must not be invoked as this is a strict singleton type.
-         * (See notes in \ref alib_manual_bootstrapping_class_module_singletons).
+         * (See notes in \ref alib_manual_camp_modules_campmodule).
          ******************************************************************************************/
         ALox();
 
@@ -113,11 +119,9 @@ class ALox : public Module
     public:
 
         #if defined(_WIN32)
-        /** Attributes of corresponding
-         *  \https{Configuration variable,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
-         *  used by class \alox{loggers,WindowsConsoleLogger}.
-         */
-        ALIB_API static  lib::config::VariableDecl CODEPAGE;
+            /** Attributes of corresponding configuration variable \ref ALOX_CODE_PAGE
+             *  used by class \alox{loggers,WindowsConsoleLogger}.              */
+            ALIB_API static  config::VariableDecl CODEPAGE;
         #endif
 
     // #############################################################################################
@@ -141,7 +145,8 @@ class ALox : public Module
          *                  Optional and defaults to \b %CreateIfNotExists::No.
          * @return The \b Lox found, \c nullptr in case of failure.
          ******************************************************************************************/
-        ALIB_API Lox*   Get( const NString& name, CreateIfNotExists create= CreateIfNotExists::No );
+        ALIB_API Lox*   Get( const NString&          name,
+                             lang::CreateIfNotExists create= lang::CreateIfNotExists::No );
 
         /** ****************************************************************************************
          * Registers or un-registers a \b %Lox object statically with \alox.
@@ -163,7 +168,7 @@ class ALox : public Module
          * @param operation If \b %ContainerOp::Remove, the given \p{Lox} is deregistered.
          *                  Defaults to \b %ContainerOp::Insert.
          ******************************************************************************************/
-        ALIB_API void   Register( Lox* lox, ContainerOp operation );
+        ALIB_API void   Register( Lox* lox, lang::ContainerOp operation );
 
         /** ****************************************************************************************
          * Resets this object. Concretely the following steps are performed:
@@ -185,18 +190,14 @@ class ALox : public Module
     // #############################################################################################
     protected:
         /** ****************************************************************************************
-         * Implementation of \alib{Module::bootstrap}.
+         * Implementation of \alib{lang,Camp::bootstrap}.
          *
-         * In phase \alib{Module::BootstrapPhases::Final} performs:
+         * In phase \alib{BootstrapPhases::Final} performs:
          * - Adds box-function \alib{boxing,FAppend::Appendable} for type
          *   \alox{detail,Logger}.
          * @param phase  The initialization phase to perform.
-         * @param argc   The number of command line arguments. Defaults to \c 0.
-         * @param argv   List of command line arguments if given as single byte character strings.
-         * @param wargv  List of command line arguments if given as multi-byte character strings.
          ******************************************************************************************/
-        virtual void    bootstrap( BootstrapPhases phase,
-                                   int argc, const char** argv, const wchar_t** wargv )    override;
+        virtual void    bootstrap( BootstrapPhases phase )                                 override;
 
         /** ****************************************************************************************
          * Terminates this module.
@@ -206,24 +207,25 @@ class ALox : public Module
 
 };// class ALox
 
-} // namespace aworx::lib[::lox]
-/** The singleton of module-class \alib{lox,ALox}. */
+} // namespace alib[::lox]
+
+/** The singleton instance of \alibcamp class \alib{lox,ALox}. */
 extern ALIB_API lox::ALox ALOX;
-} // namespace aworx[::lib]
 
-/// Type alias in namespace #aworx.
-using   ALox=             lib::lox::ALox;
 
-}  // namespace [aworx]
+/// Type alias in namespace \b alib.
+using   ALox=             lox::ALox;
 
-ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::Variables, aworx::lib::config::VariableDecl )
-ALIB_RESOURCED_IN_MODULE( aworx::lib::lox::Variables, aworx::lib::ALOX, "Var" )
+}  // namespace [alib]
+
+ALIB_ENUMS_ASSIGN_RECORD( alib::lox::Variables, alib::config::VariableDecl )
+ALIB_RESOURCED_IN_MODULE( alib::lox::Variables, alib::ALOX, "Var" )
 
 // #################################################################################################
 // T_Append<Scope> / T_Append<Verbosity>
 // #################################################################################################
 #if !defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace strings {
+namespace alib::strings {
 
 template<> struct       T_Append<Scope,nchar>
 {
@@ -237,8 +239,7 @@ template<> struct       T_Append<std::pair<Verbosity, Priorities>,nchar>
     void operator()( TAString<nchar>& target, const std::pair<Verbosity, Priorities>& src );
 };
 
-}}}
+} // namespace [alib::strings]
 #endif // !defined(ALIB_DOX)
 
 #endif // HPP_ALIB_ALOXMODULE
-

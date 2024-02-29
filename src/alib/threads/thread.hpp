@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREAD
@@ -30,7 +30,7 @@ ALIB_ASSERT_MODULE(THREADS)
 #       include "alib/enums/records.hpp"
 #   endif
 #endif
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 
 // forwards
 class     Thread;
@@ -54,19 +54,20 @@ static constexpr   ThreadID  UNDEFINED = 0;
  * Initializes \alib thread logic.
  * Multiple invocations of this method are ignored.
  *
- * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib will invoke this function.
- * Only if fileset \alibfs_modules is not included in the \alibdist_nl, this
- * function has to be invoked "manually".
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Bootstrap will call this function.
  *
  * \see
  *   For information about using this method, consult chapter
- *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
+ *   \ref alib_manual_bootstrapping_nocamps of the \ref alib_manual.
  **************************************************************************************************/
 void        Bootstrap();
 
 /** ************************************************************************************************
  * Frees resources and shuts down \alib thread logic.
  * Multiple invocations of this method are ignored.
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Shutdown will call this function.
  *
  * \see
  *   Sibling function \alib{threads,Bootstrap}.
@@ -95,7 +96,7 @@ class Runnable
 };
 
 /** ************************************************************************************************
- * This class provides a limited (minimal) abstraction of C++ 11 threads.
+ * This class provides a limited (minimal) abstraction of C++ type <c>std::thread</c>.
  * As elaborated in the module's documentation, this class is not considered full featured
  * but - as of today- is meant for simple use cases only.
  *
@@ -135,10 +136,10 @@ class Thread : public Runnable
     // Protected fields
     // #############################################################################################
     protected:
-        /** The internal C++ 11 thread object. */
+        /** The internal C++ thread object. */
         std::thread*        c11Thread                                                      =nullptr;
 
-        /** The internal C++ 11 thread id. */
+        /** The internal C++ thread id. */
         std::thread::id     c11ID;
 
         /** The runnable to execute. */
@@ -380,22 +381,22 @@ class Thread : public Runnable
 
 };
 
-}} // namespace aworx[::lib::threads]
+} // namespace alib[::threads]
 
-/// Type alias in namespace #aworx.
-using     Runnable=     lib::threads::Runnable;
+/// Type alias in namespace \b alib.
+using     Runnable=     threads::Runnable;
 
-/// Type alias in namespace #aworx.
-using     Thread=       lib::threads::Thread;
+/// Type alias in namespace \b alib.
+using     Thread=       threads::Thread;
 
 /// Type to store thread identifiers.
-using     ThreadID=     lib::threads::ThreadID;
+using     ThreadID=     threads::ThreadID;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 
 #if ALIB_ENUMS && ALIB_BOXING
-    ALIB_ENUMS_ASSIGN_RECORD(aworx::lib::threads::Thread::State, aworx::lib::enums::ERSerializable )
+    ALIB_ENUMS_ASSIGN_RECORD(alib::threads::Thread::State, alib::enums::ERSerializable )
 #endif
 
 #endif // HPP_ALIB_THREADS_THREAD

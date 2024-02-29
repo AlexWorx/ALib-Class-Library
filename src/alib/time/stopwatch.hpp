@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_STOPWATCH
@@ -12,7 +12,7 @@
     #include "alib/time/ticks.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace time {
+namespace alib {  namespace time {
 
 /** ************************************************************************************************
  * This class encapsulates a system dependent timer value of type \alib{time,Ticks} and provides
@@ -162,11 +162,11 @@ class StopWatch
         }
 };
 
-}} // namespace lib::time
+} // namespace alib[::time]
 
-/// Type alias in namespace #aworx.
-using     StopWatch=            lib::time::StopWatch;
+/// Type alias in namespace \b alib.
+using     StopWatch=            time::StopWatch;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_TIME_STOPWATCH

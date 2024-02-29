@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,18 +10,14 @@
 #   if !defined(HPP_AWORX_ALIB_BITBUFFER_AC_V1)
 #      include "alib/bitbuffer/ac_v1/ac.hpp"
 #   endif
-#   if ALIB_TEXT && !defined(HPP_ALIB_TEXT_FORMATTER)
-#      include "alib/text/formatter.hpp"
+#   if ALIB_CAMP && !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
+#      include "alib/lang/format/formatter.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace bitbuffer { namespace ac_v1 {
+namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
-#if ALIB_CPPVER < 17
-constexpr int ArrayCompressor::QtyAlgorithms;
-#endif
-
-#if ALIB_TEXT
+#if ALIB_CAMP
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void ArrayCompressor::Statistics::Print( AString& result, const String& headline, bool printTotals)
@@ -105,6 +101,6 @@ void ArrayCompressor::Statistics::Print( AString& result, const String& headline
 }
 ALIB_WARNINGS_RESTORE
 
-#endif // #if ALIB_TEXT
+#endif // #if ALIB_CAMP
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]

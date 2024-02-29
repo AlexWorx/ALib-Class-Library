@@ -1,13 +1,12 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_EXPRESSIONS
-
+#if ALIB_UT_DOCS && ALIB_UT_EXPRESSIONS
 
 #if !defined (HPP_ALOX)
 #   include "alib/alox.hpp"
@@ -40,8 +39,8 @@
 #   include "alib/expressions/detail/program.hpp"
 #endif
 
-#if !defined(HPP_ALIB_TEXT_TEXT)
-#   include "alib/text/text.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
+#   include "alib/lang/format/fmtexceptions.hpp"
 #endif
 
 
@@ -53,9 +52,9 @@
 
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib;
-using namespace aworx::lib::expressions;
+using namespace alib;
+using namespace alib;
+using namespace alib::expressions;
 
 #include "unittests/expressions/ut_alib_expr_testfunc.hpp"
 
@@ -99,10 +98,10 @@ ALIB_STRINGS_APPENDABLE_TYPE_INLINE( ut_aworx::MyType*, target << src->Name  << 
 
 namespace ut_aworx { namespace {
 
-using Scope= aworx::lib::expressions::Scope;
+using Scope= alib::expressions::Scope;
 
 
-class MyScope : public lib::expressions::Scope
+class MyScope : public expressions::Scope
 {
     public:
     MyScope(Compiler& compiler)
@@ -157,9 +156,9 @@ class MyFunctions : public plugins::Calculus
 
         Functions=
         {
-            { {A_CHAR("name")     , Case::Ignore, 4}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(name), &Types::String  , ETI },
-            { {A_CHAR("age")      , Case::Ignore, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(age ), &Types::Integer , ETI },
-            { {A_CHAR("rawobject"), Case::Ignore, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(raw ), &MyTypeSampleBox, ETI },
+            { {A_CHAR("name")     , lang::Case::Ignore, 4}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(name), &Types::String  , ETI },
+            { {A_CHAR("age")      , lang::Case::Ignore, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(age ), &Types::Integer , ETI },
+            { {A_CHAR("rawobject"), lang::Case::Ignore, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(raw ), &MyTypeSampleBox, ETI },
         };
     }
 };
@@ -173,8 +172,8 @@ class CTExceptionThrowers : public plugins::Calculus
     {
         Functions=
         {
-            { {A_CHAR("ThrowALib"),Case::Ignore,9}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwAlibException ), &Types::String , CTI   },
-            { {A_CHAR("ThrowStd") ,Case::Ignore,8}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwSTDException  ), &Types::Integer, CTI   },
+            { {A_CHAR("ThrowALib"),lang::Case::Ignore,9}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwAlibException ), &Types::String , CTI   },
+            { {A_CHAR("ThrowStd") ,lang::Case::Ignore,8}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwSTDException  ), &Types::Integer, CTI   },
         };
     }
 };
@@ -187,8 +186,8 @@ class ETExceptionThrowers : public plugins::Calculus
     {
         Functions=
         {
-            { {A_CHAR("ThrowALib"),Case::Ignore,9}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwAlibException ), &Types::String , ETI   },
-            { {A_CHAR("ThrowStd") ,Case::Ignore,8}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwSTDException  ), &Types::Integer, ETI   },
+            { {A_CHAR("ThrowALib"),lang::Case::Ignore,9}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwAlibException ), &Types::String , ETI   },
+            { {A_CHAR("ThrowStd") ,lang::Case::Ignore,8}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(throwSTDException  ), &Types::Integer, ETI   },
         };
     }
 };
@@ -1314,7 +1313,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
 
         compiler.CfgCompilation+= Compilation::PluginExceptionFallThrough;
 
-        CONSTEXPR( "Will throw" + ThrowALib , lib::text::Exceptions::MissingClosingBracket );
+        CONSTEXPR( "Will throw" + ThrowALib ,  lang::format::FMTExceptions::MissingClosingBracket );
 
         bool stdExceptionCaught= false;
         try
@@ -1341,7 +1340,7 @@ expression= compiler.Compile( A_CHAR("1,5")  );
 
         compiler.CfgCompilation+= Compilation::CallbackExceptionFallThrough;
 
-        CONSTEXPR( "Will throw" + ThrowALib , lib::text::Exceptions::MissingClosingBracket );
+        CONSTEXPR( "Will throw" + ThrowALib ,  lang::format::FMTExceptions::MissingClosingBracket );
 
         bool stdExceptionCaught= false;
         try
@@ -1575,8 +1574,8 @@ UT_METHOD(Strings)
     CONSTEXPR(  "Integer: " +  5000                , A_CHAR("Integer: 5000")  );
     CONSTEXPR(  "Integer: " + -5123                , A_CHAR("Integer: -5123") );
 
-    compiler.CfgFormatter->DefaultNumberFormat.WriteGroupChars= true;
-    compiler.CfgFormatter->DefaultNumberFormat.ReadGroupChars=  true;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::WriteGroupChars;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::ReadGroupChars;
     compiler.CfgFormatter->DefaultNumberFormat.ThousandsGroupChar= ',';
     compiler.CfgFormatter->DefaultNumberFormat.PlusSign= '+';
     CONSTEXPR(  "Integer: " +  5000                , A_CHAR("Integer: +5,000"));
@@ -1687,13 +1686,13 @@ UT_METHOD(Nested)
     CONSTEXPR( *"notdefined"        , expressions::Exceptions::NestedExpressionNotFoundCT );
     CONSTEXPR( *("notdefined")      , expressions::Exceptions::NestedExpressionNotFoundCT );
     CONSTEXPR( * 5                  , expressions::Exceptions::UnaryOperatorNotDefined    );
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     CONSTEXPR( * (today + hours(5)) , expressions::Exceptions::UnaryOperatorNotDefined    );
     CONSTEXPR( * (today)            , expressions::Exceptions::NestedExpressionNotFoundCT );   )
 
     CONSTEXPR( * nested             , 42 );
 
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     compiler.CfgCompilation-= Compilation::AllowIdentifiersForNestedExpressions;
     CONSTEXPR( * (today)            , expressions::Exceptions::UnaryOperatorNotDefined );
     compiler.CfgCompilation+= Compilation::AllowIdentifiersForNestedExpressions;               )
@@ -1714,7 +1713,7 @@ ALIB_IF_SYSTEM(
     CONSTEXPR( Expression(5, 5, 3, throw)               , expressions::Exceptions::NestedExpressionCallArgumentMismatch );
 
 
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     CONSTEXPR( Expression(""+today)            , expressions::Exceptions::NamedExpressionNotConstant ); )
 
     CONSTEXPR( Expression("nested" )           , 42 );
@@ -1817,18 +1816,18 @@ UT_METHOD(NumberLiterals)
     compiler.CfgNormalization+= Normalization::FunctionSpaceAfterComma;
     EXPRNORMNS(  str( 3.5 )        , "str( 3.5 )"       );
     EXPRNORMNS(  str( 3,5 )        , "str( 3 , 5 )"     );
-    compiler.CfgFormatter->DefaultNumberFormat.ReadGroupChars=
-    compiler.CfgFormatter->DefaultNumberFormat.WriteGroupChars= true;
-    compiler.CfgFormatter->DefaultNumberFormat.WriteGroupChars= false;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::ReadGroupChars;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::WriteGroupChars;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags-= NumberFormatFlags::WriteGroupChars;
     compiler.CfgFormatter->DefaultNumberFormat.ThousandsGroupChar= ' ';
     EXPRNORMNS(  str( 3 500 )        , "str( 3500 )"         );
-    compiler.CfgFormatter->DefaultNumberFormat.WriteGroupChars= true;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::WriteGroupChars;
     EXPRNORMNS(  str( 3 500 72 )     , "str( 350 072 )"      );
     EXPRNORMNS(  str( 3 500.72 )     , "str( 3 500.72 )"     );
-    compiler.CfgFormatter->DefaultNumberFormat.ForceScientific= true;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags+= NumberFormatFlags::ForceScientific;
     EXPRNORMNS(  str( 3 500.72 )     , "str( 3.50072E+03 )"  );
     EXPRNORMNS(  str( 10.0     )     , "str( 1.0E+01 )"      );
-    compiler.CfgFormatter->DefaultNumberFormat.ForceScientific= false;
+    compiler.CfgFormatter->DefaultNumberFormat.Flags-= NumberFormatFlags::ForceScientific;
     EXPRNORMNS(  str( 10.0     )     , "str( 10.0 )"         );
     EXPRNORMNS(  str( 10.0E0   )     , "str( 10.0 )"         );
     compiler.CfgNormalization+= Normalization::KeepScientificFormat;

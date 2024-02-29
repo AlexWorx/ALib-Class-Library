@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_VARIABLE
@@ -31,7 +31,7 @@
 #   include <vector>
 #endif
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // forward declarations
 class  Configuration;
@@ -127,7 +127,7 @@ struct VariableFields
      *                     is initialized already If the pointer was given directly, the compiler
      *                     would complain.
      */
-    VariableFields( lib::monomem::SelfContained<VariableFields>::Fields** fields)
+    VariableFields( monomem::SelfContained<VariableFields>::Fields** fields)
     : values( (*fields)->allocator )
     {}
 
@@ -141,7 +141,7 @@ struct VariableFields
  *
  * \note
  *   For general information about external configuration variables, see namespace documentation
- *   \ref aworx::lib::config "aworx::lib::config".
+ *   \ref alib::config "alib::config".
  *
  * <b>Construction/Redeclaration:</b><br>
  * While constructors accepting attributes of a variable exist, it is recommended to
@@ -443,7 +443,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          * @return \c *this to allow concatenated operations.
          ******************************************************************************************/
         ALIB_API
-        Variable&   Reset( CurrentData nameAndCategory= CurrentData::Clear );
+        Variable&   Reset( lang::CurrentData nameAndCategory= lang::CurrentData::Clear );
 
 
     // #############################################################################################
@@ -833,11 +833,11 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
 
 };  // class Variable
 
-}} // namespace aworx[::lib::config]
+} // namespace alib[::config]
 
-/// Type alias in namespace #aworx.
-using     Variable=           lib::config::Variable;
+/// Type alias in namespace \b alib.
+using     Variable=           config::Variable;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #endif // HPP_ALIB_CONFIG_VARIABLE

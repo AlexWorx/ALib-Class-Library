@@ -2,20 +2,20 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
-ALIB_ASSERT_MODULE(SYSTEM)
+ALIB_ASSERT_MODULE(CAMP)
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
 #   include "alib/expressions/plugins/calculus.hpp"
@@ -23,7 +23,7 @@ ALIB_ASSERT_MODULE(SYSTEM)
 
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
  * %Compiler plug-in that provides date an time related expression terms.
@@ -174,8 +174,7 @@ struct DateAndTime   : public plugins::Calculus
 };
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
-#endif // ALIB_SYSTEM
+#endif // ALIB_CAMP
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME
-

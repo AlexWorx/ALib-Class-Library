@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,7 +17,7 @@
 #include <ostream>
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 
 //! @cond NO_DOX
@@ -74,5 +74,4 @@ void    Spaces::Write( std::basic_ostream<wchar_t>& os, integer qty )
 }
 #endif
 
-}}}} // namespace [aworx::lib::strings::util]
-
+}}} // namespace [alib::strings::util]

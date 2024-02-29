@@ -1,7 +1,7 @@
 # #################################################################################################
 #  ALib.cmake - CMake file for projects using ALib
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 # \file
@@ -200,7 +200,7 @@ if( "CHARACTERS" IN_LIST ALIB_DISTRIBUTION )
 
     if( NOT DEFINED  ALIB_CHARACTERS_WIDE )
         set( ALIB_CHARACTERS_WIDE     ${defaultALIB_CHARACTERS_WIDE}                    CACHE   BOOL
-             "If false, the type 'aworx::character' is 1-byte wide, otherwise it has the width given with ALIB_CHARACTERS_SIZEOF_WCHAR. Default value depends on platform preference.")
+             "If false, the type 'alib::character' is 1-byte wide, otherwise it has the width given with ALIB_CHARACTERS_SIZEOF_WCHAR. Default value depends on platform preference.")
     endif()
 
     if( NOT DEFINED  ALIB_CHARACTERS_SIZEOF_WCHAR )
@@ -224,7 +224,7 @@ if( "STRINGS" IN_LIST ALIB_DISTRIBUTION )
 endif()
 
 
-if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
+if( "CAMP" IN_LIST ALIB_DISTRIBUTION )
     if( NOT DEFINED  ALIB_RESOURCES_OMIT_DEFAULTS )
         set( ALIB_RESOURCES_OMIT_DEFAULTS       "Off"                                   CACHE   BOOL
              "If true, ALib modules do not add default versions of resource strings. See section 'Bootstrapping' of ALib Programmer's Manual for more information. Defaults to false.")
@@ -275,9 +275,8 @@ endif()
 if( NOT allModules )
     SET( moduleList "" )
     LIST( APPEND moduleList    "EXPRESSIONS;CLI;ALOX" )
-    LIST( APPEND moduleList    "CONFIGURATION;SYSTEM" )
-    LIST( APPEND moduleList    "RESULTS;TEXT"         )
-    LIST( APPEND moduleList    "RESOURCES;THREADS"    )
+    LIST( APPEND moduleList    "CONFIGURATION;CAMP"   )
+    LIST( APPEND moduleList    "THREADS;FILES"        )
     LIST( APPEND moduleList    "ENUMS;BOXING;STRINGS" )
     LIST( APPEND moduleList    "SINGLETONS;MONOMEM;BITBUFFER;CHARACTERS;TIME"   )
     FOREACH( module IN LISTS moduleList )
@@ -286,8 +285,6 @@ if( NOT allModules )
         ENDIF()
     ENDFOREACH()
 endif()
-
-
 
 # debug
 if ( ${ALIB_DEBUG} )
@@ -426,7 +423,7 @@ if( "STRINGS" IN_LIST ALIB_DISTRIBUTION )
     endif()
 endif()
 
-if( "RESOURCES" IN_LIST ALIB_DISTRIBUTION )
+if( "CAMP" IN_LIST ALIB_DISTRIBUTION )
 
     if( ALIB_RESOURCES_OMIT_DEFAULTS )
         list( APPEND ALIB_SYMBOLS          "ALIB_RESOURCES_OMIT_DEFAULTS"   )
@@ -535,8 +532,8 @@ endif(NOT MSVC)
 # A-Worx compiler features and flags
 # --------------------------------------------------------------------------------------------------
 
-# Set minimum required standard C++ 11
-list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_11"    )
+# Set minimum required standard C++ 17
+list( APPEND ALIB_COMPILER_FEATURES   "cxx_std_17"    )
 
 
 # if "ALIB_SUPPRESS_COMPILER_WARNINGS" is set prior to invoking this script, this entry is removed
@@ -552,6 +549,9 @@ else()
         #list( APPEND ALIB_COMPILER_WARNINGS   "-Weffc++"       )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-psabi"     )
         list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-misleading-indentation"  )
+
+        # this was "suddenly" needed with GCC 13.2.1 with release compilation
+        list( APPEND ALIB_COMPILER_WARNINGS   "-Wno-stringop-overread"  )
 
         # add coverage flags to GCC
         if( ${ALIB_COVERAGE_COMPILE} )
@@ -646,61 +646,49 @@ if ( NOT ALIB_LIBRARY_FILENAME )
 
         list( FIND   modules  "BITBUFFER"         idx )
         if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "MONOMEM"      )
+            LIST( REMOVE_ITEM  modules  "MONOMEM"     )
+            LIST( REMOVE_ITEM  modules  "ENUMS"       )
         endif()
 
         list( FIND   modules  "THREADS"           idx )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "STRINGS"     )
-            LIST( REMOVE_ITEM  modules  "TIME"        )
         endif()
 
-        list( FIND   modules  "RESOURCES"         idx )
+        list( FIND   modules  "CAMP"      idx       )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "STRINGS"     )
             LIST( REMOVE_ITEM  modules  "SINGLETONS"  )
-            LIST( REMOVE_ITEM  modules  "MONOMEM"      )
-        endif()
-
-        list( FIND   modules  "TEXT"      idx         )
-        if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "RESOURCES"   )
+            LIST( REMOVE_ITEM  modules  "MONOMEM"     )
             LIST( REMOVE_ITEM  modules  "BOXING"      )
             LIST( REMOVE_ITEM  modules  "ENUMS"       )
-        endif()
-
-        list( FIND   modules  "RESULTS"          idx )
-        if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "TEXT")
-        endif()
-
-        list( FIND   modules  "SYSTEM"            idx )
-        if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "RESULTS"    )
+            LIST( REMOVE_ITEM  modules  "TIME"       )
         endif()
 
         list( FIND   modules  "CONFIGURATION"     idx )
         if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "SYSTEM"      )
+            LIST( REMOVE_ITEM  modules  "CAMP"      )
         endif()
 
         list( FIND   modules  "ALOX"              idx )
         if( NOT idx LESS 0 )
             LIST( REMOVE_ITEM  modules  "CONFIGURATION")
-            LIST( REMOVE_ITEM  modules  "THREADS"     )
         endif()
 
         list( FIND   modules  "EXPRESSIONS"       idx )
         if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "RESULTS"    )
+            LIST( REMOVE_ITEM  modules  "CAMP"    )
+        endif()
+
+        list( FIND   modules  "FILES"             idx )
+        if( NOT idx LESS 0 )
+            LIST( REMOVE_ITEM  modules  "CAMP"    )
         endif()
 
         list( FIND   modules  "CLI"               idx )
         if( NOT idx LESS 0 )
-            LIST( REMOVE_ITEM  modules  "RESULTS"    )
+            LIST( REMOVE_ITEM  modules  "CAMP"    )
         endif()
-
-
 
         FOREACH(modName IN LISTS   modules)
 
@@ -736,7 +724,8 @@ endif()
 # -------------------------------------------------------------------------------------------------
 if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
     message( "Copying doxygen template (${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini)")
-    configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini" "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.ini" @ONLY)
+    configure_file( "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.cmake.ini"
+                    "${ALIB_BASE_DIR}/docs/doxygen/doxyfile.ini" @ONLY)
 endif()
 
 # -------------------------------------------------------------------------------------------------
@@ -744,13 +733,13 @@ endif()
 # -------------------------------------------------------------------------------------------------
 message( "ALib CMake Configuration:"                             )
 IF( NOT allModules )
-    message( "  Module Selection:   ${ALIB_DISTRIBUTION}"           )
+    message( "  Module Selection : ${ALIB_DISTRIBUTION}"           )
 ELSE()
-    message( "  Module Selection:   All (${ALIB_DISTRIBUTION})"     )
+    message( "  Module Selection : All (${ALIB_DISTRIBUTION})"     )
 ENDIF()
 
-    message( "  Library filename:   ${ALIB_LIBRARY_FILENAME}"      )
-    message( "  Compiler ID:        ${CMAKE_CXX_COMPILER_ID}")
+    message( "  Library filename : ${ALIB_LIBRARY_FILENAME}"      )
+    message( "  Compiler ID      : ${CMAKE_CXX_COMPILER_ID}")
 
 IF( NOT ALIB_CMAKE_VERBOSE )
     message( "  (For further details enable CMake variable 'ALIB_CMAKE_VERBOSE')"      )
@@ -952,5 +941,3 @@ endif()
 #set(CMAKE_DEBUG_TARGET_PROPERTIES  ${CMAKE_DEBUG_TARGET_PROPERTIES} LIB_VERSION )
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
-
-

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE
@@ -16,21 +16,17 @@
 #   include "alib/monomem/hashtable.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_BIDILIST)
-#   include "alib/lib/fs_lists/bidilist.hpp"
+#if !defined(HPP_ALIB_LANG_BIDILIST)
+#   include "alib/lang/bidilist.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
     #include "alib/strings/substring.hpp"
 #endif
 
-#if ALIB_RESULTS
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
-#   endif
-#else
-#   if !defined(HPP_ALIB_TOOLS)
-#      include "alib/lib/tools.hpp"
+#if ALIB_CAMP
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 #endif
 
@@ -42,7 +38,7 @@
 #   include <algorithm>
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 namespace detail {
 
@@ -72,26 +68,30 @@ struct StringTreeBase
     // #############################################################################################
     // Inner types
     // #############################################################################################
-    struct Node; // forward declaration
+    struct NodeBase; // forward declaration
+    struct Node;     // forward declaration
 
     /** Alias shortcut for a bidirectional list of \b Node elements.  */
-    using NodeList     = lib::detail::BidiListHelper<Node>;
+    using NodeList          = lang::BidiListHelper<NodeBase>;
 
     /** The string type of node names and paths.  */
-    using ValueType    = typename strings::TString<typename TNodeMaintainer::CharacterType>;
+    using ValueType         = typename strings::TString<typename TNodeMaintainer::CharacterType>;
 
     /** The character type of node names and paths strings. This is defined using character type
      *  definition \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type
      *  \p{TNodeMaintainer}. */
-    using CharacterType= typename TNodeMaintainer::CharacterType;
+    using CharacterType     = typename TNodeMaintainer::CharacterType;
+
+    /** The string type of node names and paths if provided externally for comparison. */
+    using NameType          = const strings::TString<CharacterType>;
 
     /** The string type of node names and paths. This is defined by
      *  \alib{monomem::StringTreeNamesDynamic,NameStringType} of template type \p{TNodeMaintainer}. */
-    using NameType     = typename TNodeMaintainer::NameStringType;
+    using NameStorageType   = typename TNodeMaintainer::NameStringType;
 
     /** The sub-string type of paths. This is defined using character type definition
      *  \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type \p{TNodeMaintainer}. */
-    using SubstringType= typename strings::TSubstring<CharacterType>;
+    using SubstringType     = typename strings::TSubstring<CharacterType>;
 
     /**
      * The unique key to any element stored in this container.
@@ -102,7 +102,24 @@ struct StringTreeBase
     {
         /** The parent node. A value of \c nullptr indicates that this is the root node of
          *  the tree, which is always existing. */
-        Node*       parent;
+        NodeBase*       parent;
+
+        /** A union of base string and the derived (or same) final storage type. Only the node
+         *  maintainer will finalize the name into the second field.*/
+        union NodeNameUnion
+        {
+            /** Constructor taking a key string. @param n The name of the node. */
+            explicit NodeNameUnion(const NameType&   n) : key(n)      {}
+
+            /** Copy constructor. @param n The union to copy. */
+            explicit NodeNameUnion(const NodeNameUnion& n) : key(n.key) {}
+
+            /** Destructor. */
+            ~NodeNameUnion() {}
+
+            NameType        key;         ///< The name to compare when just keys are used.
+            NameStorageType storage;     ///< The name when stored in the hashtable
+        };
 
         /**
          * A string object containing the pointer to this node's name.
@@ -114,16 +131,16 @@ struct StringTreeBase
          *
          * The name of the root node is nulled.
          */
-        NameType    name;
+        NodeNameUnion name;
 
         /**
          * Constructor
          * @param pParent  Parent node to search a child for.
          * @param pName    Child name to search
          */
-        NodeKey( Node* pParent, const NameType& pName )
+        NodeKey( NodeBase* pParent, const NameType& pName )
         : parent(pParent)
-        , name(pName)
+        , name( pName )
         {}
 
         /** Hash functor for nodes hashed in field #nodeTable. */
@@ -131,21 +148,22 @@ struct StringTreeBase
         {
             /**
              * Calculates a hash code for \b NodeKey objects.
-             * @param key The key to hash.
+             * @param  key The key to hash.
              * @return The hash code.
              */
-            std::size_t operator()(const NodeKey& key)                                         const
+            std::size_t operator()(const NodeKey& key)                                      const
             {
                 std::size_t result= 8175383ul;
-
-                for (aworx::integer i = 0; i < key.name.Length(); ++i)
+                auto* act= key.name.key.Buffer();
+                auto* end= act + key.name.key.Length();
+                while(act != end )
                     result =   31 * result
-                             + static_cast<std::size_t>( key.name.template CharAt<false>(i) );
+                             + std::size_t( *act++ );
 
                 // add parent
                 result+= reinterpret_cast<std::size_t>(key.parent) * 29;
 
-                return static_cast<std::size_t>( result );
+                return std::size_t( result );
             }
         };
 
@@ -159,10 +177,11 @@ struct StringTreeBase
              * @param rhs The second string object.
              * @return The result of the string comparison.
              */
-            bool operator()(const NodeKey& lhs,  const NodeKey& rhs )                          const
+            bool operator()(const NodeKey& lhs,
+                            const NodeKey& rhs )                                const
             {
                 return     lhs.parent == rhs.parent
-                        && lhs.name.Equals( rhs.name );
+                        && lhs.name.key. template Equals<false>( rhs.name.key );
             }
         };
 
@@ -175,26 +194,24 @@ struct StringTreeBase
              * @param src The node to hash.
              * @return The key-portion of the stored value.
              */
-            NodeKey&       Key(Node& src)                                                      const
+            NodeKey&       Key( NodeBase& src )                               const
             {
                 return src;
             }
         };
     };
 
-    /**
-     * This is the "final" internal node type, which is created and stored for every node of the
-     * tree. It adds field #data of template type \p{T} to store custom container data.
+     /**
+     * This is the base class of the internal node type \alib{monomem::detail::StringTreeBase,Node}.
+     * This type implements functionality needed. Derived type \b Node then only adds the custom
+     * value \p T.
      *
      * Objects of this type can not be received directly and all interface is available
-     * via public type \alib{monomem,StringTree::NodePtr} only, which holds a pointer to
+     * via public type \alib{monomem,StringTree::Cursor} only, which holds a pointer to
      * an object of this class.
-     *
-     * Note that the templated allocator type \b TAllocator is declared as a friend of this
-     * class to be able to access the otherwise protected constructor.
      */
-    struct Node : public lib::detail::BidiNodeBase<Node>,
-                  public NodeKey
+    struct NodeBase : public lang::BidiNodeBase<NodeBase>,
+                      public NodeKey
     {
         /** The number of children currently stored in this node. */
         uinteger    qtyChildren;
@@ -202,43 +219,24 @@ struct StringTreeBase
         /** The hook to the doubly linked list of children. */
         NodeList    children;
 
-        /** The templated custom data object stored with each node. */
-        T           data;
-
-        /** Deleted copy constructor. */
-        Node( const Node&  )                                                               = delete;
-
-        /** Deleted move constructor. */
-        Node(       Node&& )                                                               = delete;
-
         /**
-         * Constructor. Custom data is default-initialized.
-         * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
+         * Constructor.
          * @param  pKey   The key portion of the node.
-         * @param  args   Variadic parameters to be forwarded to constructor of custom type \p{T}.
          */
-        template<typename... TArgs>
-        Node( const NodeKey& pKey, TArgs&&... args  )
+        NodeBase(const NodeKey& pKey)
         : NodeKey    ( pKey )
-        , qtyChildren( 0 )
-        , data       ( std::forward<TArgs>(args)... )
+        , qtyChildren(0)
         {}
 
         /**
          * Constructor. Custom data is default-initialized.
-         * @tparam TArgs   Types of variadic parameters given with parameter \p{args}.
          * @param  pParent Parent node to search a child for.
          * @param  pName   Child name to search
-         * @param  args    Variadic parameters to be forwarded to constructor of custom type \p{T}.
          */
-        template<typename... TArgs>
-        Node( Node* pParent, const NameType& pName, TArgs&&... args  )
+        NodeBase( NodeBase* pParent, const NameType& pName)
         : NodeKey    ( pParent, pName )
-        , qtyChildren( 0 )
-        , data       ( std::forward<TArgs>(args)... )
+        , qtyChildren(0)
         {}
-
-
 
         /**
          * Returns \c true if this is the root node, \c false otherwise.
@@ -250,22 +248,6 @@ struct StringTreeBase
         }
 
         /**
-         * Iterates over the parent nodes to the root node and returns the this node's depth.
-         * @return The depth of the this node.
-         */
-        int depth()                                                                            const
-        {
-            int result= -1;
-            const Node* p= this;
-            while( p != nullptr )
-            {
-                ++result;
-                p= p->parent;
-            }
-            return result;
-        }
-
-        /**
          * Searches a child with a given name.
          * The name is not checked for <c>.</c>, <c>..</c> or if separation characters.
          *
@@ -273,9 +255,9 @@ struct StringTreeBase
          * @param childName The name of the child to search.
          * @return The child or \c nullptr if not found.
          */
-        Node*  findChild( StringTreeBase* tree, const NameType& childName )
+        NodeBase*  findChild( StringTreeBase* tree, const NameType& childName )
         {
-            if( qtyChildren == 0  )
+            if( NodeBase::qtyChildren == 0  )
                 return nullptr;
 
             // With a small number of children, the search is faster if we iterate, because
@@ -285,12 +267,12 @@ struct StringTreeBase
             // A good value is probably five children. With bigger numbers, it soon becomes better
             // to calculate the hash value. While in the bucket also children of other nodes
             // are found, each entry of the hashtable is first compared against the full hash code.
-            if( qtyChildren <= 5 )
+            if( NodeBase::qtyChildren <= 5 )
             {
-                Node* childIt= children.first();
-                while( childIt != &children.hook )
+                NodeBase* childIt= NodeBase::children.first();
+                while( childIt != &NodeBase::children.hook )
                 {
-                    if( childIt->name.Equals( childName ) )
+                    if( childIt->name.key. template Equals<false>( childName ) )
                         return childIt;
                     childIt= childIt->next();
                 }
@@ -302,6 +284,22 @@ struct StringTreeBase
             auto   childIt=   tree->nodeTable.Find( NodeKey( this, childName ) );
             return childIt != tree->nodeTable.end() ?  &childIt.Value()
                                                     :  nullptr;
+        }
+
+        /**
+         * Iterates over the parent nodes to the root node and returns the this node's depth.
+         * @return The depth of the this node.
+         */
+        int depth()                                                                            const
+        {
+            int result= -1;
+            const NodeBase* p= this;
+            while( p != nullptr )
+            {
+                ++result;
+                p= p->parent;
+            }
+            return result;
         }
 
         /**
@@ -319,18 +317,19 @@ struct StringTreeBase
          *         was changed.
          */
         template<typename... TArgs>
-        std::pair<Node*,bool>  findOrCreateChild( StringTreeBase* tree,
-                                                  const NameType& childName,  TArgs&&... args )
+        std::pair<NodeBase*,bool>  findOrCreateChild( StringTreeBase*   tree,
+                                                      const NameType&   childName,
+                                                      TArgs&&...        args       )
         {
             auto childCreation= tree->nodeTable.EmplaceIfNotExistent( NodeKey(this, childName),
                                                                       std::forward<TArgs>(args)...);
-            Node* child= &childCreation.first.Value();
+            NodeBase* child= &childCreation.first.Value();
 
             if( childCreation.second )
             {
-                TNodeMaintainer::InitializeNode( *tree, *child );
-                children.pushEnd( child );
-                ++qtyChildren;
+                TNodeMaintainer::InitializeNode( *tree, *static_cast<Node*>(child ) );
+                NodeBase::children.pushEnd( child );
+                ++NodeBase::qtyChildren;
             }
 
             return std::make_pair( child, childCreation.second );
@@ -347,14 +346,14 @@ struct StringTreeBase
          * @param child  A pointer to a child of this node that is to be deleted.
          * @return The total number of nodes deleted.
          */
-        uinteger  deleteChild( StringTreeBase* tree, Node* child )
+        uinteger  deleteChild( StringTreeBase* tree, NodeBase* child )
         {
-            ALIB_ASSERT_ERROR(qtyChildren   >  0   , "MONOMEM/STRINGTREE",
+            ALIB_ASSERT_ERROR(NodeBase::qtyChildren   >  0   , "MONOMEM/STRINGTREE",
                               "This node has no children to remove")
             ALIB_ASSERT_ERROR(child->parent == this, "MONOMEM/STRINGTREE",
                               "The given node is not a child of this node.")
 
-            --qtyChildren;
+            --NodeBase::qtyChildren;
             child->remove(); // remove from linked list
             auto count= child->deleteChildren( tree );
             auto handle= tree->nodeTable.Extract( *child );
@@ -371,13 +370,13 @@ struct StringTreeBase
          */
         uinteger deleteChildren( StringTreeBase* tree )
         {
-            if( children.isEmpty() )
+            if( NodeBase::children.isEmpty() )
                 return 0;
 
-            uinteger     count= qtyChildren;
+            uinteger     count= NodeBase::qtyChildren;
 
-            auto* child= children.first();
-            while( child != &children.hook )
+            auto* child= NodeBase::children.first();
+            while( child != &NodeBase::children.hook )
             {
                 count+=  child->deleteChildren( tree ); // recursion
                 auto handle= tree->nodeTable.Extract( *child );    ALIB_ASSERT( !handle.IsEmpty() )
@@ -385,44 +384,145 @@ struct StringTreeBase
                 child= child->next();
             }
 
-            children.reset();
-            qtyChildren= 0;
+            NodeBase::children.reset();
+            NodeBase::qtyChildren= 0;
 
             return count;
         }
 
         /**
-         * Implementation of \alib{monomem,StringTree::NodePtr::AssemblePath}.
+         * Implementation of \alib{monomem,StringTree::Cursor::AssemblePath}.
          *
-         * @param target      The target to append the path to.
-         * @param separatorChar   The separator character as defined with the template parameter of
-         *                    class \alib{monomem,StringTree}.
+         * @param target        The target to append the path to.
+         * @param childNode     The (current) child node.
+         * @param maxParent     The last parent node to travel up to. The root node is designated
+         *                      by \c nullptr.
+         * @param separatorChar The separator character as defined with the template parameter of
+         *                      class \alib{monomem,StringTree}.
          * @return The given \b AString to allow concatenated operations on it.
          */
-        AString&    assemblePath( AString& target, character separatorChar )                   const
+        AString&    assemblePath( AString& target,
+                                  const NodeBase* childNode,
+                                  const NodeBase* maxParent,
+                                  character separatorChar )    const
         {
-            auto pos= target.Length();
-            const Node* p= this;
-            while( p->parent != nullptr )
+            static constexpr int STACK_SIZE= 32;
+            const NodeBase*   nStack[STACK_SIZE];
+
+            // build stack
+            int               sp    =1;
+            nStack[0]               = childNode;
+            while( childNode->parent != maxParent )
             {
-                if( pos != target.Length() ) // first iteration?
-                    target.InsertChars( separatorChar, 1, pos);
-                target.InsertAt( p->name, pos );
-                p= p->parent;
+                childNode= childNode->parent;
+                if( childNode == nullptr)
+                    break;
+
+                // local stack full? -> let a recursive call do the rest
+                if(sp == STACK_SIZE)
+                {
+                    assemblePath( target, childNode, maxParent, separatorChar );
+                    break;
+                }
+                nStack[sp++]= childNode;
+            }
+
+            // unroll stack now from top to bottom
+            while( --sp >= 0)
+            {
+                if( nStack[sp]->parent != nullptr )
+                {
+                    if(     target.CharAtEnd() != separatorChar
+                        &&  nStack[sp]->parent != maxParent      )
+                        target << separatorChar;
+
+                    target << nStack[sp]->name.key;
+                }
+                else
+                    target << separatorChar;
             }
 
             return target;
         }
+    }; // inner class NodeBase
+
+    /**
+     * This is the "final" internal node type, just adds a field of template type \p{T}
+     * to its base class.
+     *
+     * Objects of this type can not be received directly and all interface is available
+     * via public type \alib{monomem,StringTree::Cursor} only, which holds a pointer to
+     * an object of this class.
+     */
+    struct Node : public NodeBase
+    {
+        /** The templated custom data object stored with each node. */
+        T           data;
+
+        /** Deleted copy constructor. */
+        Node( const Node&  )                                                       = delete;
+
+        /** Deleted move constructor. */
+        Node(       Node&& )                                                       = delete;
+
+        /**
+         * Constructor. Custom data is default-initialized.
+         * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
+         * @param  pKey   The key portion of the node.
+         * @param  args   Variadic parameters to be forwarded to constructor of custom type \p{T}.
+         */
+        template<typename... TArgs>
+        Node( const NodeKey& pKey, TArgs&&... args  )
+        : NodeBase( pKey )
+        , data    ( std::forward<TArgs>(args)... )
+        {}
+
+        /**
+         * Constructor. Custom data is default-initialized.
+         * @tparam TArgs   Types of variadic parameters given with parameter \p{args}.
+         * @param  pParent Parent node to search a child for.
+         * @param  pName   Child name to search
+         * @param  args    Variadic parameters to be forwarded to constructor of custom type \p{T}.
+         */
+        template<typename... TArgs>
+        Node( NodeBase* pParent, const NameType& pName, TArgs&&... args  )
+        : NodeBase( pParent, pName )
+        , data    ( std::forward<TArgs>(args)... )
+        {}
 
     }; // inner class Node
-
 
     // #############################################################################################
     // StringTreeBase: members
     // #############################################################################################
+    /** This is a union of either a node with a custom object or without. This tricks us into the
+     *  position to embed the memory for a custom type which may optionally be assigned to the root
+     *  node, without constructing it.
+     *  Construction will only be done with explicit use of method
+     *  \alib{monomem,StringTree::ConstructRootValue}.                                            */
+    union RootNodeSpacer
+    {
+        NodeBase rootBase;   ///< Base version of the root node, which becomes initialized.
+        Node     root;       ///< Full version of the root node, without initialization of member T.
+
+        /** Explicitly implement otherwise implicitly deleted constructor */
+        RootNodeSpacer() : rootBase( nullptr, nullptr)   {}
+
+        /** Destructor */
+        ~RootNodeSpacer() { }
+    };
 
     /** The root node. */
-    Node           root;
+    RootNodeSpacer      root;
+
+    #if ALIB_DEBUG
+        /** Flag available only in debug-compilations to detect access to root node's value
+         *  without prior use of method \alib{monomem::StringTree,ConstructRootValue}. Also, the
+         *  destructor issues a warning, in case the root node's value was not deleted with
+         *  \alib{monomem::StringTree,DeleteRootValue}.        */
+        int dbgRootDataSet= 0;
+    #endif
+
 
     /**
      * The separator character to use with path strings.
@@ -441,7 +541,7 @@ struct StringTreeBase
                        typename NodeKey::Hash,
                        typename NodeKey::EqualTo,
                        typename NodeKey::Access,
-                       Caching::Enabled,
+                       lang::Caching::Enabled,
                        TRecycling                 > nodeTable;
 
     /** The recycler type. See \alib{monomem,StringTree::TSharedRecycler} which exposes this
@@ -450,51 +550,60 @@ struct StringTreeBase
 
 
     // #############################################################################################
-    // class NodePtrBase
+    // class TCursorBase
     // #############################################################################################
-    /**
-     * Non-templated base class of \alib{monomem,StringTree::NodePtr}.
+    /** Base class for \alib{monomem,StringTree::Cursor}
+     * @tparam TConst  If true, internal fields representing the StringTree and the current Node
+     *                 become \c const and method #followPathCreate becomes unavailable.
      */
-    struct NodePtrBase
+    template<bool TConst>
+    struct TCursorBase
     {
+        /** Constant or mutable version of the base tree type, depending on template parameter \p{TConst} */
+        using cmTree = ATMP_IF_T_F(!TConst, StringTreeBase, const StringTreeBase );
+
+        /** Constant or mutable version of type \b NodeBase, depending on template parameter \p{TConst} */
+        using cmNode = ATMP_IF_T_F(!TConst,       NodeBase, const       NodeBase );
+
+
         /** The \b %StringTree this object refers to. */
-        StringTreeBase*     tree;
+        cmTree*          tree;
 
         /** The currently represented node of the #tree. */
-        Node*               node;
+        cmNode*          node;
 
         /**
          * Constructor initializing both fields #tree and #node.
          * @param pTree  The \b %StringTree we work on.
          * @param pNode  The node to refer to.
          */
-        NodePtrBase( StringTreeBase* pTree, Node* pNode)                    noexcept
+        TCursorBase( cmTree* pTree, cmNode* pNode)                          noexcept
         : tree( pTree )
         , node( pNode )
         {}
 
         /** Default constructor. Creates an invalid (uninitialized) object. */
-        NodePtrBase()                                                       noexcept
+        TCursorBase()                                                       noexcept
         : tree( nullptr )
         , node( nullptr )
         {}
 
         /** Trivial default copy constructor. */
-        NodePtrBase( const NodePtrBase&  )                                  noexcept      = default;
+        TCursorBase( const TCursorBase&  )                                  noexcept      = default;
 
         /** Trivial default move constructor. */
-        NodePtrBase(       NodePtrBase&& )                                  noexcept      = default;
+        TCursorBase(       TCursorBase&& )                                  noexcept      = default;
 
         /** Trivial default copy assign operator.
           * @return A reference to \c this.        */
-        NodePtrBase& operator=( const NodePtrBase&  )                       noexcept      = default;
+        TCursorBase& operator=( const TCursorBase&  )                       noexcept      = default;
 
         /** Trivial default move assign operator.
           * @return A reference to \c this.        */
-        NodePtrBase& operator=(       NodePtrBase&& )                       noexcept      = default;
+        TCursorBase& operator=(       TCursorBase&& )                       noexcept      = default;
 
         /** Trivial default destructor.            */
-        ~NodePtrBase()                                                      noexcept      = default;
+        ~TCursorBase()                                                      noexcept      = default;
 
 
         /**
@@ -515,9 +624,9 @@ struct StringTreeBase
          *                            as the path exits.
          * @return The node found
          */
-        Node* followPath( SubstringType& path )
+        cmNode* followPath( SubstringType& path )                                              const
         {
-            Node* actNode= node;
+            cmNode* actNode= node;
 
             // check for "root addressing"
             if( path.CharAtStart() == tree->separator )
@@ -538,8 +647,7 @@ struct StringTreeBase
                     return actNode;
 
 
-                NameType name=path.template Substring<false>(0,
-                                                             path.IndexOfOrLength(tree->separator));
+                NameType name=path.template Substring<false>(0,  path.IndexOfOrLength(tree->separator));
 
 
                 if( name.Length() == 2 && name[0] == '.' &&  name[1] == '.' )
@@ -552,7 +660,7 @@ struct StringTreeBase
 
                 else if( name.Length() != 1 || name[0] != '.' )
                 {
-                    Node* child= actNode->findChild( tree, name );
+                    cmNode* child= actNode->findChild( tree, name );
                     if( child == nullptr )
                         return actNode;
 
@@ -563,116 +671,113 @@ struct StringTreeBase
             }
         }
 
-            /**
-             * Follows the given path and creates non-existing children along the way.
-             *
-             * Child names <c>"."</c> and <c>".."</c> are allowed and respected same
-             * as in #followPath.
-             *
-             * New child nodes are constructed by forwarding the given \p{args}. Existing children
-             * remain untouched.
-             *
-             * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
-             * @param  path   The path to move along.
-             * @param  args   Variadic parameters to be forwarded to constructor of each node
-             *                that is created.
-             * @return A <c>std::pair</c> containing a resulting \b Node* and the number of nodes
-             *         created.
-             */
-            template<typename... TArgs>
-            std::pair<Node*, integer>  followPathCreate( const NameType& path, TArgs&&... args  )
+        #if defined(ALIB_DOX)
+        /**
+         * Follows the given path and creates non-existing children along the way.
+         *
+         * Child names <c>"."</c> and <c>".."</c> are allowed and respected same
+         * as in #followPath.
+         *
+         * New child nodes are constructed by forwarding the given \p{args}. Existing children
+         * remain untouched.
+         *
+         * \note This method is only available if template parameter \p{TConst} is false.
+         *
+         * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
+         * @param  path   The path to move along.
+         * @param  args   Variadic parameters to be forwarded to constructor of each node
+         *                that is created.
+         * @return A <c>std::pair</c> containing a resulting \b Node* and the number of nodes
+         *         created.
+         */
+        template<typename... TArgs, bool TEnableIf= !TConst >
+        std::pair<cmNode*, integer> followPathCreate( const NameType& path, TArgs&&... args );
+        #else
+        template<typename... TArgs, bool TEnableIf= !TConst >
+        ATMP_T_IF(std::pair<cmNode* ALIB_COMMA integer>, TEnableIf)
+        followPathCreate( const NameType& path, TArgs&&... args  )
+        {
+            std::pair<cmNode*, integer> result= std::make_pair( node, 0 );
+            cmNode*&  actNode= result.first; // a local alias name, let the compiler decide
+
+            SubstringType rest=  path;
+
+            // check for "root addressing"
+            if( rest.CharAtStart() == tree->separator )
             {
-                std::pair<Node*, integer> result= std::make_pair( node, 0 );
-                Node*&  actNode= result.first; // a local alias name, let the compiler decide
-
-                SubstringType rest=  path;
-
-                // check for "root addressing"
-                if( rest.CharAtStart() == tree->separator )
-                {
-                    rest.ConsumeChars( 1 );
-                    while( actNode->parent != nullptr )
-                        actNode= actNode->parent;
-                }
-
-                // loop over path string
-                for(;;)
-                {
-                    // consume '/' and check for emptyness
-                    while(rest.ConsumeChar( tree->separator ) )
-                    ;
-                    if( rest.IsEmpty() )
-                        return result;
-
-                    NameType childName= rest.template Substring<false>( 0,
-                                                          rest.IndexOfOrLength( tree->separator ) );
-
-                    // "." or ".."?
-             ALIB_WARNINGS_UNINITIALIZED_OFF
-                    if( childName[0] == '.' )
-             ALIB_WARNINGS_RESTORE
-                    {
-                        if( childName.Length() == 1 )
-                            continue;
-                        if(     childName.Length() == 2 && childName[1] != '.' )
-                        {
-                            if ( !actNode->isRoot() )
-                                actNode= actNode->parent;
-                            continue;
-                        }
-                    }
-
-                    auto childCreation= actNode->findOrCreateChild( tree, childName,
-                                                                    std::forward<TArgs>(args)... );
-
-                    if( childCreation.second )
-                      ++result.second;
-
-                    actNode= childCreation.first;
-                    rest.ConsumeChars( childName.Length() + 1);
-                }
+                rest.ConsumeChars( 1 );
+                while( actNode->parent != nullptr )
+                    actNode= actNode->parent;
             }
-    };  // inner class NodePtrBase
 
+            // loop over path string
+            for(;;)
+            {
+                // consume '/' and check for emptiness
+                while(rest.ConsumeChar( tree->separator ) )
+                ;
+                if( rest.IsEmpty() )
+                    return result;
+
+                NameType childName= rest.template Substring<false>( 0,
+                                                    rest.IndexOfOrLength( tree->separator ) );
+
+                // "." or ".."?
+         ALIB_WARNINGS_UNINITIALIZED_OFF
+                if( childName[0] == '.' )
+         ALIB_WARNINGS_RESTORE
+                {
+                    if( childName.Length() == 1 )
+                        continue;
+                    if(     childName.Length() == 2 && childName[1] != '.' )
+                    {
+                        if ( !actNode->isRoot() )
+                            actNode= actNode->parent;
+                        continue;
+                    }
+                }
+
+                auto childCreation= actNode->findOrCreateChild( tree, childName,
+                                                                std::forward<TArgs>(args)... );
+
+                if( childCreation.second )
+                  ++result.second;
+
+                actNode= childCreation.first;
+                rest.ConsumeChars( childName.Length() + 1);
+            }
+        }
+        #endif // ALIB_DOX
+    };  // inner class TCursorBase
+
+    /** The mutable version of type \alib{monomem::detail,StringTreeBase::TCursorBase<TConst>}. */
+    using CursorBase       = TCursorBase<false>;
+
+    /** The constant version of type \alib{monomem::detail,StringTreeBase::TCursorBase<TConst>}. */
+    using ConstCursorBase  = TCursorBase<true>;
 
     // #############################################################################################
     // StringTreeBase interface
     // #############################################################################################
     /** ********************************************************************************************
      * Constructor.
-     * @tparam TArgs         Types of variadic parameters given with parameter \p{args}.
      * @param  allocator     The monotonic allocator to use.
      * @param  pathSeparator The separation character used with path strings.
-     * @param  args          Variadic parameters to be forwarded to constructor of custom type
-     *                       \p{T} of this tree's root node.
      **********************************************************************************************/
-    template<typename... TArgs>
-    StringTreeBase( MonoAllocator* allocator    ,
-                    CharacterType  pathSeparator, TArgs&&...       args        )
-    : root     ( nullptr, nullptr, std::forward<TArgs>(args)... )
-    , separator( pathSeparator )
+    StringTreeBase( MonoAllocator* allocator, CharacterType  pathSeparator)
+    : separator( pathSeparator )
     , nodeTable( allocator )
-    {
-        // set a minimum size number of buckets to avoid non-recyclable bucket lists on
-        // growth
-        if( allocator )
-            nodeTable.Reserve(64, ValueReference::Absolute);
-    }
+    {}
 
     /** ********************************************************************************************
      * Constructor taking a shared recycler.
-     * @tparam TArgs         Types of variadic parameters given with parameter \p{args}.
      * @param  allocator     The monotonic allocator to use.
      * @param  pRecycler     The shared recycler.
      * @param  pathSeparator The separation character used with path strings.
-     * @param  args          Variadic parameters to be forwarded to constructor of custom type
-     *                       \p{T} of this tree's root node.
      **********************************************************************************************/
-    template<typename... TArgs>
     StringTreeBase( MonoAllocator* allocator    , TSharedRecycler& pRecycler,
-                    CharacterType  pathSeparator, TArgs&&...       args        )
-    : root     ( nullptr, nullptr, std::forward<TArgs>(args)... )
-    , separator( pathSeparator )
+                    CharacterType  pathSeparator )
+    : separator( pathSeparator )
     , nodeTable( allocator, pRecycler )
     {}
 
@@ -684,7 +789,7 @@ struct StringTreeBase
      * @param name  The child name to check.
      * @return \c true if the name is legal, false otherwise.
      */
-    bool checkChildName( const NameType& name )
+    bool checkChildName( const NameType& name )                                                const
     {
         if(    name.IsEmpty()
             || (       name[0] == '.'
@@ -692,7 +797,7 @@ struct StringTreeBase
                                                && name.Length() == 2 ) )   )
             || name.IndexOf( separator) >=0 )
         {
-            ALIB_WARNING( "STRINGTREE", NString1K("Illegal child name: ") << name )
+            ALIB_WARNING( "MONOMEM/STRINGTREE", "Illegal child name {!Q}", name )
             return false;
         }
         return true;
@@ -701,7 +806,7 @@ struct StringTreeBase
 }; // StringTreeBase
 
 
-}}}}// namespace [aworx::lib::monomem::detail]
+}}} // namespace [alib::monomem::detail]
 
 
 #endif // HPP_ALIB_MONOMEM_DETAIL_STRINGTREEBASE

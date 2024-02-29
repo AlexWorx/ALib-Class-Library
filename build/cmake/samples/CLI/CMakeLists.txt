@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -35,8 +35,6 @@
 
     # select module(s)
     list( APPEND  ALIB_DISTRIBUTION             "CLI"    )
-    list( APPEND  ALIB_DISTRIBUTION             "TIME"   )
-    list( APPEND  ALIB_DISTRIBUTION             "SYSTEM" )
 
     # Switch to C++ 20. This sample compiles only under C++ 20 due to the use of
     # some C++ 20 clock feature

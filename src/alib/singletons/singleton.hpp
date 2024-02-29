@@ -2,37 +2,25 @@
  * \file
  * This header file is part of module \alib_singletons of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_SINGLETONS_SINGLETON
 #define HPP_ALIB_SINGLETONS_SINGLETON 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if ALIB_STRINGS && !defined(HPP_ALIB_STRINGS_FWDS)
 #   include "alib/strings/fwds.hpp"
 #endif
 
-// #################################################################################################
-// Compiler symbols
-// #################################################################################################
-#if !defined(ALIB_FEAT_SINGLETON_MAPPED)
-    #if defined(_WIN32)
-        #define ALIB_FEAT_SINGLETON_MAPPED   1
-    #else
-        #define ALIB_FEAT_SINGLETON_MAPPED   0
-    #endif
-#endif
-
-
 #if ALIB_FEAT_SINGLETON_MAPPED && !defined (_TYPEINFO) && !defined(_TYPEINFO_)
     #include <typeinfo>
 #endif
 
-namespace aworx { namespace lib { namespace singletons {
+namespace alib {  namespace singletons {
 
 // #################################################################################################
 // Unordered map utility for storing type_info objects
@@ -119,7 +107,6 @@ class Singleton
 template <typename TDerivedClass>
 TDerivedClass* Singleton<TDerivedClass>::singleton= nullptr;
 
-
 /** ************************************************************************************************
  * Deletes the singletons.
  * Upon exit of the process, programmers might want to explicitly free the hash table to avoid
@@ -127,24 +114,21 @@ TDerivedClass* Singleton<TDerivedClass>::singleton= nullptr;
  * (Otherwise this can be omitted, as the memory is cleaned by the OS probably much faster when a
  * process exits).
  *
- * When using singletons with the full implementation of \alib (in contrast in using just the
- * module <b>%ALib %Singleton</b>), then method \aworx{lib,Module::Shutdown} invokes this
- * method already.
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Shutdown will call this function.
  *
  * \note This method is not thread-safe and hence must be called only on termination of the process
  *       when all threads which are using singletons are terminated.
  **************************************************************************************************/
 ALIB_API void  Shutdown();
 
+} // namespace alib[::singletons]
 
-
-}} // namespace aworx[::lib::singletons]
-
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T>
-using Singleton=    lib::singletons::Singleton<T>;
+using Singleton=    singletons::Singleton<T>;
 
-} // namespace aworx
+} // namespace alib
 
 
 

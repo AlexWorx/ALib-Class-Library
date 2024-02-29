@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,7 +16,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace expressions { namespace detail {
+namespace alib {  namespace expressions { namespace detail {
 
 //! @cond NO_DOX
 using Command= VirtualMachine::Command;
@@ -1110,5 +1110,4 @@ void Program::AssembleFinalize()
 #undef ASSERT_ASSEMBLE
 #undef DBG_SET_CALLBACK_INFO
 
-}}}} // namespace [aworx::lib::expressions::detail]
-
+}}} // namespace [alib::expressions::detail]

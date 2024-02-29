@@ -16,6 +16,7 @@ CMakeLists.txt.user
 # not supported/released, yet
 __pycache__
 tools/unreleased
+tools/AlibPatchFileTemplateGenerator
 build/ide.clion_win
 
 

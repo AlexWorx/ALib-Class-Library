@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_SCOPE
@@ -28,7 +28,7 @@
 #   include <map>
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 // forward declarations
 class ScopeInfo;
@@ -75,14 +75,12 @@ class ScopeStoreType
 template<typename T, bool TStackedThreadValues>
 class ScopeStore;
 
-
 /**
  * A helper class that has two specializations to implement different versions of methods
  * \alib{lox::detail,ScopeStore::Walk} and
  * \alib{lox::detail,ScopeStore::access} for each boolean value of template argument
  * \p{TStackedThreadValues}.<br>
- * The helper is needed to support If C++ 11 and the current Microsoft compiler by \alib.
- * (With C++ 17, the helper would not be needed.)
+ *
  * @tparam T                    The stored object type.
  * @tparam TStackedThreadValues If true, values stored for thread scopes will be always replaced
  *                              instead of appended.
@@ -179,8 +177,8 @@ class ScopeStore
              */
             std::size_t operator()(const std::pair<bool, threads::ThreadID>& src)              const
             {
-                return src.first ? static_cast<std::size_t>( src.second * 282312799l  )
-                                 : static_cast<std::size_t>( src.second * 573292817l  ) ^ static_cast<std::size_t>(-1);
+                return src.first ? std::size_t( src.second * 282312799l  )
+                                 : std::size_t( src.second * 573292817l  ) ^ std::size_t(-1);
             }
         };
 
@@ -210,7 +208,7 @@ class ScopeStore
         Scope                                   actScope;
 
         /** The actual language related scope's map node. */
-        typename LanguageStoreT::NodePtr        actStringTreeNode;
+        typename LanguageStoreT::Cursor         actStringTreeNode;
 
         /** The path level when using access methods. */
         int                                     actPathLevel;
@@ -267,7 +265,7 @@ class ScopeStore
          * using them
          * @param scope      Scope to use.
          * @param pathLevel  Used only if parameter \p{scope} equals
-         *                   \ref aworx::lib::lox::Scope::Path "Scope::Path"
+         *                   \ref alib::lox::Scope::Path "Scope::Path"
          *                   to reference parent directories. Optional and defaults to \c 0.
          * @param threadID   ID of the associated thread (for thread-related scopes only).
          *                   If \alib{threads::UNDEFINED} is given, the ID provided in
@@ -337,7 +335,7 @@ class ScopeStore
          * scope information. The result is stored in field #actStringTreeNode.
          * @param create     If \c true, a non-existing entry is created.
          ******************************************************************************************/
-        void initNodePtr( bool create );
+        void initCursor( bool create );
 
         /** ****************************************************************************************
          * Receives, inserts or removes a value.
@@ -358,7 +356,7 @@ extern template   void                          ScopeStore<NString              
 extern template   void                          ScopeStore<NString                  ,true>    ::InitWalk   (Scope,NString);
 extern template   NString                 ScopeStoreHelper<NString                  ,true>    ::doWalk     (ScopeStore<NString, true>& );
 extern template   void                          ScopeStore<NString                  ,true>    ::InitAccess (Scope,int,threads::ThreadID);
-extern template   void                          ScopeStore<NString                  ,true>    ::initNodePtr(bool);
+extern template   void                          ScopeStore<NString                  ,true>    ::initCursor (bool);
 extern template   NString                 ScopeStoreHelper<NString                  ,true>    ::doAccess   (ScopeStore<NString, true>&, int, NString  );
 
 extern template                                 ScopeStore<PrefixLogable*           ,true>    ::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
@@ -367,7 +365,7 @@ extern template   void                          ScopeStore<PrefixLogable*       
 extern template   void                          ScopeStore<PrefixLogable*           ,true>    ::InitWalk   (Scope,PrefixLogable*);
 extern template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*           ,true>    ::doWalk     (ScopeStore<PrefixLogable*, true>& );
 extern template   void                          ScopeStore<PrefixLogable*           ,true>    ::InitAccess (Scope,int,threads::ThreadID);
-extern template   void                          ScopeStore<PrefixLogable*           ,true>    ::initNodePtr(bool);
+extern template   void                          ScopeStore<PrefixLogable*           ,true>    ::initCursor (bool);
 extern template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*           ,true>    ::doAccess   (ScopeStore<PrefixLogable*, true>&, int, PrefixLogable*  );
 
 extern template                                 ScopeStore<std::map<NString, int>*  ,false>   ::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
@@ -376,7 +374,7 @@ extern template   void                          ScopeStore<std::map<NString, int
 extern template   void                          ScopeStore<std::map<NString, int>*  ,false>   ::InitWalk   (Scope,std::map<NString, int>*);
 extern template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*  ,false>   ::doWalk     (ScopeStore<std::map<NString, int>*, false>& );
 extern template   void                          ScopeStore<std::map<NString, int>*  ,false>   ::InitAccess (Scope,int,threads::ThreadID);
-extern template   void                          ScopeStore<std::map<NString, int>*  ,false>   ::initNodePtr(bool);
+extern template   void                          ScopeStore<std::map<NString, int>*  ,false>   ::initCursor (bool);
 extern template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*  ,false>   ::doAccess   (ScopeStore<std::map<NString, int>*, false>&, int, std::map<NString, int>*  );
 
 extern template                                 ScopeStore<std::map<NString, Box>*  ,false>   ::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
@@ -385,11 +383,11 @@ extern template   void                          ScopeStore<std::map<NString, Box
 extern template   void                          ScopeStore<std::map<NString, Box>*  ,false>   ::InitWalk   (Scope,std::map<NString, Box>*);
 extern template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*  ,false>   ::doWalk     (ScopeStore<std::map<NString, Box>*, false>& );
 extern template   void                          ScopeStore<std::map<NString, Box>*  ,false>   ::InitAccess (Scope,int,threads::ThreadID);
-extern template   void                          ScopeStore<std::map<NString, Box>*  ,false>   ::initNodePtr(bool);
+extern template   void                          ScopeStore<std::map<NString, Box>*  ,false>   ::initCursor (bool);
 extern template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*  ,false>   ::doAccess   (ScopeStore<std::map<NString, Box>*, false>&, int, std::map<NString, Box>*  );
 #endif
 
-template<> inline bool                    ScopeStoreType<NString              >   ::AreEqual   ( NString first, NString second )                                   { return first.Equals( second );      }
+template<> inline bool                    ScopeStoreType<NString              >   ::AreEqual   ( NString first, NString second )                                   { return first.Equals<false>( second );      }
 template<> inline bool                    ScopeStoreType<NString              >   ::IsNull     ( NString value )                                                   { return value.IsNull();              }
 template<> inline NString                 ScopeStoreType<NString              >   ::NullValue  ()                                                                  { return NullNString();               }
 template<> inline bool                    ScopeStoreType<PrefixLogable*       >   ::AreEqual   ( PrefixLogable* first, PrefixLogable* second )                     { return static_cast<Box*>(first)->Call<FEquals>(*second); }
@@ -405,7 +403,7 @@ template<> inline std::map<NString, Box>* ScopeStoreType<std::map<NString, Box>*
 #endif
 
 
-}}}}// namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]
 
 
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -17,9 +17,9 @@
 This \alibmod provides types for calendrical date and time processing as well as
 for non-calendrical steady and monotonic time measurement.
 
-In essence, this module uses standard library types found in namespace \c std::chrono, introduced
-with C++ 11 and encapsulates their functionality to provide some very common use-case of it
-in an easy to use and better readable interface.
+In essence, this module uses standard library types found in namespace \c std::chrono, and
+encapsulates their functionality to provide some very common use-case of it in an easy to use and
+better readable interface.
 
 \note
   This does not impose criticism of the standard library. In contrast, it is very right for the
@@ -125,22 +125,22 @@ system's clock setting that the first log-entry showed.
 
 
 \I{################################################################################################}
-# 5. Further Support With Module System # {#alib_time_system}
+# 5. Further Support With Module BaseCamp # {#alib_time_system}
 
 Two utility classes that are directly concerned to the types of this module have \b not been
-implemented with this module but with module \alib_system. The rational for this is that these
-utility classes make use of other \alib functionality, especially modules \alib_text
-and \alib_resources and the goal was to keep this module a lean and very low level module.
+implemented with this module but with module \alib_basecamp. The rational for this is that these
+utility classes make use extensive use of other functionality in that module and the goal was to
+keep this \alib_time_nl a lean and very low level module.
 
 The classes are:
 
-- \alib{system,CalendarDateTime}<br>
+- \alib{lang::system,CalendarDateTime}<br>
   Provides bidirectional conversions between values of class \b %DateTime and
   gregorian calendar dates and 24h clock times.<br>
   Furthermore, comprehensive features for conversion of values to human readable strings
   (formatting) is implemented with this type.
 
-- \alib{system,CalendarDuration}
+- \alib{lang::system,CalendarDuration}
   Implements bidirectional conversions between duration values of classes \b %DateTime and
   \b Ticks on the one hand and human readable durations (seconds, minutes, hours, days, etc.) on the
   other hand.<br>
@@ -160,6 +160,4 @@ durations to values understandable to humans, hence calendar dates and clock val
 minutes, etc.<br>
 
 
-*/
-
-
+<br><br><br><br><br><br> */

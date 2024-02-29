@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,11 +15,11 @@
 #      if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
 #         include "alib/enums/serialization.hpp"
 #      endif
-#      if !defined(HPP_ALIB_FS_COMMONENUMS)
-#           include "alib/lib/fs_commonenums/commonenums.hpp"
+#      if !defined(HPP_ALIB_LANG_COMMONENUMS)
+#           include "alib/lang/commonenums.hpp"
 #      endif
 
-       ALIB_ENUMS_MAKE_BITWISE( aworx::lib::strings::util::Token::Formats )
+       ALIB_ENUMS_MAKE_BITWISE( alib::strings::util::Token::Formats )
 
 #   endif
 #endif // !defined(ALIB_DOX)
@@ -33,16 +33,16 @@
 
 
 #if ALIB_BOXING
-    ALIB_BOXING_VTABLE_DEFINE( aworx::lib::strings::util::Token*, vt_alib_strings_token )
+    ALIB_BOXING_VTABLE_DEFINE( alib::strings::util::Token*, vt_alib_strings_token )
 #endif
 
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
-Token::Token(const String& pName, Case sensitivity, int8_t minLength)
+Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength)
 : name  (pName)
 , format(Formats(   int8_t(Formats::Normal                                         )
-                  + int8_t(sensitivity == Case::Sensitive ? Formats(0) : ignoreCase) )  )
+                  + int8_t(sensitivity == lang::Case::Sensitive ? Formats(0) : ignoreCase) )  )
 , minLengths { minLength, 0,0,0,0,0,0 }
 {
 #if ALIB_DEBUG
@@ -55,14 +55,14 @@ Token::Token(const String& pName, Case sensitivity, int8_t minLength)
 
 }
 
-Token::Token( const String& pName, Case sensitivity,
+Token::Token( const String& pName, lang::Case sensitivity,
               int8_t minLength1, int8_t minLength2, int8_t minLength3, int8_t minLength4, int8_t minLength5,
               int8_t minLength6, int8_t minLength7                                                   )
 : name       (pName)
 , minLengths { minLength1, minLength2, minLength3, minLength4, minLength5, minLength6, minLength7 }
 {
     detectFormat();
-    if( int(format) >= 0  &&  sensitivity == Case::Ignore )
+    if( int(format) >= 0  &&  sensitivity == lang::Case::Ignore )
     format= Formats( int8_t(format) | int8_t(ignoreCase) );
 }
 
@@ -82,7 +82,7 @@ void Token::Define( const String& definition, character separator )
     if( name.IsEmpty() )
         return;
 
-    Case letterCase= Case::Sensitive;
+    lang::Case letterCase= lang::Case::Sensitive;
     size_t qtyMinLengths= 0;
     if(parser.IsNotEmpty() )
     {
@@ -137,7 +137,7 @@ void Token::Define( const String& definition, character separator )
             return;
     #endif
 
-    if( letterCase == Case::Ignore )
+    if( letterCase == lang::Case::Ignore )
         format|=  ignoreCase;
 }
 #endif
@@ -285,7 +285,7 @@ bool    Token::Match( const String& needle )
 {
     ALIB_ASSERT_ERROR( needle.Length() > 0,
                        "STRINGS/TOK", "Empty search string in when matching function name." )
-    Case sensitivity= Sensitivity();
+    lang::Case sensitivity= Sensitivity();
 
     Formats   caseType= GetFormat();
     bool      isNormal= (caseType == Formats::Normal    );
@@ -308,7 +308,7 @@ bool    Token::Match( const String& needle )
         character h= name  .CharAt( hIdx++ );
         character n= needle.CharAt( nIdx++ );
 
-        same= sensitivity == Case::Ignore
+        same= sensitivity == lang::Case::Ignore
               ?     characters::CharArray<character>::ToUpper(h)
                  == characters::CharArray<character>::ToUpper(n)
               :                                               h
@@ -404,7 +404,7 @@ bool    Token::Match( const String& needle )
     return same && isSegOK && (nIdx == needle.Length());
 }
 
-#if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(ALIB_DOX)
+#if ALIB_CAMP && !defined(ALIB_DOX)
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
@@ -526,16 +526,16 @@ ALIB_WARNINGS_RESTORE
 }
 #endif
 
-}}}} // namespace [aworx::lib::strings::util]
+}}} // namespace [alib::strings::util]
 
 //! @cond NO_DOX
-void aworx::lib::strings::T_Append<aworx::lib::strings::util::Token,aworx::character>
-::operator()( TAString<aworx::character>& target, const aworx::lib::strings::util::Token& src)
+void alib::strings::T_Append<alib::strings::util::Token,alib::character>
+::operator()( TAString<alib::character>& target, const alib::strings::util::Token& src)
 {
     target << src.GetRawName();
 
     // low the last character in if CamelCase and the last min length equals 0.
-    if( src.GetFormat() == Token::Formats::CamelCase && src.Sensitivity() == Case::Ignore )
+    if( src.GetFormat() == Token::Formats::CamelCase && src.Sensitivity() == lang::Case::Ignore )
     {
         for( int i= 0 ; i < 7 ; ++i )
         {

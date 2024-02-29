@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDPARSER
 #define HPP_ALIB_ENUMS_RECORDPARSER 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(ENUMS)
@@ -20,7 +20,7 @@ ALIB_ASSERT_MODULE(STRINGS)
 #   include "alib/strings/substring.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 /**
  * This is a pure static type used for parsing enum records from strings.
@@ -37,7 +37,7 @@ namespace aworx { namespace lib { namespace enums {
  *
  * \note
  *   This is the only occasion where any \alib module throws an exception of type \c std.
- *   If (in presence of module \alib_results) an \alib{results,Exception} was thrown,
+ *   If (in presence of module \alib_basecamp) an \alib{lang,Exception} was thrown,
  *   this had to be resourced likewise.
  *   The rational for this design decision is that enum records usually are defined by
  *   potentially externalized resources. The maintenance of such resources must not lead to
@@ -287,6 +287,6 @@ struct EnumRecordParser
 
 };
 
-}}} // namespace [aworx::lib::enums]
+}} // namespace [alib::enums]
 
 #endif // HPP_ALIB_ENUMS_RECORDPARSER

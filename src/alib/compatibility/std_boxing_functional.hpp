@@ -4,14 +4,14 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL
 #define HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -27,7 +27,7 @@ ALIB_ASSERT_MODULE(BOXING)
 // #################################################################################################
 // #################################################################################################
 #if defined(ALIB_DOX)
-    namespace aworx { namespace lib { namespace boxing { namespace compatibility { namespace std {
+    namespace alib {  namespace boxing { namespace compatibility { namespace std {
 #else
     namespace std {
 #endif
@@ -37,17 +37,17 @@ ALIB_ASSERT_MODULE(BOXING)
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct hash<aworx::lib::boxing::Box>
+template<> struct hash<alib::boxing::Box>
 {
     /**
      * Invokes and returns the result of box-function \alib{boxing,FHashcode}.
      * @param src The box object to hash.
      * @return The hash code.
      */
-    size_t operator()(const aworx::lib::boxing::Box& src) const
+    size_t operator()(const alib::boxing::Box& src) const
     {
         return src.Hashcode();
     }
@@ -59,10 +59,10 @@ template<> struct hash<aworx::lib::boxing::Box>
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct equal_to<aworx::lib::boxing::Box>
+template<> struct equal_to<alib::boxing::Box>
 {
     /**
      * Invokes \alib{boxing,Box::operator==} passing \p{lhs} and \p{rhs}.
@@ -70,8 +70,8 @@ template<> struct equal_to<aworx::lib::boxing::Box>
      * @param rhs The right-hand side box.
      * @return The result of the comparison.
      */
-    bool operator()(const aworx::lib::boxing::Box& lhs,
-                    const aworx::lib::boxing::Box& rhs  ) const
+    bool operator()(const alib::boxing::Box& lhs,
+                    const alib::boxing::Box& rhs  ) const
     {
         return  lhs.operator==( rhs );
     }
@@ -86,10 +86,10 @@ template<> struct equal_to<aworx::lib::boxing::Box>
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct less<aworx::lib::boxing::Box>
+template<> struct less<alib::boxing::Box>
 {
     /**
      * Invokes box-function \alib{boxing,FIsLess} on \p{lhs} and returns the result.
@@ -97,8 +97,8 @@ template<> struct less<aworx::lib::boxing::Box>
      * @param rhs The right-hand side box.
      * @return The result of the comparison.
      */
-    bool operator()(const aworx::lib::boxing::Box& lhs,
-                    const aworx::lib::boxing::Box& rhs) const
+    bool operator()(const alib::boxing::Box& lhs,
+                    const alib::boxing::Box& rhs) const
     {
         return  lhs.operator<( rhs );
     }
@@ -110,17 +110,17 @@ template<> struct less<aworx::lib::boxing::Box>
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct hash<aworx::lib::boxing::Enum>
+template<> struct hash<alib::boxing::Enum>
 {
     /**
      * Calculates the hash code for class \b Enum.
      * @param src The \b %Enum object to hash.
      * @return The hash code.
      */
-    size_t operator()(const aworx::lib::boxing::Enum& src) const
+    size_t operator()(const alib::boxing::Enum& src) const
     {
         return src.Hashcode();
     }
@@ -131,10 +131,10 @@ template<> struct hash<aworx::lib::boxing::Enum>
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct equal_to<aworx::lib::boxing::Enum>
+template<> struct equal_to<alib::boxing::Enum>
 {
     /**
      * Invokes \alib{boxing,Enum::operator==} on \p{lhs} and \p{rhs}.
@@ -142,8 +142,8 @@ template<> struct equal_to<aworx::lib::boxing::Enum>
      * @param rhs The right-hand side \b %Enum.
      * @return The result of the comparison.
      */
-    bool operator()(const aworx::lib::boxing::Enum lhs,
-                    const aworx::lib::boxing::Enum rhs) const
+    bool operator()(const alib::boxing::Enum lhs,
+                    const alib::boxing::Enum rhs) const
     {
         return lhs == rhs;
     }
@@ -154,10 +154,10 @@ template<> struct equal_to<aworx::lib::boxing::Enum>
  *
  * This specialization is provided with the inclusion of header file
  * \alibheader{compatibility/std_boxing_functional.hpp}.<br>
- * While the documentation indicates namespace <c>aworx::lib::compatibility::std</c>, the
+ * While the documentation indicates namespace <c>alib::compatibility::std</c>, the
  * specialization is (as needed) implemented in namespace <c>std</c>.
  **************************************************************************************************/
-template<> struct less<aworx::lib::boxing::Enum>
+template<> struct less<alib::boxing::Enum>
 {
     /**
      * Invokes box-function \alib{boxing,FIsLess} on \p{lhs} and returns the result.
@@ -165,8 +165,8 @@ template<> struct less<aworx::lib::boxing::Enum>
      * @param rhs The right-hand side \b Enum.
      * @return The result of the comparison.
      */
-    bool operator()(const aworx::lib::boxing::Enum& lhs,
-                    const aworx::lib::boxing::Enum& rhs) const
+    bool operator()(const alib::boxing::Enum& lhs,
+                    const alib::boxing::Enum& rhs) const
     {
         return  lhs < rhs;
     }
@@ -175,7 +175,7 @@ template<> struct less<aworx::lib::boxing::Enum>
 
 
 #if defined(ALIB_DOX)
-}}}}} // namespace [aworx::lib::boxing::compatibility::std]
+}}}} // namespace [alib::boxing::compatibility::std]
 #else
 } // namespace [std]
 #endif

@@ -1,7 +1,7 @@
 # #################################################################################################
 #  ALibTools.cmake - CMake Tools for projects using ALib
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:

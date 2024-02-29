@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_INMEMORY_PLUGIN
@@ -18,7 +18,7 @@
 #   include "alib/monomem/list.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 /** ************************************************************************************************
  * Specialization of abstract interface class #ConfigurationPlugin, which holds
@@ -32,7 +32,7 @@ namespace aworx { namespace lib { namespace config {
  *   which can be used protect configuration values from external changes.
  *
  * This class in addition acts as the parent of class
- * \ref aworx::lib::config::IniFile "IniFile" and may be used likewise as a base of custom plug-ins.
+ * \ref alib::config::IniFile "IniFile" and may be used likewise as a base of custom plug-ins.
  *
  * To serve the \b IniFile requirements, this plug-ing divides the set of variables into sections
  * (according to the category of a variable), allows comment strings for variables and sections,
@@ -264,10 +264,10 @@ class InMemoryPlugin : public ConfigurationPlugin
                  */
                 bool operator()(const EntryKey& lhs,  const EntryKey& rhs )                    const
                 {
-                    return     (     (lhs.SectionName.IsEmpty()          && rhs.SectionName.IsEmpty() )
-                                  ||  lhs.SectionName.Equals<Case::Ignore>( rhs.SectionName ) )
-                            && (     (lhs.EntryName  .IsEmpty()          && rhs.EntryName  .IsEmpty() )
-                                  ||  lhs.EntryName  .Equals<Case::Ignore>( rhs.EntryName   ) );
+                    return     (     (lhs.SectionName.IsEmpty() && rhs.SectionName.IsEmpty() )
+                                  ||  lhs.SectionName.Equals<false, lang::Case::Ignore>( rhs.SectionName ) )
+                            && (     (lhs.EntryName  .IsEmpty() && rhs.EntryName  .IsEmpty() )
+                                  ||  lhs.EntryName  .Equals<false, lang::Case::Ignore>( rhs.EntryName   ) );
                 }
             };
 
@@ -365,7 +365,7 @@ class InMemoryPlugin : public ConfigurationPlugin
         virtual void        Clear();
 
         /** ****************************************************************************************
-         * Searches the \ref aworx::lib::config::InMemoryPlugin::Section "Section" with the given
+         * Searches the \ref alib::config::InMemoryPlugin::Section "Section" with the given
          * name.
          *
          * @param sectionName      The name of the section to be retrieved.
@@ -375,7 +375,7 @@ class InMemoryPlugin : public ConfigurationPlugin
         const Section*      SearchSection( const String& sectionName );
 
         /** ****************************************************************************************
-         * Searches the \ref aworx::lib::config::InMemoryPlugin::Section "Section" with the given
+         * Searches the \ref alib::config::InMemoryPlugin::Section "Section" with the given
          * name. If the section was not found, it is created.
          *
          * @param sectionName The name of the section to be retrieved.
@@ -519,11 +519,11 @@ class InMemoryPlugin : public ConfigurationPlugin
 }; // InMemoryPlugin
 
 
-}} // namespace lib::config
+} // namespace alib[::onfig]
 
-/// Type alias in namespace #aworx.
-using     InMemoryPlugin=       lib::config::InMemoryPlugin;
+/// Type alias in namespace \b alib.
+using     InMemoryPlugin=       config::InMemoryPlugin;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #endif // HPP_ALIB_CONFIG_INMEMORY_PLUGIN

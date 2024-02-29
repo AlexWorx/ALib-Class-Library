@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCK
@@ -21,7 +21,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 
 // forwards
 class     Thread;
@@ -69,7 +69,7 @@ class ThreadLock
         uint16_t                    cntAcquirements                                              =0;
 
         /** The safeness setting. */
-        Safeness                    safeness;
+        lang::Safeness              safeness;
 
     // #############################################################################################
     // Public fields
@@ -98,7 +98,7 @@ class ThreadLock
 
             /**
              * Limit of recursions. If limit is reached or a multiple of it, an error is passed
-             * to \alib{results,ReportWriter}.
+             * to \alib{lang,ReportWriter}.
              * Defaults is \c 10. To disable, set to \c 0.
              * Available only in debug versions of \alib.
              */
@@ -117,7 +117,7 @@ class ThreadLock
          *                  See #SetSafeness for more information.
          ******************************************************************************************/
         ALIB_API
-        explicit          ThreadLock( Safeness safeness=  Safeness::Safe );
+        explicit          ThreadLock( lang::Safeness safeness=  lang::Safeness::Safe );
 
         /** ****************************************************************************************
          *  Destructor.
@@ -217,36 +217,36 @@ class ThreadLock
         }
 
         /** ****************************************************************************************
-         *  If parameter is \c Safeness::Unsafe, the whole locking system is disabled.
-         *  The only objective here is to gain execution speed, as thread synchronization causes
-         *  relatively expensive system calls.
-         *  Use this method only if you are 100% sure that your (otherwise) critical section are
-         *  executed in a single threaded environment. And: "relative expensive" means: they are not
-         *  really expensive. This is provided only for the rare case that your critical section is
-         *  very, very frequently executed.
+         * If parameter is \c Safeness::Unsafe, the whole locking system is disabled.
+         * The only objective here is to gain execution speed, as thread synchronization causes
+         * relatively expensive system calls.
+         * Use this method only if you are 100% sure that your (otherwise) critical section are
+         * executed in a single threaded environment. And: "relative expensive" means: they are not
+         * really expensive. This is provided only for the rare case that your critical section is
+         * very, very frequently executed.
          *
          * @param safeness  Determines if this object should use a mutex (\c Safeness::Safe)
          *                  or just do nothing (\c Safeness::Unsafe).
          ******************************************************************************************/
         ALIB_API
-        void          SetSafeness( Safeness safeness );
+        void          SetSafeness( lang::Safeness safeness );
 
         /** ****************************************************************************************
-         *  Query if this instance was set to unsafe mode.
-         * @return A value of type aworx::lib::Safeness "Safeness"
+         * Query if this instance was set to unsafe mode.
+         * @return A value of type alib::Safeness "Safeness"
          ******************************************************************************************/
-        Safeness      GetSafeness()                                                            const
+        lang::Safeness GetSafeness()                                                           const
         {
             return safeness;
         }
 };
 
 
-}} // namespace aworx[::lib::threads]
+} // namespace alib[::threads]
 
-/// Type alias in namespace #aworx.
-using     ThreadLock=   lib::threads::ThreadLock;
+/// Type alias in namespace \b alib.
+using     ThreadLock=   threads::ThreadLock;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_THREADS_THREADLOCK

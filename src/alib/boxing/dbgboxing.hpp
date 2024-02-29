@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_DBGBOXING
@@ -15,18 +15,18 @@
 
 #if ALIB_DEBUG_BOXING
 
-#if ALIB_TEXT && !defined(HPP_ALIB_TEXT_FORMATTER)
-#   include "alib/text/formatter.hpp"
+#if ALIB_CAMP && !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
+#   include "alib/lang/format/formatter.hpp"
 #endif
 
 #if !defined (_GLIBCXX_TUPLE) && !defined(_TUPLE_)
 #   include <tuple>
 #endif
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 
-#if ALIB_TEXT
+#if ALIB_CAMP
 namespace detail {
 /** ************************************************************************************************
  * Template class implementing a monotonically allocated vector of variadic tuples whose first
@@ -46,7 +46,7 @@ namespace detail {
  *
  * ## Availability ##
  * This struct is only available if compilation symbol \ref ALIB_DEBUG_BOXING is set and
- * furthermore, module \alib_text is included in the \alibdist.
+ * furthermore, module \alib_basecamp is included in the \alibdist.
  **************************************************************************************************/
 template< typename... TAssociatedTypes >
 struct DbgStringTable  : public std::vector<std::tuple<String, TAssociatedTypes...>>
@@ -89,7 +89,7 @@ struct DbgStringTable  : public std::vector<std::tuple<String, TAssociatedTypes.
 };
 } // namespace detail
 
-#endif // ALIB_TEXT
+#endif // ALIB_CAMP
 
 
 
@@ -122,7 +122,7 @@ struct DbgStringTable  : public std::vector<std::tuple<String, TAssociatedTypes.
  * - #typeName
  * - #removeNamespaces
  *
- * All other methods become available if module \alib_text is included in the \alibdist.
+ * All other methods become available if module \alib_basecamp is included in the \alibdist.
  *
  * \see
  *   Chapter \ref alib_boxing_more_debug of the
@@ -270,9 +270,7 @@ struct DbgBoxing
 
 #endif // ALIB_STRINGS
 
-#if ALIB_TEXT
-
-
+#if ALIB_CAMP
     // #############################################################################################
     // Type Info
     // #############################################################################################
@@ -332,7 +330,7 @@ struct DbgBoxing
         using TSrc  = ATMP_RCV(TBoxable);
         using TPlain= ATMP_RCVP(TBoxable);
 
-        DbgTypeDemangler srcRTTIDmgld( typeid(TSrc) );
+        lang::DbgTypeDemangler srcRTTIDmgld( typeid(TSrc) );
 
         // repeat twice to get auto-tabs adjusted
         SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
@@ -351,12 +349,12 @@ struct DbgBoxing
                       box.DbgGetVTable(),
                       indent,
                       ATMP_IS_PTR(TSrc),
-                      lib::boxing::TT_IsCustomized<TPlain >::value,
-                      lib::boxing::TT_IsCustomized<TPlain*>::value,
-                      sizeof(lib::boxing::Placeholder) <= sizeof(ATMP_RCVP(TPlain)),
+                      boxing::TT_IsCustomized<TPlain >::value,
+                      boxing::TT_IsCustomized<TPlain*>::value,
+                      sizeof(boxing::Placeholder) <= sizeof(ATMP_RCVP(TPlain)),
                       std::is_copy_constructible<ATMP_RCVP(TPlain)>::value,
                       std::is_trivially_destructible<ATMP_RCVP(TPlain)>::value,
-                      lib::boxing::TT_IsUnboxable <TSrc   >::value                             );
+                      boxing::TT_IsUnboxable <TSrc   >::value                             );
 
         }
         formatter->Release();
@@ -405,7 +403,7 @@ struct DbgBoxing
      * \b AString with a sorted list of type names including counter information.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist.
+     * This method is included only if module \alib_basecamp is included in the \alibdist.
      *
      * @param input             A list of types.
      * @param headline          The headline to write.
@@ -413,7 +411,7 @@ struct DbgBoxing
      * @return A list of demangled type names.
      **********************************************************************************************/
     ALIB_API static
-    aworx::AString  DumpFunctions(
+    alib::AString  DumpFunctions(
            const std::vector<std::pair<const std::type_info*,uinteger>>& input,
            const String&                                                 headline = EmptyString(),
            const String&                                                 indent   = EmptyString() );
@@ -422,7 +420,7 @@ struct DbgBoxing
      * Helper for (bigger part of) #DumpFunctions.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist.
+     * This method is included only if module \alib_basecamp is included in the \alibdist.
      *
      * @param      input            A list of types and usage numbers.
      * @param[out] output           A string to write to.
@@ -444,7 +442,7 @@ struct DbgBoxing
      * Along with each type, its default function implementations are given.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist.
+     * This method is included only if module \alib_basecamp is included in the \alibdist.
      *
      * @param staticVtables    If \c true, only types with static vtables are listed.
      *                         Otherwise only those with dynamic vtables.
@@ -460,7 +458,7 @@ struct DbgBoxing
      * Internally used by overloaded #DumpVTables methods.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist.
+     * This method is included only if module \alib_basecamp is included in the \alibdist.
      *
      * @param[out] target           The target string to write to.
      * @param[out] vtableNames      Output parameter that receives the strings.
@@ -481,7 +479,7 @@ struct DbgBoxing
      * and fetch implementations of custom box-functions.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist
+     * This method is included only if module \alib_basecamp is included in the \alibdist
      * and compilation symbol \ref ALIB_DEBUG_MONOMEM is given.
      *
      * @param[out] target              The target string to write to.
@@ -497,14 +495,14 @@ struct DbgBoxing
      * Along with each type, its default function implementations are given.
      *
      * ## Availability ##
-     * This method is included only if module \alib_text is included in the \alibdist.
+     * This method is included only if module \alib_basecamp is included in the \alibdist.
      *
      * @return A string containing the dump.
      **********************************************************************************************/
     ALIB_API static
     AString         DumpAll   ();
 
-#endif // ALIB_TEXT
+#endif // ALIB_CAMP
 
     // #############################################################################################
     // Tools
@@ -524,7 +522,7 @@ struct DbgBoxing
     AString&        removeNamespaces( AString& string, integer startIndex  );
 
     /**
-     * See method #removeNamespaces. Pre-initialized with <b>"aworx::lib::"</b>.
+     * See method #removeNamespaces. Pre-initialized with <b>"alib::"</b>.
      */
     ALIB_API static
     std::vector<String>   RemovableNamespaces;
@@ -533,12 +531,12 @@ struct DbgBoxing
 }; // class DbgBoxingDump
 
 
-}} // namespace aworx[::lib::boxing]
+} // namespace alib[::boxing]
 
-/// Type alias in namespace #aworx.
-using     DbgBoxing=  lib::boxing::DbgBoxing;
+/// Type alias in namespace \b alib.
+using     DbgBoxing=  boxing::DbgBoxing;
 
-}// namespace [aworx]
+} // namespace [alib]
 
 #endif // ALIB_DEBUG_BOXING
 #endif // HPP_ALIB_BOXING_DBGBOXING

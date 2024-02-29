@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_DETAIL_VTABLE
@@ -12,10 +12,10 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 /**
- * This namespace implements internals of namespace #aworx::lib::boxing.
+ * This namespace implements internals of namespace #alib::boxing.
  */
 namespace detail {
 
@@ -278,9 +278,9 @@ struct VTable
 
     /** ****************************************************************************************
      * Returns \c true if this vtable represents boxed array types. In this case, method
-     * \ref aworx::lib::boxing::Box::UnboxLength "Box::UnboxLength"
+     * \ref alib::boxing::Box::UnboxLength "Box::UnboxLength"
      * will return the length of the array and
-     * \ref aworx::lib::boxing::Box::UnboxElement "Box::UnboxElement" may be used to
+     * \ref alib::boxing::Box::UnboxElement "Box::UnboxElement" may be used to
      * access elements of the array.
      *
      * @return \c true if this vtable is representing an array type, \c false otherwise.
@@ -323,8 +323,8 @@ struct VTable
      * when a static \e vtable is registered.
      *
      * Statically created \e vtables have to be registered during bootstrap in debug-compilations.
-     * For this, macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER is available, which is empty in
-     * release compilations.
+     * For this, macro \ref ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER is available, which is empty
+     * in release compilations.
      *
      * \see
      *   Macros ALIB_BOXING_VTABLE_DECLARE and \ref alib_mod_boxing "Programmer's Manual" chapter
@@ -369,7 +369,7 @@ class VTableTT  : public VTable
          * template instance of this class being a 'strict' singleton (only that singleton instance
          * exists).
          */
-        ALIB_CPP14_REL_CONSTEXPR VTableTT()
+        constexpr VTableTT()
         : VTable( ATMP_EQ(TPlainOrArray, TPlain )  ? typeid(TMapped)
                                                    : typeid(TMapped[1]),
 
@@ -453,7 +453,7 @@ struct  T_VTableFactory
      * Returns a strict singleton \e vtable responsible for boxing mapped type \p{TMapping}.
      * @return The requested \e vtable singleton.
      */
-    static ALIB_CPP14_CONSTEXPR VTable* Get()
+    static constexpr VTable* Get()
     {
         DbgCheckIsInitialized();
 
@@ -467,7 +467,7 @@ struct  T_VTableFactory
 };
 
 
-}}}} // namespace [aworx::lib::boxing::detail]
+}}} // namespace [alib::boxing::detail]
 
 
 //##################################################################################################
@@ -475,41 +475,39 @@ struct  T_VTableFactory
 //##################################################################################################
 
 #define ALIB_BOXING_VTABLE_DECLARE( TMapped, Identifier )                                          \
-namespace aworx { namespace lib { namespace boxing { namespace detail {                            \
+namespace alib::boxing::detail {                                                                   \
 extern ALIB_API VTable SNGLTN_ ## Identifier;                                                      \
 template<> struct  T_VTableFactory< TMappedTo<TMapped> >                                           \
-{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }}}}                     \
+{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }                        \
 
 #define ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( TMapped, Identifier )                                \
-namespace aworx { namespace lib { namespace boxing { namespace detail {                            \
+namespace alib::boxing::detail {                                                                   \
 extern ALIB_API VTable SNGLTN_ ## Identifier;                                                      \
 template<> struct  T_VTableFactory< TMappedToArrayOf<TMapped> >                                    \
-{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }}}}                     \
+{ static constexpr VTable* Get() { return  &SNGLTN_ ## Identifier; } };   }                        \
 
 
 #define ALIB_BOXING_VTABLE_DEFINE( TMapped, Identifier )                                           \
-aworx::lib::boxing::detail::VTable aworx::lib::boxing::detail::SNGLTN_ ## Identifier               \
+alib::boxing::detail::VTable alib::boxing::detail::SNGLTN_ ## Identifier                           \
 ( typeid(TMapped), typeid(void)  ,                                                                 \
    std::is_pointer<TMapped>::value                                                                 \
  ? VTable::MappingType::Pointer                                                                    \
  : std::is_enum<TMapped>::value                                                                    \
  ? VTable::MappingType::Enum                                                                       \
  : VTable::MappingType::Value   ,                                                                  \
- aworx::lib::boxing::T_SizeInPlaceholder<TMapped>::value);                                         \
+ alib::boxing::T_SizeInPlaceholder<TMapped>::value);                                               \
 
 #define ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( TMapped, Identifier )                                 \
-aworx::lib::boxing::detail::VTable aworx::lib::boxing::detail::SNGLTN_ ## Identifier               \
+alib::boxing::detail::VTable alib::boxing::detail::SNGLTN_ ## Identifier                           \
 (typeid(TMapped[1]) , typeid(TMapped), VTable::MappingType(sizeof(TMapped)), sizeof(Placeholder)); \
 
 
 #if ALIB_DEBUG_BOXING
 #   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )                                 \
-DbgRegisterVTable( &aworx::lib::boxing::detail::SNGLTN_ ## Identifier,                             \
-                   aworx::lib::boxing::detail::VTable::DbgFactoryType::Static );
+DbgRegisterVTable( &alib::boxing::detail::SNGLTN_ ## Identifier,                                   \
+                   alib::boxing::detail::VTable::DbgFactoryType::Static );
 #else
 #   define ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( Identifier )
 #endif
 
 #endif // HPP_ALIB_BOXING_DETAIL_VTABLE
-
-

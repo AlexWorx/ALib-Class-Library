@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER
@@ -17,7 +17,7 @@
 // forward declarations
 // #################################################################################################
 
-namespace aworx { namespace lib { namespace lox { namespace detail { namespace textlogger{
+namespace alib {  namespace lox { namespace detail { namespace textlogger{
 
 /** ************************************************************************************************
  * A text logger that either removes or ignores (just writes through) \alox ESC sequences.
@@ -31,7 +31,7 @@ class PlainTextLogger : public TextLogger
     // #############################################################################################
     public:
         /**
-         * If this field is set to \c true (the default), all \ref aworx::lib::lox::ESC "ESC" color and
+         * If this field is set to \c true (the default), all \ref alib::lox::ESC "ESC" color and
          * style codes get removed when logging into this Logger. \c ESC::TAB is processed.
          *
          * It might be useful, to set this to false, e.g. in the case, the contents of the
@@ -79,7 +79,7 @@ class PlainTextLogger : public TextLogger
          * @return If \c false is returned, the log line is aborted without an invocation of
          *         \ref notifyLogOp "notifyLogOp(Phase::End)".
          ******************************************************************************************/
-        virtual bool    notifyLogOp( Phase phase )                                              = 0;
+        virtual bool    notifyLogOp( lang::Phase phase )                                  = 0;
 
         /** ****************************************************************************************
          * Abstract method to be implemented by descendants. Has to write the given region of
@@ -126,6 +126,6 @@ class PlainTextLogger : public TextLogger
                                  detail::ScopeInfo&  scope,     int       lineNumber )     override;
 }; // class PlainTextLogger
 
-}}}}}// namespace [aworx::lib::lox::detail::textlogger]
+}}}} // namespace [alib::lox::detail::textlogger]
 
 #endif // HPP_ALOX_DETAIL_TEXTLOGGER_PLAINTEXTLOGGER

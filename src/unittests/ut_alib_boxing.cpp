@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,13 +19,12 @@
 #include "alib/compatibility/std_boxing.hpp"
 
 #include "alib/boxing/dbgboxing.hpp"
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #define TESTCLASSNAME       CPP_ALib_Boxing
 #include "unittests/aworx_unittests.hpp"
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 static_assert( !std::is_trivial                         <Box>::value, "error");
 static_assert( !std::is_trivially_default_constructible <Box>::value, "error");
@@ -228,7 +227,7 @@ extern  void testFAppend(AWorxUnitTesting& ut, const Box& box,  const String& va
         void testFAppend(AWorxUnitTesting& ut, const Box& box,  const String& val )
 {
     asTestFAppend.Reset();
-    UT_TRUE( box.GetFunction<FAppend<character>>( Reach::Local ) )
+    UT_TRUE( box.GetFunction<FAppend<character>>( lang::Reach::Local ) )
     box.Call<FAppend<character>>( asTestFAppend );
     UT_EQ( val, asTestFAppend )
 }
@@ -275,7 +274,7 @@ template<>
 inline void testBoxing(AWorxUnitTesting& ut,  double val, const Box& box1 , const Box& box2)
 {
     UT_NEAR( val, box1.Unbox<double>(), 0.00001 )
-    UT_NEAR( val, box2.Unbox<double>(), 0.00001 ) 
+    UT_NEAR( val, box2.Unbox<double>(), 0.00001 )
 
     UT_TRUE( ( box1.Call<FEquals>(box2) ) )
     UT_TRUE( ( box2.Call<FEquals>(box1) ) )
@@ -548,8 +547,8 @@ UT_METHOD(Boxing_Strings)
     }
 
     {
-        aworx::LocalString<64> pa64("64");     Box bpa64(&pa64);
-        aworx::LocalString<73> pa73("73");     Box bpa73(pa73);
+        alib::LocalString<64> pa64("64");     Box bpa64(&pa64);
+        alib::LocalString<73> pa73("73");     Box bpa73(pa73);
 
         test._() << bpa64;      UT_EQ( A_CHAR("64"), test)
         test._() << bpa73;      UT_EQ( A_CHAR("73"), test)
@@ -703,7 +702,7 @@ UT_METHOD(Boxing_CustomClasses)
 {
     UT_INIT()
 
-    using namespace aworx::lib::boxing;
+    using namespace alib::boxing;
 
     // uncomment and watch output. Not easily testable otherwise
     //UT_PRINT(( dbgBoxing.Type<int>()                 ))
@@ -758,8 +757,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<SmallNotCopyConstr*>() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<SmallNotCopyConstr*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<SmallNotCopyConstr >(bMB1) )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<SmallNotCopyConstr*>()     )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<SmallNotCopyConstr >(bMB1) )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<SmallNotCopyConstr*>()     )
 
         UT_EQ   ( 5,   bMB1.Unbox<SmallNotCopyConstr*>()->i   )
 
@@ -779,8 +778,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<SmallNotCopyConstrCustom>() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<SmallNotCopyConstrCustom>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<SmallNotCopyConstrCustom  >(bMB1) )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<SmallNotCopyConstrCustom* >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<SmallNotCopyConstrCustom  >(bMB1) )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<SmallNotCopyConstrCustom* >() )
 
 //        UT_EQ( 5, bMB1.Unbox<SmallNotCopyConstrCustom >().i )
       //UT_EQ( 5, bMB1.Unbox<SmallNotCopyConstrCustom*>()->i  ) // has to cause static assertion
@@ -801,8 +800,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<ClassWithExplicitPointerBoxing*>() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<ClassWithExplicitPointerBoxing*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithExplicitPointerBoxing >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithExplicitPointerBoxing*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithExplicitPointerBoxing >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithExplicitPointerBoxing*>() )
 
       //UT_EQ( 42, bMB1.Unbox<ClassWithExplicitPointerBoxing >().i  ) // has to cause static assertion
         UT_EQ( 42, bMB1.Unbox<ClassWithExplicitPointerBoxing*>()->i )
@@ -824,8 +823,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<ClassWithValueAndPointerMapping >() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<ClassWithValueAndPointerMapping*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithValueAndPointerMapping >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithValueAndPointerMapping*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithValueAndPointerMapping >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithValueAndPointerMapping*>() )
 
         UT_EQ( 43, bMB1.Unbox<ClassWithValueAndPointerMapping >().i   )
         UT_EQ( 43, bMB2.Unbox<ClassWithValueAndPointerMapping*>()->i )
@@ -846,8 +845,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<ClassWithValueAndPointerCustom >() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<ClassWithValueAndPointerCustom*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithValueAndPointerCustom >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassWithValueAndPointerCustom*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithValueAndPointerCustom >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassWithValueAndPointerCustom*>() )
 
         UT_EQ( 44, bMB1.Unbox<ClassWithValueAndPointerCustom >().i   )
         UT_EQ( 44, bMB2.Unbox<ClassWithValueAndPointerCustom*>()->i )
@@ -868,8 +867,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     //UT_TRUE( bMB1.IsType<ClassVNotUnboxable >() )
         Box bMB2( &mb );    //UT_TRUE( bMB2.IsType<ClassVNotUnboxable*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotUnboxable >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotUnboxable*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotUnboxable >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotUnboxable*>() )
 
         // UT_EQ( 44, bMB1.Unbox<ClassVNotUnboxable >().i  )
         // UT_EQ( 44, bMB2.Unbox<ClassVNotUnboxable*>()->i )
@@ -890,8 +889,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     //UT_TRUE( bMB1.IsType<ClassPNotUnboxable >() )
         Box bMB2( &mb );    //UT_TRUE( bMB2.IsType<ClassPNotUnboxable*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotUnboxable >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotUnboxable*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotUnboxable >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotUnboxable*>() )
 
         // UT_EQ( 44, bMB1.Unbox<ClassPNotUnboxable >().i  )
         // UT_EQ( 44, bMB2.Unbox<ClassPNotUnboxable*>()->i )
@@ -912,8 +911,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     //UT_TRUE( bMB1.IsType<ClassBothNotUnboxable >() )
         Box bMB2( &mb );    //UT_TRUE( bMB2.IsType<ClassBothNotUnboxable*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassBothNotUnboxable >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassBothNotUnboxable*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassBothNotUnboxable >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassBothNotUnboxable*>() )
 
         //UT_EQ( 44, bMB1.Unbox<ClassBothNotUnboxable >().   )
         //UT_EQ( 44, bMB2.Unbox<ClassBothNotUnboxable*>()->i )
@@ -934,8 +933,8 @@ UT_METHOD(Boxing_CustomClasses)
         //Box bMB1; //( mb );     //UT_TRUE( bMB1.IsType<ClassVNotBoxable >() )
         //Box bMB2; //( &mb );    //UT_TRUE( bMB2.IsType<ClassVNotBoxable*>() )
 
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotBoxable >() )
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotBoxable*>() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotBoxable >() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotBoxable*>() )
 
         //UT_EQ( 44, bMB1.Unbox<ClassVNotBoxable >().i  )
         //UT_EQ( 44, bMB2.Unbox<ClassVNotBoxable*>()->i )
@@ -956,8 +955,8 @@ UT_METHOD(Boxing_CustomClasses)
         //Box bMB1; //( mb );     //UT_TRUE( bMB1.IsType<ClassPNotBoxable >() )
         //Box bMB2; //( &mb );    //UT_TRUE( bMB2.IsType<ClassPNotBoxable*>() )
 
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotBoxable >() )
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotBoxable*>() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotBoxable >() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotBoxable*>() )
 
         //UT_EQ( 44, bMB1.Unbox<ClassPNotBoxable >().i  )
         //UT_EQ( 44, bMB2.Unbox<ClassPNotBoxable*>()->i )
@@ -978,8 +977,8 @@ UT_METHOD(Boxing_CustomClasses)
         //Box bMB1;//( mb );     //UT_TRUE( bMB1.IsType<ClassBothNotBoxable >() )
         //Box bMB2;//( &mb );    //UT_TRUE( bMB2.IsType<ClassBothNotBoxable*>() )
 
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassBothNotBoxable >() )
-        // UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassBothNotBoxable*>() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassBothNotBoxable >() )
+        // UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassBothNotBoxable*>() )
 
         // UT_EQ( 44, bMB1.Unbox<ClassBothNotBoxable >().i )
         //UT_EQ( 44, bMB2.Unbox<ClassBothNotBoxable*>()->i )
@@ -1000,8 +999,8 @@ UT_METHOD(Boxing_CustomClasses)
         //Box bMB1( mb );     UT_TRUE( bMB1.IsType<ClassVNotBoxablePBoxable >() )
         Box bMB2( &mb );    UT_TRUE( bMB2.IsType<ClassVNotBoxablePBoxable*>() )
 
-        //UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotBoxablePBoxable >() )
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassVNotBoxablePBoxable*>() )
+        //UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotBoxablePBoxable >() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassVNotBoxablePBoxable*>() )
 
         //UT_EQ( 44, bMB1.Unbox<ClassVNotBoxablePBoxable >().i   )
         UT_EQ( 44, bMB2.Unbox<ClassVNotBoxablePBoxable*>()->i )
@@ -1022,8 +1021,8 @@ UT_METHOD(Boxing_CustomClasses)
         Box bMB1( mb );     UT_TRUE( bMB1.IsType<ClassPNotBoxableVBoxable >() )
         //Box bMB2( &mb );    UT_TRUE( bMB2.IsType<ClassPNotBoxableVBoxable*>() )
 
-        UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotBoxableVBoxable >() )
-        //UT_PRINT(  aworx::DbgBoxing::TypeInfo<ClassPNotBoxableVBoxable*>() )
+        UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotBoxableVBoxable >() )
+        //UT_PRINT(  alib::DbgBoxing::TypeInfo<ClassPNotBoxableVBoxable*>() )
 
         UT_EQ( 44, bMB1.Unbox<ClassPNotBoxableVBoxable >().i   )
         //UT_EQ( 44, bMB2.Unbox<ClassPNotBoxableVBoxable*>()->i )

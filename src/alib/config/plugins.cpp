@@ -1,26 +1,30 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_CONFIG_PLUGINS)
-#   include "alib/config/plugins.hpp"
-#endif
+#   if !defined (HPP_ALIB_CONFIG_PLUGINS)
+#      include "alib/config/plugins.hpp"
+#   endif
 
-#if !defined (HPP_ALIB_SYSTEM_ENVIRONMENT)
-#   include "alib/system/environment.hpp"
-#endif
-#if !defined (HPP_ALIB_CONFIG_CONFIG)
-#   include "alib/config/config.hpp"
-#endif
+#   if !defined (HPP_ALIB_CAMP_ENVIRONMENT)
+#      include "alib/lang/system/environment.hpp"
+#   endif
+#   if !defined (HPP_ALIB_CONFIG_CONFIG)
+#      include "alib/config/config.hpp"
+#   endif
+
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
 
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // #################################################################################################
 // XTernalizer
@@ -176,14 +180,13 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
     // check if category may me left out
     bool allowWithoutCategory= false;
     for (auto& defaultCategory : DefaultCategories )
-        if( (allowWithoutCategory= variable.Category().Equals( defaultCategory )) == true )
+        if( (allowWithoutCategory= variable.Category().Equals<false>( defaultCategory )) == true )
             break;
 
     String256   stringConverter;
     stringConverter.DbgDisableBufferReplacementWarning();
 
 
-    size_t qtyArgs=  argCount;
     std::vector<AString>::iterator argsIt;
     if( !AlternativeArgs.empty() )
     {
@@ -192,7 +195,7 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
     }
 
 
-    for ( size_t i= !AlternativeArgs.empty() ? 0 : 1 ; i < qtyArgs ; ++i )
+    for ( size_t i= !AlternativeArgs.empty() ? 0 : 1 ; i < argCount ; ++i )
     {
         // create sub-string on actual variable (trim if somebody would work with quotation marks...)
         Substring cliArg;
@@ -237,8 +240,8 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
 
         // try names
 
-        if (    !                          cliArg.ConsumeString<Case::Ignore>( variable.Fullname() )
-             && !( allowWithoutCategory && cliArg.ConsumeString<Case::Ignore>( variable.Name()     )  )
+        if (    !                          cliArg.ConsumeString<lang::Case::Ignore>( variable.Fullname() )
+             && !( allowWithoutCategory && cliArg.ConsumeString<lang::Case::Ignore>( variable.Name()     )  )
              && !(    AllowedMinimumShortCut > 0
                    && (                            cliArg.ConsumePartOf( variable.Fullname(), AllowedMinimumShortCut + 1 + static_cast<int>(variable.Category().Length()) )
                        ||( allowWithoutCategory && cliArg.ConsumePartOf( variable.Name()    , AllowedMinimumShortCut ) )
@@ -255,7 +258,7 @@ bool  CLIArgs::Load( Variable& variable, bool searchOnly )
             return true;
         }
 
-        if ( cliArg.ConsumeChar<true, Whitespaces::Trim>() == '='  )
+        if ( cliArg.ConsumeChar<true, lang::Whitespaces::Trim>() == '='  )
         {
             if ( !searchOnly )
                 StringConverter->LoadFromString( variable, cliArg.Trim() );
@@ -304,7 +307,7 @@ namespace detail {
 
 bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName, Variable& variable )
 {
-    variable.Reset(CurrentData::Clear);
+    variable.Reset(lang::CurrentData::Clear);
 
     size_t qtyArgs=  cliArgs.argCount;
     std::vector<AString>::iterator argsIt;
@@ -373,7 +376,7 @@ bool nextCLIArg( CLIArgs& cliArgs, size_t& nextArgNo, const String& sectionName,
 
         // consume category
         if( !allowWithoutCategory && !sectionName.IsEmpty()
-            && (    !cliArg.ConsumeString<Case::Ignore>( sectionName )
+            && (    !cliArg.ConsumeString<lang::Case::Ignore>( sectionName )
                  || !cliArg.ConsumeChar('_' ) ) )
            continue;
 
@@ -420,7 +423,7 @@ bool  Environment::Load( Variable& variable, bool searchOnly )
     String256 value;                value             .DbgDisableBufferReplacementWarning();
     String256 nameZeroTerminated;   nameZeroTerminated.DbgDisableBufferReplacementWarning();
     nameZeroTerminated << variable.Fullname();
-    EnvironmentVariables::Get( nameZeroTerminated, value, CurrentData::Keep );
+    EnvironmentVariables::Get( nameZeroTerminated, value, lang::CurrentData::Keep );
     if ( value.IsEmpty() )
         return false;
 
@@ -429,7 +432,4 @@ bool  Environment::Load( Variable& variable, bool searchOnly )
     return true;
 }
 
-
-
-}}}// namespace [aworx::lib::config]
-
+}} // namespace [alib::config]

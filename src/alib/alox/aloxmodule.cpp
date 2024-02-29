@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,14 +20,14 @@
 #      include "alib/alox/aloxmodule.hpp"
 #   endif
 
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
 #      include "alib/enums/serialization.hpp"
 #   endif
-#   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#      include "alib/resources/resources.hpp"
+#   if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#      include "alib/lang/resources/resources.hpp"
 #   endif
 #   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
 #      include "alib/enums/recordbootstrap.hpp"
@@ -35,19 +35,19 @@
 #   if !defined (HPP_ALIB_STRINGS_FORMAT)
 #       include "alib/strings/format.hpp"
 #   endif
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::lox::Verbosity               , vt_lox_verbosity )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::lox::Scope                   , vt_lox_scope     )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::lox::detail::Logger*         , vt_lox_logger    )
-ALIB_BOXING_VTABLE_DEFINE( std::pair<aworx::lib::lox::Verbosity
-                          ALIB_COMMA aworx::lib::config::Priorities>, vt_lox_pair_verby_prio )
+ALIB_BOXING_VTABLE_DEFINE( alib::lox::Verbosity               , vt_lox_verbosity )
+ALIB_BOXING_VTABLE_DEFINE( alib::lox::Scope                   , vt_lox_scope     )
+ALIB_BOXING_VTABLE_DEFINE( alib::lox::detail::Logger*         , vt_lox_logger    )
+ALIB_BOXING_VTABLE_DEFINE( std::pair<alib::lox::Verbosity
+                          ALIB_COMMA alib::config::Priorities>, vt_lox_pair_verby_prio )
 
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib {
+namespace alib {
 
 lox::ALox ALOX;
 
@@ -60,21 +60,16 @@ lox::ALox ALOX;
  **************************************************************************************************/
 namespace lox {
 
-
-#if ALIB_CPPVER < 17
-constexpr const NString  Lox::InternalDomains;
-#endif
-
 #if ALIB_DEBUG && !defined(ALIB_DOX)
     namespace { integer dbgCheckQtyConfigPlugins; }
 #endif
 
 
 ALox::ALox()
-: Module( ALIB_VERSION, ALIB_REVISION, "ALOX" )
+: Camp( "ALOX" )
 {
     ALIB_ASSERT_ERROR( this == &ALOX, "ALOX",
-        "Instances of class Alox must not be created. Use singleton aworx::lib::ALOX" )
+        "Instances of class ALox must not be created. Use singleton alib::ALOX" )
 }
 
 // #################################################################################################
@@ -95,7 +90,7 @@ ALox::ALox()
 #if !defined(ALIB_DOX)
     namespace
     {
-        List<Lox*>      loxes( &lib::monomem::GlobalAllocator );
+        List<Lox*>      loxes( &monomem::GlobalAllocator );
     }
 
 #if ALOX_DBG_LOG
@@ -106,18 +101,18 @@ ALox::ALox()
 
 
 // The lox singletons for debug and release logging
-Lox*     ALox::Get( const NString& name, CreateIfNotExists create )
+Lox*     ALox::Get( const NString& name, lang::CreateIfNotExists create )
 {
-    ALIB_LOCK_WITH(lib::monomem::GlobalAllocatorLock)
+    ALIB_LOCK_WITH(monomem::GlobalAllocatorLock)
 
     // search
     for( auto* it : loxes )
-        if( it->GetName().Equals<Case::Ignore>( name ) )
+        if( it->GetName().Equals<true, lang::Case::Ignore>( name ) )
             return it;
 
 
     // create?
-    if ( create == CreateIfNotExists::Yes )
+    if ( create == lang::CreateIfNotExists::Yes )
     {
         Lox* newLox= new Lox ( name, false );
         loxes.EmplaceBack( newLox );
@@ -128,9 +123,9 @@ Lox*     ALox::Get( const NString& name, CreateIfNotExists create )
     return nullptr;
 }
 
-void     ALox::Register( Lox* lox, ContainerOp operation )
+void     ALox::Register( Lox* lox, lang::ContainerOp operation )
 {
-    ALIB_LOCK_WITH(lib::monomem::GlobalAllocatorLock)
+    ALIB_LOCK_WITH(monomem::GlobalAllocatorLock)
 
     // check
     if ( lox == nullptr )
@@ -140,7 +135,7 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
     }
 
     // remove
-    if( operation == ContainerOp::Remove )
+    if( operation == lang::ContainerOp::Remove )
     {
         for( auto search= loxes.begin() ; search != loxes.end() ; ++search )
             if ( *search == lox )
@@ -156,7 +151,7 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
     else
     {
         for( auto* it : loxes )
-            if( it->GetName().Equals( lox->GetName() ) )
+            if( it->GetName().Equals<false>( lox->GetName() ) )
             {
                 ALIB_ERROR( "ALOX", "Given lox named {!Q} was already registered. Registration ignored.",
                             lox->GetName() )
@@ -171,12 +166,10 @@ void     ALox::Register( Lox* lox, ContainerOp operation )
 // ALox module initialization
 // #################################################################################################
 
-void  ALox::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
+void  ALox::bootstrap( BootstrapPhases phase )
 {
     if( phase == BootstrapPhases::PrepareResources )
     {
-        ALIB.CheckDistribution();
-
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_verbosity       )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_scope           )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lox_logger          )
@@ -324,9 +317,9 @@ void  ALox::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t**
 #endif // !ALIB_RESOURCES_OMIT_DEFAULTS
 
         // Add box-functions
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(aworx::lib::lox::Verbosity)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(aworx::lib::lox::Scope)
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(aworx::lib::lox::detail::Logger*)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::Verbosity)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::Scope)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(alib::lox::detail::Logger*)
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(std::pair<Verbosity ALIB_COMMA Priorities>)
 
         return;
@@ -346,9 +339,9 @@ void  ALox::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t**
     {
         #if ALIB_DEBUG
             auto& ga=
-            lib::monomem::AcquireGlobalAllocator( ALIB_CALLER_PRUNED );
+            monomem::AcquireGlobalAllocator( ALIB_CALLER_PRUNED );
                 theDebugLox= ga.Emplace<Lox>( "LOG");
-            lib::monomem::ReleaseGlobalAllocator();
+            monomem::ReleaseGlobalAllocator();
 
             dbgCheckQtyConfigPlugins= config->CountPlugins();
         #endif
@@ -391,90 +384,13 @@ void        ALox::Reset()
     ALIB_ASSERT_ERROR(config->CountPlugins() == dbgCheckQtyConfigPlugins,
                                                    "ALOX", "A config plug-in remained from the last test" )
 
-    dynamic_cast<InMemoryPlugin*>( config->GetPlugin( lib::config::Priorities::DefaultValues  ) )->Clear();
-    dynamic_cast<InMemoryPlugin*>( config->GetPlugin( lib::config::Priorities::ProtectedValues) )->Clear();
+    dynamic_cast<InMemoryPlugin*>( config->GetPlugin( config::Priorities::DefaultValues  ) )->Clear();
+    dynamic_cast<InMemoryPlugin*>( config->GetPlugin( config::Priorities::ProtectedValues) )->Clear();
 
     #if ALOX_DBG_LOG
         new ( theDebugLox) Lox( "LOG");
     #endif
 }
-
-// #################################################################################################
-// ESC codes
-// #################################################################################################
-#if defined(_MSC_VER)
-    // MSC  (as of 12/2015):
-    // C4579: in-class initialization for type 'const aworx::character[11]'
-    // is not yet implemented; static member will remain uninitialized at run-time but
-    // use in constant-expressions is supported
-    character  ESC::RED        [4] { A_CHAR("\033c0") }; ///< Select red color for foreground.
-    character  ESC::GREEN      [4] { A_CHAR("\033c1") }; ///< Select green color for foreground.
-    character  ESC::YELLOW     [4] { A_CHAR("\033c2") }; ///< Select yellow color for foreground.
-    character  ESC::BLUE       [4] { A_CHAR("\033c3") }; ///< Select blue color for foreground.
-    character  ESC::MAGENTA    [4] { A_CHAR("\033c4") }; ///< Select magenta color for foreground.
-    character  ESC::CYAN       [4] { A_CHAR("\033c5") }; ///< Select cyan color for foreground.
-    character  ESC::BLACK      [4] { A_CHAR("\033c6") }; ///< Select black color for foreground.
-    character  ESC::WHITE      [4] { A_CHAR("\033c7") }; ///< Select white color for foreground.
-    character  ESC::GRAY       [4] { A_CHAR("\033c8") }; ///< Select gray color for foreground.
-    character  ESC::FG_RESET   [4] { A_CHAR("\033c9") }; ///< Select std color for foreground.4
-
-    character  ESC::BG_RED     [4] { A_CHAR("\033C0") }; ///< Select red color for background.
-    character  ESC::BG_GREEN   [4] { A_CHAR("\033C1") }; ///< Select green color for background.
-    character  ESC::BG_YELLOW  [4] { A_CHAR("\033C2") }; ///< Select yellow color for background.
-    character  ESC::BG_BLUE    [4] { A_CHAR("\033C3") }; ///< Select blue color for background.
-    character  ESC::BG_MAGENTA [4] { A_CHAR("\033C4") }; ///< Select blue color for background.
-    character  ESC::BG_CYAN    [4] { A_CHAR("\033C5") }; ///< Select blue color for background.
-    character  ESC::BG_BLACK   [4] { A_CHAR("\033C6") }; ///< Select red color for background.
-    character  ESC::BG_WHITE   [4] { A_CHAR("\033C7") }; ///< Select blue color for background.
-    character  ESC::BG_GRAY    [4] { A_CHAR("\033C8") }; ///< Select gray color for background.
-    character  ESC::BG_RESET   [4] { A_CHAR("\033C9") }; ///< Select std color for background.
-
-    character  ESC::BOLD       [4] { A_CHAR("\033sB") }; ///< Select bold font style.
-    character  ESC::ITALICS    [4] { A_CHAR("\033sI") }; ///< Select italics font style.
-    character  ESC::STYLE_RESET[4] { A_CHAR("\033sr") }; ///< Select standard font style.
-    character  ESC::RESET      [4] { A_CHAR("\033sa") }; ///< Reset color and style.
-
-    character  ESC::URL_START  [4] { A_CHAR("\033lS") }; ///< Mark the start of an URL.
-    character  ESC::URL_END    [4] { A_CHAR("\033lE") }; ///< Mark the end of an URL.
-    character  ESC::TAB        [4] { A_CHAR("\033t0") }; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
-
-    character  ESC::EOMETA     [4] { A_CHAR("\033A0") }; ///< End of meta information in log string
-
-#elif ALIB_CPPVER < 17
-    constexpr character  ESC::RED        [4];
-    constexpr character  ESC::GREEN      [4];
-    constexpr character  ESC::YELLOW     [4];
-    constexpr character  ESC::BLUE       [4];
-    constexpr character  ESC::MAGENTA    [4];
-    constexpr character  ESC::CYAN       [4];
-    constexpr character  ESC::BLACK      [4];
-    constexpr character  ESC::WHITE      [4];
-    constexpr character  ESC::GRAY       [4];
-    constexpr character  ESC::FG_RESET   [4];
-
-    constexpr character  ESC::BG_RED     [4];
-    constexpr character  ESC::BG_GREEN   [4];
-    constexpr character  ESC::BG_YELLOW  [4];
-    constexpr character  ESC::BG_BLUE    [4];
-    constexpr character  ESC::BG_MAGENTA [4];
-    constexpr character  ESC::BG_CYAN    [4];
-    constexpr character  ESC::BG_BLACK   [4];
-    constexpr character  ESC::BG_WHITE   [4];
-    constexpr character  ESC::BG_GRAY    [4];
-    constexpr character  ESC::BG_RESET   [4];
-
-    constexpr character  ESC::BOLD       [4];
-    constexpr character  ESC::ITALICS    [4];
-    constexpr character  ESC::STYLE_RESET[4];
-    constexpr character  ESC::RESET      [4];
-
-    constexpr character  ESC::URL_START  [4];
-    constexpr character  ESC::URL_END    [4];
-    constexpr character  ESC::TAB        [4];
-
-    constexpr character  ESC::EOMETA     [4];
-#endif
-
 
 void ESC::ReplaceToReadable( AString& target, integer startIdx )
 {
@@ -543,10 +459,10 @@ void ESC::ReplaceToReadable( AString& target, integer startIdx )
     }
 }
 
-}}} // namespace [aworx::lib::lox]
+}} // namespace [alib::lox]
 
 #if !defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 void    T_Append<Scope,nchar>::operator()( TAString<nchar>& target, const lox::Scope src )
 {
     Scope scope= src;
@@ -562,9 +478,9 @@ void    T_Append<Scope,nchar>::operator()( TAString<nchar>& target, const lox::S
 
 void T_Append<std::pair<Verbosity, Priorities>,nchar>::operator()( TAString<nchar>& target, const std::pair<Verbosity, Priorities>& src )
 {
-    target._( NFormat::Field( src.first, 7, Alignment::Left) );
+    target._( NFormat::Field( src.first, 7, lang::Alignment::Left) );
     target._( '(' )._( src.second );
-    target.InsertAt( ")", target.LastIndexOfAny<Inclusion::Exclude>( NDefaultWhitespaces() )  + 1 );
+    target.InsertAt( ")", target.LastIndexOfAny<lang::Inclusion::Exclude>( NDefaultWhitespaces() )  + 1 );
 }
-}}}
+}}
 #endif // !defined(ALIB_DOX)

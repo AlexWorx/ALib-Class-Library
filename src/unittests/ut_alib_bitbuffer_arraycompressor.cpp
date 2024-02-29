@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,9 +15,9 @@
 #   if ALIB_TIME && !defined(HPP_ALIB_TIME_TICKS)
 #      include "alib/time/ticks.hpp"
 #   endif
-#   if ALIB_THREADS && ALIB_FILESET_MODULES
+#   if ALIB_THREADS && ALIB_CAMP
 #      include "alib/threads/thread.hpp"
-#      include "alib/lib/fs_modules/distribution.hpp"
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #   if ALIB_DEBUG_MONOMEM
 #      if ALIB_ALOX
@@ -29,12 +29,12 @@
 
 
 #include <algorithm>
-
+#include <assert.h>
 
 #define TESTCLASSNAME       CPP_ALib_BitBuffer
 #include "unittests/aworx_unittests.hpp"
 
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 

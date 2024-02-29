@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_STRINGTREE
@@ -16,9 +16,26 @@ ALIB_ASSERT_MODULE(STRINGS)
 
 #include "alib/monomem/detail/stringtreebase.inl"
 
+namespace alib {  namespace monomem {
 
-namespace aworx { namespace lib { namespace monomem {
+#if ALIB_DEBUG
+    /** Statistic variable increased by \alib{monomem,StringTreeNamesDynamic} with every creation
+     *  of a node. With process creation the variable is \c 0. A user may reset the variable to
+     *  inspect percentages of name overflows during certain operations. The variable is not thread
+     *  safe and used by any instance of class \b StringTree which uses node maintainer
+     *  \b StringTreeNamesDynamic.
+     *  @see  Sibling variable \alib{monomem,DbgStatsStringTreeNameOverflows}                     */
+    ALIB_API extern uinteger  DbgStatsStringTreeNames;
 
+    /** Statistic variable increased by \alib{monomem,StringTreeNamesDynamic} with every creation
+     *  of a node whose name exceeds the internal string buffer size.
+     *  With process creation the variable is \c 0. A user may reset the variable to
+     *  inspect percentages of name overflows during certain operations. The variable is not thread
+     *  safe and used by any instance of class \b StringTree which uses node maintainer
+     *  \b StringTreeNamesDynamic.
+     *  @see  Sibling variable \alib{monomem,DbgStatsStringTreeNameOverflows}                     */
+    ALIB_API extern uinteger  DbgStatsStringTreeNameOverflows;
+#endif
 
 /**
  * This struct is the default type for template parameter
@@ -36,15 +53,20 @@ namespace aworx { namespace lib { namespace monomem {
  * node's name exceeds this capacity, a dynamic allocation for storing the node name is performed.
  * As a consequence, some overhead of wasted memory will occur, as this capacity is
  * allocated with every node, regardless of its name's length.
+ * To investigate into the percentage of overflows to evaluate a reasonable value for template
+ * parameter \p{TLocalCapacity}, simple global debug counters
+ * \alib{monomem,DbgStatsStringTreeNames} and \alib{monomem,DbgStatsStringTreeNameOverflows}
+ * can be used.
  *
  * Method #InitializeNode is invoked after insertion of a new element (aka "node")
  * into the container and #FreeNode is invoked prior to the destruction of a node.
  * When #InitializeNode is invoked, the custom object of template type \p{T} (of the \b StringTree)
- * is already default constructed and the name of the node
- * (field \alib{monomem,detail::StringTreeBase::Node::name}) is set to what was provided
+ * is already default constructed and the key of the node in union
+ * (field \alib{monomem,detail::StringTreeBase::NodeKey::name}) is set to what was provided
  * as a child name or path string. (In the latter case, it is set to a substring of the
  * given path.). If template parameter \p{TLocalCapacity} is greater than 0, the
- * method remains empty, as the \b LocalString manages its memory automatically.
+ * method copies the key to field \e storage of the union (which is still accessible with the
+ * base string type of union-field \e key).
  * If \c 0 is given, the node name is replaced by a copy of the string which is dynamically
  * allocated.
  *
@@ -61,14 +83,20 @@ namespace aworx { namespace lib { namespace monomem {
  * is invoked, allowing to create a safe copy of the name.<br>
  * To free any allocated space, method #FreeNode is invoked.
  *
- * Besides this, custom implementation may tweak the given node node on their own discretion.
+ * Besides this, custom implementation may tweak the given node on their own discretion.
+ * Especially a custom implementation may create and recycle other portions of the stored
+ * objects, to establish \ref alib_monomem_intro_strictweak "weak monotonic allocation rules".
+ * A sample of such more complex behaviour is found with \alib type \alib{files,FTree}.
  *
  * \see
  *   Two other built-in implementations of this type to be used with \b StringTree instantiations
  *   are provided with this \alibmod:
  *   - \alib{monomem,StringTreeNamesStatic}.
  *   - \alib{monomem,StringTreeNamesMonoAlloc}.
- *
+ * \see
+ *   Further information can be found in chapter
+ *   \ref alib_ns_monomem_stringtree_alloc_names "4. Node and Node Name String Allocation"
+ *   of the reference documentation of class \b StringTree.
  *
  * @tparam TChar           The character type of the key strings. This type is used with any
  *                         interface method of \alib{monomem,StringTree} that accepts a node name
@@ -96,8 +124,6 @@ struct StringTreeNamesDynamic
      * This implementation copies the node's name to a dynamically allocated piece of heap memory.
      * \see
      *   See class description for further information.
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -105,6 +131,9 @@ struct StringTreeNamesDynamic
      * @param  node  The node that was just created. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
@@ -113,11 +142,22 @@ struct StringTreeNamesDynamic
         (void) tree;
 
         // if not a local string buffer, then dynamically allocate and copy. Else, do nothing
-        if ALIB_CONSTEXPR17 (TLocalCapacity <= 0)
+        if constexpr (TLocalCapacity <= 0)
         {
-            CharacterType* buffer= new CharacterType[static_cast<size_t>(node.name.Length()) ];
-            node.name.CopyTo( buffer );
-            node.name= strings::TString<CharacterType>( buffer, node.name.Length() );
+            CharacterType* buffer= new CharacterType[size_t(node.name.key.Length())];
+            node.name.key.CopyTo( buffer );
+            node.name.key= strings::TString<CharacterType>( buffer, node.name.key.Length() );
+        }
+        else
+        {
+            strings::TString<TChar> key= node.name.key;             // get current pointer
+            new (&node.name.storage) NameStringType();              // placement new to re-establish local string
+            node.name.storage.DbgDisableBufferReplacementWarning();
+            ALIB_DBG( const TChar* internalBuffer= node.name.storage.Buffer(); )
+            node.name.storage.Append(key);                          // copy key to buf
+            ALIB_DBG( ++DbgStatsStringTreeNames;
+                      if( internalBuffer != node.name.storage.Buffer() )
+                        ++DbgStatsStringTreeNameOverflows; )
         }
     }
 
@@ -125,8 +165,6 @@ struct StringTreeNamesDynamic
      * This implementation frees the dynamically allocated memory of the node's name.
      * \see
      *   See class description for further information.
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -134,14 +172,19 @@ struct StringTreeNamesDynamic
      * @param  node  The node that is to be removed. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
     void FreeNode( TTree& tree, typename TTree::Node& node )
     {
         (void) tree;
-        if ALIB_CONSTEXPR17 (TLocalCapacity <= 0)
-            delete[] node.name.Buffer();
+        if constexpr (TLocalCapacity <= 0)
+            delete[] node.name.key.Buffer();
+        else
+            node.name.storage.~TLocalString();
     }
 };
 
@@ -159,8 +202,14 @@ struct StringTreeNamesDynamic
  * the life-cycle of the corresponding \b StringTree.
  *
  * \see
- *   For more information see documentation of the built-in "default" version of this template
- *   parameter type, \alib{monomem,StringTreeNamesDynamic}.
+ *   Two other built-in implementations of this type to be used with \b StringTree instantiations
+ *   are provided with this \alibmod:
+ *   - \alib{monomem,StringTreeNamesDynamic}.
+ *   - \alib{monomem,StringTreeNamesMonoAlloc}.
+ * \see
+ *   Further information can be found in chapter
+ *   \ref alib_ns_monomem_stringtree_alloc_names "4. Node and Node Name String Allocation"
+ *   of the reference documentation of class \b StringTree.
  *
  * @tparam TChar  The character type of the key strings. This type is used with any
  *                interface method of \alib{monomem,StringTree} that accepts a node name or path
@@ -182,8 +231,6 @@ struct StringTreeNamesStatic
      *   See description of this class and the "default implementation"
      *   \alib{monomem,StringTreeNamesDynamic}.
      *
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -191,6 +238,9 @@ struct StringTreeNamesStatic
      * @param  node  The node that was just created. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
@@ -207,8 +257,6 @@ struct StringTreeNamesStatic
      *   See description of this class and the "default implementation"
      *   \alib{monomem,StringTreeNamesDynamic}.
      *
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -216,6 +264,9 @@ struct StringTreeNamesStatic
      * @param  node  The node that is to be removed. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
@@ -238,14 +289,20 @@ struct StringTreeNamesStatic
  * \attention
  *   The use of this type is dangerous in respect to memory exhaustion. While class
  *   \b StringTree uses monotonic allocation in a
- *   \ref alib_ns_monomem_stringtree_allocations "very safe way", with the use of this
+ *   \ref alib_ns_monomem_stringtree_hashing "very safe way", with the use of this
  *   type, repeated removals and insertions of tree nodes, increase the memory usage.<br>
  *   Consequently, the use of this type is restricted to cases that imply a limited
  *   number of insertions.
  *
  * \see
- *   For more information see documentation of the built-in "default" version of this template
- *   parameter type, \alib{monomem,StringTreeNamesDynamic}.
+ *   Two other built-in implementations of this type to be used with \b StringTree instantiations
+ *   are provided with this \alibmod:
+ *   - \alib{monomem,StringTreeNamesStatic}.
+ *   - \alib{monomem,StringTreeNamesDynamic}.
+ * \see
+ *   Further information can be found in chapter
+ *   \ref alib_ns_monomem_stringtree_alloc_names "4. Node and Node Name String Allocation"
+ *   of the reference documentation of class \b StringTree.
  *
  * @tparam TChar  The character type of the key strings. This type is used with any
  *                interface method of \alib{monomem,StringTree} that accepts a node name or path
@@ -269,8 +326,6 @@ struct StringTreeNamesMonoAlloc
      *   See description of this class and the "default implementation"
      *   \alib{monomem,StringTreeNamesDynamic}.
      *
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -278,12 +333,15 @@ struct StringTreeNamesMonoAlloc
      * @param  node  The node that was just created. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
     void InitializeNode( TTree& tree, typename TTree::Node&  node )
     {
-        node.name= tree.nodeTable.GetAllocator()->EmplaceString( node.name );
+        node.name.storage= tree.nodeTable.GetAllocator()->EmplaceString( node.name.key );
     }
 
     /**
@@ -293,8 +351,6 @@ struct StringTreeNamesMonoAlloc
      *   See description of this class and the "default implementation"
      *   \alib{monomem,StringTreeNamesDynamic}.
      *
-     * @tparam TTree The type of the templated instantiation of struct
-     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
      * @param  tree  The instance of struct \alib{monomem,detail::StringTreeBase} that invokes
      *               this method. Any member may be accessed, including
      *               \alib{monomem::detail::StringTreeBase,nodeTable} which contains the
@@ -302,10 +358,13 @@ struct StringTreeNamesMonoAlloc
      * @param  node  The node that is to be removed. Allows access to the key and
      *               custom value data. While the parent and sibling nodes are likewise accessible,
      *               it is strictly forbidden to modify those.
+     * @tparam TTree The type of the templated instantiation of struct
+     *               \alib{monomem,detail::StringTreeBase} that this method is invoked by.
+     *               (Deduced by the compiler.)
      */
     template<typename TTree>
     static
-    void FreeNode( TTree& tree, typename TTree::Node& node )
+    void FreeNode( TTree& tree, typename TTree::baseNode& node )
     {
         (void) tree;
         (void) node;
@@ -314,15 +373,17 @@ struct StringTreeNamesMonoAlloc
 };
 
 /** ********************************************************************************************
- * # 1. Introduction # {#alib_ns_strings_util_stringtree_overview}
+ * # 1. Introduction # {#alib_ns_monomem_stringtree_overview}
  * This container type implements a directed, non-circular graph (tree) with named nodes.
  *
  * The internal node type \alib{monomem,detail::StringTreeBase::Node} stores:
- * - A pointer to a parent \b %Node,
- * - pointers to the previous and next sibling nodes,
- * - pointers to the first and last child nodes,
- * - a name string, which has to be unique in respect to the names of sibling nodes, and
- * - finally a data field holding the node's custom value of template type \p{T}.
+ * 1. A name string, which has to be unique in respect to the names of sibling nodes. (Just like
+ *    no two files in a folder may have the same name.)
+ * 2. Five pointers to related nodes:
+ *   - the parent node
+ *   - the previous and next sibling nodes,
+ *   - the first and last child nodes,
+ * 3. A data field holding the node's custom value of template type \p{T}.
  *
  * The way from the root node to a descendent node, usually is called "path". The class incorporates
  * functionality to work with string representations of such paths where names of child nodes are
@@ -336,11 +397,14 @@ struct StringTreeNamesMonoAlloc
  * attributes provided in template type \p{T}.
  *
  * \I{#############################################################################################}
- * # 2. Inner Types # {#alib_ns_strings_util_stringtree_inner}
+ * # 2. Inner Types # {#alib_ns_monomem_stringtree_inner}
  * Two public inner types exist.
  * All operations on tree nodes like insertion, deletion, search and attribute access is performed
- * using objects of public type \alib{monomem,StringTree::NodePtr}. This is a lightweight
- * "handle" containing a pointer to the originating tree object and to a represented node.
+ * using objects of public type \alib{monomem,StringTree::TCursor}. This is a lightweight,
+ * iterator-like "handle" containing a pointer to the originating tree object and to a represented
+ * node. The type provides various methods to travers the tree. It is templated over a boolean
+ * value which determines if a const or mutable \b StringTree is given. Shortcuts for these
+ * types are \alib{monomem,StringTree::Cursor} and \alib{monomem,StringTree::ConstCursor}.
  *
  * Besides this, class \alib{monomem,StringTree::RecursiveIterator} allows recursive
  * iterations with built-in or custom sort orders.
@@ -348,68 +412,77 @@ struct StringTreeNamesMonoAlloc
  * Both types are explained in the following paragraphs.
  *
  * \I{#############################################################################################}
- * ## 2.1 Inner Class NodePtr ## {#alib_ns_strings_util_stringtree_nodeptr}
+ * ## 2.1 Inner Class Cursor ## {#alib_ns_monomem_stringtree_cursor}
  *
  * The main interface into class \b %StringTree is given by public, inner type
- * \alib{monomem,StringTree::NodePtr}. Method #Root returns an object of that type that
+ * \alib{monomem,StringTree::Cursor}. Method #Root returns an object of that type that
  * initially refers to the root node of the tree.
  * With this, child names and composite "paths" can be used to move the pointer along existing nodes
  * of the tree or to create new child nodes or even a whole path of such child nodes at once.
  *
- * Class \b %NodePtr is very lightweight as it contains just two pointers, one to to the
+ * Class \b %Cursor is very lightweight as it contains just two pointers, one to to the
  * \b %StringTree it originates from and one to the tree node currently represented.
  * Hence, objects of this type can be copied, assigned and passed around very efficiently.<br>
  * The currently represented node's templated custom data can be accessed with method
- * \alib{monomem::StringTree,NodePtr::Value}.
+ * \alib{monomem::StringTree,Cursor::Value}.
  *
  * The methods to traverse over the nodes of the tree are:
- * - \alib{monomem::StringTree,NodePtr::GoToRoot},
- * - \alib{monomem::StringTree,NodePtr::GoToParent}.
- * - \alib{monomem::StringTree,NodePtr::GoToChild},
- * - \alib{monomem::StringTree,NodePtr::GoToNextSibling},
- * - \alib{monomem::StringTree,NodePtr::GoToPreviousSibling},
- * - \alib{monomem::StringTree,NodePtr::GoToFirstChild},
- * - \alib{monomem::StringTree,NodePtr::GoToLastChild},
- * - \alib{monomem::StringTree,NodePtr::GoToChild},
- * - \alib{monomem::StringTree,NodePtr::GoToTraversedPath},
+ * - \alib{monomem::StringTree,Cursor::GoToRoot},
+ * - \alib{monomem::StringTree,Cursor::GoToParent}.
+ * - \alib{monomem::StringTree,Cursor::GoToTraversedPath},
+ * - \alib{monomem::StringTree,Cursor::GoToNextSibling},
+ * - \alib{monomem::StringTree,Cursor::GoToPreviousSibling},
+ * - \alib{monomem::StringTree,Cursor::GoToChild},
+ * - \alib{monomem::StringTree,Cursor::GoToFirstChild},
+ * - \alib{monomem::StringTree,Cursor::GoToLastChild},
+ *
+ * With these methods, class \b StringTree::Cursor constitutes a sort of iterator idiom
+ * idiom. For example to traverse all entries in the root folder, the following schematic would
+ * be used:
+ *
+ *          myCursor=  myTree.GetRoot()
+ *          myCursor.GotoFirstChild()
+ *          While( myCursor.IsValid() )
+ *              DoSomething( myCursor.Value() )
+ *              myCursor.GotoNextSibling
  *
  * For some of these methods an alternative version exists, which returns a corresponding copy
- * of the node pointer, while leaving the original object unchanged. These methods share
+ * of the cursor, while leaving the original object unchanged. These methods share
  * the same name excluding the prefix <b>GoTo</b>.
  *
  * For the creation of new child nodes or a complete path of such, methods
- * - \alib{monomem::StringTree,NodePtr::GoToCreateChildIfNotExistent} and ,
- * - \alib{monomem::StringTree,NodePtr::GoToCreatedPathIfNotExistent}
+ * - \alib{monomem::StringTree,Cursor::GoToCreateChildIfNotExistent} and ,
+ * - \alib{monomem::StringTree,Cursor::GoToCreatedPathIfNotExistent}
  * are provided.
  *
  * Next, four methods that perform node deletion exist:
- * - \alib{monomem::StringTree,NodePtr::DeleteChild} (two overloaded versions),
- * - \alib{monomem::StringTree,NodePtr::DeleteChildren} and
- * - \alib{monomem::StringTree,NodePtr::Delete}
+ * - \alib{monomem::StringTree,Cursor::DeleteChild} (two overloaded versions),
+ * - \alib{monomem::StringTree,Cursor::DeleteChildren} and
+ * - \alib{monomem::StringTree,Cursor::Delete}
  *
  * The already mentioned methods:
- * - \alib{monomem::StringTree::NodePtr,GoToParent},
- * - \alib{monomem::StringTree::NodePtr,GoToFirstChild},
- * - \alib{monomem::StringTree::NodePtr,GoToLastChild},
- * - \alib{monomem::StringTree::NodePtr,GoToNextSibling} and
- * - \alib{monomem::StringTree::NodePtr,GoToPreviousSibling}
+ * - \alib{monomem::StringTree::Cursor,GoToParent},
+ * - \alib{monomem::StringTree::Cursor,GoToFirstChild},
+ * - \alib{monomem::StringTree::Cursor,GoToLastChild},
+ * - \alib{monomem::StringTree::Cursor,GoToNextSibling} and
+ * - \alib{monomem::StringTree::Cursor,GoToPreviousSibling}
  *
- * of class \b NodePtr can be used to iterate from a node upward to the root node or through the
+ * of class \b Cursor can be used to iterate from a node upward to the root node or through the
  * list of children of a node. Each method may \e invalidate the object in the case that no
  * corresponding parent or sibling node exists.
- * Invalid node pointer objects can be (or rather have to be!) detected using method
- * \alib{monomem::StringTree,NodePtr::IsValid}.
+ * Invalid cursor objects can be (or rather have to be!) detected using method
+ * \alib{monomem::StringTree,Cursor::IsValid}.
  * Most of the class's methods must not be invoked on an invalidated object. Doing so is undefined
  * behavior and raises an \alib assertion in debug-builds.
- * Invalid \b %NodePtr objects can reset to a valid state using methods
- * - \alib{monomem::StringTree::NodePtr,GoToRoot} and
- * - \alib{monomem::StringTree::NodePtr,GoToTraversedPath} if absolute path addressing is used.
+ * Invalid \b %Cursor objects can reset to a valid state using methods
+ * - \alib{monomem::StringTree::Cursor,GoToRoot} and
+ * - \alib{monomem::StringTree::Cursor,GoToTraversedPath} if absolute path addressing is used.
  *
  * Instances that have been default-constructed may only be set to a valid state by (copy-)
  * assigning a valid instance.
  *
  * \I{#############################################################################################}
- * ## 2.2. Inner Class RecursiveIterator ## {#alib_ns_strings_util_stringtree_iterator}
+ * ## 2.2. Inner Class RecursiveIterator ## {#alib_ns_monomem_stringtree_iterator}
  * Class \alib{monomem,StringTree::RecursiveIterator} provides a configurable and controlled
  * way of iterating a branch of a tree. Some features of the class are:
  * - Iterators can be initialized to start from any node of the tree
@@ -432,8 +505,7 @@ struct StringTreeNamesMonoAlloc
  * which is designed to be used with lightweight iterator types.
  *
  * \I{#############################################################################################}
- * \anchor alib_ns_monomem_stringtree_allocations
- * # 3. Node Allocation And Hashing # {#alib_ns_strings_util_stringtree_hashing}
+ * # 3. Node Allocation And Hashing # {#alib_ns_monomem_stringtree_hashing}
  * While each node maintains a doubly linked list of child nodes for iteration, this class stores
  * each inserted element in a \alib{monomem,HashTable} using the parent node and the element's
  * name as a unique key.
@@ -454,8 +526,7 @@ struct StringTreeNamesMonoAlloc
  *   of this \alibmod_nl Programmer's Manual.
  *
  * \I{#############################################################################################}
- * \anchor alib_ns_monomem_stringtree_namestrings
- * # 4. Node and Node Name String Allocation # {#alib_ns_strings_util_stringtree_allocations}
+ * # 4. Node and Node Name String Allocation # {#alib_ns_monomem_stringtree_alloc_names}
  *
  * The C++ version of this class allows user-defined allocation (and copying) of the node's name
  * character strings. For this, template parameter \p{TNodeMaintainer} is defined,
@@ -471,9 +542,9 @@ struct StringTreeNamesMonoAlloc
  * A second built-in and ready to use "node maintainer" type is given with
  * \alib{monomem,StringTreeNamesStatic}. This uses an unbuffered \b String and has empty
  * implementations of its static methods. This way no copies of the original string buffers that
- * are passed to the to interface methods of class \b NodePtr that create children are made.
+ * are passed to the to interface methods of class \b Cursor that create children are made.
  * This is useful (and very efficient!) if \b all child name and creation path strings provided
- * of class \b %NodePtr are permanently valid (in other words, their life-cycle spans over
+ * of class \b %Cursor are permanently valid (in other words, their life-cycle spans over
  * the life-cycle of the nodes in a tree) and therefore do not need to be copied to dedicated
  * allocated memory. If this precondition is not assured, the \b StringTree produces undefined
  * behavior.
@@ -488,8 +559,41 @@ struct StringTreeNamesMonoAlloc
  * into this.
  *
  * \I{#############################################################################################}
- * \anchor alib_ns_monomem_stringtree_referencedoc
- * # Reference Documentation #
+ * # 5. Equipping the Root Node with Values # {#alib_ns_monomem_stringtree_rootnodevalues}
+ * It depends on the field of application, whether the root node should dispose over an instance
+ * of custom type \p{T} or not.
+ * For example a tree of depth \c 1, which could be implemented using type
+ * <c>std::vector<T></c>, no value type can be be attached to the vector object itself, only to
+ * its "children".<br>
+ * Nevertheless, in many use cases, the root node naturally contains the same data as any other
+ * node in the tree. Therefore, if this class would not support root node data, using
+ * code would for example have to check a \alib{monomem::StringTree,TCursor,Cursor} for pointing
+ * to the root node and in this case get the custom data from somewhere else.<br>
+ * On the other hand, if this class would "insist" in the provision of root node values, then already
+ * with construction of the tree, arguments for the construction of the associated \p{T} object
+ * would have to be provided - even if the root node value was never used.
+ * The provision of initial "dummy" root data, is sometimes not even (easily) possible, and would
+ * sometimes add the need to adjust the custom value type \p{T} to fit into this class.
+ * (In fact, with former versions of \alib, root-node initialization data was mandatory to provide
+ * already with the construction of the tree.)
+ *
+ * Therefore, this class makes the use of root node values optional. After construction of a
+ * \b StringTree, methods \alib{monomem::StringTree,ConstructRootValue} and
+ * methods \alib{monomem::StringTree,DeleteRootValue} may be used to initialize and delete
+ * the optional root nodes' data.
+ *
+ * To prevent memory leaks, in debug-compilations, the following \alib assertions and warnings are
+ * raised:
+ * - \alib{monomem,StringTree,TCursor::Value,Cursor::Value} will raise an assertion if called
+ *   on the root node without having set a value.
+ * - \alib{monomem::StringTree,ConstructRootValue} will raise a warning if called twice without
+ *   a prior call to \alib{monomem::StringTree,DeleteRootValue}.
+ * - \alib{monomem::StringTree,DeleteRootValue} will raise a warning if called without
+ *   a prior call to \alib{monomem::StringTree,ConstructRootValue}.
+ * - The destructor of this class will raise a warning if a root value was set but not deleted.
+ *
+ * \I{#############################################################################################}
+ * # Reference Documentation # {#alib_ns_monomem_stringtree_referencedoc}
  *
  * @tparam T  The custom value type of elements stored in this container.
  *
@@ -497,7 +601,7 @@ struct StringTreeNamesMonoAlloc
  *         A template type that needs to provide an interface as documented with
  *         \alib{monomem,StringTreeNamesDynamic}, which is also the default type
  *         if not specified. For details see
- *         \ref alib_ns_strings_util_stringtree_allocations "corresponding section" of this
+ *         \ref alib_ns_monomem_stringtree_alloc_names "corresponding section" of this
  *         class's documentation.
  *
  * @tparam TRecycling
@@ -507,129 +611,166 @@ struct StringTreeNamesMonoAlloc
  **************************************************************************************************/
 template<typename T,
          typename TNodeMaintainer= StringTreeNamesDynamic<character>,
-         typename TRecycling     = Recycling::Private             >
-class StringTree  : protected detail::StringTreeBase<T, TNodeMaintainer, TRecycling>
+         typename TRecycling     = Recycling::Private>
+class StringTree : protected detail::StringTreeBase<T, TNodeMaintainer, TRecycling>
 {
-#if !defined(ALIB_DOX)
+    #if !defined(ALIB_DOX)
     protected:
-        friend class NodePtr;
+        friend class Cursor;
 
-        using basetree         =  detail::StringTreeBase<T,TNodeMaintainer,TRecycling>;
+        friend class ConstCursor;
+
+        friend TNodeMaintainer;
+
+        using basetree         = detail::StringTreeBase<T, TNodeMaintainer, TRecycling>;
         using baseNodeKey      = typename basetree::NodeKey;
+        using baseNodeBase     = typename basetree::NodeBase;
         using baseNode         = typename basetree::Node;
-        using baseNodePtr      = typename basetree::NodePtrBase;
-#endif
+        using baseCursor       = typename basetree::CursorBase;
+        using baseConstCursor  = typename basetree::ConstCursorBase;
+    #endif
 
-public:
+    public:
 
-    /** The character type of node names and paths strings. This is defined using character type
-     *  definition \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type
-     *  \p{TNodeMaintainer}. */
-    using CharacterType= typename TNodeMaintainer::CharacterType;
+        /** The character type of node names and paths strings. This is defined using character type
+         *  definition \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type
+         *  \p{TNodeMaintainer}. */
+        using CharacterType     = typename TNodeMaintainer::CharacterType;
 
-    /** The string type of node names and paths. This is defined using character type definition
-     *  \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type \p{TNodeMaintainer}. */
-    using NameType     = typename strings::TString<CharacterType>;
+        /** The string type of node names and paths. This is defined using character type definition
+         *  \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type
+         *  \p{TNodeMaintainer}.                                                                */
+        using NameType          = typename strings::TString<CharacterType>;
 
-    /** The sub-string type of paths. This is defined using character type definition
-     *  \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type \p{TNodeMaintainer}. */
-    using SubstringType= typename strings::TSubstring<CharacterType>;
+        /** The sub-string type of paths. This is defined using character type definition
+         *  \alib{monomem::StringTreeNamesDynamic,CharacterType} of template type
+         *  \p{TNodeMaintainer}.                                                                */
+        using SubstringType     = typename strings::TSubstring<CharacterType>;
 
-    /** This type definition may be used to define an externally managed shared recycler,
-     *  which can be passed to the alterative constructor of this class when template
-     *  parameter \p{TRecycling} equals \alib{monomem,Recycling::Shared}.
-     *  \see
-     *    Chapter \ref alib_monomem_containers_recycling_shared of the Programmer's Manual
-     *    for this \alibmod.                                                          */
-    using TSharedRecycler= typename basetree::TSharedRecycler;
+        /** This type definition may be used to define an externally managed shared recycler,
+         *  which can be passed to the alternative constructor of this class when template
+         *  parameter \p{TRecycling} equals \alib{monomem,Recycling::Shared}.
+         *  \see
+         *    Chapter \ref alib_monomem_containers_recycling_shared of the Programmer's Manual
+         *    for this \alibmod.                                                          */
+        using TSharedRecycler   = typename basetree::TSharedRecycler;
 
-    /** ********************************************************************************************
-     * This public, inner class provides the main interface into outer class \b StringTree.
-     * The class should be considered being similar to a simple pointer or to a lightweight
-     * iterator type, which refers to a tree and a current node.<br>
-     * The class's interface allows the access to a node's name and value and to to insert and
-     * remove child nodes.
-     *
-     * Instances of this class can be received with methods
-     * \alib{monomem,StringTree::Root} and
-     * \alib{monomem,StringTree::RecursiveIterator::Node}.
-     *
-     * The default constructor creates an invalid object, which has to be initialized by
-     * assigning a valid object prior to its first use.
-     *
-     * \see
-     *   For more information on how this class is used, see paragraph
-     *   \ref alib_ns_strings_util_stringtree_nodeptr "2.1 Inner Class NodePtr"
-     *   of the description of class \b %StringTree.
-     *
-     * ## Friends ##
-     * class \alib{monomem,StringTree}
-     **********************************************************************************************/
-    class NodePtr : protected baseNodePtr
-    {
-        #if !defined(ALIB_DOX)
-            friend class StringTree;
-        #endif
+        /** ****************************************************************************************
+         * This public, inner class provides the main interface into outer class \b StringTree.
+         * The class should be considered being similar to a simple pointer or to a lightweight
+         * iterator type, which refers to a tree and a current node.<br>
+         * The class's interface allows the access to a node's name and value and to to insert and
+         * remove child nodes.
+         *
+         * Instances of this class can be received with methods
+         * \alib{monomem,StringTree::Root} and
+         * \alib{monomem,StringTree::RecursiveIterator::Node}.
+         *
+         * The default constructor creates an invalid object, which has to be initialized by
+         * assigning a valid object prior to its first use.
+         *
+         * \see
+         *   For more information on how this class is used, see paragraph
+         *   \ref alib_ns_monomem_stringtree_cursor "2.1 Inner Class Cursor"
+         *   of the description of class \b %StringTree.
+         *
+         * @tparam TConst  If true, internal fields representing the StringTree and the current Node
+         *                 become \c const and methods which are not declared \c const become
+         *                 unavailable.
+         *
+         * ## Friends ##
+         * class \alib{monomem,StringTree}
+         ******************************************************************************************/
+        template<bool TConst>
+        class TCursor : protected basetree::template TCursorBase<TConst>
+        {
+            #if !defined(ALIB_DOX)
+                friend class StringTree;
+            #endif
 
-        //####  Protected methods (class NodePtr)  ############################################
         protected:
+            /** Constant or mutable version of the base tree type, depending on template parameter
+             *  \p{TConst} */
+            using cmTree    = ATMP_IF_T_F(!TConst, basetree, const basetree);
+
+            /** Constant or mutable version of the base node type, depending on template parameter
+             *  \p{TConst} */
+            using cmNode    = ATMP_IF_T_F(!TConst, baseNodeBase, const baseNodeBase);
+
+            /** Constant or mutable version of the base cursor type, depending on template parameter
+             *  \p{TConst} */
+            using cmCursor  = ATMP_IF_T_F(!TConst, baseCursor, baseConstCursor);
+
+            //####  Protected methods (class Cursor)  ##############################################
 
             /**
              * Internal constructor
              * @param pTree  The \b %StringTree we work on.
              * @param pNode  The node to refer to.
              */
-            NodePtr( basetree* pTree, baseNode* pNode)                                  noexcept
-            : baseNodePtr( pTree, pNode )
-            {}
+            TCursor(cmTree *pTree, cmNode *pNode) noexcept
+            : basetree::template TCursorBase<TConst>(pTree, pNode) {}
 
-        //####  Constructor, comparison operators, etc     #####################################
+            //####  Constructor, comparison operators, etc     #####################################
         public:
 
-            /**
-             * Public constructor. Creates a node pointer which is not valid.
-             * The only way to make a default-constructed instance valid is by (copy-) assigning
-             * another instance.
-             */
-            NodePtr()                                                           noexcept  = default;
+            /** Public constructor. Creates an invalid cursor.
+             *  The only way to make a default-constructed instance valid is by
+             *  (copy-) assigning another instance.                               */
+            TCursor() noexcept                                                            = default;
 
-            /** Trivial default copy constructor. */
-            NodePtr( const NodePtr&  )                                          noexcept  = default;
+            /** Copy constructor.
+             *  @param src The cursor to copy.                                     */
+            TCursor( const TCursor& src)                                                    noexcept
+            : TCursor{ src.tree, src.node}
+            {}
 
-            /** Trivial default move constructor. */
-            NodePtr(       NodePtr&& )                                          noexcept  = default;
+            /** Move constructor.
+             *  @param src The cursor to move.                                     */
+            TCursor( TCursor&& src)                                                         noexcept
+            : TCursor{ src.tree, src.node}
+            {}
 
             /** Trivial default copy assign operator.
               * @return A reference to \c this.        */
-            NodePtr& operator=( const NodePtr&  )                               noexcept  = default;
+            TCursor &operator=(const TCursor &)                                 noexcept  = default;
 
             /** Trivial default move assign operator.
               * @return A reference to \c this.        */
-            NodePtr& operator=(       NodePtr&& )                               noexcept  = default;
+            TCursor &operator=(TCursor &&)                                      noexcept  = default;
 
             /** Trivial default destructor. */
-            ~NodePtr()                                                          noexcept  = default;
+            ~TCursor()                                                          noexcept  = default;
 
+            /**
+             * Conversion operator from <em>TCursor<TConst></em> to <em>TCursor<!TConst></em>.
+             * For const to mutable, this will fail as intended.
+             * @return A constant iterator, if this is a mutable. Otherwise compilation will
+             *         duly fail.
+             */
+            operator TCursor<!TConst>() { return TCursor<!TConst>(cmCursor::tree, cmCursor::node); }
 
             /** Comparison operator.
              *  @param other  The object to compare ourselves to.
-             *  @return \c true if this and given node pointer are equal, \c false otherwise. */
-            bool operator==(const NodePtr &other)                                              const
+             *  @return \c    true if this and given cursor are equal, \c false
+             *                otherwise.                                                */
+            bool operator==(const TCursor &other) const
             {
-                return     baseNodePtr::node == other.node
-                        && baseNodePtr::tree == other.tree;
+                return cmCursor::node == other.node
+                       && cmCursor::tree == other.tree;
             }
 
             /** Comparison operator.
              *  @param other  The object to compare ourselves to.
-             *  @return \c false if this and given node pointer are equal, \c true otherwise. */
-            bool operator!=(const NodePtr &other)                                              const
+             *  @return \c    false if this and given cursor are equal, \c true
+             *                otherwise.                                                */
+            bool operator!=(const TCursor &other) const
             {
-                return !( (*this) == other );
+                return !((*this) == other);
             }
 
             /**
-             * Determines if this is a valid object. Node pointers may become invalid with
+             * Determines if this is a valid object. Cursors may become invalid with
              * transition methods like #GoToParent, #GoToFirstChild or GoToNextSibling.
              * An invalid object may be turned into a valid one by either
              * - assigning a valid object (copy assignment), or
@@ -639,218 +780,215 @@ public:
              * Note that the latter is not applicable to a default-constructed objects
              * (which are also invalid) as with such no \b %StringTree is assigned.
              *
-             * @return \c true if this is a valid node pointer.
+             * @return \c true if this is a valid cursor.
              *          If invalid, \c false is returned and this object must not be used.
              */
-            bool        IsValid()                                                              const
+            bool IsValid()                                                                     const
             {
-                return baseNodePtr::node != nullptr;
+                return cmCursor::node != nullptr;
             }
 
             /**
              * Returns the opposite of #IsValid.
              *
-             * @return \c true if this is an invalid node pointer that must not be used,
+             * @return \c true if this is an invalid cursor that must not be used,
              *         \c false otherwise.
              */
-            bool        IsInvalid()                                                            const
+            bool IsInvalid()                                                                   const
             {
                 return !IsValid();
             }
 
-        //####  Tree navigation inplace, returning status      #################################
+            //####  Tree navigation inplace, returning status      #########################
             /**
-             * Creates a node pointer value representing the same node like this pointer.
-             * @return A clone of this node pointer.
+             * Creates a cursor value representing the same node like this pointer.
+             * @return A clone of this cursor.
              */
-            NodePtr     Clone()                                                                const
+            TCursor Clone()                                                                    const
             {
-                return NodePtr( baseNodePtr::tree, baseNodePtr::node );
+                return TCursor(cmCursor::tree, cmCursor::node);
+            }
+
+            /** Returns a cursor to the root node of the tree.
+             *  @return A cursor representing the root node of the tree this pointer
+             *          represents.                                                     */
+            TCursor Root()                                                                     const
+            {
+                return TCursor(cmCursor::tree, &cmCursor::tree->root.root);
+            }
+
+            /** Moves this cursor to the root node of the tree.
+             * @return A reference to this object      */
+            TCursor& GoToRoot()
+            {
+                cmCursor::node = &cmCursor::tree->root.root;
+                return *this;
             }
 
             /**
-             * Returns a node pointer to the root node of the tree.
-             *
-             * @return A node pointer representing the root node of the tree this pointer
-             *         represents.
-             */
-            NodePtr     Root()                                                                 const
-            {
-                return NodePtr( baseNodePtr::tree, baseNodePtr::tree->root );
-            }
-
-            /**
-             * Returns a node pointer to the root node of the tree.
-             *
-             * @return A node pointer representing the root node of the tree this pointer
-             *         represents.
-             */
-            NodePtr     GoToRoot()
-            {
-                return baseNodePtr::node= baseNodePtr::tree->root;
-            }
-
-            /**
-             * Creates a node pointer value representing the parent node of the
+             * Creates a cursor value representing the parent node of the
              * node represented by this object.
              *
-             * If this object represents the root node of the tree, the returned node pointer
+             * If this object represents the root node of the tree, the returned cursor
              * is invalid.
              *
-             * @return A node pointer representing the parent node of the
-             *         node represented by this node pointer.
+             * @return A cursor pointing to the parent node of the node represented
+             *         by this cursor.
              */
-            NodePtr     Parent()                                                               const
+            TCursor Parent() const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return NodePtr( baseNodePtr::tree, baseNodePtr::node->parent);
+                ALIB_ASSERT_ERROR(IsValid(), "MONOMEM/STRINGTREE",
+                                  "Invalid StringTree::Cursor.")
+                return TCursor(cmCursor::tree, cmCursor::node->parent);
             }
 
             /**
-             * Moves this node pointer to its parent node.
+             * Moves this cursor to the parent of the current node.
              * If this is the root node, this object becomes invalid.
              *
              * @return *this to allow concatenated calls
              */
-            NodePtr&    GoToParent()
+            TCursor& GoToParent()
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                baseNodePtr::node= baseNodePtr::node->parent;
+                ALIB_ASSERT_ERROR(IsValid(), "MONOMEM/STRINGTREE",
+                                  "Invalid StringTree::Cursor.")
+                cmCursor::node = cmCursor::node->parent;
                 return (*this);
             }
 
             /**
-             * Returns a node pointer value that represents the next sibling of the node
-             * represented this node pointer.
-             * If the node has no next sibling, an invalid node pointer is returned.
+             * Returns a cursor value that represents the next sibling of the node
+             * represented this cursor.
+             * If the node has no next sibling, an invalid cursor is returned.
              *
-             * @return A node pointer object representing the next sibling of the node
+             * @return A cursor object representing the next sibling of the node
              *         represented by this object.
              */
-            NodePtr     NextSibling()                                                          const
+            TCursor NextSibling() const
             {
-                return NodePtr(baseNodePtr::tree, HasNextSibling() ? baseNodePtr::node->next() : nullptr );
+                return TCursor(cmCursor::tree, HasNextSibling() ? cmCursor::node->next()
+                                                                  : nullptr);
             }
 
             /**
-             * Moves this node pointer to the next sibling of the represented node.
-             * If the node has no next sibling, this node pointer becomes invalid.
+             * Moves this cursor to the next sibling of the represented node.
+             * If the node has no next sibling, this cursor becomes invalid.
              * The latter is always true if this is the root node of the tree.
              *
-             * @return \c true if this node pointer was moved,
+             * @return \c true if this cursor was moved,
              *         \c false if the represented node has no next sibling.
              */
-            bool        GoToNextSibling()
+            bool GoToNextSibling()
             {
-                if( HasNextSibling() )
+                // go to node next and check for hook?
+                if (HasNextSibling())
                 {
-                    baseNodePtr::node= baseNodePtr::node->next();
+                    cmCursor::node = cmCursor::node->next();
                     return true;
                 }
-                baseNodePtr::node= nullptr;
+                cmCursor::node = nullptr;
                 return false;
             }
 
             /**
-             * Returns a node pointer value that represents the previous sibling of the node
-             * represented this node pointer.
-             * If the node has no previous sibling, an invalid node pointer is returned.
+             * Returns a cursor value that represents the previous sibling of the node
+             * represented this cursor.
+             * If the node has no previous sibling, an invalid cursor is returned.
              *
-             * @return A node pointer object representing the previous sibling of the node
+             * @return A cursor object representing the previous sibling of the node
              *         represented by this object.
              */
-            NodePtr     PreviousSibling()                                                      const
+            TCursor PreviousSibling() const
             {
-                return NodePtr(baseNodePtr::tree,
-                               HasPreviousSibling() ? baseNodePtr::node->prev()
-                                                    : nullptr );
+                return TCursor(cmCursor::tree,  HasPreviousSibling() ? cmCursor::node->prev()
+                                                                     : nullptr);
             }
 
             /**
-             * Moves this node pointer to the previous sibling of the represented node.
-             * If the node has no previous sibling, this node pointer becomes invalid.
+             * Moves this cursor to the previous sibling of the represented node.
+             * If the node has no previous sibling, this cursor becomes invalid.
              * The latter is always true if this is the root node of the tree.
              *
-             * @return \c true  if this node pointer was moved,
+             * @return \c true  if this cursor was moved,
              *         \c false if the represented node has no previous sibling.
              */
             bool        GoToPreviousSibling()
             {
                 if( HasPreviousSibling() )
                 {
-                    baseNodePtr::node= baseNodePtr::node->prev();
+                    cmCursor::node= cmCursor::node->prev();
                     return true;
                 }
-                baseNodePtr::node= nullptr;
+                cmCursor::node= nullptr;
                 return false;
             }
 
             /**
-             * Returns a node pointer value that represents the first child of the node
+             * Returns a cursor object that represents the first child of the node
              * represented.
-             * If the represented node has no children, an invalid node pointer is returned.
+             * If the represented node has no children, an invalid cursor is returned.
              *
-             * @return A node pointer representing the first child of the node represented
-             *         by this node pointer.
+             * @return A cursor representing the first child of the node this cursor points to.
              */
-            NodePtr     FirstChild()                                                           const
+            TCursor     FirstChild()                                                          const
             {
-                return NodePtr( baseNodePtr::tree, HasChildren() ? baseNodePtr::node->children.first()
-                                                                 : nullptr                             );
+                return TCursor( cmCursor::tree, HasChildren() ? cmCursor::node->children.first()
+                                                                 : nullptr                        );
             }
 
             /**
-             * Moves this node pointer to the first child of its represented node.
-             * If the represented node has no children, this node pointer becomes invalid.
+             * Moves this cursor to the first child of its represented node.
+             * If the represented node has no children, this cursor becomes invalid.
              *
-             * @return \c true if the node pointer was moved, \c false if the represented node
+             * @return \c true if the cursor was moved, \c false if the represented node
              *         has no children.
              */
             bool        GoToFirstChild()
             {
                 if( HasChildren() )
                 {
-                    baseNodePtr::node= baseNodePtr::node->children.first();
+                    cmCursor::node= cmCursor::node->children.first();
                     return true;
                 }
-                baseNodePtr::node= nullptr;
+                cmCursor::node= nullptr;
                 return false;
             }
 
             /**
-             * Returns a node pointer value that represents the last child of the node
+             * Returns a cursor value that represents the last child of the node
              * represented.
-             * If the represented node has no children, an invalid node pointer is returned.
+             * If the represented node has no children, an invalid cursor is returned.
              *
-             * @return A node pointer representing the last child of the node represented
-             *         by this node pointer.
+             * @return A cursor representing the last child of the node represented
+             *         by this cursor.
              */
-            NodePtr     LastChild()                                                            const
+            TCursor     LastChild()                                                           const
             {
-                return NodePtr(baseNodePtr::tree, HasChildren() ? baseNodePtr::node->children.last() : nullptr);
+                return TCursor( cmCursor::tree, HasChildren() ? cmCursor::node->children.last()
+                                                                : nullptr );
             }
 
             /**
-             * Moves this node pointer to the last child of its represented node.
-             * If the represented node has no children, this node pointer becomes invalid.
+             * Moves this cursor to the last child of its represented node.
+             * If the represented node has no children, this cursor becomes invalid.
              *
-             * @return \c true if the node pointer was moved, \c false if the represented node
+             * @return \c true if the cursor was moved, \c false if the represented node
              *         has no children.
              */
             bool        GoToLastChild()
             {
                 if( HasChildren() )
                 {
-                    baseNodePtr::node= baseNodePtr::node->children.last();
+                    cmCursor::node= cmCursor::node->children.last();
                     return true;
                 }
-                baseNodePtr::node= nullptr;
+                cmCursor::node= nullptr;
                 return false;
             }
 
             /**
-             * Searches a child with the given name and returns a node pointer to it.
-             * If no child with this name exists, the returned node pointer is invalid
+             * Searches a child with the given name and returns a cursor to it.
+             * If no child with this name exists, the returned cursor is invalid
              *
              * The given \p{name} is not considered a path and is not checked for being <c>"."</c>
              * or <c>".."</c> or if it contains a separator character.
@@ -858,20 +996,20 @@ public:
              * debug builds, an \ref ALIB_WARNING is reported.
              *
              * @param  name   The name of the child to search.
-             * @return A node pointer representing the last child of the node represented
-             *         by this node pointer.
+             * @return A cursor representing the last child of the node represented
+             *         by this cursor.
              */
-            NodePtr     Child( const NameType& name )
+            TCursor     Child( const NameType& name )                                         const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                ALIB_DBG( baseNodePtr::tree->checkChildName( name ); ) // gives warning
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                ALIB_DBG( cmCursor::tree->checkChildName( name ); ) // gives warning
 
-                return NodePtr( baseNodePtr::tree, baseNodePtr::node->findChild( baseNodePtr::tree, name ) );
+                return TCursor(cmCursor::tree, cmCursor::node->findChild(cmCursor::tree, name));
             }
 
             /**
-             * Searches a child with the given name and moves this node pointer to it.
-             * If no child with this name exists, the node pointer does not change and
+             * Searches a child with the given name and moves this cursor to it.
+             * If no child with this name exists, the cursor does not change and
              * \c false is returned.
              *
              * The given \p{name} is not considered a path and is not checked for being <c>"."</c>
@@ -881,62 +1019,62 @@ public:
              *
              * @param  name   The name of the child to search.
              * @return \c true if the child existed and this object changed, \c false
-             *         otherwise.
+             *            otherwise.
              */
             bool        GoToChild( const NameType& name )
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                ALIB_DBG( baseNodePtr::tree->checkChildName( name ); )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                ALIB_DBG( cmCursor::tree->checkChildName( name ); )
 
-                baseNode* child= baseNodePtr::node->findChild( baseNodePtr::tree, name );
-                if( child)
+                cmNode* child= cmCursor::node->findChild( cmCursor::tree, name );
+                if(child)
                 {
-                    baseNodePtr::node= child;
+                    cmCursor::node= child;
                     return true;
                 }
                 return false;
             }
 
             /**
-             * Moves this node pointer to the child with given \p{name}.
+             * Moves this cursor to the child with given \p{name}.
              * If no child with this name exists, one will be created.
              *
              * If the given \p{childName} is invalid (equals to <c>"."</c> or
              * <c>".."</c> or contains the separation character), then still \c true is returned,
-             * but this node pointer becomes invalid.
+             * but this cursor becomes invalid.
              * In addition, with debug builds, an \ref ALIB_WARNING is reported.
              *
              * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
              * @param  name   The name of the desired child.
              * @param  args   Variadic parameters to be forwarded to constructor of custom type
              *                \p{T} in the case a child is created.
-             * @return A pair of a node pointer pointing to the child and a boolean that equals
+             * @return A pair of a cursor pointing to the child and a boolean that equals
              *         \c false if the child was found, and \c true if a child was created.
-             *         If the given name was invalid, the returned node pointer will be invalid
+             *         If the given name was invalid, the returned cursor will be invalid
              *         while the boolean still indicates "not found" (aka \c true).
              */
             template<typename... TArgs>
-            std::pair<NodePtr, bool> CreateChildIfNotExistent( const NameType& name,
+            std::pair<TCursor, bool> CreateChildIfNotExistent( const NameType& name,
                                                                TArgs&&... args  )
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
 
-                if( !baseNodePtr::tree->checkChildName( name ) )
-                    return std::make_pair( NodePtr(baseNodePtr::tree, nullptr), true );
+                if( !cmCursor::tree->checkChildName( name ) )
+                    return std::make_pair( TCursor(cmCursor::tree, nullptr), true );
 
-                auto result= baseNodePtr::node->findOrCreateChild( baseNodePtr::tree, name,
-                                                            std::forward<TArgs>(args)... );
+                auto result= cmCursor::node->findOrCreateChild( cmCursor::tree, name,
+                                                                std::forward<TArgs>(args)... );
 
-                return std::make_pair( NodePtr( baseNodePtr::tree, result.first ), result.second );
+                return std::make_pair( TCursor( cmCursor::tree, result.first ), result.second );
             }
 
             /**
-             * Moves this node pointer to the child with given \p{name}.
+             * Moves this cursor to the child with given \p{name}.
              * If no child with this name exists, one will be created.
              *
              * If the given \p{childName} is invalid (equals to <c>"."</c> or
              * <c>".."</c> or contains the separation character), then still \c true is returned,
-             * but this node pointer becomes invalid.
+             * but this cursor becomes invalid.
              * In addition, with debug builds, an \ref ALIB_WARNING is reported.
              *
              * @tparam TArgs  Types of variadic parameters given with parameter \p{args}.
@@ -947,20 +1085,20 @@ public:
              *         child name was invalid.
              */
             template<typename... TArgs>
-            bool        GoToCreateChildIfNotExistent( const NameType& name, TArgs&&... args  )
+            bool        GoToCreateChildIfNotExistent(const NameType& name, TArgs&&... args)
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
 
-                if( !baseNodePtr::tree->checkChildName( name ) )
+                if( !cmCursor::tree->checkChildName( name ) )
                 {
-                    baseNodePtr::node= nullptr;
+                    cmCursor::node= nullptr;
                     return true;
                 }
 
-                auto result= baseNodePtr::node->findOrCreateChild( baseNodePtr::tree, name,
-                                                            std::forward<TArgs>(args)... );
+                auto result= cmCursor::node->findOrCreateChild( cmCursor::tree, name,
+                                                                std::forward<TArgs>(args)... );
 
-                baseNodePtr::node= result.first;
+                cmCursor::node= result.first;
                 return result.second;
             }
 
@@ -986,7 +1124,7 @@ public:
              *      /b
              *
              * Relative paths must not be used on
-             * \alib{monomem::StringTree,NodePtr::IsValid,invalid} node pointers. Doing so
+             * \alib{monomem::StringTree,Cursor::IsValid,invalid} cursors. Doing so
              * is undefined behavior and raises an \alib assertion in debug-compilations.
              *
              * If a child along the path does not exist, the traversal is ended and the remaining
@@ -999,30 +1137,30 @@ public:
              *
              * @param path  The path to follow, starting with the node this pointer represents.
              *
-             * @return A pair of a node pointer pointing to last child not of the existing portion
+             * @return A pair of a cursor pointing to last child not of the existing portion
              *         of the given \p{path}, and a substring that contains the non-existing
              *         portion of a path, or is empty if the complete path existed.
              */
-            std::pair<NodePtr, SubstringType> TraversePath( const NameType& path )
+            std::pair<TCursor, SubstringType> TraversePath( const NameType& path )             const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
                 SubstringType remainingPath(path);
-                baseNode* grandChild= baseNodePtr::followPath( remainingPath );
-                return std::make_pair( NodePtr(baseNodePtr::tree, grandChild), remainingPath );
+                cmNode* grandChild= cmCursor::followPath( remainingPath );
+                return std::make_pair( TCursor(cmCursor::tree, grandChild), remainingPath );
             }
 
             /**
-             * Same as #TraversePath, but moves this node pointer instead of returning one.
+             * Same as #TraversePath, but moves this cursor instead of returning one.
              *
-             * @param path  The path to move this node pointer along.
+             * @param path  The path to move this cursor along.
              * @return The unconsumed portion of the path.
              *         An empty \b Substring if the path existed.
              */
             SubstringType GoToTraversedPath( const NameType& path )
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
                 SubstringType remainingPath(path);
-                baseNodePtr::node= baseNodePtr::followPath( remainingPath );
+                cmCursor::node= cmCursor::followPath( remainingPath );
                 return remainingPath;
             }
 
@@ -1039,20 +1177,20 @@ public:
              * @param  path   The path to move along.
              * @param  args   Variadic parameters to be forwarded to constructor of each node
              *                that is created.
-             * @return A <c>std::pair</c> containing a resulting NodePtr and the number of nodes
+             * @return A <c>std::pair</c> containing a resulting \b Cursor and the number of nodes
              *         created.
              */
             template<typename... TArgs>
-            std::pair<NodePtr, integer>  CreatePathIfNotExistent( const NameType& path,
-                                                                  TArgs&&... args  )
+            std::pair<TCursor, integer>  CreatePathIfNotExistent( const NameType&  path,
+                                                                  TArgs&&...       args  )
             {
-                ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == baseNodePtr::tree->separator,
+                ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == cmCursor::tree->separator,
                              "MONOMEM/STRINGTREE",
-                             "Invalid StringTree::NodePtr given with relative path addressing." )
+                             "Invalid StringTree::Cursor given with relative path addressing." )
 
-                auto result= baseNodePtr::followPathCreate( path, std::forward<TArgs>(args)... );
+                auto result= cmCursor::followPathCreate( path, std::forward<TArgs>(args)... );
 
-                return std::make_pair( NodePtr(baseNodePtr::tree, result.first), result.second );
+                return std::make_pair( TCursor(cmCursor::tree, result.first), result.second );
             }
 
             /**
@@ -1072,18 +1210,18 @@ public:
              */
             template<typename... TArgs>
             integer                  GoToCreatedPathIfNotExistent( const NameType& path,
-                                                                  TArgs&&... args        )
+                                                                   TArgs&&...      args      )
             {
-                ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == baseNodePtr::tree->separator,
+                ALIB_ASSERT_ERROR( IsValid() || path.CharAtStart() == cmCursor::tree->separator,
                              "MONOMEM/STRINGTREE",
-                             "Invalid StringTree::NodePtr given with relative path addressing." )
+                             "Invalid StringTree::Cursor given with relative path addressing." )
 
-                auto result= baseNodePtr::followPathCreate( path, std::forward<TArgs>(args)... );
-                baseNodePtr::node= result.first;
+                auto result= cmCursor::followPathCreate( path, std::forward<TArgs>(args)... );
+                cmCursor::node= result.first;
                 return result.second;
             }
 
-        //####  NodePtr Interface        #######################################################
+            //#####  Cursor Interface        #######################################################
             /**
              * Returns the name of the represented node.
              * Note that the concatenated names of recursive child nodes, separated by
@@ -1093,8 +1231,8 @@ public:
              */
             const NameType& Name()                                                             const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->name;
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return cmCursor::node->name.key;
             }
 
             /**
@@ -1104,38 +1242,61 @@ public:
              */
             StringTree&     Tree()
             {
-                ALIB_ASSERT_ERROR( baseNodePtr::tree, "MONOMEM/STRINGTREE",
-                                   "StringTree::NodePtr is not initialized." )
-                return *static_cast<StringTree*>(baseNodePtr::tree);
+                ALIB_ASSERT_ERROR( cmCursor::tree, "MONOMEM/STRINGTREE",
+                                   "StringTree::Cursor is not initialized." )
+                return *static_cast<StringTree*>(cmCursor::tree);
             }
 
+            /**
+             * Returns the three that this pointer is created of.
+             *
+             * @return The tree that this object refers to.
+             */
+            const StringTree&     Tree()                                                       const
+            {
+                ALIB_ASSERT_ERROR( cmCursor::tree, "MONOMEM/STRINGTREE",
+                                   "StringTree::Cursor is not initialized." )
+                return *static_cast<const StringTree*>(cmCursor::tree);
+            }
+
+            #if defined(ALIB_DOX)
             /** Retrieves a reference to the templated value of type \p{T} stored
              *  in the represented node.
+             *  \note This method is only available if template parameter \p{TConst} is false.
              * @return The current node's value.          */
-            T&              Value()
+            T&              Value();
+            #else
+            template<bool TEnableIf= !TConst>
+            ATMP_T_IF(T&, TEnableIf)
+                            Value()
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->data;
+                ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "MONOMEM/STRINGTREE",
+                "Root node has no value. Either this operation is unwanted or root node's value\n"
+                "has to be explicitly set using SetRootNode(...)" )
+                return static_cast<baseNode*>(cmCursor::node)->data;
             }
+            #endif // ALIB_DOX
 
             /** Retrieves a constant reference to the templated value of type \p{T} stored in
              *  the represented node.
              * @return The current node's value.          */
             const T&        Value()                                                            const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->data;
+                ALIB_ASSERT_ERROR( !IsRoot() || cmCursor::tree->dbgRootDataSet > 0, "MONOMEM/STRINGTREE",
+                "Root node has no value. Either this operation is unwanted or root node's value\n"
+                "has to be explicitly set using SetRootNode(...)" )
+                return static_cast<const baseNode*>(cmCursor::node)->data;
             }
 
             /**
-             * Returns \c true if this node pointer represents the root node of the
+             * Returns \c true if this cursor represents the root node of the
              * \b %StringTree, \c false otherwise.
              * @return \c true if this object represents the root node, \c false otherwise.
              */
             bool            IsRoot()                                                           const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->isRoot();
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return cmCursor::node->isRoot();
             }
 
             /**
@@ -1145,8 +1306,8 @@ public:
              */
             int             Depth()                                                            const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->depth();
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return cmCursor::node->depth();
             }
 
             /**
@@ -1155,8 +1316,8 @@ public:
              */
             bool            HasChildren()                                                      const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->qtyChildren != 0;
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return cmCursor::node->qtyChildren != 0;
             }
 
             /**
@@ -1166,8 +1327,8 @@ public:
              */
             uinteger        CountChildren()                                                    const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return baseNodePtr::node->qtyChildren;
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return cmCursor::node->qtyChildren;
             }
 
             /**
@@ -1178,9 +1339,8 @@ public:
              */
             bool            HasNextSibling()                                                   const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
                 return     !IsRoot()
-                        && !baseNodePtr::node->parent->children.isLast( baseNodePtr::node );
+                        && !cmCursor::node->parent->children.isLast( cmCursor::node );
             }
 
             /**
@@ -1191,47 +1351,82 @@ public:
              */
             bool            HasPreviousSibling()                                               const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
                 return     !IsRoot()
-                        && !baseNodePtr::node->parent->children.isFirst( baseNodePtr::node );
+                        && !cmCursor::node->parent->children.isFirst( cmCursor::node );
             }
 
             /**
-             * Writes the path to the represented node (excluding the represented node's name)
-             * to the given \b %AString.<br>
-             * If this node represents the root node, then nothing is written.<br>
-             * No separation character is prepended to the start and appended to the end of the
-             * resulting path.
+             * Writes the absolute path to the represented node (including the represented node's
+             * name) to the given \b %AString.<br>
+             * If this node represents the root node, then nothing is written but a single
+             * separation character.
              *
-             * Note that this method is rather inefficient, as the list of parent nodes have
-             * to be inserted to the beginning of the string in an iteration loop, which implies
-             * a string copy per parent node.
-             * In many situations, it is recommended to search for other ways to keep track of
-             * the current path of a node.
-             * Class \alib{monomem,StringTree::RecursiveIterator} for example, optionally
+             * While the implementation of this method is as efficient as possible (to avoid
+             * insertions at the beginning of the target string while moving to the destination/root
+             * node, internally a local node-stack is created first, which then is traversed
+             * top-down), still in many situations, it is recommended to search for other ways to
+             * keep track of the current path of a node and modify and re-use such path.
+             * For this, class \alib{monomem,StringTree::RecursiveIterator}, optionally
              * allows to maintain a string representing the current path with every iteration.
              *
-             * @param target        The target to append the path to.
+             * \see Overloaded version
+             *      \alib{monomem,StringTree::TCursor::AssemblePath(AString&, TCursor&, CurrentData)},
+             *      which allows to create a relative path from a parent node to this node.
+             *
+             * @param targetString  The string buffer to append the path to.
              * @param targetData    Denotes whether \p{target} should be cleared prior to
              *                      appending the path. Defaults to \b CurrentData::Clear.
              * @return The given \b AString to allow concatenated operations on it.
              */
-            AString&        AssemblePath( AString& target,
-                                          CurrentData targetData= CurrentData::Clear )         const
+            AString&        AssemblePath( AString&          targetString,
+                                          lang::CurrentData targetData
+                                                                = lang::CurrentData::Clear )   const
             {
-                if( targetData == CurrentData::Clear )
-                    target.Reset();
+                if( targetData == lang::CurrentData::Clear )
+                    targetString.Reset();
 
-                return baseNodePtr::node->assemblePath(target, baseNodePtr::tree->separator);
+                return cmCursor::node->assemblePath( targetString, cmCursor::node, nullptr,
+                                                     cmCursor::tree->separator );
             }
 
-        //####  NodePtr child creation     #####################################################
+            /**
+             * Same as \alib{monomem,StringTree::TCursor::AssemblePath(AString&, CurrentData)},
+             * but accepts a parent node to stop at, instead of the root node.
+             * The path created is a relative path from the \p{parent} to the represented node,
+             * hence it does \b not include the parent' name and also does \b not start with the
+             * separation character. The latter is true even if the given \p targetParent represents
+             * the root node. In this case the path is a relative path from the root node \c '/'
+             * to the child.
+             *
+             * If the given \p{parent} is not found within the list of parent nodes, then
+             * an absolute path from the tree's root to the represented node is returned.
+             *
+             *
+             * @param targetString The string buffer to append the path to.
+             * @param parent       Denotes the parent node to start a relative path from.
+             * @param targetData   Denotes whether \p{target} should be cleared prior to
+             *                     appending the path. Defaults to \b CurrentData::Clear.
+             * @return The given \b AString to allow concatenated operations on it.
+             */
+            AString&        AssemblePath( AString&          targetString,
+                                          const TCursor&    parent,
+                                          lang::CurrentData targetData
+                                                                = lang::CurrentData::Clear )   const
+            {
+                if( targetData == lang::CurrentData::Clear )
+                    targetString.Reset();
+
+                return cmCursor::node->assemblePath( targetString, cmCursor::node, parent.node,
+                                                     cmCursor::tree->separator );
+            }
+
+            //#####  Cursor child creation     #####################################################
             /**
              * Creates and returns a child node. If a node already exists, nothing is done and
              * \c nullptr is returned as this is considered an error.
              *
              * If the child name is illegal (equal to <c>"."</c> or <c>".."</c> or contains a
-             * separation character), an \alib warning is raised and an invalid node pointer
+             * separation character), an \alib warning is raised and an invalid cursor
              * is returned.
              *
              * Template parameter \p{TCheck} may be used to suppress the search for an
@@ -1250,78 +1445,78 @@ public:
              * @param  args       Variadic parameters to be forwarded to constructor of custom
              *                    type \p{T} of the child created.
              *
-             * @return A new node pointer object representing the created child node.
+             * @return A new cursor object representing the created child node.
              *         If the given \p{childName} was invalid or the child existed already,
              *         the returned object is invalid.
              */
             template<bool TCheck =true, typename... TArgs>
-            NodePtr CreateChild( const NameType& childName, TArgs&&... args )                  const
+            TCursor CreateChild( const NameType& childName, TArgs&&... args )                  const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                if ALIB_CONSTEXPR17 (TCheck)
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                if constexpr (TCheck)
                 {
                     // check name
-                    if( !baseNodePtr::tree->checkChildName( childName ) )
+                    if( !baseCursor::tree->checkChildName( childName ) )
                     {
-                        ALIB_WARNING( "STRINGTREE", "Illegal child name" )
-                        return NodePtr( baseNodePtr::tree, nullptr );
+                        ALIB_WARNING( "STRINGTREE", "Illegal child name {!Q}", childName )
+                        return Cursor( baseCursor::tree, nullptr );
                     }
 
                     // check existence
-                    if(     baseNodePtr::node->qtyChildren > 0
-                        &&  baseNodePtr::tree->nodeTable.Contains( baseNodeKey( baseNodePtr::node, childName) ))
-                        return NodePtr( baseNodePtr::tree, nullptr );
+                    if(     baseCursor::node->qtyChildren > 0
+                        &&  baseCursor::tree->nodeTable.Contains( baseNodeKey( baseCursor::node, childName) ))
+                        return Cursor( baseCursor::tree, nullptr );
                 }
 
-                baseNode* child= &baseNodePtr::tree->nodeTable.EmplaceUnique( baseNodePtr::node, childName,
-                                                                              std::forward<TArgs>(args)... )
+                baseNode* child= &baseCursor::tree->nodeTable.EmplaceUnique( baseCursor::node, childName,
+                                                                               std::forward<TArgs>(args)... )
                                                    .Value();
-                TNodeMaintainer::InitializeNode( *baseNodePtr::tree, *child );
+                TNodeMaintainer::InitializeNode( *baseCursor::tree, *child );
 
-                baseNodePtr::node->children.pushEnd( child );
-                ++baseNodePtr::node->qtyChildren;
+                baseCursor::node->children.pushEnd( child );
+                ++baseCursor::node->qtyChildren;
 
-                return NodePtr( baseNodePtr::tree, child );
+                return TCursor( baseCursor::tree, child );
             }
 
-        //####  NodePtr deletion         #######################################################
+            //#####  Cursor deletion         #######################################################
             /**
              * Searches and deletes the child named \p{childName} from the node that this object
              * refers to. This object itself is not changed.
              *
              * \see
-             *   Overloaded version of this method that accepts a node pointer referring to
+             *   Overloaded version of this method that accepts a cursor referring to
              *   the child in question.
              *
              *
              * @param   childName   The name of the desired child.
              * @return \c true if the child existed and was deleted, \c false otherwise.
              */
-            bool DeleteChild( const NameType& childName )                                       const
+            bool DeleteChild( const NameType& childName )                                      const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                if( baseNodePtr::node->qtyChildren == 0 )
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                if( baseCursor::node->qtyChildren == 0 )
                     return false;
 
-                auto handle= baseNodePtr::tree->nodeTable.Extract( baseNodeKey( baseNodePtr::node, childName) );
+                auto handle= baseCursor::tree->nodeTable.Extract( baseNodeKey( baseCursor::node, childName) );
                 if( handle.IsEmpty() )
                     return false;
 
-                handle.Value().deleteChildren( baseNodePtr::tree );
+                handle.Value().deleteChildren( baseCursor::tree );
 
-                TNodeMaintainer::FreeNode( *baseNodePtr::tree, handle.Value() );
+                TNodeMaintainer::FreeNode( *baseCursor::tree, handle.Value() );
                 handle.Value().remove();
 
-                --baseNodePtr::node->qtyChildren;
+                --baseCursor::node->qtyChildren;
                 return true;
             }
 
             /**
-             * Deletes the child represented by the given node pointer \p{child} from the
-             * node that this node pointer refers to.
+             * Deletes the child represented by the given cursor \p{child} from the
+             * node that this cursor refers to.
              * After the invocation the given \p{child} refers to its next sibling. If no
              * such sibling exists, \p{child} becomes invalid.
-             * This node pointer itself is not changed.
+             * This cursor itself is not changed.
              *
              * \note
              *   This method is handy to implement forward iterations through children of
@@ -1334,35 +1529,37 @@ public:
              *
              * @param   child   Deletes the child represented by the given node.
              */
-            void DeleteChild( NodePtr& child )                                                 const
+            void DeleteChild( TCursor& child )                                                 const
             {
                 ALIB_ASSERT_ERROR(       IsValid(), "MONOMEM/STRINGTREE",
-                                   "Invalid StringTree::NodePtr." )
+                                   "Invalid StringTree::Cursor." )
                 ALIB_ASSERT_ERROR( child.IsValid(), "MONOMEM/STRINGTREE",
-                                   "Invalid StringTree::NodePtr given for parameter 'child'." )
-                baseNode* nodeToDelete= child.node;
+                                   "Invalid StringTree::Cursor given for parameter 'child'." )
+                cmNode* nodeToDelete= child.node;
                 child.GoToNextSibling();
-                baseNodePtr::node->deleteChild( baseNodePtr::tree, nodeToDelete );
+                baseCursor::node->deleteChild( baseCursor::tree, nodeToDelete );
             }
 
             /**
-             * Deletes the children of the node that this node pointer refers to.
+             * Deletes the children of the node that this cursor refers to.
              * This object itself is not changed.
              *
              * @return The number of children that were deleted.
              */
             uinteger DeleteChildren()                                                          const
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                return  baseNodePtr::node->deleteChildren( baseNodePtr::tree );
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                return  baseCursor::node->deleteChildren( baseCursor::tree );
             }
 
             /**
-             * Deletes the branch that this node pointer refers to from the tree.
-             * If this node pointer does not represent the root node, then after the operation,
+             * Deletes the branch that this cursor refers to from the tree.
+             * If this cursor does not represent the root node, then after the operation,
              * it refers to the parent of the current node.<br>
              * If the represented node is the root node, only the children are deleted and this
-             * object remains representing the root node.
+             * object remains representing the root node. Note that in this case any explicitly
+             * set custom value of the root node is \b not deleted. For this, exclusively methods
+             * #ConstructRootValue and #DeleteRootValue are to be used.
              *
              * \note
              *   If this method is invoked on an object returned by method
@@ -1377,15 +1574,21 @@ public:
              */
             uinteger Delete()
             {
-                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::NodePtr." )
-                if( baseNodePtr::node->isRoot() )
-                    return baseNodePtr::node->deleteChildren( baseNodePtr::tree );
+                ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE", "Invalid StringTree::Cursor." )
+                if( baseCursor::node->isRoot() )
+                    return baseCursor::node->deleteChildren( baseCursor::tree );
 
-                baseNode* child= baseNodePtr::node;
-                baseNodePtr::node= baseNodePtr::node->parent;
-                return baseNodePtr::node->deleteChild( baseNodePtr::tree, child );
+                cmNode * child= baseCursor::node;
+                baseCursor::node= baseCursor::node->parent;
+                return baseCursor::node->deleteChild( baseCursor::tree, child );
             }
-    };  // inner class NodePtr
+    };  // inner class TCursor
+
+    /** The mutable version of type \alib{monomem,StringTree::TCursor<TConst>}. */
+    using Cursor       = TCursor<false>;
+
+    /** The constant version of type \alib{monomem,StringTree::TCursor<TConst>}. */
+    using ConstCursor  = TCursor<true>;
 
 
     /** ********************************************************************************************
@@ -1395,7 +1598,7 @@ public:
      * The rationale for this is the fact that mechanics for sorting the child nodes are
      * provided, which requires allocation of more resources than usual container iterators do.
      * Therefore, objects of this type are not supposed to be temporary and
-     * created "on the fly", e.g. in range based loops introduced with C++ 11 .
+     * created "on the fly", e.g. in C++ range based loops.
      * Instead, instances should rather be created once and then re-used with subsequent
      * iterations.
      *
@@ -1409,7 +1612,7 @@ public:
      * Objects of this type can be initialized, respectively reset to distinct start nodes by
      * providing objects of
      * - type \b %StringTree,
-     * - type \b %StringTree::NodePtr or
+     * - type \b %StringTree::Cursor or
      * - other objects of this type itself,
      *
      * to overloaded methods #Initialize.
@@ -1434,18 +1637,28 @@ public:
      *
      * \see
      *   For more information on how this class is used, see paragraph
-     *   \ref alib_ns_strings_util_stringtree_iterator "2.2 Inner Class RecursiveIterator"
+     *   \ref alib_ns_monomem_stringtree_iterator "2.2 Inner Class RecursiveIterator"
      *   of the description of class \b %StringTree.
      *
      * ## Friends ##
      * class \alib{monomem,StringTree}
      **********************************************************************************************/
-    class RecursiveIterator
+    template<bool TConst>
+    class TRecursiveIterator
     {
-        #if !defined(ALIB_DOX)
-            friend class StringTree;
-        #endif
         protected:
+
+        /** Constant or mutable version of the base tree type, depending on template parameter
+         *  \p{TConst} */
+        using cmTree    = ATMP_IF_T_F(!TConst, StringTree  , const StringTree   );
+
+        /** Constant or mutable version of the base node type, depending on template parameter
+         *  \p{TConst} */
+        using cmNode    = ATMP_IF_T_F(!TConst, baseNodeBase, const baseNodeBase );
+
+        /** Constant or mutable version of the base Cursor type, depending on template parameter
+         *  \p{TConst} */
+        using cmCursor = ATMP_IF_T_F(!TConst, Cursor     , ConstCursor );
 
         //######################################################################################
         // Inner type RecursionData
@@ -1462,25 +1675,33 @@ public:
                 /** The current child of the current node in case of unsorted access
                  *  If this is pointing to the end of the child map, then
                  *  the actual node itself is selected by this RecursiveIterator. */
-                baseNode*           unsorted;
+                cmNode*             unsorted;
 
                 /** The current child index in case of sorted access.
-                 *  A value of <c>static_cast<size_t>(-1)</c> indicates that
+                 *  A value of <c>size_t(-1)</c> indicates that
                  *  the actual node itself is selected. */
                 size_t              sorted;
 
             } actChild;
 
-            /** The child hook of the parent node, used with unsorted iteration. */
-            typename basetree::NodeList*     childrenUnsorted;
+            #if defined(ALIB_DOX)
+                /** The child hook of the parent node, used with unsorted iteration.
+                 *  Note that this is declared \c const, in case template param \p{TConst} equals
+                 *  \c true.*/
+                lang::BidiListHelper<baseNodeBase>*      childrenUnsorted;
+            #else
+                 ATMP_IF_T_F(!TConst,       lang::BidiListHelper<baseNodeBase>*
+                                    , const lang::BidiListHelper<baseNodeBase>*  )
+                                        childrenUnsorted;
+            #endif
 
             /** A pointer to a dynamically allocated vector of children used with sorting. */
-            std::vector<baseNode*>  childrenSorted;
+            std::vector<cmNode*>    childrenSorted;
 
             /** Copied from
              * \alib{monomem::detail::StringTree,RecursiveIterator::nextCustomSorter}
              *  with every recursion step. */
-            bool                  (*customSorter)(const NodePtr&, const NodePtr&);
+            bool                   (*customSorter)(const cmCursor&, const cmCursor&);
 
             /** Copied from
              * \alib{monomem::detail::StringTree,RecursiveIterator::nextIsSorting}
@@ -1519,15 +1740,13 @@ public:
             ~RecursionData()                                            noexcept          = default;
         }; // inner struct RecursionData
 
-        //######################################################################################
-        //  RecursiveIterator members
-        //######################################################################################
+        //#####  RecursiveIterator members     #####################################################
 
         /** The \b %StringTree this iterator belongs to. */
-        StringTree*                 tree                                                  = nullptr;
+        cmTree*                     tree                                                  = nullptr;
 
         /** The pointer to the actual node. */
-        baseNode*                   node;
+        cmNode*                     node;
 
         /**
          * A stack holding the recursive list of unsorted or sorted children and the
@@ -1542,7 +1761,7 @@ public:
          * set to \c -1 to if iteration is finished, respectively this iterator was not
          * initialized.
          */
-        size_t                      actDepth                             = static_cast<size_t >(-1);
+        size_t                      actDepth                                           = size_t(-1);
 
         /** The path to the actual node (excluding the name of the actual node).
          *  If this object is \e nulled, no paths are generated. */
@@ -1552,7 +1771,7 @@ public:
         unsigned int                recursionDepth      =(std::numeric_limits<unsigned int>::max)();
 
         /** A pointer to a user-defined comparison function for path names.  */
-        bool                      (*nextCustomSorter)(const NodePtr&, const NodePtr&)     = nullptr;
+        bool                        (*nextCustomSorter)(const cmCursor&, const cmCursor&) = nullptr;
 
         /** Denotes if the children are iterated in a sorting fashion or not. */
         bool                        nextIsSorting                                           = false;
@@ -1563,34 +1782,30 @@ public:
         /** The case sensitivity of the sort (used with built-in sorting by node name). */
         bool                        nextSortingIsCaseSensitive                              = false;
 
-        //##########################################################################################
-        //  RecursiveIterator Constructor/Destructor
-        //##########################################################################################
+        // #### RecursiveIterator Constructor/Destructor    ########################################
         public:
             /** Default constructor. */
-            RecursiveIterator()                                                           = default;
+            TRecursiveIterator()                                                           = default;
 
             /** Trivial copy constructor. */
-            RecursiveIterator( const RecursiveIterator&  )                                = default;
+            TRecursiveIterator( const TRecursiveIterator&  )                                = default;
 
             /** Trivial default move constructor. */
-            RecursiveIterator(       RecursiveIterator&& )                                = default;
+            TRecursiveIterator(       TRecursiveIterator&& )                                = default;
 
             /** Trivial default copy assign operator.
              * @return A reference to \c this.           */
-            RecursiveIterator& operator=( const RecursiveIterator&  )                     = default;
+            TRecursiveIterator& operator=( const TRecursiveIterator&  )                     = default;
 
             /** Trivial default move assign operator.
              * @return A reference to \c this.           */
-            RecursiveIterator& operator=(       RecursiveIterator&& )                     = default;
+            TRecursiveIterator& operator=(       TRecursiveIterator&& )                     = default;
 
 
             /** Destructor. */
-            ~RecursiveIterator()                                                          = default;
+            ~TRecursiveIterator()                                                          = default;
 
-        //##########################################################################################
-        //  Interface
-        //##########################################################################################
+        // #### RecursiveIterator Interface      ###################################################
             /**
              * With this method, the assembly of a string representing the path from the
              * node used to initialize this iterator to the actual node, is activated or
@@ -1604,11 +1819,11 @@ public:
              *
              * @param pathGeneration Denotes whether the path should be generated or not.
              */
-            void SetPathGeneration( Switch pathGeneration )
+            void SetPathGeneration( lang::Switch pathGeneration )
             {
                 Invalidate();
-                actPath.Reset( pathGeneration == Switch::On ? EmptyString()
-                                                            : NullString()  );
+                actPath.Reset( pathGeneration == lang::Switch::On ? EmptyString()
+                                                                  : NullString()  );
             }
 
             /**
@@ -1622,36 +1837,35 @@ public:
              *               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
              *               for "unlimited" recursion.
              */
-            void Initialize( StringTree&   pTree,
+            void Initialize( cmTree&       pTree,
                              unsigned int  depth= (std::numeric_limits<unsigned int>::max)() )
             {
-                initialize( &pTree, &pTree.root, depth );
+                initialize( &pTree, &pTree.root.root, depth );
             }
 
             /**
-             * Resets this iterator to the first child of the node that the given node pointer
+             * Resets this iterator to the first child of the node that the given cursor
              * object represents.
-             * If the node pointer is invalid, the root node of the tree it represents is used.
+             * If the cursor is invalid, the root node of the tree it represents is used.
              *
              * If the given node has no children, this iterator is marked invalid when this
              * method returns.
              *
              * Optional parameter \p{depth} allows to limit the recursion depth.
              *
-             * @param nodePtr The node pointer to define the branch of the tree to iterate.
-             * @param depth   Sets the recursion depth.
-             *                A depth of \c 0 iterates only the direct children of the node
-             *                represented by \p{nodePtr}.
-             *                Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
-             *                for "unlimited" recursion.
+             * @param cursor The cursor to define the branch of the tree to iterate.
+             * @param depth  Sets the recursion depth.
+             *               A depth of \c 0 iterates only the direct children of the node
+             *               represented by \p{cursor}.
+             *               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
+             *               for "unlimited" recursion.
              */
-            void Initialize( NodePtr       nodePtr,
+            void Initialize( cmCursor      cursor,
                              unsigned int  depth= (std::numeric_limits<unsigned int>::max)()  )
             {
-                initialize( static_cast<StringTree*>( nodePtr.tree ),
-                            nodePtr.IsValid() ? nodePtr.node
-                                              : &(nodePtr.tree->root),
-                            depth                                                       );
+                initialize( static_cast<cmTree*>( cursor.tree ),
+                            cursor.IsValid() ?  cursor.node : &cursor.tree->root.root,
+                            depth                                                         );
             }
 
             /**
@@ -1667,7 +1881,7 @@ public:
              *               Defaults to <c>std::numeric_limits<unsigned int>::max()</c>
              *               for "unlimited" recursion.
              */
-            void Initialize( const RecursiveIterator&   other,
+            void Initialize( const TRecursiveIterator&   other,
                              unsigned int   depth= (std::numeric_limits<unsigned int>::max)() )
             {
                 initialize( other.tree, other.node, depth );
@@ -1680,11 +1894,11 @@ public:
              */
             void Invalidate()
             {
-                actDepth= static_cast<size_t >(-1);
+                actDepth= size_t(-1);
             }
 
             /**
-             * Determines if this is a valid. RecursiveIterator instances may become invalid
+             * Determines if this is a valid. \b RecursiveIterator instances may become invalid
              * after invocations of one of the methods #Next, #NextSibling or #NextParentSibling
              * (at the end of the iteration) and become valid with the invocation of one of the
              * overloaded methods #Initialize.
@@ -1694,7 +1908,7 @@ public:
              */
             bool IsValid()                                                                     const
             {
-                return actDepth != static_cast<size_t >(-1);
+                return actDepth != size_t(-1);
             }
 
             /**
@@ -1722,12 +1936,12 @@ public:
              *
              * @param sorting  The switch value.
              */
-            void SetSorting( Switch sorting )
+            void SetSorting( lang::Switch sorting )
             {
-                if( sorting == Switch::Off )
+                if( sorting == lang::Switch::Off )
                     nextIsSorting= false;
                 else
-                    SetSorting(SortOrder::Ascending, Case::Ignore );
+                    SetSorting(lang::SortOrder::Ascending, lang::Case::Ignore );
             }
 
             /**
@@ -1735,7 +1949,7 @@ public:
              * methods, which in turn use method \alib{strings,TString::Equals,String::Equals}.
              *
              * \see
-             *   For more details on sorting see method \ref SetSorting(Switch sorting).
+             *   For more details on sorting see method \ref SetSorting(lang::Switch sorting).
              *
              *
              * @param order         The sort order.
@@ -1743,13 +1957,13 @@ public:
              * @param sensitivity   The case sensitivity when comparing path names.
              *                      Defaults to \b %Case::Ignore.
              */
-            void SetSorting( SortOrder order         = SortOrder::Ascending,
-                             Case      sensitivity   = Case::Ignore            )
+            void SetSorting( lang::SortOrder order         = lang::SortOrder::Ascending,
+                             lang::Case      sensitivity   = lang::Case::Ignore            )
             {
                 nextIsSorting             = true;
                 nextCustomSorter          = nullptr;
-                nextSortingIsDescending   =  ( order       == SortOrder::Descending );
-                nextSortingIsCaseSensitive=  ( sensitivity ==      Case::Sensitive  );
+                nextSortingIsDescending   =  ( order       == lang::SortOrder::Descending );
+                nextSortingIsCaseSensitive=  ( sensitivity == lang::     Case::Sensitive  );
             }
 
             /**
@@ -1757,12 +1971,12 @@ public:
              * callback function.
              *
              * \see
-             *   For more details on sorting see method \ref SetSorting(Switch sorting).
+             *   For more details on sorting see method \ref SetSorting(lang::Switch sorting).
              *
              * @param customSorterFunction  A custom comparison method used for sorting the children
              *                      of nodes.
              */
-            void SetSorting( bool (*customSorterFunction)(const NodePtr&, const NodePtr&) )
+            void SetSorting( bool (*customSorterFunction)(const Cursor&, const Cursor&) )
             {
                 nextIsSorting     = true;
                 nextCustomSorter  = customSorterFunction;
@@ -1813,7 +2027,7 @@ public:
              * The path returned is relative to the start node and does not contain a leading
              * separator character. Also, it does not contain the name of the current node,
              * which can be received by invoking method
-             * \alib{monomem::StringTree::NodePtr,Name} on the node pointer returned by
+             * \alib{monomem::StringTree::Cursor,Name} on the cursor returned by
              * method #Node.
              *
              * Note that this method can be used only if path generation was activated
@@ -1831,7 +2045,7 @@ public:
 
             /**
              * Writes the results of #CurrentPath and
-             * \alib{monomem::StringTree::NodePtr,Name}, separated by the separator
+             * \alib{monomem::StringTree::Cursor,Name}, separated by the separator
              * character \p{TSeparator}.
              *
              * Note that this method can be used only if path generation was activated
@@ -1843,19 +2057,19 @@ public:
              *                      appending the path. Defaults to CurrentData::Clear.
              * @return The given string to allow concatenated operations
              */
-            AString&    FullPath( AString&      target,
-                                  CurrentData   targetData= CurrentData::Clear )               const
+            AString&    FullPath( AString&          target,
+                                  lang::CurrentData targetData= lang::CurrentData::Clear )               const
             {
                 ALIB_ASSERT_ERROR( actPath.IsNotNull(), "MONOMEM/STRINGTREE",
                                    "Path generation not activated" )
 
-                if( targetData == CurrentData::Clear )
+                if( targetData == lang::CurrentData::Clear )
                     target.Reset();
 
                 if( actPath.IsNotEmpty() )
                     target << actPath  << tree->separator;
 
-                return target << node->name;
+                return target << node->name.key;
             }
 
 
@@ -1870,7 +2084,7 @@ public:
              */
             int RequestedDepth()                                                               const
             {
-                return static_cast<int>( recursionDepth );
+                return int(recursionDepth);
             }
 
             /**
@@ -1878,7 +2092,7 @@ public:
              * algorithm which means this method executes in constant time.
              *
              * To get the absolute depth of the current node, method
-             * \alib{monomem,StringTree::NodePtr::Depth} may be used.
+             * \alib{monomem,StringTree::Cursor::Depth} may be used.
              *
              * @return The distance of the current node and the node of the start of the
              *         iteration.
@@ -1887,30 +2101,29 @@ public:
             {
                 ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE",
                                    "RecursiveIterator not initialized or exceeded (invalid)." )
-                return static_cast<int>( actDepth );
+                return int(actDepth);
             }
 
             /**
-             * Returns the current node, encapsulated in a node pointer object.
-
+             * Returns the current node, encapsulated in a cursor object.
              *
              * \note
              *   It is \b not allowed to use method
-             *   \alib{monomem::StringTree,NodePtr::Delete} on the node returned by
+             *   \alib{monomem::StringTree,Cursor::Delete} on the node returned by
              *   this method. As a replacement, use method #DeleteNode implemented in this
              *   class.<br>
-             *   However, methods \alib{monomem::StringTree,NodePtr::DeleteChild}
-             *   and \alib{monomem::StringTree,NodePtr::DeleteChildren} are allowed
+             *   However, methods \alib{monomem::StringTree,Cursor::DeleteChild}
+             *   and \alib{monomem::StringTree,Cursor::DeleteChildren} are allowed
              *   to be invoked and therefore have no replacement in this class.
              *
              * @return An instance of the public node interface pointing to the currently
              *         referenced tree node.
              */
-            NodePtr Node()                                                                     const
+            cmCursor Node()                                                                    const
             {
                 ALIB_ASSERT_ERROR( IsValid(), "MONOMEM/STRINGTREE",
                                    "RecursiveIterator not initialized or exceeded (invalid)." )
-                return NodePtr( tree, node );
+                return cmCursor( tree, node );
             }
 
         //####  node deletion (RecursiveIterator)  #############################################
@@ -1923,12 +2136,12 @@ public:
              *
              * \note
              *   This method constitutes a legal alternative to method
-             *   \alib{monomem::StringTree,NodePtr::Delete}, which is forbidden to be
+             *   \alib{monomem::StringTree,Cursor::Delete}, which is forbidden to be
              *   invoked on the node returned by method #Node as this would invalidate this
              *   iterator.<br>
              *
-             *   Methods \alib{monomem::StringTree,NodePtr::DeleteChild}
-             *   and \alib{monomem::StringTree,NodePtr::DeleteChildren} are allowed with this
+             *   Methods \alib{monomem::StringTree,Cursor::DeleteChild}
+             *   and \alib{monomem::StringTree,Cursor::DeleteChildren} are allowed with this
              *   iterator type. Consequently, no replacement method for those is given with this
              *   class.
              *
@@ -1943,9 +2156,7 @@ public:
                 return nodeToDelete.parent->deleteChild( tree, &nodeToDelete );
             }
 
-        //##########################################################################################
-        // RecursiveIterator internal methods
-        //##########################################################################################
+        // #### RecursiveIterator Internals      ###################################################
         protected:
             /**
              * Resets this iterator to represent to the given node of the given tree.
@@ -1954,7 +2165,7 @@ public:
              * @param newnode The new node to start the iteration from.
              * @param depth   The requested recursion depth.
              */
-            void initialize( StringTree* pTree, baseNode* newnode, unsigned int depth )
+            void initialize( cmTree* pTree, cmNode* newnode, unsigned int depth )
             {
                 this->tree= pTree;
                 if( actPath.IsNotNull() )
@@ -1964,11 +2175,11 @@ public:
                 if( newnode->qtyChildren )
                 {
                     recursionDepth= depth;
-                    actDepth= static_cast<size_t >(-1);
+                    actDepth= size_t(-1);
                     recursion();
                 }
                 else
-                    actDepth= static_cast<size_t>( -1 );
+                    actDepth= size_t( -1 );
             }
 
             /**
@@ -1998,7 +2209,7 @@ public:
 
                 // sorting: copy children to a sortable vector
                 rd.childrenSorted.clear();
-                rd.childrenSorted.reserve( static_cast<size_t>( node->qtyChildren ) );
+                rd.childrenSorted.reserve( size_t( node->qtyChildren ) );
                 auto* copyIt= node->children.first();
                 while( copyIt != &node->children.hook )
                 {
@@ -2010,22 +2221,22 @@ public:
                 if( rd.customSorter )
                 {
                     std::sort( rd.childrenSorted.begin(), rd.childrenSorted.end(),
-                               [this,&rd]( typename basetree::Node* lhs,
-                                           typename basetree::Node* rhs  )
+                               [this,&rd]( cmNode* lhs,
+                                           cmNode* rhs  )
                                {
-                                    return rd.customSorter( NodePtr(tree, lhs),
-                                                            NodePtr(tree, rhs) );
+                                    return rd.customSorter( cmCursor(tree, lhs),
+                                                            cmCursor(tree, rhs) );
                                }
                               );
                 }
                 else
                 {
                     std::sort( rd.childrenSorted.begin(), rd.childrenSorted.end(),
-                               [&rd]( baseNode* lhs, baseNode* rhs)
+                               [&rd]( cmNode* lhs, cmNode* rhs)
                                {
                                     int compResult=  rd.sortingIsCaseSensitive
-                                       ? lhs->name.template CompareTo<true, Case::Sensitive>(rhs->name)
-                                       : lhs->name.template CompareTo<true, Case::Ignore   >(rhs->name);
+                                       ? lhs->name.key. template CompareTo<true, lang::Case::Sensitive>(rhs->name.key)
+                                       : lhs->name.key. template CompareTo<true, lang::Case::Ignore   >(rhs->name.key);
                                     return rd.sortingIsDescending ? compResult > 0
                                                                   : compResult < 0;
                                }
@@ -2041,20 +2252,20 @@ public:
             /**
              * Goes to the next node.
              * This method is used with the derived class's interface methods
-             * \alib{monomem::StringTree::RecursiveIterator,Next},
-             * \alib{monomem::StringTree::RecursiveIterator,NextSibling} and
-             * \alib{monomem::StringTree::RecursiveIterator,NextParentSibling}, as well as with
-             * \alib{monomem::StringTree::RecursiveIterator,DeleteNode}.
+             * \alib{monomem::StringTree::TRecursiveIterator,Next},
+             * \alib{monomem::StringTree::TRecursiveIterator,NextSibling} and
+             * \alib{monomem::StringTree::TRecursiveIterator,NextParentSibling}, as well as with
+             * \alib{monomem::StringTree::TRecursiveIterator,DeleteNode}.
              *
              * @param skipMode   \c 0 iterates to the first child (if available),
              *                   \c 1 iterates to the next sibling (if available) and
              *                   \c 2 to the next available sibling of the parent, respectively the
-             *                   current recursion stack.
+             *                      current recursion stack.
              * @return \c true if this iterator is valid (a next node was found), \c false
              *         otherwise.                                                                 */
             bool next(int skipMode)
             {
-                ALIB_ASSERT_ERROR( actDepth != static_cast<size_t >(-1), "MONOMEM/STRINGTREE",
+                ALIB_ASSERT_ERROR( actDepth != size_t(-1), "MONOMEM/STRINGTREE",
                                    "Invalid iterator" )
 
                 // recursion to first child of actual node?
@@ -2066,7 +2277,7 @@ public:
                     {
                         if( actPath.IsNotEmpty() )
                             actPath << tree->separator;
-                        actPath << node->name;
+                        actPath << node->name.key;
                     }
 
                     // increase stack capacity
@@ -2125,59 +2336,62 @@ public:
                     }
                     else
                     {
-                        actDepth=  static_cast<size_t >(-1);
+                        actDepth=  size_t(-1);
                         ALIB_ASSERT( actPath.IsEmpty())
                         break;
                     }
                 }
 
-               return actDepth != static_cast<size_t >(-1);
+               return actDepth != size_t(-1);
             }
 
-    };  // inner class "RecursiveIterator"
+    };  // inner class "TRecursiveIterator"
+
+    /** The mutable version of type \alib{monomem,StringTree::TRecursiveIterator<TConst>}. */
+    using RecursiveIterator       = TRecursiveIterator<false>;
+
+    /** The constant version of type \alib{monomem,StringTree::TRecursiveIterator<TConst>}. */
+    using ConstRecursiveIterator  = TRecursiveIterator<true>;
 
 
     // #############################################################################################
-    // Constructor/destructor/Reset
+    // StringTree Main
     // #############################################################################################
 
     /** ********************************************************************************************
      * Constructor.
-     * @tparam TArgs          Types of variadic parameters given with parameter \p{args}.
      * @param  allocator      The monotonic allocator to use.
      * @param  pathSeparator  The separation character used with path strings.
-     * @param  args           Variadic parameters to be forwarded to constructor of custom type
-     *                        \p{T} of this tree's root node.
      **********************************************************************************************/
-    template<typename... TArgs>
-    StringTree( MonoAllocator* allocator    ,
-                CharacterType  pathSeparator, TArgs&&...       args        )
-    : basetree( allocator, pathSeparator, std::forward<TArgs>( args)... )
+    StringTree( MonoAllocator* allocator, CharacterType pathSeparator )
+    : basetree( allocator, pathSeparator )
     {}
 
     /** ********************************************************************************************
      * Constructor taking a shared recycler.
-     * @tparam TArgs          Types of variadic parameters given with parameter \p{args}.
      * @param  allocator      The monotonic allocator to use.
      * @param  pRecycler      The shared recycler.
      * @param  pathSeparator  The separation character used with path strings.
-     * @param  args           Variadic parameters to be forwarded to constructor of custom type
-     *                        \p{T} of this tree's root node.
      **********************************************************************************************/
-    template<typename... TArgs>
-    StringTree( MonoAllocator* allocator    , TSharedRecycler& pRecycler,
-                CharacterType  pathSeparator, TArgs&&...       args        )
-    : basetree( allocator, pRecycler, pathSeparator, std::forward<TArgs>( args)... )
+    StringTree( MonoAllocator* allocator, CharacterType pathSeparator, TSharedRecycler& pRecycler )
+    : basetree( allocator, pRecycler, pathSeparator )
     {}
 
-
     /** ********************************************************************************************
-     * Defaulted Destructor
+     * Destructor.
+     * Raises a warning if \alib{monomem::StringTree,ConstructRootValue,a root value was} but
+     * not deleted accordingly.
      **********************************************************************************************/
     ~StringTree()
     {
         for( auto& node : basetree::nodeTable )
-            TNodeMaintainer::FreeNode( *static_cast<basetree*>(this), node );
+            TNodeMaintainer::FreeNode( *this, *static_cast<baseNode*>(&node) );
+
+        ALIB_ASSERT_WARNING( basetree::dbgRootDataSet == 0, "MONOMEM/STRINGTREE",
+          "The root node's value object was set but not deleted before destruction of this StringTree.\n"
+          "Possible memory leak! To suppress this warning call DeleteRootValue() prior to destruction.\n"
+          "In case this is not necessary (because the value type does not leak if not destructed),\n"
+          " emplace it in macro ALIB_DBG() to remove the call in release compilations." )
     }
 
     /** ********************************************************************************************
@@ -2192,6 +2406,58 @@ public:
         basetree::nodeTable.SetAllocatorPostConstruction( pAllocator );
     }
 
+    /** ********************************************************************************************
+     * Shortcut to \alib{monomem,HashTable::GetAllocator,NodeTable().GetAllocator}.
+     * @return The allocator that was provided in the constructor and stored in the internal
+     *         #NodeTable.
+     **********************************************************************************************/
+    MonoAllocator*        GetAllocator()
+    {
+        return basetree::nodeTable.GetAllocator();
+    }
+
+
+
+    /** ********************************************************************************************
+     * Depending on the use case, it might be appropriate to attach a value of template type \p{T}
+     * to the root node of the tree. If so, this can be done with this method. If not done, in debug
+     * compilations, method \alib{monomem::StringTree,TCursor::Value,Cursor::Value} will
+     * raise an \alib assertion if called on the root node.
+     *
+     * Custom data that is explicitly attached to the root node with this method has to be
+     * deleted explicitly by calling #DeleteRootValue prior to deletion of the tree.
+     *
+     * @tparam TArgs      Types of variadic parameters given with parameter \p{args}.
+     * @param  args       Variadic parameters to be forwarded to constructor of custom
+     *                    type \p{T} of the child created.
+     **********************************************************************************************/
+    template<typename... TArgs>
+    void    ConstructRootValue( TArgs&&...  args )
+    {
+        #if ALIB_DEBUG
+            ALIB_ASSERT_WARNING( basetree::dbgRootDataSet != 1, "MONOMEM/STRINGTREE",
+            "Root node value is set without prior deletion. Possible memory leak (depending on allocation \n"
+            "of template type T). This warning is only printed on the first overwrite." )
+            ++basetree::dbgRootDataSet;
+        #endif
+
+        new (&basetree::root.root.data) T( std::forward<TArgs>(args)... );
+    }
+
+    /** ********************************************************************************************
+     * Deletes the custom data object of type \p{T}, which may explicitly set using #ConstructRootValue.\n
+     * If not done, in debug-compilations, an \alib warning is raised in the destructor
+     * of this tree.
+     **********************************************************************************************/
+    void    DeleteRootValue()
+    {
+        #if ALIB_DEBUG
+            ALIB_ASSERT_WARNING( basetree::dbgRootDataSet != 0, "MONOMEM/STRINGTREE",
+            "Deletion of root node data without prior setting (our double deletion)." )
+            --basetree::dbgRootDataSet;
+        #endif
+        basetree::root.root.data.~T();
+    }
 
     /** ********************************************************************************************
      * Removes all elements from this container. The use of this method is more efficient than
@@ -2206,13 +2472,13 @@ public:
     void        Clear()
     {
         for( auto& node : basetree::nodeTable )
-            TNodeMaintainer::FreeNode( *static_cast<basetree*>(this), node );
+            TNodeMaintainer::FreeNode( *this, *static_cast<baseNode*>(&node) );
 
         basetree::nodeTable.Clear();
 
         // re-initialize root node
-        basetree::root.children.reset();
-        basetree::root.qtyChildren= 0;
+        basetree::root.root.children.reset();
+        basetree::root.root.qtyChildren= 0;
     }
 
     /** ********************************************************************************************
@@ -2225,25 +2491,18 @@ public:
      * In case of \alib{monomem,Recycling::Private,private recycling} disposes all previously
      * allocated recyclable instances of internal element type.
      *
-     * The custom data of the root node is deleted and default constructed using the given
-     * arguments.
-     * @tparam TArgs         Types of variadic parameters given with parameter \p{args}.
-     * @param  args          Variadic parameters to be forwarded to constructor of custom type
-     *                       \p{T} of this tree's root node.
+     * \note The value of the root-node, set with #ConstructRootValue is not deleted.
      **********************************************************************************************/
-    template<typename... TArgs>
-    void        Reset( TArgs&&... args )
+    void        Reset()
     {
         for( auto& node : basetree::nodeTable )
-            TNodeMaintainer::FreeNode( *static_cast<basetree*>(this), node );
+            TNodeMaintainer::FreeNode( *this, *static_cast<baseNode*>(&node) );
 
         basetree::nodeTable.Reset();
 
         // re-initialize root node
-        basetree::root.children.reset();
-        basetree::root.qtyChildren= 0;
-        basetree::root.data.~T();
-        new(&basetree::root.data)  T( std::forward<TArgs>( args)...);
+        basetree::root.root.children.reset();
+        basetree::root.root.qtyChildren= 0;
     }
 
     /** ********************************************************************************************
@@ -2277,7 +2536,7 @@ public:
     }
 
     /** ********************************************************************************************
-     * Tests for emptyness.
+     * Tests for emptiness.
      *
      * @return \c true if this tree is empty, \c false otherwise.
      **********************************************************************************************/
@@ -2298,46 +2557,78 @@ public:
      * @param expected  The expected number or increase of elements to be stored in the hash table.
      * @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
      **********************************************************************************************/
-    void        ReserveRecyclables( integer expected, lib::ValueReference reference )
+    void                ReserveRecyclables( integer expected, lang::ValueReference reference )
     {
         basetree::nodeTable.ReserveRecyclables( expected, reference );
     }
 
     /** ********************************************************************************************
-     * Creates a node pointer instance representing the root node.
-     * @return A node pointer pointing to the root node of this \b %StringTree.
+     * Returns the internal \alib{monomem,HashTable} used for storing the tree nodes.
+     * This may be used to manipulate load factors, for direct iteration over all nodes, etc.<br>
+     * \note The returned object should be used with caution to keep the tree and its data
+     *       consistent.
+     * @return The internal node table.
      **********************************************************************************************/
-    NodePtr     Root()
+    auto&               NodeTable()
     {
-        return NodePtr( this, &(basetree::root) );
+        return basetree::nodeTable;
     }
 
+    /** ********************************************************************************************
+     * Returns the internal \alib{monomem,HashTable} used for storing the tree nodes.
+     * This may be used to manipulate load factors, for direct iteration over all nodes, etc.<br>
+     * \note The returned object should be used with caution to keep the tree and its data
+     *       consistent.
+     * @return The internal node table.
+     **********************************************************************************************/
+    const auto&         NodeTable()                                                            const
+    {
+        return basetree::nodeTable;
+    }
+
+    /** ********************************************************************************************
+     * Creates a cursor instance representing the root node.
+     * @return A cursor pointing to the root node of this \b %StringTree.
+     **********************************************************************************************/
+    Cursor              Root()
+    {
+        return Cursor( this, &(basetree::root.root) );
+    }
+
+    /** ********************************************************************************************
+     * Creates a \c const cursor instance representing the root node.
+     * @return A read-only pointer, pointing to the root node of this \b %StringTree.
+     **********************************************************************************************/
+    const ConstCursor   Root()                                                                 const
+    {
+        return ConstCursor( this, &(basetree::root.root) );
+    }
 }; // StringTree
 
 
 
-}}// namespace aworx::[lib::monomem]
+} // namespace alib::[monomem]
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TChar, integer TLocalCapacity= 32>
-using  StringTreeNamesDynamic    = lib::monomem::StringTreeNamesDynamic<TChar, TLocalCapacity>;
+using  StringTreeNamesDynamic    = monomem::StringTreeNamesDynamic<TChar, TLocalCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TChar>
-using  StringTreeNamesStatic     = lib::monomem::StringTreeNamesStatic<TChar>;
+using  StringTreeNamesStatic     = monomem::StringTreeNamesStatic<TChar>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TChar>
-using  StringTreeNamesMonoAlloc  = lib::monomem::StringTreeNamesMonoAlloc<TChar>;
+using  StringTreeNamesMonoAlloc  = monomem::StringTreeNamesMonoAlloc<TChar>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T,
          typename TNodeMaintainer= StringTreeNamesDynamic<character>,
          typename TRecycling     = Recycling::Private               >
-using  StringTree = lib::monomem::StringTree<T, TNodeMaintainer, TRecycling>;
+using  StringTree = monomem::StringTree<T, TNodeMaintainer, TRecycling>;
 
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 #endif // HPP_ALIB_MONOMEM_STRINGTREE

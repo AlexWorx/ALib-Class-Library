@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
+//  alib::lox - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -23,12 +23,12 @@
 #      include "alib/alox/aloxmodule.hpp"
 #   endif
 
-#   if defined(_WIN32) && ALIB_DEBUG && !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if defined(_WIN32) && ALIB_DEBUG && !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 using namespace detail;
 
@@ -65,7 +65,7 @@ using namespace detail;
 
         // add a VStudio logger if this a VStudio debug session
         #if defined(_MSC_VER) && ALIB_DEBUG
-            if( ALIB.IsDebuggerPresent() )
+            if( BASECAMP.IsDebuggerPresent() )
             {
                 Variable variable( Variables::NO_IDE_LOGGER );
                 if( ALOX.GetConfig().Load( variable ) == Priorities::NONE || ! variable.IsTrue() )
@@ -131,8 +131,8 @@ using namespace detail;
                              "Log::AddReportWriter(): ALoxReportWriter already created." )
 
         // replace ALib's default ReportWriter (but only this!) by an ALoxReportWriter
-        if ( lib::results::Report::GetDefault().PeekWriter() == &lib::results::ReportWriterStdIO::GetSingleton()  )
-             lib::results::Report::GetDefault().PushWriter( DebugReportWriter= new ALoxReportWriter( lox ) );
+        if ( lang::Report::GetDefault().PeekWriter() == &lang::ReportWriterStdIO::GetSingleton()  )
+             lang::Report::GetDefault().PushWriter( DebugReportWriter= new ALoxReportWriter( lox ) );
     }
 
     void Log::RemoveALibReportWriter()
@@ -140,7 +140,7 @@ using namespace detail;
         // replace the report writer
         if ( DebugReportWriter != nullptr )
         {
-            lib::results::Report::GetDefault().PopWriter( DebugReportWriter );
+            lang::Report::GetDefault().PopWriter( DebugReportWriter );
             delete DebugReportWriter;
             DebugReportWriter=  nullptr;
         }
@@ -149,6 +149,4 @@ using namespace detail;
 
 #endif // ALOX_DBG_LOG
 
-}}}// namespace [aworx::lib::lox]
-
-
+}}// namespace [alib::lox]

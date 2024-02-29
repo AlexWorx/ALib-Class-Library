@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -17,15 +17,15 @@
 // includes
 // #################################################################################################
 
-namespace aworx { namespace lib {
+namespace alib {
 
-namespace results { class Exception; }
+namespace lang { class Exception; }
 
 namespace lox {
 
 /** ************************************************************************************************
  * Simple class with static tool functions.
- * Currently the only functionality is logging objects of type \alib{results,Exception}.
+ * Currently the only functionality is logging objects of type \alib{lang,Exception}.
  **************************************************************************************************/
 class LogTools
 {
@@ -41,12 +41,12 @@ class LogTools
     // #############################################################################################
     public:
         /** ****************************************************************************************
-         * Logs an \b %aworx::Exception. If available, the correct source information is used for
+         * Logs an \b %alib::Exception. If available, the correct source information is used for
          * each entry.
          *
          * Parameter \p{domainPrefix} and \p{logPrefix} are both set on outer thread scope (using
-         * \ref aworx::lib::lox::Lox::SetDomain "SetDomain( domainPrefix, Scope::ThreadOuter )" and
-         * \ref aworx::lib::lox::Lox::SetPrefix "SetPrefix( logPrefix, Scope::ThreadOuter )".
+         * \ref alib::lox::Lox::SetDomain "SetDomain( domainPrefix, Scope::ThreadOuter )" and
+         * \ref alib::lox::Lox::SetPrefix "SetPrefix( logPrefix, Scope::ThreadOuter )".
          * The reason for this approach is that it may occur that other prefixes or scope domains
          * are set set on source scope for the source files and methods found in the exception
          * entry's source code information. This is especially important to understand in respect
@@ -65,21 +65,19 @@ class LogTools
          *                      Defaults to <b>"  "</b> (two spaces).
          ******************************************************************************************/
         ALIB_API
-        static void Exception( Lox&                        lox,
-                               const results::Exception&   e,
-                               Verbosity                   verbosity           = Verbosity::Error,
-                               const NString&              domainPrefix        = "/ERR",
-                               const String&               logPrefix           = A_CHAR("  ")    );
-
-
+        static void Exception( Lox&                    lox,
+                               const lang::Exception&  e,
+                               Verbosity               verbosity      = Verbosity::Error,
+                               const NString&          domainPrefix   = "/ERR",
+                               const String&           logPrefix      = A_CHAR("  ")    );
 }; // class LogTools
 
-}} // namespace aworx[::lib::lox]
+} // namespace alib[::lox]
 
-/// Type alias in namespace #aworx.
-using     LogTools=           lib::lox::LogTools;
+/// Type alias in namespace \b alib.
+using     LogTools=           lox::LogTools;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 #endif // HPP_ALOX_LOGTOOLS

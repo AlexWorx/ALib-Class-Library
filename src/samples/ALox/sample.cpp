@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALox Samples
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -10,14 +10,16 @@
 #include "alib/alox/loggers/textfilelogger.hpp"
 #include "alib/alox/reportwriter.hpp"
 #include "alib/alox/aloxmodule.hpp"
-#include "alib/lib/fs_modules/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
+#include "alib/lang/basecamp/bootstrap.hpp"
 #include "alib/config/inifile.hpp"
 
 #include <iostream>
+#include <filesystem>
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 // local prototypes
 extern String128 autoSizes;
@@ -31,7 +33,7 @@ void LogColors();
 void WCharTest();
 void textFileLogger();
 void SampleALibReport();
-int main( int argc, char *argv[] );
+int main( int argc, const char *argv[] );
 
 // globals
 String128 autoSizes;
@@ -104,7 +106,7 @@ void PerformanceTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
                                     Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priorities::ProtectedValues   )
     Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priorities::ProtectedValues   ) )
@@ -123,7 +125,7 @@ void PerformanceTest()
         int qtyLoops=   10;
     #endif
 
-    if ( ALIB.IsDebuggerPresent() )
+    if ( BASECAMP.IsDebuggerPresent() )
         qtyLoops= 10;
 
 
@@ -201,7 +203,7 @@ void PerformanceTestRL()
         int qtyLines=  100;
         int qtyLoops=   10;
     #endif
-    if ( ALIB.IsDebuggerPresent() )
+    if ( BASECAMP.IsDebuggerPresent() )
         qtyLoops= 10;
 
     for ( int i= 0 ; i < qtyLoops ; ++i )
@@ -257,7 +259,7 @@ void LogColors()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     cout << "cout: Colorful logging:" <<  endl;
 
@@ -320,7 +322,7 @@ void WCharTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_SetDomain( "WCHAR", Scope::Method )
 
@@ -348,7 +350,7 @@ void textFileLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Creating a text file logger with file 'Test.log.txt'" )
 
@@ -373,7 +375,7 @@ void SampleALibReport()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lib::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Sample: ALib Report Writer\n"
               "Method \"Log::AddDebugLogger()\" by default creates a replacement for the\n"
@@ -383,13 +385,13 @@ void SampleALibReport()
     // must be done only in debug compiles
     #if ALIB_DEBUG
 
-    lib::results::Report::GetDefault().PushHaltFlags( false, false );
+    lang::Report::GetDefault().PushHaltFlags( false, false );
         ALIB_ERROR(   "SAMPLE", "This is an error report!" )
         ALIB_WARNING( "SAMPLE", "And this is a warning. A next one should follow:"   )
         AString test("12345");
         test.GrowBufferAtLeastBy(1);
 
-    lib::results::Report::GetDefault().PopHaltFlags();
+    lang::Report::GetDefault().PopHaltFlags();
 
     #endif
 
@@ -414,55 +416,44 @@ void ALoxSampleReset()
     #endif
 
     Log_Prune( LOG_LOX.Reset(); )
-    Log_SetSourcePathTrimRule( "*/src/", lib::Inclusion::Include )
+    Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 }
 
 
-int main( int argc, char *argv[] )
+int main( int argc, const char** argv)
 {
-    #if defined(__clang__)
-        #pragma message "Info: Clang Compiler (not a warning, just for an information)"
-    #elif defined(__GNUC__)
-        #pragma message "Info: GNU Compiler (not a warning, just for an information)"
-    #elif defined(_MSC_VER)
-        #pragma message ("Info: MS Compiler (not a warning, just for an information)")
-    #endif
+    alib::ArgC  = argc;
+    alib::ArgVN = argv;
 
-    // Partly initialize ALib/ALox, to have configuration and default resource pool in place
-    ALIB.Bootstrap(  argc, argv, BootstrapPhases::PrepareConfig );
+    // we have to clear the ini-file prior to running the sample
+//    filesystem::remove(filesystem::path(ALIB_BASE_DIR "/docs/pages/generated/ALoxSample.ini"));
 
+// [DOXYGEN_CREATE_INIFILE]
+// Partly initialize ALib/ALox, to have configuration and default resource pool in place
+alib::Bootstrap(BootstrapPhases::PrepareConfig );
 
-    // first attach INI file to config system...
-    IniFile iniFile;
-    if ( iniFile.FileComments.IsEmpty() )
-    {
-        iniFile.FileComments._(
-        "##################################################################################################\n"
-        "# ALox Samples INI file (created when running ALox Samples)\n"
-        "#\n"
-        "# Copyright 2013-2023 A-Worx GmbH, Germany\n"
-        "# Published under 'Boost Software License' (a free software license, see LICENSE.txt)\n"
-        "##################################################################################################\n"
-        );
-    }
+// Create and attach an INI file to config system...
+IniFile iniFile(ALIB_BASE_DIR A_CHAR("/docs/pages/generated/ALoxSample.ini"));
+if ( iniFile.FileComments.IsEmpty() )
+{
+    iniFile.FileComments._(
+    "##################################################################################################\n"
+    "# ALox Samples INI file (created when running ALox Samples)\n"
+    "#\n"
+    "# Copyright 2013-2024 A-Worx GmbH, Germany\n"
+    "# Published under 'Boost Software License' (a free software license, see LICENSE.txt)\n"
+    "##################################################################################################\n"
+    );
+}
 
-    ALIB.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
+alib::ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
-    //... and then initialize ALib completely
-    ALIB.Bootstrap();
+//... and then bootstrap ALib completely
+Bootstrap();
+// [DOXYGEN_CREATE_INIFILE]
 
-    Log_SetSourcePathTrimRule( "*/src/", lib::Inclusion::Include )
+    Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 
-    // Suppress setting "writeback" for verbosities. We need to do this as this main()
-    // method invokes a list of independent samples. Those would now read from the INI file wrong
-    // values written in other sample methods and thus the samples would not work any more
-    // (because INI file settings overrules settings in the code)
-    Variable var;
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_DEBUG_LOGGER_VERBOSITY=")  ),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_CONSOLE_VERBOSITY=")),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_MEMORY_VERBOSITY=")       ),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("RELEASELOX_MEMORY_VERBOSITY=")),  A_CHAR("") );
-    lib::ALOX.GetConfig().Store( var.Declare( A_CHAR("ALOX"), A_CHAR("LOG_TEXTFILE_VERBOSITY=")      ),  A_CHAR("") );
 
     DebugLog();                 ALoxSampleReset();
     ReleaseLog();               ALoxSampleReset();
@@ -475,11 +466,25 @@ int main( int argc, char *argv[] )
     textFileLogger();           ALoxSampleReset();
 
     // cleanup resources to make Valgrind happy
-    ALIB.GetConfig().RemovePlugin( &iniFile );
-    ALIB.GetConfig().FetchFromDefault( iniFile );
-    iniFile.WriteFile();
+// [DOXYGEN_REMOVE_INIFILE]
+// annonce the shudown (first shutdown phase) and remove the ini-file
+alib::Shutdown( alib::ShutdownPhases::Announce );
+alib::ALOX.GetConfig().RemovePlugin( &iniFile );
 
-    ALIB.Shutdown();
+// Use utility function to copy values from the in-memory-plug-in that carries the default values,
+// to the INI-File. Note that only those values that are not existing in the INI-file, yet, are
+// copied! This discloses the default values to
+// a) the developer gathering all information from his team-members in case of debug-logging
+// b) an end-user of an application in case of release-logging
+// Both now know what is possible, without consulting a documentation... :-)
+alib::ALOX.GetConfig().FetchFromDefault( iniFile );
+
+// write the INI-File
+iniFile.WriteFile();
+
+// finalize ALib termination
+alib::Shutdown();
+// [DOXYGEN_REMOVE_INIFILE]
     cout << "ALox Samples finished" << endl;
     return 0;
 }

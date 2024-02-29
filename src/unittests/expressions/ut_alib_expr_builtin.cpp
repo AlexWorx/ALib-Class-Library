@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,10 +15,10 @@
 
 #include "alib/boxing/dbgboxing.hpp"
 #if ALIB_ALOX
-#   include "alib/system/calendar.hpp"
+#   include "alib/lang/system/calendar.hpp"
 #endif
-#if ALIB_SYSTEM
-#   include "alib/system/calendar.hpp"
+#if ALIB_CAMP
+#   include "alib/lang/system/calendar.hpp"
 #endif
 
 #include "alib/expressions/expression.hpp"
@@ -33,13 +33,13 @@
 
 #include <cmath>
 #if !defined(M_PI)
-#   define M_PI		    3.14159265358979323846
+#   define M_PI            3.14159265358979323846
 #endif
 #if !defined(M_E)
-#   define M_E		    2.7182818284590452354
+#   define M_E            2.7182818284590452354
 #endif
 #if !defined(M_LN10)
-#   define M_LN10		2.30258509299404568402
+#   define M_LN10        2.30258509299404568402
 #endif
 
 
@@ -49,10 +49,10 @@
 
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib;
-using namespace aworx::lib::expressions;
-using namespace aworx::lib::expressions::detail;
+using namespace alib;
+using namespace alib;
+using namespace alib::expressions;
+using namespace alib::expressions::detail;
 #include "unittests/expressions/ut_alib_expr_testfunc.hpp"
 
 ALIB_WARNINGS_MACRO_NOT_USED_OFF
@@ -80,7 +80,7 @@ UT_METHOD(Math)
     compiler.SetupDefaults();
     SPExpression expression;
 
-    lib::expressions::Scope scope(compiler.CfgFormatter);
+    expressions::Scope scope(compiler.CfgFormatter);
 
     CONSTEXPR( PI                      , M_PI            );
     CONSTEXPR( PI*2.0                  , M_PI *2.0       );
@@ -131,7 +131,7 @@ UT_METHOD(Math)
 // #################################################################################################
 // #### DateTime
 // #################################################################################################
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 UT_METHOD(DateTime)
 {
     UT_INIT()
@@ -140,7 +140,7 @@ UT_METHOD(DateTime)
     compiler.SetupDefaults();
     SPExpression expression;
 
-    lib::expressions::Scope scope(compiler.CfgFormatter);
+    expressions::Scope scope(compiler.CfgFormatter);
 
     // DateTime::Duration construction functions
 #if !defined(_WIN32) // not accurate enough
@@ -224,7 +224,7 @@ UT_METHOD(DateTime)
     EXPRESSION( now <= now                           , true    , 3);
     EXPRESSION( now >  now                           , false   , 3);
 
-    CONSTEXPR( UTCDateTime(2019,1,31,14,5) , CalendarDateTime(2019,1,31,14,5).Get(Timezone::UTC) );
+    CONSTEXPR( UTCDateTime(2019,1,31,14,5) , CalendarDateTime(2019,1,31,14,5).Get(lang::Timezone::UTC) );
     CONSTEXPR(    DateTime(2019,1,31,14,5) , CalendarDateTime(2019,1,31,14,5).Get() );
 
     CONSTEXPR( GetYear       (DateTime(2019,1,31,14,5)) , 2019 );
@@ -293,7 +293,7 @@ UT_METHOD(Strings)
     compiler.SetupDefaults();
     SPExpression expression;
 
-    lib::expressions::Scope scope(compiler.CfgFormatter);
+    expressions::Scope scope(compiler.CfgFormatter);
 
     // a string!
     CONSTEXPR( "String" , A_CHAR("String")  );
@@ -413,7 +413,7 @@ UT_METHOD(Strings)
 // #################################################################################################
 // ### TokenConsistency
 // #################################################################################################
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 UT_METHOD(TokenConsistency)
 {
     UT_INIT()
@@ -425,11 +425,11 @@ UT_METHOD(TokenConsistency)
     #endif
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token tokens[9+1+58+34+SSZ];
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPA"     ,&tokens[0]             ALIB_DBG(,9)   );
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPALen"  ,&tokens[9]             ALIB_DBG(,1)   );
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPD"     ,&tokens[9+1]           ALIB_DBG(,58)  );
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPM"     ,&tokens[9+1+58]        ALIB_DBG(,34)  );
-    Token::LoadResourcedTokens( EXPRESSIONS, "CPS"     ,&tokens[9+1+58+34]     ALIB_DBG(,SSZ) );
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPA"     ,&tokens[0]           ALIB_DBG(,  9));
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPALen"  ,&tokens[9]           ALIB_DBG(,  1));
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPD"     ,&tokens[9+1]         ALIB_DBG(, 58));
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPM"     ,&tokens[9+1+58]      ALIB_DBG(, 34));
+    Token::LoadResourcedTokens( EXPRESSIONS, "CPS"     ,&tokens[9+1+58+34]   ALIB_DBG(,SSZ));
 
     TestTokenConsistency(ut, tokens, 9+1+58+34+SSZ );
     ALIB_WARNINGS_RESTORE

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_bitbuffer of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_AWORX_ALIB_BITBUFFER_AC_V1
@@ -18,8 +18,8 @@ ALIB_ASSERT_MODULE(ENUMS)
 #if !defined (HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL)
 #   include "alib/enums/underlyingintegral.hpp"
 #endif
-#if !defined (HPP_ALIB_ENUMS_BITWISE)
-#   include "alib/enums/bitwise.hpp"
+#if !defined(HPP_ALIB_ENUMS_BW_IT_CONVERSION)
+#   include "alib/enums/bitwise_iterable_conversion.hpp"
 #endif
 #if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
 #   include "alib/enums/serialization.hpp"
@@ -37,7 +37,7 @@ ALIB_ASSERT_MODULE(ENUMS)
 #   pragma message "Symbol ALIB_DEBUG_ARRAY_COMPRESSION set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
 #endif
 
-namespace aworx { namespace lib { namespace bitbuffer {
+namespace alib {  namespace bitbuffer {
 
 /**
  * This sub-namespace of \alib_bitbuffer provides algorithms to compress integral arrays.
@@ -49,8 +49,8 @@ namespace aworx { namespace lib { namespace bitbuffer {
  * older versions of the classes by selecting them via the namespace) and convert the data to the
  * new binary format.
  *
- * Type aliases \ref aworx::ArrayCompressor, \ref aworx::HuffmanEncoder and
- * \ref aworx::HuffmanDecoder will always refer to the latest version.
+ * Type aliases \ref alib::ArrayCompressor, \ref alib::HuffmanEncoder and
+ * \ref alib::HuffmanDecoder will always refer to the latest version.
  *
  * \note Currently, there is no other version of the class available.
  */
@@ -76,49 +76,6 @@ class ArrayCompressor
         static constexpr int QtyAlgorithms= 6;  ///< The number of algorithms implemented.
 
         /**
-         * This enumeration denotes the different algorithms provided for compression.
-         *
-         * \note
-         *   With the inclusion of \alib_enums in the \alibdist, this enum is defined to
-         *   be \ref alib_enums_arithmetic "bitwise".<p>
-         * \note
-         *   With the inclusion of at least one
-         *   \ref alib_manual_modules_dependencies "\"full module\"" in the \alibdist, this
-         *   enum is furthermore \ref alib_resources_details_data "resourced" and values are
-         *   appendable to class \alib{strings,TAString<TChar>,AString} and logable with \alox.
-         */
-        enum class Algorithm
-        {
-            /**  No compression method selected. */
-            NONE               =   0,
-
-            /**  All compression methods selected. */
-            ALL                =   (1<< QtyAlgorithms) - 1,
-
-            /**  Stores the data as integer values, which includes a simple sort of possible
-             *   compression as documented with
-             *   \alib{bitbuffer,BitWriter::Write<TIntegral>(TIntegral)}. */
-            Uncompressed       =   1,
-
-            /**  Stores the differences between the minimum and maximum value found. */
-            MinMax             =   2,
-
-            /**  Writes '1' if next value is equal to previous, '0' plus next value otherwise. */
-            Sparse             =   4,
-
-            /**  Writes the number of following equal or non equal values. */
-            VerySparse         =   8,
-
-            /**  Only distances of the values are written. */
-            Incremental        =  16,
-
-            /**  Huffman encoding (byte based). */
-            Huffman            =  32,
-
-            END_OF_ENUM        = 64,
-        };
-
-        /**
          * Helper class that allows access the array data. The design goal for introducing
          * this class (instead of providing array references in the interface methods) is
          * to allow a minimum of flexibility in respect to the data provision, while not using
@@ -137,7 +94,7 @@ class ArrayCompressor
          *
          * \note
          *   In the case an application uses a more complex data scheme for storing array
-         *   data to be compressed, wich are not accessible with this simple mechanism,
+         *   data to be compressed, which are not accessible with this simple mechanism,
          *   such data has to be written into temporary arrays before compression.
          *
          * Besides this, this accessor type, provides a transparent inline conversion of
@@ -233,7 +190,7 @@ class ArrayCompressor
                     ALIB_ASSERT_ERROR( idx < len, "BITBUFFER/AC", "Array compression: Index out of bounds" )
 
                     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-                    if ALIB_CONSTEXPR17 ( std::is_unsigned<TIntegral>::value )
+                    if constexpr ( std::is_unsigned<TIntegral>::value )
                         return *(reinterpret_cast<TUI*>(firstVal + idx * distance));
                     else
                     {
@@ -262,7 +219,7 @@ class ArrayCompressor
 
                     ALIB_ASSERT_ERROR( idx < len, "BITBUFFER/AC", "Array compression: Index out of bounds" )
 
-                    if ALIB_CONSTEXPR17 ( std::is_unsigned<TIntegral>::value )
+                    if constexpr ( std::is_unsigned<TIntegral>::value )
                         *(reinterpret_cast<TIntegral*>(firstVal + idx * distance))= TIntegral(value);
                     else
                     {
@@ -333,6 +290,48 @@ class ArrayCompressor
                         minDec =  0;
                 }
         }; // internal class Array
+        /**
+         * This enumeration denotes the different algorithms provided for compression.
+         *
+         * \note
+         *   With the inclusion of \alib_enums in the \alibdist, this enum is defined to
+         *   be \ref alib_enums_arithmetic "bitwise".<p>
+         * \note
+         *   With the inclusion of at least one
+         *   \ref alib_manual_modules_dependencies "\"ALib Camp\"" in the \alibdist, this
+         *   enum is furthermore \ref alib_basecamp_resources_details_data "resourced" and values
+         *   are appendable to class \alib{strings,TAString<TChar>,AString} and logable with \alox.
+         */
+        enum class Algorithm
+        {
+            /**  No compression method selected. */
+            NONE               =   0,
+
+            /**  All compression methods selected. */
+            ALL                =   (1<< QtyAlgorithms) - 1,
+
+            /**  Stores the data as integer values, which includes a simple sort of possible
+             *   compression as documented with
+             *   \alib{bitbuffer,BitWriter::Write<TIntegral>(TIntegral)}. */
+            Uncompressed       =   1,
+
+            /**  Stores the differences between the minimum and maximum value found. */
+            MinMax             =   2,
+
+            /**  Writes '1' if next value is equal to previous, '0' plus next value otherwise. */
+            Sparse             =   4,
+
+            /**  Writes the number of following equal or non equal values. */
+            VerySparse         =   8,
+
+            /**  Only distances of the values are written. */
+            Incremental        =  16,
+
+            /**  Huffman encoding (byte based). */
+            Huffman            =  32,
+
+            END_OF_ENUM        = 64,
+        };
 
         /**
          * Statistic struct to collect information about the performance of different array
@@ -405,11 +404,11 @@ class ArrayCompressor
             }
 
 
-            #if ALIB_TEXT
+            #if ALIB_CAMP
                 /**
                  * Writes compression statistics to the given string buffer.
                  * ### Availability ###
-                 * This method is included only if module \alib_text is included in the \alibdist.
+                 * This method is included only if module \alib_basecamp is included in the \alibdist.
                  *
                  * @param result      A string buffer to collect the dump results.
                  * @param headline    A headline to integrate into the result table.
@@ -504,13 +503,13 @@ ALIB_WARNINGS_RESTORE
 
 }; // class ArrayCompressor
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]
 
 #if ALIB_ENUMS && !defined(ALIB_DOX)
-    ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm, aworx::lib::enums::ERSerializable )
-    ALIB_ENUMS_MAKE_BITWISE(  aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm )
-    ALIB_ENUMS_MAKE_ITERABLE( aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm,
-                              aworx::lib::bitbuffer::ac_v1::ArrayCompressor::Algorithm::END_OF_ENUM )
+    ALIB_ENUMS_ASSIGN_RECORD( alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm, alib::enums::ERSerializable )
+    ALIB_ENUMS_MAKE_BITWISE(  alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm )
+    ALIB_ENUMS_MAKE_ITERABLE( alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm,
+                              alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm::END_OF_ENUM )
 #endif
 
 
@@ -520,7 +519,7 @@ ALIB_WARNINGS_RESTORE
 
 
 
-namespace aworx { namespace lib { namespace bitbuffer { namespace ac_v1 {
+namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 template <typename TValue>
 std::pair<size_t, ArrayCompressor::Algorithm> ArrayCompressor::Compress(
@@ -529,10 +528,10 @@ std::pair<size_t, ArrayCompressor::Algorithm> ArrayCompressor::Compress(
                                                     Algorithm       algorithmsToTry,
                                                     Statistics*     statistics          )
 {
-    ALIB_ASSERT_ERROR( data.length() * sizeof(TValue) * 8 < bw.RemainingSize(), "BITBUFFER/AC",
+    ALIB_ASSERT_ERROR( data.length() * bitsof(TValue) < bw.RemainingSize(), "BITBUFFER/AC",
                        "BitBuffer is smaller than uncompressed data."
                        " No buffer overflow checks are performed during compression." )
-    ALIB_ASSERT_WARNING( data.length() * sizeof(TValue) * 8 * 2 < bw.RemainingSize(), "BITBUFFER/AC",
+    ALIB_ASSERT_WARNING( data.length() * bitsof(TValue) * 2 < bw.RemainingSize(), "BITBUFFER/AC",
                        "BitBuffer remaining size should be twice as large as uncompressed data."
                        " No buffer overflow checks are performed during compression." )
 
@@ -710,6 +709,6 @@ void ArrayCompressor::Decompress(   BitReader&      br,
 }
 
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]
 
 #endif // HPP_AWORX_ALIB_BITBUFFER_AC_V1

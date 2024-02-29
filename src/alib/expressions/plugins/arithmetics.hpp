@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
  * This built-in \alib{expressions,CompilerPlugin} of \alib_expressions_nl
@@ -31,10 +31,11 @@ namespace aworx { namespace lib { namespace expressions { namespace plugins {
  * - All callback functions are defined compile-time invokable.
  *   This means that redundancies in expressions emerging from operations on constant numbers are
  *   optimized (pruned) by the compiler. For example, the two expressions:
- *          size > 81920
- *          size > 8 * 1024
- *
- *   are resulting in an identical expression program and thus have identical evaluation performance.
+     \verbatim
+         size > 81920
+         size > 8 * 1024
+     \endverbatim
+ *   are resulting in an identical expression program and thus the latter has no evaluation penalty.
  *
  * - The following additional binary operator optimization are defined:
  *   - Addition and subtraction of \c 0.
@@ -273,7 +274,7 @@ ALIB_API
 Box ToBoolean( Scope& scope, ArgIterator  args, ArgIterator );
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 
 

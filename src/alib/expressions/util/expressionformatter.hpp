@@ -2,21 +2,21 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER
 #define HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER
 
-#if !defined (HPP_ALIB_RESULTS_EXCEPTION)
-#   include "alib/results/exception.hpp"
+#if !defined (HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
+#   include "alib/lang/message/exception.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
 
 
-#if !defined (HPP_ALIB_TEXT_FORMATTER_STD)
-#   include "alib/text/formatterstdimpl.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_STD)
+#   include "alib/lang/format/formatterstdimpl.hpp"
 #endif
 
 #if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
@@ -24,25 +24,24 @@ ALIB_ASSERT_MODULE(EXPRESSIONS)
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace util {
-
+namespace alib { namespace expressions::util {
 
 /** ************************************************************************************************
  * This class allows to use \alib_expressions_nl within format strings used with
- * \alib{text,Formatter,ALib Formatters} and thus allows to expose customizable format strings to
+ * \alib{lang::format,Formatter,ALib Formatters} and thus allows to expose customizable format strings to
  * end-users, which leverage an application's expression subsystem.
  *
  * To understand the concept of this class, please read the documentation of class
- * \alib{text,PropertyFormatter} \b first, which is almost a 1:1 copy of this class but
+ * \alib{lang::format,PropertyFormatter} \b first, which is almost a 1:1 copy of this class but
  * uses simple "property callback functions" instead of expressions.
  *
  * \note
  *    This documentation rather documents the differences to \b %PropertyFormatter instead of
  *    repeating what is explained already in the sibling class.
  *
- * This class can be used in the same way as \alib{text,PropertyFormatter}. However,
+ * This class can be used in the same way as \alib{lang::format,PropertyFormatter}. However,
  * instead of the provision of a table of type
- * \alib{text,PropertyFormatter::TCallbackTable}, this class expects an expression
+ * \alib{lang::format,PropertyFormatter::TCallbackTable}, this class expects an expression
  * compiler in the constructor.
  *
  * With that, simple expressions comprised of just a single identifier term can be used in
@@ -61,14 +60,14 @@ namespace aworx { namespace lib { namespace expressions { namespace util {
  * To separate the given expressions strings from other formatting information provided in a
  * placeholder, a special separator character is used. This character is provided with construction
  * and defaults to symbol \c '@'. A format string that uses
- * \alib{text,FormatterPythonStyle,python formatting syntax} might look like this:
+ * \alib{lang::format,FormatterPythonStyle,python formatting syntax} might look like this:
  *
  *      "The surface is {width * height@:>5.2} sqm."
  *
  * <p>
 \I{################################################################################################}
  * # Reference Documentation #
- * @throws aworx::lib::text::Exceptions::UnknownPropertyInFormatString
+ * @throws alib::lang::format::FMTExceptions::UnknownPropertyInFormatString
  **************************************************************************************************/
 class ExpressionFormatter
 {
@@ -97,13 +96,13 @@ class ExpressionFormatter
          * @param formatString        The format string as described in the class documentation.
          * @param compiler            The expression compiler.
          * @param formatter           The formatter to use. Defaults to \c nullptr which selects
-         *                            \alib{text,Formatter::GetDefault,default formatter}.
+         *                            \alib{lang::format,Formatter::GetDefault,default formatter}.
          * @param separatorChar       The character that is to be used to separate the expression
          *                            from the placeholder format information in
          *                            \p{customFormatString}.<br>
          *                            Defaults to <c>'@'</c>.
          *
-         * @throws aworx::lib::text::Exceptions::UnknownPropertyInFormatString.
+         * @throws alib::lang::format::FMTExceptions::UnknownPropertyInFormatString.
          ******************************************************************************************/
         ALIB_API
         ExpressionFormatter( const String   formatString,
@@ -124,12 +123,12 @@ class ExpressionFormatter
 
 }; // class ExpressionFormatter
 
-}}} // namespace aworx[::lib::expressions::util]
+} // namespace alib[::expressions::util]
 
-/// Type alias in namespace #aworx.
-using ExpressionFormatter  =    lib::expressions::util::ExpressionFormatter;
+/// Type alias in namespace \b alib.
+using ExpressionFormatter  =    expressions::util::ExpressionFormatter;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER

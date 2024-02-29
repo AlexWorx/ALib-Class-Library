@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_TYPETRAITS
@@ -12,7 +12,7 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace boxing  {
+namespace alib {  namespace boxing  {
 
 namespace detail  {
 /**
@@ -528,78 +528,77 @@ struct   TT_IsUnboxable<T, typename std::enable_if<
 
 #endif
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 //##################################################################################################
 //#######################################     Macros     ###########################################
 //##################################################################################################
 
 #define ALIB_BOXING_CUSTOMIZE(TSource, TTarget, ...)                                               \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 {                                                                                                  \
     using                       Mapping=    TMappedTo<TTarget>;                                    \
                                 __VA_ARGS__                                                        \
-}; }}}                                                                                             \
+}; }                                                                                             \
 
 #define ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE(TSource, TElement, ...)                                   \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 {                                                                                                  \
     using                       Mapping=    TMappedToArrayOf<TElement>;                            \
                                 __VA_ARGS__                                                        \
-}; }}}
+}; }
 
 #define ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING(TSource, TTarget)                                       \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 { using                         Mapping=    TMappedTo<TTarget>;                                    \
   static void                   Write( Placeholder& target,  TSource const & value )  { target.Write( static_cast<TTarget>( value ) );      } \
   static TSource                Read (const Placeholder& src)                         { return static_cast<TSource>(src.Read<TTarget>());   } \
-}; }}}
+}; }
 
 #define ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR(TSource, TTarget)                             \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 { using                         Mapping=    TMappedTo<TTarget>;                                    \
   static constexpr Placeholder  Write(  TSource const & value )   { return Placeholder( static_cast<TTarget>( value ) );} \
   static TSource                Read (const Placeholder& src)     { return static_cast<TSource>(src.Read<TTarget>()   );} \
-}; }}}
+}; }
 
 
 #define ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE(TSource, TTarget)                                      \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 { using                         Mapping=    TMappedTo<TTarget>;                                    \
   static void                   Write( Placeholder& target,  TSource const & value )  { target.Write( static_cast<typename Mapping::Type>( value ) ); } \
   static void                   Read( const Placeholder& src);                                     \
-}; }}}
+}; }
 
 #define ALIB_BOXING_CUSTOMIZE_NOT_UNBOXABLE_CONSTEXPR(TSource, TTarget)                            \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 { using                         Mapping=    TMappedTo<TTarget>;                                    \
   static constexpr Placeholder  Write(  TSource const & value )   { return Placeholder( static_cast<typename Mapping::Type>( value ) ); } \
   static void                   Read( const Placeholder& src);                                     \
-}; }}}
+}; }
 
 
 #define ALIB_BOXING_CUSTOMIZE_ARRAY_TYPE_NON_UNBOXABLE(TSource, TElement, ...)                     \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 {   using                       Mapping=    TMappedToArrayOf<TElement>;                            \
     __VA_ARGS__                                                                                    \
     static void                 Read( const Placeholder& src);                                     \
-}; }}}
+}; }
 
 
 #define ALIB_BOXING_CUSTOMIZE_DENY_BOXING(TSource)                                                 \
-namespace aworx { namespace lib { namespace boxing  {                                              \
+namespace alib::boxing {                                                                           \
 template<>  struct T_Boxer<TSource>                                                                \
 { using                         Mapping=    TMappedTo<detail::TNotBoxable>;                        \
   static void                   Write( Placeholder& target,  TSource const & value );              \
   static void                   Read ( const Placeholder& src);                                    \
-}; }}}
+}; }
 
 #endif // HPP_ALIB_BOXING_TYPETRAITS
-

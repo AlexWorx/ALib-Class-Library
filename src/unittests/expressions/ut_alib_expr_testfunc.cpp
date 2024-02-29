@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -38,14 +38,14 @@
 #endif
 
 #include <math.h>
-
+#include <assert.h>
 
 #include "unittests/aworx_unittests.hpp"
 
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib;
+using namespace alib;
+using namespace alib;
 #include "unittests/expressions/ut_alib_expr_testfunc.hpp"
 
 ALIB_WARNINGS_MACRO_NOT_USED_OFF
@@ -92,7 +92,7 @@ void    testNormalizaton( const NCString& file, int line, const NCString& func,
     catch( Exception& e )
     {
         ALIB_ASSERT( !expression )
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                   "------ Exception thrown when testing normalization -------\n"
                   "      Expression:  {{{}}}\n"
                   "Exception:",
@@ -103,7 +103,7 @@ void    testNormalizaton( const NCString& file, int line, const NCString& func,
 
     if( !expression->GetNormalizedString().Equals( expected ) )
     {
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                   "------ Error in  normalization -------\n"
                   "   Expression:  {{{}}}\n"
                   "   Normalized:  {{{}}}\n"
@@ -151,7 +151,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         if( expected == e.Type().CastToBox() )
         {
             Lox_SetVerbosity( ut.utl, Verbosity::Verbose, "/" )
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                   "Expression compilation threw exception as expected:\n"
                   "      Expression:  {{{}}}\n"
                   "Exception:",
@@ -162,7 +162,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
 
         if( expected.IsSameType(e.Type().CastToBox()) )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                   "--------- Error --------\n"
                   "Expression compilation threw a different exception than expected:\n"
                   "         Expression:  {{{}}}\n"
@@ -174,7 +174,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             assert(!ut.AssertOnFailure);
         }
 
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                   "--------- Error --------\n"
                   "Expression compilation threw UNEXPECTED exception:\n"
                   " Expression:  {{{}}}",
@@ -198,7 +198,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     {
         if( expected == e.Type().CastToBox() )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                   "Expression threw exception as expected:\n"
                   " Expression:  {{{}}}\n"
                   "  Normalized: {{{}}}",
@@ -211,7 +211,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
 
         if( expected.IsSameType(e.Type().CastToBox()) )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                   "--------- Error --------\n"
                   "Expression threw different exception than expected:\n"
                   "         Expression:  {{{}}}\n"
@@ -225,7 +225,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             assert(!ut.AssertOnFailure);
         }
 
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                   "--------- Error --------\n"
                   "Expression threw UNEXPECTED exception:\n"
                   " Expression:  {{{}}}\n"
@@ -244,7 +244,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     {
         if( !expected.IsSameType(result) )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Error in expression result type:\n"
                       "             Expression: {{{}}}\n"
@@ -263,7 +263,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         //---------------- check result value -------------------
         if( expected != result )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Error in expression result value:\n"
                       "          Expression: {{{}}}\n"
@@ -293,7 +293,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ALIB_ASSERT( !recompiled )
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Recompiling normalized (!!!) threw exception:\n"
                       "              Original: {{{}}}\n"
@@ -314,7 +314,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Recompiled (!!!) Expression threw exception:\n"
                       "   Expression: {{{}}}\n"
@@ -334,7 +334,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             if( !expected.IsSameType(result2) )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result type of recompiled normalized expression:\n"
                           "            Expression: {{{}}}\n"
@@ -355,7 +355,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             //---------------- check recompiled result value -------------------
             if( expected != result2 )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result value of recompiled normalized expression:\n"
                           "       Expression: {{{}}}\n"
@@ -393,7 +393,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         catch( Exception& e )
         {
             ALIB_ASSERT( !optimized )
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Recompiling OPTIMIZED normalized (!!!) threw exception:\n"
                       "                   Original: {{{}}}\n"
@@ -414,7 +414,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Recompiled (!!!) Expression threw exception:\n"
                       "  Expression: {{{}}}\n"
@@ -433,7 +433,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             if( !expected.IsSameType(result2) )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result type of recompiled normalized expression:\n"
                           "           Expression: {{{}}}\n"
@@ -454,7 +454,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             //---------------- check recompiled result value -------------------
             if( expected != result2 )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result value of recompiled normalized expression:\n"
                           "       Expression: {{{}}}\n"
@@ -476,7 +476,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         integer optimizedPLen= optimized->GetProgram()->Length();
         if( programLength > 0 && programLength != optimizedPLen )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Error in expression PROGRAM LENGTH of recompiling optimized expression:\n"
                       "       Expression: {{{}}}\n"
@@ -504,7 +504,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     integer optimizedPLen= expression->GetProgram()->Length();
     if( programLength > 0 && programLength != optimizedPLen )
     {
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                   "Error in expression PROGRAM LENGTH:\n"
                   "      Expression: {{{}}}\n"
@@ -539,7 +539,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             compiler.CfgCompilation-= expressions::Compilation::NoOptimization;
             ALIB_ASSERT( !expressionCompiledWitoutOptimizations )
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Compiling with \"NoOptimization\" threw exception:\n"
                       "           Original: {{{}}}\n"
@@ -561,7 +561,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Evaluation of expression compiled with \"NoOptimization\"  threw exception:\n"
                       "                    Original: {{{}}}\n"
@@ -580,7 +580,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             if( !expected.IsSameType(result2) )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result type of expression compiled with \"NoOptimization\":\n"
                           "                            Expression: {{{}}}\n"
@@ -601,7 +601,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             //---------------- check recompiled result value -------------------
             if( expected != result2 )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result value of expression compiled with \"NoOptimization\":\n"
                           "                            Expression: {{{}}}\n"
@@ -632,7 +632,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             compiler.CfgCompilation-= expressions::Compilation::NoOptimization;
             ALIB_ASSERT( !expressionCompiledWitoutOptimizationsDecompiled )
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Compiling \"decompiled-non-optimized\" (!) threw exception:\n"
                       "                        Original: {{{}}}\n"
@@ -651,7 +651,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         }
         catch( Exception& e )
         {
-            ut.Print (file, line, aworx::Verbosity::Info,
+            ut.Print (file, line, alib::Verbosity::Info,
                       "--------- Error --------\n"
                       "Evaluation of \"decompiled-non-optimized\" (!) threw exception:\n"
                       "                               Original: {{{}}}\n"
@@ -670,7 +670,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
         {
             if( !expected.IsSameType(result2) )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result type of \"decompiled-non-optimized\" (!):\n"
                           "                               Original: {{{}}}\n"
@@ -691,7 +691,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
             //---------------- check recompiled result value -------------------
             if( expected != result2 )
             {
-                ut.Print (file, line, aworx::Verbosity::Info,
+                ut.Print (file, line, alib::Verbosity::Info,
                           "--------- Error --------\n"
                           "Error in result type of \"decompiled-non-optimized\" (!):\n"
                           "                            Expression: {{{}}}\n"
@@ -712,7 +712,7 @@ SPExpression testExpression( const NCString& file, int line, const NCString& fun
     }
 
     //---------------- print success -------------------
-    ut.Print (file, line, aworx::Verbosity::Info,
+    ut.Print (file, line, alib::Verbosity::Info,
               "Expression: {}\n"
               "      Norm: {}\n"
               "       Opt: {}\n"
@@ -765,7 +765,7 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     }
     catch( Exception& e )
     {
-        ut.Print (file, line, aworx::Verbosity::Info,
+        ut.Print (file, line, alib::Verbosity::Info,
                   "Cant print program. Exception compiling expression:\n"
                   " Expression:  {{{}}}",
                   expressionString        );
@@ -775,7 +775,7 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     }
     ALIB_ASSERT( expression )
 
-    ut.Print (file, line, aworx::Verbosity::Info, "Expression Listing:" );
+    ut.Print (file, line, alib::Verbosity::Info, "Expression Listing:" );
 
     AString listing=  expressions::detail::VirtualMachine::DbgList(*dynamic_cast<expressions::detail::Program*>( expression->GetProgram() ) );
     auto        oldMultiLineMsgMode     = ut.utl->MultiLineMsgMode;
@@ -784,7 +784,7 @@ SPExpression printProgram( const NCString& file, int line, const NCString& func,
     ut.utl->FmtMultiLinePrefix= "";
 
     listing << NewLine();
-    ut.Print (file, line, aworx::Verbosity::Info, listing );
+    ut.Print (file, line, alib::Verbosity::Info, listing );
     ut.utl->MultiLineMsgMode  = oldMultiLineMsgMode;
     ut.utl->FmtMultiLinePrefix= oldFmtMultiLinePrefix;
 #endif

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,14 +20,14 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
-Variable&    Variable::Reset( CurrentData nameAndCategory )
+Variable&    Variable::Reset( lang::CurrentData nameAndCategory )
 {
     auto& self= Self();
     String128 oldName;
     String128 oldCategory;
-    if( nameAndCategory == CurrentData::Keep )
+    if( nameAndCategory == lang::CurrentData::Keep )
     {
         oldName     << self.Name;
         oldCategory << self.Category;
@@ -49,7 +49,7 @@ Variable&    Variable::Reset( CurrentData nameAndCategory )
     // its internal data field.
     new (&self.values) std::vector<String,StdContMA<String>>( StdContMA<String>(Allocator()) );
 
-    if( nameAndCategory == CurrentData::Keep )
+    if( nameAndCategory == lang::CurrentData::Keep )
     {
         self.Name       = Allocator().EmplaceString( oldName     );
         self.Category   = Allocator().EmplaceString( oldCategory );
@@ -252,8 +252,8 @@ bool Variable::GetAttribute( const String& attrName, Substring& result, characte
     for ( int i= 0; i< Size(); ++i )
     {
         result= GetString( i );
-        if (    result.ConsumeString<Case::Ignore, Whitespaces::Trim>( attrName  )
-             && result.ConsumeChar  <Case::Ignore, Whitespaces::Trim>( attrDelim ) )
+        if (    result.ConsumeString<lang::Case::Ignore, lang::Whitespaces::Trim>( attrName  )
+             && result.ConsumeChar  <lang::Case::Ignore, lang::Whitespaces::Trim>( attrDelim ) )
         {
             result.Trim();
             return true;
@@ -293,5 +293,4 @@ void VariableDecl::Parse()
 }
 DOX_MARKER([DOX_ALIB_ENUMS_RECORD_PARSER])
 
-}}}// namespace [aworx::lib::config]
-
+}} // namespace [alib::config]

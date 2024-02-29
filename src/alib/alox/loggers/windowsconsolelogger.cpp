@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
+//  alib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -29,8 +29,8 @@
 #   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
 #      include "alib/enums/serialization.hpp"
 #   endif
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 #   if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
 #      include <iostream>
@@ -41,7 +41,7 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 using namespace detail;
 
@@ -162,7 +162,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
     Substring& rest=   msgParts.Rest;
     for(;;)
     {
-        if ( msgParts.Next( Whitespaces::Keep ).IsNotEmpty() )
+        if ( msgParts.Next(lang::Whitespaces::Keep ).IsNotEmpty() )
         {
             #if !ALIB_CHARACTERS_WIDE
                 WriteConsoleA( H, actual.Buffer(), (DWORD) actual.Length(), &ignore, NULL );
@@ -231,7 +231,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
             if( qtySpaces > 0 )
             {
                 column+= qtySpaces;
-                String& spaces= lib::strings::util::Spaces::Get();
+                String& spaces= strings::util::Spaces::Get();
                 while ( qtySpaces > 0 )
                 {
                     integer nextQty= qtySpaces < spaces.Length() ? qtySpaces
@@ -276,6 +276,6 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
 
 }
 
-}}} // namespace [aworx::lib::lox]
+}}  // namespace [alib::lox]
 
 #endif // Win32

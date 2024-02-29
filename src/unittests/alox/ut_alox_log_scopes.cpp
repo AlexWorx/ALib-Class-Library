@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -39,8 +39,6 @@
     #include "alib/config/inifile.hpp"
 #endif
 
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
 // Fix the method name of logging (needed for unity builds)
 #undef  ALIB_CALLER
 #if defined( __GNUC__ )
@@ -50,8 +48,8 @@
 #endif
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib::lox::detail::textlogger;
+using namespace alib;
+using namespace alib::lox::detail::textlogger;
 
 
 
@@ -239,8 +237,8 @@ UT_METHOD(Log_LineFormat)
     Log_Prune( delete testML );
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
@@ -259,8 +257,8 @@ UT_METHOD(Log_Prefix)
     UT_INIT()
 
     // we have to clear  all trim rules and set a new one to have a longer path
-    Log_ClearSourcePathTrimRules(Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/alox/src/", Inclusion::Exclude )
+    Log_ClearSourcePathTrimRules(lang::Reach::Global, false )
+    Log_SetSourcePathTrimRule( "*/alox/src/", lang::Inclusion::Exclude )
 
 
     Log_AddDebugLogger()
@@ -322,15 +320,15 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
     Log_SetPrefix( "DOM1:" )                         PFXCHECK( "FILE:METHOD:DOM1:*msg*"            ,ml )
     Boxes domPfx;             // set two logables at once!
     domPfx.Add("DO", "M2:" );
-    Log_SetPrefix( domPfx  )                         PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
-    Log_SetPrefix( "DOM3:" )                         PFXCHECK( "FILE:METHOD:DOM1:DOM2:DOM3:*msg*"  ,ml )
-    Log_SetPrefix( ""      )                         PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
-    Log_SetPrefix( ""      )                         PFXCHECK( "FILE:METHOD:DOM1:*msg*"            ,ml )
-    Log_SetPrefix( "DOMR:", "/" )                    PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
-    Log_SetPrefix( "DOMX:", "", Inclusion::Exclude ) PFXCHECK( "DOMX:*msg*"                        ,ml )
-    Log_SetPrefix( ""      )                         PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
-    Log_SetPrefix( "DRX:", "/", Inclusion::Exclude ) PFXCHECK( "DRX:DOM1:*msg*"                    ,ml )
-    Log_SetPrefix( ""    , "/"  )                    PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
+    Log_SetPrefix( domPfx  )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
+    Log_SetPrefix( "DOM3:" )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:DOM3:*msg*"  ,ml )
+    Log_SetPrefix( ""      )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
+    Log_SetPrefix( ""      )                               PFXCHECK( "FILE:METHOD:DOM1:*msg*"            ,ml )
+    Log_SetPrefix( "DOMR:", "/" )                          PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
+    Log_SetPrefix( "DOMX:", "", lang::Inclusion::Exclude ) PFXCHECK( "DOMX:*msg*"                        ,ml )
+    Log_SetPrefix( ""      )                               PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
+    Log_SetPrefix( "DRX:", "/", lang::Inclusion::Exclude ) PFXCHECK( "DRX:DOM1:*msg*"                    ,ml )
+    Log_SetPrefix( ""    , "/"  )                          PFXCHECK( "FILE:METHOD:DOMR:DOM1:*msg*"       ,ml )
 
     // source path
     Log_SetPrefix( "REPLACE:",    Scope::Path     )  PFXCHECK( "REPLACE:FILE:METHOD:DOMR:DOM1:*msg*"               ,ml )
@@ -378,11 +376,11 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
         Log_SetPrefix( nullptr ,Scope::ThreadInner )  PFXCHECK( "*msg*"                        ,ml )
 
         // check if breaking dom-related, removes all thread inner correctly
-        Log_SetPrefix( ":TI"   ,Scope::ThreadInner )     PFXCHECK( "*msg*:TI"                  ,ml )
-        Log_SetPrefix( "DOM1:", "", Inclusion::Include ) PFXCHECK( "DOM1:*msg*:TI"             ,ml )
-        Log_SetPrefix( "DOMX:", "", Inclusion::Exclude ) PFXCHECK( "DOMX:*msg*"                ,ml )
-        Log_SetPrefix( ":TI"   ,Scope::ThreadInner )     PFXCHECK( "DOMX:*msg*"                ,ml )
-        Log_SetPrefix( nullptr, ""                     ) PFXCHECK( "DOM1:*msg*:TI:TI"          ,ml )
+        Log_SetPrefix( ":TI"   ,Scope::ThreadInner )           PFXCHECK( "*msg*:TI"                  ,ml )
+        Log_SetPrefix( "DOM1:", "", lang::Inclusion::Include ) PFXCHECK( "DOM1:*msg*:TI"             ,ml )
+        Log_SetPrefix( "DOMX:", "", lang::Inclusion::Exclude ) PFXCHECK( "DOMX:*msg*"                ,ml )
+        Log_SetPrefix( ":TI"   ,Scope::ThreadInner )           PFXCHECK( "DOMX:*msg*"                ,ml )
+        Log_SetPrefix( nullptr, ""                     )       PFXCHECK( "DOM1:*msg*:TI:TI"          ,ml )
     #endif
 
     Log_RemoveLogger( &ml )
@@ -395,8 +393,8 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
     #endif
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
@@ -413,8 +411,8 @@ UT_METHOD(Log_ScopeDomains)
     UT_INIT()
 
     // we have tell alox to include more directories in the scope path
-    Log_ClearSourcePathTrimRules( Reach::Global, false )
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, "/test/test2/test3", Reach::Global )
+    Log_ClearSourcePathTrimRules( lang::Reach::Global, false )
+    Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Exclude, 0, lang::Case::Ignore, "/test/test2/test3", lang::Reach::Global )
 
     Log_AddDebugLogger()
     MemoryLogger ml;
@@ -557,8 +555,8 @@ UT_METHOD(Log_ScopeDomains)
     #endif
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
@@ -582,10 +580,10 @@ UT_METHOD(Lox_ScopeDomains)
     Lox lox("ReleaseLox");
 
     // we have to tell alox to include more directories in the scope path
-    Lox_ClearSourcePathTrimRules( Reach::Global, false )
-    Lox_SetSourcePathTrimRule( "*/src/", Inclusion::Exclude, 0, Case::Ignore, "/test/test2/test3" )
+    Lox_ClearSourcePathTrimRules( lang::Reach::Global, false )
+    Lox_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Exclude, 0, lang::Case::Ignore, "/test/test2/test3" )
 
-    aworx::TextLogger* consoleLogger= Lox::CreateConsoleLogger();
+    alib::TextLogger* consoleLogger= Lox::CreateConsoleLogger();
     MemoryLogger ml;
     ml.MetaInfo->Format.Reset("@%D#");
     Lox_SetVerbosity(&ml, Verbosity::Verbose )
@@ -696,8 +694,8 @@ UT_METHOD(Lox_ScopeDomains)
     delete consoleLogger;
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #undef LOX_LOX
 #endif

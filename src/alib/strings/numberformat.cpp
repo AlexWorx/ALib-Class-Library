@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,7 +16,7 @@
 #   include <clocale>
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 #if !defined(ALIB_DOX)
 
@@ -47,16 +47,11 @@ namespace {
     template<typename TChar>
     void setComputational( TNumberFormat<TChar>& nf )
     {
-        nf.DecimalPointChar=               '.';
-        nf.ForceDecimalPoint=              true;
-        nf.ReadGroupChars=
-        nf.WriteGroupChars=
-        nf.OmitTrailingFractionalZeros=
-        nf.WriteExponentPlusSign=
-        nf.HexLowerCase=
-        nf.ForceScientific=                false;
-        nf.Whitespaces=                    TT_StringConstants<TChar>::DefaultWhitespaces();
-        nf.PlusSign=                       '\0';
+        nf.Flags                      = NumberFormatFlags::NONE;
+        nf.DecimalPointChar           = '.';
+        nf.Flags                      = NumberFormatFlags( uint8_t(nf.Flags) | uint8_t(NumberFormatFlags::ForceDecimalPoint) );
+        nf.Whitespaces                = TT_StringConstants<TChar>::DefaultWhitespaces();
+        nf.PlusSign                   = '\0';
 
         // automatic field width (->minimum size of maximum accuracy)
         nf.DecMinimumFieldWidth=
@@ -133,18 +128,4 @@ template void     TNumberFormat<xchar>::SetFromLocale   ( );
 
 #endif // HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION
 
-
-// #################################################################################################
-// static fields
-// #################################################################################################
-//template ALIB_API TNumberFormat<nchar>    TNumberFormat<nchar>::Global;
-//template ALIB_API TNumberFormat<nchar>    TNumberFormat<nchar>::Computational;
-//template ALIB_API TNumberFormat<wchar>    TNumberFormat<wchar>::Global;
-//template ALIB_API TNumberFormat<wchar>    TNumberFormat<wchar>::Computational;
-//template ALIB_API TNumberFormat<xchar>    TNumberFormat<xchar>::Global;
-//template ALIB_API TNumberFormat<xchar>    TNumberFormat<xchar>::Computational;
-
-
-
-
-}}}// namespace [aworx::lib::strings]
+}} // namespace [alib::strings]

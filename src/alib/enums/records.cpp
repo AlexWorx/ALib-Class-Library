@@ -1,19 +1,14 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#   if ALIB_FILESET_COMMON_ENUMS
-#       if !defined(HPP_ALIB_FS_COMMONENUMS)
-#           include "alib/lib/fs_commonenums/commonenums.hpp"
-#       endif
-#   if !defined (HPP_ALIB_FS_COMMONENUMS_DEFS)
-#      include "alib/lib/fs_commonenums/commonenumdefs.hpp"
-#   endif
+#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
+#       include "alib/lang/commonenums.hpp"
 #   endif
 #   if !defined(HPP_ALIB_ENUMS_DETAIL_ENUMRECORDMAP)
 #      include "alib/enums/detail/enumrecordmap.hpp"
@@ -27,10 +22,11 @@
 #          include "alib/strings/localstring.hpp"
 #       endif
 #   endif
+#
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 
 // #################################################################################################
@@ -55,16 +51,9 @@ namespace
 void  setEnumRecord( const std::type_info& rtti, integer elementValue, const void* record )
 {
     #if ALIB_MONOMEM
-            EnumRecordMap.EmplaceIfNotExistent( EnumRecordKey(rtti, elementValue ), record );
+        EnumRecordMap.EmplaceIfNotExistent( EnumRecordKey(rtti, elementValue ), record );
     #else
-        #if ALIB_CPPVER < 17
-            auto key= EnumRecordKey(rtti, elementValue);
-            auto it= EnumRecordMap.find( key );
-            if ( it == EnumRecordMap.end() )
-                EnumRecordMap.emplace( key, record );
-        #else
-            EnumRecordMap.try_emplace( EnumRecordKey(rtti, elementValue ), record );
-        #endif
+        EnumRecordMap.try_emplace( EnumRecordKey(rtti, elementValue ), record );
     #endif
 }
 
@@ -97,7 +86,7 @@ const std::unordered_map< EnumRecordKey, const void*,
 
 
 
-} // namespace aworx::lib::enums[::detail]
+} // namespace alib::enums[::detail]
 
 // #################################################################################################
 // EnumRecordParser
@@ -145,14 +134,14 @@ void EnumRecordParser::error [[noreturn]] (const NCString& what)
 void EnumRecordParser::assertNoWhitespaces(const NCString& where)
 {
     if(    Input.IsNotEmpty()
-        && Input.IndexOfAny<Inclusion::Exclude>( DefaultWhitespaces() ) != 0 )
+        && Input.IndexOfAny<lang::Inclusion::Exclude>( DefaultWhitespaces() ) != 0 )
         assembleMsgAndThrow( NString256() << "Found whitespaces "
                                           << where );
 }
 
 void EnumRecordParser::assertNoTrailingWhitespaces(String& token)
 {
-    if( token.LastIndexOfAny<Inclusion::Exclude>( DefaultWhitespaces() ) != token.Length() -1 )
+    if( token.LastIndexOfAny<lang::Inclusion::Exclude>( DefaultWhitespaces() ) != token.Length() -1 )
         assembleMsgAndThrow( NString256() << "Found trailing whitespaces in string value \""
                                           << token << '"' );
 }
@@ -192,9 +181,9 @@ integer EnumRecordParser::getInteger( bool isLastField )
     assertNoWhitespaces( "before integral value" );
     assertNoUnnecessary( A_CHAR('+'), "before integral value" );
 
-         if( Input.ConsumeString<Case::Ignore>( A_CHAR("max") ) )
+         if( Input.ConsumeString<lang::Case::Ignore>( A_CHAR("max") ) )
            bigInt= (std::numeric_limits<integer>::max)();
-    else if( Input.ConsumeString<Case::Ignore>( A_CHAR("min") ) )   bigInt= (std::numeric_limits<integer>::min)();
+    else if( Input.ConsumeString<lang::Case::Ignore>( A_CHAR("min") ) )   bigInt= (std::numeric_limits<integer>::min)();
     else if( Input.ConsumeChar( A_CHAR('^') ) )
     {
         int exp;
@@ -235,7 +224,7 @@ void EnumRecordParser::Get( String& result, bool isLastField )
 void EnumRecordParser::Get( character& result, bool isLastField )
 {
     assertNoWhitespaces( "before a character value" );
-    result= Input.ConsumeChar<true, Whitespaces::Keep>();
+    result= Input.ConsumeChar<true, lang::Whitespaces::Keep>();
     if(    (!isLastField && ( result == InnerDelimChar                   ) )
         || ( isLastField && ( result == OuterDelimChar || result == '\0' ) )  )
         result= '\0';
@@ -300,159 +289,159 @@ void ERSerializable::Parse()
 // #################################################################################################
 // enums::Bootstrap()
 // #################################################################################################
-#if !ALIB_FILESET_MODULES
+#if !ALIB_CAMP
 void Bootstrap()
 {
-#if ALIB_FILESET_COMMON_ENUMS && ALIB_STRINGS
+#if ALIB_STRINGS
 DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS])
-EnumRecords<Bool>::Bootstrap(
+EnumRecords<lang::Bool>::Bootstrap(
 {
-    { Bool::True , A_CHAR("False"), 1 },
-    { Bool::False, A_CHAR("True" ), 1 },
-    { Bool::True , A_CHAR("0"    ), 1 },
-    { Bool::False, A_CHAR("1"    ), 1 },
-    { Bool::True , A_CHAR("No"   ), 1 },
-    { Bool::False, A_CHAR("Yes"  ), 1 },
-    { Bool::True , A_CHAR("Off"  ), 2 },
-    { Bool::False, A_CHAR("On"   ), 2 },
-    { Bool::True , A_CHAR("-"    ), 1 },
-    { Bool::False, A_CHAR("Ok"   ), 2 }
+    { lang::Bool::True , A_CHAR("False"), 1 },
+    { lang::Bool::False, A_CHAR("True" ), 1 },
+    { lang::Bool::True , A_CHAR("0"    ), 1 },
+    { lang::Bool::False, A_CHAR("1"    ), 1 },
+    { lang::Bool::True , A_CHAR("No"   ), 1 },
+    { lang::Bool::False, A_CHAR("Yes"  ), 1 },
+    { lang::Bool::True , A_CHAR("Off"  ), 2 },
+    { lang::Bool::False, A_CHAR("On"   ), 2 },
+    { lang::Bool::True , A_CHAR("-"    ), 1 },
+    { lang::Bool::False, A_CHAR("Ok"   ), 2 }
 } );
 DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS])
 
-EnumRecords<Case>::Bootstrap(
+EnumRecords<lang::Case>::Bootstrap(
 {
-    { Case::Sensitive, A_CHAR("Sensitive"), 1 },
-    { Case::Ignore   , A_CHAR("Ignore"   ), 1 },
+    { lang::Case::Sensitive, A_CHAR("Sensitive"), 1 },
+    { lang::Case::Ignore   , A_CHAR("Ignore"   ), 1 },
 } );
 
 DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS_2])
-EnumRecords<ContainerOp>::Bootstrap(
+EnumRecords<lang::ContainerOp>::Bootstrap(
 {
-    { ContainerOp::Insert   , A_CHAR("Insert"   ), 1 }, // integral 0
-    { ContainerOp::Remove   , A_CHAR("Remove"   ), 1 }, // integral 1
-    { ContainerOp::GetCreate, A_CHAR("GetCreate"), 4 }, // integral 3 <-- Switched order
-    { ContainerOp::Get      , A_CHAR("Get"      ), 1 }, // integral 2 <--
-    { ContainerOp::Create   , A_CHAR("Create"   ), 1 }, // integral 4
+    { lang::ContainerOp::Insert   , A_CHAR("Insert"   ), 1 }, // integral 0
+    { lang::ContainerOp::Remove   , A_CHAR("Remove"   ), 1 }, // integral 1
+    { lang::ContainerOp::GetCreate, A_CHAR("GetCreate"), 4 }, // integral 3 <-- Switched order
+    { lang::ContainerOp::Get      , A_CHAR("Get"      ), 1 }, // integral 2 <--
+    { lang::ContainerOp::Create   , A_CHAR("Create"   ), 1 }, // integral 4
 } );
 DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS_2])
 
-EnumRecords<Switch>::Bootstrap(
+EnumRecords<lang::Switch>::Bootstrap(
 {
-    { Switch::Off                    , A_CHAR("Off")           , 2 },
-    { Switch::On                     , A_CHAR("On" )           , 2 },
+    { lang::Switch::Off                    , A_CHAR("Off")           , 2 },
+    { lang::Switch::On                     , A_CHAR("On" )           , 2 },
 } );
 
-EnumRecords<Alignment>::Bootstrap(
+EnumRecords<lang::Alignment>::Bootstrap(
 {
-    { Alignment::Left                , A_CHAR("Left"  )        , 1 },
-    { Alignment::Right               , A_CHAR("Right" )        , 1 },
-    { Alignment::Center              , A_CHAR("Center")        , 1 },
+    { lang::Alignment::Left                , A_CHAR("Left"  )        , 1 },
+    { lang::Alignment::Right               , A_CHAR("Right" )        , 1 },
+    { lang::Alignment::Center              , A_CHAR("Center")        , 1 },
 } );
 
-EnumRecords<SortOrder>::Bootstrap(
+EnumRecords<lang::SortOrder>::Bootstrap(
 {
-    { SortOrder::Ascending           , A_CHAR("Ascending" )    , 1 },
-    { SortOrder::Descending          , A_CHAR("Descending")    , 1 },
+    { lang::SortOrder::Ascending           , A_CHAR("Ascending" )    , 1 },
+    { lang::SortOrder::Descending          , A_CHAR("Descending")    , 1 },
 } );
 
-EnumRecords<Inclusion>::Bootstrap(
+EnumRecords<lang::Inclusion>::Bootstrap(
 {
-    { Inclusion::Include             , A_CHAR("Include")       , 1 },
-    { Inclusion::Exclude             , A_CHAR("Exclude")       , 1 },
+    { lang::Inclusion::Include             , A_CHAR("Include")       , 1 },
+    { lang::Inclusion::Exclude             , A_CHAR("Exclude")       , 1 },
 } );
 
-EnumRecords<Reach>::Bootstrap(
+EnumRecords<lang::Reach>::Bootstrap(
 {
-    { Reach::Global                  , A_CHAR("Global")        , 1 },
-    { Reach::Local                   , A_CHAR("Local" )        , 1 },
+    { lang::Reach::Global                  , A_CHAR("Global")        , 1 },
+    { lang::Reach::Local                   , A_CHAR("Local" )        , 1 },
 } );
 
-EnumRecords<CurrentData>::Bootstrap(
+EnumRecords<lang::CurrentData>::Bootstrap(
 {
-    { CurrentData::Keep              , A_CHAR("Keep" )         , 1 },
-    { CurrentData::Clear             , A_CHAR("Clear")         , 1 },
+    { lang::CurrentData::Keep              , A_CHAR("Keep" )         , 1 },
+    { lang::CurrentData::Clear             , A_CHAR("Clear")         , 1 },
 } );
 
-EnumRecords<SourceData>::Bootstrap(
+EnumRecords<lang::SourceData>::Bootstrap(
 {
-    { SourceData::Copy               , A_CHAR("Copy")          , 1 },
-    { SourceData::Move               , A_CHAR("Move")          , 1 },
+    { lang::SourceData::Copy               , A_CHAR("Copy")          , 1 },
+    { lang::SourceData::Move               , A_CHAR("Move")          , 1 },
 } );
 
 
-EnumRecords<Safeness>::Bootstrap(
+EnumRecords<lang::Safeness>::Bootstrap(
 {
-    { Safeness::Safe                 , A_CHAR("Safe"  )        , 1 },
-    { Safeness::Unsafe               , A_CHAR("Unsafe")        , 1 },
+    { lang::Safeness::Safe                 , A_CHAR("Safe"  )        , 1 },
+    { lang::Safeness::Unsafe               , A_CHAR("Unsafe")        , 1 },
 } );
 
-EnumRecords<Responsibility>::Bootstrap(
+EnumRecords<lang::Responsibility>::Bootstrap(
 {
-    { Responsibility::KeepWithSender , A_CHAR("KeepWithSender"), 1 },
-    { Responsibility::Transfer       , A_CHAR("Transfer"      ), 1 },
+    { lang::Responsibility::KeepWithSender , A_CHAR("KeepWithSender"), 1 },
+    { lang::Responsibility::Transfer       , A_CHAR("Transfer"      ), 1 },
 } );
 
-EnumRecords<Side>::Bootstrap(
+EnumRecords<lang::Side>::Bootstrap(
 {
-    { Side::Left                     , A_CHAR("Left" )         , 1 },
-    { Side::Right                    , A_CHAR("Right")         , 1 },
+    { lang::Side::Left                     , A_CHAR("Left" )         , 1 },
+    { lang::Side::Right                    , A_CHAR("Right")         , 1 },
 } );
 
-EnumRecords<Timezone>::Bootstrap(
+EnumRecords<lang::Timezone>::Bootstrap(
 {
-    { Timezone::Local                , A_CHAR("v"  )           , 1 },
-    { Timezone::UTC                  , A_CHAR("UTC")           , 1 },
+    { lang::Timezone::Local                , A_CHAR("v"  )           , 1 },
+    { lang::Timezone::UTC                  , A_CHAR("UTC")           , 1 },
 } );
 
-EnumRecords<Whitespaces>::Bootstrap(
+EnumRecords<lang::Whitespaces>::Bootstrap(
 {
-    { Whitespaces::Trim              , A_CHAR("Trim")          , 1 },
-    { Whitespaces::Keep              , A_CHAR("Keep")          , 1 },
+    { lang::Whitespaces::Trim              , A_CHAR("Trim")          , 1 },
+    { lang::Whitespaces::Keep              , A_CHAR("Keep")          , 1 },
 } );
 
-EnumRecords<Propagation>::Bootstrap(
+EnumRecords<lang::Propagation>::Bootstrap(
 {
-    { Propagation::Omit              , A_CHAR("Omit"         ) , 1 },
-    { Propagation::ToDescendants     , A_CHAR("ToDescendants") , 1 },
+    { lang::Propagation::Omit              , A_CHAR("Omit"         ) , 1 },
+    { lang::Propagation::ToDescendants     , A_CHAR("ToDescendants") , 1 },
 } );
 
-EnumRecords<Phase>::Bootstrap(
+EnumRecords<lang::Phase>::Bootstrap(
 {
-    { Phase::Begin                   , A_CHAR("Begin")         , 1 },
-    { Phase::End                     , A_CHAR("End"  )         , 1 },
+    { lang::Phase::Begin                   , A_CHAR("Begin")         , 1 },
+    { lang::Phase::End                     , A_CHAR("End"  )         , 1 },
 } );
 
-EnumRecords<Initialization>::Bootstrap(
+EnumRecords<lang::Initialization>::Bootstrap(
 {
-    { Initialization::Suppress         , A_CHAR("Suppress")    , 1 },
-    { Initialization::Perform          , A_CHAR("Perform" )    , 1 },
-    { Initialization::Suppress         , A_CHAR("NoInit"  )    , 1 },
-    { Initialization::Perform          , A_CHAR("Init"    )    , 1 },
-    { Initialization::Perform          , A_CHAR("Yes"     )    , 1 },
+    { lang::Initialization::Suppress         , A_CHAR("Suppress")    , 1 },
+    { lang::Initialization::Perform          , A_CHAR("Perform" )    , 1 },
+    { lang::Initialization::Suppress         , A_CHAR("NoInit"  )    , 1 },
+    { lang::Initialization::Perform          , A_CHAR("Init"    )    , 1 },
+    { lang::Initialization::Perform          , A_CHAR("Yes"     )    , 1 },
 } );
 
-EnumRecords<Timing>::Bootstrap(
+EnumRecords<lang::Timing>::Bootstrap(
 {
-    { Timing::Async                  , A_CHAR("Async"  )       , 1 },
-    { Timing::Sync                   , A_CHAR("Sync"   )       , 1 },
-    { Timing::Async                  , A_CHAR("Asynchronous")  , 1 },
-    { Timing::Sync                   , A_CHAR("Synchronous" )  , 1 },
-    { Timing::Sync                   , A_CHAR("Synchronized")  , 1 },
+    { lang::Timing::Async                  , A_CHAR("Async"  )       , 1 },
+    { lang::Timing::Sync                   , A_CHAR("Sync"   )       , 1 },
+    { lang::Timing::Async                  , A_CHAR("Asynchronous")  , 1 },
+    { lang::Timing::Sync                   , A_CHAR("Synchronous" )  , 1 },
+    { lang::Timing::Sync                   , A_CHAR("Synchronized")  , 1 },
 } );
 
-EnumRecords<Caching>::Bootstrap(
+EnumRecords<lang::Caching>::Bootstrap(
 {
-    { Caching::Disabled              , A_CHAR("Disabled")      , 1 },
-    { Caching::Enabled               , A_CHAR("Enabled" )      , 1 },
-    { Caching::Auto                  , A_CHAR("Auto"    )      , 1 },
+    { lang::Caching::Disabled              , A_CHAR("Disabled")      , 1 },
+    { lang::Caching::Enabled               , A_CHAR("Enabled" )      , 1 },
+    { lang::Caching::Auto                  , A_CHAR("Auto"    )      , 1 },
 } );
 
-#endif // ALIB_FILESET_COMMON_ENUMS
+#endif // ALIB_STRINGS
 
 
 } // enums::Bootstrap()
-#endif // !ALIB_FILESET_MODULES
+#endif // !ALIB_CAMP
 
 
 
@@ -526,7 +515,7 @@ struct EnumRecordPrototype
      * that no copies of portions need to be allocated when used as a field value of string type.
      * This is in alignment with the static nature of \ref alib_enums_records "ALib Enum Records"
      * and their creation during bootstrap, either from C++ string literals or
-     * \ref alib_mod_resources "ALib Externalized Resources", which comply to the same contract.
+     * \ref alib_basecamp_resources "ALib Externalized Resources", which comply to the same contract.
      *
      * On the same token, in case of an error, an implementation should raise an exception in
      * debug-compilations, as parsing is deemed to succeed on static data, even if externalized.
@@ -536,4 +525,4 @@ struct EnumRecordPrototype
 }; // EnumRecordPrototype
 #endif // defined(ALIB_DOX)
 
-}}} // namespace [aworx::lib::enums]
+}} // namespace [alib::enums]

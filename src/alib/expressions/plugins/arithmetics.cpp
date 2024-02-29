@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,7 +34,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 
 FUNC( ToBoolean , return  args->Call<FIsTrue>();  )
@@ -383,46 +383,46 @@ Calculus::OperatorAliasTableEntry  bitwiseOpsAliasBooleanOps[] =
 Calculus::BinaryOpOptimizationsTableEntry  binaryOperatorOptimizations[] =
 {
     // optimizations with LEFT side constant value
-    { A_CHAR("||"), Side::Left , bool_true , Types::Boolean,    bool_true  },
-    { A_CHAR("||"), Side::Left , bool_false, Types::Boolean,    identity   },
-    { A_CHAR("&&"), Side::Left , bool_true , Types::Boolean,    identity   },
-    { A_CHAR("&&"), Side::Left , bool_false, Types::Boolean,    bool_false },
+    { A_CHAR("||"), lang::Side::Left , bool_true , Types::Boolean,    bool_true  },
+    { A_CHAR("||"), lang::Side::Left , bool_false, Types::Boolean,    identity   },
+    { A_CHAR("&&"), lang::Side::Left , bool_true , Types::Boolean,    identity   },
+    { A_CHAR("&&"), lang::Side::Left , bool_false, Types::Boolean,    bool_false },
 
-    { A_CHAR("+") , Side::Left , int_0     , Types::Integer,    identity   },
-    { A_CHAR("+") , Side::Left , float_0   , Types::Float  ,    identity   },
-    { A_CHAR("-") , Side::Left , int_0     , Types::Integer,    identity   },
-    { A_CHAR("-") , Side::Left , float_0   , Types::Float  ,    identity   },
+    { A_CHAR("+") , lang::Side::Left , int_0     , Types::Integer,    identity   },
+    { A_CHAR("+") , lang::Side::Left , float_0   , Types::Float  ,    identity   },
+    { A_CHAR("-") , lang::Side::Left , int_0     , Types::Integer,    identity   },
+    { A_CHAR("-") , lang::Side::Left , float_0   , Types::Float  ,    identity   },
 
-    { A_CHAR("*") , Side::Left , int_0     , Types::Integer,    int_0      },
-    { A_CHAR("*") , Side::Left , int_1     , Types::Integer,    identity   },
-    { A_CHAR("*") , Side::Left , float_0   , Types::Float  ,    float_0    },
-    { A_CHAR("*") , Side::Left , float_1   , Types::Float  ,    identity   },
+    { A_CHAR("*") , lang::Side::Left , int_0     , Types::Integer,    int_0      },
+    { A_CHAR("*") , lang::Side::Left , int_1     , Types::Integer,    identity   },
+    { A_CHAR("*") , lang::Side::Left , float_0   , Types::Float  ,    float_0    },
+    { A_CHAR("*") , lang::Side::Left , float_1   , Types::Float  ,    identity   },
 
 
     // optimizations with RIGHT side constant value (repeat from above)
-    { A_CHAR("||"), Side::Right, bool_true , Types::Boolean,    bool_true  },
-    { A_CHAR("||"), Side::Right, bool_false, Types::Boolean,    identity   },
-    { A_CHAR("&&"), Side::Right, bool_true , Types::Boolean,    identity   },
-    { A_CHAR("&&"), Side::Right, bool_false, Types::Boolean,    bool_false },
+    { A_CHAR("||"), lang::Side::Right, bool_true , Types::Boolean,    bool_true  },
+    { A_CHAR("||"), lang::Side::Right, bool_false, Types::Boolean,    identity   },
+    { A_CHAR("&&"), lang::Side::Right, bool_true , Types::Boolean,    identity   },
+    { A_CHAR("&&"), lang::Side::Right, bool_false, Types::Boolean,    bool_false },
 
-    { A_CHAR("+") , Side::Right, int_0     , Types::Integer,    identity   },
-    { A_CHAR("+") , Side::Right, float_0   , Types::Float  ,    identity   },
-    { A_CHAR("-") , Side::Right, int_0     , Types::Integer,    identity   },
-    { A_CHAR("-") , Side::Right, float_0   , Types::Float  ,    identity   },
+    { A_CHAR("+") , lang::Side::Right, int_0     , Types::Integer,    identity   },
+    { A_CHAR("+") , lang::Side::Right, float_0   , Types::Float  ,    identity   },
+    { A_CHAR("-") , lang::Side::Right, int_0     , Types::Integer,    identity   },
+    { A_CHAR("-") , lang::Side::Right, float_0   , Types::Float  ,    identity   },
 
-    { A_CHAR("*") , Side::Right, int_0     , Types::Integer,    int_0      },
-    { A_CHAR("*") , Side::Right, int_1     , Types::Integer,    identity   },
-    { A_CHAR("*") , Side::Right, float_0   , Types::Float  ,    float_0    },
-    { A_CHAR("*") , Side::Right, float_1   , Types::Float  ,    identity   },
+    { A_CHAR("*") , lang::Side::Right, int_0     , Types::Integer,    int_0      },
+    { A_CHAR("*") , lang::Side::Right, int_1     , Types::Integer,    identity   },
+    { A_CHAR("*") , lang::Side::Right, float_0   , Types::Float  ,    float_0    },
+    { A_CHAR("*") , lang::Side::Right, float_1   , Types::Float  ,    identity   },
 
     // further optimizations with RIGHT side constant value (not available for left-side)
-    { A_CHAR("/") , Side::Right,    int_1  , Types::Integer,    identity   },
-    { A_CHAR("/") , Side::Right,    int_1  , Types::Float  ,    identity   },
-    { A_CHAR("/") , Side::Right,  float_1  , Types::Float  ,    identity   },
+    { A_CHAR("/") , lang::Side::Right,    int_1  , Types::Integer,    identity   },
+    { A_CHAR("/") , lang::Side::Right,    int_1  , Types::Float  ,    identity   },
+    { A_CHAR("/") , lang::Side::Right,  float_1  , Types::Float  ,    identity   },
 
-    { A_CHAR("%") , Side::Right,    int_1  , Types::Integer,    identity   },
-    { A_CHAR("%") , Side::Right,    int_1  , Types::Float  ,    identity   },
-    { A_CHAR("%") , Side::Right,  float_1  , Types::Float  ,    identity   },
+    { A_CHAR("%") , lang::Side::Right,    int_1  , Types::Integer,    identity   },
+    { A_CHAR("%") , lang::Side::Right,    int_1  , Types::Float  ,    identity   },
+    { A_CHAR("%") , lang::Side::Right,  float_1  , Types::Float  ,    identity   },
 };
 
 
@@ -513,7 +513,7 @@ ALIB_DBG(   ciFunction.DbgCallbackName  = "arrLen";  )
     return false;
 }
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #undef BOL
 #undef INT

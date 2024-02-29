@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_FORMAT
@@ -20,7 +20,7 @@
 #   include <limits>
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /** ************************************************************************************************
  * This is a type purely made to be \ref alib_strings_assembly_ttostring "appended" to objects of
@@ -77,8 +77,8 @@ namespace aworx { namespace lib { namespace strings {
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{Format}, \aworx{NFormat},
- *   \aworx{WFormat}, \aworx{XFormat}, \aworx{ComplementFormat} and \aworx{StrangeFormat}.
+ *   are provided in namespace #alib with type definitions \alib{Format}, \alib{NFormat},
+ *   \alib{WFormat}, \alib{XFormat}, \alib{ComplementFormat} and \alib{StrangeFormat}.
  **************************************************************************************************/
 template<typename TChar>
 class TFormat
@@ -145,7 +145,7 @@ class TFormat
      * If the contents of the field is shorter than parameter \p{width} specifies, the field is
      * filled with a corresponding amount of \p{padChar} characters.<br>
      * Parameter \p{alignment} of type
-     * \ref aworx::lib::Alignment "Alignment" allows to left-, right- or center-align
+     * \alib{lang,Alignment} allows to left-, right- or center-align
      * the contents of the field.
      *
      * \note
@@ -174,7 +174,7 @@ class TFormat
         const TString<TChar>&   theContent;
         #endif
         integer                 fieldWidth;   ///< The width of the field.
-        Alignment               alignment;    ///< The alignment of the contents within the field.
+        lang::Alignment         alignment;    ///< The alignment of the contents within the field.
         TChar                   padChar;      ///< The characters used for padding the contents within the field.
 
         /**
@@ -186,10 +186,10 @@ class TFormat
          * @param pWidth     The width of the field
          * @param pAlignment The alignment of the contents within the field.
          *                   Defaults to
-         *                   \ref aworx::lib::Alignment "Alignment::Right"
+         *                   \alib{lang,Alignment,Alignment::Right}
          *                   Other options are
-         *                   \ref aworx::lib::Alignment "Alignment::Left" and
-         *                   \ref aworx::lib::Alignment "Alignment::Center".
+         *                   \alib{lang,Alignment,Alignment::Left} and
+         *                   \alib{lang,Alignment,Alignment::Center}.
          * @param fillChar   The character used to fill the field up to its size.
          *                   Defaults to ' ' (space).
          */
@@ -201,7 +201,7 @@ class TFormat
                 #endif
 
                 integer           pWidth,
-                Alignment         pAlignment =Alignment::Right,
+                lang::Alignment   pAlignment = lang::Alignment::Right,
                 TChar             fillChar   = ' '                       )
         #if ALIB_BOXING
         : theContent(content),
@@ -235,7 +235,7 @@ class TFormat
         public:
         /** The direction of conversion: \b Switch::On escapes ascii characters, while
          *  \b Switch::Off converts escaped strings to ascii codes.*/
-        Switch       pSwitch;
+        lang::Switch pSwitch;
 
         /** The start of the region to convert. */
         integer      startIdx;
@@ -252,7 +252,7 @@ class TFormat
          * @param regionStart   The start of the region to convert.
          * @param regionLength  The length of the region to convert.
          */
-        Escape( Switch escape= Switch::On, integer regionStart = 0, integer regionLength =MAX_LEN )
+        Escape( lang::Switch escape= lang::Switch::On, integer regionStart = 0, integer regionLength =MAX_LEN )
         : pSwitch(escape), startIdx(regionStart), length(regionLength)
         {}
     };
@@ -660,6 +660,6 @@ extern template ALIB_API void T_Append<TFormat<xchar>::Oct , xchar>::operator()(
 }
 #endif
 
-}}} // namespace [aworx::lib::strings]
+}} // namespace [alib::strings]
 
 #endif // HPP_ALIB_STRINGS_FORMAT

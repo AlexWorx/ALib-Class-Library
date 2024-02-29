@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHTABLE
@@ -19,7 +19,7 @@
 #   include <cmath>
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /** ************************************************************************************************
  * # Contents #
@@ -353,7 +353,7 @@ namespace aworx { namespace lib { namespace monomem {
  *
  * which likewise this type, may use monotonic allocation (for example in combination with C++ 17 type
  * <c>std::pmr::monotonic_buffer_resource</c>).
- * While on the one hand \alib needed support of monotonic allocation already for C++ 11,
+ * While on the one hand \alib in the past needed support of monotonic allocation already for C++ 11,
  * on the other hand the C++ 17 library extensions follow slightly different design goal.
  * Details of this are given in the previous section.
  *
@@ -441,15 +441,15 @@ namespace aworx { namespace lib { namespace monomem {
  *                      \alib{monomem,Recycling::Private} (the default),
  *                      \alib{monomem,Recycling::Shared} or \alib{monomem,Recycling::None}.
  **************************************************************************************************/
-template<typename T,
-         typename TStored,
-         typename TKey,
-         typename TIfMapped,
-         typename THash,
-         typename TEqual,
-         typename TAccess,
-         Caching  THashCaching = Caching::Auto,
-         typename TRecycling   = Recycling::Private >
+template<typename       T,
+         typename       TStored,
+         typename       TKey,
+         typename       TIfMapped,
+         typename       THash,
+         typename       TEqual,
+         typename       TAccess,
+         lang::Caching  THashCaching = lang::Caching::Auto,
+         typename       TRecycling   = Recycling::Private >
 class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash,TEqual,TAccess,THashCaching,TRecycling>
 {
     // protected shortcuts to parent and its types we need
@@ -490,7 +490,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *  \see
      *    Chapter \ref alib_monomem_intro_recycling of the Programmer's Manual
      *    for this \alibmod.                                                          */
-    using TSharedRecycler=  lib::detail::SidiListHelper<Element>;
+    using TSharedRecycler=  lang::SidiListHelper<Element>;
 
     /** TMP constant that denotes whether hash codes are cached or not. */
     static constexpr bool CachedHashCodes = base::Element::CachedHashCodes;
@@ -515,7 +515,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *
      * This handle allows write access to the value of an extracted element.
      * In combination with methods #Insert(ElementHandle&) and #InsertIfNotExistent(ElementHandle&),
-     * this allows to change parts of the element value, including the <em>key-portion</em> with propper
+     * this allows to change parts of the element value, including the <em>key-portion</em> with proper
      * re-insertion.
      *
      * Objects of this type can not be copied, but just moved.
@@ -681,7 +681,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     ~HashTable()
     {
-        if ALIB_CONSTEXPR17( !std::is_trivially_destructible<TStored>::value )
+        if constexpr( !std::is_trivially_destructible<TStored>::value )
             Clear();
     }
 
@@ -765,9 +765,9 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * @param expected  The expected number or increase of elements to be stored in the hash table.
      * @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
      **********************************************************************************************/
-    void            Reserve( integer expected, lib::ValueReference reference )
+    void            Reserve( integer expected, lang::ValueReference reference )
     {
-        float expectedSize= float(  expected +  (reference == lib::ValueReference::Relative ? Size()
+        float expectedSize= float(  expected +  (reference == lang::ValueReference::Relative ? Size()
                                                                                         : 0     ) );
         return base::rehash( uinteger(std::ceil(  expectedSize / base::baseLoadFactor)) );
     }
@@ -782,7 +782,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      *   be taken after the invocation of this method and then used to reset the monotonic
      *   allocator with preserving the memory used by this container.
      *
-     * 
+     *
      * \note
      *   This method is not available (aka does not compile) with instantiations
      *   that specify template parameter \p{TRecycling} as \alib{monomem,Recycling::None}.
@@ -790,11 +790,11 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      * @param expected  The expected number or increase of elements to be stored in the hash table.
      * @param reference Denotes whether \p{expected} is meant as an absolute size or an increase .
      **********************************************************************************************/
-    void            ReserveRecyclables( integer expected, lib::ValueReference reference )
+    void            ReserveRecyclables( integer expected, lang::ValueReference reference )
     {
         Reserve( expected, reference );
 
-        auto requiredRecyclables= ( expected - (reference == lib::ValueReference::Absolute ? Size()
+        auto requiredRecyclables= ( expected - (reference == lang::ValueReference::Absolute ? Size()
                                                                                        : 0     ) )
                                          - RecyclablesCount();
         if( requiredRecyclables > 0 )
@@ -1574,6 +1574,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     template<typename TEnableIf= TIfMapped, typename... TArgs>
     inline
+    std::pair<Iterator, bool>
     EmplaceOrAssign( const KeyType& key, TArgs&&... args);
 #else
     template<typename TEnableIf_MapMode= TIfMapped, typename... TArgs>
@@ -1658,6 +1659,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     template<typename TEnableIf= TIfMapped, typename... TArgs>
     inline
+    std::pair<Iterator, bool>
     EmplaceIfNotExistent( TArgs&&... args);
 #else
     template<typename TEnableIf= TIfMapped, typename... TArgs>
@@ -1711,6 +1713,7 @@ class HashTable : protected detail::HashTableBase<T,TStored,TKey,TIfMapped,THash
      **********************************************************************************************/
     template<typename TEnableIf, typename... TArgs>
     inline
+    std::pair<Iterator, bool>
     EmplaceIfNotExistent(const KeyType& key, TArgs&&... args);
 #else
 
@@ -2349,7 +2352,7 @@ ALIB_WARNINGS_RESTORE
 };
 
 
-}}}  // namespace [aworx::lib::monomem]
+}} // namespace [alib::monomem]
 
 
 // #################################################################################################
@@ -2360,20 +2363,17 @@ ALIB_WARNINGS_RESTORE
 
 #if ALIB_DEBUG_MONOMEM
 
-#if ALIB_RESULTS
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#if ALIB_CAMP
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
+#   endif
+#   if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
+#      include "alib/lang/format/formatter.hpp"
 #   endif
 #endif
 
-#if ALIB_TEXT
-#   if !defined(HPP_ALIB_TEXT_FORMATTER)
-#      include "alib/text/formatter.hpp"
-#   endif
-#endif
 
-
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /**
  * Generates statistics on the given hash table. The meanings of the returned tuple are:
@@ -2420,7 +2420,7 @@ DbgGetHashTableDistribution(const THashtable& hashtable )
         diffs+=  diff > 0 ?  diff : - diff;
     }
 
-    #if ALIB_RESULTS
+    #if ALIB_CAMP
         ALIB_ASSERT_ERROR( sumCheck == hashtable.Size(), "MONOMEM/HASHTABLE",
                            "Error: Hashtable::Size() and sum of bucket sizes differ: {} != {}",
                            hashtable.Size(), sumCheck )
@@ -2433,13 +2433,13 @@ DbgGetHashTableDistribution(const THashtable& hashtable )
     return std::make_tuple( averageExpected, deviation, minimum, maximum );
 }
 
-#if ALIB_TEXT
+#if ALIB_CAMP
 /**
  * Invokes method \alib{monomem,DbgGetHashTableDistribution} and creates human readable output, ready to be
  * logged or written to the console.
  *
  * ### Availability ###
- * Available only if compiler symbol \ref ALIB_DEBUG_MONOMEM is set and module \alib_text
+ * Available only if compiler symbol \ref ALIB_DEBUG_MONOMEM is set and module \alib_basecamp
  * is included in the alibdist.
  *
  * \see
@@ -2465,7 +2465,7 @@ AString DbgDumpDistribution(const THashtable& hashtable, bool detailedBucketList
     double  deviation = std::get<1>( values );
     integer minSize   = std::get<2>( values );
     integer maxSize   = std::get<3>( values );
-    auto formatter = aworx::Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    auto formatter = alib::Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
         // statistics
         formatter->Format( result, "Size:        {}\n"
                                    "#Buckets:    {}\n"
@@ -2527,11 +2527,11 @@ AString DbgDumpDistribution(const THashtable& hashtable, bool detailedBucketList
  * \note
  *   If the prerequisites for using this method seem to be too complicated and not worth the
  *   effort for a "quick debug session", it is recommended to just copy the source code of this
- *   inline function and adopt the \alib{text,Formatter::Format} statement to
+ *   inline function and adopt the \alib{lang::format,Formatter::Format} statement to
  *   suit a specific type stored in \p{hashtable}.
  *
  * ### Availability ###
- * Available only if compiler symbol \ref ALIB_DEBUG_MONOMEM is set and module \alib_text
+ * Available only if compiler symbol \ref ALIB_DEBUG_MONOMEM is set and module \alib_basecamp
  * is included in the alibdist.
  *
  * \see
@@ -2548,7 +2548,7 @@ inline
 AString DbgDumpHashtable(const THashtable& hashtable )
 {
     AString result;
-    auto formatter= aworx::Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    auto formatter= alib::Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
         formatter->Format(result, "\nHashtable dump:\n");
         auto    qtyBuckets      = hashtable.BucketCount();
         for( uinteger i= 0 ; i < qtyBuckets ; ++i )
@@ -2574,11 +2574,9 @@ AString DbgDumpHashtable(const THashtable& hashtable )
     return result;
 }
 
-#endif  // ALIB_TEXT
+#endif  // ALIB_CAMP
 
-}}}  // namespace [aworx::lib::monomem]
+}}  // namespace [alib::monomem]
 
 #endif  // ALIB_DEBUG_MONOMEM
-
-
 #endif // HPP_ALIB_MONOMEM_HASHTABLE

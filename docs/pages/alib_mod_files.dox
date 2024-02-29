@@ -1,0 +1,170 @@
+// #################################################################################################
+//  Documentation - ALib C++ Library
+//
+//  Copyright 2013-2024 A-Worx GmbH, Germany
+//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+// #################################################################################################
+
+/**
+\page alib_mod_files   ALib Module Files - Programmer's Manual
+
+
+\tableofcontents
+
+\I{################################################################################################}
+\I{################################################################################################}
+\I{################################################################################################}
+# 1. Introduction # {#alib_files_intro}
+
+This \alibmod provides mechanics to scan directories and contained files.
+The scan results are collected in an instance of \alib{files,FTree}, which inherits
+class \alib{monomem,StringTree}.
+Using classes \alib{monomem,StringTree::Cursor} and \alib{monomem,StringTree::RecursiveIterator},
+two very comfortable interfaces to accessing the results are available.
+
+As of today, besides scanning files, no specific further functionality is given and it is up
+to the user of the module to do with the result lists whatever is intended.
+
+While the \ref alib::files "reference documentation" of the types found in this module is
+quite verbose and thus should be all that is really needed, this Programmer's Manual
+just provides some few step by step demo samples.
+
+
+\I{################################################################################################}
+\I{################################################################################################}
+\I{################################################################################################}
+# 2. Tutorial # {#alib_files_tut}
+\I{################################################################################################}
+## 2.1 Scanning a File Tree  ## {#alib_files_tut_scan}
+A simple application needs to include just headers \alibheader{files/ftree.hpp} and
+\alibheader{files/fscanner.hpp}:
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_HEADER
+
+For scanning a path including its subdirectories, a few objects are needed:
+
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_OBJECTS
+
+Here are the links to the reference documentation of these objects:
+- \alib{files,FTree},
+- \alib{files,ScanParameters},
+- \alib{files,ResultsPaths} and
+- \alib{monomem,MonoAllocator} from module \alib_monomem.
+
+Note that the sample code above uses preprocessor symbol <b>ALIB_BASE_DIR</b>, which is defined
+with the \alib unit test project, that this documentation uses to generate the samples.
+
+That is all we needed to start the scan, which is done using namespace function \alib{files,ScanFiles}.
+Next we use namespace function \alib{files,DbgDump}, which as its prefix <em>Dbg</em> indicates,
+is only available in debug-compilations of the library:
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN
+
+The resulting output is:
+
+\snippet "DOX_ALIB_FILES_MAIN.txt"     OUTPUT
+
+You might wonder about the <c>resultPath</c> vector given as an output parameter into function
+\alib{files,ScanFiles}.
+Especially the question is: Why is it a vector? Wouldn't it be just the requested start path?
+
+Let's quickly examine the result:
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_RESULTS
+
+This writes:
+
+\snippet "DOX_ALIB_FILES_RESULTS.txt"     OUTPUT
+
+So, in fact, it is only one result and it is here called "real path" is exactly the path that
+was requested to be scanned.
+But this can be quite different, when symbolic links come into place.
+Details on this topic is given in the with reference documentation of function \b ScanFiles
+and instead to repeat this here, we ask the reader for
+\alib{files,ScanFiles,a brief digression to this explanation} now.
+
+\I{################################################################################################}
+## 2.2 Using Filters With Scanning  ## {#alib_files_tut_scan_filter}
+We left all fields of class \alib{files,ScanParameters} with their default values in the previous
+sample. Now we want to look at fields:
+- \alib{files::ScanParameters,DirectoryFilterPreRecursion}
+- \alib{files::ScanParameters,DirectoryFilterPostRecursion}
+- \alib{files::ScanParameters,FileFilter}
+
+Again, please refer to the reference documentation of the fields linked above, to get a quick
+understanding, why the scan function offers to set up to three different filter objects.
+
+Class \alib{files,FFilter} is a very simple virtual abstract interface class, which only has
+one single method \alib{files::FFilter,Includes} to implement. Derived filter types, need
+return \c true, if a file or directory "passes" the filter, hence in this case is included in
+the scan results.
+
+It should be very straight forward to implement an own derived a filter class. The problem
+with such class would be, that it would be more or less "hard-coded" in respect to what is filtered
+and what not. This might be flexible enough for most applications.<br>
+The next chapter introduces a filter which is run-time compiled!
+
+\I{################################################################################################}
+## 2.3 Class FileExpressions  ## {#alib_files_tut_fex}
+In case module \alib_expressions is included in the \alibdist, this module exposes class
+\alib{files,FileExpressions}. This class implements a \alib{expressions,CompilerPlugin} dedicated
+to articulate run-time expressions working with \alib{files,FInfo} objects.
+
+The class exposes public inner type \alib{files,FileExpressions::Filter} which implements the
+\b %FFilter interface. With construction, the filter accepts a character string containing the
+filter expression.
+
+The full set of expression operators, functions and constants is documented with class
+\alib{files,FileExpressions} and not to be repeated here. While expressions might return any
+kind of type, those used with class \b %FileExpression::Filter, have to evaluate to a boolean
+value. As documented with module \alib_expressions, due to the type-safe implementation of the
+module, already at "compile time" of an expression (which is run-time of your software), the
+result type of an expression can be checked.
+
+We just look at some samples:
+
+We have to add header file \alibheader{files/fileexpressions.hpp}:
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_HEADER2
+
+Now this code compiles:
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN_FEX1
+
+The resulting output is:
+
+\snippet "DOX_ALIB_FILES_SCAN_FEX1.txt"     OUTPUT
+
+Here are some more samples:
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN_FEX2
+\snippet "DOX_ALIB_FILES_SCAN_FEX2.txt"     OUTPUT
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN_FEX3
+\snippet "DOX_ALIB_FILES_SCAN_FEX3.txt"     OUTPUT
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN_FEX4
+\snippet "DOX_ALIB_FILES_SCAN_FEX4.txt"     OUTPUT
+
+\snippet "DOX_ALIB_FILES.cpp"     DOX_ALIB_FILES_SCAN_FEX5
+\snippet "DOX_ALIB_FILES_SCAN_FEX5.txt"     OUTPUT
+
+
+
+
+\note Of-course the expression compiler implemented with class \alib{files,FileExpressions} may
+      be used not only with filtering files. The compiler has public access and it can be used
+      to compile and evaluate any other sort of expressions, including such that do not return a
+      boolean value, can be compiled and  evaluated.
+
+\I{################################################################################################}
+\I{################################################################################################}
+\I{################################################################################################}
+# 3. Outlook # {#alib_files_outlook}
+This should be enough for the time being. Module \alib_files_nl is quite new and was introduced only
+with \aliblong release Version 2402. The future will show how this module expands.
+
+Again, consult the extensive \ref alib::files "Reference Documentation" for all details about the
+currently existing functionality.
+
+
+
+<br><br><br><br><br><br> */

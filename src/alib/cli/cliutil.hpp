@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_cli of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CLI_CLIUTIL
@@ -12,15 +12,15 @@
 #   include "alib/cli/commandline.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
-#   include "alib/text/paragraphs.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+#   include "alib/lang/format/paragraphs.hpp"
 #endif
-#if !defined(HPP_ALIB_RESULTS_REPORT)
-#   include "alib/results/report.hpp"
+#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#   include "alib/lang/message/report.hpp"
 #endif
 
 
-namespace aworx { namespace lib { namespace cli {
+namespace alib {  namespace cli {
 
 /** ************************************************************************************************
  * This is a friend class of \alib{cli,CommandLine} that exposes a collection of utility methods
@@ -132,7 +132,7 @@ class CLIUtil
     static ALIB_API
     integer       GetExitCode( CommandLine& cmdLine, Exception& exception )
     {
-        auto element= exception.Type().Get<lib::cli::Exceptions>();
+        auto element= exception.Type().Get<cli::Exceptions>();
         for( auto exitCodeDecl : cmdLine.ExitCodeDecls )
             if( exitCodeDecl.second->AssociatedCLIException() == element )
                 return exitCodeDecl.first.Integral();
@@ -234,13 +234,13 @@ class CLIUtil
     AString&     DumpParseResults( CommandLine& cmdLine, Paragraphs& text );
 };
 
-}} // namespace lib::system
+} // namespace alib[::cli]
 
-/// Type alias in namespace #aworx.
-using     CLIUtil=           lib::cli::CLIUtil;
+/// Type alias in namespace \b alib.
+using     CLIUtil=           cli::CLIUtil;
 
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 

@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,7 +10,7 @@
 #if ALIB_UT_ALOX
 
 
-#include "alib/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
 #include "alib/alox.hpp"
 #include "alib/alox/loggers/consolelogger.hpp"
 #include "alib/alox/loggers/ansilogger.hpp"
@@ -27,11 +27,6 @@
     #include "alib/config/configuration.hpp"
 #endif
 
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
-
-
-
 #include <iostream>
 #include <fstream>
 
@@ -44,16 +39,16 @@
 #endif
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_reclog
 {
     class AppendLog
     {
         public:
-         aworx::String Text;
+         alib::String Text;
          int           Mode; // 0, no logging, 1 simple, 2 with formatter
-         AppendLog(const aworx::String& text, int mode)
+         AppendLog(const alib::String& text, int mode)
          : Text(text)
          , Mode(mode)
          {}
@@ -61,7 +56,7 @@ namespace ut_reclog
 
 }
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
     template<> struct T_Append<ut_reclog::AppendLog,character>
     {
@@ -102,7 +97,7 @@ namespace aworx { namespace lib { namespace strings {
     };
 
 
-}}}// namespace [aworx::lib::lox::strings]
+}} // namespace [alib::lox::strings]
 
 
 #define TESTCLASSNAME       CPP_ALox_Logger
@@ -409,37 +404,37 @@ UT_METHOD(Log_TextLogger_RegisterStdStreamLocks)
 {
     UT_INIT() // This already registers the unittest logger. Therefore, the console lock in \alib
                // is occupied once already, but not in Safe mode, yet
-                               UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
+                               UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Unsafe )
     Log_AddDebugLogger()
-    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe )
-    Log_RemoveDebugLogger()    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
-    Log_AddDebugLogger()       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe )
+    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe )
+    Log_RemoveDebugLogger()    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Unsafe )
+    Log_AddDebugLogger()       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe )
 
     #if ALOX_REL_LOG
         #define LOX_LOX lox
         Lox lox("ReleaseLox");
 
         // a memory logger must not change anything!
-        Lox_SetVerbosity( Log::DebugLogger, Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
+        Lox_SetVerbosity( Log::DebugLogger, Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
         MemoryLogger ml;
-        Lox_SetVerbosity( &ml,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Lox_RemoveLogger( Log::DebugLogger)                       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Log_RemoveDebugLogger()                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
-        Lox_RemoveLogger( &ml )                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
+        Lox_SetVerbosity( &ml,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Lox_RemoveLogger( Log::DebugLogger)                       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Log_RemoveDebugLogger()                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Unsafe )
+        Lox_RemoveLogger( &ml )                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Unsafe )
 
 
         // while a console logger does
-        Log_AddDebugLogger()                                      UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Lox_SetVerbosity( Log::DebugLogger, Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
+        Log_AddDebugLogger()                                      UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Lox_SetVerbosity( Log::DebugLogger, Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
         ConsoleLogger cl;
-        Lox_SetVerbosity( &cl,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Log_SetVerbosity( &cl,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
+        Lox_SetVerbosity( &cl,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Log_SetVerbosity( &cl,              Verbosity::Verbose )  UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
 
-        Lox_RemoveLogger( Log::DebugLogger)                       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Log_RemoveLogger( &cl)                                    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
-        Lox_RemoveLogger( &cl )                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Safe   )
+        Lox_RemoveLogger( Log::DebugLogger)                       UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Log_RemoveLogger( &cl)                                    UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
+        Lox_RemoveLogger( &cl )                                   UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Safe   )
      #endif
-     Log_RemoveDebugLogger()                                      UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == Safeness::Unsafe )
+     Log_RemoveDebugLogger()                                      UT_TRUE( SmartLock::StdOutputStreams.GetSafeness() == lang::Safeness::Unsafe )
 }
 #endif // ALOX_DBG_LOG
 
@@ -455,7 +450,7 @@ void testFormatConfig( AWorxUnitTesting& ut, const String& testFormat,
                      )
 {
     Variable var;
-    ALIB.GetConfig().Store( var.Declare(A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT"), ','), testFormat  );
+    BASECAMP.GetConfig().Store( var.Declare(A_CHAR("ALOX"), A_CHAR("TESTML_FORMAT"), ','), testFormat  );
     MemoryLogger ml("TESTML");
 
     Lox lox("T", false );
@@ -491,7 +486,7 @@ UT_METHOD(Log_TextLogger_FormatConfig)
 /** ********************************************************************************************
  * Log_LogLevelSetting
  **********************************************************************************************/
-class TestMetaInfo : public lib::lox::detail::textlogger::MetaInfo
+class TestMetaInfo : public lox::detail::textlogger::MetaInfo
 {
     public:       void    t(AString& buf, int64_t diff)     { writeTimeDiff( buf, diff ); }
 };

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -14,8 +14,8 @@
 
 #include "alib/alox.hpp"
 
-#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
-    #include "alib/text/paragraphs.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+    #include "alib/lang/format/paragraphs.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
@@ -34,7 +34,7 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 

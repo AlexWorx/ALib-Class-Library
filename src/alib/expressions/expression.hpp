@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSION
@@ -20,7 +20,7 @@
 #   include <memory>
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 // forwards
 class  Compiler;
@@ -37,7 +37,7 @@ namespace detail{ class Program; class VirtualMachine; }
  * of \alib expressions.
  *
  * For information about general use and features of this class consult the
- * \ref aworx::lib::expressions "ALib Expressions User Manual".
+ * \ref alib::expressions "ALib Expressions User Manual".
  *
  * ## Friends ##
  * class \alib{expressions,Compiler}
@@ -129,12 +129,8 @@ class Expression
          *
          * @return The expression's name.
          ******************************************************************************************/
-        ALIB_API String     Name()
-        {
-            if( name.IsNull() )
-                name= EXPRESSIONS.GetResource("ANON_EXPR_NAME");
-            return name;
-        }
+        ALIB_API
+        String     Name();
 
         /** ****************************************************************************************
          * Evaluates the expression by executing the compiled \p{program}.
@@ -237,15 +233,15 @@ class Expression
  */
 using SPExpression=    std::shared_ptr<Expression>;
 
-}} // namespace aworx[::lib::expressions]
+} // namespace alib[::expressions]
 
-/// Type alias in namespace #aworx.
-using     SPExpression=    lib::expressions::SPExpression;
+/// Type alias in namespace \b alib.
+using     SPExpression=    expressions::SPExpression;
 
-}// namespace [aworx]
+} // namespace [alib]
 
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib::strings {
 #if defined(ALIB_DOX)
 namespace APPENDABLES {
 #endif
@@ -253,7 +249,7 @@ namespace APPENDABLES {
      * Specialization of functor \alib{strings,T_Append} for type
      * \alib{expressions,Expression}.
      **********************************************************************************************/
-    template<> struct T_Append<expressions::Expression,aworx::character>
+    template<> struct T_Append<expressions::Expression,alib::character>
     {
         /**
          * Appends the result of \alib{expressions,Expression::GetNormalizedString} to the
@@ -270,7 +266,7 @@ namespace APPENDABLES {
 #if defined(ALIB_DOX)
 }
 #endif
-}}}
+} // namespace [alib::strings]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_EXPRESSION

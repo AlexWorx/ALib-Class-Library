@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -27,7 +27,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 
 
@@ -61,6 +61,6 @@ bool RegexMatcher::Match( const String& haystack )
 
 }
 
-}}}} // namespace [aworx::lib::strings::util]
+}}} // namespace [alib::strings::util]
 
 #endif  // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)

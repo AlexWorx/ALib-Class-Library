@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -14,8 +14,8 @@
 #if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
     #include "alib/strings/util/tokenizer.hpp"
 #endif
-#if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-    #include "alib/system/directory.hpp"
+#if !defined (HPP_ALIB_CAMP_DIRECTORY)
+    #include "alib/lang/system/directory.hpp"
 #endif
 
 
@@ -27,16 +27,16 @@
 #endif // !defined(ALIB_DOX)
 
 
-using namespace aworx;
-using namespace aworx::lib::lox;
-using namespace aworx::lib::lox::detail;
-using namespace aworx::lib::lox::detail::textlogger;
+using namespace alib;
+using namespace alib::lox;
+using namespace alib::lox::detail;
+using namespace alib::lox::detail::textlogger;
 
 void PlainTextLogger::logText( Domain&          ,   Verbosity  ,
                                AString&      msg,
                                ScopeInfo&       ,   int           )
 {
-    if ( !notifyLogOp( Phase::Begin ) )
+    if ( !notifyLogOp( lang::Phase::Begin ) )
         return;
 
     // loop over message, print the parts between the escape sequences
@@ -109,7 +109,5 @@ void PlainTextLogger::logText( Domain&          ,   Verbosity  ,
     } // write loop
 
     ALIB_ASSERT_WARNING( start == msgLength, "ALOX", "Loop error when pruning ESC codes" )
-    notifyLogOp( Phase::End );
+    notifyLogOp( lang::Phase::End );
 }
-
-

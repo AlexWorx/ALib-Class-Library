@@ -2,18 +2,14 @@
  * \file
  * This header file is part of module \alib_bitbuffer of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_AWORX_ALIB_BITBUFFER
 #define HPP_AWORX_ALIB_BITBUFFER
 
-#if !defined(HPP_ALIB_BITS)
-#   include "alib/lib/bits.hpp"
-#endif
-
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+#if !defined(HPP_ALIB_LANG_BITS)
+#   include "alib/lang/bits.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
@@ -34,7 +30,7 @@
 
 ALIB_ASSERT_MODULE(BITBUFFER)
 
-namespace aworx { namespace lib { namespace bitbuffer {
+namespace alib {  namespace bitbuffer {
 
 /** ************************************************************************************************
  * An array of integral values used for serializing and deserializing data on bit-level.
@@ -67,7 +63,7 @@ class BitBufferBase
          * should be the "fasted" integral type for any compiler/platform combination.   */
         using TStorage= unsigned int;
 
-        static_assert( sizeof(TStorage) == 4 || sizeof(TStorage) == 8,
+        static_assert( bitsof(TStorage) == 32 || bitsof(TStorage) == 64,
                        "Unsupported size of C++ int type" );
 
         /**
@@ -90,12 +86,8 @@ class BitBufferBase
             friend class BitWriter;
             #endif
 
-            /** The number of bits needed to encode the bit number. */
-            static constexpr ShiftOpRHS BIT_COUNT_SIZE=   sizeof(TStorage) == 8 ? 6 : 5;
-
-
-            uinteger    pos= 0;     ///< Index of the current word to read/write.
-            ShiftOpRHS  bit= 0;     ///< Current bit index in the current word.
+            uinteger          pos= 0;     ///< Index of the current word to read/write.
+            lang::ShiftOpRHS  bit= 0;     ///< Current bit index in the current word.
 
             public:
 
@@ -109,7 +101,7 @@ class BitBufferBase
              * @param pPos The initial value for member #pos.
              * @param pBit The initial value for member #bit.
              */
-            Index( uinteger pPos, ShiftOpRHS pBit)
+            Index( uinteger pPos, lang::ShiftOpRHS pBit)
             : pos(pPos)
             , bit(pBit)
             {}
@@ -118,13 +110,13 @@ class BitBufferBase
              * Returns the index of the actual storage word in the buffer.
              * @return The index of the current word containing the next bit to read/write.
              */
-            uinteger    Pos()           const { return pos; }
+            uinteger          Pos()           const { return pos; }
 
             /**
              * Returns the number of the actual bit in the actual word of the buffer buffer.
              * @return The number of the next bit to read/write.
              */
-            ShiftOpRHS  Bit()           const { return bit; }
+            lang::ShiftOpRHS  Bit()           const { return bit; }
 
             /**
              * Returns true, if the next bit to read/write is the first of the current storage
@@ -155,7 +147,7 @@ class BitBufferBase
              */
             integer GetByteOffset( Index startIdx= Index(0, 0)  )                              const
             {
-                ALIB_ASSERT_ERROR(startIdx.pos < pos
+                ALIB_ASSERT_ERROR(     startIdx.pos < pos
                                    || (startIdx.pos == pos && startIdx.bit < bit),
                                    "Given buffer start index is greater than this index." )
                 return integer((pos - startIdx.Pos()) * sizeof(TStorage) );
@@ -164,12 +156,12 @@ class BitBufferBase
             /**
              * Sets this index to point to the word and bit given by a byte offset.<br>
              * This method is useful when bit buffers are deserialized from character streams.
-             * @param size The position within the buffer in bytes.
+             * @param byteOffset The position within the buffer in bytes.
              */
-            void        SetFromByteOffset( uinteger size )
+            void        SetFromByteOffset( uinteger byteOffset )
             {
-                pos= size / sizeof( TStorage );
-                bit= size % sizeof( TStorage ) * 8 ;
+                pos=  byteOffset / sizeof( TStorage );
+                bit= (byteOffset % sizeof( TStorage )) * 8 ;
             }
 
             /**
@@ -178,10 +170,8 @@ class BitBufferBase
              */
             uinteger    CountBits()                                                            const
             {
-                return uinteger( pos * sizeof(TStorage) * 8 + uinteger(bit) );
+                return uinteger( pos * bitsof(TStorage) + uinteger(bit) );
             }
-
-
 
             /**
              * Encodes this index information into a 32-bit variable by using the upper 5 (or 6)
@@ -201,9 +191,9 @@ class BitBufferBase
              */
             uint32_t    Encode32()
             {
-                ALIB_ASSERT_ERROR(pos < (1 << (31 - BIT_COUNT_SIZE ) ), "BITBUFFER",
+                ALIB_ASSERT_ERROR(pos < (uinteger(1) << (31 - lang::Log2OfSize<TStorage>() ) ), "BITBUFFER",
                                   "32bit too narrow for endcoding BitBuffer::Index." )
-                return uint32_t(pos) | (uint32_t(bit) << (31 - BIT_COUNT_SIZE ));
+                return uint32_t(pos) | (uint32_t(bit) << (31 - lang::Log2OfSize<TStorage>() ));
             }
 
             /**
@@ -216,7 +206,7 @@ class BitBufferBase
              * @return The encoded index.
              */
             uint64_t    Encode64()
-            { return uint64_t(pos) | (uint64_t(bit) << (63L - BIT_COUNT_SIZE ));              }
+            { return uint64_t(pos) | (uint64_t(bit) << (63L - lang::Log2OfSize<TStorage>() ));              }
 
             /**
              * Static method that decodes an index information, encoded with #Encode32, to an
@@ -228,14 +218,9 @@ class BitBufferBase
             static
             Index       Decode32(uint32_t code)
             {
-                #if ALIB_CPP11
-                    return Index ( uinteger  (code & LowerMask<  31  - BIT_COUNT_SIZE , uint32_t>() ),
-                                   ShiftOpRHS(code            >>(31  - BIT_COUNT_SIZE ))              );
-                #else
-                    return Index { uinteger  (code & LowerMask<  31  - BIT_COUNT_SIZE , uint32_t>() ),
-                                   ShiftOpRHS(code            >>(31  - BIT_COUNT_SIZE ))              };
-                #endif
-             }
+                return Index { uinteger  (code & lang::LowerMask<  31  - lang::Log2OfSize<TStorage>() , uint32_t>() ),
+                               lang::ShiftOpRHS(code            >>(31  - lang::Log2OfSize<TStorage>() ))              };
+            }
 
 
             /**
@@ -247,8 +232,8 @@ class BitBufferBase
              */
             static
             Index       Decode64(uint64_t code)
-            { return Index { uinteger  (code & LowerMask<  63L - BIT_COUNT_SIZE , uint64_t>() ),
-                             ShiftOpRHS(code            >>(63L - BIT_COUNT_SIZE))               }; }
+            { return Index { uinteger  (code & lang::LowerMask<  63L - lang::Log2OfSize<TStorage>() , uint64_t>() ),
+                             lang::ShiftOpRHS(code            >>(63L - lang::Log2OfSize<TStorage>()))               }; }
 
             /** ************************************************************************************
              * Comparison operator.
@@ -351,7 +336,7 @@ class BitBufferBase
          *
          * @param bitsRequired The number of bits required.
          * @param index        The index to which the capacity is currently used.
-         * @return \c true if the the space is available or could be made available,
+         * @return \c true if the space is available or could be made available,
          *         \c false otherwise.
          ******************************************************************************************/
         ALIB_API
@@ -512,7 +497,7 @@ class BitBuffer: public BitBufferBase
          ******************************************************************************************/
         virtual uinteger Capacity()                                                  const  override
         {
-            return storage.capacity() * sizeof(TStorage) * 8;
+            return storage.capacity() * bitsof(TStorage);
         }
 
         /** ****************************************************************************************
@@ -521,13 +506,13 @@ class BitBuffer: public BitBufferBase
          *
          * @param bitsRequired The number of bits required.
          * @param idx          The index of current buffer use.
-         * @return \c true if the the space is available or could be made available,
+         * @return \c true if the space is available or could be made available,
          *         \c false otherwise.
          ******************************************************************************************/
         virtual bool     EnsureCapacity(uinteger bitsRequired, BitBufferBase::Index idx)    override
         {
-            uinteger capacityNeeded= (idx.CountBits() + bitsRequired + (sizeof(TStorage) * 8 - 1) )
-                                     / ( sizeof(TStorage) * 8 );
+            uinteger capacityNeeded= (idx.CountBits() + bitsRequired + (bitsof(TStorage) - 1) )
+                                     / bitsof(TStorage);
             if( capacityNeeded > storage.capacity() )
                 storage.reserve( (std::max)( capacityNeeded, uinteger(storage.capacity()) * 2 ));
             data= storage.data();
@@ -549,7 +534,7 @@ class BitBufferMA  : public BitBufferBase
         std::shared_ptr<MonoAllocator>                              ma;
 
         /** The vector that holds the data. */
-        std::vector<TStorage, aworx::StdContMAOptional<TStorage>>   storage;
+        std::vector<TStorage, alib::StdContMAOptional<TStorage>>   storage;
 
     public:
         /** ****************************************************************************************
@@ -571,7 +556,7 @@ class BitBufferMA  : public BitBufferBase
          ******************************************************************************************/
         virtual uinteger Capacity()                                                  const  override
         {
-            return storage.capacity() * sizeof(TStorage) * 8;
+            return storage.capacity() * bitsof(TStorage);
         }
 
         /** ****************************************************************************************
@@ -580,13 +565,13 @@ class BitBufferMA  : public BitBufferBase
          *
          * @param bitsRequired The number of bits divided required.
          * @param idx          The index of current buffer use.
-         * @return \c true if the the space is available or could be made available,
+         * @return \c true if the space is available or could be made available,
          *         \c false otherwise.
          ******************************************************************************************/
         virtual bool     EnsureCapacity(uinteger bitsRequired, BitBufferBase::Index idx)    override
         {
-            uinteger capacityNeeded= (idx.CountBits() + bitsRequired + (sizeof(TStorage) * 8 - 1) )
-                                     / ( sizeof(TStorage) * 8 );
+            uinteger capacityNeeded= (idx.CountBits() + bitsRequired + (bitsof(TStorage) - 1) )
+                                     / bitsof(TStorage);
             if( capacityNeeded > storage.capacity() )
                 storage.reserve( (std::max)( capacityNeeded, uinteger(storage.capacity()) * 2 ));
             data= storage.data();
@@ -620,8 +605,7 @@ class BitBufferLocal  : public BitBufferBase
 {
     protected:
         /** The array that holds the data. */
-        TStorage    storage[ ( TCapacity + (sizeof(TStorage) * 8 -1 ) )
-                             / ( sizeof(TStorage) * 8 )               ];
+        TStorage    storage[ (TCapacity + bitsof(TStorage) - 1) / bitsof(TStorage) ];
 
     public:
         /** ****************************************************************************************
@@ -648,7 +632,7 @@ class BitBufferLocal  : public BitBufferBase
          *
          * @param bitsRequired The number of bits required.
          * @param idx          The index of current buffer use.
-         * @return \c true if the the space is available or could be made available,
+         * @return \c true if the space is available or could be made available,
          *         \c false otherwise.
          ******************************************************************************************/
         virtual bool     EnsureCapacity(uinteger bitsRequired, BitBufferBase::Index idx)    override
@@ -737,10 +721,6 @@ class BitWriter : public BitRWBase
     /** The current word, which is partly written and not stored in buffer, yet. */
     BitBufferBase::TStorage     word;
 
-    /** The width in bits of the storage type which is of type <c>int</c>. Consequently, this
-     *  evaluates to \c 32 or \c 64 on most common platforms. */
-     static constexpr ShiftOpRHS  TStorageWidth= sizeof( TStorage ) * 8;
-
     public:
         /**
          * Constructs a bit writer operating on the given bit buffer.
@@ -763,7 +743,7 @@ class BitWriter : public BitRWBase
         : BitRWBase  ( buffer )
         {
             idx= index;
-            word= bb.GetWord(idx) & LowerMask<TStorage>( idx.bit );
+            word= bb.GetWord(idx) & lang::LowerMask<TStorage>( idx.bit );
         }
 
         /** Destructs a bit writer. Invokes #Flush().  */
@@ -787,7 +767,7 @@ class BitWriter : public BitRWBase
         {
             idx.pos= index.pos;
             idx.bit= index.bit;
-            word= bb.GetWord(idx) & LowerMask<TStorage>(idx.bit );
+            word= bb.GetWord(idx) & lang::LowerMask<TStorage>(idx.bit );
         }
 
         /**
@@ -821,68 +801,68 @@ class BitWriter : public BitRWBase
         void Write( TIntegral value );
     #else
         // Version 1/2: #Bits to write are less or equal to internal buffer width
-        template<ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
+        template<lang::ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
         ATMP_T_IF(void,     ATMP_IS_UINT(TValue)
                         && !ATMP_EQ( TValue, bool)
-                        && (TWidth <= TStorageWidth)               )
+                        && (TWidth <= bitsof(TStorage))               )
         Write(TValue val )
         {
-            static_assert(sizeof(TValue) * 8 >= TWidth, "Fixed size given greater than value type.");
+            static_assert(bitsof(TValue) >= TWidth, "Fixed size given greater than value type.");
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
             ALIB_ASSERT_ERROR(    TMaskValue
-                               || TWidth == sizeof(TValue) * 8
-                               || val == (val & LowerMask<TValue>(TWidth) ),  "BITBUFFER",
+                               || TWidth == bitsof(TValue)
+                               || val == (val & lang::LowerMask<TValue>(TWidth) ),  "BITBUFFER",
                                "Upper bits dirty while TMaskValue flag not set." )
 
-            if ALIB_CONSTEXPR17 ( (TWidth < sizeof(TValue) * 8) && TMaskValue )
-                val&=  LowerMask<TWidth, TValue >();
+            if constexpr ( (TWidth < bitsof(TValue)) && TMaskValue )
+                val&=  lang::LowerMask<TWidth, TValue >();
 
             word|=   TStorage(val) << idx.bit ;
             idx.bit+= TWidth;
-            if(idx.bit >= TStorageWidth )
+            if(idx.bit >= bitsof(TStorage) )
             {
                 bb.SetWord(idx, word);
                 idx.pos++;
                 word= 0;
-                idx.bit-= TStorageWidth;
+                idx.bit-= bitsof(TStorage);
                 if( idx.bit )
                     word|= (TStorage(val) >> (TWidth - idx.bit) );
             }
         }
 
         // Version 2/2: #Bits to write is greater than internal buffer width
-        template<ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
+        template<lang::ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
         ATMP_T_IF(void,     ATMP_IS_UINT(TValue)
                         && !ATMP_EQ( TValue, bool)
-                        && (TWidth > TStorageWidth)                )
+                        && (TWidth > bitsof(TStorage))                )
         Write( TValue val)
         {
-            static_assert(sizeof(TValue)*8 >= TWidth, "Fixed size given greater than value type.");
+            static_assert(bitsof(TValue) >= TWidth, "Fixed size given greater than value type.");
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
             ALIB_ASSERT_ERROR(    TMaskValue
-                               || TWidth == sizeof(TValue) * 8
-                               || val == (val & LowerMask<TValue>(TWidth) ),  "BITBUFFER",
+                               || TWidth == bitsof(TValue)
+                               || val == (val & lang::LowerMask<TValue>(TWidth) ),  "BITBUFFER",
                                "Upper bits dirty while TMaskValue not set." )
 
-            if ALIB_CONSTEXPR17 ( (TWidth <  sizeof(TValue) * 8) && TMaskValue )
-                val&=  LowerMask<TWidth, TValue>();
+            if constexpr ( (TWidth <  bitsof(TValue)) && TMaskValue )
+                val&=  lang::LowerMask<TWidth, TValue>();
 
             word|= (TStorage(val) << idx.bit);
-            ShiftOpRHS bitsWritten= TStorageWidth - idx.bit;
+            lang::ShiftOpRHS bitsWritten= bitsof(TStorage) - idx.bit;
             val>>= bitsWritten;
             while(true)  // the loop is at least hit once and bit is 0! (but not written in bit)
             {
                 bb.SetWord(idx, word);
                 idx.pos++;
                 word= TStorage(val);
-                bitsWritten+= TStorageWidth;
+                bitsWritten+= bitsof(TStorage);
                 if(bitsWritten >= TWidth )
                     break;
 
-                val>>= TStorageWidth;
+                val>>= bitsof(TStorage);
             }
 
-            idx.bit= (idx.bit + TWidth) % TStorageWidth;
+            idx.bit= (idx.bit + TWidth) % bitsof(TStorage);
             if(idx.bit == 0 )  // next buffer value reached?
             {
                 bb.SetWord(idx, word);
@@ -893,7 +873,7 @@ class BitWriter : public BitRWBase
 
 
         // Helper-versions for signed and bool
-        template<ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
+        template<lang::ShiftOpRHS TWidth, typename TValue, bool TMaskValue= false>
         ATMP_T_IF(void,     ATMP_IS_SINT(TValue)
                         && !ATMP_EQ( TValue, bool)     )
         Write( TValue val)
@@ -934,25 +914,27 @@ class BitWriter : public BitRWBase
         template<typename TValue, bool TMaskValue= false>
         ATMP_T_IF(void,    std::is_integral<TValue>::value
                         && (sizeof(TValue) <= sizeof(TStorage)) )
-        Write(ShiftOpRHS width, TValue val)
+        Write(lang::ShiftOpRHS width, TValue val)
         {
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
-            ALIB_ASSERT_ERROR( width <= int(sizeof(TValue) * 8),
+            ALIB_ASSERT_ERROR( width <= bitsof(TValue),
                                "BITBUFFER", "BitBufferBase::Write: Width too high: ", width )
-            ALIB_ASSERT_ERROR( TMaskValue || val == (val & LowerMask<TValue>(width) ),
-                               "BITBUFFER", "Upper bits dirty while TMaskValue not set.")
 
-            if ALIB_CONSTEXPR17 (TMaskValue)
-                val&= LowerMask<TValue>(width);
+            ALIB_ASSERT_ERROR( TMaskValue || width>=bitsof(TValue) || val == (val & lang::LowerMask<TValue>(width) ), "BITBUFFER",
+                               "Upper bits dirty while TMaskValue not set.")
+
+             if constexpr (TMaskValue)
+                if( width < bitsof(TValue) )
+                    val&= lang::LowerMask<TValue>(width);
 
             word|= TStorage(val) << idx.bit ;
             idx.bit+= width;
-            if(idx.bit >= TStorageWidth )
+            if(idx.bit >= bitsof(TStorage) )
             {
                 bb.SetWord(idx, word);
                 idx.pos++;
                 word= 0;
-                idx.bit-= TStorageWidth;
+                idx.bit-= bitsof(TStorage);
                 if( idx.bit )
                     word|= ( TStorage(val) >> (width - idx.bit) );
             }
@@ -962,27 +944,28 @@ class BitWriter : public BitRWBase
         template<typename TValue, bool TMaskValue= false>
         ATMP_T_IF(void,    std::is_integral<TValue>::value
                         && (sizeof(TValue) > sizeof(TStorage)) )
-        Write(ShiftOpRHS width, TValue val)
+        Write(lang::ShiftOpRHS width, TValue val)
         {
-            ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
-            ALIB_ASSERT_ERROR( width <= int(sizeof(TValue) * 8), "BITBUFFER",
+            ALIB_ASSERT_ERROR( idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
+            ALIB_ASSERT_ERROR( width <= bitsof(TValue), "BITBUFFER",
                                "BitBufferBase::Write: Width too high: ", width )
-            ALIB_ASSERT_ERROR( TMaskValue || val == (val & LowerMask<TValue>(width) ), "BITBUFFER",
+            ALIB_ASSERT_ERROR( TMaskValue || width==bitsof(TValue) || val == (val & lang::LowerMask<TValue>(width) ), "BITBUFFER",
                                "Upper bits dirty while TMaskValue not set.")
 
-            if ALIB_CONSTEXPR17 (TMaskValue)
-                val&= LowerMask<TValue>(width);
+            if constexpr (TMaskValue)
+                if( width <= bitsof(TValue) )
+                    val&= lang::LowerMask<TValue>(width);
 
-            if( width <= TStorageWidth )
+            if( width <= bitsof(TStorage) )
             {
                 word|= TStorage(val) << idx.bit ;
                 idx.bit+= width;
-                if(idx.bit >= TStorageWidth )
+                if(idx.bit >= bitsof(TStorage) )
                 {
                     bb.SetWord(idx, word);
                     idx.pos++;
                     word= 0;
-                    idx.bit-= TStorageWidth;
+                    idx.bit-= bitsof(TStorage);
                     if( idx.bit )
                         word|= ( TStorage(val) >> (width - idx.bit) );
                 }
@@ -990,19 +973,19 @@ class BitWriter : public BitRWBase
             else
             {
                 word|= (TStorage(val) << idx.bit);
-                ShiftOpRHS bitsWritten= TStorageWidth - idx.bit;
+                lang::ShiftOpRHS bitsWritten= bitsof(TStorage) - idx.bit;
                 val>>= bitsWritten;
                 while(true)  // the loop is at least hit once and bit is 0! (but not written in bit)
                 {
                     bb.SetWord(idx, word);
                     idx.pos++;
                     word= TStorage(val);
-                    bitsWritten+= TStorageWidth;
+                    bitsWritten+= bitsof(TStorage);
                     if(bitsWritten >= width )
                         break;
-                    val>>= TStorageWidth;
+                    val>>= bitsof(TStorage);
                 }
-                idx.bit= (idx.bit + width) % TStorageWidth;
+                idx.bit= (idx.bit + width) % bitsof(TStorage);
                 if(idx.bit == 0 )  // next buffer value reached?
                 {
                     bb.SetWord(idx, word);
@@ -1097,10 +1080,6 @@ class BitReader : public BitRWBase
     /** Local type alias (shortcut)  */
     using TStorage= BitBufferBase::TStorage;
 
-    /** The width in bits of the storage type which is of type <c>int</c>. Consequently, this
-     *  evaluates to \c 32 or \c 64 on most common platforms. */
-     static constexpr ShiftOpRHS  TStorageWidth= sizeof( TStorage ) * 8;
-
     /** The current word, which is partly read and shifted to start with current bit. */
     BitBufferBase::TStorage     word;
 
@@ -1189,9 +1168,9 @@ class BitReader : public BitRWBase
         TResult Read();
     #else
         // Version 1/2: #Bits to read are less or equal to internal buffer width
-        template<ShiftOpRHS TWidth, typename TResult= int>
+        template<lang::ShiftOpRHS TWidth, typename TResult= int>
         ATMP_T_IF(TResult,    std::is_integral<TResult>::value
-                           && (TWidth <= TStorageWidth)               )
+                           && (TWidth <= bitsof(TStorage))               )
         Read()
         {
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
@@ -1199,11 +1178,11 @@ class BitReader : public BitRWBase
             TResult     result;
 
             // the one bit case. Could have been left to the compiler to optimize, but who knows.
-            if ALIB_CONSTEXPR17 ( TWidth == 1 )
+            if constexpr ( TWidth == 1 )
             {
                 result=  word & 1;
                 word>>= 1;
-                if(++idx.bit == TStorageWidth)
+                if(++idx.bit == bitsof(TStorage))
                 {
                     idx.pos++;
                     word= bb.GetWord(idx);
@@ -1212,27 +1191,27 @@ class BitReader : public BitRWBase
                 return result;
             }
 
-            static_assert(sizeof(TResult)*8 >= TWidth, "Fixed size to read greater than given result type.");
-            if ALIB_CONSTEXPR17 ( TWidth == TStorageWidth  )
+            static_assert(bitsof(TResult) >= TWidth, "Fixed size to read greater than given result type.");
+            if constexpr ( TWidth == bitsof(TStorage)  )
                 result= TResult( word );
             else
             {
-                result= TResult( word  & LowerMask<TWidth, TStorage>() );
+                result= TResult( word  & lang::LowerMask<TWidth, TStorage>() );
                 word>>= TWidth;
             }
 
             idx.bit+= TWidth;
-            if(idx.bit >= TStorageWidth)
+            if(idx.bit >= bitsof(TStorage))
             {
                 idx.pos++;
                 word= bb.GetWord(idx);
-                idx.bit-= TStorageWidth;
+                idx.bit-= bitsof(TStorage);
                 if( idx.bit )
                 {
-                    ShiftOpRHS bitsRead= TWidth - idx.bit;
-                    if ALIB_CONSTEXPR17 ( TWidth < TStorageWidth  )
+                    lang::ShiftOpRHS bitsRead= TWidth - idx.bit;
+                    if constexpr ( TWidth < bitsof(TStorage)  )
                         result |= TResult( (   word << bitsRead )
-                                             & LowerMask<TWidth, TStorage>() );
+                                             & lang::LowerMask<TWidth, TStorage>() );
                     else
                         result |= TResult(   word << bitsRead          );
                 }
@@ -1244,32 +1223,32 @@ class BitReader : public BitRWBase
         }
 
         // Version 2/2: #Bits to read is greater than internal buffer width
-        template<ShiftOpRHS TWidth, typename TResult= int>
+        template<lang::ShiftOpRHS TWidth, typename TResult= int>
         ATMP_T_IF(TResult,    std::is_integral<TResult>::value
-                           && (TWidth > TStorageWidth)               )
+                           && (TWidth > bitsof(TStorage))               )
         Read()
         {
-            static_assert(sizeof(TResult)*8 >= TWidth, "Fixed size to read greater than given result type.");
+            static_assert(bitsof(TResult) >= TWidth, "Fixed size to read greater than given result type.");
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
 
             TResult    result  = word;
-            ShiftOpRHS bitsRead= TStorageWidth - idx.bit;
+            lang::ShiftOpRHS bitsRead= bitsof(TStorage) - idx.bit;
             do     // the loop is at least hit once and bit is 0! (but not written in bit)
             {
                 idx.pos++;
                 word= bb.GetWord(idx);
                 result|= TResult(word) << bitsRead;
-                bitsRead+= TStorageWidth;
+                bitsRead+= bitsof(TStorage);
             }
             while( bitsRead < TWidth);
 
-            idx.bit= (idx.bit + TWidth) % TStorageWidth;
+            idx.bit= (idx.bit + TWidth) % bitsof(TStorage);
 
             // next buffer value reached?
             if(idx.bit == 0 )
                 idx.pos++;
             else
-                result= LowerBits<TWidth, TResult>( result );
+                result= lang::LowerBits<TWidth, TResult>( result );
 
             word= bb.GetWord(idx) >> idx.bit;
 
@@ -1299,31 +1278,31 @@ class BitReader : public BitRWBase
     #else
         template<typename TResult= int>
         ATMP_T_IF(TResult,  sizeof(TResult) <= sizeof(TStorage) )
-        Read( ShiftOpRHS width )
+        Read( lang::ShiftOpRHS width )
         {
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
-            ALIB_ASSERT_ERROR( sizeof(TResult) * 8 >= uinteger(width) ,
+            ALIB_ASSERT_ERROR( bitsof(TResult) >= width,
                                "BITBUFFER", "Read size given greater than value type.")
 
             TResult     result;
-            if ( width < TStorageWidth  )
-                result= TResult( word   & LowerMask<TStorage>(width) );
+            if ( width < bitsof(TStorage)  )
+                result= TResult( word   & lang::LowerMask<TStorage>(width) );
             else
                 result= TResult( word  );
             word>>= width;
 
             idx.bit+= width;
-            if(idx.bit >= TStorageWidth)
+            if(idx.bit >= bitsof(TStorage))
             {
                 idx.pos++;
                 word= bb.GetWord(idx);
-                idx.bit-= TStorageWidth;
+                idx.bit-= bitsof(TStorage);
 
                 if( idx.bit )
                 {
-                    ShiftOpRHS bitsRead= width - idx.bit;
+                    lang::ShiftOpRHS bitsRead= width - idx.bit;
                     result |= TResult( (   word << bitsRead )
-                                         & LowerMask<TStorage>(width) );
+                                         & lang::LowerMask<TStorage>(width) );
                     word>>= idx.bit;
                 }
             }
@@ -1333,33 +1312,33 @@ class BitReader : public BitRWBase
 
         template<typename TResult= int>
         ATMP_T_IF(TResult,  (sizeof(TResult) > sizeof(TStorage)) )
-        Read( ShiftOpRHS width )
+        Read( lang::ShiftOpRHS width )
         {
             ALIB_ASSERT_ERROR(idx.pos < bb.Capacity(), "BITBUFFER", "BitBufferBase overflow" )
-            ALIB_ASSERT_ERROR( sizeof(TResult) * 8 >= uinteger(width) , "BITBUFFER",
+            ALIB_ASSERT_ERROR( bitsof(TResult) >= width , "BITBUFFER",
                                "Read size given greater than value type.")
 
-            if( width <= TStorageWidth)
+            if( width <= bitsof(TStorage))
             {
                 TResult     result;
-                if ( width < TStorageWidth  )
-                    result= TResult( word   & LowerMask<TStorage>(width) );
+                if ( width < bitsof(TStorage)  )
+                    result= TResult( word   & lang::LowerMask<TStorage>(width) );
                 else
                     result= TResult( word  );
                 word>>= width;
 
                 idx.bit+= width;
-                if(idx.bit >= TStorageWidth)
+                if(idx.bit >= bitsof(TStorage))
                 {
                     idx.pos++;
                     word= bb.GetWord(idx);
-                    idx.bit-= TStorageWidth;
+                    idx.bit-= bitsof(TStorage);
 
                     if( idx.bit )
                     {
-                        ShiftOpRHS bitsRead= width - idx.bit;
+                        lang::ShiftOpRHS bitsRead= width - idx.bit;
                         result |= TResult( (   word << bitsRead )
-                                             & LowerMask<TStorage>(width) );
+                                             & lang::LowerMask<TStorage>(width) );
                         word>>= idx.bit;
                     }
                 }
@@ -1369,17 +1348,17 @@ class BitReader : public BitRWBase
             else
             {
                 TResult     result  = TResult( word );
-                ShiftOpRHS  bitsRead= TStorageWidth - idx.bit;
+                lang::ShiftOpRHS  bitsRead= bitsof(TStorage) - idx.bit;
                 do     // the loop is at least hit once and bit is 0! (but not written in bit)
                 {
                     idx.pos++;
                     word= bb.GetWord(idx);
                     result|= TResult(word) << bitsRead;
-                    bitsRead+= TStorageWidth;
+                    bitsRead+= bitsof(TStorage);
                 }
                 while( bitsRead < width);
 
-                idx.bit= (idx.bit + width) % TStorageWidth;
+                idx.bit= (idx.bit + width) % bitsof(TStorage);
 
                 // next buffer value reached?
                 if(idx.bit == 0 )
@@ -1389,7 +1368,7 @@ class BitReader : public BitRWBase
                 }
                 else
                 {
-                    result= LowerBits<TResult>( width, result );
+                    result= lang::LowerBits<TResult>( width, result );
                     word>>= width;
                 }
                 return result;
@@ -1407,16 +1386,16 @@ class BitReader : public BitRWBase
         template<typename TIntegral>
         TIntegral Read();
     #else
-        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (sizeof(TIntegral) == 1) )
+        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (bitsof(TIntegral) ==  8) )
         TIntegral Read()        {   return readUIntegral8();  }
 
-        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (sizeof(TIntegral) == 2) )
+        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (bitsof(TIntegral) == 16) )
         TIntegral Read()        {   return readUIntegral16();  }
 
-        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (sizeof(TIntegral) == 4) )
+        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (bitsof(TIntegral) == 32) )
         TIntegral Read()        {   return readUIntegral32();  }
 
-        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (sizeof(TIntegral) == 8) )
+        ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_UINT(TIntegral) && (bitsof(TIntegral) == 64) )
         TIntegral Read()        {   return readUIntegral64();  }
 
         ATMP_SELECT_IF_1TP(typename TIntegral,   ATMP_IS_SINT(TIntegral)  )
@@ -1457,27 +1436,27 @@ class BitReader : public BitRWBase
 
         }; // class BitReader
 
-}} // namespace aworx[::lib::bitbuffer]
+} // namespace alib[::bitbuffer]
 
-/// Type alias in namespace #aworx.
-using       BitBuffer       = lib::bitbuffer::BitBuffer;
+/// Type alias in namespace \b alib.
+using       BitBuffer       = bitbuffer::BitBuffer;
 
-/// Type alias in namespace #aworx.
-using       BitBufferMA     = lib::bitbuffer::BitBufferMA;
+/// Type alias in namespace \b alib.
+using       BitBufferMA     = bitbuffer::BitBufferMA;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<uinteger TCapacity>
-using       BitBufferLocal  = lib::bitbuffer::BitBufferLocal<TCapacity>;
+using       BitBufferLocal  = bitbuffer::BitBufferLocal<TCapacity>;
 
-/// Type alias in namespace #aworx.
-using       BitWriter       = lib::bitbuffer::BitWriter;
+/// Type alias in namespace \b alib.
+using       BitWriter       = bitbuffer::BitWriter;
 
-/// Type alias in namespace #aworx.
-using       BitReader       = lib::bitbuffer::BitReader;
+/// Type alias in namespace \b alib.
+using       BitReader       = bitbuffer::BitReader;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 using       ShiftOpRHS      = int;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #endif // #ifndef HPP_AWORX_ALIB_BITBUFFER

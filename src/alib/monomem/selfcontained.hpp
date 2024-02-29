@@ -2,25 +2,21 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_SELF_CONTAINED
 #define HPP_ALIB_MONOMEM_SELF_CONTAINED 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
-
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /** ************************************************************************************************
  * This templated class supports the implementation of types whose fields are allocated within
@@ -32,7 +28,7 @@ namespace aworx { namespace lib { namespace monomem {
  * - With method #Allocator, the self-contained \alib{monomem,MonoAllocator} can be used to
  *   allocate further objects.
  *
- * \alib uses this type in various areas. A prominent sample is class \alib{results,Exception}
+ * \alib uses this type in various areas. A prominent sample is class \alib{lang,Exception}
  * which is the unique <c>C++ throwable</c> used by the library.<br>
  * The general use-case for this type is similar to the use-case of class %MonoAllocator, with
  * the addition that the life-cycle of the allocated objects are bound to the life-cycle of
@@ -80,7 +76,7 @@ namespace aworx { namespace lib { namespace monomem {
  * \see
  *   Chapter
  *   \ref alib_monomem_selfcontained_allocator of the Programmer's Manual of this \alibmod.<br>
- *   For more complex sample (code) see classes \alib{results,Exception} and/or
+ *   For more complex sample (code) see classes \alib{lang,Exception} and/or
  *   \alib{config,Variable}, which uses the mechanisms provided by this type.
  **************************************************************************************************/
 template<typename TContained>
@@ -123,8 +119,8 @@ class SelfContained
 
     protected:
         /**
-         * The monotonic allocator created with \alib{monomem,MonoAllocator::Create}, hence
-         * self-contained in its first chunk.
+         * The only member of this class. It points to the start of the 'effective' members,
+         * residing in the first chunk of the mono allocator.
          */
         Fields*   fields;
 
@@ -299,6 +295,6 @@ class SelfContained
     }
 };
 
-}}}// namespace [aworx::lib::monomem]
+}} // namespace [alib::monomem]
 
 #endif // HPP_ALIB_MONOMEM_SELF_CONTAINED

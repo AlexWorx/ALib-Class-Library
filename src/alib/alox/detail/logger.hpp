@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_LOGGER
 #define HPP_ALOX_DETAIL_LOGGER 1
 
-#if !defined(HPP_ALIB_MODULES)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if ALIB_THREADS && !defined (HPP_ALIB_THREADS_SMARTLOCK)
@@ -24,7 +24,7 @@
 #   include "alib/strings/localstring.hpp"
 #endif
 
-namespace aworx { namespace lib {
+namespace alib {
 
 namespace config { class Variable; }
 
@@ -97,10 +97,10 @@ class Logger
         integer                     CntLogs                                                      =0;
 
         /** The creation time of the \e Logger. */
-        lib::time::Ticks            TimeOfCreation;
+        time::Ticks            TimeOfCreation;
 
         /** Timestamp of the last log operation. */
-        lib::time::Ticks            TimeOfLastLog;
+        time::Ticks            TimeOfLastLog;
 
     // #############################################################################################
     // Abstract methods
@@ -170,7 +170,7 @@ class Logger
          * @param lox     The \b %Lox to acknowledge insertion or removal.
          * @param op      The operation. Either \b ContainerOp::Insert or \b ContainerOp::Remove.
          */
-        virtual void AcknowledgeLox( LoxImpl* lox,  ContainerOp op )
+        virtual void AcknowledgeLox( LoxImpl* lox,  lang::ContainerOp op )
         {(void) lox; (void) op; }
     // #############################################################################################
     // Interface
@@ -193,16 +193,16 @@ class Logger
 
 }; // class Logger
 
-}}} // namespace aworx[::lib::lox::detail]
+}} // namespace alib[::lox::detail]
 
-/// Type alias in namespace #aworx.
-using     Logger=       lib::lox::detail::Logger;
+/// Type alias in namespace \b alib.
+using     Logger=       lox::detail::Logger;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::APPENDABLES to keep the documentation of namespace string clean!
@@ -218,7 +218,6 @@ namespace APPENDABLES {
      **********************************************************************************************/
     template<typename TChar> struct T_Append<lox::detail::Logger,TChar>
     {
-
         /** ****************************************************************************************
          * Writes the name of the logger. In case the type name is different, it will be appended
          * in braces.
@@ -229,7 +228,7 @@ namespace APPENDABLES {
         void operator()( TAString<TChar>& target, const lox::detail::Logger& logger )
         {
             target << logger.GetName();
-            if ( !logger.GetName().Equals( logger.GetTypeName() ) )
+            if ( !logger.GetName().Equals<false>( logger.GetTypeName() ) )
                 target << " (" << logger.GetTypeName() << ")";
         }
     };
@@ -238,8 +237,8 @@ namespace APPENDABLES {
 }
 #endif
 
-}}}// namespace [aworx::lib::lox::strings]
+}} // namespace [alib::lox::strings]
 
-ALIB_BOXING_VTABLE_DECLARE( aworx::lib::lox::detail::Logger* , vt_lox_logger    )
+ALIB_BOXING_VTABLE_DECLARE( alib::lox::detail::Logger* , vt_lox_logger    )
 
 #endif // HPP_ALOX_DETAIL_LOGGER

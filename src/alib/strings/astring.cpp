@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -24,7 +24,7 @@
 #   include <algorithm>
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 // ####################################################################################################
 // AString::_dbgCheck()
 // ####################################################################################################
@@ -164,7 +164,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
             // add 16 characters of padding at start/end
             TString<TChar>::buffer= static_cast<TChar*>( std::realloc( TString<TChar>::vbuffer - 16,
                                                                           static_cast<size_t>( newCapacity  + 1 + 33 )
-                                                                          * sizeof( TChar ) ) ) + 16;
+                                                                        * sizeof( TChar ) ) ) + 16;
 
             // write '\3' to end ('\0'= termination byte, '\1'= untermination byte )
             characters::CharArray<TChar>::Fill( TString<TChar>::vbuffer + newCapacity + 1, 16, '\3' );
@@ -223,7 +223,7 @@ void TAString<TChar>::SetBuffer( integer newCapacity )
 
 template<typename TChar>
 void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, integer extLength,
-                                    Responsibility responsibility  )
+                                 lang::Responsibility responsibility  )
 {
     ALIB_ASSERT_ERROR(    !(extBufferSize == 0 && extBuffer != nullptr)
                        && !(extBufferSize != 0 && extBuffer == nullptr) , "STRINGS",
@@ -265,8 +265,8 @@ void TAString<TChar>::SetBuffer( TChar* extBuffer, integer extBufferSize, intege
 
     // save given buffer
     --extBufferSize;     // we count one less
-    capacity=   responsibility==Responsibility::Transfer ?  extBufferSize
-                                                         : -extBufferSize;
+    capacity=   responsibility==lang::Responsibility::Transfer ?  extBufferSize
+                                                               : -extBufferSize;
     #if ALIB_DEBUG_STRINGS
         debugLastAllocRequest= extBufferSize;
     #endif
@@ -287,11 +287,11 @@ integer TAString<TChar>::TrimAt( integer idx, const TCString<TChar>& trimChars )
     if ( idx >= TString<TChar>::length )
          return TString<TChar>::length;
 
-    integer regionStart=  TString<TChar>::template       LastIndexOfAny<Inclusion::Exclude, false>( trimChars, idx ) + 1;
+    integer regionStart=  TString<TChar>::template       LastIndexOfAny<lang::Inclusion::Exclude, false>( trimChars, idx ) + 1;
     if (regionStart < 0 )
         regionStart= 0;
 
-    integer regionEnd=    TCString<TChar>(this).template IndexOfAny    <Inclusion::Exclude, false>( trimChars, idx );
+    integer regionEnd=    TCString<TChar>(this).template IndexOfAny    <lang::Inclusion::Exclude, false>( trimChars, idx );
     if (regionEnd < 0 )
         regionEnd= TString<TChar>::length;
 
@@ -310,11 +310,11 @@ TAString<TChar>& TAString<TChar>::Trim( const TCString<TChar>& trimChars )
         return *this;
 
     // trim end
-    integer idx= TString<TChar>::template LastIndexOfAny<Inclusion::Exclude, false>( trimChars, TString<TChar>::length - 1 ) + 1;
+    integer idx= TString<TChar>::template LastIndexOfAny<lang::Inclusion::Exclude, false>( trimChars, TString<TChar>::length - 1 ) + 1;
     if ( (TString<TChar>::length= idx) > 0 )
     {
         // trim front
-        idx= TCString<TChar>(this).template IndexOfAny<Inclusion::Exclude,false>( trimChars );
+        idx= TCString<TChar>(this).template IndexOfAny<lang::Inclusion::Exclude,false>( trimChars );
         if ( idx > 0 )
             Delete<false>( 0, idx );
     }
@@ -358,7 +358,7 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
                                            const TString<TChar>&  replacement,
                                            integer                startIdx,
                                            integer                maxReplacements,
-                                           Case                   sensitivity       )
+                                           lang::Case             sensitivity       )
 {
     ALIB_STRING_DBG_CHK(this)
 
@@ -376,9 +376,9 @@ integer TAString<TChar>::SearchAndReplace( const TString<TChar>&  needle,
     {
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         // search  next occurrence
-        integer    idx= sensitivity == Case::Sensitive
-                        ? TString<TChar>(*this).template IndexOf<false, Case::Sensitive>( needle, startIdx )
-                        : TString<TChar>(*this).template IndexOf<false, Case::Ignore   >( needle, startIdx );
+        integer    idx= sensitivity == lang::Case::Sensitive
+                        ? TString<TChar>(*this).template IndexOf<false, lang::Case::Sensitive>( needle, startIdx )
+                        : TString<TChar>(*this).template IndexOf<false, lang::Case::Ignore   >( needle, startIdx );
         if ( idx < 0 )
             break;
 
@@ -427,25 +427,25 @@ template   void TAString<xchar>::dbgCheck() const;
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template  void             TAString<nchar>::GrowBufferAtLeastBy(integer);
 template  void             TAString<nchar>::SetBuffer          (integer);
-template  void             TAString<nchar>::SetBuffer          (nchar*,integer,integer,Responsibility);
+template  void             TAString<nchar>::SetBuffer          (nchar*,integer,integer,lang::Responsibility);
 template  integer          TAString<nchar>::SearchAndReplace   (nchar,nchar,integer );
-template  integer          TAString<nchar>::SearchAndReplace   (const TString<nchar>&,const TString<nchar>&,integer,integer,Case );
+template  integer          TAString<nchar>::SearchAndReplace   (const TString<nchar>&,const TString<nchar>&,integer,integer,lang::Case );
 template  TAString<nchar>& TAString<nchar>::Trim               (const TCString<nchar>& );
 template  integer          TAString<nchar>::TrimAt             (integer,const TCString<nchar>& );
 
 template  void             TAString<wchar>::GrowBufferAtLeastBy(integer);
 template  void             TAString<wchar>::SetBuffer          (integer);
-template  void             TAString<wchar>::SetBuffer          (wchar*,integer,integer,Responsibility);
+template  void             TAString<wchar>::SetBuffer          (wchar*,integer,integer,lang::Responsibility);
 template  integer          TAString<wchar>::SearchAndReplace   (wchar,wchar,integer );
-template  integer          TAString<wchar>::SearchAndReplace   (const TString<wchar>&,const TString<wchar>&,integer,integer,Case );
+template  integer          TAString<wchar>::SearchAndReplace   (const TString<wchar>&,const TString<wchar>&,integer,integer,lang::Case );
 template  TAString<wchar>& TAString<wchar>::Trim               (const TCString<wchar>& );
 template  integer          TAString<wchar>::TrimAt             (integer,const TCString<wchar>& );
 
 template  void             TAString<xchar>::GrowBufferAtLeastBy(integer);
 template  void             TAString<xchar>::SetBuffer          (integer);
-template  void             TAString<xchar>::SetBuffer          (xchar*,integer,integer,Responsibility);
+template  void             TAString<xchar>::SetBuffer          (xchar*,integer,integer,lang::Responsibility);
 template  integer          TAString<xchar>::SearchAndReplace   (xchar,xchar,integer );
-template  integer          TAString<xchar>::SearchAndReplace   (const TString<xchar>&,const TString<xchar>&,integer,integer,Case );
+template  integer          TAString<xchar>::SearchAndReplace   (const TString<xchar>&,const TString<xchar>&,integer,integer,lang::Case );
 template  TAString<xchar>& TAString<xchar>::Trim               (const TCString<xchar>& );
 template  integer          TAString<xchar>::TrimAt             (integer,const TCString<xchar>& );
 ALIB_WARNINGS_RESTORE
@@ -552,7 +552,7 @@ TAString<char>& TAString<char>::Append<false>( const wchar_t* src, integer srcLe
 
     //--------- __GLIBCXX__ Version ---------
     #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
-                                                                                                                            
+
         integer maxConversionSize= integer(MB_CUR_MAX) * srcLength;
 
         mbstate_t ps;
@@ -843,5 +843,4 @@ TAString<CHARXX_T>& TAString<CHARXX_T>::Append<false>( const char* src, integer 
 
 
 
-}}}// namespace [aworx::lib::strings]
-
+}} // namespace [alib::strings]

@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -61,6 +61,8 @@
 #! [DOXYGEN_CMAKE_INCLUDE_7]
     ALibSetCompilerAndLinker  ( ALoxSamples )
 #! [DOXYGEN_CMAKE_INCLUDE_7]
+
+    target_compile_definitions(ALoxSamples PRIVATE ALIB_BASE_DIR="${ALIB_BASE_DIR}")
 
 #! [DOXYGEN_CMAKE_INCLUDE_8]
     target_link_libraries     ( ALoxSamples   PRIVATE ALib_SharedLib  )

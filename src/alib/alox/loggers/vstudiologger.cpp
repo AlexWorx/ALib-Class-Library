@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
+//  alib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,8 +15,8 @@
 #if defined(_MSC_VER) && ALIB_DEBUG
 
 #if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
@@ -28,9 +28,9 @@
     #include <string.h>
 #endif
 
-using namespace aworx;
-using namespace aworx::lib::lox;
-using namespace aworx::lib::lox::detail;
+using namespace alib;
+using namespace alib::lox;
+using namespace alib::lox::detail;
 
 // #################################################################################################
 // Constructor/Destructor
@@ -39,7 +39,7 @@ using namespace aworx::lib::lox::detail;
 VStudioLogger::VStudioLogger( const NString&  name )
 : PlainTextLogger( name, "VSTUDIO_CONSOLE", false )
 {
-    ALIB_ASSERT_ERROR ( ALIB.IsDebuggerPresent(), "ALOX", "This is not a debug session within Visual Studio" )
+    ALIB_ASSERT_ERROR ( BASECAMP.IsDebuggerPresent(), "ALOX", "This is not a debug session within Visual Studio" )
 
     // prevent cutting off filenames
     MetaInfo->Format.SearchAndReplace( A_CHAR("%SF:%SL:"), A_CHAR("%SP\\%SF(%SL):") );
@@ -48,9 +48,9 @@ VStudioLogger::VStudioLogger( const NString&  name )
 VStudioLogger::~VStudioLogger()
 {}
 
-bool VStudioLogger::notifyLogOp( Phase phase)
+bool VStudioLogger::notifyLogOp(lang::Phase phase)
 {
-    if ( phase == Phase::End )
+    if ( phase == lang::Phase::End )
         OutputDebugStringA( "\r\n" );
     return true;
 }

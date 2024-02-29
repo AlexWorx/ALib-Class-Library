@@ -64,29 +64,14 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=STRINGS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  RESOURCES    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESOURCES;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
-make -j
-
 echo "\n\n############################  THREADS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=THREADS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  TEXT    ############################"
+echo "\n\n############################  CAMP    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=TEXT;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  RESULTS    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESULTS;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  SYSTEM    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SYSTEM;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=CAMP;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CONFIGURATION    ############################"
@@ -171,9 +156,3 @@ echo "\n\n############################  SINGLETONS;TIME    #####################
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SINGLETONS;TIME;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
 make -j
-
-echo "\n\n############################  RESOURCES;BOXING    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESOURCES;BOXING;THREADS" "-DCMAKE_BUILD_TYPE=Release"  ../../cmake/moduletests
-make -j
-

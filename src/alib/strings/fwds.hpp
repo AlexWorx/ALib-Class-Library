@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_FWDS
@@ -16,14 +16,6 @@
 // #################################################################################################
 // Preprocessor definitions
 // #################################################################################################
-#if !defined(ALIB_DEBUG_STRINGS)
-#   define   ALIB_DEBUG_STRINGS 0
-#elif !ALIB_DEBUG && ALIB_DEBUG_STRINGS
-#   undef    ALIB_DEBUG_STRINGS
-#   define   ALIB_DEBUG_STRINGS           0
-#   pragma message "Symbol ALIB_DEBUG_STRINGS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
-#endif
-
 #if ALIB_DEBUG_STRINGS
 #   define ALIB_STRING_DBG_CHK(instance)     \
     {                                        \
@@ -37,7 +29,7 @@
 // #################################################################################################
 // Forward declarations
 // #################################################################################################
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
     template<typename TChar>                     class  TString;
     template<typename TChar>                     class  TSubstring;
@@ -48,6 +40,7 @@ namespace aworx { namespace lib { namespace strings {
 
     template<typename TChar>                     struct TNumberFormat;
     template<typename TChar>                     class  TFormat;
+    template<typename TChar>                     class  TStringLengthResetter;
 
     /**
      * This TMP struct is tested by implicit "auto cast" operators. Those might be disabled for
@@ -71,125 +64,125 @@ namespace aworx { namespace lib { namespace strings {
              typename                       TEnableIf       =void>
     struct T_SuppressAutoCast : public std::false_type   {};
 
-}} // namespace aworx[::lib::strings]
+} // namespace alib[::strings]
 
 // #################################################################################################
 // Alias names
 // #################################################################################################
 
-/// Type alias in namespace #aworx.
-using  String           =     lib::strings::TString    <character>;
+/// Type alias in namespace \b alib.
+using  String           =     strings::TString    <character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementString =     lib::strings::TString    <complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementString =     strings::TString    <complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeString    =     lib::strings::TString    <strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeString    =     strings::TString    <strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NString          =     lib::strings::TString    <nchar>;
+/// Type alias in namespace \b alib.
+using  NString          =     strings::TString    <nchar>;
 
-/// Type alias in namespace #aworx.
-using  WString          =     lib::strings::TString    <wchar>;
+/// Type alias in namespace \b alib.
+using  WString          =     strings::TString    <wchar>;
 
-/// Type alias in namespace #aworx.
-using  XString          =     lib::strings::TString    <xchar>;
+/// Type alias in namespace \b alib.
+using  XString          =     strings::TString    <xchar>;
 
-/// Type alias in namespace #aworx.
-using  Substring        =     lib::strings::TSubstring <character>;
+/// Type alias in namespace \b alib.
+using  Substring        =     strings::TSubstring <character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementSubstring =  lib::strings::TSubstring <complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementSubstring =  strings::TSubstring <complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeSubstring =     lib::strings::TSubstring <strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeSubstring =     strings::TSubstring <strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NSubstring       =     lib::strings::TSubstring <nchar>;
+/// Type alias in namespace \b alib.
+using  NSubstring       =     strings::TSubstring <nchar>;
 
-/// Type alias in namespace #aworx.
-using  WSubstring       =     lib::strings::TSubstring <wchar>;
+/// Type alias in namespace \b alib.
+using  WSubstring       =     strings::TSubstring <wchar>;
 
-/// Type alias in namespace #aworx.
-using  XSubstring       =     lib::strings::TSubstring <xchar>;
+/// Type alias in namespace \b alib.
+using  XSubstring       =     strings::TSubstring <xchar>;
 
-/// Type alias in namespace #aworx.
-using  CString          =     lib::strings::TCString   <character>;
+/// Type alias in namespace \b alib.
+using  CString          =     strings::TCString   <character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementCString=     lib::strings::TCString   <complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementCString=     strings::TCString   <complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeCString   =     lib::strings::TCString   <strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeCString   =     strings::TCString   <strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NCString         =     lib::strings::TCString   <nchar>;
+/// Type alias in namespace \b alib.
+using  NCString         =     strings::TCString   <nchar>;
 
-/// Type alias in namespace #aworx.
-using  WCString         =     lib::strings::TCString   <wchar>;
+/// Type alias in namespace \b alib.
+using  WCString         =     strings::TCString   <wchar>;
 
-/// Type alias in namespace #aworx.
-using  XCString         =     lib::strings::TCString   <xchar>;
+/// Type alias in namespace \b alib.
+using  XCString         =     strings::TCString   <xchar>;
 
-/// Type alias in namespace #aworx.
-using  AString          =     lib::strings::TAString   <character>;
+/// Type alias in namespace \b alib.
+using  AString          =     strings::TAString   <character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementAString=     lib::strings::TAString   <complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementAString=     strings::TAString   <complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeAString   =     lib::strings::TAString   <strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeAString   =     strings::TAString   <strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NAString         =     lib::strings::TAString   <nchar>;
+/// Type alias in namespace \b alib.
+using  NAString         =     strings::TAString   <nchar>;
 
-/// Type alias in namespace #aworx.
-using  WAString         =     lib::strings::TAString   <wchar>;
+/// Type alias in namespace \b alib.
+using  WAString         =     strings::TAString   <wchar>;
 
-/// Type alias in namespace #aworx.
-using  XAString         =     lib::strings::TAString   <xchar>;
+/// Type alias in namespace \b alib.
+using  XAString         =     strings::TAString   <xchar>;
 
-/// Type alias in namespace #aworx.
-using  StringNZT        =     lib::strings::TStringNZT <character>;
+/// Type alias in namespace \b alib.
+using  StringNZT        =     strings::TStringNZT <character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementStringNZT=   lib::strings::TStringNZT <complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementStringNZT=   strings::TStringNZT <complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeStringNZT =     lib::strings::TStringNZT <strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeStringNZT =     strings::TStringNZT <strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NStringNZT       =     lib::strings::TStringNZT <nchar>;
+/// Type alias in namespace \b alib.
+using  NStringNZT       =     strings::TStringNZT <nchar>;
 
-/// Type alias in namespace #aworx.
-using  WStringNZT       =     lib::strings::TStringNZT  <wchar>;
+/// Type alias in namespace \b alib.
+using  WStringNZT       =     strings::TStringNZT  <wchar>;
 
-/// Type alias in namespace #aworx.
-using  XStringNZT       =     lib::strings::TStringNZT  <xchar>;
+/// Type alias in namespace \b alib.
+using  XStringNZT       =     strings::TStringNZT  <xchar>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using LocalString       =     lib::strings::TLocalString<character, TCapacity>;
+using LocalString       =     strings::TLocalString<character, TCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using ComplementLocalString=  lib::strings::TLocalString<complementChar, TCapacity>;
+using ComplementLocalString=  strings::TLocalString<complementChar, TCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using StrangeLocalString=     lib::strings::TLocalString<strangeChar, TCapacity>;
+using StrangeLocalString=     strings::TLocalString<strangeChar, TCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using NLocalString      =     lib::strings::TLocalString <nchar    , TCapacity>;
+using NLocalString      =     strings::TLocalString <nchar    , TCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using WLocalString      =     lib::strings::TLocalString <wchar    , TCapacity>;
+using WLocalString      =     strings::TLocalString <wchar    , TCapacity>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<integer TCapacity>
-using XLocalString      =     lib::strings::TLocalString <xchar    , TCapacity>;
+using XLocalString      =     strings::TLocalString <xchar    , TCapacity>;
 
 /// Type alias name for \alib{strings,TLocalString,TLocalString<nchar\,8>}.
 using NString8 =  NLocalString<  8>;
@@ -282,44 +275,62 @@ using WString2K =  WLocalString<2048>;
 using WString4K =  WLocalString<4096>;
 
 
-/// Type alias in namespace #aworx.
-using  NumberFormat     =     lib::strings::TNumberFormat<character>;
+/// Type alias in namespace \b alib.
+using  NumberFormat     =     strings::TNumberFormat<character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementNumberFormat=lib::strings::TNumberFormat<complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementNumberFormat=strings::TNumberFormat<complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeNumberFormat=   lib::strings::TNumberFormat<strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeNumberFormat=   strings::TNumberFormat<strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NNumberFormat    =     lib::strings::TNumberFormat<nchar>;
+/// Type alias in namespace \b alib.
+using  NNumberFormat    =     strings::TNumberFormat<nchar>;
 
-/// Type alias in namespace #aworx.
-using  WNumberFormat    =     lib::strings::TNumberFormat<wchar>;
+/// Type alias in namespace \b alib.
+using  WNumberFormat    =     strings::TNumberFormat<wchar>;
 
-/// Type alias in namespace #aworx.
-using  XNumberFormat    =     lib::strings::TNumberFormat<xchar>;
+/// Type alias in namespace \b alib.
+using  XNumberFormat    =     strings::TNumberFormat<xchar>;
 
 
-/// Type alias in namespace #aworx.
-using  Format           =     lib::strings::TFormat<character>;
+/// Type alias in namespace \b alib.
+using  Format           =     strings::TFormat<character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementFormat =     lib::strings::TFormat<complementChar >;
+/// Type alias in namespace \b alib.
+using  ComplementFormat =     strings::TFormat<complementChar >;
 
-/// Type alias in namespace #aworx.
-using  StrangeFormat    =     lib::strings::TFormat<strangeChar >;
+/// Type alias in namespace \b alib.
+using  StrangeFormat    =     strings::TFormat<strangeChar >;
 
-/// Type alias in namespace #aworx.
-using  NFormat          =     lib::strings::TFormat<nchar>;
+/// Type alias in namespace \b alib.
+using  NFormat          =     strings::TFormat<nchar>;
 
-/// Type alias in namespace #aworx.
-using  WFormat          =     lib::strings::TFormat<wchar>;
+/// Type alias in namespace \b alib.
+using  WFormat          =     strings::TFormat<wchar>;
 
-/// Type alias in namespace #aworx.
-using  XFormat          =     lib::strings::TFormat<xchar>;
+/// Type alias in namespace \b alib.
+using  XFormat          =     strings::TFormat<xchar>;
 
-} // namespace [aworx]
+/// Type alias in namespace \b alib.
+using  StringLengthResetter          =     strings::TStringLengthResetter<character>;
+
+/// Type alias in namespace \b alib.
+using  ComplementStringLengthResetter=     strings::TStringLengthResetter<complementChar>;
+
+/// Type alias in namespace \b alib.
+using  StrangeStringLengthResetter   =     strings::TStringLengthResetter<strangeChar >;
+
+/// Type alias in namespace \b alib.
+using  NStringLengthResetter         =     strings::TStringLengthResetter<nchar>;
+
+/// Type alias in namespace \b alib.
+using  WStringLengthResetter         =     strings::TStringLengthResetter<wchar>;
+
+/// Type alias in namespace \b alib.
+using  XStringLengthResetter         =     strings::TStringLengthResetter<xchar>;
+
+} // namespace [alib]
 
 
 // #################################################################################################
@@ -329,19 +340,19 @@ using  XFormat          =     lib::strings::TFormat<xchar>;
 #if !ALIB_CHARACTERS_WIDE
 #   define ALIB_STRINGS_TO_NARROW(        src,dest,bufSize )  decltype(src)& dest(src);
 #   define ALIB_STRINGS_TO_NARROW_ARG(    src,bufSize      )  src;
-#   define ALIB_STRINGS_TO_WIDE(          src,dest,bufSize )  aworx::lib::strings::TLocalString<wchar,bufSize> dest(src);
-#   define ALIB_STRINGS_TO_WIDE_ARG(      src,bufSize      )  aworx::lib::strings::TLocalString<wchar,bufSize>(src);
+#   define ALIB_STRINGS_TO_WIDE(          src,dest,bufSize )  alib::strings::TLocalString<wchar,bufSize> dest(src);
+#   define ALIB_STRINGS_TO_WIDE_ARG(      src,bufSize      )  alib::strings::TLocalString<wchar,bufSize>(src);
 #   define ALIB_STRINGS_FROM_NARROW(      src,dest,bufSize )  decltype(src)& dest(src);
 #   define ALIB_STRINGS_FROM_NARROW_ARG(  src,bufSize      )  src;
-#   define ALIB_STRINGS_FROM_WIDE(        src,dest,bufSize )  aworx::lib::strings::TLocalString<nchar,bufSize> dest(src);
-#   define ALIB_STRINGS_FROM_WIDE_ARG     src,bufSize      )  aworx::lib::strings::TLocalString<nchar,bufSize>(src);
+#   define ALIB_STRINGS_FROM_WIDE(        src,dest,bufSize )  alib::strings::TLocalString<nchar,bufSize> dest(src);
+#   define ALIB_STRINGS_FROM_WIDE_ARG     src,bufSize      )  alib::strings::TLocalString<nchar,bufSize>(src);
 #else
-#   define ALIB_STRINGS_TO_NARROW(        src,dest,bufSize )  aworx::lib::strings::TLocalString<nchar,bufSize> dest(src);
-#   define ALIB_STRINGS_TO_NARROW_ARG(    src,bufSize      )  aworx::lib::strings::TLocalString<nchar,bufSize>(src);
+#   define ALIB_STRINGS_TO_NARROW(        src,dest,bufSize )  alib::strings::TLocalString<nchar,bufSize> dest(src);
+#   define ALIB_STRINGS_TO_NARROW_ARG(    src,bufSize      )  alib::strings::TLocalString<nchar,bufSize>(src);
 #   define ALIB_STRINGS_TO_WIDE(          src,dest,bufSize )  decltype(src)& dest= src;
 #   define ALIB_STRINGS_TO_WIDE_ARG(      src,bufSize      )  src;
-#   define ALIB_STRINGS_FROM_NARROW(      src,dest,bufSize )  aworx::lib::strings::TLocalString<wchar,bufSize> dest(src);
-#   define ALIB_STRINGS_FROM_NARROW_ARG(  src,bufSize      )  aworx::lib::strings::TLocalString<wchar,bufSize>(src);
+#   define ALIB_STRINGS_FROM_NARROW(      src,dest,bufSize )  alib::strings::TLocalString<wchar,bufSize> dest(src);
+#   define ALIB_STRINGS_FROM_NARROW_ARG(  src,bufSize      )  alib::strings::TLocalString<wchar,bufSize>(src);
 #   define ALIB_STRINGS_FROM_WIDE(        src,dest,bufSize )  decltype(src)& dest= src;
 #   define ALIB_STRINGS_FROM_WIDE_ARG(    src,bufSize      )  src;
 #endif

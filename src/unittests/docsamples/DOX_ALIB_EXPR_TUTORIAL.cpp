@@ -2,14 +2,13 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
-#include "alib/lib/compilers.hpp"
 #include "unittests/alib_test_selection.hpp"
 
-#if ALIB_UT_DOCS && ALIB_EXPRESSIONS && ( (ALIB_CPPVER >= 17) || !defined(__APPLE__) )
+#if ALIB_UT_DOCS && ALIB_UT_EXPRESSIONS
 
 #include "alib/alox.hpp"
 
@@ -26,6 +25,7 @@ ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <assert.h>
 
 #if defined(_MSC_VER)
     ALIB_WARNINGS_RESERVED_MACRO_NAME_OFF
@@ -37,16 +37,11 @@ ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
 #include <chrono>
 
-#if ALIB_CPPVER < 17
-#   include <experimental/filesystem>
-    namespace fs = std::experimental::filesystem;
-#else
-#   include <filesystem>
-    namespace fs = std::filesystem;
-#endif
+#include <filesystem>
+namespace fs = std::filesystem;
 
-// Note: MacOS is currently (as of 231210) C++ 20 library features in the area of std::clock
-#if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+// Note: MacOS is currently (as of 231210) missing C++ 20 library features in the area of std::clock
+#if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
 namespace
 {
     template <typename TP>
@@ -94,13 +89,13 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamN;    } }
 #include "alib/expressions/detail/virtualmachine.hpp"
 #include "alib/compatibility/std_characters.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/text/paragraphs.hpp"
+#include "alib/lang/format/paragraphs.hpp"
 #include "alib/time/datetime.hpp"
 #include <sys/stat.h>
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib::expressions;
+using namespace alib;
+using namespace alib::expressions;
 
 
 
@@ -128,14 +123,14 @@ struct FormatOperator : CompilerPlugin
         // all is const? We can do it at compile-time!
         if( ciBinaryOp.LhsIsConst && ciBinaryOp.RhsIsConst )
         {
-            ciBinaryOp.TypeOrValue= lib::expressions::plugins::CBFormat(ciBinaryOp.CompileTimeScope,
+            ciBinaryOp.TypeOrValue= expressions::plugins::CBFormat(ciBinaryOp.CompileTimeScope,
                                                                         ciBinaryOp.ArgsBegin,
                                                                         ciBinaryOp.ArgsEnd         );
             return true;
         }
 
         // set callback
-        ciBinaryOp.Callback     = lib::expressions::plugins::CBFormat;
+        ciBinaryOp.Callback     = expressions::plugins::CBFormat;
         ciBinaryOp.TypeOrValue  = Types::String;
         return true;
     }
@@ -362,7 +357,7 @@ struct FFCompilerPlugin : public CompilerPlugin
     {
         // Is parameterless and function name equals "Name"?
         if(       ciFunction.QtyArgs() == 0
-             &&   ciFunction.Name.Equals<lib::Case::Ignore>( A_CHAR("Name") )    )
+             &&   ciFunction.Name.Equals<false, lang::Case::Ignore>( A_CHAR("Name") )    )
         {
             // set callback function, its return type and indicate success
             ciFunction.Callback     = getName;
@@ -377,8 +372,6 @@ struct FFCompilerPlugin : public CompilerPlugin
 };
 } // namespace step5
 //! [DOX_ALIB_EXPR_TUT_FF_PluginOverride]
-
-
 
 //! [DOX_ALIB_EXPR_TUT_FF_PluginSkeleton2]
 namespace step5 {
@@ -437,11 +430,11 @@ struct FFCompilerPlugin : public Calculus
     {
         Functions=
         {
-            {  { A_CHAR("Name"), lib::Case::Ignore, 4 }, // The function name, letter case min. abbreviation (using class strings::util::Token).
-                nullptr, 0                        ,      // No arguments (otherwise an array of sample boxes defining expected argument types).
-                CALCULUS_CALLBACK(getName)        ,      // The callback function. In debug mode, also the name of the callback.
-                &Types::String                    ,      // The return type of the callback function, given as pointer to sample box.
-                ETI                                      // Denotes "evaluation time invokable only". Alternative is "CTI".
+            {  { A_CHAR("Name"), lang::Case::Ignore, 4 }, // The function name, letter case min. abbreviation (using class strings::util::Token).
+                nullptr, 0                         ,      // No arguments (otherwise an array of sample boxes defining expected argument types).
+                CALCULUS_CALLBACK(getName)         ,      // The callback function. In debug mode, also the name of the callback.
+                &Types::String                     ,      // The return type of the callback function, given as pointer to sample box.
+                ETI                                       // Denotes "evaluation time invokable only". Alternative is "CTI".
             },
         };
     }
@@ -514,7 +507,7 @@ namespace
     Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
     {
         auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-        #if ALIB_CPPVER <= 17  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        #if ALIB_CPP_STANDARD == 17  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
             return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
         #else
             return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -554,24 +547,24 @@ struct FFCompilerPlugin : public plugins::Calculus
         ConstantIdentifiers=
         {
           // Parameters: "1, 1" denote the minimum abbreviation of each "camel hump"
-          { { A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { { A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { { A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { { A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { { A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { { A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { { A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { { A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { { A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { { A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { { A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { { A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { { A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { { A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { { A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { { A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { { A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { { A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm ), &Types::Integer , ETI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm ), &Types::Integer , ETI },
         };
     }
 };
@@ -636,7 +629,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
             return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -688,29 +681,29 @@ struct FFCompilerPlugin : public plugins::Calculus
     {
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm  ), &Types::Integer , ETI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr), CALCULUS_CALLBACK(getPerm  ), &Types::Integer , ETI },
 
           // the new functions:
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(OneInt ), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -775,7 +768,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
             return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -838,30 +831,30 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
 
           // change return type to TypePermission
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
 
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -927,7 +920,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
         return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -989,27 +982,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
     }
 };
@@ -1073,7 +1066,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
         return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -1139,7 +1132,7 @@ Box constOthExec  ;
 Box TypePermission;
 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeOperatorTable]
-aworx::lib::expressions::plugins::Calculus::OperatorTableEntry  binaryOpTable[] =
+alib::expressions::plugins::Calculus::OperatorTableEntry  binaryOpTable[] =
 {
     { A_CHAR("&") , TypePermission, TypePermission, CALCULUS_CALLBACK( opPermAnd ), TypePermission , Calculus::CTI },
     { A_CHAR("|") , TypePermission, TypePermission, CALCULUS_CALLBACK( opPermOr  ), TypePermission , Calculus::CTI },
@@ -1171,27 +1164,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
 //! [DOX_ALIB_EXPR_TUT_FF_PermTypeFeedTable]
@@ -1259,7 +1252,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
         return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -1325,27 +1318,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
     }
@@ -1355,7 +1348,7 @@ virtual bool TryCompilation( CIAutoCast& ciAutoCast )    override
     // we don't cast for conditional operator "Q ? T : F"
     // Note: It is usually a good practice to also cast for this operator.
     //       This code is just a sample to demonstrate how to omit casting for certain operator(s).
-    if( ciAutoCast.Operator.Equals( A_CHAR("Q?T:F") ) )
+    if( ciAutoCast.Operator.Equals<false>( A_CHAR("Q?T:F") ) )
         return false;
 
     bool result= false;
@@ -1464,7 +1457,7 @@ Box getSize( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd 
 Box getDate( ExpressionScope& scope, ArgIterator argsBegin, ArgIterator argsEnd )
 {
     auto fsTime = fs::last_write_time(  *dynamic_cast<FFScope&>( scope ).directoryEntry );
-    #if ALIB_CPPVER <= 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+    #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
         return DateTime::FromEpochSeconds( to_time_t( fsTime ) );
     #else
         return DateTime::FromEpochSeconds( chrono::system_clock::to_time_t(
@@ -1522,27 +1515,27 @@ struct FFCompilerPlugin : public plugins::Calculus
 
         ConstantIdentifiers=
         {
-          { {A_CHAR("OwnerRead")    , lib::Case::Ignore, 1, 1}, constOwnRead  },
-          { {A_CHAR("OwnerWrite")   , lib::Case::Ignore, 1, 1}, constOwnWrite },
-          { {A_CHAR("OwnerExecute") , lib::Case::Ignore, 1, 1}, constOwnExec  },
-          { {A_CHAR("GroupRead")    , lib::Case::Ignore, 1, 1}, constGrpRead  },
-          { {A_CHAR("GroupWrite")   , lib::Case::Ignore, 1, 1}, constGrpWrite },
-          { {A_CHAR("GroupExecute") , lib::Case::Ignore, 1, 1}, constGrpExec  },
-          { {A_CHAR("OthersRead")   , lib::Case::Ignore, 1, 1}, constOthRead  },
-          { {A_CHAR("OthersWrite")  , lib::Case::Ignore, 1, 1}, constOthWrite },
-          { {A_CHAR("OthersExecute"), lib::Case::Ignore, 1, 1}, constOthExec  },
+          { {A_CHAR("OwnerRead")    , lang::Case::Ignore, 1, 1}, constOwnRead  },
+          { {A_CHAR("OwnerWrite")   , lang::Case::Ignore, 1, 1}, constOwnWrite },
+          { {A_CHAR("OwnerExecute") , lang::Case::Ignore, 1, 1}, constOwnExec  },
+          { {A_CHAR("GroupRead")    , lang::Case::Ignore, 1, 1}, constGrpRead  },
+          { {A_CHAR("GroupWrite")   , lang::Case::Ignore, 1, 1}, constGrpWrite },
+          { {A_CHAR("GroupExecute") , lang::Case::Ignore, 1, 1}, constGrpExec  },
+          { {A_CHAR("OthersRead")   , lang::Case::Ignore, 1, 1}, constOthRead  },
+          { {A_CHAR("OthersWrite")  , lang::Case::Ignore, 1, 1}, constOthWrite },
+          { {A_CHAR("OthersExecute"), lang::Case::Ignore, 1, 1}, constOthExec  },
         };
 
         Functions=
         {
-          { {A_CHAR("Name")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
-          { {A_CHAR("IsDirectory")  , lib::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
-          { {A_CHAR("Size")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
-          { {A_CHAR("Date")         , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
-          { {A_CHAR("Permissions")  , lib::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
-          { {A_CHAR("KiloBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
-          { {A_CHAR("MegaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
-          { {A_CHAR("GigaBytes")    , lib::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
+          { {A_CHAR("Name")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName  ), &Types::String  , ETI },
+          { {A_CHAR("IsDirectory")  , lang::Case::Ignore, 2, 3}, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isFolder ), &Types::Boolean , ETI },
+          { {A_CHAR("Size")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize  ), &Types::Integer , ETI },
+          { {A_CHAR("Date")         , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getDate  ), &Types::DateTime, ETI },
+          { {A_CHAR("Permissions")  , lang::Case::Ignore, 4   }, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerm  ), &TypePermission , ETI },
+          { {A_CHAR("KiloBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes), &Types::Integer , CTI },
+          { {A_CHAR("MegaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes), &Types::Integer , CTI },
+          { {A_CHAR("GigaBytes")    , lang::Case::Ignore, 1, 1}, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes), &Types::Integer , CTI },
         };
 
 //! [DOX_ALIB_EXPR_TUT_FF_AutoCastCalculus]
@@ -2264,8 +2257,8 @@ void printProgram( AWorxUnitTesting& ut, const String& expressionString, const N
     try
     {
         SPExpression expression= compiler.Compile( expressionString );
-        AString listing=  lib::expressions::detail::VirtualMachine::DbgList(
-            *dynamic_cast<lib::expressions::detail::Program*>( expression->GetProgram() ) );
+        AString listing=  expressions::detail::VirtualMachine::DbgList(
+            *dynamic_cast<expressions::detail::Program*>( expression->GetProgram() ) );
         ut.WriteResultFile( outputfilename, listing , "" ); // , "" -> all \verbinclude
 
     }

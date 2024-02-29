@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -26,7 +26,7 @@
 #      include "alib/threads/threadlock.hpp"
 #   endif
 
-#   if ALIB_TEXT
+#   if ALIB_CAMP
 #       if !defined (HPP_ALIB_STRINGS_FORMAT)
 #          include "alib/strings/format.hpp"
 #       endif
@@ -53,7 +53,7 @@
 #   include <algorithm>
 #endif
 
-namespace aworx { namespace lib { namespace boxing { namespace detail {
+namespace alib {  namespace boxing { namespace detail {
 
 #if !defined(ALIB_DOX)
 
@@ -82,7 +82,7 @@ namespace aworx { namespace lib { namespace boxing { namespace detail {
     {
         #if !ALIB_THREADS
             (void) doLock;
-            lib::DbgCheckSingleThreaded();
+            DbgCheckSingleThreaded();
         #else
             if( doLock )
                 dbgLock.Acquire( ALIB_CALLER_PRUNED );
@@ -100,7 +100,7 @@ void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType 
         if( !vtable->IsArray() )
         {
             #if ALIB_MONOMEM
-                ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+                ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
                 DbgKnownVTables.InsertUnique( std::make_pair( &vtable->Type, vtable ) );
             #else
                 if ( DbgKnownVTables.find( &vtable->Type ) != DbgKnownVTables.end() )
@@ -117,7 +117,7 @@ void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType 
         else
         {
             #if ALIB_MONOMEM
-                ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+                ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
                 DbgKnownVTablesArray.InsertUnique(std::make_pair( &vtable->ElementType, vtable ) );
             #else
                 if ( DbgKnownVTablesArray.find( &vtable->ElementType ) != DbgKnownVTablesArray.end() )
@@ -134,7 +134,7 @@ void  DbgRegisterVTable( detail::VTable* vtable, detail::VTable::DbgFactoryType 
     DbgLockMaps(false);
 }
 
-} // namespace aworx::lib::boxing[::detail]
+} // namespace alib::boxing[::detail]
 
 
 #if ALIB_STRINGS
@@ -153,10 +153,10 @@ AString&     DbgBoxing::removeNamespaces( AString& string, integer startIndex  )
     return string;
 }
 
-std::vector<aworx::String>   DbgBoxing::RemovableNamespaces
+std::vector<alib::String>   DbgBoxing::RemovableNamespaces
 {
-    A_CHAR( "aworx::lib::boxing::" ),
-    A_CHAR( "aworx::lib::"         ),
+    A_CHAR( "alib::boxing::" ),
+    A_CHAR( "alib::"         ),
 };
 
 void  DbgBoxing::typeName( const detail::VTable* vtable, AString& result )
@@ -176,7 +176,7 @@ void  DbgBoxing::typeName( const detail::VTable* vtable, AString& result )
 
 #endif // ALIB_STRINGS
 
-#if ALIB_TEXT
+#if ALIB_CAMP
 
 // #############################################################################################
 // Type Info
@@ -335,7 +335,7 @@ void  DbgBoxing::dumpFunctions( const std::vector<std::pair<const std::type_info
                [] (std::tuple<String, uinteger>& a,
                    std::tuple<String, uinteger>& b )
                {
-                    return std::get<0>(a).template CompareTo<true, Case::Ignore>( std::get<0>(b) ) < 0;
+                    return std::get<0>(a).template CompareTo<true, lang::Case::Ignore>( std::get<0>(b) ) < 0;
                }
              );
 
@@ -412,7 +412,7 @@ void DbgBoxing::dumpVTables( AString&                                        res
 
                     temp.Reset();
 
-                    temp << Format::Field( String64("(") << it.second->DbgCntUsage<< ")  ", 6, Alignment::Left );
+                    temp << Format::Field( String64("(") << it.second->DbgCntUsage<< ")  ", 6, lang::Alignment::Left );
                     typeName( it.second, temp );
                     if( it.second->DbgProduction == detail::VTable::DbgFactoryType::Unregistered )
                         temp << "  ATTENTION: Unregistered customized VTable!!! This is an Error";
@@ -429,7 +429,7 @@ void DbgBoxing::dumpVTables( AString&                                        res
                     // skip the prepended usage number
                     Substring lhs= std::get<0>(a); lhs.TrimStart().ConsumeToken(' '); lhs.TrimStart();
                     Substring rhs= std::get<0>(b); rhs.TrimStart().ConsumeToken(' '); rhs.TrimStart();
-                    return lhs.CompareTo<true, Case::Ignore>( rhs ) < 0;
+                    return lhs.CompareTo<true, lang::Case::Ignore>( rhs ) < 0;
                }
             );
 
@@ -487,10 +487,8 @@ AString  DbgBoxing::DumpAll()
 }
 
 
-#endif // ALIB_TEXT
+#endif // ALIB_CAMP
 
-}}}// namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 #endif // ALIB_DEBUG_BOXING
-
-

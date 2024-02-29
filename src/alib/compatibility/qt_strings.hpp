@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * <b>Legal Notice:</b>
@@ -15,8 +15,8 @@
 #ifndef HPP_ALIB_COMPATIBILITY_QT_STRINGS
 #define HPP_ALIB_COMPATIBILITY_QT_STRINGS 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
@@ -30,7 +30,7 @@
 #   include "alib/strings/astring.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 #if defined(ALIB_DOX)
 namespace APPENDABLES {
@@ -56,10 +56,10 @@ template<typename TChar> struct T_Append<QChar, TChar>
 };
 
 #if defined(ALIB_DOX)
-}  // namespace aworx::lib::strings[::APPENDABLES]
+}  // namespace alib::strings[::APPENDABLES]
 #endif
 
-}}}  // namespace [aworx::lib::strings]
+}}  // namespace [alib::strings]
 
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project

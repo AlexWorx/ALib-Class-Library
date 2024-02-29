@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::loggers - ALox Logging Library
+//  alib::lox::loggers - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -13,16 +13,16 @@
 #endif // !defined(ALIB_DOX)
 
 
-using namespace aworx;
+using namespace alib;
 
-bool ConsoleLogger::notifyLogOp( Phase phase )
+bool ConsoleLogger::notifyLogOp( lang::Phase phase )
 {
-    if ( phase == Phase::End )
+    if ( phase == lang::Phase::End )
         std::cout << std::endl;
     return true;
 }
 
-aworx::integer ConsoleLogger::logSubstring( const String& buffer, integer start, integer length )
+alib::integer ConsoleLogger::logSubstring( const String& buffer, integer start, integer length )
 {
     return writer.WriteAndGetWideLength( buffer.Substring<false>( start, length ) );
 }

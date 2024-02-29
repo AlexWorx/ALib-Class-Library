@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,8 +11,8 @@
 #   include "alib/expressions/detail/virtualmachine.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
-#   include "alib/text/paragraphs.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+#   include "alib/lang/format/paragraphs.hpp"
 #endif
 
 #if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
@@ -26,9 +26,12 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
 #   include "alib/expressions/detail/ast.hpp"
 #endif
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace expressions { namespace detail {
+namespace alib {  namespace expressions { namespace detail {
 
 
 VirtualMachine::Command::Command( Program* program, const Box& resultType, const String& functionOrOp,
@@ -36,16 +39,16 @@ VirtualMachine::Command::Command( Program* program, const Box& resultType, const
 : opcode          ( OpCodes::Subroutine )
 , Operation       ( program )
 , ResultType      ( resultType )
-, ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (sizeof(integer)/2*8) )
+, ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
                       + static_cast<uinteger>(idxOriginal  )  )
 , DecompileType   ( DecompileInfoType::Subroutine )
 , DecompileSymbol ( functionOrOp )
 {}
 
 
-#define POS_IN_EXPR_STR      (cmd.ExpressionPositions & ( (1UL << (sizeof(integer) / 2 * 8 - 1) ) -1 )  )
+#define POS_IN_EXPR_STR      (cmd.ExpressionPositions & ( (1UL << (bitsof(integer) / 2 - 1) ) -1 )  )
 #if ALIB_DEBUG
-#   define NORMPOS_IN_EXPR_STR  (cmd.ExpressionPositions >> (sizeof(integer)/2*8 )    )
+#   define NORMPOS_IN_EXPR_STR  (cmd.ExpressionPositions >> (bitsof(integer)/2 )    )
 #endif
 
 // #################################################################################################
@@ -750,6 +753,4 @@ AString VirtualMachine::DbgList( Program& program )
 #undef Rhs
 #undef Arg
 
-}}}} // namespace [aworx::lib::expressions::detail]
-
-
+}}} // namespace [alib::expressions::detail]

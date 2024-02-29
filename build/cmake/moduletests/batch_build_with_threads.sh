@@ -64,29 +64,14 @@ rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=STRINGS;THREADS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  RESOURCES    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESOURCES;THREADS"  ../../cmake/moduletests
-make -j
-
 echo "\n\n############################  THREADS    ############################"
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=THREADS;THREADS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  TEXT    ############################"
+echo "\n\n############################  CAMP    ############################"
 rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=TEXT;THREADS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  RESULTS    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESULTS;THREADS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  SYSTEM    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SYSTEM;THREADS"  ../../cmake/moduletests
+cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=CAMP;THREADS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CONFIGURATION    ############################"
@@ -171,9 +156,3 @@ echo "\n\n############################  SINGLETONS;TIME    #####################
 rm -r -f *
 cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=SINGLETONS;TIME;THREADS"  ../../cmake/moduletests
 make -j
-
-echo "\n\n############################  RESOURCES;BOXING    ############################"
-rm -r -f *
-cmake "-DALIB_FEAT_BOOST_REGEX=1" "-DALIB_DISTRIBUTION=RESOURCES;BOXING;THREADS"  ../../cmake/moduletests
-make -j
-

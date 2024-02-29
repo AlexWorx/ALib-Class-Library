@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE
@@ -18,25 +18,25 @@
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
-#   include "alib/lib/fs_lists/sidilist.hpp"
+#if !defined(HPP_ALIB_LANG_SIDILIST)
+#   include "alib/lang/sidilist.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_DETAIL_RECYCLER)
 #   include "alib/monomem/detail/recycler.inl"
 #endif
 
-#if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
+#if !defined(HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
 #if ALIB_STRINGS && ALIB_ENUMS
-#   if !defined(HPP_ALIB_FS_COMMONENUMS)
-#      include "alib/lib/fs_commonenums/commonenums.hpp"
+#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
+#      include "alib/lang/commonenums.hpp"
 #   endif
 #else
-#   if !defined(HPP_ALIB_FS_COMMONENUMS_DEFS)
-#      include "alib/lib/fs_commonenums/commonenumdefs.hpp"
+#   if !defined(HPP_ALIB_LANG_COMMONENUMS_DEFS)
+#      include "alib/lang/commonenumdefs.hpp"
 #   endif
 #endif
 
@@ -44,19 +44,19 @@
 #   include <algorithm>
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /**
- * Details of namespace #aworx::lib::monomem.
+ * Details of namespace #alib::monomem.
  */
 namespace detail {
 
 
 #if   ALIB_SIZEOF_INTEGER == 4
-    static constexpr int primeTableSize = 29;
+    static constexpr int primeTableSize = 26;
 #elif ALIB_SIZEOF_INTEGER == 8
     /** The size of the static table of prime numbers. Depends on the platform. */
-    static constexpr int primeTableSize = 61;
+    static constexpr int primeTableSize = 58;
 #else
     #error "Unknown size of integer"
 #endif
@@ -76,7 +76,7 @@ ALIB_API    extern void*    dummyBucket;
 
 /** Type used by \alib{monomem::detail,HashTableBase::Element} if hash codes are cached.  */
 template<typename T, typename TStored>
-struct HashTableElementCached   : public lib::detail::SidiNodeBase<HashTableElementCached<T,TStored>>
+struct HashTableElementCached   : public lang::SidiNodeBase<HashTableElementCached<T,TStored>>
 {
     /** Deleted default destructor. (Needed to avoid warning with msc). */
     ~HashTableElementCached()                                                              = delete;
@@ -117,7 +117,7 @@ struct HashTableElementCached   : public lib::detail::SidiNodeBase<HashTableElem
 
 /** Type used by \alib{monomem::detail,HashTableBase::Element} if hash codes are \b not cached.  */
 template<typename T, typename TStored>
-struct HashTableElementUncached  : public lib::detail::SidiNodeBase<HashTableElementUncached<T,TStored>>
+struct HashTableElementUncached  : public lang::SidiNodeBase<HashTableElementUncached<T,TStored>>
 {
     /** Deleted default constructor. (Needed to avoid warning with msc). */
     ~HashTableElementUncached()                                                            = delete;
@@ -153,17 +153,17 @@ struct HashTableElementUncached  : public lib::detail::SidiNodeBase<HashTableEle
  * Helper struct used to determine the node type of \alib{monomem,detail::HashTableBase}.
  *
  * Type definition #type equals \alib{monomem,detail::HashTableElementUncached} in case
- * \p{THashCashing} equals \alib{Caching::Enabled} or \alib{Caching::Auto} and \p{TKey} is
+ * \p{THashCashing} equals \alib{lang,Caching,Caching::Enabled} or \alib{lang,Caching,Caching::Auto} and \p{TKey} is
  * an arithmetic type.<br>
  * Otherwise, \alib{monomem,detail::HashTableElementCached} is chosen.
  */
-template<typename T, typename TStored,typename TKey,Caching THashCaching>
+template<typename T, typename TStored,typename TKey,lang::Caching THashCaching>
 struct HashTableElementType
 {
     /** The element type that the hash table uses.
      *  Results from values given for \p{THashCaching} and \p{TKey}.              */
-    using type=    ATMP_IF_T_F(         THashCaching == Caching::Enabled
-                                || (    THashCaching == Caching::Auto
+    using type=    ATMP_IF_T_F(         THashCaching == lang::Caching::Enabled
+                                || (    THashCaching == lang::Caching::Auto
                                      && !std::is_arithmetic<TKey>::value ),
                                detail::HashTableElementCached  <T ALIB_COMMA TStored>,
                                detail::HashTableElementUncached<T ALIB_COMMA TStored>    );
@@ -174,21 +174,21 @@ struct HashTableElementType
  * Partially specialized helper struct used to determine the recycler type for struct
  * \alib{monomem,detail::HashTableBase}.
  */
-template<typename T,typename TStored,typename TKey,Caching THashCaching, typename TRecycling>
+template<typename T,typename TStored,typename TKey,lang::Caching THashCaching, typename TRecycling>
 struct HashTableRecycler
 {
 };
 
 #if !defined(ALIB_DOX)
-template<typename T,typename TStored,typename TKey,Caching THashCaching>
+template<typename T,typename TStored,typename TKey,lang::Caching THashCaching>
 struct HashTableRecycler<T,TStored,TKey,THashCaching,Recycling::Private>
 { using type= detail::RecyclerPrivate<typename HashTableElementType<T,TStored,TKey,THashCaching>::type >; };
 
-template<typename T,typename TStored,typename TKey,Caching THashCaching>
+template<typename T,typename TStored,typename TKey,lang::Caching THashCaching>
 struct HashTableRecycler<T,TStored,TKey,THashCaching,Recycling::Shared >
 { using type= detail::RecyclerShared <typename HashTableElementType<T,TStored,TKey,THashCaching>::type >; };
 
-template<typename T,typename TStored,typename TKey,Caching THashCaching>
+template<typename T,typename TStored,typename TKey,lang::Caching THashCaching>
 struct HashTableRecycler<T,TStored,TKey,THashCaching,Recycling::None   >
 { using type= detail::RecyclerVoid   <typename HashTableElementType<T,TStored,TKey,THashCaching>::type >; };
 #endif
@@ -233,15 +233,15 @@ struct HashTableRecycler<T,TStored,TKey,THashCaching,Recycling::None   >
  *                      \ref alib_ns_monomem_hashtable_referencedoc "reference documentation"
  *                      of class \b HashTable.
  **************************************************************************************************/
-template< typename T,
-          typename TStored,
-          typename TKey,
-          typename TIfMapped,
-          typename THash,
-          typename TEqual,
-          typename TAccess,
-          Caching  THashCaching,
-          typename TRecycling      >
+template< typename      T,
+          typename      TStored,
+          typename      TKey,
+          typename      TIfMapped,
+          typename      THash,
+          typename      TEqual,
+          typename      TAccess,
+          lang::Caching THashCaching,
+          typename      TRecycling      >
 struct HashTableBase
 {
 // #################################################################################################
@@ -266,10 +266,10 @@ struct HashTableBase
     using  Element= typename HashTableElementType<T,TStored,TKey,THashCaching>::type;
 
     /** Type of a single linked node list.  */
-    using  List=    lib::detail::SidiListHelper<Element>;
+    using  List=    lang::SidiListHelper<Element>;
 
     /** Type of a node in the \b List.  */
-    using  Node=    lib::detail::SidiNodeBase<Element>;
+    using  Node=    lang::SidiNodeBase<Element>;
 
 
 // #################################################################################################
@@ -297,7 +297,7 @@ struct HashTableBase
      *  @return The hash code of the given element.              */
     static size_t    getHashCode(Element* elem)
     {
-        if ALIB_CONSTEXPR17 ( Element::CachedHashCodes )
+        if constexpr ( Element::CachedHashCodes )
             return elem->getCached();
         else
             return THash() ( keyPortion( elem ) );
@@ -802,7 +802,7 @@ struct HashTableBase
      */
     bool        areEqual( Element* elem,  const TKey& key, size_t keyHashCode )               const
     {
-        return      ( !Element::CachedHashCodes || ( keyHashCode == getHashCode(elem) ) )
+        return                ( !Element::CachedHashCodes || ( keyHashCode == getHashCode(elem) ) )
                 &&  TEqual() ( keyPortion( elem ), key  );
     }
 
@@ -1112,7 +1112,7 @@ struct HashTableBase
 
 }; // HashTableBase
 
-}}}} // namespace [aworx::lib::monomem::detail]
+}}} // namespace [alib::monomem::detail]
 
 
 #endif // HPP_ALIB_MONOMEM_DETAIL_HASHTABLEBASE

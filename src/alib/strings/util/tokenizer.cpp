@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -12,10 +12,10 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 template<typename TChar>
-TSubstring<TChar>& TTokenizer<TChar>::Next( Whitespaces trimming, TChar newDelim )
+TSubstring<TChar>& TTokenizer<TChar>::Next( lang::Whitespaces trimming, TChar newDelim )
 {
     if ( Rest.IsNull() )
     {
@@ -43,7 +43,7 @@ TSubstring<TChar>& TTokenizer<TChar>::Next( Whitespaces trimming, TChar newDelim
         }
 
         // trim
-        if ( trimming == Whitespaces::Trim )
+        if ( trimming == lang::Whitespaces::Trim )
             Actual.Trim( TrimChars );
     }
     while( skipEmpty && Actual.IsEmpty() && Rest.IsNotNull() );
@@ -51,7 +51,7 @@ TSubstring<TChar>& TTokenizer<TChar>::Next( Whitespaces trimming, TChar newDelim
     return Actual;
 }
 
-template TSubstring<nchar>& TTokenizer<nchar>::Next( Whitespaces trimming, nchar newDelim );
-template TSubstring<wchar>& TTokenizer<wchar>::Next( Whitespaces trimming, wchar newDelim );
+template TSubstring<nchar>& TTokenizer<nchar>::Next( lang::Whitespaces trimming, nchar newDelim );
+template TSubstring<wchar>& TTokenizer<wchar>::Next( lang::Whitespaces trimming, wchar newDelim );
 
-}}}} // namespace [aworx::lib::strings::util]
+}}} // namespace [alib::strings::util]

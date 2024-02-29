@@ -8,9 +8,6 @@
     <Filter Include="alib">
       <UniqueIdentifier>{89e68b08-2208-4f16-9744-5ffc227793d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="alib\lib">
-      <UniqueIdentifier>{9664520c-03e8-44bd-95c8-b6245c89231a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="alib\characters">
       <UniqueIdentifier>{8a8f7490-1677-4c8f-9eeb-d8485ae34982}</UniqueIdentifier>
     </Filter>
@@ -40,15 +37,6 @@
     </Filter>
     <Filter Include="alib\threads">
       <UniqueIdentifier>{532ec881-e397-4582-95fe-5e41c4250676}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\resources">
-      <UniqueIdentifier>{cb753439-67dd-4296-aaae-0272aa25ad4c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\results">
-      <UniqueIdentifier>{0f9b2ca1-2b35-4a07-a47c-084ec23bb270}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\system">
-      <UniqueIdentifier>{5aaf547c-acec-4300-9991-98431f13b19e}</UniqueIdentifier>
     </Filter>
     <Filter Include="alib\configuration">
       <UniqueIdentifier>{7079b013-c281-4992-8acc-b5c572f3c5b8}</UniqueIdentifier>
@@ -83,27 +71,6 @@
     <Filter Include="alib\alox\detail\textlogger">
       <UniqueIdentifier>{0e09a15f-8ca3-4e46-978e-e8cabf8a1b1d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="alib\lib\fs_commonenums">
-      <UniqueIdentifier>{9a15cfd9-9cf8-448a-b98f-606019f7a91c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\lib\fs_lists">
-      <UniqueIdentifier>{0bdc9538-be4e-4aaa-998a-2adc44040116}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\lib\fs_modules">
-      <UniqueIdentifier>{68ac3476-a7ce-40b8-9304-10ac72ef3bc7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\lib\fs_owner">
-      <UniqueIdentifier>{9f1182b1-b048-4b8b-809c-72cc18b477e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\lib\fs_plugins">
-      <UniqueIdentifier>{ba5e2cc3-2255-449e-9a9b-df00ce65fd87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\resources\detail">
-      <UniqueIdentifier>{5a56b618-8c27-43f7-a8dc-3b7d2073914e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="alib\text">
-      <UniqueIdentifier>{8e74a3b7-ac13-4965-b9ff-1481f8ecdba3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="alib\bitbuffer">
       <UniqueIdentifier>{57fc99fe-38af-4d65-9287-bf8210f720ab}</UniqueIdentifier>
     </Filter>
@@ -118,6 +85,30 @@
     </Filter>
     <Filter Include="alib\monomem\util">
       <UniqueIdentifier>{9e0e398e-fbaa-449e-bda4-464cf5ef7b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang">
+      <UniqueIdentifier>{7e5f8013-756b-42f9-848c-fdb50d5b5d3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\basecamp">
+      <UniqueIdentifier>{e4d7a62e-ae4c-4dd9-8c3e-24c56a64165c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\format">
+      <UniqueIdentifier>{cf72c6bd-7a08-412e-abd7-4e2e5ecccc35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\message">
+      <UniqueIdentifier>{283607e2-8a15-4b22-85a7-2aad14680b1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\resources">
+      <UniqueIdentifier>{d10a6a58-6902-4777-aada-14c395a1f0bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\system">
+      <UniqueIdentifier>{efce8d90-9a0a-4e7a-ad17-79b0d90260bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\lang\resources\detail">
+      <UniqueIdentifier>{5e52b1a9-17d7-45c7-92a2-ee401e28f3e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="alib\files">
+      <UniqueIdentifier>{8d38075a-5e93-44e4-a606-37a72b85962a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -204,21 +195,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\alib\time\time.hpp">
       <Filter>alib\time</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\results\results.hpp">
-      <Filter>alib\results</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\results\exception.hpp">
-      <Filter>alib\results</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\results\iclonemessageargument.hpp">
-      <Filter>alib\results</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\results\message.hpp">
-      <Filter>alib\results</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\results\report.hpp">
-      <Filter>alib\results</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\alib\config\variable.hpp">
       <Filter>alib\configuration</Filter>
@@ -373,21 +349,6 @@
     <ClInclude Include="..\..\..\src\alib\enums\serialization.hpp">
       <Filter>alib\enums</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\module.hpp">
-      <Filter>alib\lib\fs_modules</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\distribution.hpp">
-      <Filter>alib\lib\fs_modules</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_owner\owner.hpp">
-      <Filter>alib\lib\fs_owner</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_plugins\plugins.hpp">
-      <Filter>alib\lib\fs_plugins</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\resources\detail\resourcemap.hpp">
-      <Filter>alib\resources\detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\alib\singletons\dbgsingletons.hpp">
       <Filter>alib\singletons</Filter>
     </ClInclude>
@@ -412,50 +373,11 @@
     <ClInclude Include="..\..\..\src\alib\strings\util\tokenizer.hpp">
       <Filter>alib\strings\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\distribution.hpp">
-      <Filter>alib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\alib\alib_precompile.hpp">
       <Filter>alib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\alib\alox.hpp">
       <Filter>alib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\text.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\formatter.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\formatterjavastyle.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\formatterpythonstyle.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\formatterstdimpl.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\fwds.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\paragraphs.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\propertyformatter.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\text\propertyformatters.hpp">
-      <Filter>alib\text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\resources\resources.hpp">
-      <Filter>alib\resources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\resources\configresourcepool.hpp">
-      <Filter>alib\resources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\resources\localresourcepool.hpp">
-      <Filter>alib\resources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\alib\compatibility\std_typeinfo.hpp">
       <Filter>alib\compatibility</Filter>
@@ -499,45 +421,6 @@
     <ClInclude Include="..\..\..\src\alib\bitbuffer\arraycompressor.hpp">
       <Filter>alib\bitbuffer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenums.hpp">
-      <Filter>alib\lib\fs_commonenums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenumdefs.hpp">
-      <Filter>alib\lib\fs_commonenums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenumdefs_aliased.hpp">
-      <Filter>alib\lib\fs_commonenums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\bidilist.hpp">
-      <Filter>alib\lib\fs_lists</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\sidilist.hpp">
-      <Filter>alib\lib\fs_lists</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\tmp.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\tools.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\bits.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\compilers.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\features.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\integers.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\modules.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\lib\platforms.hpp">
-      <Filter>alib\lib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\alib\monomem\util\rttrallocator.hpp">
       <Filter>alib\monomem\util</Filter>
     </ClInclude>
@@ -577,26 +460,146 @@
     <ClInclude Include="..\..\..\src\alib\monomem\selfcontained.hpp">
       <Filter>alib\monomem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\systemerrors.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\tmp.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\calendar.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\bidilist.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\console.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\bits.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\directory.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\bitset.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\environment.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\commonenumdefs.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\processinfo.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\commonenums.hpp">
+      <Filter>alib\lang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\alib\system\system.hpp">
-      <Filter>alib\system</Filter>
+    <ClInclude Include="..\..\..\src\alib\lang\dbgtypedemangler.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\integers.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\owner.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\platformincludes.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\plugins.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\sidilist.hpp">
+      <Filter>alib\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\camp_inlines.hpp">
+      <Filter>alib\lang\basecamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\basecamp.hpp">
+      <Filter>alib\lang\basecamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\bootstrap.hpp">
+      <Filter>alib\lang\basecamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\camp.hpp">
+      <Filter>alib\lang\basecamp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterpythonstyle.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterstdimpl.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\fwds.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\paragraphs.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\propertyformatter.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\propertyformatters.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\bytesize.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\fmtexceptions.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatter.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterjavastyle.hpp">
+      <Filter>alib\lang\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\message\report.hpp">
+      <Filter>alib\lang\message</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\message\exception.hpp">
+      <Filter>alib\lang\message</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\message\message.hpp">
+      <Filter>alib\lang\message</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resources\resources.hpp">
+      <Filter>alib\lang\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resources\configresourcepool.hpp">
+      <Filter>alib\lang\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resources\localresourcepool.hpp">
+      <Filter>alib\lang\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\resources\detail\resourcemap.hpp">
+      <Filter>alib\lang\resources\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\systemerrors.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\calendar.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\console.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\directory.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\environment.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\lang\system\processinfo.hpp">
+      <Filter>alib\lang\system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\alib.hpp">
+      <Filter>alib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\ftree.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\ffilter.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\fileexpressions.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\filescamp.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\finfo.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\fscanner.hpp">
+      <Filter>alib\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\alib\files\ftools.hpp">
+      <Filter>alib\files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -653,15 +656,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\alib\time\time.cpp">
       <Filter>alib\time</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\results\exception.cpp">
-      <Filter>alib\results</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\results\report.cpp">
-      <Filter>alib\results</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\results\results.cpp">
-      <Filter>alib\results</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\alib\config\config.cpp">
       <Filter>alib\configuration</Filter>
@@ -795,12 +789,6 @@
     <ClCompile Include="..\..\..\src\alib\enums\records.cpp">
       <Filter>alib\enums</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\distribution.cpp">
-      <Filter>alib\lib\fs_modules</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\module.cpp">
-      <Filter>alib\lib\fs_modules</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\alib\strings\util\autosizes.cpp">
       <Filter>alib\strings\util</Filter>
     </ClCompile>
@@ -822,33 +810,6 @@
     <ClCompile Include="..\..\..\src\alib\strings\util\wildcardmatcher.cpp">
       <Filter>alib\strings\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\formatter.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\formatterjavastyle.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\formatterpythonstyle.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\formatterstdimpl.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\paragraphs.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\propertyformatter.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\text\text.cpp">
-      <Filter>alib\text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\resources\configresourcepool.cpp">
-      <Filter>alib\resources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\resources\localresourcepool.cpp">
-      <Filter>alib\resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\alib\compatibility\std_strings_iostream.cpp">
       <Filter>alib\compatibility</Filter>
     </ClCompile>
@@ -861,32 +822,83 @@
     <ClCompile Include="..\..\..\src\alib\bitbuffer\bitbuffer.cpp">
       <Filter>alib\bitbuffer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\lib\alib.cpp">
-      <Filter>alib\lib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\alib\monomem\detail\hashtablebase.cpp">
       <Filter>alib\monomem\detail</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\alib\monomem\monoallocator.cpp">
       <Filter>alib\monomem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\calendar.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\basecamp\basecamp.cpp">
+      <Filter>alib\lang\basecamp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\console.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\basecamp\bootstrap.cpp">
+      <Filter>alib\lang\basecamp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\directory.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterpythonstyle.cpp">
+      <Filter>alib\lang\format</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\environment.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterstdimpl.cpp">
+      <Filter>alib\lang\format</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\format\paragraphs.cpp">
+      <Filter>alib\lang\format</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\alib\system\system.cpp">
-      <Filter>alib\system</Filter>
+    <ClCompile Include="..\..\..\src\alib\lang\format\propertyformatter.cpp">
+      <Filter>alib\lang\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatter.cpp">
+      <Filter>alib\lang\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterjavastyle.cpp">
+      <Filter>alib\lang\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\message\exception.cpp">
+      <Filter>alib\lang\message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\message\report.cpp">
+      <Filter>alib\lang\message</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\resources\configresourcepool.cpp">
+      <Filter>alib\lang\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\resources\localresourcepool.cpp">
+      <Filter>alib\lang\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\system\calendar.cpp">
+      <Filter>alib\lang\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\system\console.cpp">
+      <Filter>alib\lang\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\system\directory.cpp">
+      <Filter>alib\lang\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\system\environment.cpp">
+      <Filter>alib\lang\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\lang\system\processinfo.cpp">
+      <Filter>alib\lang\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\alib.cpp">
+      <Filter>alib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\fileexpressions.cpp">
+      <Filter>alib\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\filescamp.cpp">
+      <Filter>alib\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\finfo.cpp">
+      <Filter>alib\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\fscanner.cpp">
+      <Filter>alib\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\ftools.cpp">
+      <Filter>alib\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\alib\files\ftree.cpp">
+      <Filter>alib\files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -955,9 +967,6 @@
     </None>
     <None Include="..\..\..\src\alib\monomem\detail\recycler.inl">
       <Filter>alib\monomem\detail</Filter>
-    </None>
-    <None Include="..\..\..\src\alib\system\directory.mm">
-      <Filter>alib\system</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -41,7 +41,7 @@
 
 
 
-namespace aworx { namespace lib { namespace boxing { namespace detail {
+namespace alib {  namespace boxing { namespace detail {
 
 #if !defined(ALIB_DOX)
 
@@ -159,27 +159,16 @@ void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
 
     // search existing (replace)
     #if ALIB_MONOMEM
-        if( customFunctionMap.Size() == 0 )
-            customFunctionMap.Reserve( 50, ValueReference::Absolute );
-
         customFunctionMap.InsertOrAssign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
     #else
         if( customFunctionMap.size() == 0 )
             customFunctionMap.reserve( 50 );
-        #if ALIB_CPPVER < 17
-            auto it= customFunctionMap.find( CustomFunctionKey(this, rtti) );
-            if ( it != customFunctionMap.end() )
-                it->second.Implementation= impl;
-            else
-                customFunctionMap.emplace( CustomFunctionKey(this, rtti), impl );
-        #else
-            customFunctionMap.insert_or_assign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
-        #endif
+        customFunctionMap.insert_or_assign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
     #endif
 
 }
 
-} // namespace aworx::lib::boxing[::detail]
+} // namespace alib::boxing[::detail]
 
 using namespace detail;
 
@@ -284,7 +273,7 @@ void DbgBoxing::DumpCustomFunctionHashMapMetrics( AString& target, bool detailed
 #endif // ALIB_DEBUG_BOXING
 
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 
 
@@ -356,26 +345,27 @@ ALIB_BOXING_VTABLE_DEFINE( std::type_info*              , vt_std_type_info      
 // Static VTables for low-level ALib types
 // #################################################################################################
 // CodeMarker_CommonEnums
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Alignment        , vt_alib_Alignment         )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Bool             , vt_alib_Bool              )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Caching          , vt_alib_Caching           )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Case             , vt_alib_Case              )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::ContainerOp      , vt_alib_ContainerOp       )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CreateDefaults   , vt_alib_CreateDefaults    )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CreateIfNotExists, vt_alib_CreateIfNotExists )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::CurrentData      , vt_alib_CurrentData       )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Inclusion        , vt_alib_Inclusion         )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Initialization   , vt_alib_Initialization    )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Phase            , vt_alib_Phase             )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Propagation      , vt_alib_Propagation       )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Reach            , vt_alib_Reach             )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Responsibility   , vt_alib_Responsibility    )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Safeness         , vt_alib_Safeness          )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Side             , vt_alib_Side              )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::SortOrder        , vt_alib_SortOrder         )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::SourceData       , vt_alib_SourceData        )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Switch           , vt_alib_Switch            )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Timezone         , vt_alib_Timezone          )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Timing           , vt_alib_Timing            )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::ValueReference   , vt_alib_ValueReference    )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::Whitespaces      , vt_alib_Whitespaces       )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Alignment        , vt_alib_Alignment         )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Bool             , vt_alib_Bool              )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Caching          , vt_alib_Caching           )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Case             , vt_alib_Case              )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::ContainerOp      , vt_alib_ContainerOp       )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::CreateDefaults   , vt_alib_CreateDefaults    )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::CreateIfNotExists, vt_alib_CreateIfNotExists )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::CurrentData      , vt_alib_CurrentData       )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Inclusion        , vt_alib_Inclusion         )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Initialization   , vt_alib_Initialization    )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Phase            , vt_alib_Phase             )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Propagation      , vt_alib_Propagation       )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Reach            , vt_alib_Reach             )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Reach            , vt_alib_Recursive         )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Responsibility   , vt_alib_Responsibility    )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Safeness         , vt_alib_Safeness          )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Side             , vt_alib_Side              )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::SortOrder        , vt_alib_SortOrder         )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::SourceData       , vt_alib_SourceData        )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Switch           , vt_alib_Switch            )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Timezone         , vt_alib_Timezone          )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Timing           , vt_alib_Timing            )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::ValueReference   , vt_alib_ValueReference    )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::Whitespaces      , vt_alib_Whitespaces       )

@@ -1,12 +1,12 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
+
 #if ALIB_UT_STRINGS
 
 #include "alib/alox.hpp"
@@ -40,7 +40,7 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -320,11 +320,11 @@ UT_METHOD( IOStream )
     // narrow
     {
         NAString   ms;
-        basic_string<aworx::nchar>     s;
+        basic_string<alib::nchar>     s;
         ms.Reset( "0123456789" );
 
 
-        std::basic_stringstream<aworx::nchar> strs;
+        std::basic_stringstream<alib::nchar> strs;
         ms.Reset( "hello stringstream" );
         strs << ms;
         UT_EQ( strs.str(), "hello stringstream" )
@@ -631,52 +631,52 @@ UT_METHOD( Fields )
     AString ms;
 
     // empty fields
-    ms._( Format::Field( nullptr, 3, Alignment::Left,     '#' ) );            UT_EQ( A_CHAR("###")          , ms )
+    ms._( Format::Field( nullptr, 3, lang::Alignment::Left,     '#' ) );            UT_EQ( A_CHAR("###")          , ms )
 
     ms.Reset();
-    ms._( Format::Field( A_CHAR("") ,     3, Alignment::Left,     '#' ) );    UT_EQ( A_CHAR("###")          , ms )
-    ms._( Format::Field( A_CHAR("") ,     4, Alignment::Center,   '*' ) );    UT_EQ( A_CHAR("###****")      , ms )
-    ms._( Format::Field( A_CHAR("") ,     5, Alignment::Right,    '+' ) );    UT_EQ( A_CHAR("###****+++++") , ms )
+    ms._( Format::Field( A_CHAR("") ,     3, lang::Alignment::Left,     '#' ) );    UT_EQ( A_CHAR("###")          , ms )
+    ms._( Format::Field( A_CHAR("") ,     4, lang::Alignment::Center,   '*' ) );    UT_EQ( A_CHAR("###****")      , ms )
+    ms._( Format::Field( A_CHAR("") ,     5, lang::Alignment::Right,    '+' ) );    UT_EQ( A_CHAR("###****+++++") , ms )
 
     // field, alignment left
     ms.Reset();
-    ms._( Format::Field( A_CHAR("A")       , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("AB")      , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("ABC")     , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("ABCD")    , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("ABCDE")   , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("ABCDEF")  , 5,    Alignment::Left ) );
-    ms._( Format::Field( A_CHAR("ABCDEFG") , 5,    Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("A")       , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("AB")      , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("ABC")     , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("ABCD")    , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("ABCDE")   , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("ABCDEF")  , 5, lang::Alignment::Left ) );
+    ms._( Format::Field( A_CHAR("ABCDEFG") , 5, lang::Alignment::Left ) );
     UT_EQ( A_CHAR("A    AB   ABC  ABCD ABCDEABCDEFABCDEFG"), ms )
 
     // field, alignment right
     ms.Reset();
-    ms._( Format::Field( A_CHAR("A")       , 5,    Alignment::Right ) );
-    ms._( Format::Field( A_CHAR("AB")      , 5,    Alignment::Right ) );
-    ms._( Format::Field( A_CHAR("ABC")     , 5                      ) ); // btw: right is default
-    ms._( Format::Field( A_CHAR("ABCD")    , 5                      ) );
-    ms._( Format::Field( A_CHAR("ABCDE")   , 5                      ) );
-    ms._( Format::Field( A_CHAR("ABCDEF")  , 5,    Alignment::Right ) );
-    ms._( Format::Field( A_CHAR("ABCDEFG") , 5,    Alignment::Right ) );
+    ms._( Format::Field( A_CHAR("A")       , 5, lang::Alignment::Right ) );
+    ms._( Format::Field( A_CHAR("AB")      , 5, lang::Alignment::Right ) );
+    ms._( Format::Field( A_CHAR("ABC")     , 5                         ) ); // btw: right is default
+    ms._( Format::Field( A_CHAR("ABCD")    , 5                         ) );
+    ms._( Format::Field( A_CHAR("ABCDE")   , 5                         ) );
+    ms._( Format::Field( A_CHAR("ABCDEF")  , 5, lang::Alignment::Right ) );
+    ms._( Format::Field( A_CHAR("ABCDEFG") , 5, lang::Alignment::Right ) );
     UT_EQ( A_CHAR("    A   AB  ABC ABCDABCDEABCDEFABCDEFG"), ms )
 
     // field, alignment center
     ms.Reset();
-    ms._( Format::Field( A_CHAR("A")       , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("AB")      , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("ABC")     , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("ABCD")    , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("ABCDE")   , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("ABCDEF")  , 5,    Alignment::Center) );
-    ms._( Format::Field( A_CHAR("ABCDEFG") , 5,    Alignment::Center) );
+    ms._( Format::Field( A_CHAR("A")       , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("AB")      , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("ABC")     , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("ABCD")    , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("ABCDE")   , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("ABCDEF")  , 5, lang::Alignment::Center) );
+    ms._( Format::Field( A_CHAR("ABCDEFG") , 5, lang::Alignment::Center) );
     UT_EQ( A_CHAR("  A   AB   ABC ABCD ABCDEABCDEFABCDEFG"), ms )
 
     // a nested field
     ms.Reset();
     ms._(A_CHAR("***"));
-        String32 inner  (A_CHAR("OS:"));    inner._(Format::Field( A_CHAR("Linux"), 10, Alignment::Right, '-' ) );
-             inner._(A_CHAR(" Lang:")); inner._(Format::Field( A_CHAR("en_US"),  8, Alignment::Right, '-' ) );
-        ms._(Format::Field( inner, 35, Alignment::Center, '#' ) );
+        String32 inner  (A_CHAR("OS:"));    inner._(Format::Field( A_CHAR("Linux"), 10, lang::Alignment::Right, '-' ) );
+                 inner._(A_CHAR(" Lang:")); inner._(Format::Field( A_CHAR("en_US"),  8, lang::Alignment::Right, '-' ) );
+        ms._(Format::Field( inner, 35, lang::Alignment::Center, '#' ) );
     ms._(A_CHAR("***"));
     UT_EQ( A_CHAR("***####OS:-----Linux Lang:---en_US####***"), ms )
 }
@@ -718,7 +718,7 @@ UT_METHOD( CapacityLength )
 
         as= ms.Capacity();
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
             UT_PRINT( "An error should follow" )
             ms.ShortenTo(20);                    UT_EQ( 20, ms.Length() )    UT_EQ  ( ms.Capacity(), as )
 
@@ -729,7 +729,7 @@ UT_METHOD( CapacityLength )
             UT_PRINT( "A warning should follow" )
             ms.ShortenTo(11);                    UT_EQ( 11, ms.Length() )    UT_EQ  ( ms.Capacity(), as )    UT_EQ(A_CHAR("12345678901")   ,  ms  )
 
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
 
         ms.ShortenTo(5);                         UT_EQ( 5, ms.Length() )     UT_EQ  ( ms.Capacity(), as )    UT_EQ( A_CHAR("12345")  , ms    )
         ms.SetBuffer(3);                         UT_EQ( 3, ms.Length() )     UT_EQ  ( ms.Capacity(), 3  )    UT_EQ( A_CHAR("123")    , ms    )
@@ -742,13 +742,13 @@ UT_METHOD( CapacityLength )
         AString* ms;
         ms= new AString();
         // we use std::malloc, as this is used inside AString. Otherwise valgrind would warn of a mismatch new[]/delete
-        ms->SetBuffer( static_cast<character*>(std::malloc(static_cast<size_t>(5) * sizeof(character))), 5, 0, Responsibility::Transfer );
+        ms->SetBuffer( static_cast<character*>(std::malloc(static_cast<size_t>(5) * sizeof(character))), 5, 0, lang::Responsibility::Transfer );
         ms->_(A_CHAR("ABC"));                  UT_EQ( 3, ms->Length() )       UT_TRUE ( ms->Capacity() == 4 )  UT_EQ( A_CHAR("ABC")   , *ms  )
 
         delete ms;
 
         ms= new AString();
-        ms->SetBuffer( static_cast<character*>(std::malloc(static_cast<size_t>(5) * sizeof(character))), 5, 0, Responsibility::Transfer );
+        ms->SetBuffer( static_cast<character*>(std::malloc(static_cast<size_t>(5) * sizeof(character))), 5, 0, lang::Responsibility::Transfer );
         ms->_(A_CHAR("ABC"));
         ms->_(A_CHAR("ABC"));                  UT_EQ( 6, ms->Length() )       UT_TRUE ( ms->Capacity() > 4 )  UT_EQ( A_CHAR("ABCABC")   , *ms  )
         delete ms;
@@ -762,7 +762,7 @@ UT_METHOD( CapacityLength )
         sMS1.SetBuffer( reinterpret_cast<character*>(&stackCA1), 5 );
         sMS1._(A_CHAR("ABC"));                 UT_TRUE ( sMS1.Buffer() == reinterpret_cast<character*>(&stackCA1) )  UT_EQ( A_CHAR("ABC")   , sMS1  )
 
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
             character stackCA2[5];
             AString sMS2;
             sMS2.SetBuffer( reinterpret_cast<character*>(&stackCA2), 5 );
@@ -786,7 +786,7 @@ UT_METHOD( CapacityLength )
 
             UT_TRUE ( ms64 != orig )
             UT_TRUE ( ms64.SearchAndReplace( '@', 'X' ) == 64 )
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
     }
 }
 
@@ -1044,84 +1044,84 @@ UT_METHOD( SearchAndReplace )
 
         // search one of
         integer l= ms.Length();
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("")           );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("x")          );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xy")         );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xyz")        );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xyd")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("d")          );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xyd") ,  -2  );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xyd") ,   4  );    UT_EQ(   8, result )
-        result= ms.IndexOfAny    <Inclusion::Include       >( A_CHAR("xyd") ,  20  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("")           );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("x")          );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xy")         );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyz")        );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyd")        );    UT_EQ(   8, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyd") ,  -2  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyd") ,   2  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyd") ,   4  );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("a")   ,   4  );    UT_EQ(   0, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("b")   ,   4  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("ba")  ,   4  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xa")  ,   4  );    UT_EQ(   0, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("xyd") ,  20  );    UT_EQ(   8, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("d")   ,  20  );    UT_EQ(   8, result )
-        result= ms.LastIndexOfAny<Inclusion::Include       >( A_CHAR("e")   ,  20  );    UT_EQ(   9, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("x")          );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("xy")         );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("xyz")        );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("xyd")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("d")          );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Include, false>( A_CHAR("xyd")  ,  4  );    UT_EQ(   8, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("xyd")  ,  2  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("xyd")  ,  4  );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("a")    ,  4  );    UT_EQ(   0, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("b")    ,  4  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("ba")   ,  4  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Include, false>( A_CHAR("xa")   ,  4  );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("")           );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("x")          );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xy")         );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xyz")        );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xyd")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("d")          );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xyd") ,  -2  );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xyd") ,   4  );    UT_EQ(   8, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include       >( A_CHAR("xyd") ,  20  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("")           );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("x")          );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xy")         );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyz")        );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd")        );    UT_EQ(   8, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd") ,  -2  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd") ,   2  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd") ,   4  );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("a")   ,   4  );    UT_EQ(   0, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("b")   ,   4  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("ba")  ,   4  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xa")  ,   4  );    UT_EQ(   0, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd") ,  20  );    UT_EQ(   8, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("d")   ,  20  );    UT_EQ(   8, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include       >( A_CHAR("e")   ,  20  );    UT_EQ(   9, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("x")          );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("xy")         );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("xyz")        );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("xyd")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("d")          );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Include, false>( A_CHAR("xyd")  ,  4  );    UT_EQ(   8, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xyd")  ,  2  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xyd")  ,  4  );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("a")    ,  4  );    UT_EQ(   0, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("b")    ,  4  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("ba")   ,  4  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xa")   ,  4  );    UT_EQ(   0, result )
 
         // search NOT one of
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("")           );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("x")          );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("xy")         );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("xyz")        );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("a")          );    UT_EQ(   1, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("ba")         );    UT_EQ(   2, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("abc")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("acb")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("cba")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude       >( A_CHAR("xcba")       );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("")           );    UT_EQ( l-1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("x")          );    UT_EQ( l-1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("xy")         );    UT_EQ( l-1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("e")          );    UT_EQ( l-2, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("de")         );    UT_EQ( l-3, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("cde")        );    UT_EQ( l-4, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("ced")        );    UT_EQ( l-4, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("ecd")        );    UT_EQ( l-4, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("ecd")  ,  5  );    UT_EQ(   5, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("ecd")  ,  4  );    UT_EQ(   4, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("acd")  ,  3  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("abc")  ,  2  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("xay")  ,  3  );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("d")    ,  3  );    UT_EQ(   2, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude       >( A_CHAR("a")    ,  0  );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("x")          );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("xy")         );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("xyz")        );    UT_EQ(   0, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("a")          );    UT_EQ(   1, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("ba")         );    UT_EQ(   2, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("abc")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("acb")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("cba")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny    <Inclusion::Exclude ,false>( A_CHAR("xcba")       );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("ecd")  ,  4  );    UT_EQ(   4, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("acd")  ,  3  );    UT_EQ(   1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("abc")  ,  2  );    UT_EQ(  -1, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("xay")  ,  3  );    UT_EQ(   3, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("d")    ,  3  );    UT_EQ(   2, result )
-        result= ms.LastIndexOfAny<Inclusion::Exclude ,false>( A_CHAR("a")    ,  0  );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("")           );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("x")          );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("xy")         );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("xyz")        );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("a")          );    UT_EQ(   1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("ba")         );    UT_EQ(   2, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("abc")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("acb")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("cba")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude       >( A_CHAR("xcba")       );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("")           );    UT_EQ( l-1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("x")          );    UT_EQ( l-1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("xy")         );    UT_EQ( l-1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("e")          );    UT_EQ( l-2, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("de")         );    UT_EQ( l-3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("cde")        );    UT_EQ( l-4, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("ced")        );    UT_EQ( l-4, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("ecd")        );    UT_EQ( l-4, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("ecd")  ,  5  );    UT_EQ(   5, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("ecd")  ,  4  );    UT_EQ(   4, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("acd")  ,  3  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("abc")  ,  2  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("xay")  ,  3  );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("d")    ,  3  );    UT_EQ(   2, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("a")    ,  0  );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("x")          );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("xy")         );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("xyz")        );    UT_EQ(   0, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("a")          );    UT_EQ(   1, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("ba")         );    UT_EQ(   2, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("abc")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("acb")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("cba")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny    <lang::Inclusion::Exclude ,false>( A_CHAR("xcba")       );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("ecd")  ,  4  );    UT_EQ(   4, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("acd")  ,  3  );    UT_EQ(   1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("abc")  ,  2  );    UT_EQ(  -1, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("xay")  ,  3  );    UT_EQ(   3, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("d")    ,  3  );    UT_EQ(   2, result )
+        result= ms.LastIndexOfAny<lang::Inclusion::Exclude ,false>( A_CHAR("a")    ,  0  );    UT_EQ(  -1, result )
     }
 
     // ------------------ search one of several characters CString version  ------------------
@@ -1129,40 +1129,40 @@ UT_METHOD( SearchAndReplace )
     {
         CString ms(A_CHAR("abcd abcde"));
         // search one of
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("")            );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("x")           );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xy")          );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xyz")         );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xyd")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("d")           );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xyd")   , -2  );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xyd")   ,  4  );    UT_EQ(   8, result )
-        result= ms.IndexOfAny<Inclusion::Include       >( A_CHAR("xyd")   , 20  );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("x")           );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("xy")          );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("xyz")         );    UT_EQ(  -1, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("xyd")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("d")           );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Include, false>( A_CHAR("xyd")   ,  4  );    UT_EQ(   8, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("")            );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("x")           );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("xy")          );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("xyz")         );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("a")           );    UT_EQ(   1, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("ba")          );    UT_EQ(   2, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("abc")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("acb")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("cba")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude       >( A_CHAR("xcba")        );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("x")           );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("xy")          );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("xyz")         );    UT_EQ(   0, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("a")           );    UT_EQ(   1, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("ba")          );    UT_EQ(   2, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("abc")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("acb")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("cba")         );    UT_EQ(   3, result )
-        result= ms.IndexOfAny<Inclusion::Exclude, false>( A_CHAR("xcba")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("")            );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("x")           );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xy")          );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyz")         );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("d")           );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd")   , -2  );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd")   ,  4  );    UT_EQ(   8, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include       >( A_CHAR("xyd")   , 20  );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("x")           );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xy")          );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xyz")         );    UT_EQ(  -1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xyd")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("d")           );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Include, false>( A_CHAR("xyd")   ,  4  );    UT_EQ(   8, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("")            );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("x")           );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("xy")          );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("xyz")         );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("a")           );    UT_EQ(   1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("ba")          );    UT_EQ(   2, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("abc")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("acb")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("cba")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude       >( A_CHAR("xcba")        );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("x")           );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("xy")          );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("xyz")         );    UT_EQ(   0, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("a")           );    UT_EQ(   1, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("ba")          );    UT_EQ(   2, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("abc")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("acb")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("cba")         );    UT_EQ(   3, result )
+        result= ms.IndexOfAny<lang::Inclusion::Exclude, false>( A_CHAR("xcba")        );    UT_EQ(   3, result )
     }
 
     // search nullptr, empty string
@@ -1181,43 +1181,43 @@ UT_METHOD( SearchAndReplace )
     // search
     {
         CString ms(A_CHAR("abcd abcd"));
-        result= ms.IndexOf                        ( A_CHAR("abcd")       );  UT_EQ( result,   0 )
-        result= ms.IndexOf                        ( A_CHAR("b")          );  UT_EQ( result,   1 )
-        result= ms.IndexOf                        ( A_CHAR(" abcd")      );  UT_EQ( result,   4 )
-        result= ms.IndexOf                        ( A_CHAR("abcd"),     1);  UT_EQ( result,   5 )
-        result= ms.IndexOf                        ( A_CHAR("abcd"),   - 1);  UT_EQ( result,   0 )
-        result= ms.IndexOf                        ( A_CHAR("xyz"),    -10);  UT_EQ( result,  -1 )
-        result= ms.IndexOf<false, Case::Sensitive>( A_CHAR("abcd")       );  UT_EQ( result,   0 )
-        result= ms.IndexOf<false, Case::Sensitive>( A_CHAR("b")          );  UT_EQ( result,   1 )
-        result= ms.IndexOf<false, Case::Sensitive>( A_CHAR(" abcd")      );  UT_EQ( result,   4 )
-        result= ms.IndexOf<false, Case::Sensitive>( A_CHAR("abcd"),     1);  UT_EQ( result,   5 )
+        result= ms.IndexOf                              ( A_CHAR("abcd")       );  UT_EQ( result,   0 )
+        result= ms.IndexOf                              ( A_CHAR("b")          );  UT_EQ( result,   1 )
+        result= ms.IndexOf                              ( A_CHAR(" abcd")      );  UT_EQ( result,   4 )
+        result= ms.IndexOf                              ( A_CHAR("abcd"),     1);  UT_EQ( result,   5 )
+        result= ms.IndexOf                              ( A_CHAR("abcd"),   - 1);  UT_EQ( result,   0 )
+        result= ms.IndexOf                              ( A_CHAR("xyz"),    -10);  UT_EQ( result,  -1 )
+        result= ms.IndexOf<false, lang::Case::Sensitive>( A_CHAR("abcd")       );  UT_EQ( result,   0 )
+        result= ms.IndexOf<false, lang::Case::Sensitive>( A_CHAR("b")          );  UT_EQ( result,   1 )
+        result= ms.IndexOf<false, lang::Case::Sensitive>( A_CHAR(" abcd")      );  UT_EQ( result,   4 )
+        result= ms.IndexOf<false, lang::Case::Sensitive>( A_CHAR("abcd"),     1);  UT_EQ( result,   5 )
     }
 
     // ignore case
     {
         AString ms( A_CHAR("Hello A-Worx utilXXX") );
         ms.DeleteEnd(3);
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),    0 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),    1 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),  -10 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),    6 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),    7 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("a-worx"),  100 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("hel"),       0 ); UT_EQ( result,  0 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("hel"),       1 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("util"),      1 ); UT_EQ( result, 13 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("UTIL"),      5 ); UT_EQ( result, 13 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("UTIL"),     13 ); UT_EQ( result, 13 )
-        result= ms.IndexOf<true , Case::Ignore   >( A_CHAR("UTIL"),     14 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("a-worx"),    0 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("a-worx"),    1 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("a-worx"),    6 ); UT_EQ( result,  6 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("a-worx"),    7 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("hel"),       0 ); UT_EQ( result,  0 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("hel"),       1 ); UT_EQ( result, -1 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("util"),      1 ); UT_EQ( result, 13 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("UTIL"),      5 ); UT_EQ( result, 13 )
-        result= ms.IndexOf<false, Case::Ignore   >( A_CHAR("UTIL"),     13 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),    0 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),    1 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),  -10 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),    6 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),    7 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("a-worx"),  100 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("hel"),       0 ); UT_EQ( result,  0 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("hel"),       1 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("util"),      1 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("UTIL"),      5 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("UTIL"),     13 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<true , lang::Case::Ignore   >( A_CHAR("UTIL"),     14 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("a-worx"),    0 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("a-worx"),    1 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("a-worx"),    6 ); UT_EQ( result,  6 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("a-worx"),    7 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("hel"),       0 ); UT_EQ( result,  0 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("hel"),       1 ); UT_EQ( result, -1 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("util"),      1 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("UTIL"),      5 ); UT_EQ( result, 13 )
+        result= ms.IndexOf<false, lang::Case::Ignore   >( A_CHAR("UTIL"),     13 ); UT_EQ( result, 13 )
     }
 
     // IndexOfFirstDifference
@@ -1228,30 +1228,30 @@ UT_METHOD( SearchAndReplace )
         UT_EQ( 6, as.IndexOfFirstDifference(A_CHAR("abcdefg")) )
 
         UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("123")) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("123"), Case::Ignore   ) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("123"), Case::Ignore, 2) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("123"),  lang::Case::Ignore   ) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("123"),  lang::Case::Ignore, 2) )
 
         UT_EQ( 3, as.IndexOfFirstDifference(A_CHAR("abc")) )
-        UT_EQ( 3, as.IndexOfFirstDifference(A_CHAR("abc"), Case::Ignore   ) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("abc"), Case::Ignore, 1) )
-        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("bc"), Case::Ignore, 0) )
-        UT_EQ( 2, as.IndexOfFirstDifference( A_CHAR("bc"), Case::Ignore, 1) )
-        UT_EQ( 1, as.IndexOfFirstDifference( A_CHAR("bd"), Case::Ignore, 1) )
+        UT_EQ( 3, as.IndexOfFirstDifference(A_CHAR("abc"),  lang::Case::Ignore   ) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("abc"),  lang::Case::Ignore, 1) )
+        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("bc"),  lang::Case::Ignore, 0) )
+        UT_EQ( 2, as.IndexOfFirstDifference( A_CHAR("bc"),  lang::Case::Ignore, 1) )
+        UT_EQ( 1, as.IndexOfFirstDifference( A_CHAR("bd"),  lang::Case::Ignore, 1) )
 
 
-        UT_EQ( 3, as.IndexOfFirstDifference(A_CHAR("ABC"), Case::Ignore   ) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"), Case::Ignore, 1) )
-        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"), Case::Ignore, 0) )
-        UT_EQ( 2, as.IndexOfFirstDifference( A_CHAR("BC"), Case::Ignore, 1) )
-        UT_EQ( 1, as.IndexOfFirstDifference( A_CHAR("BD"), Case::Ignore, 1) )
+        UT_EQ( 3, as.IndexOfFirstDifference(A_CHAR("ABC"),  lang::Case::Ignore   ) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"),  lang::Case::Ignore, 1) )
+        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"),  lang::Case::Ignore, 0) )
+        UT_EQ( 2, as.IndexOfFirstDifference( A_CHAR("BC"),  lang::Case::Ignore, 1) )
+        UT_EQ( 1, as.IndexOfFirstDifference( A_CHAR("BD"),  lang::Case::Ignore, 1) )
 
 
         UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC")) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"), Case::Sensitive   ) )
-        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"), Case::Sensitive, 1) )
-        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"), Case::Sensitive, 0) )
-        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"), Case::Sensitive, 1) )
-        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BD"), Case::Sensitive, 1) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"),  lang::Case::Sensitive   ) )
+        UT_EQ( 0, as.IndexOfFirstDifference(A_CHAR("ABC"),  lang::Case::Sensitive, 1) )
+        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"),  lang::Case::Sensitive, 0) )
+        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BC"),  lang::Case::Sensitive, 1) )
+        UT_EQ( 0, as.IndexOfFirstDifference( A_CHAR("BD"),  lang::Case::Sensitive, 1) )
     }
 
     // replace nullptr
@@ -1292,12 +1292,12 @@ UT_METHOD( SearchAndReplace )
     // replace ignoreCase
     {
         AString ms;
-        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1, Case::Sensitive );    UT_EQ( A_CHAR("ABC"), ms )  UT_EQ( 0, result )
-        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1, Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )  UT_EQ( 1, result )
-        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1, Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )  UT_EQ( 1, result )
-        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1, Case::Sensitive );    UT_EQ( A_CHAR("abc"), ms )
-        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1, Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )
-        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1, Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )
+        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1,  lang::Case::Sensitive );    UT_EQ( A_CHAR("ABC"), ms )  UT_EQ( 0, result )
+        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1,  lang::Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )  UT_EQ( 1, result )
+        ms.Reset(A_CHAR("ABC")); result= ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1,  lang::Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )  UT_EQ( 1, result )
+        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1,  lang::Case::Sensitive );    UT_EQ( A_CHAR("abc"), ms )
+        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("ABC"),    A_CHAR("xxx"),0, 1,  lang::Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )
+        ms.Reset(A_CHAR("abc"));         ms.SearchAndReplace( A_CHAR("abc"),    A_CHAR("xxx"),0, 1,  lang::Case::Ignore    );    UT_EQ( A_CHAR("xxx"), ms )
     }
 
 }
@@ -1322,34 +1322,34 @@ UT_METHOD( Count )
     UT_EQ( 0, str.CountChar( '\0') )
 
     str= A_CHAR("abcdef");
-    UT_EQ( 1, str.Count( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar( 'a'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar<false>( 'a'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar( 'b'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar<false>( 'b'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar( 'e'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar<false>( 'e'  ) )
-    UT_EQ( 1, str.Count( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar( 'f'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar<false>( 'f'  ) )
-    UT_EQ( 0, str.Count( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar( 'x'  ) )   UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar<false>( 'x'  ) )
-    UT_EQ( 0, str.Count( A_CHAR("")   ) )                                       UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("")   ) )
-    UT_EQ( 1, str.Count( A_CHAR("ab") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("ab") ) )
-    UT_EQ( 1, str.Count( A_CHAR("bc") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("bc") ) )
-    UT_EQ( 1, str.Count( A_CHAR("ef") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("ef") ) )
+    UT_EQ( 1, str.Count( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar( 'a'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("a")  ) )   UT_EQ( 1, str.CountChar<false>( 'a'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar( 'b'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("b")  ) )   UT_EQ( 1, str.CountChar<false>( 'b'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar( 'e'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("e")  ) )   UT_EQ( 1, str.CountChar<false>( 'e'  ) )
+    UT_EQ( 1, str.Count( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar( 'f'  ) )   UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("f")  ) )   UT_EQ( 1, str.CountChar<false>( 'f'  ) )
+    UT_EQ( 0, str.Count( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar( 'x'  ) )   UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("x")  ) )   UT_EQ( 0, str.CountChar<false>( 'x'  ) )
+    UT_EQ( 0, str.Count( A_CHAR("")   ) )                                       UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("")   ) )
+    UT_EQ( 1, str.Count( A_CHAR("ab") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab") ) )
+    UT_EQ( 1, str.Count( A_CHAR("bc") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("bc") ) )
+    UT_EQ( 1, str.Count( A_CHAR("ef") ) )                                       UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ef") ) )
 
-    UT_EQ( 1, str.Count( A_CHAR("ab"), A_CHAR("X") ) )                          UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("ab"), A_CHAR("X") ) )
-    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("c") ) )                          UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("ab"), A_CHAR("c") ) )
-    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("")  ) )                          UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("ab"), A_CHAR("")  ) )
+    UT_EQ( 1, str.Count( A_CHAR("ab"), A_CHAR("X") ) )                          UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("X") ) )
+    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("c") ) )                          UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("c") ) )
+    UT_EQ( 0, str.Count( A_CHAR("ab"), A_CHAR("")  ) )                          UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("ab"), A_CHAR("")  ) )
 
     str= A_CHAR("abcabcabcabc");
-    UT_EQ( 1, str.Count( A_CHAR("abcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("abcabcabcabc")    ) )
-    UT_EQ( 0, str.Count( A_CHAR("abcabcabcabcX")      ) )                                         UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("abcabcabcabcX")   ) )
-    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >(  A_CHAR("bcabcabcabc")    ) )
-    UT_EQ( 1, str.Count( A_CHAR("abcabcabcab")        ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >( A_CHAR("abcabcabcab")     ) )
-    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcab")        ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >(  A_CHAR("bcabcabcab")     ) )
-    UT_EQ( 1, str.Count(   A_CHAR("cabcabc")          ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("cabcabc")       ) )
-    UT_EQ( 4, str.Count(   A_CHAR("abc")              ) )                                         UT_EQ( 4, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("abc")           ) )
-    UT_EQ( 3, str.Count(   A_CHAR("cab")              ) )                                         UT_EQ( 3, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("cab")           ) )
-    UT_EQ( 4, str.Count(   A_CHAR("ab")               ) )                                         UT_EQ( 4, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("ab")            ) )
-    UT_EQ( 4, str.Count(   A_CHAR("a")                ) )  UT_EQ( 4, str.CountChar('a'        ) ) UT_EQ( 4, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("a")             ) ) UT_EQ( 4, str.CountChar<false>(   'a'          ) )
-    UT_EQ( 0, str.Count(   A_CHAR("a")  ,A_CHAR("b")  ) )  UT_EQ( 0, str.CountChar('a', 'b', 0) ) UT_EQ( 0, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("a") , A_CHAR("b"))) UT_EQ( 0, str.CountChar<false>(   'a' ,'b' , 0 ) )
-    UT_EQ( 4, str.Count(   A_CHAR("a")  ,A_CHAR("c")  ) )  UT_EQ( 4, str.CountChar('a', 'c', 0) ) UT_EQ( 4, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("a") , A_CHAR("c"))) UT_EQ( 4, str.CountChar<false>(   'a' ,'c' , 0 ) )
-    UT_EQ( 1, str.Count(   A_CHAR("ab") ,A_CHAR("ca") ) )  UT_EQ( 1, str.CountChar('c', 'a', 0) ) UT_EQ( 1, str.Count<false ALIB_COMMA Case::Sensitive >(   A_CHAR("ab"),A_CHAR("ca"))) UT_EQ( 1, str.CountChar<false>(   'c' ,'a' , 0 ) )
+    UT_EQ( 1, str.Count( A_CHAR("abcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabc")    ) )
+    UT_EQ( 0, str.Count( A_CHAR("abcabcabcabcX")      ) )                                         UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcabcX")   ) )
+    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcabc")       ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcabc")    ) )
+    UT_EQ( 1, str.Count( A_CHAR("abcabcabcab")        ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >( A_CHAR("abcabcabcab")     ) )
+    UT_EQ( 1, str.Count(  A_CHAR("bcabcabcab")        ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >(  A_CHAR("bcabcabcab")     ) )
+    UT_EQ( 1, str.Count(   A_CHAR("cabcabc")          ) )                                         UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cabcabc")       ) )
+    UT_EQ( 4, str.Count(   A_CHAR("abc")              ) )                                         UT_EQ( 4, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("abc")           ) )
+    UT_EQ( 3, str.Count(   A_CHAR("cab")              ) )                                         UT_EQ( 3, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("cab")           ) )
+    UT_EQ( 4, str.Count(   A_CHAR("ab")               ) )                                         UT_EQ( 4, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab")            ) )
+    UT_EQ( 4, str.Count(   A_CHAR("a")                ) )  UT_EQ( 4, str.CountChar('a'        ) ) UT_EQ( 4, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a")             ) ) UT_EQ( 4, str.CountChar<false>(   'a'          ) )
+    UT_EQ( 0, str.Count(   A_CHAR("a")  ,A_CHAR("b")  ) )  UT_EQ( 0, str.CountChar('a', 'b', 0) ) UT_EQ( 0, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("b"))) UT_EQ( 0, str.CountChar<false>(   'a' ,'b' , 0 ) )
+    UT_EQ( 4, str.Count(   A_CHAR("a")  ,A_CHAR("c")  ) )  UT_EQ( 4, str.CountChar('a', 'c', 0) ) UT_EQ( 4, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("a") , A_CHAR("c"))) UT_EQ( 4, str.CountChar<false>(   'a' ,'c' , 0 ) )
+    UT_EQ( 1, str.Count(   A_CHAR("ab") ,A_CHAR("ca") ) )  UT_EQ( 1, str.CountChar('c', 'a', 0) ) UT_EQ( 1, str.Count<false ALIB_COMMA lang::Case::Sensitive >(   A_CHAR("ab"),A_CHAR("ca"))) UT_EQ( 1, str.CountChar<false>(   'c' ,'a' , 0 ) )
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1447,27 +1447,27 @@ UT_METHOD( Compare )
     result= ms.CompareTo( t      );                          resultX= t.compare( t );                            UT_EQ( resultX,    result )
     result= ms.CompareTo( basic_string<character>(t).append(A_CHAR("x"))       );     resultX= t.compare( basic_string<character>(t).append(A_CHAR("x")) );        UT_EQ( resultX,    result )
     result= ms.CompareTo( t.substr (0, t.size() -1 )  );     resultX= t.compare( t.substr(0, t.size() -1 ) );    UT_EQ( resultX,    result )
-    result= ms.CompareTo<true, Case::Sensitive>( A_CHAR("pad") + t,  3            );                    UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>( A_CHAR("pad") + t,  3, 2         );                    UT_EQ(  1,  result )
-    result= ms.CompareTo<true, Case::Sensitive>( A_CHAR("pad") + t,  3, 100, 0, 4 );                    UT_EQ( -1,  result )
-    result= ms.CompareTo<true, Case::Sensitive>( A_CHAR("pad") + t,  3, 100, 0, 5 );                    UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  2,2,   2,2           );                    UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  2,2,   2,1           );                    UT_EQ( -1,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  2,2,   2,3           );                    UT_EQ(  1,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  -2,5,   -2, 5        );                    UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,   2, intMaxValue,    2, intMaxValue );      UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  -2, intMaxValue,   -2, intMaxValue );      UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  -2, 100,           -2, 99 );               UT_EQ(  0,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  -2, 5,             -2, intMaxValue );      UT_EQ(  1,  result )
-    result= ms.CompareTo<true, Case::Sensitive>(         t,  -2, intMaxValue,   -2, 5 );                UT_EQ( -1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3            );                    UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 2         );                    UT_EQ(  1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 100, 0, 4 );                    UT_EQ( -1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 100, 0, 5 );                    UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  2,2,   2,2           );                    UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  2,2,   2,1           );                    UT_EQ( -1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  2,2,   2,3           );                    UT_EQ(  1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  -2,5,   -2, 5        );                    UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,   2, intMaxValue,    2, intMaxValue );      UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  -2, intMaxValue,   -2, intMaxValue );      UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  -2, 100,           -2, 99 );               UT_EQ(  0,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  -2, 5,             -2, intMaxValue );      UT_EQ(  1,  result )
+    result= ms.CompareTo<true,   lang::Case::Sensitive>(         t,  -2, intMaxValue,   -2, 5 );                UT_EQ( -1,  result )
 
 
-    result= ms.CompareTo<false, Case::Sensitive>( A_CHAR("pad") + t,  3, 2         );    UT_EQ(  1,     result )
-    result= ms.CompareTo<false, Case::Sensitive>( A_CHAR("pad") + t,  3, 5         );    UT_EQ(  0,     result )
-    result= ms.CompareTo<false, Case::Sensitive>( A_CHAR("pad") + t,  3, 6         );    UT_EQ(  -1,    result )
-    result= ms.CompareTo<false, Case::Sensitive>(         t,  2,2,   2,2           );    UT_EQ(  0,     result )
-    result= ms.CompareTo<false, Case::Sensitive>(         t,  2,2,   2,1           );    UT_EQ( -1,     result )
-    result= ms.CompareTo<false, Case::Sensitive>(         t,  2,2,   2,3           );    UT_EQ(  1,     result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 2         );    UT_EQ(  1,     result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 5         );    UT_EQ(  0,     result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( A_CHAR("pad") + t,  3, 6         );    UT_EQ(  -1,    result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>(         t,  2,2,   2,2           );    UT_EQ(  0,     result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>(         t,  2,2,   2,1           );    UT_EQ( -1,     result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>(         t,  2,2,   2,3           );    UT_EQ(  1,     result )
 
 
     // greater/smaller strings
@@ -1488,48 +1488,48 @@ UT_METHOD( Compare )
     UT_FALSE( ms > greater2 )
     UT_FALSE( ms < smaller  )
     UT_FALSE( ms < smaller2 )
-    UT_TRUE ( ms.Equals(ms) ) // using == raises a C++ 20 warning with Clang only. Don't really get it.
+    UT_TRUE ( ms ==ms       )
     UT_TRUE ( ms != greater )
     UT_FALSE( ms < ms )
     UT_FALSE( ms > ms )
 
     // ignore case
     basic_string<character> ABCDE= A_CHAR("ABCDE");
-    result= ms.CompareTo                         ( ABCDE               );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<true, Case::Sensitive  >( ABCDE               );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<true, Case::Ignore     >( ABCDE               );    UT_TRUE( result == 0 )
-    result= ms.CompareTo<false                  >( ABCDE               );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<false, Case::Sensitive >( ABCDE               );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<false, Case::Ignore    >( ABCDE               );    UT_TRUE( result == 0 )
-    result= ms.CompareTo<true , Case::Sensitive >( ABCDE,  2,2,   2,2  );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<true , Case::Ignore    >( ABCDE,  2,2,   2,2  );    UT_TRUE( result == 0 )
-    result= ms.CompareTo<false, Case::Sensitive >( ABCDE,  2,2,   2,2  );    UT_TRUE( result >  0 )
-    result= ms.CompareTo<false, Case::Ignore    >( ABCDE,  2,2,   2,2  );    UT_TRUE( result == 0 )
+    result= ms.CompareTo                                 ( ABCDE               );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<true,   lang::Case::Sensitive  >( ABCDE               );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<true,   lang::Case::Ignore     >( ABCDE               );    UT_TRUE( result == 0 )
+    result= ms.CompareTo<false                          >( ABCDE               );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<false,   lang::Case::Sensitive >( ABCDE               );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<false,   lang::Case::Ignore    >( ABCDE               );    UT_TRUE( result == 0 )
+    result= ms.CompareTo<true ,   lang::Case::Sensitive >( ABCDE,  2,2,   2,2  );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<true ,   lang::Case::Ignore    >( ABCDE,  2,2,   2,2  );    UT_TRUE( result == 0 )
+    result= ms.CompareTo<false,   lang::Case::Sensitive >( ABCDE,  2,2,   2,2  );    UT_TRUE( result >  0 )
+    result= ms.CompareTo<false,   lang::Case::Ignore    >( ABCDE,  2,2,   2,2  );    UT_TRUE( result == 0 )
 
     // we do just a very little testing with StringBuilder and AString parameter version of this function, as
     // the code differences are very small
     const character* cp= t.c_str(); //new StringBuilder(); tSB._( t );
-    result= ms.CompareTo<true ,Case::Sensitive>( cp                          );  UT_EQ( 0, result )
-    result= ms.CompareTo<true ,Case::Sensitive>( cp,  -5, 100, -10, 100      );  UT_EQ( 0, result )
-    result= ms.CompareTo<true ,Case::Sensitive>( cp,   2,   3,   2,   3      );  UT_EQ( 0, result )
-    result= ms.CompareTo<false                >( cp,   2,   3,   2,   3      );  UT_EQ( 0, result )
+    result= ms.CompareTo<true ,lang::Case::Sensitive>( cp                          );  UT_EQ( 0, result )
+    result= ms.CompareTo<true ,lang::Case::Sensitive>( cp,  -5, 100, -10, 100      );  UT_EQ( 0, result )
+    result= ms.CompareTo<true ,lang::Case::Sensitive>( cp,   2,   3,   2,   3      );  UT_EQ( 0, result )
+    result= ms.CompareTo<false                      >( cp,   2,   3,   2,   3      );  UT_EQ( 0, result )
 
     AString tAS( t );
-    result= ms.CompareTo                        ( tAS      );                    UT_EQ( 0, result )
-    result= ms.CompareTo<true , Case::Sensitive>(tAS,  -5, 100, -10, 100      ); UT_EQ( 0, result )
-    result= ms.CompareTo<true , Case::Sensitive>( cp,   2,   3,   2,   3      ); UT_EQ( 0, result )
-    result= ms.CompareTo<false, Case::Sensitive>( cp,   2,   3,   2,   3      ); UT_EQ( 0, result )
+    result= ms.CompareTo                                ( tAS      );                    UT_EQ( 0, result )
+    result= ms.CompareTo<true ,   lang::Case::Sensitive>(tAS,  -5, 100, -10, 100      ); UT_EQ( 0, result )
+    result= ms.CompareTo<true ,   lang::Case::Sensitive>( cp,   2,   3,   2,   3      ); UT_EQ( 0, result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( cp,   2,   3,   2,   3      ); UT_EQ( 0, result )
 
     // different ranges
     basic_string<character> r1= A_CHAR("*ABCDEF*");
     basic_string<character> r2= A_CHAR("##*ABCDEF*##");
     ms.Reset( r1 );
-    result= ms.CompareTo<true , Case::Sensitive>( r2,  2,8          );       UT_EQ( 0,   result )
-    result= ms.CompareTo<false, Case::Sensitive>( r2,  2,7          );       UT_EQ( 1,   result )
-    result= ms.CompareTo<false, Case::Sensitive>( r2,  2,8          );       UT_EQ( 0,   result )
-    result= ms.CompareTo<false, Case::Sensitive>( r2,  2,9          );       UT_EQ(-1,   result )
-    result= ms.CompareTo<true , Case::Sensitive>( r2,  3,6,   1,6   );       UT_EQ( 0,   result )
-    result= ms.CompareTo<false, Case::Sensitive>( r2,  3,6,   1,6   );       UT_EQ( 0,   result )
+    result= ms.CompareTo<true ,   lang::Case::Sensitive>( r2,  2,8          );       UT_EQ( 0,   result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( r2,  2,7          );       UT_EQ( 1,   result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( r2,  2,8          );       UT_EQ( 0,   result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( r2,  2,9          );       UT_EQ(-1,   result )
+    result= ms.CompareTo<true ,   lang::Case::Sensitive>( r2,  3,6,   1,6   );       UT_EQ( 0,   result )
+    result= ms.CompareTo<false,   lang::Case::Sensitive>( r2,  3,6,   1,6   );       UT_EQ( 0,   result )
 
     // startsWith/Endswith/ContainsAt
     basic_string<character> sub1=  A_CHAR("ABC");
@@ -1544,24 +1544,24 @@ UT_METHOD( Compare )
                        UT_FALSE ( ms.EndsWith                                ( sub2    ) )
     ms.Reset( s3 );    UT_TRUE  ( ms.ContainsAt                              ( sub1, 4 ) )
                        UT_FALSE ( ms.ContainsAt                              ( sub2, 4 ) )
-                       UT_TRUE  ( ms.ContainsAt<true ALIB_COMMA Case::Ignore>( sub2, 4 ) )
+                       UT_TRUE  ( ms.ContainsAt<true ALIB_COMMA   lang::Case::Ignore>( sub2, 4 ) )
     ms.Reset( s4 );    UT_FALSE ( ms.ContainsAt                              ( sub1, 4 ) )
                        UT_FALSE ( ms.ContainsAt                              ( sub2, 4 ) )
     ms.Reset( s4 );    UT_FALSE ( ms.ContainsAt                              ( sub1, 0 ) )
-                       UT_FALSE ( ms.ContainsAt<true ALIB_COMMA Case::Ignore>( sub2, 0 ) )
+                       UT_FALSE ( ms.ContainsAt<true ALIB_COMMA   lang::Case::Ignore>( sub2, 0 ) )
 
     ms.Reset( A_CHAR("Hello ALib classes") );
 
-    UT_TRUE( ms.StartsWith<true ALIB_COMMA Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
-    UT_TRUE( ms.EndsWith  <true ALIB_COMMA Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
-    UT_TRUE( ms.StartsWith<true ALIB_COMMA Case::Ignore>( A_CHAR("Hello ALib classesx")  ) == false )
-    UT_TRUE( ms.EndsWith  <true ALIB_COMMA Case::Ignore>( A_CHAR("xHello ALib classes")  ) == false )
-    UT_TRUE( ms.StartsWith<true ALIB_COMMA Case::Ignore>( A_CHAR("heLLO")                ) == true  )
-    UT_TRUE( ms.StartsWith<true ALIB_COMMA Case::Ignore>( A_CHAR("HeLLO")                ) == true  )
-    UT_TRUE( ms.EndsWith  <true ALIB_COMMA Case::Ignore>( A_CHAR("heLLO")                ) == false )
-    UT_TRUE( ms.StartsWith<true ALIB_COMMA Case::Ignore>( A_CHAR("CLASSES")              ) == false )
-    UT_TRUE( ms.EndsWith  <true ALIB_COMMA Case::Ignore>( A_CHAR("CLASSES")              ) == true  )
-    UT_TRUE( ms.EndsWith  <true ALIB_COMMA Case::Ignore>( A_CHAR("clASSes")              ) == true  )
+    UT_TRUE( ms.StartsWith<true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
+    UT_TRUE( ms.EndsWith  <true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classes")   ) == true  )
+    UT_TRUE( ms.StartsWith<true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("Hello ALib classesx")  ) == false )
+    UT_TRUE( ms.EndsWith  <true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("xHello ALib classes")  ) == false )
+    UT_TRUE( ms.StartsWith<true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == true  )
+    UT_TRUE( ms.StartsWith<true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("HeLLO")                ) == true  )
+    UT_TRUE( ms.EndsWith  <true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("heLLO")                ) == false )
+    UT_TRUE( ms.StartsWith<true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == false )
+    UT_TRUE( ms.EndsWith  <true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("CLASSES")              ) == true  )
+    UT_TRUE( ms.EndsWith  <true ALIB_COMMA   lang::Case::Ignore>( A_CHAR("clASSes")              ) == true  )
 
     // contains with empty/null strings
     ms.Reset(A_CHAR("AB"));       UT_FALSE ( ms.ContainsAt( NullString(), -1 )  )
@@ -1739,11 +1739,11 @@ UT_METHOD( Test_XAString )
     UT_FALSE( A_XCHAR( "CBCDEX" )   == xstr                )
     UT_TRUE(  A_XCHAR( "CBCDEX" )   != xstr                )
 
-    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "bcdef" )) == 0 )
-    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "acdef" )) >  0 )
-    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "bcdaa" )) >  0 )
-    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "bcd"   )) >  0 )
-    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA Case::Ignore>(A_XCHAR( "ccdef" )) <  0 )
+    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdef" )) == 0 )
+    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "acdef" )) >  0 )
+    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcdaa" )) >  0 )
+    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "bcd"   )) >  0 )
+    UT_TRUE(  xstr.CompareTo<true ALIB_COMMA lang::Case::Ignore>(A_XCHAR( "ccdef" )) <  0 )
 
 
     xstr.InsertAt(A_XCHAR( "123"), 2 );
@@ -1757,19 +1757,19 @@ UT_METHOD( Test_XAString )
     UT_TRUE(  xstr == A_XCHAR( "ABC" ) )
 
     XCString xcstr=A_XCHAR( "123");
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR(""   ) )  == -1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("X"  ) )  == -1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("XY" ) )  == -1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("XYZ") )  == -1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("1XY") )  ==  0)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("X1Y") )  ==  0)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("XY1") )  ==  0)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("2XY") )  ==  1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("X2Y") )  ==  1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("XY2") )  ==  1)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("3XY") )  ==  2)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("X3Y") )  ==  2)
-    UT_TRUE(  xcstr.IndexOfAny<Inclusion::Include>( A_XCHAR("XY3") )  ==  2)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR(""   ) )  == -1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("X"  ) )  == -1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("XY" ) )  == -1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("XYZ") )  == -1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("1XY") )  ==  0)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("X1Y") )  ==  0)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("XY1") )  ==  0)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("2XY") )  ==  1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("X2Y") )  ==  1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("XY2") )  ==  1)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("3XY") )  ==  2)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("X3Y") )  ==  2)
+    UT_TRUE(  xcstr.IndexOfAny<lang::Inclusion::Include>( A_XCHAR("XY3") )  ==  2)
 }
 
 #include "unittests/aworx_unittests_end.hpp"

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,7 +16,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 
 SmartLock     SmartLock::StdOutputStreams;
 
@@ -54,7 +54,7 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
                 if ( firstAcquirer != nullptr )
                 {
                     firstAcquirer->Acquire( ALIB_CALLER_PRUNED);
-                        SetSafeness( Safeness::Safe );
+                        SetSafeness( lang::Safeness::Safe );
                         acquirers.emplace_back( newAcquirer );
                         ++count;
                     firstAcquirer->Release();
@@ -71,7 +71,7 @@ int   SmartLock::AddAcquirer( ThreadLock* newAcquirer )
                     if ( errWasAcquired == 1 )
                         errWasAcquired= 2;            )
 
-                    SetSafeness( Safeness::Safe );
+                    SetSafeness( lang::Safeness::Safe );
                     acquirers.emplace_back( newAcquirer );
                     ++count;
                 }
@@ -119,7 +119,7 @@ int   SmartLock::RemoveAcquirer( ThreadLock* acquirerToRemove )
                 // Acquire acquirers in their order of appearance
                 if ( acquirer1 != nullptr ) acquirer1->Acquire(ALIB_CALLER_PRUNED);
                   if ( acquirer2 != nullptr ) acquirer2->Acquire(ALIB_CALLER_PRUNED);
-                      SetSafeness( Safeness::Unsafe );
+                      SetSafeness( lang::Safeness::Unsafe );
                       acquirers.erase( it );
                   if ( acquirer2 != nullptr ) acquirer2->Release();
                 if ( acquirer1 != nullptr ) acquirer1->Release();
@@ -137,7 +137,4 @@ int   SmartLock::RemoveAcquirer( ThreadLock* acquirerToRemove )
     return static_cast<int>( count );
 }
 
-
-}}}// namespace [aworx::lib::threads]
-
-
+}} // namespace [alib::threads]

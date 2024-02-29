@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -18,10 +18,13 @@
 #if !defined (HPP_ALIB_EXPRESSIONS_SCOPE)
 #   include "alib/expressions/scope.hpp"
 #endif
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 
 Expression::Expression( const String& sourceString, Scope* pCTScope )
@@ -41,13 +44,20 @@ Expression::~Expression()
 
 }
 
-aworx::Box  Expression::ResultType()
+String   Expression::Name()
+{
+    if( name.IsNull() )
+        name= EXPRESSIONS.GetResource("ANON_EXPR_NAME");
+    return name;
+}
+
+alib::Box  Expression::ResultType()
 {
     ALIB_ASSERT_ERROR( program, "EXPR", "Internal error: Expression without program" )
         return program->ResultType();
 }
 
-aworx::Box  Expression::Evaluate( Scope& scope )
+alib::Box  Expression::Evaluate( Scope& scope )
 {
     ALIB_ASSERT_ERROR( program, "EXPR","Internal error: Expression without program" )
     #if ALIB_TIME && ALIB_DEBUG
@@ -72,7 +82,7 @@ String     Expression::GetOptimizedString()
 }
 
 
-}}} // namespace [aworx::lib::expressions]
+}} // namespace [alib::expressions]
 
 
 #undef EOS

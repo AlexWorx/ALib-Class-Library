@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_SPACES
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 
 /** ************************************************************************************************
@@ -94,11 +94,11 @@ class Spaces
         #endif
 };
 
-}}} // namespace aworx[::lib::strings::util]
+}} // namespace alib[::strings::util]
 
-/// Type alias in namespace #aworx.
-using     Spaces   =   lib::strings::util::Spaces;
+/// Type alias in namespace \b alib.
+using     Spaces   =   strings::util::Spaces;
 
-} // namespace aworx
+} // namespace alib
 
 #endif // HPP_ALIB_STRINGS_UTIL_SPACES

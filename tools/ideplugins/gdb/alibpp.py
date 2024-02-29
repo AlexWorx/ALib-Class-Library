@@ -452,17 +452,17 @@ def lookup_pp_alib_and_alox( value  ):
     typeName    =  str(value.type.strip_typedefs() )
 
 
-    print("--------Type: " + typeNameOrig + " -> " +typeName )
 
 
     if typeName.startswith("const "):
         typeName= typeName[6:]
 
-    # not aworx?
-    if not typeName.startswith( "aworx::"):
+    # not alib?
+    if not typeName.startswith( "alib::"):
         return None
-    typeName= typeName[7:]
+    typeName= typeName[6:]
 
+    print("----ALib Type: " + typeNameOrig + " -> " +typeName )
     #print( "ALib: Lookup for type >%s< " % type )
 
 
@@ -493,8 +493,8 @@ def lookup_pp_alib_and_alox( value  ):
 
     try:
         ################################## ALib ##################################
-        if typeName.startswith( 'lib::' ):
-            typeName= typeName[5:]
+        if typeName.startswith( ''):
+            #typeName= typeName[5:]
 
 
             #------------------------------------- strings ---------------------------------
@@ -530,7 +530,7 @@ def lookup_pp_alib_and_alox( value  ):
                         result+= str(capacity)
                     result+= '] "'  + getASString( value, cType ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TString<"+cType+">", value.cast(gdb.lookup_type("aworx::lib::strings::TString<char>") ) )
+                    children= [  ( "alib::strings::TString<"+cType+">", value.cast(gdb.lookup_type("alib::strings::TString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                               ];
                     try:
@@ -548,7 +548,7 @@ def lookup_pp_alib_and_alox( value  ):
                         result+= str(capacity)  +"(Replaced!)"
                     result+= '] "'  + getASString( value, cType ) + '"'
 
-                    children= [  ( "aworx::lib::strings::TAString<"+cType+">", value.cast(gdb.lookup_type("aworx::lib::strings::TAString<char>") ) )
+                    children= [  ( "alib::strings::TAString<"+cType+">", value.cast(gdb.lookup_type("alib::strings::TAString<char>") ) )
                                 ,( "capacity" , value["capacity"] )
                                  ];
 
@@ -564,7 +564,7 @@ def lookup_pp_alib_and_alox( value  ):
 
 
             #--------------------------------- System ---------------------------------
-            elif typeName.startswith( 'system::' ):
+            elif typeName.startswith( 'lang::system::' ):
                 typeName= typeName[8::]
 
                 if typeName == "Directory":
@@ -691,8 +691,8 @@ def lookup_pp_alib_and_alox( value  ):
                     result= getVerbosityString( value )
 
                 #---------------------------- Loggers ------------------------------
-                elif typeName == "core::Logger"                 or \
-                     typeName == "core::textlogger::TextLogger" or \
+                elif typeName == "detail::Logger"                 or \
+                     typeName == "detail::textlogger::TextLogger" or \
                      typeName == "loggers::ConsoleLogger"       or \
                      typeName == "loggers::MemoryLogger"        or \
                      typeName == "loggers::AnsiLogger"          or \

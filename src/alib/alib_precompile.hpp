@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * Precompiled Header for ALib.
@@ -16,9 +16,13 @@
  **************************************************************************************************/
 #if !defined(ALIB_DOX)
 
-#include "alib/lib/modules.hpp"
+#include "alib/alib.hpp"
 
 #if defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
+
+#if !defined(HPP_ALIB_LANG_PLATFORM_INCLUDES)
+#   include "alib/lang/platformincludes.hpp"
+#endif
 
 #if ALIB_CHARACTERS
 #   define  ALIB_TEMP_HDRNAME "alib/characters/chararray.hpp"
@@ -81,20 +85,14 @@
 #   undef   ALIB_TEMP_HDRNAME
 #endif
 
-#if ALIB_RESOURCES
-#   define  ALIB_TEMP_HDRNAME "alib/resources/resources.hpp"
+#if ALIB_CAMP
+#   define  ALIB_TEMP_HDRNAME "alib/lang/resources/resources.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
-#endif
-
-#if ALIB_TEXT
-#   define  ALIB_TEMP_HDRNAME "alib/text/formatter.hpp"
+#   define  ALIB_TEMP_HDRNAME "alib/lang/format/formatter.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
-#endif
-
-#if ALIB_RESULTS
-#   define  ALIB_TEMP_HDRNAME "alib/results/exception.hpp"
+#   define  ALIB_TEMP_HDRNAME "alib/lang/message/exception.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
@@ -107,6 +105,3 @@
 
 #endif  // defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
 #endif  // ALIB_DOX
-
-
-

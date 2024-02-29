@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,8 +19,8 @@
 #   if !defined (HPP_ALIB_ENUMS_RECORDPARSER)
 #      include "alib/enums/recordparser.hpp"
 #   endif
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
@@ -29,7 +29,7 @@
 // ### Tuple loaders
 // ##########################################################################################
 
-namespace aworx { namespace lib { namespace cli {
+namespace alib {  namespace cli {
 
 // ##########################################################################################
 // ### Methods of Command, Option, etc.
@@ -43,7 +43,7 @@ void CommandDecl::addParamDecls()
 ALIB_DBG( bool found= false; )
 
         for( auto* paramDecl : CmdLine.ParameterDecls )
-            if( paramDecl->Name().StartsWith<true, Case::Ignore>( tknzr.Actual ) )
+            if( paramDecl->Name().StartsWith<true, lang::Case::Ignore>( tknzr.Actual ) )
             {
                 Parameters.PushBack( paramDecl );
        ALIB_DBG(found= true; )
@@ -59,7 +59,7 @@ ALIB_DBG( bool found= false; )
 ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
 {
     for( auto* param : Parameters )
-        if( param->Name().Equals( name ) )
+        if( param->Name().Equals<false>( name ) )
             return param;
 
     return nullptr;
@@ -76,7 +76,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     // read single/double hyphen options once
     Substring arg= argProbablyReplaced;
     Substring inArgArgument;
-    auto      valueSeparator= arg.IndexOf<false, Case::Sensitive>( decl.ValueSeparator() );
+    auto      valueSeparator= arg.IndexOf<false, lang::Case::Sensitive>( decl.ValueSeparator() );
     if( valueSeparator > 0 )
         arg.Split<false>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
 
@@ -84,8 +84,8 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     if ( !(   (     identifier.IsNotEmpty()
                &&  arg.ConsumeString(A_CHAR("--"))
                &&  arg.Length() >=  decl.MinimumRecognitionLength()
-               && (    identifier.StartsWith<true, Case::Ignore>( arg )
-                    || true == (potentialIllegalContinuation= arg.StartsWith<true,Case::Ignore>( identifier )) )
+               && (    identifier.StartsWith<true, lang::Case::Ignore>( arg )
+                    || true == (potentialIllegalContinuation= arg.StartsWith<true,lang::Case::Ignore>( identifier )) )
 
              )
 
@@ -143,7 +143,7 @@ bool Command::Read( CommandDecl& decl )
     String arg       =  CmdLine->PeekArg();
 
     if (     arg.Length() <  decl.MinimumRecognitionLength()
-         ||  !identifier.StartsWith<true,Case::Ignore>( arg )  )
+         ||  !identifier.StartsWith<true,lang::Case::Ignore>( arg )  )
         return false;
 
     Declaration= &decl;
@@ -187,7 +187,7 @@ Parameter* Command::GetParsedParameter(const String& name )
     #if ALIB_DEBUG
         bool found= false;
         for( auto* paramDecl : Declaration->Parameters )
-            if( paramDecl->Name().Equals(name) )
+            if( paramDecl->Name().Equals<false>(name) )
             {
                 found = true;
                 break;
@@ -196,11 +196,11 @@ Parameter* Command::GetParsedParameter(const String& name )
     #endif
 
     for( auto* param : ParametersMandatory )
-        if( param->Declaration->Name().Equals( name ) )
+        if( param->Declaration->Name().Equals<false>( name ) )
             return param;
 
     for( auto* param : ParametersOptional )
-        if( param->Declaration->Name().Equals( name ) )
+        if( param->Declaration->Name().Equals<false>( name ) )
             return param;
 
     return nullptr;
@@ -224,14 +224,14 @@ bool Parameter::Read( ParameterDecl& decl )
     if ( identifier.IsEmpty() && decl.IsOptional() )
         return false;
 
-    auto      valueSeparator= arg.IndexOf<false, Case::Sensitive>( decl.ValueSeparator() );
+    auto      valueSeparator= arg.IndexOf<false, lang::Case::Sensitive>( decl.ValueSeparator() );
     Substring inArgArgument;
     if( valueSeparator > 0 )
         arg.Split<false>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
 
     if (         identifier.IsEmpty()
          || (    arg.Length() >=  decl.MinimumRecognitionLength()
-              && identifier.StartsWith<true,Case::Ignore>( arg ) )  )
+              && identifier.StartsWith<true,lang::Case::Ignore>( arg ) )  )
     {
         QtyArgsConsumed= 1;
         Declaration=     &decl;
@@ -310,4 +310,4 @@ void ERExitCodeDecl ::Parse()
     enums::EnumRecordParser::Get( associatedCLIException                   , true );
 }
 
-}}}// namespace aworx::lib::cli
+}} // namespace alib::cli

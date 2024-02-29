@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TICKSCONVERTER
@@ -16,7 +16,7 @@
 #   include "alib/time/datetime.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace time {
+namespace alib {  namespace time {
 
 /** ************************************************************************************************
  * As explained in detail in the documentation of module \alib_time, a steady time model is
@@ -118,12 +118,12 @@ class TickConverter
 };
 
 
-}} // namespace lib::time
+} // namespace alib[::time]
 
-/// Type alias in namespace #aworx.
-using   TickConverter=     lib::time::TickConverter;
+/// Type alias in namespace \b alib.
+using   TickConverter=     time::TickConverter;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 #endif // HPP_ALIB_TIME_TICKSCONVERTER

@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -22,7 +22,7 @@
     #undef min
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 template<typename TChar>
 bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result )
@@ -159,4 +159,4 @@ template bool  TSubstring<xchar>::consumeBinImpl      ( uint64_t& , TNumberForma
 template bool  TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<xchar>* );
 template bool  TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
-}}}// namespace [aworx::lib::strings]
+}} // namespace [alib::strings]

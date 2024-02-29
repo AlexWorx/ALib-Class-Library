@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -9,10 +9,6 @@
 #if !defined(ALIB_DOX)
 #   if !defined(HPP_ALIB_SINGLETONS_SINGLETON)
 #      include "alib/singletons/singleton.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_TOOLS)
-#      include "alib/lib/tools.hpp"
 #   endif
 
 #   if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
@@ -55,7 +51,7 @@
 
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib {
+namespace alib {
 
 #if ALIB_FEAT_SINGLETON_MAPPED && !defined(ALIB_DOX)
 namespace { bool inShutdown= false; }
@@ -96,7 +92,7 @@ void  storeSingleton( const std::type_info& type, void* theSingleton )
         if( singletonMap.Size() == 0)
         {
             singletonMap.MaxLoadFactor( 10 );
-            singletonMap.Reserve( 23, lib::ValueReference::Absolute );
+            singletonMap.Reserve( 23, lang::ValueReference::Absolute );
         }
 
         singletonMap.EmplaceUnique( &type, theSingleton );
@@ -196,7 +192,7 @@ void Shutdown()
         {
             auto& types= DbgGetSingletons();
             for( auto& it : types )
-                target << DbgTypeDemangler(*it.first).Get()
+                target << lang::DbgTypeDemangler(*it.first).Get()
                        <<  " = 0x" << NFormat::Hex(reinterpret_cast<uint64_t>(it.second) )
                        << NNewLine();
 
@@ -209,5 +205,4 @@ void Shutdown()
     #endif
 #endif
 
-}}} // namespace [aworx::lib::singletons]
-
+}} // namespace [alib::singletons]

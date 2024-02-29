@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_STRING
 #define HPP_ALIB_STRINGS_STRING 1
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+#if !defined (HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if !defined(HPP_ALIB_STRINGS_FWDS)
@@ -21,6 +21,10 @@
 #endif
 
 #include "alib/strings/chararraytraits.inl"
+
+#if !defined(HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
+#endif
 
 
 #if !defined (_GLIBCXX_ITERATOR) && !defined (_ITERATOR_)
@@ -35,7 +39,7 @@
     #pragma warning( disable : 4127 )
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /** The maximum length of an \alib string. */
 constexpr static integer  MAX_LEN = (std::numeric_limits<integer>::max)();
@@ -62,12 +66,16 @@ constexpr static integer  MAX_LEN = (std::numeric_limits<integer>::max)();
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{String}, \aworx{NString},
- *   \aworx{WString}, \aworx{XString}, \aworx{ComplementString} and \aworx{StrangeString}.
+ *   are provided in namespace #alib with type definitions \alib{String}, \alib{NString},
+ *   \alib{WString}, \alib{XString}, \alib{ComplementString} and \alib{StrangeString}.
  **************************************************************************************************/
 template<typename TChar>
 class TString
 {
+    public:
+        /** Expose template parameter \p{TChar} to the outer world. */
+        using CharType= TChar;
+
     // #############################################################################################
     // Debug warnings
     // #############################################################################################
@@ -233,8 +241,18 @@ class TString
         , length( 0       )
         {}
 
-        ATMP_SELECT_IF_1TP( typename T,
-            characters::T_CharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit )
+        // Note: 240226:
+        //  We had to add an "intermediate" template  'v' here, which defaults to the expression
+        //  that is used with the enable_if template type. The same is done with the corresponding
+        //  constructor of derived type CString. If these two boolean values are not used, but
+        //  their value is inserted directly into the condition of enable_if, then a dubious
+        //  compilation error occurs with GCC V13.2.1 in the moment that C++ 20 standard is enabled.
+        //  Clang and MSVC were fine, same as GCC with language version 17.
+        //  We did not fully (at all!) understand why the error occurs. Not even how we were able to
+        //  find this workaround.
+        template <typename T,
+                  bool v= (characters::T_CharArray<ATMP_RCV(T),TChar>::Access == characters::AccessType::Implicit),
+                  typename std::enable_if<v, int>::type = 0 >
         constexpr
         TString(const T& src)                                                               noexcept
         : buffer( characters::T_CharArray<ATMP_RCV(T),TChar>::Buffer( src ) )
@@ -281,8 +299,6 @@ class TString
 
     #endif // doxygen
 
-ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
-
         /** ****************************************************************************************
          * Returns a new string object representing a sub-string of the string that this object
          * represents.
@@ -299,7 +315,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 AdjustRegion( regionStart, regionLength );
             }
@@ -356,7 +372,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *   <em>setlocale()</em> once, prior to using this method, to successfully calculate
          *   the length.
          *   This by default is done during \ref alib_manual_bootstrapping "library initialization",
-         *   if performed on class \aworx{lib,ALibDistribution}.
+         *   if performed on class \alib{lang::basecamp,BaseCamp}.
          *
          * @return  The length of string when it was converted to wide characters.
          *          If counting failed (what means that a corresponding conversion would also fail)
@@ -421,7 +437,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         TChar        CharAt( integer idx )                                                     const
         {
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
                 return  ( idx >= 0 && idx < length ) ? *(buffer + idx )
                                                      : '\0' ;
             ALIB_ASSERT_ERROR( idx >= 0 && idx < length, "STRINGS",
@@ -442,7 +458,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         TChar        CharAtStart()                                                             const
         {
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
                 return length > 0  ?  *(buffer)
                                    :  '\0';
 
@@ -465,7 +481,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         TChar        CharAtEnd()          const
         {
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-                if ALIB_CONSTEXPR17 (TCheck)
+                if constexpr (TCheck)
                     return length > 0   ?  *(buffer + length - 1)
                                         : '\0';
 
@@ -537,27 +553,44 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * \c true is returned if this and the compared string are \e nulled or empty.
          * If only one is \e nulled or empty, \c false is returned.
          *
+         * @tparam TCheck       Defaults to \c true which is the normal invocation mode.
+         *                      If \c false is given, no check for a \e nulled is performed
+         *                      on this string as well as on \p{rhs}.
          * @tparam TSensitivity Determines if comparison is case sensitive (the default) or not.
          * @param  rhs          The object to compare.
          *
          * @return  \c true, if contents of this string and the string representation of the
          *          given \p{rhs} are equal.
          ******************************************************************************************/
-        template <Case TSensitivity =Case::Sensitive>
+        template <bool       TCheck       = true,
+                  lang::Case TSensitivity = lang::Case::Sensitive>
         bool Equals( const TString<TChar>& rhs )                                               const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ( IsNull() &&  rhs.IsNull() )
-                return true;
 
-            if (    ( IsNull() !=  rhs.IsNull() )
-                 || ( length   !=  rhs.length   )    )
+            if constexpr ( TCheck )
+            {
+                if ( IsNull() &&  rhs.IsNull() )
+                    return true;
+
+                if (  ( IsNull() !=  rhs.IsNull() )    )
+                    return false;
+            }
+            #if ALIB_DEBUG
+            else
+            {   // we do not use IsNull() here, for not having a call noted in performance tools
+                ALIB_ASSERT_ERROR(     buffer != nullptr , "STRINGS", "Non checking but this is nulled." )
+                ALIB_ASSERT_ERROR( rhs.buffer != nullptr , "STRINGS", "Non checking but rhs is nulled." )
+            }
+            #endif
+
+            if ( length != rhs.length )
                 return false;
 
             if ( length == 0 )
                 return true;
 
-            if ALIB_CONSTEXPR17 (TSensitivity == Case::Sensitive )
+            if constexpr (TSensitivity == lang::Case::Sensitive )
                 return  characters::CharArray<TChar>::Equal            ( buffer, rhs.buffer, length );
             else
                 return  characters::CharArray<TChar>::CompareIgnoreCase( buffer, rhs.buffer, length ) == 0;
@@ -580,9 +613,9 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
          *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
          ******************************************************************************************/
-        template <bool TCheck       = true,
-                  Case TSensitivity = Case::Sensitive>
-        int CompareTo( const TString<TChar>& rhs )                                          const
+        template <bool       TCheck       = true,
+                  lang::Case TSensitivity = lang::Case::Sensitive>
+        int CompareTo( const TString<TChar>& rhs )                                             const
         {
             ALIB_STRING_DBG_CHK(this)
 
@@ -597,7 +630,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             bool    thisIsShorter=  ( length < rhs.length);
             integer shortLen  = thisIsShorter ? length : rhs.length;
 
-            int cmpVal=  (TSensitivity == Case::Sensitive)
+            int cmpVal=  (TSensitivity == lang::Case::Sensitive)
                          ? characters::CharArray<TChar>::Compare          ( buffer, rhs.buffer, shortLen )
                          : characters::CharArray<TChar>::CompareIgnoreCase( buffer, rhs.buffer, shortLen );
 
@@ -630,14 +663,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
          *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
          ******************************************************************************************/
-        template < bool TCheck       = true,
-                   Case TSensitivity = Case::Sensitive>
+        template < bool       TCheck       = true,
+                   lang::Case TSensitivity = lang::Case::Sensitive>
         int CompareTo(  const TString&  rhs,
                         integer         rhsRegionStart,
                         integer         rhsRegionLength   =MAX_LEN  )                          const
         {
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 TString cmpSub( rhs.buffer, 0);
                 rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
@@ -680,8 +713,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *  - <0 if this is \e nulled and \p{rhs} is not or if this is smaller than \p{rhs}.
          *  - >0 if this is not \e nulled but \p{rhs} is or if this is greater than \p{rhs}.
          ******************************************************************************************/
-        template < bool TCheck       = true,
-                   Case TSensitivity = Case::Sensitive>
+        template < bool       TCheck       = true,
+                   lang::Case TSensitivity = lang::Case::Sensitive>
         int CompareTo(  const TString&  rhs,
                         integer            rhsRegionStart,
                         integer            rhsRegionLength,
@@ -689,7 +722,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                         integer            regionLength      =MAX_LEN  )                       const
         {
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 TString cmpSub( rhs.buffer, 0);
                 rhs.AdjustRegion( rhsRegionStart, rhsRegionLength );
@@ -726,13 +759,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param pos           The position to search for needle.
          * @return \c true if \p{needle} is found at the given position. False otherwise.
          ******************************************************************************************/
-        template< bool  TCheck       = true,
-                  Case  TSensitivity = Case::Sensitive >
+        template< bool        TCheck       = true,
+                  lang::Case  TSensitivity = lang::Case::Sensitive >
         bool ContainsAt( const TString& needle, integer pos )                                  const
         {
             integer needleLength= needle.length;
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( pos < 0 || pos + needleLength > length || needle.IsNull () )
                     return false;
@@ -748,7 +781,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            return TSensitivity == Case::Sensitive
+            return TSensitivity == lang::Case::Sensitive
                    ? characters::CharArray<TChar>::Equal            ( buffer + pos,  needle.buffer, needleLength )
                    : characters::CharArray<TChar>::CompareIgnoreCase( buffer + pos,  needle.buffer, needleLength ) == 0 ;
             ALIB_WARNINGS_RESTORE
@@ -769,11 +802,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                      If \e nulled or empty, \c true is returned.
          * @return \c true if \p{needle} is found at the start of this string, \c false otherwise.
          ******************************************************************************************/
-        template<bool  TCheck      = true,
-                 Case  TSensitivity =Case::Sensitive>
+        template<bool        TCheck      = true,
+                 lang::Case  TSensitivity =lang::Case::Sensitive>
         bool StartsWith( const TString& needle )                                               const
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -788,7 +821,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                    "Non checking and emtpy needle given." )
             }
 
-            if ALIB_CONSTEXPR17 ( TSensitivity == Case::Sensitive )
+            if constexpr ( TSensitivity == lang::Case::Sensitive )
                 return  characters::CharArray<TChar>::Equal            ( buffer,  needle.buffer, needle.length );
             else
                 return  characters::CharArray<TChar>::CompareIgnoreCase( buffer,  needle.buffer, needle.length ) == 0;
@@ -803,11 +836,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                      If \e nulled or empty, \c true is returned.
          * @return \c true if \p{needle} is found at the end of this, \c false otherwise.
          ******************************************************************************************/
-        template<bool        TCheck      = true,
-                 Case  TSensitivity =Case::Sensitive>
+        template<bool        TCheck = true,
+                 lang::Case  TSensitivity =lang::Case::Sensitive>
         bool EndsWith( const TString& needle )                                                 const
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( needle.length > length )
                     return false;
@@ -823,7 +856,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             }
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17 ( TSensitivity == Case::Sensitive )
+            if constexpr ( TSensitivity == lang::Case::Sensitive )
                 return characters::CharArray<TChar>::Equal            ( buffer + length - needle.length,  needle.buffer, needle.length );
             else
                 return characters::CharArray<TChar>::CompareIgnoreCase( buffer + length - needle.length,  needle.buffer, needle.length ) == 0;
@@ -851,7 +884,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -889,7 +922,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( AdjustRegion( regionStart, regionLength ) )
@@ -950,7 +983,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         integer      IndexOfOrLength( TChar needle, integer startIdx )                         const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startIdx <  0      )  startIdx= 0;
@@ -989,7 +1022,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                 if ( startIndex <  0      )   return -1;
@@ -1039,11 +1072,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *         included, in the given set of characters.
          *         If nothing is found, -1 is returned.
          ******************************************************************************************/
-        template <Inclusion   TInclusion,
-                  bool        TCheck      = true>
+        template <lang::Inclusion   TInclusion,
+                  bool              TCheck      = true>
         integer    IndexOfAny( const TString& needles, integer startIdx= 0 )                   const
         {
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
             {
                 if ( startIdx < 0       ) startIdx= 0;
                 if ( startIdx >= length ) return   -1;
@@ -1056,7 +1089,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            integer idx= TInclusion == Inclusion::Include
+            integer idx= TInclusion == lang::Inclusion::Include
               ? characters::CharArray<TChar>::IndexOfAnyIncluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() )
               : characters::CharArray<TChar>::IndexOfAnyExcluded( buffer + startIdx,  length - startIdx, needles.Buffer(), needles.Length() );
             ALIB_WARNINGS_RESTORE
@@ -1086,11 +1119,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *         included, in the given set of characters.
          *         If nothing is found, -1 is returned.
          ******************************************************************************************/
-        template <Inclusion   TInclusion,
-                  bool        TCheck = true>
+        template <lang::Inclusion TInclusion,
+                  bool            TCheck = true>
         integer LastIndexOfAny( const TString& needles, integer startIdx =MAX_LEN )            const
         {
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
             {
                 if ( startIdx < 0       ) return -1;
                 if ( startIdx >= length ) startIdx=  length - 1;
@@ -1101,7 +1134,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                                    "STRINGS", "Non checking and illegal parameters" )
             }
 
-            if ALIB_CONSTEXPR17 ( TInclusion == Inclusion::Include )
+            if constexpr ( TInclusion == lang::Inclusion::Include )
                 return characters::CharArray<TChar>::LastIndexOfAnyInclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
             else
                 return characters::CharArray<TChar>::LastIndexOfAnyExclude(  Buffer(), startIdx, needles.Buffer(), needles.Length() );
@@ -1125,12 +1158,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return    If the checking of parameters failed or the string is not found, \c -1 is
          *            returned. Otherwise the index of the first occurrence of \p{needle}.
          ******************************************************************************************/
-        template<bool     TCheck        = true,
-                 Case     TSensitivity  = Case::Sensitive>
+        template<bool       TCheck        = true,
+                 lang::Case TSensitivity  = lang::Case::Sensitive>
         integer  IndexOf( const TString&  needle,
                           integer         startIdx= 0  )                                       const
         {
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
             {
                 if ( needle.IsNull()  )
                     return  -1;
@@ -1166,12 +1199,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          ******************************************************************************************/
         template <bool TCheck= true>
         integer  IndexOfFirstDifference( const TString&  needle,
-                                         Case     sensitivity = Case::Sensitive,
-                                         integer  idx         = 0                     )  const
+                                         lang::Case      sensitivity = lang::Case::Sensitive,
+                                         integer         idx         = 0                     )  const
         {
             ALIB_STRING_DBG_CHK(this)
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( idx <  0      )  idx= 0;
@@ -1232,7 +1265,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                             integer         startPos        = 0   )                            const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1276,7 +1309,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                             integer         startPos  )                                        const
         {
             ALIB_STRING_DBG_CHK(this)
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 // adjust range, if empty return -1
                      if ( startPos <  0      )  startPos= 0;
@@ -1320,7 +1353,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
         template< bool        TCheck       = true,
-                  Case  TSensitivity = Case::Sensitive >
+                  lang::Case  TSensitivity = lang::Case::Sensitive >
         integer Count( const TString&    needle,
                        integer           startPos   = 0 )                                      const
         {
@@ -1328,7 +1361,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             integer nLen= needle.Length();
             if( nLen == 0  )
                 return 0;
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1368,8 +1401,8 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return  The index of the first difference in \p{needle}.
          ******************************************************************************************/
-        template<bool     TCheck        = true,
-                 Case     TSensitivity  = Case::Sensitive>
+        template<bool        TCheck        = true,
+                 lang::Case  TSensitivity  = lang::Case::Sensitive>
         integer  Count( const TString&   needle,
                         const TString&   omit,
                         integer          startPos        = 0         )                         const
@@ -1378,7 +1411,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             integer nLen= needle.Length();
             if ( nLen == 0  )
                 return  0;
-            if ALIB_CONSTEXPR17 (TCheck)
+            if constexpr (TCheck)
             {
                 if ( startPos < 0 )                startPos= 0;
                 if ( startPos + nLen > length )    return  0;
@@ -1404,10 +1437,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
             return result;
         }
-
-ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
-
-
 
     /** ############################################################################################
      * @name Parsing Numbers
@@ -2067,7 +2096,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
                 /** Retrieves the character that this iterator references.
                  * @return The character value.                               */
-                TCharConstOrMutable& operator*()                                               
+                TCharConstOrMutable& operator*()
                 {
                     return *p;
                 }
@@ -2255,7 +2284,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param  startIdx     The start index of the search.
          * @return The index of the first occurrence of \p{needle}, respectively \c -1 if not found.
          ******************************************************************************************/
-        template<Case TSensitivity =Case::Sensitive>
+        template<lang::Case TSensitivity =lang::Case::Sensitive>
         ALIB_API integer
         indexOfString( const TString&  needle, integer startIdx )                          const;
 
@@ -2271,7 +2300,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 /** ************************************************************************************************
  * Equal operator for \alib Strings and compatible types.
- * Returns the result of \alib{strings::TString,Equals,lhs.Equals<Case::Sensitive>(rhs)}.
+ * Returns the result of \alib{strings::TString,Equals,lhs.Equals<lang::Case::Sensitive>(rhs)}.
  *
  * \note This operator is implemented differently than given here in the documentation, namely
  *       with variuos overloaded variants using template meta programming and
@@ -2285,7 +2314,7 @@ bool  operator== (const String& lhs, const String& rhs)  {}
 
 /** ************************************************************************************************
  * Not-Equal operator for \alib Strings and compatible types.
- * Returns the result of \alib{strings::TString,Equals,lhs.Equals<Case::Sensitive>(rhs)}.
+ * Returns the result of \alib{strings::TString,Equals,lhs.Equals<lang::Case::Sensitive>(rhs)}.
  *
  * \note This operator is implemented differently than given here in the documentation, namely
  *       with variuos overloaded variants using template meta programming and
@@ -2300,7 +2329,7 @@ bool  operator!= (const String& lhs, const String& rhs)  {}
 /** ************************************************************************************************
  * Provision of operators <c>'<'</c>, <c>'<='</c>, <c>'>'</c> and <c>'<='</c>
  * for \alib Strings and compatible types.
- * Invokes of \alib{strings::TString,CompareTo,lhs.CompareTo<Case::Sensitive>(rhs)} and
+ * Invokes of \alib{strings::TString,CompareTo,lhs.CompareTo<lang::Case::Sensitive>(rhs)} and
  * returns the rightfully interpreted result.
  *
  * \note This operator is implemented differently than given here in the documentation, namely
@@ -2326,30 +2355,30 @@ bool  operator<=> (const String& lhs, const String& rhs)  {}
 // c) std::string_view -> ALib strings
 // A next ALib release should solve this. Two ideas exist and need to be tested
 // See also: cstring.hpp and astring.hpp, with the same prepro filter.
-#elif ALIB_CPPVER < 20 || defined(_MSC_VER)
+#elif ALIB_CPP_STANDARD < 20 || defined(_MSC_VER)
 
-template<typename TChar, typename TCharArray>           bool                                           operator== (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template Equals   <      Case::Sensitive>(rhs); }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator== (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template Equals   <      Case::Sensitive>(lhs); }
-template<typename TChar, typename TCharArray>           bool                                           operator!= (const TString<TChar>& lhs, const TCharArray&     rhs) { return !lhs. template Equals   <      Case::Sensitive>(rhs); }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator!= (const TCharArray&     lhs, const TString<TChar>& rhs) { return !rhs. template Equals   <      Case::Sensitive>(lhs); }
-                                                                                                                                                                                                        
-template<typename TChar, typename TCharArray>           bool                                           operator<  (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, Case::Sensitive>(rhs) <  0; }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator<  (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, Case::Sensitive>(lhs) >  0; }
-template<typename TChar, typename TCharArray>           bool                                           operator<= (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, Case::Sensitive>(rhs) <= 0; }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator<= (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, Case::Sensitive>(lhs) >= 0; }
-template<typename TChar, typename TCharArray>           bool                                           operator>  (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, Case::Sensitive>(rhs) >  0; }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator>  (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, Case::Sensitive>(lhs) <  0; }
-template<typename TChar, typename TCharArray>           bool                                           operator>= (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, Case::Sensitive>(rhs) >= 0; }
-template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator>= (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, Case::Sensitive>(lhs) <= 0; }
+template<typename TChar, typename TCharArray>           bool                                           operator== (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template Equals   <true, lang::Case::Sensitive>(rhs); }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator== (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template Equals   <true, lang::Case::Sensitive>(lhs); }
+template<typename TChar, typename TCharArray>           bool                                           operator!= (const TString<TChar>& lhs, const TCharArray&     rhs) { return !lhs. template Equals   <true, lang::Case::Sensitive>(rhs); }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator!= (const TCharArray&     lhs, const TString<TChar>& rhs) { return !rhs. template Equals   <true, lang::Case::Sensitive>(lhs); }
 
-#else // now--> ALIB_CPPVER >= 20 && !defined(_MSC_VER)
+template<typename TChar, typename TCharArray>           bool                                           operator<  (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, lang::Case::Sensitive>(rhs) <  0; }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator<  (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, lang::Case::Sensitive>(lhs) >  0; }
+template<typename TChar, typename TCharArray>           bool                                           operator<= (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, lang::Case::Sensitive>(rhs) <= 0; }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator<= (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, lang::Case::Sensitive>(lhs) >= 0; }
+template<typename TChar, typename TCharArray>           bool                                           operator>  (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, lang::Case::Sensitive>(rhs) >  0; }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator>  (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, lang::Case::Sensitive>(lhs) <  0; }
+template<typename TChar, typename TCharArray>           bool                                           operator>= (const TString<TChar>& lhs, const TCharArray&     rhs) { return  lhs. template CompareTo<true, lang::Case::Sensitive>(rhs) >= 0; }
+template<typename TChar, typename TCharArray> ATMP_T_IF(bool, !ATMP_ISOF(TCharArray, TString<TChar>) ) operator>= (const TCharArray&     lhs, const TString<TChar>& rhs) { return  rhs. template CompareTo<true, lang::Case::Sensitive>(lhs) <= 0; }
 
-inline bool  operator==  (const NString& lhs, const NString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const WString& lhs, const WString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline bool  operator==  (const XString& lhs, const XString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ) == 0; }
-inline auto  operator<=> (const NString& lhs, const NString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const WString& lhs, const WString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
-inline auto  operator<=> (const XString& lhs, const XString& rhs) { return  lhs.CompareTo<true,Case::Sensitive>( rhs ); }
+#else // now--> ALIB_CPP_STANDARD >= 20 && !defined(_MSC_VER)
+
+inline bool  operator==  (const NString& lhs, const NString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const WString& lhs, const WString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline bool  operator==  (const XString& lhs, const XString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ) == 0; }
+inline auto  operator<=> (const NString& lhs, const NString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const WString& lhs, const WString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
+inline auto  operator<=> (const XString& lhs, const XString& rhs) { return  lhs.CompareTo<true,lang::Case::Sensitive>( rhs ); }
 
 #endif
 
@@ -2368,7 +2397,7 @@ inline auto  operator<=> (const XString& lhs, const XString& rhs) { return  lhs.
  */
 template<typename TChar>
 inline
-lib::strings::TString<TChar>  AllocateCopy(const lib::strings::TString<TChar>& src)
+strings::TString<TChar>  AllocateCopy(const strings::TString<TChar>& src)
 {
     ALIB_ASSERT_ERROR( !src.IsNull(), "STRINGS", "Nulled string given to allocate and copy." )
     TChar* buf= new TChar[static_cast<size_t>(src.Length())];
@@ -2382,11 +2411,11 @@ lib::strings::TString<TChar>  AllocateCopy(const lib::strings::TString<TChar>& s
  *      delete[] string.Buffer()
  *
  * @tparam TChar The character type of the string. Deduced from the given argument.
- * @param  string The string who'se buffer is to be deleted.
+ * @param  string The string whose buffer is to be deleted.
  */
 template<typename TChar>
 inline
-void  DeleteString(const lib::strings::TString<TChar>& string)
+void  DeleteString(const strings::TString<TChar>& string)
 {
     delete[] string.Buffer();
 }
@@ -2398,8 +2427,8 @@ void  DeleteString(const lib::strings::TString<TChar>& string)
 #if !defined(ALIB_DOX)
 
 template<>      ALIB_API integer  TString<nchar>::WStringLength                 ()                                           const;
-extern template ALIB_API integer  TString<nchar>::indexOfString<Case::Sensitive>( const TString<nchar   >&, integer        ) const;
-extern template ALIB_API integer  TString<nchar>::indexOfString<Case::Ignore   >( const TString<nchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<nchar>::indexOfString<lang::Case::Sensitive>( const TString<nchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<nchar>::indexOfString<lang::Case::Ignore   >( const TString<nchar   >&, integer        ) const;
 extern template ALIB_API integer  TString<nchar>::IndexOfSegmentEnd             ( nchar, nchar, integer                    ) const;
 extern template ALIB_API uint64_t TString<nchar>::ParseDecDigits                ( integer, integer*                        ) const;
 extern template ALIB_API  int64_t TString<nchar>::ParseInt                      ( integer, TNumberFormat<nchar>*, integer* ) const;
@@ -2412,8 +2441,8 @@ extern template ALIB_API size_t   TString<nchar>::Hashcode                      
 extern template ALIB_API size_t   TString<nchar>::HashcodeIgnoreCase            ()                                           const;
 
 template<> inline        integer  TString<wchar>::WStringLength() const  { return length; }
-extern template ALIB_API integer  TString<wchar>::indexOfString<Case::Sensitive>(const TString<wchar>&, integer            ) const;
-extern template ALIB_API integer  TString<wchar>::indexOfString<Case::Ignore   >(const TString<wchar>&, integer            ) const;
+extern template ALIB_API integer  TString<wchar>::indexOfString<lang::Case::Sensitive>(const TString<wchar>&, integer            ) const;
+extern template ALIB_API integer  TString<wchar>::indexOfString<lang::Case::Ignore   >(const TString<wchar>&, integer            ) const;
 extern template ALIB_API integer  TString<wchar>::IndexOfSegmentEnd             (wchar, wchar, integer                     ) const;
 extern template ALIB_API uint64_t TString<wchar>::ParseDecDigits                ( integer, integer*                        ) const;
 extern template ALIB_API  int64_t TString<wchar>::ParseInt                      ( integer, TNumberFormat<wchar>*, integer* ) const;
@@ -2426,8 +2455,8 @@ extern template ALIB_API size_t   TString<wchar>::Hashcode                      
 extern template ALIB_API size_t   TString<wchar>::HashcodeIgnoreCase            ()                                           const;
 
 template<>      ALIB_API integer  TString<xchar>::WStringLength                 ()                                           const;
-extern template ALIB_API integer  TString<xchar>::indexOfString<Case::Sensitive>( const TString<xchar   >&, integer        ) const;
-extern template ALIB_API integer  TString<xchar>::indexOfString<Case::Ignore   >( const TString<xchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<xchar>::indexOfString<lang::Case::Sensitive>( const TString<xchar   >&, integer        ) const;
+extern template ALIB_API integer  TString<xchar>::indexOfString<lang::Case::Ignore   >( const TString<xchar   >&, integer        ) const;
 extern template ALIB_API integer  TString<xchar>::IndexOfSegmentEnd             ( xchar, xchar, integer                    ) const;
 extern template ALIB_API uint64_t TString<xchar>::ParseDecDigits                ( integer, integer*                        ) const;
 extern template ALIB_API  int64_t TString<xchar>::ParseInt                      ( integer, TNumberFormat<xchar>*, integer* ) const;
@@ -2450,7 +2479,7 @@ extern template ALIB_API size_t   TString<xchar>::HashcodeIgnoreCase            
 
 #endif //!defined(ALIB_DOX)
 
-}} // namespace aworx[::lib::strings]
+} // namespace alib[::strings]
 
 #if defined(_MSC_VER)
     #pragma warning( pop )
@@ -2501,6 +2530,6 @@ ALIB_API extern WString             NULL_W_STRING;
 ALIB_API extern XString             NULL_X_STRING;
 
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_STRINGS_STRING

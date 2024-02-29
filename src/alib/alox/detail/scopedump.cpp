@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -27,10 +27,10 @@
 #endif // !defined(ALIB_DOX)
 
 
-using namespace aworx;
+using namespace alib;
 
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 //! @cond NO_DOX
 
@@ -62,7 +62,7 @@ template<typename T> void write(       T*  val, NAString& target )
         integer actLen= buffer.Length();
         buffer._( *val );
         ESC::ReplaceToReadable( buffer, actLen );
-        buffer << Format::Escape( Switch::On, actLen );
+        buffer << Format::Escape( lang::Switch::On, actLen );
         buffer << '"';
         target << buffer;
     }
@@ -123,14 +123,14 @@ integer ScopeDump::writeStoreMapHelper( std::map<NString, T>& map, const NString
 
         String64 keyString;
 
-        if ( it.first.Equals( noKey ) )
+        if ( it.first.template Equals<false>( noKey ) )
             keyString._<false>( "<global>" );
         else
             keyString._<false>( '"' )._( it.first )._( '"' );
         if ( maximumKeyLength < keyString.Length() + 1 )
             maximumKeyLength= keyString.Length() + 1;
 
-        targetBuffer._<false>(NFormat::Field(keyString, maximumKeyLength, Alignment::Left))._<false>( '=' );
+        targetBuffer._<false>(NFormat::Field(keyString, maximumKeyLength, lang::Alignment::Left))._<false>( '=' );
 
 
         write( it.second, targetBuffer);
@@ -170,8 +170,8 @@ int ScopeDump::writeStoreMap( ScopeStore<T, false>* store )
 
     String512 keyStr;
     typename ScopeStore<T, false>::LanguageStoreT::RecursiveIterator iterator;
-    iterator.SetSorting( Switch::On );
-    iterator.SetPathGeneration( Switch::On );
+    iterator.SetSorting( lang::Switch::On );
+    iterator.SetPathGeneration( lang::Switch::On );
     for( iterator.Initialize( store->languageStore) ; iterator.IsValid() ; iterator.Next() )
     {
         if( iterator.Node().Value() == ScopeStoreType<T>::NullValue() )
@@ -230,8 +230,8 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
     {
         String512 keyStr;
         typename ScopeStore<T, true>::LanguageStoreT::RecursiveIterator iterator;
-        iterator.SetSorting( Switch::On );
-        iterator.SetPathGeneration( Switch::On );
+        iterator.SetSorting( lang::Switch::On );
+        iterator.SetPathGeneration( lang::Switch::On );
         for( iterator.Initialize( store->languageStore ); iterator.IsValid() ; iterator.Next() )
         {
             if( iterator.Node().Value() == ScopeStoreType<T>::NullValue() )
@@ -262,5 +262,4 @@ int ScopeDump::writeStore( ScopeStore<T, true>* store, int indentSpaces )
 }
 
 //! @endcond
-}}}}// namespace [aworx::lib::lox::detail]
-
+}}} // namespace [alib::lox::detail]

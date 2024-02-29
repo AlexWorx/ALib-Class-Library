@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_bitbuffer of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BITBUFFER_AC_V1_HUFFMAN
@@ -12,7 +12,7 @@
 #   include "alib/bitbuffer/bitbuffer.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace bitbuffer { namespace ac_v1 {
+namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 /**
  * This class, together with sibling \alib{bitbuffer::ac_v1,HuffmanDecoder} implements the well known
@@ -46,14 +46,14 @@ class HuffmanEncoder
         static constexpr int   MAX_CODE_LENGTH   = 64;
 
         /**
-         * Information about the encoding of symbols. The symbol's value (between \c 0  and \c 255) is
-         * not included, but deducted from the objects position in the symbol array found in
+         * Information about the encoding of symbols. The symbol's value (between \c 0  and \c 255)
+         * is not included, but deduced from the objects' position in the symbol array found in
          * field \alib{bitbuffer::ac_v1::HuffmanEncoder,symbols}.
          */
         struct Symbol
         {
             std::size_t         frequency        =  0;     ///< The number of occurrences of the symbol.
-            aworx::ShiftOpRHS   wordLength       =  0;     ///< 0: symbol not used, otherwise between 1 and 255.
+            alib::ShiftOpRHS   wordLength       =  0;     ///< 0: symbol not used, otherwise between 1 and 255.
             uint32_t            words[MAX_WORDS] = {0,0};  ///< The bitcode of the symbol.
         };
 
@@ -202,6 +202,6 @@ class HuffmanDecoder
 
 }; // HuffmanDecoder
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]
 
 #endif // HPP_ALIB_BITBUFFER_AC_V1_HUFFMAN

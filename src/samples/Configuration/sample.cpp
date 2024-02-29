@@ -2,25 +2,26 @@
 //  ALib C++ Library
 //  Configuration Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/distribution.hpp"
 #include "alib/config/configuration.hpp"
 #include "alib/config/inifile.hpp"
-#include "alib/system/directory.hpp"
+#include "alib/lang/system/directory.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 
 #include <fstream>
 
-using namespace aworx;
+using namespace alib;
 
-int main(  int argc, char *argv[]  )
+int main(  int argc, const char *argv[]  )
 {
     //
-    // Initialize ALib and pass command line arguments to the default configuration instance
+    // Store cli arguments with ALib and boottstrap
     //
-    ALIB.Bootstrap( argc, argv );
+    alib::ArgC=  argc;
+    alib::ArgVN= argv;
+    alib::Bootstrap();
 
     //
     // first, lets write a simple INI-file
@@ -75,7 +76,7 @@ int main(  int argc, char *argv[]  )
     //
     // Now we attach the INI-File to the configuration and read the same variables once more
     //
-    ALIB.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
+    BASECAMP.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
     std::cout << std::endl;
     std::cout << "Reading Variables from Configuration: " << std::endl;
@@ -83,13 +84,13 @@ int main(  int argc, char *argv[]  )
     std::cout << "then these will overwrite the values from the INI-file)" <<std::endl;
 
 
-    ALIB.GetConfig().Load( var.Declare( "",           "Test"        ) );
+    BASECAMP.GetConfig().Load( var.Declare( "",           "Test"        ) );
     std::cout << "  Test:        " << var.GetString() << std::endl;
 
-    ALIB.GetConfig().Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
+    BASECAMP.GetConfig().Load( var.Declare( "MY_SECTION", "SectionVar"  ) );
     std::cout << "  SectionVar:  " << var.GetString() << std::endl;
 
-    ALIB.GetConfig().Load( var.Declare( "MY_SECTION", "PI"          ) );
+    BASECAMP.GetConfig().Load( var.Declare( "MY_SECTION", "PI"          ) );
     std::cout << "  PI:          " << var.GetString() << std::endl;
     std::cout << "  PI as float: " << var.GetFloat()  << std::endl;
 
@@ -99,18 +100,18 @@ int main(  int argc, char *argv[]  )
     //
     var.Declare( "New_Section",  "programatically", 0, "This variable was written by the test program"   );
     var.Add("written");
-    ALIB.GetConfig().Store( var );
+    BASECAMP.GetConfig().Store( var );
 
     //
     // Copy programatically set default values to the INI-file
     //
-    ALIB.GetConfig().FetchFromDefault( iniFile );
+    BASECAMP.GetConfig().FetchFromDefault( iniFile );
     iniFile.WriteFile();
 
 
     //
     // Shutdown and exit
     //
-    ALIB.Shutdown();
+    alib::Shutdown();
     return 0;
 }

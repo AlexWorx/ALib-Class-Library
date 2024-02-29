@@ -7,20 +7,20 @@
  *   See \ref alib_manual_modules_special_alox "Special Treatment For Module ALox" for furhter
  *   explanation.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
 #ifndef HPP_ALOX
 #define HPP_ALOX 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if ALIB_ALOX
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #   if !defined(HPP_ALIB_ALOX)
 #      include "alib/alox/alox.hpp"

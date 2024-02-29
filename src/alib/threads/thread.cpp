@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -36,7 +36,7 @@
 
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /** ************************************************************************************************
  * This is the reference documentation of sub-namespace \c threads of the \aliblink, which
@@ -72,7 +72,7 @@ namespace {
 // Details
 // #################################################################################################
 /**
- * Details of namespace #aworx::lib::threads.
+ * Details of namespace #alib::threads.
  */
 namespace detail {
 
@@ -130,7 +130,7 @@ Thread* getThread(std::thread::id c11ID )
 }
 
 
-} // namespace aworx::lib::threads[::detail];
+} // namespace alib::threads[::detail];
 
 using namespace detail;
 
@@ -157,19 +157,19 @@ void Bootstrap()
     ALIB_ASSERT_ERROR( mainThread->GetId() == static_cast<ThreadID>(-1), "THREADS",
        "Error initializing threads. Probably forbidden repeated initialization from different thread." )
 
-    // Assign enum records (not resourced as threads is not a full module)
-    #if ALIB_ENUMS && ALIB_BOXING && !ALIB_FILESET_MODULES
-        aworx::EnumRecords<aworx::lib::threads::Thread::State>::Bootstrap(
+    // Assign enum records (not resourced, because Threads is not a Camp Module)
+    #if ALIB_ENUMS && ALIB_BOXING && !ALIB_CAMP
+        alib::EnumRecords<alib::threads::Thread::State>::Bootstrap(
         {
-            { aworx::lib::threads::Thread::State::Unstarted , A_CHAR("Unstarted" )  },
-            { aworx::lib::threads::Thread::State::Started   , A_CHAR("Started"   )  },
-            { aworx::lib::threads::Thread::State::Running   , A_CHAR("Running"   )  },
-            { aworx::lib::threads::Thread::State::Stopped   , A_CHAR("Stopped"   )  },
-            { aworx::lib::threads::Thread::State::Terminated, A_CHAR("Terminated")  },
+            { alib::threads::Thread::State::Unstarted , A_CHAR("Unstarted" )  },
+            { alib::threads::Thread::State::Started   , A_CHAR("Started"   )  },
+            { alib::threads::Thread::State::Running   , A_CHAR("Running"   )  },
+            { alib::threads::Thread::State::Stopped   , A_CHAR("Stopped"   )  },
+            { alib::threads::Thread::State::Terminated, A_CHAR("Terminated")  },
         } );
 
         #if ALIB_BOXING
-            ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::threads::Thread::State   )
+            ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::threads::Thread::State   )
         #endif
     #endif
 
@@ -354,6 +354,4 @@ Thread* Thread::GetMain()
 }
 
 
-}}}// namespace [aworx::lib::threads]
-
-
+}} // namespace [alib::threads]

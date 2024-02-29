@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ALOX
 #define HPP_ALIB_ALOX 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(ALOX)
@@ -18,26 +18,7 @@ ALIB_ASSERT_MODULE(ALOX)
     #include "alib/config/priorities.hpp"
 #endif
 
-
-// #################################################################################################
-// Compilation Flags
-// #################################################################################################
-
-#if !defined(ALOX_DBG_LOG)
-#   define ALOX_DBG_LOG    ALIB_DEBUG
-#endif
-#if !defined(ALOX_DBG_LOG_CI)
-#   define ALOX_DBG_LOG_CI ALIB_DEBUG
-#endif
-
-#if !defined(ALOX_REL_LOG)
-#   define ALOX_REL_LOG    1
-#endif
-#if !defined(ALOX_REL_LOG_CI)
-#   define ALOX_REL_LOG_CI 0
-#endif
-
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 class Lox;
 
@@ -50,9 +31,9 @@ class Lox;
  * - Error (lowest level).
  *
  * A value of this set is provided to \alox in two different ways:
- * First, all methods of class \ref aworx::lib::lox::Lox "Lox" that execute a log operation
+ * First, all methods of class \ref alib::lox::Lox "Lox" that execute a log operation
  * assign a value of this enum to the <em>Log Statement</em>. Secondly, methods
- * \ref aworx::lib::lox::Lox::SetVerbosity "Lox::SetVerbosity", are defining the 'accepted'
+ * \ref alib::lox::Lox::SetVerbosity "Lox::SetVerbosity", are defining the 'accepted'
  * <em>minimal Verbosity</em> for a pair of <em>\<Logger/%Log Domain\></em>.
  *
  * \alox, when executing a statement, checks both values against each other.
@@ -65,15 +46,15 @@ class Lox;
  * for this pair of <em>\<Logger/%Log Domain\></em>.
  *
  * Some of the <em>Log Statements</em> accept the parameter directly (e.g.
- * \ref aworx::lib::lox::Lox::Entry "Lox::Entry",
- * \ref aworx::lib::lox::Lox::Once  "Lox::Once" and
- * \ref aworx::lib::lox::Lox::If "Lox::If"), others inherently use the right value as their method
+ * \ref alib::lox::Lox::Entry "Lox::Entry",
+ * \ref alib::lox::Lox::Once  "Lox::Once" and
+ * \ref alib::lox::Lox::If "Lox::If"), others inherently use the right value as their method
  * name suggests (e.g.
- * \ref aworx::lib::lox::Lox::Error      "Lox::Error",
- * \ref aworx::lib::lox::Lox::Warning    "Lox::Warning",
- * \ref aworx::lib::lox::Lox::Info       "Lox::Info",
- * \ref aworx::lib::lox::Lox::Verbose    "Lox::Verbose" and
- * \ref aworx::lib::lox::Lox::Assert     "Lox::Assert"). The latter group of methods do not support
+ * \ref alib::lox::Lox::Error      "Lox::Error",
+ * \ref alib::lox::Lox::Warning    "Lox::Warning",
+ * \ref alib::lox::Lox::Info       "Lox::Info",
+ * \ref alib::lox::Lox::Verbose    "Lox::Verbose" and
+ * \ref alib::lox::Lox::Assert     "Lox::Assert"). The latter group of methods do not support
  * parameter \b %Off.
  *
  * If special value \b %Off is used with those <em>Log Statements</em>, that allow to specify the
@@ -143,8 +124,7 @@ enum class Verbosity
  *   For more information on how to change the defaults, see documentation of preprocessor
  *   symbols \ref ALOX_DBG_LOG_CI and \ref ALOX_REL_LOG_CI.
  *
- *   For more information on \e Scopes consult the
- *   \https{ALox user manual,alexworx.github.io/ALox-Logging-Library/manual.html}.
+ *   For more information on \e Scopes consult the \ref alib_mod_alox.
  **************************************************************************************************/
 enum class Scope
 {
@@ -179,7 +159,7 @@ enum class Scope
 /** ************************************************************************************************
  * This class defines "escape sequences" that influence the formatting of log output.
  * Specific implementations of class
- * \ref aworx::lib::lox::detail::Logger "Logger"
+ * \ref alib::lox::detail::Logger "Logger"
  * have to convert or interpret this classes definitions of escape sequences
  * when processing log data. If no formatting of the output is supported by a specific Logger
  * implementation, such logger should filter and discard escape sequences defined here.
@@ -202,46 +182,6 @@ enum class Scope
 class ESC
 {
     public:
-    #if defined(_MSC_VER)
-    // MSC  (as of 12/2015):
-    // C4579: in-class initialization for type 'const aworx::character[11]'
-    // is not yet implemented; static member will remain uninitialized at run-time but
-    // use in constant-expressions is supported
-
-    ALIB_API static     character  RED        [4]            ; ///< Select red color for foreground.
-    ALIB_API static     character  GREEN      [4]            ; ///< Select green color for foreground.
-    ALIB_API static     character  YELLOW     [4]            ; ///< Select yellow color for foreground.
-    ALIB_API static     character  BLUE       [4]            ; ///< Select blue color for foreground.
-    ALIB_API static     character  MAGENTA    [4]            ; ///< Select magenta color for foreground.
-    ALIB_API static     character  CYAN       [4]            ; ///< Select cyan color for foreground.
-    ALIB_API static     character  BLACK      [4]            ; ///< Select black color for foreground.
-    ALIB_API static     character  WHITE      [4]            ; ///< Select white color for foreground.
-    ALIB_API static     character  GRAY       [4]            ; ///< Select gray color for foreground.
-    ALIB_API static     character  FG_RESET   [4]            ; ///< Select std color for foreground.
-
-    ALIB_API static     character  BG_RED     [4]            ; ///< Select red color for background.
-    ALIB_API static     character  BG_GREEN   [4]            ; ///< Select green color for background.
-    ALIB_API static     character  BG_YELLOW  [4]            ; ///< Select yellow color for background.
-    ALIB_API static     character  BG_BLUE    [4]            ; ///< Select blue color for background.
-    ALIB_API static     character  BG_MAGENTA [4]            ; ///< Select blue color for background.
-    ALIB_API static     character  BG_CYAN    [4]            ; ///< Select blue color for background.
-    ALIB_API static     character  BG_BLACK   [4]            ; ///< Select red color for background.
-    ALIB_API static     character  BG_WHITE   [4]            ; ///< Select blue color for background.
-    ALIB_API static     character  BG_GRAY    [4]            ; ///< Select gray color for background.
-    ALIB_API static     character  BG_RESET   [4]            ; ///< Select std color for background.
-
-    ALIB_API static     character  BOLD       [4]            ; ///< Select bold font style.
-    ALIB_API static     character  ITALICS    [4]            ; ///< Select italics font style.
-    ALIB_API static     character  STYLE_RESET[4]            ; ///< Select standard font style.
-    ALIB_API static     character  RESET      [4]            ; ///< Reset color and style.
-
-    ALIB_API static     character  URL_START  [4]            ; ///< Mark the start of an URL.
-    ALIB_API static     character  URL_END    [4]            ; ///< Mark the end of an URL.
-    ALIB_API static     character  TAB        [4]            ; ///< Go to next tab. Usually, text loggers will increase the tab position automatically.
-
-    ALIB_API static     character  EOMETA     [4]            ; ///< End of meta information in log string
-
-    #else
     static constexpr    character  RED        [4]{ A_CHAR("\033c0") }; ///< Select red color for foreground.
     static constexpr    character  GREEN      [4]{ A_CHAR("\033c1") }; ///< Select green color for foreground.
     static constexpr    character  YELLOW     [4]{ A_CHAR("\033c2") }; ///< Select yellow color for foreground.
@@ -275,8 +215,6 @@ class ESC
 
     static constexpr    character  EOMETA     [4]{ A_CHAR("\033A0") }; ///< End of meta information in log string
 
-    #endif
-
     /** ********************************************************************************************
      * Replaces ESC codes in a string reversely to "ESC::XXX".
      * @param target   The string to replace in.
@@ -286,30 +224,30 @@ class ESC
     static void ReplaceToReadable( AString& target, integer startIdx );
 }; // class ESC
 
-}} // namespace aworx[::lib::lox]
+} // namespace alib[::lox]
 
 
-/// Type alias in namespace #aworx.
-using   Verbosity=        lib::lox::Verbosity;
+/// Type alias in namespace \b alib.
+using   Verbosity=        lox::Verbosity;
 
-/// Type alias in namespace #aworx.
-using   Scope=            lib::lox::Scope;
+/// Type alias in namespace \b alib.
+using   Scope=            lox::Scope;
 
-/// Type alias in namespace #aworx.
-using   ESC=              lib::lox::ESC;
+/// Type alias in namespace \b alib.
+using   ESC=              lox::ESC;
 
-} // namespace [aworx]
-
-
-ALIB_BOXING_VTABLE_DECLARE( aworx::lib::lox::Verbosity     , vt_lox_verbosity )
-ALIB_BOXING_VTABLE_DECLARE( aworx::lib::lox::Scope         , vt_lox_scope     )
-ALIB_BOXING_VTABLE_DECLARE( std::pair<aworx::lib::lox::Verbosity
-                            ALIB_COMMA aworx::lib::config::Priorities> , vt_lox_pair_verby_prio )
+} // namespace [alib]
 
 
-ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::Verbosity, aworx::lib::enums::ERSerializable )
-ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::Scope    , aworx::lib::enums::ERSerializable )
-ALIB_ENUMS_MAKE_ARITHMETICAL( aworx::lib::lox::Scope     )
+ALIB_BOXING_VTABLE_DECLARE( alib::lox::Verbosity     , vt_lox_verbosity )
+ALIB_BOXING_VTABLE_DECLARE( alib::lox::Scope         , vt_lox_scope     )
+ALIB_BOXING_VTABLE_DECLARE( std::pair<alib::lox::Verbosity
+                            ALIB_COMMA alib::config::Priorities> , vt_lox_pair_verby_prio )
+
+
+ALIB_ENUMS_ASSIGN_RECORD( alib::lox::Verbosity, alib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( alib::lox::Scope    , alib::enums::ERSerializable )
+ALIB_ENUMS_MAKE_ARITHMETICAL( alib::lox::Scope     )
 
 
 
@@ -324,4 +262,3 @@ ALIB_ENUMS_MAKE_ARITHMETICAL( aworx::lib::lox::Scope     )
 #endif
 
 #endif // HPP_ALIB_ALOX
-

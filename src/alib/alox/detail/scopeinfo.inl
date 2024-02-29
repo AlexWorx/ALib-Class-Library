@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_SCOPEINFO
@@ -19,8 +19,8 @@
     #include "alib/time/ticks.hpp"
 #endif
 
-#if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-    #include "alib/system/directory.hpp"
+#if !defined (HPP_ALIB_CAMP_DIRECTORY)
+    #include "alib/lang/system/directory.hpp"
 #endif
 
 #if ALIB_THREADS && !defined (HPP_ALIB_THREADS_THREAD)
@@ -34,7 +34,7 @@
 #   include "alib/monomem/stdcontainerma.hpp"
 #endif
 
-namespace aworx { namespace lib {
+namespace alib {
 
 namespace config { class Variable; }
 namespace lox    { namespace detail {
@@ -92,13 +92,13 @@ class ScopeInfo
         /** Defines portions of source paths to be ignored. */
         struct SourcePathTrimRule
         {
-            NAString     Path;            ///< The path string
-            bool         IsPrefix;        ///< true if path was not starting with '\*' when provided.
-            Inclusion    IncludeString;   ///< Denotes if #Path itself should be included when trimmed
-            Case         Sensitivity;     ///< The sensitivity of the comparison when trimming
-            int          TrimOffset;      ///< Additional offset of the trim position
-            NAString     TrimReplacement; ///< Optional replacement string for trimmed paths.
-            Priorities   Priority;        ///< The priority of the rule. Depends on origin: source code, config...)
+            NAString        Path;            ///< The path string
+            bool            IsPrefix;        ///< true if path was not starting with '\*' when provided.
+            lang::Inclusion IncludeString;   ///< Denotes if #Path itself should be included when trimmed
+            lang::Case      Sensitivity;     ///< The sensitivity of the comparison when trimming
+            int             TrimOffset;      ///< Additional offset of the trim position
+            NAString        TrimReplacement; ///< Optional replacement string for trimmed paths.
+            Priorities      Priority;        ///< The priority of the rule. Depends on origin: source code, config...)
         };
 
         /** List of trim definitions for portions of source paths to be ignored. */
@@ -115,7 +115,7 @@ class ScopeInfo
         /**
          *  If true, next time a source path can not be trimmed successfully with custom
          *  trim information provided with
-         *  \ref aworx::lib::lox::Lox::SetSourcePathTrimRule "Lox::SetSourcePathTrimRule"
+         *  \ref alib::lox::Lox::SetSourcePathTrimRule "Lox::SetSourcePathTrimRule"
          *  some trim information is automatically created by comparing such source file's path
          *  with the path of the executable of the current process.
          */
@@ -272,8 +272,8 @@ class ScopeInfo
 
         /** ****************************************************************************************
          * Does the job for
-         * \ref aworx::lib::lox::Lox::SetSourcePathTrimRule    "Lox::SetSourcePathTrimRule" and
-         * \ref aworx::lib::lox::Lox::ClearSourcePathTrimRules "Lox::ClearSourcePathTrimRules".
+         * \ref alib::lox::Lox::SetSourcePathTrimRule    "Lox::SetSourcePathTrimRule" and
+         * \ref alib::lox::Lox::ClearSourcePathTrimRules "Lox::ClearSourcePathTrimRules".
          *
          * @param path            The path to search for. If not starting with <c> '*'</c>,
          *                        a prefix is searched.
@@ -289,11 +289,11 @@ class ScopeInfo
         ******************************************************************************************/
         ALIB_API
         void      SetSourcePathTrimRule( const NCString&    path,
-                                         Inclusion          includeString,
+                                         lang::Inclusion    includeString,
                                          int                trimOffset,
-                                         Case               sensitivity,
+                                         lang::Case         sensitivity,
                                          const NString&     trimReplacement,
-                                         Reach              reach,
+                                         lang::Reach        reach,
                                          Priorities         priority                );
 
         /** ****************************************************************************************
@@ -437,7 +437,7 @@ class ScopeInfo
          * @returns The name of the current thread. The id is stored within the provided
          *          pointer.
          **************************************************************************************/
-        const aworx::String& GetThreadNameAndID( threads::ThreadID* id )
+        const alib::String& GetThreadNameAndID( threads::ThreadID* id )
         {
             if ( threadName.IsNull() )
             {
@@ -483,10 +483,10 @@ class ScopeInfo
             SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
             if( actual->origFilePathLength == -1 )
                 return -1;
-            return ( actual->origFilePathLength= actual->origFile.LastIndexOf( aworx::DirectorySeparator ) );
+            return ( actual->origFilePathLength= actual->origFile.LastIndexOf( alib::DirectorySeparator ) );
         }
 }; // class ScopeInfo
 
-}}}}// namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]
 
 #endif // HPP_ALOX_DETAIL_SCOPEINFO

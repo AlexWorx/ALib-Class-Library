@@ -1,18 +1,19 @@
 // #################################################################################################
 //  Unit Tests - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "alib/alox.hpp"
-#include "alib/lib/fs_modules/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
+#include "alib/lang/basecamp/bootstrap.hpp"
 #include "alib/compatibility/std_boxing.hpp"
 #include "alib/boxing/dbgboxing.hpp"
 
 //! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP1]
 #if ALIB_DEBUG_RESOURCES
-#   include "alib/resources/localresourcepool.hpp"
+#   include "alib/lang/resources/localresourcepool.hpp"
 #endif
 //! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP1]
 
@@ -21,8 +22,12 @@
 #   include "alib/monomem/hashtable.hpp"
 #endif
 
-#if ALIB_SYSTEM
-#   include "alib/system/directory.hpp"
+#if ALIB_CAMP
+#   include "alib/lang/system/directory.hpp"
+#endif
+
+#if ALIB_ALOX
+#   include "alib/alox/logtools.hpp"
 #endif
 
 #if defined(__clang__)
@@ -43,22 +48,28 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 //! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP2]
 int main( int argc, char **argv )
 {
+    ArgC=   argc;
+    ArgVN=  const_cast<const char**>(argv);
+
     #if ALIB_DEBUG_RESOURCES
-        lib::resources::LocalResourcePool::DbgResourceLoadObserver= &std::cout;
+        resources::LocalResourcePool::DbgResourceLoadObserver= &std::cout;
     #endif
 
-    aworx::ALIB.Bootstrap( argc, argv, BootstrapPhases::PrepareConfig );
-    aworx::lib::boxing::compatibility::std::BootstrapStdStringBoxing();
-    aworx::ALIB.Bootstrap();
-    aworx::ALIB.CheckDistribution();
+    Bootstrap();
     //...
     //...
 //! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP2]
+
+//! [DOX_ALIB_COMPATIBILITY_BOOTSTRAP]
+ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+alib::boxing::compatibility::std::BootstrapStdStringBoxing();
+ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
+//! [DOX_ALIB_COMPATIBILITY_BOOTSTRAP]
 
 
     ::testing::InitGoogleTest( &argc, argv);
@@ -67,14 +78,14 @@ int main( int argc, char **argv )
         #if defined( _MSC_VER )
             std::cout << "MSC " << _MSC_VER;
         #elif defined(__clang__)
-            std::cout << "Clang";
+            std::cout << "Clang" << __GNUC__ << '.' + __GNUC_MINOR__ << '.' << __GNUC_PATCHLEVEL__;
         #elif defined(__GNUC__)
             std::cout << "GCC V" << __GNUC__ << '.' + __GNUC_MINOR__ << '.' << __GNUC_PATCHLEVEL__;
         #elif
-            std::cout << "Unknown Compiler" << ALIB_CPPVER;
+            std::cout << "Unknown Compiler" << ALIB_CPP_STANDARD;
         #endif
 
-        std::cout << ", CPP V."     << ALIB_CPPVER;
+        std::cout << ", CPP V."     << ALIB_CPP_STANDARD;
 
 
         std::cout << ", Platform \"";
@@ -125,8 +136,8 @@ int main( int argc, char **argv )
 
     std::cout << "\"." << std::endl;
 
-    
-    //aworx::lib::results::Report::GetDefault().HaltOnWarning= true;
+
+    //alib::lang::Report::GetDefault().HaltOnWarning= true;
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*";
 
@@ -154,14 +165,14 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatter";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatters";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Text.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Format.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Enums.*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time.CalendarDate_Time";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem.List*";                                      
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem.List*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem.HashTable*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem_StringTree*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.*";
@@ -222,7 +233,7 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.Log_LineFormat*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.Tut_LogState";
+//    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.ALoxTut_LogState";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*Expr*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr*";
@@ -242,15 +253,18 @@ int main( int argc, char **argv )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.Nested";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.VMListings";
 
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Files.filesFexFilter";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Files.Basics";
+
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_CLI*";
 
-    auto result= RUN_ALL_TESTS();
+    int result= RUN_ALL_TESTS();
 
-    #if ALIB_RESOURCES  && ALIB_DEBUG_RESOURCES && ALIB_TEXT
+    #if ALIB_CAMP && ALIB_DEBUG_RESOURCES
 //! [DOX_ALIB_RESOURCES_DEBUG_SHUTDOWN]
 #if ALIB_DEBUG_RESOURCES && ALIB_ALOX
     Log_Info( "---------------- Resource Pool Dump ----------------" )
-        auto categoryList= ALIB.GetResourcePool().DbgGetCategories();
+        auto categoryList= alib::BASECAMP.GetResourcePool().DbgGetCategories();
         integer sum= 0;
         for( auto& category : categoryList )
         {
@@ -259,7 +273,7 @@ int main( int argc, char **argv )
         }
         Log_Info( "This sums up to ", sum, " resource definitions"  )
 
-        auto resourceList= ALIB.GetResourcePool().DbgGetList();
+        auto resourceList= alib::BASECAMP.GetResourcePool().DbgGetList();
         Log_Info( ResourcePool::DbgDump( resourceList ) )
     Log_Info( "---------------- Resource Pool Dump (end) ----------" )
 #endif
@@ -270,10 +284,10 @@ int main( int argc, char **argv )
         cout << endl;
         cout << "---------------- Mapped Singletons ----------------" << endl;
             AString singletonList;
-            aworx::lib::singletons::DbgGetSingletons(singletonList);
+            alib::singletons::DbgGetSingletons(singletonList);
             cout << singletonList << endl;
             AString hashTableStats=
-                    aworx::lib::monomem::DbgDumpDistribution( aworx::lib::singletons::DbgGetSingletons(), true );
+                    alib::monomem::DbgDumpDistribution( alib::singletons::DbgGetSingletons(), true );
             cout << hashTableStats << endl;
 
         cout << "---------------- Mapped Singetons (end) ----------" << endl;
@@ -282,25 +296,25 @@ int main( int argc, char **argv )
     #if ALIB_DEBUG_BOXING && defined(SUPPRESS_THIS)
         cout << endl;
         cout << "---------------- Dynamic VTables (should be free of ALib types!) ----------" << endl;
-        std::cout << aworx::DbgBoxing::DumpVTables(false);
+        std::cout << alib::DbgBoxing::DumpVTables(false);
 
         cout << "---------------- Dynamic VTables (end)----------------" << endl;
     #endif
 
 
-    ALIB.Shutdown();
+    alib::Shutdown();
 
     #if !ALIB_DEBUG
         cerr << "\n  *** Note: To generate the documentation samples, unit test have to be run in debug mode." << endl;
     #elif !ALIB_CLI || !ALIB_ALOX || !ALIB_EXPRESSIONS || !ALIB_ALOX || !ALIB_THREADS || !ALIB_BITBUFFER
         cerr << "\n  *** Note: To generate the documentation samples, all ALib modules have to be enabled." << endl;
-    #elif ALIB_CPPVER < 17
-        cerr << "\n  *** Note: To generate the documentation samples, CPP 17 or higher has to be used for compilation." << endl;
     #elif !ALIB_DEBUG_BOXING
         cerr << "\n  *** Note: To generate the documentation samples, CMake flag ALIB_DEBUG_BOXING has to be true for compilation." << endl;
     #else
         if(!Directory::Exists(A_CHAR("/tmp/_builds_/ALib_Samples/cli_clion_debug")))
-        cerr << "\n  *** Note: To generate the documentation samples, ALib sample CLI has to be compiled to /tmp/_builds_/ALib_Samples/cli_clion_debug." << endl;
+            cerr << "\n  *** Note: To generate the documentation samples, ALib sample CLI has to be compiled to /tmp/_builds_/ALib_Samples/cli_clion_debug." << endl;
+        else
+            cout << "*** Note: Duly compiled to generate documentation after running these tests." << endl;
     #endif
 
     return result;

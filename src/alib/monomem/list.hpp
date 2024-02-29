@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_LIST
@@ -20,17 +20,17 @@
 #   include "alib/monomem/detail/recycler.inl"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_BIDILIST)
-#   include "alib/lib/fs_lists/bidilist.hpp"
+#if !defined(HPP_ALIB_LANG_BIDILIST)
+#   include "alib/lang/bidilist.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 namespace detail
 {
     /** Extents \b BidiNodeBase by an value of type \p{T}.    */
     template<typename T>
-    struct ListElement : public lib::detail::BidiNodeBase<ListElement<T>>
+    struct ListElement : public lang::BidiNodeBase<ListElement<T>>
     {
         T           data;       ///< The custom data object.
     };
@@ -66,7 +66,7 @@ namespace detail
  *                    \alib{monomem,Recycling::Shared} or \alib{monomem,Recycling::None}.
  **************************************************************************************************/
 template<typename T, typename TRecycling>
-class List 
+class List
 {
     // #############################################################################################
     // Node/Element type
@@ -79,7 +79,7 @@ class List
         MonoAllocator*                                      allocator;
 
         /** The list.     */
-        lib::detail::BidiListHelper<Element>                list;
+        lang::BidiListHelper<Element>                list;
 
         /** The recycler. Its type depends on template parameter \p{TRecycling}.     */
         typename detail::ListRecycler<T, TRecycling>::type  recycler;
@@ -91,7 +91,7 @@ class List
          *  \see
          *    Chapter \ref alib_monomem_containers_recycling_shared of the Programmer's Manual
          *    for this \alibmod.                                                          */
-        using TSharedRecycler=  lib::detail::SidiListHelper<Element>;
+        using TSharedRecycler=  lang::SidiListHelper<Element>;
 
     // #############################################################################################
     // Helpers
@@ -132,8 +132,7 @@ class List
             using reference         = TConstOrMutableElement&        ;  ///< Implementation of <c>std::iterator_traits</c>.
 
             private:
-                /** The start of the list. */
-                Element*          element;
+                Element*          element; ///< The actual element of the list.
 
                 #if !defined(ALIB_DOX)
                     friend   class List<T, TRecycling>;
@@ -374,7 +373,7 @@ class List
          ******************************************************************************************/
         ~List()
         {
-            if ALIB_CONSTEXPR17( !std::is_trivially_destructible<T>::value )
+            if constexpr( !std::is_trivially_destructible<T>::value )
                 Clear();
         }
 
@@ -823,12 +822,12 @@ class List
         }
 }; // class List
 
-}}// namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx.
-template<typename T, typename TRecycling = lib::monomem::Recycling::Private>
-using  List       = lib::monomem::List<T, TRecycling>;
+/// Type alias in namespace \b alib.
+template<typename T, typename TRecycling = monomem::Recycling::Private>
+using  List       = monomem::List<T, TRecycling>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_MONOMEM_LIST

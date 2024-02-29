@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="MSVC_64Bit_Debug" ENABLED="true" GENERATION_DIR="C:/tmp/_builds_/ALib_MSVC_64Bit_Debug" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Visual Studio" BUILD_OPTIONS="-j" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="MinGW_64Bit_Debug" ENABLED="true" GENERATION_DIR="C:/tmp/_builds_/ALib_MinGW_64Bit_Debug" CONFIG_NAME="Debug" TOOLCHAIN_NAME="MinGW" GENERATION_OPTIONS="-G &quot;MinGW Makefiles&quot;" BUILD_OPTIONS="-j" />
+    </configurations>
+  </component>
+</project>

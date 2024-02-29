@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Unit Tests
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -34,16 +34,15 @@ project("ALib_UnitTests")
 
     # C++ Version selection
 
-    #set(CMAKE_CXX_STANDARD 11)
-    #set(CMAKE_CXX_STANDARD 14)
     #set(CMAKE_CXX_STANDARD 17)
     #set(CMAKE_CXX_STANDARD 20)
+    #set(CMAKE_CXX_STANDARD 23)
 
     # 32-bit compilation
     #add_compile_options(-m32)
 
-    #### Module TEXT is mandatory to build the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "TEXT"  )
+    #### Module CAMP is mandatory to build the unit tests ####
+    #list( APPEND ALIB_DISTRIBUTION         "CAMP"  )
 
     #### These "micro modules" are optional: may be commented out. #####
     #list( APPEND ALIB_DISTRIBUTION         "TIME"    )
@@ -51,7 +50,7 @@ project("ALib_UnitTests")
 
     #### The "higher level" modules are optional to be included in the unit tests ####
     #list( APPEND ALIB_DISTRIBUTION         "ALL"           )
-    #list( APPEND ALIB_DISTRIBUTION         "SYSTEM"        )
+    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"     )
     #list( APPEND ALIB_DISTRIBUTION         "CONFIGURATION" )
     #list( APPEND ALIB_DISTRIBUTION         "CLI"           )
     #list( APPEND ALIB_DISTRIBUTION         "EXPRESSIONS"   )

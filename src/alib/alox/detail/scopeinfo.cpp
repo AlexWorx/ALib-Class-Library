@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -21,8 +21,8 @@
 #      undef HPP_ALIB_LOX_PROPPERINCLUDE
 #   endif
 
-#   if !defined(HPP_ALIB_FS_COMMONENUMS)
-#       include "alib/lib/fs_commonenums/commonenums.hpp"
+#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
+#       include "alib/lang/commonenums.hpp"
 #   endif
 
 #   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
@@ -40,7 +40,7 @@
     #pragma warning( disable : 4127 )
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 // #################################################################################################
 // Static
@@ -62,7 +62,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
 {
     loxName= allocator->EmplaceString( pName );
     characters::CharArray<nchar>::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
-    ALIB_ASSERT_ERROR( !loxName.Equals( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
+    ALIB_ASSERT_ERROR( !loxName.Equals<false>( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
     cache= allocator->EmplaceArray<SourceFile>( cacheSize= DefaultCacheSize );
 
     lastSourceFile= &cache[0];
@@ -119,9 +119,9 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
                 else
                     rule.Path.SearchAndReplace( '/' , '\\' );
 
-                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.IncludeString, Inclusion::Exclude, Inclusion::Include );
+                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.IncludeString, lang::Inclusion::Exclude, lang::Inclusion::Include );
                 ruleTknzr.Next().ConsumeInt( rule.TrimOffset );
-                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, Case::Ignore, Case::Sensitive );
+                enums::ParseEnumOrTypeBool( ruleTknzr.Next(), rule.Sensitivity, lang::Case::Ignore, lang::Case::Sensitive );
 
                 rule.TrimReplacement.Reset( ruleTknzr.Next() );
             }
@@ -186,11 +186,11 @@ void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCSt
 }
 
 void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
-                                        Inclusion           includeString,
+                                        lang::Inclusion     includeString,
                                         int                 trimOffset,
-                                        Case                sensitivity,
+                                        lang::Case          sensitivity,
                                         const NString&      trimReplacement,
-                                        Reach               reach,
+                                        lang::Reach         reach,
                                         Priorities          priority )
 {
     // clear cache to have lazy variables reset with the next invocation
@@ -203,9 +203,9 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
     if ( trimOffset == 999999 )
     {
         LocalSPTRs.clear();
-        if ( reach == Reach::Global )
+        if ( reach == lang::Reach::Global )
             GlobalSPTRs.clear();
-        AutoDetectTrimableSourcePath=  (includeString == Inclusion::Include);
+        AutoDetectTrimableSourcePath=  (includeString == lang::Inclusion::Include);
 
         // reset config read flag. This is done for unit testing. Not really useful/needed in real life.
         GlobalSPTRsReadFromConfig=  false;
@@ -214,8 +214,8 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
 
     // choose local or global list
     std::vector<SourcePathTrimRule>* trimInfoList=
-                   reach == Reach::Global  ? &GlobalSPTRs
-                                           : &LocalSPTRs;
+                   reach == lang::Reach::Global  ? &GlobalSPTRs
+                                                 : &LocalSPTRs;
 
     // insert sorted by priority
     auto it= trimInfoList->begin();
@@ -278,17 +278,17 @@ void ScopeInfo::trimPath()
         for ( auto& ti : *trimInfoList )
         {
             if( ti.IsPrefix )
-                idx= ( ti.Sensitivity == Case::Sensitive  ? actual->trimmedPath.StartsWith<true,Case::Sensitive>( ti.Path )
-                                                          : actual->trimmedPath.StartsWith<true,Case::Ignore   >( ti.Path )
+                idx= ( ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.StartsWith<true,lang::Case::Sensitive>( ti.Path )
+                                                                : actual->trimmedPath.StartsWith<true,lang::Case::Ignore   >( ti.Path )
                      )
 
                      ? 0 : -1;
             else
-                idx= ti.Sensitivity == Case::Sensitive  ? actual->trimmedPath.IndexOf<true, Case::Sensitive>( ti.Path )
-                                                        : actual->trimmedPath.IndexOf<true, Case::Ignore   >( ti.Path );
+                idx= ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.IndexOf<true, lang::Case::Sensitive>( ti.Path )
+                                                              : actual->trimmedPath.IndexOf<true, lang::Case::Ignore   >( ti.Path );
             if ( idx >= 0 )
             {
-                integer startIdx= idx + ( ti.IncludeString == Inclusion::Include ? ti.Path.Length() : 0 ) + ti.TrimOffset;
+                integer startIdx= idx + ( ti.IncludeString == lang::Inclusion::Include ? ti.Path.Length() : 0 ) + ti.TrimOffset;
                 actual->trimmedPath=        actual->trimmedPath.Substring( startIdx, actual->trimmedPath.Length() - startIdx );
                 actual->trimmedPathPrefix=  ti.TrimReplacement;
 
@@ -328,8 +328,8 @@ void ScopeInfo::trimPath()
             currentDir.ShortenTo( i );
             NCString origFile= actual->origFile;
             ALIB_STRINGS_TO_NARROW(currentDir,nCurrentDir,1024)
-            SetSourcePathTrimRule( nCurrentDir, Inclusion::Include, 0, Case::Ignore, NullNString(),
-                                   Reach::Local, Priorities::AutoDetected );
+            SetSourcePathTrimRule( nCurrentDir, lang::Inclusion::Include, 0, lang::Case::Ignore, NullNString(),
+                                   lang::Reach::Local, Priorities::AutoDetected );
             actual->origFile= origFile;
             trimPath(); // one recursive call
         }
@@ -337,7 +337,7 @@ void ScopeInfo::trimPath()
 }
 
 
-}}}}// namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]
 
 #if defined(_MSC_VER)
     #pragma warning( pop )

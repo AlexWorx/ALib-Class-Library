@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,7 +16,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 #define    STRING    -1
 #define    ASTERISK  -2
@@ -87,7 +87,7 @@ void TWildcardMatcher<TChar>::Compile( const TString<TChar>& pattern )
 }
 
 template<typename TChar>
-bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, Case sensitivity  )
+bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case sensitivity  )
 {
     if( commands.size() == 0 )
         return true;
@@ -129,8 +129,8 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, Case sensi
 
         if( lastWasAsterisk )
         {
-            integer idx= sensitivity==Case::Sensitive  ?  haystack.template IndexOf<false, Case::Sensitive>( cmd.second )
-                                                       :  haystack.template IndexOf<false, Case::Ignore   >( cmd.second );
+            integer idx= sensitivity==lang::Case::Sensitive  ?  haystack.template IndexOf<false, lang::Case::Sensitive>( cmd.second )
+                                                             :  haystack.template IndexOf<false, lang::Case::Ignore   >( cmd.second );
             if( idx < 0 )
                 return false;
             haystack.ConsumeChars( idx + cmd.second.Length() );
@@ -138,8 +138,8 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, Case sensi
             continue;
         }
 
-        if( sensitivity==Case::Sensitive ? (!haystack.template StartsWith<false, Case::Sensitive>( cmd.second ) )
-                                         : (!haystack.template StartsWith<false, Case::Ignore   >( cmd.second ) )  )
+        if( sensitivity==lang::Case::Sensitive ? (!haystack.template StartsWith<false, lang::Case::Sensitive>( cmd.second ) )
+                                               : (!haystack.template StartsWith<false, lang::Case::Ignore   >( cmd.second ) )  )
             return false;
 
         haystack.template ConsumeChars<false>( cmd.second.Length() );
@@ -149,10 +149,10 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, Case sensi
 }
 
 template void TWildcardMatcher<nchar>::Compile( const TString<nchar>& pattern );
-template bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>& haystack, Case sensitivity );
+template bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>& haystack, lang::Case sensitivity );
 template void TWildcardMatcher<wchar>::Compile( const TString<wchar>& pattern );
-template bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>& haystack, Case sensitivity );
+template bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>& haystack, lang::Case sensitivity );
 
 #undef   STRING
 #undef   ASTERISK
-}}}} // namespace [aworx::lib::strings::util]
+}}} // namespace [alib::strings::util]

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -14,16 +14,20 @@
 #      include "alib/config/config.hpp"
 #   endif
 
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 
 #   if !defined(HPP_ALIB_MONOMEM_HASHSET)
 #      include "alib/monomem/hashset.hpp"
 #   endif
+
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib {
+namespace alib {
 
 
 /** ************************************************************************************************
@@ -42,16 +46,16 @@ namespace config {
 // Configuration
 // #################################################################################################
 
-Configuration::Configuration( CreateDefaults addPlugins )
+Configuration::Configuration( lang::CreateDefaults addPlugins )
 {
     TrueValues= { A_CHAR("1"), A_CHAR("true"), A_CHAR("t"), A_CHAR("yes"), A_CHAR("y"), A_CHAR("on"), A_CHAR("ok") };
 
-    if( addPlugins == CreateDefaults::Yes )
+    if( addPlugins == lang::CreateDefaults::Yes )
     {
-        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgDef") ), Priorities::DefaultValues   , Responsibility::Transfer);
-        InsertPlugin( new Environment   (                                ), Priorities::Environment     , Responsibility::Transfer);
-        InsertPlugin( new CLIArgs       (                                ), Priorities::CLI             , Responsibility::Transfer);
-        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgPro") ), Priorities::ProtectedValues , Responsibility::Transfer);
+        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgDef") ), Priorities::DefaultValues   , lang::Responsibility::Transfer);
+        InsertPlugin( new Environment   (                                ), Priorities::Environment     , lang::Responsibility::Transfer);
+        InsertPlugin( new CLIArgs       (                                ), Priorities::CLI             , lang::Responsibility::Transfer);
+        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgPro") ), Priorities::ProtectedValues , lang::Responsibility::Transfer);
     }
 }
 
@@ -86,7 +90,7 @@ int Configuration::FetchFromDefault( ConfigurationPlugin& dest, const String& se
 bool Configuration::IsTrue( const String& value )
 {
     for ( auto& it : TrueValues )
-        if ( value.Equals<Case::Ignore>( it ) )
+        if ( value.Equals<false, lang::Case::Ignore>( it ) )
             return true;
 
     return false;
@@ -268,7 +272,7 @@ Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
             // search end in two different ways depending on setting of public field "SubstitutionVariableEnd"
             if ( SubstitutionVariableEnd.IsEmpty() )
             {
-                integer idx=   value.IndexOfAny<Inclusion::Include>( SubstitutionVariableDelimiters, varStart );
+                integer idx=   value.IndexOfAny<lang::Inclusion::Include>( SubstitutionVariableDelimiters, varStart );
                 if ( idx < 0 )
                     idx= value.Length();
 
@@ -441,8 +445,6 @@ Configuration::Iterator*       Configuration::GetIterator( const String& section
 {
     return new IteratorImpl( *this, sectionName );
 }
-
-
 //! @endcond
-}}}// namespace [aworx::lib::config]
 
+}} // namespace [alib::config]

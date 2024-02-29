@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,7 +15,7 @@
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace bitbuffer { namespace ac_v1 {
+namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 #if !defined(ALIB_DOX)
 //#define TEMP_PT(...)    __VA_ARGS__
@@ -46,7 +46,7 @@ namespace
                 : symbol( s )
                 {}
 
-                /** Constructs this union with a node pointer.
+                /** Constructs this union with a cursor.
                  * @param l The node to set.                    */
                 LeftPointer( Node* l )
                 : left ( l )
@@ -285,4 +285,4 @@ ALIB_WARNINGS_RESTORE
 
 #undef TEMP_PT
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]

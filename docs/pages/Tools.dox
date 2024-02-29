@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -70,4 +70,4 @@ and then invokes the original software.<br>
 This tool is only needed, if the HTML documentation (which you are currently reading) is to
 be 'compiled' from scratch.
 
-*/
+<br><br><br><br><br><br> */

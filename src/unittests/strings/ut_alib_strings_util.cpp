@@ -1,12 +1,11 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 #if ALIB_UT_STRINGS
 
 #if defined(QT_CORE_LIB) // needed here for unity builds to be included before boxing (!)
@@ -15,11 +14,11 @@
 
 #include "alib/alox.hpp"
 
-#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
-    #include "alib/text/paragraphs.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+    #include "alib/lang/format/paragraphs.hpp"
 #endif
-#if !defined(HPP_ALIB_TEXT_TEXT)
-#   include "alib/text/text.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
+#   include "alib/lang/format/fmtexceptions.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
@@ -42,14 +41,14 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
 //--------------------------------------------------------------------------------------------------
 //--- test function for class Token
 //--------------------------------------------------------------------------------------------------
-void testTokenDef(AWorxUnitTesting& ut, const NString& def, int8_t formatOrError, Case sensitivity,
+void testTokenDef(AWorxUnitTesting& ut, const NString& def, int8_t formatOrError, lang::Case sensitivity,
                   int8_t minLength1, int8_t minLength2= -1,
                   int8_t minLength3= -1, int8_t minLength4= -1, int8_t minLength5= -1,
                   int8_t minLength6= -1, int8_t minLength7= -1                                 )
@@ -348,7 +347,7 @@ UT_METHOD( TextMarked )
         catch(Exception& e)
         {
             caught= true;
-            UT_TRUE(  e.Type() == aworx::lib::text::Exceptions::UnknownMarker )
+            UT_TRUE(  e.Type() == alib::lang::format::FMTExceptions::UnknownMarker )
             UT_PRINT( e.Format() )
         }
         UT_TRUE( caught )
@@ -363,7 +362,7 @@ UT_METHOD( TextMarked )
         catch(Exception& e)
         {
             caught= true;
-            UT_TRUE(  e.Type() == aworx::lib::text::Exceptions::EndmarkerWithoutStart )
+            UT_TRUE(  e.Type() == alib::lang::format::FMTExceptions::EndmarkerWithoutStart )
             UT_PRINT( e.Format() )
         }
         UT_TRUE( caught )
@@ -378,7 +377,7 @@ UT_METHOD( TextMarked )
         catch(Exception& e)
         {
             caught= true;
-            UT_TRUE(  e.Type() == aworx::lib::text::Exceptions::EndmarkerWithoutStart )
+            UT_TRUE(  e.Type() == alib::lang::format::FMTExceptions::EndmarkerWithoutStart )
             UT_PRINT( e.Format() )
         }
         UT_TRUE( caught )
@@ -435,10 +434,10 @@ UT_METHOD( TestWildcardMatcher )
 
     // quick test for case insenstive matching:
     WildcardMatcher wcm(A_CHAR("*bc.c*")  );
-    UT_EQ( true , wcm.Match( A_CHAR("abc.conf") , Case::Ignore ) )
-    UT_EQ( true , wcm.Match( A_CHAR("abC.conf") , Case::Ignore ) )
-    UT_EQ( true , wcm.Match( A_CHAR("ABC.CONF") , Case::Ignore ) )
-    UT_EQ( false, wcm.Match( A_CHAR("ABx.CONF") , Case::Ignore ) )
+    UT_EQ( true , wcm.Match( A_CHAR("abc.conf") , lang::Case::Ignore ) )
+    UT_EQ( true , wcm.Match( A_CHAR("abC.conf") , lang::Case::Ignore ) )
+    UT_EQ( true , wcm.Match( A_CHAR("ABC.CONF") , lang::Case::Ignore ) )
+    UT_EQ( false, wcm.Match( A_CHAR("ABx.CONF") , lang::Case::Ignore ) )
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -451,7 +450,7 @@ UT_METHOD( TestSubstringSearch )
     String haystack=  A_CHAR("Virgin of the Rocks is a title given to two paintings by Leonardo da Vinci");
 
     {
-        SubstringSearch<Case::Sensitive> substringSearch( A_CHAR("of") );
+        SubstringSearch<lang::Case::Sensitive> substringSearch( A_CHAR("of") );
 
         UT_EQ(  7, substringSearch.Search( haystack,  -1 ) )
         UT_EQ(  7, substringSearch.Search( haystack,   0 ) )
@@ -462,7 +461,7 @@ UT_METHOD( TestSubstringSearch )
     }
 
     {
-        SubstringSearch<Case::Sensitive> substringSearch( A_CHAR("Vi") );
+        SubstringSearch<lang::Case::Sensitive> substringSearch( A_CHAR("Vi") );
 
         UT_EQ(  0, substringSearch.Search( haystack,  -1 ) )
         UT_EQ(  0, substringSearch.Search( haystack,   0 ) )
@@ -473,22 +472,22 @@ UT_METHOD( TestSubstringSearch )
     }
 
     {
-        SubstringSearch<Case::Sensitive> substringSearch( A_CHAR("VI") );
+        SubstringSearch<lang::Case::Sensitive> substringSearch( A_CHAR("VI") );
 
         UT_EQ( -1, substringSearch.Search( haystack ) )
     }
 
     {
-        SubstringSearch<Case::Ignore   > substringSearch( A_CHAR("VI") );
+        SubstringSearch<lang::Case::Ignore   > substringSearch( A_CHAR("VI") );
 
         UT_EQ( -1, substringSearch.Search( haystack ) )
     }
 
     {
-        SubstringSearch<Case::Ignore   > reused( A_CHAR("Rocks") );       UT_EQ( 14, reused.Search( haystack ) )
-                                  reused.Compile( A_CHAR("is") );         UT_EQ( 20, reused.Search( haystack ) )
-                                  reused.Compile( A_CHAR("title") );      UT_EQ( 25, reused.Search( haystack ) )
-                                  reused.Compile( A_CHAR("paintings") );  UT_EQ( 44, reused.Search( haystack ) )
+        SubstringSearch<lang::Case::Ignore   > reused( A_CHAR("Rocks") );       UT_EQ( 14, reused.Search( haystack ) )
+                                        reused.Compile( A_CHAR("is") );         UT_EQ( 20, reused.Search( haystack ) )
+                                        reused.Compile( A_CHAR("title") );      UT_EQ( 25, reused.Search( haystack ) )
+                                        reused.Compile( A_CHAR("paintings") );  UT_EQ( 44, reused.Search( haystack ) )
     }
 }
 
@@ -508,159 +507,159 @@ UT_METHOD( TokenParse )
     //-------------------------- simple token construction tests ----------------------------------
     Token token;
     {
-        token= Token( A_CHAR("Test") , Case::Sensitive, 4 );
+        token= Token( A_CHAR("Test") , lang::Case::Sensitive, 4 );
         UT_EQ( Token::Formats::Normal          , token.GetFormat()    )
-        UT_EQ( Case::Sensitive                 , token.Sensitivity()  )
+        UT_EQ( lang::Case::Sensitive           , token.Sensitivity()  )
         UT_EQ( 4                               , token.GetMinLength(0))
 
 #if ALIB_DEBUG
-        token= Token( A_CHAR("Test") , Case::Sensitive, 0 );
+        token= Token( A_CHAR("Test") , lang::Case::Sensitive, 0 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("Test") , Case::Sensitive, 5 );
+        token= Token( A_CHAR("Test") , lang::Case::Sensitive, 5 );
         UT_EQ( ERR(MinLenExceedsSegmentLength)         , int8_t(token.DbgGetError())    )
 #endif
 
-        token= Token( A_CHAR("TestAbc") , Case::Ignore , 4, 3 );
+        token= Token( A_CHAR("TestAbc") , lang::Case::Ignore , 4, 3 );
         UT_EQ( Token::Formats::CamelCase       , token.GetFormat()    )
-        UT_EQ( Case::Ignore                    , token.Sensitivity()  )
+        UT_EQ( lang::Case::Ignore              , token.Sensitivity()  )
         UT_EQ( 4                               , token.GetMinLength(0))
         UT_EQ( 3                               , token.GetMinLength(1))
 
 #if ALIB_DEBUG
-        token= Token( A_CHAR("Test") , Case::Sensitive, 4, 3 );
+        token= Token( A_CHAR("Test") , lang::Case::Sensitive, 4, 3 );
         UT_EQ( ERR(NoCaseSchemeFound)         , int8_t(token.DbgGetError())    )
 
-        token= Token( A_CHAR("TestAbc") , Case::Sensitive, 0, 1 );
+        token= Token( A_CHAR("TestAbc") , lang::Case::Sensitive, 0, 1 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("TestAbc") , Case::Sensitive, 5, 3 );
+        token= Token( A_CHAR("TestAbc") , lang::Case::Sensitive, 5, 3 );
         UT_EQ( ERR(MinLenExceedsSegmentLength)         , int8_t(token.DbgGetError())    )
 #endif
 
-        token= Token( A_CHAR("Test_Abc") , Case::Ignore , 4, 3 );
+        token= Token( A_CHAR("Test_Abc") , lang::Case::Ignore , 4, 3 );
         UT_EQ( Token::Formats::SnakeCase       , token.GetFormat()    )
-        UT_EQ( Case::Ignore                    , token.Sensitivity()  )
+        UT_EQ( lang::Case::Ignore              , token.Sensitivity()  )
         UT_EQ( 4                               , token.GetMinLength(0))
         UT_EQ( 3                               , token.GetMinLength(1))
 
 #if ALIB_DEBUG
-        token= Token( A_CHAR("Test_Abc") , Case::Sensitive, 0, 1 );
+        token= Token( A_CHAR("Test_Abc") , lang::Case::Sensitive, 0, 1 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("Test_Abc") , Case::Sensitive, 1, 0 );
+        token= Token( A_CHAR("Test_Abc") , lang::Case::Sensitive, 1, 0 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("Test_Abc") , Case::Sensitive, 5, 3 );
+        token= Token( A_CHAR("Test_Abc") , lang::Case::Sensitive, 5, 3 );
         UT_EQ( ERR(MinLenExceedsSegmentLength)         , int8_t(token.DbgGetError())    )
 #endif
 
-        token= Token( A_CHAR("Test-Abc") , Case::Ignore , 4, 3 );
+        token= Token( A_CHAR("Test-Abc") , lang::Case::Ignore , 4, 3 );
         UT_EQ( Token::Formats::KebabCase       , token.GetFormat()    )
-        UT_EQ( Case::Ignore                    , token.Sensitivity()  )
+        UT_EQ(lang:: Case::Ignore                    , token.Sensitivity()  )
         UT_EQ( 4                               , token.GetMinLength(0))
         UT_EQ( 3                               , token.GetMinLength(1))
 
 #if ALIB_DEBUG
-        token= Token( A_CHAR("Test-Abc") , Case::Sensitive, 0, 1 );
+        token= Token( A_CHAR("Test-Abc") , lang::Case::Sensitive, 0, 1 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("Test-Abc") , Case::Sensitive, 1, 0 );
+        token= Token( A_CHAR("Test-Abc") , lang::Case::Sensitive, 1, 0 );
         UT_EQ( ERR(ZeroMinLengthAndNotLastCamelHump)   , int8_t(token.DbgGetError())    )
-        token= Token( A_CHAR("Test-Abc") , Case::Sensitive, 5, 3 );
+        token= Token( A_CHAR("Test-Abc") , lang::Case::Sensitive, 5, 3 );
         UT_EQ( ERR(MinLenExceedsSegmentLength)         , int8_t(token.DbgGetError())    )
 #endif
     }
 
     //-------------------------- token definition tests ----------------------------------
 #if ALIB_DEBUG
-    testTokenDef(ut, ""                                      , ERR(EmptyName)                 , Case::Sensitive , 0 );
+    testTokenDef(ut, ""                                      , ERR(EmptyName)                 ,lang:: Case::Sensitive , 0 );
 #endif
-    testTokenDef(ut, "Test"                                  , FORM(Normal)                   , Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"                                  , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
 #if ALIB_DEBUG
-    testTokenDef(ut, ""       ";i"                           , ERR(EmptyName)                 , Case::Sensitive , 0 );
-    testTokenDef(ut, ""       ";X"                           , ERR(EmptyName)                 , Case::Sensitive , 0 );
+    testTokenDef(ut, ""       ";i"                           , ERR(EmptyName)                 ,lang:: Case::Sensitive , 0 );
+    testTokenDef(ut, ""       ";X"                           , ERR(EmptyName)                 ,lang:: Case::Sensitive , 0 );
 #endif
-    testTokenDef(ut, "Test"   ";i"                           , FORM(Normal)                   , Case::Ignore    , 4 );
-    testTokenDef(ut, "Test"   ";ign"                         , FORM(Normal)                   , Case::Ignore    , 4 );
-    testTokenDef(ut, "Test"   ";IGNORE"                      , FORM(Normal)                   , Case::Ignore    , 4 );
-    testTokenDef(ut, "Test"   ";s"                           , FORM(Normal)                   , Case::Sensitive , 4 );
-    testTokenDef(ut, "Test"   ";sens"                        , FORM(Normal)                   , Case::Sensitive , 4 );
-    testTokenDef(ut, "Test"   ";SEnsiTIVE"                   , FORM(Normal)                   , Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";i"                           , FORM(Normal)                   ,lang:: Case::Ignore    , 4 );
+    testTokenDef(ut, "Test"   ";ign"                         , FORM(Normal)                   ,lang:: Case::Ignore    , 4 );
+    testTokenDef(ut, "Test"   ";IGNORE"                      , FORM(Normal)                   ,lang:: Case::Ignore    , 4 );
+    testTokenDef(ut, "Test"   ";s"                           , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";sens"                        , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";SEnsiTIVE"                   , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
 #if ALIB_DEBUG
-    testTokenDef(ut, "Test"   ";nonsense"                    , ERR(ErrorReadingSensitivity)   , Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";nonsense"                    , ERR(ErrorReadingSensitivity)   ,lang:: Case::Sensitive , 4 );
 #endif
 #if ALIB_DEBUG
-    testTokenDef(ut, "Test"   ";S;0"                         , ERR(ZeroMinLengthAndNotLastCamelHump), Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";S;0"                         , ERR(ZeroMinLengthAndNotLastCamelHump),lang:: Case::Sensitive , 4 );
 #endif
-    testTokenDef(ut, "Test"   ";S;4"                         , FORM(Normal)                   , Case::Sensitive , 4 );
-    testTokenDef(ut, "Test"   ";S;1"                         , FORM(Normal)                   , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test"   ";S;4"                         , FORM(Normal)                   , Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";S;4"                         , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
+    testTokenDef(ut, "Test"   ";S;1"                         , FORM(Normal)                   ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test"   ";S;4"                         , FORM(Normal)                   ,lang:: Case::Sensitive , 4 );
 #if ALIB_DEBUG
-    testTokenDef(ut, "Test"   ";S;5"                         , ERR(MinLenExceedsSegmentLength) , Case::Sensitive , 0 );
+    testTokenDef(ut, "Test"   ";S;5"                         , ERR(MinLenExceedsSegmentLength) ,lang:: Case::Sensitive , 0 );
 #endif
 
-    testTokenDef(ut, "Test"   ";S;3"                         , FORM(Normal)                   , Case::Sensitive , 3 );
+    testTokenDef(ut, "Test"   ";S;3"                         , FORM(Normal)                   ,lang:: Case::Sensitive , 3 );
 #if ALIB_DEBUG
-    testTokenDef(ut, "Test"   ";S;1;2"                       , ERR(NoCaseSchemeFound)         , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "Test"   ";S;1;2;3"                     , ERR(NoCaseSchemeFound)         , Case::Sensitive , 1,2,3 );
+    testTokenDef(ut, "Test"   ";S;1;2"                       , ERR(NoCaseSchemeFound)         ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "Test"   ";S;1;2;3"                     , ERR(NoCaseSchemeFound)         ,lang:: Case::Sensitive , 1,2,3 );
 #endif
 
 
-    testTokenDef(ut, "TeSt"            ";S;1;2"              , FORM(CamelCase)                , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;1;2;1;2"      , FORM(CamelCase)                , Case::Sensitive , 1,2,1,2,1,2 );
+    testTokenDef(ut, "TeSt"            ";S;1;2"              , FORM(CamelCase)                ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;1;2;1;2"      , FORM(CamelCase)                ,lang:: Case::Sensitive , 1,2,1,2,1,2 );
 #if ALIB_DEBUG
-    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;0;1;2;1;2;1"    , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2,1,2,1,2,1 );
-    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;1;2;1;2;1"    , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2,1,2,1,2,1 );
-    testTokenDef(ut, "Test"            ";S;5"                , ERR(MinLenExceedsSegmentLength), Case::Sensitive , 0 );
-    testTokenDef(ut, "Test"            ";S;1;2"              , ERR(NoCaseSchemeFound)         , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "TeSt"            ";S;1;2;1"            , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "TeSt"            ";S;3;2"              , ERR(MinLenExceedsSegmentLength), Case::Sensitive , 1,2 );
+    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;0;1;2;1;2;1"    , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2,1,2,1,2,1 );
+    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;1;2;1;2;1"    , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2,1,2,1,2,1 );
+    testTokenDef(ut, "Test"            ";S;5"                , ERR(MinLenExceedsSegmentLength),lang:: Case::Sensitive , 0 );
+    testTokenDef(ut, "Test"            ";S;1;2"              , ERR(NoCaseSchemeFound)         ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "TeSt"            ";S;1;2;1"            , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "TeSt"            ";S;3;2"              , ERR(MinLenExceedsSegmentLength),lang:: Case::Sensitive , 1,2 );
 
-    testTokenDef(ut, "Te_st_te_st_te_St" ";S;1;2;1;2;1;2;1"  , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2,1,2,1,2,1 );
-    testTokenDef(ut, "Te_st"            ";S;1;2;1"           , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "Te_st"            ";S;3;2"             , ERR(MinLenExceedsSegmentLength), Case::Sensitive , 1,2 );
+    testTokenDef(ut, "Te_st_te_st_te_St" ";S;1;2;1;2;1;2;1"  , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2,1,2,1,2,1 );
+    testTokenDef(ut, "Te_st"            ";S;1;2;1"           , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "Te_st"            ";S;3;2"             , ERR(MinLenExceedsSegmentLength),lang:: Case::Sensitive , 1,2 );
 
-    testTokenDef(ut, "Te-st-te-st-te-St" ";S;1;2;1;2;1;2;1"  , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2,1,2,1,2,1 );
-    testTokenDef(ut, "Te-st"            ";S;1;2;1"           , ERR(InconsistentMinLengths)    , Case::Sensitive , 1,2 );
-    testTokenDef(ut, "Te-st"            ";S;3;2"             , ERR(MinLenExceedsSegmentLength), Case::Sensitive , 1,2 );
+    testTokenDef(ut, "Te-st-te-st-te-St" ";S;1;2;1;2;1;2;1"  , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2,1,2,1,2,1 );
+    testTokenDef(ut, "Te-st"            ";S;1;2;1"           , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1,2 );
+    testTokenDef(ut, "Te-st"            ";S;3;2"             , ERR(MinLenExceedsSegmentLength),lang:: Case::Sensitive , 1,2 );
 #endif
-    testTokenDef(ut, "TeSt"            ";S;2;1"              , FORM(CamelCase)                , Case::Sensitive , 2,1 );
-    testTokenDef(ut, "Te_st"           ";S;2;1"              , FORM(SnakeCase)                , Case::Sensitive , 2,1 );
-    testTokenDef(ut, "Te-st"           ";S;2;1"              , FORM(KebabCase)                , Case::Sensitive , 2,1 );
-    testTokenDef(ut, "TeSt"            ";S;2"                , FORM(Normal)                   , Case::Sensitive , 2   );
-    testTokenDef(ut, "Te_st"           ";S;2"                , FORM(Normal)                   , Case::Sensitive , 2   );
-    testTokenDef(ut, "Te-st"           ";S;2"                , FORM(Normal)                   , Case::Sensitive , 2   );
+    testTokenDef(ut, "TeSt"            ";S;2;1"              , FORM(CamelCase)                ,lang:: Case::Sensitive , 2,1 );
+    testTokenDef(ut, "Te_st"           ";S;2;1"              , FORM(SnakeCase)                ,lang:: Case::Sensitive , 2,1 );
+    testTokenDef(ut, "Te-st"           ";S;2;1"              , FORM(KebabCase)                ,lang:: Case::Sensitive , 2,1 );
+    testTokenDef(ut, "TeSt"            ";S;2"                , FORM(Normal)                   ,lang:: Case::Sensitive , 2   );
+    testTokenDef(ut, "Te_st"           ";S;2"                , FORM(Normal)                   ,lang:: Case::Sensitive , 2   );
+    testTokenDef(ut, "Te-st"           ";S;2"                , FORM(Normal)                   ,lang:: Case::Sensitive , 2   );
 
-    testTokenDef(ut, "TeStTeStTeStTe"  ";S;1;2;1;2;1;2;1"    , FORM(CamelCase)                , Case::Sensitive , 1,2,1,2,1,2,1 );
+    testTokenDef(ut, "TeStTeStTeStTe"  ";S;1;2;1;2;1;2;1"    , FORM(CamelCase)                ,lang:: Case::Sensitive , 1,2,1,2,1,2,1 );
 #if ALIB_DEBUG
-    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;3;4;5;6;7;8"  , ERR(TooManyMinLengthsGiven)    , Case::Sensitive , 0 );
-    testTokenDef(ut, "CamelHumpHump"   ";S;1;0;1"            , ERR(ZeroMinLengthAndNotLastCamelHump), Case::Sensitive , 4 );
+    testTokenDef(ut, "TeStTeStTeSt"    ";S;1;2;3;4;5;6;7;8"  , ERR(TooManyMinLengthsGiven)    ,lang:: Case::Sensitive , 0 );
+    testTokenDef(ut, "CamelHumpHump"   ";S;1;0;1"            , ERR(ZeroMinLengthAndNotLastCamelHump),lang:: Case::Sensitive , 4 );
 #endif
 
-    testTokenDef(ut, "TestCamel"       ";S;1;2"              , FORM(CamelCase)                , Case::Sensitive , 1, 2 );
-    testTokenDef(ut, "Test_Snake"      ";S;1;2"              , FORM(SnakeCase)                , Case::Sensitive , 1, 2 );
-    testTokenDef(ut, "Test-Kebab"      ";S;1;2"              , FORM(KebabCase)                , Case::Sensitive , 1, 2 );
-    testTokenDef(ut, "Test_Sna-ke"     ";S;1;2"              , FORM(SnakeCase)                , Case::Sensitive , 1, 2 );
-    testTokenDef(ut, "Test-Sna_ke"     ";S;1;2"              , FORM(SnakeCase)                , Case::Sensitive , 1, 2 );
+    testTokenDef(ut, "TestCamel"       ";S;1;2"              , FORM(CamelCase)                ,lang:: Case::Sensitive , 1, 2 );
+    testTokenDef(ut, "Test_Snake"      ";S;1;2"              , FORM(SnakeCase)                ,lang:: Case::Sensitive , 1, 2 );
+    testTokenDef(ut, "Test-Kebab"      ";S;1;2"              , FORM(KebabCase)                ,lang:: Case::Sensitive , 1, 2 );
+    testTokenDef(ut, "Test_Sna-ke"     ";S;1;2"              , FORM(SnakeCase)                ,lang:: Case::Sensitive , 1, 2 );
+    testTokenDef(ut, "Test-Sna_ke"     ";S;1;2"              , FORM(SnakeCase)                ,lang:: Case::Sensitive , 1, 2 );
 
-    testTokenDef(ut, "TestCamel"       ";Ign;1;2"            , FORM(CamelCase)                , Case::Ignore    , 1, 2 );
-    testTokenDef(ut, "Test_Snake"      ";Ign;1;2"            , FORM(SnakeCase)                , Case::Ignore    , 1, 2 );
-    testTokenDef(ut, "Test-Kebab"      ";Ign;1;2"            , FORM(KebabCase)                , Case::Ignore    , 1, 2 );
-    testTokenDef(ut, "Test_Sna-ke"     ";Ign;1;2"            , FORM(SnakeCase)                , Case::Ignore    , 1, 2 );
-    testTokenDef(ut, "Test-Sna_ke"     ";Ign;1;2"            , FORM(SnakeCase)                , Case::Ignore    , 1, 2 );
+    testTokenDef(ut, "TestCamel"       ";Ign;1;2"            , FORM(CamelCase)                ,lang:: Case::Ignore    , 1, 2 );
+    testTokenDef(ut, "Test_Snake"      ";Ign;1;2"            , FORM(SnakeCase)                ,lang:: Case::Ignore    , 1, 2 );
+    testTokenDef(ut, "Test-Kebab"      ";Ign;1;2"            , FORM(KebabCase)                ,lang:: Case::Ignore    , 1, 2 );
+    testTokenDef(ut, "Test_Sna-ke"     ";Ign;1;2"            , FORM(SnakeCase)                ,lang:: Case::Ignore    , 1, 2 );
+    testTokenDef(ut, "Test-Sna_ke"     ";Ign;1;2"            , FORM(SnakeCase)                ,lang:: Case::Ignore    , 1, 2 );
 
 #if ALIB_DEBUG
-    testTokenDef(ut, "TestCamelCase"   ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test_Snak_Casee" ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test-Kebab-Case" ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
+    testTokenDef(ut, "TestCamelCase"   ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test_Snak_Casee" ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test-Kebab-Case" ";S;1;2;3;4"          , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
 
-    testTokenDef(ut, "TestCamelCase"   ";S;1;2"              , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test_Snake_Case" ";S;1;2"              , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test-Kebab-Case" ";S;1;2"              , ERR(InconsistentMinLengths)    , Case::Sensitive , 1 );
+    testTokenDef(ut, "TestCamelCase"   ";S;1;2"              , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test_Snake_Case" ";S;1;2"              , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test-Kebab-Case" ";S;1;2"              , ERR(InconsistentMinLengths)    ,lang:: Case::Sensitive , 1 );
 
-    testTokenDef(ut, "TestCamelCase"   ";S;1;"               , ERR(ErrorReadingMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test_Snake_Case" ";S;1;"               , ERR(ErrorReadingMinLengths)    , Case::Sensitive , 1 );
-    testTokenDef(ut, "Test-Kebab-Case" ";S;1;"               , ERR(ErrorReadingMinLengths)    , Case::Sensitive , 1 );
+    testTokenDef(ut, "TestCamelCase"   ";S;1;"               , ERR(ErrorReadingMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test_Snake_Case" ";S;1;"               , ERR(ErrorReadingMinLengths)    ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Test-Kebab-Case" ";S;1;"               , ERR(ErrorReadingMinLengths)    ,lang:: Case::Sensitive , 1 );
 #endif
-    testTokenDef(ut, "NotCamelCase"    ";S;1"                , FORM(Normal)                   , Case::Sensitive , 1 );
-    testTokenDef(ut, "Not_Snake_Case"  ";I;1"                , FORM(Normal)                   , Case::Ignore    , 1 );
-    testTokenDef(ut, "Not-Kebab-Case"  ";S;1"                , FORM(Normal)                   , Case::Sensitive , 1 );
+    testTokenDef(ut, "NotCamelCase"    ";S;1"                , FORM(Normal)                   ,lang:: Case::Sensitive , 1 );
+    testTokenDef(ut, "Not_Snake_Case"  ";I;1"                , FORM(Normal)                   ,lang:: Case::Ignore    , 1 );
+    testTokenDef(ut, "Not-Kebab-Case"  ";S;1"                , FORM(Normal)                   ,lang:: Case::Sensitive , 1 );
 }
 
 

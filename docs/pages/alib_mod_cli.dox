@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -15,7 +15,7 @@
 # 1. Introduction # {#alib_cli_intro}
 
 \note
-  While being included in previous versions in an alpha state, with \alib Release 23XX, <--- TODOX(2311?)
+  While being included in previous versions in an alpha state, with \alib Release 2312
   this module is considered to be in a rather stable state for the first time.<br>
   Still, functionality may change in the future (the \alib policy in general is open to
   incompatible changes with new releases), but so far \alib_cli_nl works quite well in an actual
@@ -61,22 +61,22 @@ the CLI interface is open for implementing any weird interface and not limited t
 One major burden that this \alibmod may relieve a user from, is that CLI command names and other
 syntax tokens, and probably more important the error messages and help texts that the CLI interface
 produces, are duly externalized and thus can be easily translated into other human languages.
-This is achieved by using sibling \alib module \alib_resources.
+This is achieved by being a \alibcamp and thus leveraging sub-namespace
+#alib::lang::resources of module \alib_basecamp.
 
 \I{################################################################################################}
 ## 1.2 ALib Enum Records And ALib Resources # {#alib_cli_intro_enum_records}
 The classes found in this namespace make a lot of use of
 \ref alib_enums_records "ALib Enum Records" retrieved from an instance of type
-\alib{resources,ResourcePool}, usually the one found in the singleton of the associated \alib{Module}.
+\alib{lang::resources,ResourcePool}, usually the one found in the singleton of the associated \alib{lang,Camp}.
 
-Therefore, it is a good advice to get familiar with the features provided by module
-\alib_resources as a start. That module in turn uses so called
+Therefore, it is a good advice to get familiar with the features provided by sub-namespace
+#alib::lang::resources of module \alib_basecamp as a start. That module in turn uses so called
 \ref alib_enums_records "Resourced ALib Enum Records" which are provided with module \alib_enums.
 
-Or other way round: The tutorial found below might also be a good starter to understand modules
-\alib_resources_nl and \alib_enums_nl in their basics and for therefore the better better advice
-might be to just continue reading.
-
+Or other way round: The tutorial found below might also be a good starter to understand
+\ref alib_basecamp_resources "externalized resources" and \alib_enums_nl in their basics and for
+therefore the better better advice might be to just continue reading.
 
 \I{################################################################################################}
 ## 1.3 Features # {#alib_cli_intro_features}
@@ -95,7 +95,7 @@ Module \alib_cli_nl offers the following features:
   configuration files transparently with by giving command line options. CLI input which is not
   processed by \alib_cli_nl, is filtered out and can easily be forwarded to module \alib_config,
   or other parts of the software that accepts CLI input.
-- ALib \alib{results,Exception,Exception Handling} with support for automatic "translation" of
+- ALib \alib{lang,Exception,Exception Handling} with support for automatic "translation" of
   C++ exceptions to a (usually) more narrow set of application exit codes.
 
 \I{################################################################################################}
@@ -122,7 +122,7 @@ in the next chapter \ref alib_cli_tut "3. Tutorial Sample".
 All enums which are using resourced \ref alib_enums_records "ALib Enum Records" are demanding a
 specific record type to be associated to a custom enumeration.
 
-In addition, for such custom enum types, a specialization of \alib{resources,T_Resourced},
+In addition, for such custom enum types, a specialization of \alib{lang::resources,T_Resourced},
 has to be provided, which is used to load further resource strings.
 
 The following table summarizes the types, the associated <em>ALib Enum Record</em> type and
@@ -150,11 +150,11 @@ Alternatively, just follow the tutorial provided in the next chapter.
 \I{###############################     3. Tutorial      ###########################################}
 \I{################################################################################################}
 # 3. Tutorial Sample # {#alib_cli_tut}
-Due to the usage of "resourced strings" as provided by dependency module \alib_resources, and
+Due to the usage of \ref alib_basecamp_resources "resourced strings", and
 even more due to the usage of \ref alib_enums_records "Resourced ALib Enum Records", to
 start a new project using the command line facilities of this module becomes more complex than
 one might think.<br>
-The best way out is the provision of a "template" project, wich can be used for jump starting
+The best way out is the provision of a "template" project, which can be used for jump starting
 into an own development.
 
 Such template is provided with this tutorial chapter!
@@ -188,72 +188,72 @@ With this project scope in mind, let's start coding.
 
 ## 3.1 Needed includes # {#alib_cli_tut_includes}
 The following includes are necessary for this sample.
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_INCLUDES
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_INCLUDES
 
 ## 3.2 Definition of Enumerations  # {#alib_cli_tut_enums}
-Commands, options, paramters and exit codes of our software are easily defined with
+Commands, options, parameters and exit codes of our software are easily defined with
 simple C++ enumerations:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS
 
 The little magic comes with assigning \ref alib_enums_records "ALib Enum Records" to these
 enumerations using the helper macros. For each of the enumerations, a corresponding record type
 is defined with this module:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN
 
 This assignment, entitles the main class of this module to "know" how to parse the objects
 from the command line.
 
-## 3.3 Definition of a Custom Module  # {#alib_cli_tut_module}
+## 3.3 Definition of a Custom Camp  # {#alib_cli_tut_module}
 The enum records that were just assigned to the enums, need to be filled with values.
 Such values can be automatically loaded from resources.
-To define such resources, the easiest way is to create just another "ALib Module".
+To define such resources, the easiest way is to create just another \alibcamp.
 Of-course using this term here does not mean that this will be a part of ALib. But ALib
-exports its module concept to the user and here we make use of this.
+exports its camp concept to the user and here we make use of this.
 
-\note \alib_cli_nl does not force you to create a custom module. Alternatively, the creation of
-      an object of type \alib{resources,ResourcePool} would be enough.
+\note \alib_cli_nl does not force you to create a custom camp. Alternatively, the creation of
+      an object of type \alib{lang::resources,ResourcePool} would be enough.
       However, when you create your own more complex software, it might be a good advantage to have
-      such module in place from the start. A module solves several problems, for example
+      such camp in place from the start. A camp solves several problems, for example
       the often annoying C/C++ bootstrapping issues. And, as you will see, creating a module
       instead of a \b ResourcePool is not very complicated.
 
-In this simple sample, all that this module does is defining and parsing string data which
+In this simple sample, all that this camp does is defining and parsing string data which
 comprises the enum records plus some additional help and information strings.
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP
 
-\alib modules are \ref alib_mod_singletons "singletons", and as such we create one global instance:
+\alibcamps_nl are singleton objects, and as such we create one global instance:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE_SINGLETON
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON
 
 If you only have a brief look at the string data defined in the code above, as an experienced
 programmer, you should easily grasp the general idea of what sort of information is provided
-with the resourced \ref alib_enums_records "ALib Enum Records" of this module.
+with the resourced \ref alib_enums_records "ALib Enum Records" of this camp.
 
 ## 3.4 Assigning the Resources to the Enumerations  # {#alib_cli_tut_assign_resources}
-Now, as the module is defined, a second macro is used which tells \alib where to find the
+Now, as the camp is defined, a second macro is used which tells \alib where to find the
 resources for each enumeration:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2
 
 ## 3.4 Function main()  # {#alib_cli_tut_main}
 Now, we are already set to implement function <em>main()</em>! <br>
 To make this easier to read, we pull the command processing into a separate function, which is
 forward-declared like this:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_FWDDECL
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_FWDDECL
 
 With this extraction of the custom command processing itself,
 function main becomes quite short and straightforward. Note the 7 steps commented in the source:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_MAIN
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_MAIN
 
 Finally, we can look at our custom command processing function.
 Also here, just note the source comments. Everything should be quite understandable:
 
-\snippet "../../src/samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_PROCESS
+\snippet "samples/CLI/sample.cpp"        DOX_ALIB_EXPR_TUT_CLI_ENUMS_PROCESS
 
 You might have noticed that this function uses static utility methods of class
 \alib{cli,CLIUtil} to generate help texts for general use, or specifically for commands, options
@@ -289,7 +289,7 @@ prior to creating the documentation with doxygen.)
 
 #### 3. With option 'format' ####
 Option <em>format</em> allows to specify a date format, as documented with
-\alib{system,CalendarDateTime::Format}. The format string can be given concatenated to
+\alib{lang::system,CalendarDateTime::Format}. The format string can be given concatenated to
 the option name using an equal sign <em>'='</em> or just as a next argument (with a whitespace
 instead of the equl sign):
 
@@ -328,7 +328,7 @@ The reason for this is as follows:
 While the missing parameter of command <em>file</em> is detected by our simple sample program
 (which generates a quick error message), the missing mandatory parameter of option <em>--format</em>
 can be detected by the \alib_cli_nl internally and automatically.
-Here, the library throws an \alib{results,Exception}, which is "annotated" with further information
+Here, the library throws an \alib{lang,Exception}, which is "annotated" with further information
 while it is passed through the unwinded execution stack.
 
 Consequently, this sample should be extended to fetch and analyse the internal exceptions and
@@ -388,21 +388,17 @@ as shown in these final samples:
 
 \I{################################################################################################}
 ## 4.1 Allowing Other Parts Of The Software To Access CLI Arguments # {#alib_cli_detail_arg_sharing}
+Independend from the use of this \alibmod_nl, the original command line strings are always
+available through the global \alib variables \alib{ArgC}, \alib{ArgVN} and \alib{ArgVW} (if set
+by the user's <c>main()</c>-function properly).
 
-Class \alib{cli,CommandLine} uses its own copy of the argument list and exposes the original arguments
-with fields<br>
-- \alib{cli::CommandLine,ArgcOriginal},
-- \alib{cli::CommandLine,ArgNOriginal} and
-- \alib{cli::CommandLine,ArgWOriginal}<br>
-
-so that other parts of the software have full access to the CLI.
-In addition, this class exposes field \alib{cli::CommandLine,OptionArgsIgnored},
+Class \alib{cli,CommandLine} exposes field \alib{cli::CommandLine,OptionArgsIgnored},
 that hold all CLI arguments that start with a hyphen <c>'-'</c> and are not recognized
 by \alib{cli,OptionDecl}. A software might either generate an error if unrecognized options
 are left (just like the tutorial-sample of the previous chapter does), or pass this list
 to other parts and libraries that a software is using..
 
-With the use of module \alib_config such use of CLI arguments outside of this module already
+With the use of camp \alib_config such use of CLI arguments outside of this camp already
 occurs: \alib{config,Variable,Configuration variables} can be defined using CLI parameters
 the same as by using environment variables, configuration files or other data sources.
 Such use is still be possible, independent from the CLI interface.
@@ -414,4 +410,4 @@ lead to "unknown command" errors.
 Such removal has to be done after the invocations of the various \b %Define methods and prior
 to invoking \alib{cli,CommandLine::ReadOptions}.
 
-*/
+<br><br><br><br><br><br> */

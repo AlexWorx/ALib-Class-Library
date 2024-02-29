@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,11 +16,9 @@
 #if ALIB_TIME
 #   include "alib/time/datetime.hpp"
 #endif
-#if ALIB_SYSTEM
-#   include "alib/system/calendar.hpp"
+#if ALIB_CAMP
+#   include "alib/lang/system/calendar.hpp"
 #endif
-
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -34,25 +32,25 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace tstn
 {
     class MyString
     {
         private:
-            const aworx::character* theString= A_CHAR("This is MyString!");
+            const alib::character* theString= A_CHAR("This is MyString!");
 
         public:
             constexpr MyString() {}
                        bool             IsNulled   () const { return false; }
             constexpr  const character* GetMyBuffer() const { return                                                       theString;   }
-                       integer          GetMyLength() const { return lib::characters::CharArray<aworx::character>::Length( theString ); }
+                       integer          GetMyLength() const { return characters::CharArray<alib::character>::Length( theString ); }
     };
 
 }
 
-namespace aworx { namespace lib {
+namespace alib {
 
 namespace characters {
     ALIB_CHARACTER_ARRAY( tstn::MyString, character, Implicit, NONE)
@@ -60,14 +58,14 @@ namespace characters {
     ALIB_CHARACTER_ARRAY_IMPL_LENGTH( tstn::MyString, character, return static_cast<integer>( src.GetMyLength() ); )
 }
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 namespace strings {
-    template<> struct T_Append<aworx::lib::time::DateTime, character>
+    template<> struct T_Append<alib::time::DateTime, character>
     {
-        void operator()( AString& target, const aworx::lib::time::DateTime& ticks )
+        void operator()( AString& target, const alib::time::DateTime& ticks )
         {
-            system::CalendarDateTime calendarTime;
-            calendarTime.Set( ticks, Timezone::UTC );
+            alib::CalendarDateTime calendarTime;
+            calendarTime.Set( ticks, lang::Timezone::UTC );
             calendarTime.Format(A_CHAR("yyyy-MM-dd HH:mm"), target );
         }
     };
@@ -75,15 +73,95 @@ namespace strings {
 }
 #endif
 
-}} // namespace [aworx::lib]
+} // namespace [alib]
 
+namespace ut_aworx {
+
+
+//--------------------------------------------------------------------------------------------------
+//--- Test CompareOperators
+//--------------------------------------------------------------------------------------------------
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
+namespace {
+    template<typename TALibString>
+    void checkComparisonN(AWorxUnitTesting& ut, TALibString& s)
+    {
+        UT_TRUE(s == A_NCHAR("ABC"))    UT_TRUE(A_NCHAR("ABC") == s)
+            UT_FALSE(s != A_NCHAR("ABC"))    UT_FALSE(A_NCHAR("ABC") != s)
+            UT_FALSE(s < A_NCHAR("ABC"))    UT_FALSE(A_NCHAR("ABC") < s)
+            UT_TRUE(s <= A_NCHAR("ABC"))    UT_TRUE(A_NCHAR("ABC") <= s)
+            UT_FALSE(s > A_NCHAR("ABC"))    UT_FALSE(A_NCHAR("ABC") > s)
+            UT_TRUE(s >= A_NCHAR("ABC"))    UT_TRUE(A_NCHAR("ABC") >= s)
+
+            UT_FALSE(s == A_NCHAR("ABX"))    UT_FALSE(A_NCHAR("ABX") == s)
+            UT_TRUE(s != A_NCHAR("ABX"))    UT_TRUE(A_NCHAR("ABX") != s)
+            UT_TRUE(s < A_NCHAR("ABX"))    UT_FALSE(A_NCHAR("ABX") < s)
+            UT_TRUE(s <= A_NCHAR("ABX"))    UT_FALSE(A_NCHAR("ABX") <= s)
+            UT_FALSE(s > A_NCHAR("ABX"))    UT_TRUE(A_NCHAR("ABX") > s)
+            UT_FALSE(s >= A_NCHAR("ABX"))    UT_TRUE(A_NCHAR("ABX") >= s)
+    }
+
+    template<typename TALibString>
+    void checkComparisonW(AWorxUnitTesting& ut, TALibString& s)
+    {
+        UT_TRUE(s == A_WCHAR("ABC"))    UT_TRUE(A_WCHAR("ABC") == s)
+            UT_FALSE(s != A_WCHAR("ABC"))    UT_FALSE(A_WCHAR("ABC") != s)
+            UT_FALSE(s < A_WCHAR("ABC"))    UT_FALSE(A_WCHAR("ABC") < s)
+            UT_TRUE(s <= A_WCHAR("ABC"))    UT_TRUE(A_WCHAR("ABC") <= s)
+            UT_FALSE(s > A_WCHAR("ABC"))    UT_FALSE(A_WCHAR("ABC") > s)
+            UT_TRUE(s >= A_WCHAR("ABC"))    UT_TRUE(A_WCHAR("ABC") >= s)
+
+            UT_FALSE(s == A_WCHAR("ABX"))    UT_FALSE(A_WCHAR("ABX") == s)
+            UT_TRUE(s != A_WCHAR("ABX"))    UT_TRUE(A_WCHAR("ABX") != s)
+            UT_TRUE(s < A_WCHAR("ABX"))    UT_FALSE(A_WCHAR("ABX") < s)
+            UT_TRUE(s <= A_WCHAR("ABX"))    UT_FALSE(A_WCHAR("ABX") <= s)
+            UT_FALSE(s > A_WCHAR("ABX"))    UT_TRUE(A_WCHAR("ABX") > s)
+            UT_FALSE(s >= A_WCHAR("ABX"))    UT_TRUE(A_WCHAR("ABX") >= s)
+    }
+
+    template<typename TALibString>
+    void checkComparisonX(AWorxUnitTesting& ut, TALibString& s)
+    {
+        UT_TRUE(s == A_XCHAR("ABC"))    UT_TRUE(A_XCHAR("ABC") == s)
+            UT_FALSE(s != A_XCHAR("ABC"))    UT_FALSE(A_XCHAR("ABC") != s)
+            UT_FALSE(s < A_XCHAR("ABC"))    UT_FALSE(A_XCHAR("ABC") < s)
+            UT_TRUE(s <= A_XCHAR("ABC"))    UT_TRUE(A_XCHAR("ABC") <= s)
+            UT_FALSE(s > A_XCHAR("ABC"))    UT_FALSE(A_XCHAR("ABC") > s)
+            UT_TRUE(s >= A_XCHAR("ABC"))    UT_TRUE(A_XCHAR("ABC") >= s)
+
+            UT_FALSE(s == A_XCHAR("ABX"))    UT_FALSE(A_XCHAR("ABX") == s)
+            UT_TRUE(s != A_XCHAR("ABX"))    UT_TRUE(A_XCHAR("ABX") != s)
+            UT_TRUE(s < A_XCHAR("ABX"))    UT_FALSE(A_XCHAR("ABX") < s)
+            UT_TRUE(s <= A_XCHAR("ABX"))    UT_FALSE(A_XCHAR("ABX") <= s)
+            UT_FALSE(s > A_XCHAR("ABX"))    UT_TRUE(A_XCHAR("ABX") > s)
+            UT_FALSE(s >= A_XCHAR("ABX"))    UT_TRUE(A_XCHAR("ABX") >= s)
+    }
+
+    template<typename TALibString, typename TALibString2>
+    void checkComparison(AWorxUnitTesting& ut, TALibString& s, TALibString2& c1, TALibString2& c2)
+    {
+        UT_TRUE(s == c1)    UT_TRUE(c1 == s)
+            UT_FALSE(s != c1)    UT_FALSE(c1 != s)
+            UT_FALSE(s < c1)    UT_FALSE(c1 < s)
+            UT_TRUE(s <= c1)    UT_TRUE(c1 <= s)
+            UT_FALSE(s > c1)    UT_FALSE(c1 > s)
+            UT_TRUE(s >= c1)    UT_TRUE(c1 >= s)
+
+            UT_FALSE(s == c2)    UT_FALSE(c2 == s)
+            UT_TRUE(s != c2)    UT_TRUE(c2 != s)
+            UT_TRUE(s < c2)    UT_FALSE(c2 < s)
+            UT_TRUE(s <= c2)    UT_FALSE(c2 <= s)
+            UT_FALSE(s > c2)    UT_TRUE(c2 > s)
+            UT_FALSE(s >= c2)    UT_TRUE(c2 >= s)
+    }
+}//anonymous namespace
+#endif //if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 
 
 // #################################################################################################
 // ####### String/CString construction from Implicit/Explicit/Mutable
 // #################################################################################################
 
-namespace ut_aworx {
 
 UT_CLASS
 
@@ -397,7 +475,7 @@ UT_METHOD( ConstructorsImplicit )
        testParamTerminatable( ut, testConstCharP,      CString(&testConstSubstring) );
 
        // with errors
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
 
         character charArray[4]= {'A', 'B', 'C', 'D'};
         // The following implicit constructor takes wrong length, as constructor for char arrays.
@@ -411,7 +489,7 @@ UT_METHOD( ConstructorsImplicit )
         UT_PRINT( "One error should follow: " )
         ts= CString( fromCharArray );
 
-        lib::results::Report::GetDefault().PopHaltFlags();
+        lang::Report::GetDefault().PopHaltFlags();
     }
 }
 
@@ -725,7 +803,7 @@ UT_METHOD( AppendAndAppendOperator )
     // { vector<int> x; AString as; as._ (x);}
     // { char c   ='a';             String as(c);}
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
     CalendarDateTime calendar;
                      calendar.Day=     1;
                      calendar.Month=   4;
@@ -733,7 +811,7 @@ UT_METHOD( AppendAndAppendOperator )
                      calendar.Hour=    16;
                      calendar.Minute=  00;
                      calendar.Second=  01;
-    DateTime         testTicks(calendar.Get(Timezone::UTC));
+    DateTime         testTicks(calendar.Get(lang::Timezone::UTC));
     const DateTime   testConstTicks  ( testTicks );
     const character* ticksResult= A_CHAR("2011-04-01 16:00");
 #endif
@@ -752,7 +830,7 @@ UT_METHOD( AppendAndAppendOperator )
     { AString as; as <<  testLocalString              ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testStdString                ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testMyString                 ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as; as <<  testTicks                    ; testParam( ut, ticksResult ,    as) ; } )
 
     { AString as; as <<  testConstStringLiteral       ; testParam( ut, A_CHAR("1")    , as) ; }
@@ -763,7 +841,7 @@ ALIB_IF_SYSTEM(
     { AString as; as <<  testConstLocalString         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testConstStdString           ; testParam( ut, testConstACharP, as) ; }
     { AString as; as <<  testConstMyString            ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as; as <<  testConstTicks               ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as; as._( A_CHAR("TEST")      )         ; testParam( ut, testConstACharP, as) ; }
@@ -779,7 +857,7 @@ ALIB_IF_SYSTEM(
     { AString as; as._( testLocalString     )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testStdString       )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testMyString        )         ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as; as._( testTicks           )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as; as._( testConstStringLiteral  )     ; testParam( ut, A_CHAR("1")    , as) ; }
@@ -790,7 +868,7 @@ ALIB_IF_SYSTEM(
     { AString as; as._( testConstLocalString        ) ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testConstStdString  )         ; testParam( ut, testConstACharP, as) ; }
     { AString as; as._( testConstMyString   )         ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as; as._( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as          ; as._<false>( A_CHAR("TEST")       )        ; testParam( ut, testConstACharP, as) ; }
@@ -806,7 +884,7 @@ ALIB_IF_SYSTEM(
     { AString as          ; as._<false>( testLocalString     )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testStdString       )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testMyString        )         ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as          ; as._<false>( testTicks           )         ; testParam( ut, ticksResult,     as) ; } )
 
     { AString as          ; as._<false>( testConstStringLiteral  )     ; testParam( ut, A_CHAR("1")    , as) ; }
@@ -817,7 +895,7 @@ ALIB_IF_SYSTEM(
     { AString as          ; as._<false>( testConstLocalString)         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testConstStdString  )         ; testParam( ut, testConstACharP, as) ; }
     { AString as          ; as._<false>( testConstMyString   )         ; testParam( ut, myStringBuf    , as) ; }
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
     { AString as          ; as._<false>( testConstTicks      )         ; testParam( ut, ticksResult,     as) ; } )
 
     // LocalString
@@ -876,7 +954,7 @@ UT_METHOD( MoveConstructors )
 {
     UT_INIT()
 
-    lib::results::Report::GetDefault().PushHaltFlags( false, false );
+    lang::Report::GetDefault().PushHaltFlags( false, false );
     UT_PRINT( "One or more buffer warnings should follow" )
 
 
@@ -899,7 +977,7 @@ UT_METHOD( MoveConstructors )
         String16    as; as= std::move ( vola);
                     as._(A_CHAR("x"));
     }
-    lib::results::Report::GetDefault().PopHaltFlags();
+    lang::Report::GetDefault().PopHaltFlags();
 
 }
 
@@ -1078,9 +1156,14 @@ UT_METHOD( ConstructAndCompare )
                                                    UT_TRUE ( std_xstring >= xAString               )
     }
 
-#if ALIB_CPPVER >= 17
-
-    // String / std::string_view
+#if defined(ALIB_GCC)
+// with GCC and enabling C++ 20 language standard, a quite strange compilation error occurs.
+// The code generated calls the right compare function that definitely does not involve an
+// "integral constant 0", what the message claims to do...
+_Pragma("GCC diagnostic push")
+_Pragma("GCC diagnostic ignored \"-Wbool-compare\"")
+#endif
+// String / std::string_view
     {
         std::string_view               std_string_view  =         "std::string"  ;
         std::basic_string_view<wchar>  std_wstring_view = A_WCHAR("std::wstring");
@@ -1200,7 +1283,6 @@ UT_METHOD( ConstructAndCompare )
 
 //Err:  xCString=          std_xstring_view;
 /*OK: */xCString= XCString(std_xstring_view);
-
     }
 
     // AString / std::string_view
@@ -1259,85 +1341,14 @@ UT_METHOD( ConstructAndCompare )
                                                    UT_TRUE ( xAString        >= std_xstring_view   )
                                                    UT_TRUE ( std_xstring_view>= xAString           )
     }
-
-#endif  //ALIB_CPPVER >= 17
 }
 
-//--------------------------------------------------------------------------------------------------
-//--- Test CompareOperators
-//--------------------------------------------------------------------------------------------------
-template<typename TALibString>
-void checkComparisonN(AWorxUnitTesting& ut, TALibString& s)
-{
-    UT_TRUE ( s     == A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") == s   )
-    UT_FALSE( s     != A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") != s   )
-    UT_FALSE( s     <  A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") <  s   )
-    UT_TRUE ( s     <= A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") <= s   )
-    UT_FALSE( s     >  A_NCHAR("ABC")    )    UT_FALSE( A_NCHAR("ABC") >  s   )
-    UT_TRUE ( s     >= A_NCHAR("ABC")    )    UT_TRUE ( A_NCHAR("ABC") >= s   )
+#if defined(ALIB_GCC)
+ _Pragma("GCC diagnostic pop")
+#endif
 
-    UT_FALSE( s     == A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") == s   )
-    UT_TRUE ( s     != A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") != s   )
-    UT_TRUE ( s     <  A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") <  s   )
-    UT_TRUE ( s     <= A_NCHAR("ABX")    )    UT_FALSE( A_NCHAR("ABX") <= s   )
-    UT_FALSE( s     >  A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") >  s   )
-    UT_FALSE( s     >= A_NCHAR("ABX")    )    UT_TRUE ( A_NCHAR("ABX") >= s   )
-}
 
-template<typename TALibString>
-void checkComparisonW(AWorxUnitTesting& ut, TALibString& s)
-{
-    UT_TRUE ( s     == A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") == s   )
-    UT_FALSE( s     != A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") != s   )
-    UT_FALSE( s     <  A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") <  s   )
-    UT_TRUE ( s     <= A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") <= s   )
-    UT_FALSE( s     >  A_WCHAR("ABC")    )    UT_FALSE( A_WCHAR("ABC") >  s   )
-    UT_TRUE ( s     >= A_WCHAR("ABC")    )    UT_TRUE ( A_WCHAR("ABC") >= s   )
-
-    UT_FALSE( s     == A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") == s   )
-    UT_TRUE ( s     != A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") != s   )
-    UT_TRUE ( s     <  A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") <  s   )
-    UT_TRUE ( s     <= A_WCHAR("ABX")    )    UT_FALSE( A_WCHAR("ABX") <= s   )
-    UT_FALSE( s     >  A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") >  s   )
-    UT_FALSE( s     >= A_WCHAR("ABX")    )    UT_TRUE ( A_WCHAR("ABX") >= s   )
-}
-
-template<typename TALibString>
-void checkComparisonX(AWorxUnitTesting& ut, TALibString& s)
-{
-    UT_TRUE ( s     == A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") == s   )
-    UT_FALSE( s     != A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") != s   )
-    UT_FALSE( s     <  A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") <  s   )
-    UT_TRUE ( s     <= A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") <= s   )
-    UT_FALSE( s     >  A_XCHAR("ABC")    )    UT_FALSE( A_XCHAR("ABC") >  s   )
-    UT_TRUE ( s     >= A_XCHAR("ABC")    )    UT_TRUE ( A_XCHAR("ABC") >= s   )
-
-    UT_FALSE( s     == A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") == s   )
-    UT_TRUE ( s     != A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") != s   )
-    UT_TRUE ( s     <  A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") <  s   )
-    UT_TRUE ( s     <= A_XCHAR("ABX")    )    UT_FALSE( A_XCHAR("ABX") <= s   )
-    UT_FALSE( s     >  A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") >  s   )
-    UT_FALSE( s     >= A_XCHAR("ABX")    )    UT_TRUE ( A_XCHAR("ABX") >= s   )
-}
-
-template<typename TALibString, typename TALibString2>
-void checkComparison(AWorxUnitTesting& ut, TALibString& s, TALibString2& c1, TALibString2& c2 )
-{
-    UT_TRUE ( s     == c1    )    UT_TRUE ( c1 == s   )
-    UT_FALSE( s     != c1    )    UT_FALSE( c1 != s   )
-    UT_FALSE( s     <  c1    )    UT_FALSE( c1 <  s   )
-    UT_TRUE ( s     <= c1    )    UT_TRUE ( c1 <= s   )
-    UT_FALSE( s     >  c1    )    UT_FALSE( c1 >  s   )
-    UT_TRUE ( s     >= c1    )    UT_TRUE ( c1 >= s   )
-
-    UT_FALSE( s     == c2    )    UT_FALSE( c2 == s   )
-    UT_TRUE ( s     != c2    )    UT_TRUE ( c2 != s   )
-    UT_TRUE ( s     <  c2    )    UT_FALSE( c2 <  s   )
-    UT_TRUE ( s     <= c2    )    UT_FALSE( c2 <= s   )
-    UT_FALSE( s     >  c2    )    UT_TRUE ( c2 >  s   )
-    UT_FALSE( s     >= c2    )    UT_TRUE ( c2 >= s   )
-}
-
+#if !defined(ALIB_UT_REDUCED_COMPILE_TIME)
 
 UT_METHOD( CompareOperators )
 {
@@ -1415,8 +1426,8 @@ UT_METHOD( CompareOperators )
         checkComparison(ut, xa     , xlC1      , xlC2     );
 
     }
-
-}
+} //UT_METHOD( CompareOperators )
+#endif
 #include "unittests/aworx_unittests_end.hpp"
 
 } //namespace

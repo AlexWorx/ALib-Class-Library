@@ -4,14 +4,14 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_BOXING
 #define HPP_ALIB_COMPATIBILITY_STD_BOXING
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -29,7 +29,7 @@ ALIB_ASSERT_MODULE(BOXING)
 #endif
 
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 
 #if defined(ALIB_DOX)
@@ -63,7 +63,7 @@ namespace std {
  * \alib{characters,T_CharArray}, as described in manual chapter
  * \ref alib_boxing_strings "10. Boxing Character Strings".
  *
- * \note As mandatory, the specialization is defined in \ref aworx::lib::boxing.
+ * \note As mandatory, the specialization is defined in \ref alib::boxing.
  *       To keep the reference documentation of that namespace clean, it is documented here.
  *
  * @tparam TElement The element type of the array.
@@ -108,7 +108,7 @@ struct T_Boxer<std::array<TElement, N>, ATMP_VOID_IF(!characters::TT_IsChar<TEle
  * \alib{characters,T_CharArray}, as described in manual chapter
  * \ref alib_boxing_strings "10. Boxing Character Strings".
  *
- * \note As mandatory, the specialization is defined in \ref aworx::lib::boxing.
+ * \note As mandatory, the specialization is defined in \ref alib::boxing.
  *       To keep the reference documentation of that namespace clean, it is documented here.
  *
  * @tparam TElement The element type of the vector.
@@ -140,13 +140,13 @@ DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_VECTOR])
 
 
 #if defined(ALIB_DOX)
-}} // namespace aworx::lib::boxing[::compatibility::std]
+}} // namespace alib::boxing[::compatibility::std]
 #endif
 
 
 
 // #################################################################################################
-// #############    Utility methods in namespace aworx::lib::compatibility::std     ################
+// #############    Utility methods in namespace alib::compatibility::std     ################
 // #################################################################################################
 
 
@@ -178,7 +178,7 @@ void BootstrapStdStringBoxing();
 /**
  * Initializes \alib_boxing_nl in respect to <c>std::string</c>-types.
  *
- * This method is \b not automatically invoked with \alib{ALibDistribution::Bootstrap}, because support
+ * This method is \b not automatically invoked with function \alib{Bootstrap}, because support
  * for boxing <c>std::string</c>-types is optional and provided with the inclusion of header
  * \alibheader{compatibility/std_boxing.hpp}.
  *
@@ -191,31 +191,39 @@ void BootstrapStdStringBoxing();
  * for wrapped <c>std::string</c>-types, each for character types \b nchar and \b wchar.
  *
  * \note
- *   If invoked after bootstrap and module \alib_monomem_nl is included in the \alibdist,
- *   mutex \alib{monomem,GlobalAllocatorLock} has to be locked prior to an invocation.
+ *   If invoked after bootstrap and modules \alib_threads_nl and \alib_monomem_nl are included in
+ *   the \alibdist,  mutex \alib{monomem,GlobalAllocatorLock} has to be locked prior to an
+ *   invocation.
+ *   Bootstrapping may look as follows:
+ *     \snippet "gtest_main.cpp"     DOX_ALIB_COMPATIBILITY_BOOTSTRAP
+ *
+ * \note
+ *   Alternatively, bootstrapping can be performed until \alib{BootstrapPhases::PrepareConfig}
+ *   and then this function can be invoked. In this case, no locking is necessary.
+ *
  */
 inline void BootstrapStdStringBoxing()
 {
     #if ALIB_STRINGS && ALIB_BOXING
 
-        aworx::lib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::string> );
-        aworx::lib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::string> );
+        alib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::string> );
+        alib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::string> );
 
-        aworx::lib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::wstring  >>>( boxing::FAppend<nchar>::WrappedAppendable<::std::wstring  >);
-        aworx::lib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::wstring  >>>( boxing::FAppend<wchar>::WrappedAppendable<::std::wstring  >);
+        alib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::wstring  >>>( boxing::FAppend<nchar>::WrappedAppendable<::std::wstring  >);
+        alib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::wstring  >>>( boxing::FAppend<wchar>::WrappedAppendable<::std::wstring  >);
         #if ALIB_SIZEOF_WCHAR_T == 4
-        aworx::lib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u16string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::u16string>);
-        aworx::lib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u16string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::u16string>);
+        alib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u16string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::u16string>);
+        alib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u16string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::u16string>);
         #else
-        aworx::lib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u32string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::u32string>);
-        aworx::lib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u32string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::u32string>);
+        alib::boxing::BootstrapRegister<FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u32string>>>( boxing::FAppend<nchar>::WrappedAppendable<::std::u32string>);
+        alib::boxing::BootstrapRegister<FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<::std::u32string>>>( boxing::FAppend<wchar>::WrappedAppendable<::std::u32string>);
         #endif
 
     #endif
 }
 
 
-}}}}} // namespace [aworx::lib::boxing::custom::std]
+}}}} // namespace [alib::boxing::custom::std]
 
 
 #endif // HPP_ALIB_COMPATIBILITY_STD_BOXING

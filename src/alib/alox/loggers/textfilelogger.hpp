@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -17,11 +17,11 @@
     #include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 
-#if !defined(HPP_ALIB_SYSTEM_ERRORS)
-#   include "alib/system/systemerrors.hpp"
+#if !defined(HPP_ALIB_CAMP_ERRORS)
+#   include "alib/lang/system/systemerrors.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace lox { namespace loggers {
+namespace alib {  namespace lox { namespace loggers {
 
 /** ************************************************************************************************
  * This is a very simple file logger for textual log outputs. The file name string provided
@@ -36,7 +36,7 @@ namespace aworx { namespace lib { namespace lox { namespace loggers {
  * take according actions on failure. Otherwise, errors may periodically be checked by an
  * application (e.g. no space left on device, etc.).
  **************************************************************************************************/
-class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
+class TextFileLogger : public alib::lox::detail::textlogger::PlainTextLogger
 {
     // #############################################################################################
     // Internal fields
@@ -55,12 +55,12 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
     // #############################################################################################
     public:
         /** The path and fileName to the log file. */
-        aworx::AString          FileName;
+        alib::AString          FileName;
 
         /** Errors that usually indicate i/o problems.  With construction of the logger,
          *  the file is tried to be opened and closed, which might indicate major problems
          *  (permissions, path, etc) with this public field very early.                          */
-        system::SystemErrors    LastSystemError                        = system::SystemErrors::None;
+        SystemErrors           LastSystemError                                 = SystemErrors::None;
 
 
     // #############################################################################################
@@ -73,8 +73,8 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
          * @param loggerName  The name of the \e Logger. Defaults to "TEXTFILE".
          ******************************************************************************************/
         ALIB_API
-        explicit            TextFileLogger( const aworx::String& fileName,
-                                            const aworx::NString& loggerName    =nullptr );
+        explicit            TextFileLogger( const alib::String& fileName,
+                                            const alib::NString& loggerName    =nullptr );
 
         /** ****************************************************************************************
          * Destructs a TextFileLogger
@@ -108,7 +108,7 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool        notifyLogOp( Phase phase )                                     override;
+        virtual bool        notifyLogOp( lang::Phase phase )                               override;
 
         /** ****************************************************************************************
          * Writes the given region of the given string to the console.
@@ -128,17 +128,16 @@ class TextFileLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogg
          * @param phase  Indicates the beginning or end of a multi-line operation.
          ******************************************************************************************/
         ALIB_API
-        virtual void        notifyMultiLineOp ( Phase phase )                              override;
+        virtual void        notifyMultiLineOp ( lang::Phase phase )                        override;
 
 }; // class TextFileLogger
 
 
-}}}// namespace aworx[::lib::lox::loggers]
+}} // namespace alib[::lox::loggers]
 
-/// Type alias in namespace #aworx.
-using     TextFileLogger=           lib::lox::loggers::TextFileLogger;
+/// Type alias in namespace \b alib.
+using     TextFileLogger=           lox::loggers::TextFileLogger;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALOX_TEXT_FILE_LOGGER
-

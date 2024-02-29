@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_STRINGNZT
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /** ************************************************************************************************
  * This is rather a helper class than a genuine string class. While derived from class \b String,
@@ -33,9 +33,9 @@ namespace aworx { namespace lib { namespace strings {
  *   \ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
  *
  * @tparam TChar The character type. Alias names of this class using character types
- *               \aworx{character}, \aworx{nchar}, \aworx{wchar} and \aworx{xchar} are provided
- *               with in namespace #aworx with type definitions \aworx{StringNZT},
- *               \aworx{NStringNZT}, \aworx{WStringNZT} and \aworx{XStringNZT}.
+ *               \alib{character}, \alib{nchar}, \alib{wchar} and \alib{xchar} are provided
+ *               with in namespace #alib with type definitions \alib{StringNZT},
+ *               \alib{NStringNZT}, \alib{WStringNZT} and \alib{XStringNZT}.
  **************************************************************************************************/
 template<typename TChar>
 class TStringNZT  : public TString<TChar>
@@ -124,7 +124,7 @@ class TStringNZT  : public TString<TChar>
 }; // class TStringNZT
 
 
-}}} // namespace [aworx::lib::strings]
+}} // namespace [alib::strings]
 
 
 #endif // HPP_ALIB_STRINGS_STRINGNZT

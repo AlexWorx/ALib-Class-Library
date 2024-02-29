@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,9 +20,9 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-using namespace aworx::lib::characters;
+using namespace alib::characters;
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /** ************************************************************************************************
  * This is the reference documentation of sub-namespace \c strings of the \aliblink, which
@@ -74,8 +74,8 @@ void TString<TChar>::dbgCheck() const
 // #################################################################################################
 // indexOf...()
 // #################################################################################################
-template<typename TChar>
-template<Case TSensitivity>
+template<typename   TChar>
+template<lang::Case TSensitivity>
 integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer startIdx )  const
 {
     integer nLen=   needle.Length();
@@ -323,8 +323,8 @@ integer  TString<nchar>::WStringLength()  const
     #endif
 }
 
-template integer  TString<nchar>::indexOfString<Case::Sensitive>(const TString<nchar>&, integer)  const;
-template integer  TString<nchar>::indexOfString<Case::Ignore   >(const TString<nchar>&, integer)  const;
+template integer  TString<nchar>::indexOfString<lang::Case::Sensitive>(const TString<nchar>&, integer)  const;
+template integer  TString<nchar>::indexOfString<lang::Case::Ignore   >(const TString<nchar>&, integer)  const;
 template integer  TString<nchar>::IndexOfSegmentEnd( nchar opener, nchar closer, integer  idx )      const;
 template uint64_t TString<nchar>::ParseDecDigits( integer, integer*                           ) const;
 template  int64_t TString<nchar>::ParseInt      ( integer, TNumberFormat<nchar>*, integer* ) const;
@@ -338,8 +338,8 @@ template double   TString<nchar>::ParseFloat    ( integer, TNumberFormat<nchar>*
 // #################################################################################################
 // WString
 // #################################################################################################
-template integer  TString<wchar>::indexOfString<Case::Sensitive>(const TString<wchar>&, integer)  const;
-template integer  TString<wchar>::indexOfString<Case::Ignore   >(const TString<wchar>&, integer)  const;
+template integer  TString<wchar>::indexOfString<lang::Case::Sensitive>(const TString<wchar>&, integer)  const;
+template integer  TString<wchar>::indexOfString<lang::Case::Ignore   >(const TString<wchar>&, integer)  const;
 template integer  TString<wchar>::IndexOfSegmentEnd( wchar opener, wchar closer, integer  idx )     const;
 template uint64_t TString<wchar>::ParseDecDigits( integer, integer*                           ) const;
 template  int64_t TString<wchar>::ParseInt      ( integer, TNumberFormat<wchar>*, integer* ) const;
@@ -408,8 +408,8 @@ integer  TString<xchar>::WStringLength()  const
     return result;
 }
 
-template integer  TString<xchar>::indexOfString<Case::Sensitive>(const TString<xchar>&, integer) const;
-template integer  TString<xchar>::indexOfString<Case::Ignore   >(const TString<xchar>&, integer) const;
+template integer  TString<xchar>::indexOfString<lang::Case::Sensitive>(const TString<xchar>&, integer) const;
+template integer  TString<xchar>::indexOfString<lang::Case::Ignore   >(const TString<xchar>&, integer) const;
 template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer, integer  idx  ) const;
 template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                            ) const;
 template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*, integer*     ) const;
@@ -425,25 +425,8 @@ template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*
 template<typename TChar>
 std::size_t TString<TChar>::Hashcode()                                                         const
 {
-    #if ALIB_CPPVER < 17
-        std::size_t result=
-        #if ALIB_SIZEOF_INTEGER == 4
-                                      2364114217ul;
-        #else
-                            4611686018427387847ull;
-        #endif
-
-        for (aworx::integer i = 0; i < length; ++i)
-        {
-            result^= static_cast<std::size_t>( buffer[i] ) * 33;
-            result^= (result << 21 );
-            result^= (result >> 11);
-        }
-        return result;
-    #else
-        return std::hash<std::basic_string_view<TChar>>()(
-               std::basic_string_view<TChar>( Buffer(), static_cast<size_t>( Length() ) ) );
-    #endif
+    return std::hash<std::basic_string_view<TChar>>()(
+              std::basic_string_view<TChar>( Buffer(), static_cast<size_t>( Length() ) ) );
 }
 
 
@@ -456,8 +439,10 @@ std::size_t TString<TChar>::HashcodeIgnoreCase()                                
 {
     std::size_t result= 68460391ul * ( static_cast<size_t>(length) + 1 );
 
-    for (aworx::integer i = 0; i != length; ++i)
-        result = 199ul*result + static_cast<std::size_t>( CharArray<TChar>::ToUpper( buffer[i] ) );
+    auto* begin= buffer;
+    auto* end  = buffer + length;
+    while( begin != end )
+        result = 199ul * result + std::size_t( CharArray<TChar>::ToUpper( *begin++ ) );
 
     return result;
 }
@@ -477,7 +462,7 @@ template   void TString<xchar>::dbgCheck() const;
 
 #endif // defined(ALIB_DOX)
 
-}}// namespace aworx[::lib::strings]
+} // namespace alib[::strings]
 
 // #################################################################################################
 // String constants
@@ -495,4 +480,4 @@ NCString            EMPTY_N_STRING          = A_NCHAR ("");
 WCString            EMPTY_W_STRING          = A_WCHAR ("");
 XString             EMPTY_X_STRING          = A_XCHAR ("");
 
-}// namespace [aworx]
+}// namespace [alib]

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -14,7 +14,7 @@
 
 The original motivation to implement \alib_boxing_nl was the need to allow functions to
 accept an arbitrary amount of arguments of arbitrary type.
-While C++ 11 has all mechanisms to implement this (using
+While C++ has all mechanisms to implement this (using
 \https{variadic template arguments,en.cppreference.com/w/cpp/language/parameter_pack}),
 the limitation of the template approach is that all needs to happen at compile-time.
 This limits the concept tremendously - for the sake of gaining the typical unrivalled C++
@@ -172,11 +172,11 @@ Compiling and running this program, the output is:
 
 \snippet "DOX_ALIB_BOXING_TUT_MAIN.txt"     OUTPUT
 
-The central type of this module is class \alib{boxing,Box}, located in this module's namespace #aworx::lib::boxing.
-As done with most \alib classes, it has an \ref CPP_AWORX_NS_SHORTCUTS "alias name" defined in namespace #aworx, hence shortcut
-#aworx::Box can be used. Now, as the sample states
+The central type of this module is class \alib{boxing,Box}, located in this module's namespace #alib::boxing.
+As done with most \alib classes, it has an \ref alib_nsalib_type_aliases "alias name" defined in namespace #alib, hence shortcut
+#alib::Box can be used. Now, as the sample states
 
-       using namespace aworx;
+       using namespace alib;
 
 just "Box" becomes sufficient.
 
@@ -458,7 +458,7 @@ You should be quite surprised about the following output:
 \snippet "DOX_ALIB_BOXING_TUT_UNBOX3_BIJECTIVE.txt"     OUTPUT
 
 While only \b two boxed (target) types are tested by function \b ProcessBox, namely
-\ref aworx::integer and \c double, a variety of \b six types can be passed to the function.
+\ref alib::integer and \c double, a variety of \b six types can be passed to the function.
 Obviously, different signed integral types are all "mapped" to the same destination type and
 the two floating point types \c float and \c double are both mapped to type \c double.
 
@@ -487,9 +487,9 @@ Here, we quickly interrupt this tutorial an continue with a manual documentation
 The relationship between C++ types and resulting mapped types is not \e injective.
 This means, two different C++ types may result in the same boxed type.
 For example, by default, all signed integral types (of different byte width) are boxed
-as the same type \ref aworx::integer, which is just an alias to the "biggest natural integral type"
-of the compilation platform. (In short, type \b aworx::integer aliases \c std::ptrdiff_t).<br>
-Likewise, all unsigned integral types are boxed to type \ref aworx::uinteger, which is
+as the same type \ref alib::integer, which is just an alias to the "biggest natural integral type"
+of the compilation platform. (In short, type \b alib::integer aliases \c std::ptrdiff_t).<br>
+Likewise, all unsigned integral types are boxed to type \ref alib::uinteger, which is
 an alias to \c std::size_t.
 
 This relationship of boxing C++ fundamental types, is the built-in default behavior.
@@ -535,7 +535,7 @@ hinting to the third line of the snippet:
 
 
 This seems surprising in two ways. Not only that this type can't be unboxed, but also that this is
-not a run-time assertion but caused by a C++ 11 \c static_assert which is a compile-time message.
+not a run-time assertion but caused by a C++ \c static_assert which is a compile-time message.
 As the message's text elaborates, it is just not possible to unbox type \c int16_t - no matter
 what was previously stored in the box.
 Furthermore we understand: This was explicitly forbidden, which means "voluntarily" in this case.<br>
@@ -700,11 +700,11 @@ are always boxed bijective.
 All remaining fundamentals by default are boxed in an \e injective way. By that, they can be grouped
 into three different sets:
 
-1. All signed integrals up to a maximum of 64 bits length, will be boxed to type \ref aworx::integer.
-2. All unsigned integrals up to a maximum of 64 bits length, will be boxed to type \ref aworx::uinteger.
+1. All signed integrals up to a maximum of 64 bits length, will be boxed to type \ref alib::integer.
+2. All unsigned integrals up to a maximum of 64 bits length, will be boxed to type \ref alib::uinteger.
 3. Types \c float and \c double will be boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref aworx::wchar.
+   will be boxed to \ref alib::wchar.
 
 Only the destination type of each group is allowed to be guessed and unboxed.
 
@@ -724,11 +724,11 @@ Integrals of a size of 64 bits are boxed in a bijective way, which means in a on
 All remaining fundamentals by default are boxed in an \e injective way.
 By that, they can be grouped into \b four different sets:
 
-1. All signed integrals up to a maximum of 32 bits length, will be boxed to type \ref aworx::integer.
-2. All unsigned integrals up to a maximum of 32 bits length, will be boxed to type \ref aworx::uinteger.
+1. All signed integrals up to a maximum of 32 bits length, will be boxed to type \ref alib::integer.
+2. All unsigned integrals up to a maximum of 32 bits length, will be boxed to type \ref alib::uinteger.
 3. Types \c float and \c double will be boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref aworx::wchar.
+   will be boxed to \ref alib::wchar.
 
 Only the destination type of each group is allowed to be guessed and unboxed.
 
@@ -780,7 +780,7 @@ operations of the different possible types.
 
 
 \note
-  Any \alibmod_nl that relies on \alib_boxing_nl, for example modules \alib_text or
+  Any \alibmod_nl that relies on \alib_boxing_nl, for example modules \alib_basecamp or
   \alib_expressions, use this symbol to compile and be compatible with any of the selected
   setting.<br>
   However, if the defaults are disabled and then furthermore a custom boxing for fundamental
@@ -792,7 +792,7 @@ operations of the different possible types.
   replacement of the non-bijective boxing relationships by a custom one is not.
 
 \see
-   Chapter \ref alib_manual_build "4. Building The Library" of the Programmer's Manual of \alib
+   Chapter \ref alib_manual_build "5. Building The Library" of the Programmer's Manual of \alib
    for more information on compiling the library and using compiler symbols. For example,
    if using \https{CMake,cmake.org/}, corresponding cached \b CMake variables
    \e %ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, \e %ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS and
@@ -885,7 +885,7 @@ Please see the \alib{boxing,Box::TypeID,method's documentation} for further info
 
 Finally, in debug-compilations - the result of method \b TypeID can just be streamed to \c std::out.
 This is very convenient and possible due to some tricks of other \alib modules, which includes the use of type
-\ref aworx::lib::DbgTypeDemangler.
+\ref alib::lang::DbgTypeDemangler.
 For technical reasons, type \b DbgTypeDemangler is only available in debug-compilations.
 Method \b TypeID itself however is available also in release-compilations.
 
@@ -917,7 +917,7 @@ custom (3rd-party) types that store their elements in a single chunk of memory.
 
 \alib_boxing_nl provides built-in support to customize the boxing of class \c std::vector.
 \note For built-in support of vector types of other (3rd-party) libraries, checkout
-      namespace \ref aworx::lib::boxing::compatibility and its sub-namespaces.
+      namespace \ref alib::boxing::compatibility and its sub-namespaces.
 
 With the customization, objects of the type \c std::vector are boxed to C++ arrays of the templated
 element type. The customization, requests a vector's allocated memory (method \c std::vector::data)
@@ -1085,10 +1085,9 @@ invoking method \b Get of the unboxed pointer:
 Now the code compiles and runs fine. Its output is:
 \snippet "DOX_ALIB_BOXING_CLASSES_BIG_USING.txt"     OUTPUT
 
-"Easy!" you could say, because the \c static_assert brought to us by C++ 11,
-helps to create this clear compiler message seen above. Just make it a pointer type, and here we go!
-Unfortunately, there is a next pitfall related with switching to pointers, but this is
-discussed in a next chapter.
+"Easy!" you could say, because the \c static_assert helps to create this clear compiler message seen
+above. Just make it a pointer type, and here we go! Unfortunately, there is a next pitfall related
+with switching to pointers, but this is discussed in a next chapter.
 
 Before we elaborate more theory, let's quickly finalize this tutorial part with a last,
 probably astonishing thing. From the compiler error message that said
@@ -1204,7 +1203,7 @@ types into four sets:
 2. Unsigned integral types that get boxed to type \alib{uinteger}
 3. Types \b float and \b double that get boxed to type \c double.
 4. Character types <c>char</c>, <c>wchar_t</c>, <c>char16_t</c> and <c>char32_t</c>
-   will be boxed to \ref aworx::wchar.
+   will be boxed to \ref alib::wchar.
 
 Now, pointers to all fundamental types are boxed like their value counterpart.
 Likewise with structs and classes, the two boxes from the following sample:
@@ -1217,7 +1216,7 @@ receive the identical contents of type \b integer and value 42.
 
 \note
   The only exclamation are constant pointers to character types, for example <c>const char*</c>
-  or <c>const aworx::character*</c>.
+  or <c>const alib::character*</c>.
   These are considered zero-terminated strings and are boxed to C++ array types.
   A rational for, and all details on this exclamation will be given in chapter
   \ref alib_boxing_strings "10. Boxing Character Strings".
@@ -1327,7 +1326,7 @@ a software. Instead they are implicitly created when generic functions accept ar
 of type <c>const Box&</c>. In this most frequent case, after the function returns,
 the current thread's stack frame is \https{unwinded,en.wikipedia.org/wiki/Call_stack#Unwinding},
 and the boxed argument objects are disposed!<br>
-A sample for this is given in appendix chapter \ref alib_boxing_appendix_usecases_format.
+A sample for this is given in \ref alib_boxing_appendix_usecases_format "appendix chapter C1".
 of this manual.
 
 Should the processing function want to store some data that it received from a box argument
@@ -1494,7 +1493,7 @@ specialized struct needs to provide.
 
 This design pattern of using type traits is also leveraged with \alib_boxing_nl.
 The type traits struct that is to be specialized for customization is given with
-\ref aworx::lib::boxing::T_Boxer.
+\ref alib::boxing::T_Boxer.
 
 \attention
   Two code units must use the same custom boxing settings for all types that they share
@@ -2027,14 +2026,14 @@ their address stored in the vtable of the box.
 ### 8.2.3 Function Registration ### {#alib_boxing_functions_concepts_reg}
 
 The final step is to associate the function implementation with boxes of a specific mapped type.
-This is done with templated namespace function \ref aworx::lib::boxing::BootstrapRegister.
+This is done with templated namespace function \ref alib::boxing::BootstrapRegister.
 
 \attention
   Function registration and function invocation are not protected against racing conditions
   of multi-threaded access. For this reason, it is mandatory to perform function registration exclusively
   while \ref alib_manual_bootstrapping "bootstrapping" a software, when no threads are started,
   yet. Registrations can be made prior to bootstrapping \alib, respectively during or after
-  phase \alib{Module,BootstrapPhases::PrepareResources}.
+  phase \alib{BootstrapPhases::PrepareResources}.
 
 \attention
   If for any reason registration is performed \b after bootstrapping \alib and module
@@ -2042,7 +2041,7 @@ This is done with templated namespace function \ref aworx::lib::boxing::Bootstra
   \alib was bootstrapped, then prior to an invocation of this method, mutex
   \alib{monomem,GlobalAllocatorLock} has to be acquired. This can be done with:
 
-          ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+          ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
 
 \attention
   Note that even when this lock is set, still multi-threaded access to registration and/or
@@ -2256,7 +2255,7 @@ Likewise, module \alib_boxing_nl implements a set of built-in box-functions. Tho
 - \alib{boxing,FClone} (Available only with the inclusion of module \alib_monomem in the \alibdist.)
 - \alib{boxing,FAppend} (Available only with the inclusion of module \alib_strings in the \alibdist.)
 
-With the inclusion of module \alib_text, furthermore function \alib{text,FFormat}
+With the inclusion of module \alib_basecamp, furthermore function \alib{lang::format,FFormat}
 becomes available.
 
 The following implementations are given:
@@ -2310,16 +2309,15 @@ Therefore, we conclude this section with just some quick facts:
   More information on this function is given in chapter \ref alib_boxing_more_void_nulled.
 
 - Function \alib{boxing,FClone} is explained in some detail in manual chapter
-  \ref alib_boxing_more_iclone. Furthermore, it is used with module
-  \alib_results, as documented in the
-  \ref alib_results_message_lifecycle "Programmer's Manual of that module".
+  \ref alib_boxing_more_iclone. Furthermore, it is used with module \alib_basecamp, as documented in the
+  \ref alib_basecamp_message_message_lifecycle "Programmer's Manual of that module".
 
 - Function \alib{boxing,FAppend}, available with module \alib_strings is explained
   in manual chapter \ref alib_boxing_strings "10. Boxing Character Strings".
 
-- Function \alib{text,FFormat}, introduced by module \alib_text is not considered
+- Function \alib{lang::format,FFormat}, introduced by module \alib_basecamp is not considered
   a built-in box-function (of this module) and therefor explained
-  in that module's manual chapter \ref alib_text_custom_types "3. Formatting Custom Types".
+  in that module's manual chapter \ref alib_basecamp_format_custom_types "4.3. Formatting Custom Types".
   There, source-code samples of both, function \b %FAppend and \b %FFormat are given.
 
 As a final remark, some of the built-in function declarators provide inner static functions,
@@ -2363,7 +2361,7 @@ box-function is out of the scope of the usual use cases for \alib_boxing_nl.
 
 \I{################################################################################################}
 ## 9.1 Boxing Enumeration Elements  ## {#alib_boxing_enums_integer}
-Scoped enumerations introduced with C++ 11, as well as traditional enumerations, receive a special
+Scoped enumerations as well as traditional enumerations, receive a special
 treatment with \alib_boxing_nl. Unless their boxing is not customized, they are boxed
 to their identical type, however the value stored in the \alib{boxing,Placeholder} is
 casted from their underlying integral type to \alib{integer}. When unboxed, the value is
@@ -2381,10 +2379,10 @@ Class \alib{boxing,Enum} is the only derivate of class \alib{boxing,Box} found i
 
 The class is useful to store and pass around enum values of arbitrary C++ scoped enum types in
 a type-safe way.
-It is implemented to ease the use of C++ 11 scoped enums in situations where programmers
+It is implemented to ease the use of scoped enums in situations where programmers
 otherwise tend to "fall back" to non-scoped (non type-safe enum types). This is the case, when
 enum elements of different types should be allowed as a function argument or otherwise used
-as an "identifier".   While C++ 11 introduced the syntax for <c>enum class</c> types
+as an "identifier". While C++ 11 introduced the syntax for <c>enum class</c> types
 (aka "scoped enums"), still these are very limited. In especial, those do not support inheritance.
 Thus, an API can not define an interface method that accepts enums of "custom derived types".
 This is quite often a problem. Of-course, using module \alib_boxing_nl, an interface method
@@ -2394,7 +2392,7 @@ Class \alib{boxing,Enum} as a good tool to help here.
 In the constructor,  enum elements of arbitrary type are accepted. With the run-time type-information
 added, the processing function can now work with any the enum types transparently.
 
-A good example use case is given with type \alib{results,Exception} of module \alib_results.
+A good example use case is given with type \alib{lang,Exception} of module \alib_basecamp.
 Any exception is created with an enum element of arbitrary type. The exception handlers then
 can use nested \c if statements: The outer \c if is about the exception type, the inner about
 the concrete exception. This gives a nice two-level order scheme for exceptions with no
@@ -2421,8 +2419,9 @@ To achieve this, this module leverages type definitions and type-traits found wi
 \alib_characters. This is explained in the next section.<br>
 The section after that, covers further options that are available when module \alib_strings
 is included in the \alibdist_nl. Finally, some good use of \alib_boxing_nl and
-\alib_strings_nl is made by module \alib_text. While this is not a part of this
-manual, some overview on it is provided in appendix chapter \ref alib_boxing_appendix_usecases_format.
+\alib_strings_nl is made by module \alib_basecamp. While this is not a part of this
+manual, some overview on it is provided in appendix
+chapter \ref alib_boxing_appendix_usecases_format "C.1 Use Case: Module BaseCamp".
 
 \I{################################################################################################}
 ## 10.2 Character Arrays ## {#alib_boxing_strings_characters}
@@ -2546,12 +2545,12 @@ The second approach has the advantage, that the custom type is directly appendab
 class \b %AString - independent from boxing. Therefore, this is the recommended option.
 
 \note
-  With module \alib_text, a next string-related box-function \alib{text,FFormat}
+  With module \alib_basecamp, a next string-related box-function \alib{lang::format,FFormat}
   becomes available, which allows to control the string conversion of boxed values by the use of a
   format string.<br>
   Information and a sample implementation about both, \b FAppend and \b FFormat, is provided in
-  chapter \ref alib_text_custom_types "3. Formatting Custom Types" of the
-  \ref alib_mod_text "Programmer's Manual" of that module.
+  chapter \ref alib_basecamp_format_custom_types "4.3. Formatting Custom Types" of the
+  \ref alib_basecamp_format "Programmer's Manual" of that module.
 
 \I{################################################################################################}
 \I{##################     11. Class Boxes and Variadic Function Arguments     ###################  }
@@ -2598,13 +2597,13 @@ functions with \alib_boxing_nl:
 In the previous chapter it was demonstrated how simple the use of variadic template arguments
 gets with \alib_boxing_nl. The recipe given, uses a single line of code to let the compiler
 create an array of objects of class \b Box.
-This is sufficient in many cases, but obviously using container class \c std::vector<aworx::Box>
+This is sufficient in many cases, but obviously using container class \c std::vector<alib::Box>
 instead of a simple array would give more flexibility: It allows to add and remove boxes from the
 array and to pass the array to other (non-templated functions) without passing its size in an
 extra parameter.
 
 For this and more purposes, class \alib{boxing,Boxes} is provided. It publicly inherits from
-\c std::vector<aworx::Box> and method \b %Add accepting templated variadic arguments.
+\c std::vector<alib::Box> and method \b %Add accepting templated variadic arguments.
 This way, its use is as simple as this:
 
 \snippet "DOX_ALIB_BOXING.cpp"      DOX_ALIB_BOXING_BOXES_SAMPLE_1
@@ -2663,7 +2662,7 @@ with the help of class \b Boxes:
   to collect the arguments in a more sophisticated, step by step way (instead of having to place
   them all into one function call).
 
-Samples of this pattern are found in \alib itself, for example with types \alib{text,Formatter} or
+Samples of this pattern are found in \alib itself, for example with types \alib{lang::format,Formatter} or
 \alib{lox,Lox}.
 
 
@@ -2700,7 +2699,7 @@ Generally spoken, this is useful when a method has several overloaded versions w
 parameters, and still should support to accept an arbitrary amount of any type of arguments.
 In this moment, it might get quite complicated (or impossible!) to define the methods properly in
 the sense that no ambiguities may occur when invoking them.
-A solution here is to declare the method to accept just exactly one <c>const %aworx::Box&</c>
+A solution here is to declare the method to accept just exactly one <c>const %alib::Box&</c>
 argument instead of a variadic list of arguments.
 
 If inside the method this box is passed into a local instance of class \b %Boxes,
@@ -2720,13 +2719,13 @@ This can be invoked as follows:
 
 \snippet "DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE.txt"     OUTPUT
 
-A real world sample can be found in the logging library \ref aworx::lib::lox "ALox" which is
+A real world sample can be found in the logging library \ref alib::lox "ALox" which is
 built on \alib and makes a lot of use of \alib_boxing_nl.
 While straightforward methods
-\ref aworx::lib::lox::Lox::Info    "Lox::Info",
-\ref aworx::lib::lox::Lox::Verbose "Lox::Verbose", etc. accept variadic template arguments as objects
+\ref alib::lox::Lox::Info    "Lox::Info",
+\ref alib::lox::Lox::Verbose "Lox::Verbose", etc. accept variadic template arguments as objects
 to be logged, method
-\ref aworx::lib::lox::Lox::Once "Lox::Once" is more complicated: Various overloaded versions exist
+\ref alib::lox::Lox::Once "Lox::Once" is more complicated: Various overloaded versions exist
 that interpret the term "once" differently. Therefore, each overloaded version accepts only one
 object to log - which at the first sight is only suitable to accept a simple log message string.
 But internally, a \b Boxes instance is created and this way, multiple objects can be passed just
@@ -3011,7 +3010,7 @@ Note that this \e "DLL-problem" does not apply for the optimized, static \e vtab
 Here, a definition can be used in a distinct compilation unit, that the process and the DLLs share.
 
 More details on this topic are found with the \ref alib_mod_singletons "Programmer's Manual" of
-micro-module \alib_singletons_nl.
+\alibmod_nl \alib_singletons_nl.
 
 
 #### Management Of Boxed Functions: ####
@@ -3036,10 +3035,6 @@ Under certain conditions, instances of class \b Box are \c constexpr values.
 For example, the following code compiles without an error:
 
 \snippet "DOX_ALIB_BOXING.cpp"                    DOX_ALIB_BOXING_CONSTEXPR_TRYDEBUG
-
-\note
-  This also compiles with <b>C++ 11</b>, because the implementation of this module volunteers to
-  waive the more flexible <c>constexpr</c>-rules of <b>C++ 14</b>.
 
 While the typical use cases of \alib_boxing_nl do not raise the requirement to be able to
 define \c constexpr \b Box variables by users of the library, still there is some advantage of
@@ -3191,7 +3186,7 @@ The following \ref GrpALibPreproSymbols are provided by this \alibmod_nl:
 - \ref ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
 
 \see
-  Chapter \ref alib_manual_build "4. Building The Library"
+  Chapter \ref alib_manual_build "5. Building The Library"
   of the \ref alib_manual "ALib Programmer's Manual".
 
 \I{################################################################################################}
@@ -3212,7 +3207,7 @@ The module provides just three headers:
    In debug-compilations, declares static struct \alib{boxing,DbgBoxing}.
 
 With the use of other \alibmods that rely on boxing, the inclusion of the header files is usually
-not necessary. For example, when including \alibheader{text/formatterpythonstyle.hpp}, the
+not necessary. For example, when including \alibheader{lang/format/formatterpythonstyle.hpp}, the
 inclusion of headers of \alib_boxing_nl is inherently performed.
 
 Some care has to be taken, with boxing string types. As explained in chapter
@@ -3223,11 +3218,11 @@ Therefore, a compilation unit has to include such specializations prior to inclu
 \b boxing.hpp.
 
 For example, if string types of the \https{QT Class Library,www.qt.io} are to be used with
-formatter \alib{text,FormatterPythonStyle}, then the corresponding compatibility header
+formatter \alib{lang::format,FormatterPythonStyle}, then the corresponding compatibility header
 has to be included before any other header that includes \b boxing.hpp:
 
         #include "alib/compatibility/qt_characters.hpp"
-        #include "alib/text/formatterpythonstyle.hpp"
+        #include "alib/lang/format/formatterpythonstyle.hpp"
 
 
 
@@ -3239,7 +3234,7 @@ As \ref alib_manual_bootstrapping "documented in the general manual" of \alib, t
 usually is performed automatically with bootstrapping the library.
 
 In the case that \alib_boxing_nl is used as an extracted module,
-for bootstrapping, namespace function \ref aworx::lib::boxing::Bootstrap has to be called.
+for bootstrapping, namespace function \ref alib::boxing::Bootstrap has to be called.
 The method should be called as early as possible. I.e. it has to be called before custom code
 performs
 \ref alib_boxing_functions_concepts_reg "registration of custom box-function implementations" and before the
@@ -3262,8 +3257,8 @@ refers to them is disposed.
 In many use cases, this is absolutely no problem: Often, \alib_boxing_nl is used to
 implement generic (and \ref alib_boxing_boxes "optionally variadic") function arguments.
 If those are then used inside the function only and not stored otherwise, the access to
-boxed data is safe. A prominent sample for this use case is given with appendix chapter
-\ref alib_boxing_appendix_usecases_format.
+boxed data is safe. A prominent sample for this use case is given with
+\ref alib_boxing_appendix_usecases_format "appendix chapter C.1".
 
 However, other use-cases might introduce the need to use boxed data out of the scope that
 boxed the data. A good sample for this is given with appendix chapter
@@ -3315,7 +3310,7 @@ for further details.
 \I{################################################################################################}
 ### 12.7.2 Class DbgBoxing ###  {#alib_boxing_more_debug_dbgboxing}
 Instead of using the methods and objects listed above, struct \alib{boxing,DbgBoxing} provides
-a more handy alternative in the moment that module \alib_text is included in the \alibdist.
+a more handy alternative in the moment that module \alib_basecamp is included in the \alibdist.
 The class then offers additional static interface methods that collect and format various
 sorts of information.
 
@@ -3339,7 +3334,7 @@ on a boxable type \p{TBoxable} and its a mapped type.<br>
 The boxable type needs to be provided as a template parameter \p{TBoxable}.
 If it is not default constructible, a corresponding the sample box has to be provided as well.
 To stay with sample above, to get information for mapped type \c char[], one possible \p{TBoxable}
-is \ref aworx::String "aworx::String". With that, the invocation looks like this:
+is \ref alib::String "alib::String". With that, the invocation looks like this:
 
 \snippet "DOX_ALIB_BOXING.cpp"                    DOX_ALIB_BOXING_DEBUG_TYPEINFO
 It produces the following details:
@@ -3455,7 +3450,7 @@ With many use cases, boxes are created in "stack memory" which allocates and dea
 zero time (yes, its less than "O(1)", it is just nothing).
 
 Once created, to pass them to another function or store them in a container like
-\ref aworx::lib::boxing::Boxes "Boxes", these 24 bytes have to be copied.
+\ref alib::boxing::Boxes "Boxes", these 24 bytes have to be copied.
 
 While this is three times more than copying just a pointer, it might me much less effort in cases
 that composite types automatically become boxed as pointers. If those had been passed for example
@@ -3532,7 +3527,7 @@ Unfortunately, this increase can be reasonably high.
 We consider the implementation of \alib_boxing_nl to be as performant as it is possible.
 
 It is hard or impossible to compare the impact on code size and performance between using of
-techniques like <em>C++ 11 variadic template arguments</em> and the invocation of methods that do
+techniques like <em>C++ variadic template arguments</em> and the invocation of methods that do
 auto-boxing, probably using \ref alib_boxing_boxes_boxes "class Boxes" to fetch variadic arguments.
 
 In comparison to using C++ 17 type \c std::any, the most important advantage of \alib_boxing_nl
@@ -3555,7 +3550,7 @@ is implemented and therefore is to be used.
 \I{################################################################################################}
 # Appendix A Quick Reference # {#alib_boxing_appendix_quickref}
 
-While the \ref aworx::lib::boxing "namespace documentation" provides an extensive reference index
+While the \ref alib::boxing "namespace documentation" provides an extensive reference index
 (generated with marvelous \https{Doxygen,www.stack.nl/~dimitri/doxygen/}),
 the following quick lists should help finding the information you need:
 
@@ -3677,13 +3672,13 @@ C++ standard library, this module and the area of "functionals".
 
 There is no further documentation given in this user manual. However, in the reference
 documentation of this module, which is found with the documentation of namespace
-\ref aworx::lib::boxing, sub-namespace \ref aworx::lib::boxing::compatibility exists, which
+\ref alib::boxing, sub-namespace \ref alib::boxing::compatibility exists, which
 aggregates some of the customization content.
 
 To achieve this, the documentation even sometimes "fakes" entities into this namespace, that
 technically must not be there - and in reality therefore are not there.<br>
 As a sample, take functor struct
-\ref aworx::lib::boxing::compatibility::std::hash<aworx::lib::boxing::Box>.
+\ref alib::boxing::compatibility::std::hash<alib::boxing::Box>.
 While the documentation claims it to be in that deep namespace, it is a specialization of
 struct \c std::hash and therefore "in reality" is and has to be made in namespace \c std.
 The reference documentation of all "faked", moved entities will individually hint to this fact.
@@ -3726,10 +3721,9 @@ For example, it will be shown that:
 
 All use-case are taken from other \alibmods, which depend on module \alib_boxing_nl.
 \I{################################################################################################}
-## C.1 Use Case: Module ALib Text ##  {#alib_boxing_appendix_usecases_format}
-
-The creation of module \alib_text is more than a use-case. In fact it was the whole
-reason and motivation of creating \alib_boxing_nl!<br>
+## C.1 Use Case: Sub-namespace "format" of Module BaseCamp ##  {#alib_boxing_appendix_usecases_format}
+The \ref alib::lang::format "format types" of module \alib_basecamp are more than a use-case.
+In fact they were the whole reason and motivation of creating \alib_boxing_nl!<br>
 That module implements the well known <em>"printf paradigm"</em>, which is available in standard libraries
 of various programming languages. A <em>printf-like</em> function interface is used to create a
 string representation of an arbitrary amount of arguments of arbitrary type. To do so, a
@@ -3737,8 +3731,8 @@ string representation of an arbitrary amount of arguments of arbitrary type. To 
 with the arbitrary arguments. The placeholders within the format string, follow a certain syntax
 which allow various output modifications, like number formats, horizontal alignment, etc.
 
-Module \alib_text_nl provides abstract class \alib{text,Formatter} which
-offers two overloaded versions of method \alib{text::Formatter,Format}: both accept a
+Module \alib_basecamp_nl provides abstract class \alib{lang::format,Formatter} which
+offers two overloaded versions of method \alib{lang::format::Formatter,Format}: both accept a
 target \b AString as the first argument. The first accepts a reference to class \alib{boxing,Boxes},
 while the second accepts variadic template parameters besides the target string.
 How the latter invokes the first with a few lines of inlined code is explained in
@@ -3763,10 +3757,10 @@ just as a first of the arbitrary arguments. This approach has the following adva
   format operations during its course of execution in an object of that type and when done
   performing all formatting in one invocation. This means, depending on the branches that a code
   takes, different format strings and format arguments might be collected.<br>
-  This is especially helpful when module \alib_text_nl is used in the context
+  This is especially helpful when module \alib_basecamp_nl is used in the context
   of debug- and release-logging, which is discussed in a later chapter.
 
-All three advantages together make the format-interface given with module \alib_text_nl
+All three advantages together make the format-interface given with module \alib_basecamp_nl
 unrivalled in respect to flexibility.
 
 ### Efficiency Due To Implicit Pointer-Conversion: ###
@@ -3787,25 +3781,25 @@ operation if just no pointer is passed.
 This is a negative impact on the performance, while the implicit pointerization is not!
 
 ### Support for Custom Format Syntax: ###
-Finally, the use case implemented with module \alib_text_nl shows nicely how
+Finally, the use case implemented with module \alib_basecamp_nl shows nicely how
 \alib_boxing_nl enables to offer a library that can be extended to serve custom types
-in a most flexible way. This is shown with the provision of box-function \alib{text,FFormat}
+in a most flexible way. This is shown with the provision of box-function \alib{lang::format,FFormat}
 by that module. This allows to introduce new placeholder syntax (!) for custom types, of-course
 without touching the original source code of the module.<br>
 A sample of how a custom type can be featured with a custom placeholder syntax is given in the
 Programmer's Manual of that module with chapter
-\ref alib_text_custom_types "3. Formatting Custom Types"
+\ref alib_basecamp_format_custom_types "4.3. Formatting Custom Types"
 
 
 \I{################################################################################################}
 ## C.2 Use Case: ALib Exceptions   ##  {#alib_boxing_appendix_usecases_exceptions}
-Module \alib_results introduces class \alib{results,Exception}, which is used in all
+Module \alib_basecamp introduces class \alib{lang,Exception}, which is used in all
 \alibmods_nl as \b the \e throwable.
 
 ### Use Arbitrary Scoped Enums: ###
-Class \b Exception stores a list of \alib{results,Message} objects that may extend
+Class \b Exception stores a list of \alib{lang,Message} objects that may extend
 the exception object with new information while the call stack is unwinded. Each message entry has
-an identifier that is implemented with field  \alib{results,Message::Type}. This field
+an identifier that is implemented with field  \alib{lang,Message::Type}. This field
 is of type \alib{boxing,Enum} and is a very good sample for using this type. With that it became
 possible that every \alibmod_nl (and likewise a using custom software) defines its own scoped
 \c enum type that enumerates all exceptions that the module (respectively custom software) may trow.
@@ -3816,7 +3810,7 @@ general exception type. The inner then uses \alib{boxing,Enum::operator==} to te
 element of that exception type.
 
 ### Attaching Arbitrary Arguments: ###
-Each \alib{results,Message} of an exception may store an arbitrary amount of arbitrary
+Each \alib{lang,Message} of an exception may store an arbitrary amount of arbitrary
 objects that provides further information about the entry, hence about the cause of the exception or
 about state information of the code that threw the exception.<br>
 For this, field class \b Message inherits type \alib{boxing,Boxes} which is a container storing
@@ -3826,14 +3820,14 @@ exception handlers. A recommendation for users of this \alibmod_nl, is to prepen
 <em>format string</em> as the first element of this list. Such format string should
 contain a placeholder for every provided message argument and together this provides the possibility
 for an exception handler to easily create a human readable text message from an exception entry,
-by just passing the \b Boxes object to a \alib{text,Formatter}, as discussed in the previous
+by just passing the \b Boxes object to a \alib{lang::format,Formatter}, as discussed in the previous
 use-case chapter.
 
 ### Cloning Exception Arguments: ###
-In contrast to the previous use case of \alib_text, with \alib{results,Exception} and
-its used \alib{results,Message} object, the life-cycle management of the boxed message arguments
+In contrast to the previous use case of text formatting, with \alib{lang,Exception} and
+its used \alib{lang,Message} object, the life-cycle management of the boxed message arguments
 is a quite critical issue. To resolve this, class \b Message offers method
-\alib{results,Message::CloneArguments}, which simply invokes
+\alib{lang,Message::CloneArguments}, which simply invokes
 \alib{boxing,Boxes::CallAll,Boxes::CallAll<FClone>} on all contained boxes.
 
 A code that throws an exception or while handling one, appends a new message to an exception, has
@@ -3853,12 +3847,12 @@ performed for the creation of the exception, including the copies of all message
 
 \I{################################################################################################}
 ## C.3 Use Case: Module ALib ALox         ##  {#alib_boxing_appendix_usecases_alox}
-We said with \ref alib_boxing_appendix_usecases_format that it was the original motivation
+We said \ref alib_boxing_appendix_usecases_format "in appendix C.1", that it was the original motivation
 for creating module \alib_boxing_nl. The truth it, module \alib_alox was it, just as
 the whole library once started with the development of \alox.<br>
 
-Of-course, \alox uses \alib_text and thus all that was said for this use case applies
-to \b ALox.
+Of-course, \alox uses the formatting features of \alib_basecamp and thus all that was said for this
+use case applies to \b ALox.
 
 ### Prefix Logables: ###
 In the context of \alox, boxes are called <em>"logables"</em> because they are the input to the
@@ -3962,4 +3956,4 @@ Details on that use-case are given in chapter
 as well as in the reference documentation of the box-function declarator \alib{expressions,FToLiteral}.
 
 
-*/
+<br><br><br><br><br><br> */

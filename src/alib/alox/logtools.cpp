@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox - ALox Logging Library
+//  alib::lox - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,8 +11,8 @@
     #include "alib/alox/logtools.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TEXT_FORMATTER)
-    #include "alib/text/formatter.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER)
+    #include "alib/lang/format/formatter.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
@@ -20,11 +20,11 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 
 void LogTools::Exception( Lox&                      lox,
-                          const aworx::Exception&   e,
+                          const alib::Exception&   e,
                           Verbosity                 verbosity,
                           const NString&            domainPrefix,
                           const String&             logPrefix
@@ -69,7 +69,7 @@ void LogTools::Exception( Lox&                      lox,
             if( logPrefix   .IsNotNull() ) lox.SetPrefix( nullptr, Scope::ThreadOuter );
         lox.Release();
     }
-    catch(aworx::Exception& e)
+    catch(alib::Exception& e)
     {
         lox.Error("Format exception caught while creating formatted output of another exception!\n"
                   "Format exception information follows:\n" );
@@ -81,4 +81,4 @@ void LogTools::Exception( Lox&                      lox,
 }
 
 
-}}}// namespace [aworx::lib::lox]
+}}// namespace [alib::lox]

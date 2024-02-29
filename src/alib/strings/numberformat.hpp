@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_NUMBERFORMAT
@@ -11,8 +11,79 @@
 #if !defined (HPP_ALIB_STRINGS_CSTRING)
 #   include "alib/strings/cstring.hpp"
 #endif
+#if ALIB_ENUMS &&!defined (HPP_ALIB_ENUMS_BITWISE)
+#   include "alib/enums/bitwise.hpp"
+#endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
+
+
+/**
+ * Flags used with class \alib{strings,TNumberFormat}.
+ */
+enum class NumberFormatFlags : uint8_t
+{
+    /** Used to clear all flags */
+    NONE                                    = 0,
+
+    /**
+     * Denotes if grouping characters are ignored when parsing numbers if they are given
+     * (not set to \c '\0').
+     * This applies to all number types.<br>
+     * Defaults to \c false. If set to \c true, grouping characters are just skipped when
+     * found while parsing numbers, no matter at which position they occur.
+     */
+    ReadGroupChars                          = 1,
+    /**
+     * Denotes if grouping characters are written if they are given (not set to \c '\0').
+     * This applies to all number types.<br>
+     * Defaults to \c false.
+     */
+    WriteGroupChars                         = 2,
+
+    /**
+     * If \c true, the decimal point of floating point values is written, even if the fractional
+     * part of the float value is zero. If \c false, in this case the decimal point is omitted.<br>
+     * Defaults to \c true.
+     */
+    ForceDecimalPoint                       = 4,
+
+    /**
+     * Determines if positive exponent values are prepended with an explicit '+' character when
+     * written using \alib{strings::detail,WriteFloat}.<br>
+     * Defaults to \c false, as some systems will not accept a plus sign on the exponent value.
+     * Note that field \alib{strings,TNumberFormat::PlusSign} is not applicable for exponent numbers.
+     */
+    WriteExponentPlusSign                   = 8,
+
+
+    /**
+     * If this field is \c true, then trailing \c '0' digits in the fractional part of a floating
+     * point value are not written, even if a \alib{strings,TNumberFormat::FractionalPartWidth}
+     * is set. Defaults to \c false.
+     */
+    OmitTrailingFractionalZeros             =16,
+
+    /**
+     * If \c true, scientific format is always used.<br>
+     * If \c false (the default), function \alib{strings::detail,WriteFloat} writes scientific
+     * format only if both fields, \alib{strings,TNumberFormat::IntegralPartMinimumWidth} and
+     * \alib{strings,TNumberFormat::FractionalPartWidth} are evaluating to \c -1 and only for
+     * numbers smaller than \c 10E-04 or larger than \c 10E+06.<br>
+     *
+     * If one of the fields \alib{strings,TNumberFormat::IntegralPartMinimumWidth} or
+     * \alib{strings,TNumberFormat::FractionalPartWidth} is set to a positive
+     * value, these limits get extended. Function \alib{strings::detail,WriteFloat} in this case
+     * keeps non-scientific notation established if possible.
+     */
+    ForceScientific                         =32,
+
+    /**
+     * If \c true, lower case letters \c 'a' - \c 'f' are written.
+     * Defaults to \c false, which writes upper case letters \c 'A' - \c 'F'.
+     */
+    HexLowerCase                            =64,
+}; // enum class NumberFormatFlags
 
 
 /** ***********************************************************************************************
@@ -20,17 +91,17 @@ namespace aworx { namespace lib { namespace strings {
  * point values to string representations, as well as the reverse operation, thus the
  * format expected when parsing numbers from strings.
  *
- * In namespace #aworx::lib::strings::detail, corresponding functions that use an instance of this
+ * In namespace #alib::strings::detail, corresponding functions that use an instance of this
  * type are implemented. However, those functions are not intended for common use.
  * Instead, the interface of classes
  *    \alib{strings,TString,String},
  *    \alib{strings,TSubstring,Substring},
  *    \alib{strings,TAString,AString} or
- *    \alib{text,Formatter}
+ *    \alib{lang::format,Formatter}
  * are preferred to write and parse numbers. Also those accept an object of this type as parameters.
  *
  * <b>Defined Singletons and User-Defined Instances:</b><br>
- * Two static singletons of this class, both initialized with method \alib{ALibDistribution::Bootstrap},
+ * Two static singletons of this class, both initialized with function \alib{Bootstrap},
  * are defined which can be used wherever a number format object is needed as a parameter:
  * - #Global: Reflects locale-specific settings.
  *
@@ -112,7 +183,7 @@ namespace aworx { namespace lib { namespace strings {
  * of a parsing operation and after a sign character was read.
  *
  * When parsing fails, a value of \c 0 (respectively \c 0.0) is returned by the functions of
- * namespace #aworx::lib::strings::detail which are using this class.
+ * namespace #alib::strings::detail which are using this class.
  * User-friendly classes that use the interface of this type will detect such failure through the
  * output parameter of the parsing functions, which indicates the index of the end of
  * the number found.
@@ -130,19 +201,18 @@ namespace aworx { namespace lib { namespace strings {
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{NumberFormat},
- *   \aworx{NNumberFormat}, \aworx{WNumberFormat}, \aworx{XNumberFormat},
- *   \aworx{ComplementNumberFormat} and \aworx{StrangeNumberFormat}.
+ *   are provided in namespace #alib with type definitions \alib{NumberFormat},
+ *   \alib{NNumberFormat}, \alib{WNumberFormat}, \alib{XNumberFormat},
+ *   \alib{ComplementNumberFormat} and \alib{StrangeNumberFormat}.
  **************************************************************************************************/
 template<typename TChar>
 struct TNumberFormat
 {
     /**
-     * The default static number format object that acts as the
-     * default settings of the currently running process.<br>
-     * Method
-     * \alib{ALibDistribution::Bootstrap} invokes #SetFromLocale() on this object and
-     * switches grouping on.
+     * The default static number format object that acts as the default settings of the currently
+     * running process.<br>
+     * Function \alib{Bootstrap} invokes #SetFromLocale() on this object and switches grouping
+     * to \e 'on'.
      *
      * Classes providing functionality based on this class, might use this as a default
      * value for parameters of their interfaces.
@@ -153,10 +223,7 @@ struct TNumberFormat
      * A static number format object that may be used to write and parse numbers for 'computational'
      * use, which means, that grouping is switched off and decimal point character
      * is \c '.'.<br>
-     * Method
-     * \alib{ALibDistribution::Bootstrap} invokes #SetComputational on this object.
-     * Note that using code that use this field without having invoked <b>ALIB.init</b> may
-     * behave wrongly.
+     * Function \alib{Bootstrap} invokes #SetComputational on this object.
      *
      * Classes providing functionality based on this class, might use this as a default
      * value for parameters of their interfaces.
@@ -289,65 +356,8 @@ struct TNumberFormat
      *  Defaults to \c '\0' what disables reading and writing of byte group characters.  */
     TChar               OctGroupChar;
 
-
-
-    // ###############################   boolean members  ###################################
-    /**
-     * Denotes if grouping characters are ignored when parsing numbers if they are given
-     * (not set to \c '\0').
-     * This applies to all number types.<br>
-     * Defaults to \c false. If set to \c true, grouping characters are just skipped when
-     * found while parsing numbers, no matter at which position they occur.
-     */
-    bool                ReadGroupChars;
-    /**
-     * Denotes if grouping characters are written if they are given (not set to \c '\0').
-     * This applies to all number types.<br>
-     * Defaults to \c false.
-     */
-    bool                WriteGroupChars;
-
-    /**
-     * If \c true, the decimal point of floating point values is written, even if the fractional
-     * part of the float value is zero. If \c false, in this case the decimal point is omitted.<br>
-     * Defaults to \c true.
-     */
-    bool                ForceDecimalPoint;
-
-    /**
-     * Determines if positive exponent values are prepended with an explicit '+' character when
-     * written using \alib{strings::detail,WriteFloat}.<br>
-     * Defaults to \c false, as some systems will not accept a plus sign on the exponent value.
-     * Note that field #PlusSign is not applicable for exponent numbers.
-     */
-    bool                WriteExponentPlusSign;
-
-
-    /**
-     * If this field is \c true, then trailing \c '0' digits in the fractional part of a floating
-     * point value are not written, even if a #FractionalPartWidth is set.
-     * Defaults to \c false.
-     */
-    bool                OmitTrailingFractionalZeros;
-
-    /**
-     * If \c true, scientific format is always used.<br>
-     * If \c false (the default), function \alib{strings::detail,WriteFloat} writes scientific format only if both fields,
-     * #IntegralPartMinimumWidth and #FractionalPartWidth are evaluating to -1 and only for
-     * numbers smaller than \c 10E-04 or larger than \c 10E+06.<br>
-     *
-     * If one of the fields #IntegralPartMinimumWidth or #FractionalPartWidth is set to a positive
-     * value, these limits get extended. Function \alib{strings::detail,WriteFloat} in this case keeps non-scientific
-     * notation established if possible.
-     */
-    bool                ForceScientific;
-
-    /**
-     * If \c true, lower case letters \c 'a' - \c 'f' are written.
-     * Defaults to \c false, which writes upper case letters \c 'A' - \c 'F'.
-     */
-    bool                HexLowerCase;
-
+    /** The flag field. */
+    NumberFormatFlags   Flags;
 
     // ############################ width members ###############################
     /**
@@ -362,8 +372,8 @@ struct TNumberFormat
      *
      * When either this field or field #FractionalPartWidth is set to a positive value,
      * the limits to switch to scientific notation, which otherwise are fixed \c 10E-04 and
-     * \c 10E+06, get extended. Function \alib{strings::detail,WriteFloat} in this case keeps non-scientific notation
-     * established if possible.
+     * \c 10E+06, get extended. Function \alib{strings::detail,WriteFloat} in this case keeps
+     * non-scientific notation established if possible.
      */
     int8_t              IntegralPartMinimumWidth;
 
@@ -490,12 +500,12 @@ struct TNumberFormat
      * #WriteExponentPlusSign         |  \c false
      * #OmitTrailingFractionalZeros   |  \c false
      * #HexLowerCase                  |  \c false
-     * #Whitespaces                   |  #aworx::DefaultWhitespaces
+     * #Whitespaces                   |  #alib::DefaultWhitespaces
      *
      *
      * \note
      *   With static object
-     *   \ref aworx::lib::strings::TNumberFormat::Computational "TNumberFormat::Computational",
+     *   \ref alib::strings::TNumberFormat::Computational "TNumberFormat::Computational",
      *   there is a global singleton existing which can be used but must not be changed.
      **********************************************************************************************/
     void     SetComputational();
@@ -505,11 +515,9 @@ struct TNumberFormat
      * system locale setting. No other values are changed.
      *
      * \note
-     *   Static (global) object
-     *   \ref aworx::lib::strings::TNumberFormat::Global "TNumberFormat::Global",
-     *   implements an instance which has the right locale set (provided that
-     *   \alib{ALibDistribution::Bootstrap}
-     *   was duly invoked by the process).
+     *   Static (global) object \ref alib::strings::TNumberFormat::Global "TNumberFormat::Global",
+     *   implements an instance which has the right locale set (provided that function
+     *   \alib{Bootstrap} was duly invoked by the process).
      *   Otherwise, this method might be used to initialize a custom object with default values
      *   to afterwards make some specific changes.
      **********************************************************************************************/
@@ -536,12 +544,16 @@ extern template   ALIB_API void   TNumberFormat<xchar>::SetFromLocale   ();
 
 template<typename TChar> TNumberFormat<TChar>   TNumberFormat<TChar>::Global;
 template<typename TChar> TNumberFormat<TChar>   TNumberFormat<TChar>::Computational;
-
 //! @endcond
 
+} // namespace alib::[strings]
 
-}} // namespace aworx::[lib::strings]
+/// Type alias in namespace \b alib.
+using NumberFormatFlags= strings::NumberFormatFlags;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
+#if ALIB_ENUMS
+    ALIB_ENUMS_MAKE_BITWISE(alib::strings::NumberFormatFlags )
+#endif
 #endif // HPP_ALIB_STRINGS_NUMBERFORMAT

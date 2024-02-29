@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_STANDARD_REPOSITORY
@@ -14,8 +14,8 @@
 
 ALIB_ASSERT_MODULE(CONFIGURATION)
 
-#ifndef HPP_ALIB_RESOURCES_RESOURCES
-#    include "alib/resources/resources.hpp"
+#ifndef HPP_ALIB_LANG_RESOURCES_RESOURCES
+#    include "alib/lang/resources/resources.hpp"
 #endif
 
 #ifndef HPP_ALIB_CONFIG_CONFIGURATION
@@ -23,12 +23,12 @@ ALIB_ASSERT_MODULE(CONFIGURATION)
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 /** ************************************************************************************************
  * This is a default implementation of abstract interface \alib{expressions,ExpressionRepository}
  * which retrieves definitions of named expressions using core mechanics of \alib, namely:
- * 1. \ref alib_mod_resources "Static resource data", and
+ * 1. \ref alib_basecamp_resources "Static resource data", and
  * 2. \ref alib_mod_config    "Configuration data".
  **************************************************************************************************/
 class StandardRepository : public  ExpressionRepository
@@ -138,8 +138,6 @@ class StandardRepository : public  ExpressionRepository
                                                 Priorities slot = Priorities::Standard  );
 };
 
-
-
-}}} // namespace [aworx::lib::expressions]
+}} // namespace [alib::expressions]
 
 #endif // HPP_ALIB_EXPRESSIONS_STANDARD_REPOSITORY

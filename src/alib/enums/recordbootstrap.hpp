@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDBOOTSTRAP
@@ -25,12 +25,12 @@ ALIB_ASSERT_MODULE(ENUMS)
 #   include "alib/strings/substring.hpp"
 #endif
 
-#if ALIB_RESOURCES && !defined(HPP_ALIB_RESOURCES_RESOURCES)
-#   include "alib/resources/resources.hpp"
+#if ALIB_CAMP && !defined(HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#   include "alib/lang/resources/resources.hpp"
 #endif
 
-#if ALIB_STRINGS && ALIB_FILESET_MODULES && !defined(HPP_ALIB_FS_MODULES_MODULE)
-#   include "alib/lib/fs_modules/module.hpp"
+#if ALIB_CAMP && !defined(HPP_ALIB_LANG_CAMP)
+#   include "alib/lang/basecamp/camp.hpp"
 #endif
 
 #if ALIB_MONOMEM && !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
@@ -40,7 +40,7 @@ ALIB_ASSERT_MODULE(ENUMS)
 #include <initializer_list>
 
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 #if !defined(ALIB_DOX)
 
@@ -128,14 +128,14 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     }
 #endif
 
-#if ALIB_RESOURCES
+#if ALIB_CAMP
     template<typename TEnum, typename TEnableIf>
     inline
-    void EnumRecords<TEnum, TEnableIf>::Bootstrap( ResourcePool&   pool,
-                                                   const NString&  category,
-                                                   const NString&  name,
-                                                   character       innerDelim,
-                                                   character       outerDelim     )
+    void EnumRecords<TEnum, TEnableIf>::Bootstrap( lang::resources::ResourcePool& pool,
+                                                   const NString&                   category,
+                                                   const NString&                   name,
+                                                   character                        innerDelim,
+                                                   character                        outerDelim     )
     {
         // resources given in the standard, non-indexed way?
         String input= pool.Get( category, name  ALIB_DBG(, false) );
@@ -185,7 +185,7 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
                 {
                     ALIB_ERROR( "ENUMS", NString128()
                        << "Detected a \"gap\" in numbering of enum records for type <"
-                       << DbgTypeDemangler( typeid(TEnum)).Get() << ">: From index "
+                       << lang::DbgTypeDemangler( typeid(TEnum)).Get() << ">: From index "
                        << nr - i - 1 << " to " << nr - 1 << ".\n"
                           " Resource category/name: " << category << '/' << name << "." )
                 }
@@ -207,23 +207,20 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
                     innerDelim, outerDelim                         );
     }
 
-    #if ALIB_FILESET_MODULES
-        template<typename TEnum, typename TEnableIf>
-        inline
-        void EnumRecords<TEnum, TEnableIf>::Bootstrap( Module&        module,
-                                                  const NString& name,
-                                                  character      innerDelim,
-                                                  character      outerDelim   )
-        {
-            Bootstrap( module.GetResourcePool(), module.ResourceCategory, name, innerDelim, outerDelim );
-        }
-    #endif
-#endif
+    template<typename TEnum, typename TEnableIf>
+    inline
+    void EnumRecords<TEnum, TEnableIf>::Bootstrap( lang::Camp&    module,
+                                                   const NString&       name,
+                                                   character            innerDelim,
+                                                   character            outerDelim   )
+    {
+        Bootstrap( module.GetResourcePool(), module.ResourceCategory, name, innerDelim, outerDelim );
+    }
+#endif // ALIB_CAMP
 
 #endif // !defined(ALIB_DOX)
 
-}}} // namespace [aworx::lib::enums]
+}} // namespace [alib::enums]
 
 
 #endif // HPP_ALIB_ENUMS_RECORDBOOTSTRAP
-

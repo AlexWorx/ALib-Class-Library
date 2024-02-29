@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -26,7 +26,7 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace expressions { namespace detail {
+namespace alib {  namespace expressions { namespace detail {
 
 
 
@@ -127,7 +127,7 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
 {
     integer idxInNormalized= normalized.Length();
 
-    auto* func= Value.GetFunction<FToLiteral>( Reach::Local );
+    auto* func= Value.GetFunction<FToLiteral>( lang::Reach::Local );
     if( func )
     {
         Value.CallDirect <FToLiteral>( func, normalized );
@@ -137,19 +137,19 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
         normalized << '"';
         integer startExternalization= normalized.Length();
         normalized << Value;
-        normalized << Format::Escape( Switch::On, startExternalization );
+        normalized << Format::Escape( lang::Switch::On, startExternalization );
         normalized << '"';
     }
     else if( Value.IsType<double>() )
     {
         NumberFormat* nf= &program.compiler.CfgFormatter->DefaultNumberFormat;
-        bool oldState= nf->ForceScientific;
-        nf->ForceScientific=     nf->ForceScientific
-                             ||(   Format == NFHint::Scientific
-                                && HasBits(program.compiler.CfgNormalization, Normalization::KeepScientificFormat ) );
+        auto oldFlags= nf->Flags;
+        if(    Format == NFHint::Scientific
+            && HasBits(program.compiler.CfgNormalization, Normalization::KeepScientificFormat ) )
+            nf->Flags+= NumberFormatFlags::ForceScientific;
 
-        normalized <<   aworx::Format( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
-        nf->ForceScientific=     oldState;
+        normalized <<   alib::Format( Value.Unbox<double>(), &program.compiler.CfgFormatter->DefaultNumberFormat);
+        nf->Flags=     oldFlags;
     }
     else if( Value.IsType<integer>() )
     {
@@ -163,10 +163,10 @@ void ASTLiteral::Assemble( Program& program, MonoAllocator&, AString & normalize
 
         NumberFormat* nf   = &program.compiler.CfgFormatter->DefaultNumberFormat;
         integer     value= Value.Unbox<integer>();
-             if( format == NFHint::Hexadecimal )  normalized << nf->HexLiteralPrefix << aworx::Format::Hex(static_cast<uint64_t>(value), 0, nf );
-        else if( format == NFHint::Octal       )  normalized << nf->OctLiteralPrefix << aworx::Format::Oct(static_cast<uint64_t>(value), 0, nf );
-        else if( format == NFHint::Binary )       normalized << nf->BinLiteralPrefix << aworx::Format::Bin(static_cast<uint64_t>(value), 0, nf );
-        else                                      normalized                         << aworx::Format(value, 0, nf);
+             if( format == NFHint::Hexadecimal )  normalized << nf->HexLiteralPrefix << alib::Format::Hex(static_cast<uint64_t>(value), 0, nf );
+        else if( format == NFHint::Octal       )  normalized << nf->OctLiteralPrefix << alib::Format::Oct(static_cast<uint64_t>(value), 0, nf );
+        else if( format == NFHint::Binary )       normalized << nf->BinLiteralPrefix << alib::Format::Bin(static_cast<uint64_t>(value), 0, nf );
+        else                                      normalized                         << alib::Format(value, 0, nf);
     }
     else
         normalized << Value;
@@ -234,7 +234,7 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
             ++argIt;
             ++argIt;
             if(    (*argIt)->NodeType != Types::Identifier
-                || !dynamic_cast<ASTIdentifier*>( (*argIt) )->Name.Equals<Case::Ignore>(
+                || !dynamic_cast<ASTIdentifier*>( (*argIt) )->Name.Equals<false, lang::Case::Ignore>(
                                              program.compiler.CfgNestedExpressionThrowIdentifier) )
             {
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::NestedExpressionCallArgumentMismatch,
@@ -258,9 +258,10 @@ void ASTFunction::Assemble( Program& program, MonoAllocator& allocator, AString&
                 if(    replacedNestedExpressionIdentifierByLiteral
                     && !HasBits(program.compiler.CfgNormalization, Normalization::QuoteUnaryNestedExpressionOperatorArgument) )
                 {
-                    integer lenBeforeArgument= normalized.Length();
-                    argAst->Assemble( program, allocator, normalized );
-                    normalized.ShortenTo( lenBeforeArgument );
+                    {
+                        ALIB_STRING_RESETTER(normalized);
+                        argAst->Assemble( program, allocator, normalized );
+                    }
                     normalized << dynamic_cast<ASTLiteral*>(argAst)->Value.Unbox<String>();
                     continue;
                 }
@@ -586,13 +587,4 @@ void ASTConditional::Assemble( Program& program, MonoAllocator& allocator, AStri
     program.AssembleCondFinalize_F( Position, idxInNormalized );
 }
 
-
-
-
-
-}}}} // namespace [aworx::lib::expressions::detail]
-
-
-
-
-
+}}} // namespace [alib::expressions::detail]

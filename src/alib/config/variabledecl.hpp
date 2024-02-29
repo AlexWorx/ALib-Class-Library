@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_VARIABLEDECL
@@ -16,13 +16,13 @@
 #   include "alib/enums/bitwise.hpp"
 #endif
 
-#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#   include "alib/resources/resources.hpp"
+#if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#   include "alib/lang/resources/resources.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CONFIGURATION)
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // Forward declarations
 struct VariableDecl;
@@ -51,12 +51,12 @@ enum class FormatHints
  *
  * All fields (except #Delim) support placeholders \c "%1", \c "%2" ... \c "%N", which are
  * replaced with the constructor of class \b %Variable and method
- * \ref aworx::lib::config::Variable::Declare "Variable::Declare".
+ * \ref alib::config::Variable::Declare "Variable::Declare".
  * This allows to define a series of variables whose category, name, description and value is
  * dependent on run-time information.
  *
  * Objects of class \b %Variable can be constructed and existing objects can be reused by invoking
- * \ref aworx::lib::config::Variable::Declare "Variable::Declare". Both, construction and
+ * \ref alib::config::Variable::Declare "Variable::Declare". Both, construction and
  * re-declaration of variables, use objects of this type.
  *
  * While variables can also be declared by setting their attributes "manually", it is recommended
@@ -67,10 +67,10 @@ enum class FormatHints
  * The record associated with an enum element used for construction must be of this type itself!
  * Consequently, equipping enum type \b MyType is performed like this:
  *
- *      ALIB_ENUMS_ASSIGN_RECORD( MyEnum, aworx::lib::config::VariableDecl )
+ *      ALIB_ENUMS_ASSIGN_RECORD( MyEnum, alib::config::VariableDecl )
  *
  * Besides defining the enum record type, a custom enum has to have a specialization of
- * type \alib{resources,T_Resourced}. The reason for this is that enum records of this type
+ * type \alib{lang::resources,T_Resourced}. The reason for this is that enum records of this type
  * do load fields #DefaultValue and #Comments <em>indirectly</em> from resources by
  * adding postfixes <b>_D</b>, respectively <b>_C</b> to the variable's resource name along with
  * the variable's underlying enumeration element's integral value.
@@ -116,7 +116,7 @@ struct VariableDecl : public enums::ERSerializable
 
     /** The value for field \alib{config,Variable::DefaultValue}.
      *  \note
-     *    If TMP struct \alib{resources,T_Resourced} is specialized for an enumeration,
+     *    If TMP struct \alib{lang::resources,T_Resourced} is specialized for an enumeration,
      *    this field is interpreted as a resource name to load the description from.     */
     String      DefaultValue;
 
@@ -131,7 +131,7 @@ struct VariableDecl : public enums::ERSerializable
 
     /** The value for field \alib{config,Variable::Comments}.
      *  \note
-     *    If TMP struct \alib{resources,T_Resourced} is specialized for an enumeration,
+     *    If TMP struct \alib{lang::resources,T_Resourced} is specialized for an enumeration,
      *    this field is interpreted as a resource name to load the description from.     */
     String      Comments;
 
@@ -185,7 +185,7 @@ struct VariableDecl : public enums::ERSerializable
      * \ref alib_enums_records "ALib Enum Records" of this type (\alib{config,VariableDecl}).
      * that contains the declaration data. A copy of the enum record is created.
      *
-     * In the case that a specialization of type \alib{resources,T_Resourced} exists for the given
+     * In the case that a specialization of type \alib{lang::resources,T_Resourced} exists for the given
      * enumeration type, fields #DefaultValue and #Comments are interpreted as a resource name
      * and are loaded from the resource pool specified.
      *
@@ -206,7 +206,7 @@ struct VariableDecl : public enums::ERSerializable
         *this=  enums::GetRecord(declaration);
 
         // try to load default value and comment from resources
-        if ALIB_CONSTEXPR17( T_Resourced<TEnum>::value )
+        if constexpr( T_Resourced<TEnum>::value )
         {
             DefaultValue = NullString();
             NString128 resName;
@@ -226,15 +226,15 @@ struct VariableDecl : public enums::ERSerializable
 #endif
 }; // struct VariableDecl
 
-}} // namespace aworx::[lib::config]
+} // namespace alib::[config]
 
-/// Type alias in namespace #aworx.
-using     VariableDecl=     lib::config::VariableDecl;
+/// Type alias in namespace \b alib.
+using     VariableDecl=     config::VariableDecl;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
-ALIB_ENUMS_MAKE_BITWISE( aworx::lib::config::FormatHints )
+ALIB_ENUMS_MAKE_BITWISE( alib::config::FormatHints )
 
 
 #endif // HPP_ALIB_CONFIG_VARIABLEDECL

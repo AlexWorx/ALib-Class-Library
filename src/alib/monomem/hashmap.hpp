@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHMAP
@@ -16,7 +16,7 @@
     #include "alib/compatibility/std_strings_functional.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 namespace detail {
 /**
@@ -49,9 +49,7 @@ struct HashMapAccess
     }
 };
 
-}// namespace aworx::lib::monomem[::detail]
-
-
+} // namespace alib::monomem[::detail]
 
 /** ************************************************************************************************
  * This type definition is a shortcut to \alib{monomem,HashTable}, usable if the data stored
@@ -79,33 +77,32 @@ struct HashMapAccess
  *                      \alib{monomem,Recycling::Private} (the default),
  *                      \alib{monomem,Recycling::Shared} or \alib{monomem,Recycling::None}.
  **************************************************************************************************/
-template< typename TKey,
-          typename TMapped,
-          typename THash        = std::hash    <TKey>,
-          typename TEqual       = std::equal_to<TKey>,
-          Caching  THashCaching = Caching::Auto,
+template< typename      TKey,
+          typename      TMapped,
+          typename      THash        = std::hash    <TKey>,
+          typename      TEqual       = std::equal_to<TKey>,
+          lang::Caching THashCaching = lang::Caching::Auto,
           typename TRecycling   = Recycling::Private   >
-using HashMap= lib::monomem::HashTable<std::pair<const TKey, TMapped>,
+using HashMap= monomem::HashTable<std::pair<const TKey, TMapped>,
                                        std::pair<      TKey, TMapped>,
                                        TKey, TMapped,
                                        THash,
                                        TEqual,
-                                       lib::monomem::detail::HashMapAccess<TKey, TMapped>,
+                                       monomem::detail::HashMapAccess<TKey, TMapped>,
                                        THashCaching,
                                        TRecycling                                           >;
 
-}}// namespace aworx[::lib::monomem]
+}// namespace alib[::monomem]
 
+/// Type alias in namespace \b alib. See type definition \ref alib::monomem::HashMap.
+template< typename      TKey,
+          typename      TMapped,
+          typename      THash        = std::hash    <TKey>,
+          typename      TEqual       = std::equal_to<TKey>,
+          lang::Caching THashCaching = lang::Caching::Auto,
+          typename TRecycling        = monomem::Recycling::Private >
+using HashMap= monomem::HashMap<TKey, TMapped,THash,TEqual, THashCaching, TRecycling >;
 
-/// Type alias in namespace #aworx. See type definition \ref aworx::lib::monomem::HashMap.
-template< typename TKey,
-          typename TMapped,
-          typename THash             = std::hash    <TKey>,
-          typename TEqual            = std::equal_to<TKey>,
-          lib::Caching  THashCaching = lib::Caching::Auto,
-          typename TRecycling        = lib::monomem::Recycling::Private >
-using HashMap= lib::monomem::HashMap<TKey, TMapped,THash,TEqual, THashCaching, TRecycling >;
-
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_MONOMEM_HASHMAP

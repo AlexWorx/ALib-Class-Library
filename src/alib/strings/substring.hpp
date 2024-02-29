@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_SUBSTRING
@@ -17,7 +17,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /** ************************************************************************************************
  * This class specializes parent class \alib{strings,TString,String} to allow reduction of
@@ -40,9 +40,9 @@ namespace aworx { namespace lib { namespace strings {
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{Substring}, \aworx{NSubstring},
- *   \aworx{WSubstring}, \aworx{XSubstring}, \aworx{ComplementSubstring} and
- *   \aworx{StrangeSubstring}.
+ *   are provided in namespace #alib with type definitions \alib{Substring}, \alib{NSubstring},
+ *   \alib{WSubstring}, \alib{XSubstring}, \alib{ComplementSubstring} and
+ *   \alib{StrangeSubstring}.
  **************************************************************************************************/
 template<typename TChar>
 class TSubstring : public TString<TChar>
@@ -83,7 +83,7 @@ class TSubstring : public TString<TChar>
          * Moves the start to the first character not found in given character set \p{whiteSpaces}.
          *
          * @param whiteSpaces  The characters used for trimming.
-         *                     Defaults to  \ref aworx::DefaultWhitespaces
+         *                     Defaults to  \ref alib::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         TSubstring&  TrimStart( const TCString<TChar>& whiteSpaces
@@ -107,7 +107,7 @@ class TSubstring : public TString<TChar>
          * Moves the start to the first character not found in given character set \p{whiteSpaces}.
          *
          * @param whiteSpaces  The characters used for trimming.
-         *                     Defaults to  \ref aworx::DefaultWhitespaces
+         *                     Defaults to  \ref alib::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         TSubstring&  TrimEnd( const TCString<TChar>& whiteSpaces
@@ -127,7 +127,7 @@ class TSubstring : public TString<TChar>
          * Invokes #TrimStart and #TrimEnd .
          *
          * @param whiteSpaces  The characters used for trimming.
-         *                     Defaults to  \ref aworx::DefaultWhitespaces
+         *                     Defaults to  \ref alib::DefaultWhitespaces
          * @return \c *this to allow concatenated calls.
          ******************************************************************************************/
         TSubstring&  Trim( const TCString<TChar>& whiteSpaces
@@ -136,8 +136,6 @@ class TSubstring : public TString<TChar>
             return   TrimEnd  ( whiteSpaces )
                     .TrimStart( whiteSpaces );
         }
-
-ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
         /** ****************************************************************************************
          * Retrieve and remove the first character from the sub-string.
@@ -151,13 +149,13 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return The character at the start of the represented region.
          *         If this \b %Substring is empty or \e nulled, '\0' is returned.
          ******************************************************************************************/
-        template < bool        TCheck            = true,
-                   Whitespaces TTrimBeforeConsume= Whitespaces::Keep  >
+        template < bool              TCheck            = true,
+                   lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep  >
         TChar       ConsumeChar()
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
-                if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+                if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                     TrimStart();
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
@@ -166,7 +164,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             {
                 ALIB_ASSERT_ERROR( !TString<TChar>::IsEmpty(), "STRINGS",
                                    "Non checking but called on empty string" )
-                if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+                if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                     TrimStart();
             }
 
@@ -188,16 +186,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
-        template< Case        TSensitivity=       Case::Sensitive,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
+        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
         bool        ConsumeChar( TChar   consumable )
 
         {
-            if ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
 
-            if (    ( TSensitivity == Case::Sensitive &&    TString<TChar>::CharAtStart()  !=   consumable  )
-                 || ( TSensitivity == Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtStart())
+            if (    ( TSensitivity == lang::Case::Sensitive &&    TString<TChar>::CharAtStart()  !=   consumable  )
+                 || ( TSensitivity == lang::Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtStart())
                                                          != characters::CharArray<TChar>::ToUpper(consumable) ) )
                 return false;
 
@@ -220,15 +218,15 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut by one.
          ******************************************************************************************/
-        template< Case        TSensitivity=       Case::Sensitive,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep>
+        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep>
         bool        ConsumeCharFromEnd( TChar  consumable )
         {
-            if ( TTrimBeforeConsume == Whitespaces::Trim )
+            if ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimEnd();
 
-            if (    ( TSensitivity == Case::Sensitive &&         TString<TChar>::CharAtEnd()  !=         consumable  )
-                 || ( TSensitivity == Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtEnd())
+            if (    ( TSensitivity == lang::Case::Sensitive &&         TString<TChar>::CharAtEnd()  !=         consumable  )
+                 || ( TSensitivity == lang::Case::Ignore    &&    characters::CharArray<TChar>::ToUpper(TString<TChar>::CharAtEnd())
                                                          != characters::CharArray<TChar>::ToUpper(consumable) ) )
                 return false;
             --TString<TChar>::length;
@@ -248,14 +246,14 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *         If this \b %Substring is empty or \e nulled, '\0' is returned.
          ******************************************************************************************/
         template <bool TCheck= true,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
         TChar     ConsumeCharFromEnd()
         {
-            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+            if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimEnd();
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if( TString<TChar>::IsEmpty() )
                     return '\0';
@@ -290,7 +288,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         integer  ConsumeChars( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -337,7 +335,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         template <bool TCheck= true>
         integer   ConsumeCharsFromEnd( integer regionLength, TSubstring* target= nullptr )
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( regionLength < 0 )
                 {
@@ -386,16 +384,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return The new length of the sub-string.
          ******************************************************************************************/
-        template <bool         TCheck           = true,
-                  CurrentData  TTargetData      = CurrentData::Clear>
+        template <bool               TCheck           = true,
+                  lang::CurrentData  TTargetData      = lang::CurrentData::Clear>
         integer ConsumeChars( integer           regionLength,
                               TAString<TChar>&  target,
                               integer           separatorWidth   =0         )
         {
-            if ALIB_CONSTEXPR17 ( TTargetData == CurrentData::Clear  )
+            if constexpr ( TTargetData == lang::CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( separatorWidth < 0 )
                     separatorWidth= 0;
@@ -458,7 +456,7 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                               TString<TChar>&  target,
                               integer          separatorWidth   =0         )
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( separatorWidth < 0 )
                     separatorWidth= 0;
@@ -515,16 +513,16 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *
          * @return The new length of the sub-string.
          ******************************************************************************************/
-        template <bool            TCheck           = true,
-                  CurrentData     TTargetData      = CurrentData::Clear>
+        template <bool               TCheck           = true,
+                  lang::CurrentData  TTargetData      = lang::CurrentData::Clear>
         integer ConsumeCharsFromEnd( integer             regionLength,
                                      AString&            target,
                                      integer             separatorWidth   =0      )
         {
-            if ALIB_CONSTEXPR17 ( TTargetData == CurrentData::Clear  )
+            if constexpr ( TTargetData == lang::CurrentData::Clear  )
                 target.Reset();
 
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 if ( separatorWidth < 0 )                        separatorWidth= 0;
                 if ( regionLength   < 0 )                        return  TString<TChar>::length;
@@ -587,11 +585,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
-        template< Case        TSensitivity=       Case::Sensitive,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
         bool        ConsumeString( const TString<TChar>&     consumable  )
         {
-            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+            if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
 
             if ( !TString<TChar>::template StartsWith<true,TSensitivity>( consumable ) )
@@ -616,11 +614,11 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @return \c true, if this object was starting with \p{consumable} and consequently the
          *         string was cut.
          ******************************************************************************************/
-        template< Case        TSensitivity=       Case::Sensitive,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+        template< lang::Case        TSensitivity=       lang::Case::Sensitive,
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
         bool        ConsumeStringFromEnd( const TString<TChar>&  consumable )
         {
-            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+            if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimEnd();
 
             if ( !TString<TChar>::template EndsWith<true,TSensitivity>( consumable ) )
@@ -649,12 +647,12 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          *                            Optional and defaults to \c 1.
          * @return The amount of characters consumed.
          ******************************************************************************************/
-        template< Case        TSensitivity=       Case::Ignore,
-                  Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+        template< lang::Case        TSensitivity=       lang::Case::Ignore,
+                  lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
         integer    ConsumePartOf(  const TString<TChar>&     consumable,
                                    int                       minChars           = 1 )
         {
-            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+            if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
             if ( minChars <= 0 )
                 minChars= static_cast<int>( consumable.Length() );
@@ -682,10 +680,10 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
          * @param  endChar    The end character of the field to consume.
          * @return The string consumed. \b NullString on error (start/end character not found)
          ******************************************************************************************/
-        template< Whitespaces TTrimBeforeConsume= Whitespaces::Keep >
+        template< lang::Whitespaces TTrimBeforeConsume= lang::Whitespaces::Keep >
         TString<TChar>  ConsumeField( TChar startChar, TChar endChar  )
         {
-            if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+            if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
                 TrimStart();
 
             integer endIdx;
@@ -701,9 +699,6 @@ ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
             ALIB_WARNINGS_RESTORE
             return result;
         }
-
-
-ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
 
 
         #if defined(ALIB_DOX)
@@ -948,7 +943,7 @@ ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
                            bool trim= false )
 
         {
-            if ALIB_CONSTEXPR17 ( TCheck )
+            if constexpr ( TCheck )
             {
                 TString<TChar>::AdjustRegion( position, separatorWidth );
             }
@@ -1055,23 +1050,20 @@ extern template ALIB_API bool TSubstring<xchar>::consumeBinImpl      ( uint64_t&
 extern template ALIB_API bool TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberFormat<xchar>* );
 extern template ALIB_API bool TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
-}} // namespace aworx::[lib::strings]
+} // namespace alib::[strings]
 
-/// Type alias in namespace #aworx.
-using     Substring  =    lib::strings::TSubstring<character>;
+/// Type alias in namespace \b alib.
+using     Substring  =    strings::TSubstring<character>;
 
-/// Type alias in namespace #aworx.
-using     NSubstring =    lib::strings::TSubstring<nchar>;
+/// Type alias in namespace \b alib.
+using     NSubstring =    strings::TSubstring<nchar>;
 
-/// Type alias in namespace #aworx.
-using     WSubstring =    lib::strings::TSubstring<wchar>;
+/// Type alias in namespace \b alib.
+using     WSubstring =    strings::TSubstring<wchar>;
 
-/// Type alias in namespace #aworx.
-using     XSubstring =    lib::strings::TSubstring<xchar>;
+/// Type alias in namespace \b alib.
+using     XSubstring =    strings::TSubstring<xchar>;
 
-} // namespace aworx
+} // namespace [alib]
 
 #endif // HPP_ALIB_STRINGS_SUBSTRING
-
-
-

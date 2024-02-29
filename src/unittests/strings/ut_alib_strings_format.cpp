@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -23,18 +23,18 @@
 #if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
     #include "alib/strings/numberformat.hpp"
 #endif
-#if ALIB_SYSTEM
-#   include "alib/system/calendar.hpp"
+#if ALIB_CAMP
+#   include "alib/lang/system/calendar.hpp"
 #endif
 
-#if !defined(HPP_ALIB_TEXT_FORMATTER_PYTHONSTYLE)
-#   include "alib/text/formatterpythonstyle.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER_PYTHONSTYLE)
+#   include "alib/lang/format/formatterpythonstyle.hpp"
 #endif
-#if !defined(HPP_ALIB_TEXT_FORMATTER_JAVASTYLE)
-#   include "alib/text/formatterjavastyle.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER_JAVASTYLE)
+#   include "alib/lang/format/formatterjavastyle.hpp"
 #endif
-#if !defined(HPP_ALIB_TEXT_TEXT)
-#   include "alib/text/text.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
+#   include "alib/lang/format/fmtexceptions.hpp"
 #endif
 
 #if ALIB_ALOX
@@ -54,8 +54,8 @@
 
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib::text;
+using namespace alib;
+using namespace alib::lang::format;
 
 namespace ut_aworx {
 
@@ -122,7 +122,7 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         NumberFormat numberFormat;
         numberFormat.SetComputational();
         numberFormat.ThousandsGroupChar=   ',';
-        numberFormat.ReadGroupChars=       true;
+        numberFormat.Flags+= NumberFormatFlags::ReadGroupChars;
         as.Reset( "123,456,789");   UT_EQ( 123456789L,  as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
         as.Reset( "  1,2,3"    );   UT_EQ( 123L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
         as.Reset( " +1,2,,4"   );   UT_EQ( 124L,        as.ParseInt( 0, &numberFormat, &pos ) ) UT_EQ(  0 + as.Length() , pos )
@@ -138,7 +138,7 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         uint32_t ui;
         int32_t   i;
         NumberFormat* nf=  &NumberFormat::Computational;
-        NumberFormat  nfG; nfG.WriteGroupChars= true;
+        NumberFormat  nfG; nfG.Flags+= NumberFormatFlags::WriteGroupChars;
 
         ms._(); ui= 0;       ms._( ui    );                UT_EQ(      A_CHAR("0"), ms )
         ms._(); ui= 0;       ms._( Format( ui, 1 ,nf) );   UT_EQ(      A_CHAR("0"), ms )
@@ -175,7 +175,7 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         uint64_t ui;
         int64_t   i;
         NumberFormat* nf= &NumberFormat::Computational;
-        NumberFormat  nfG; nfG.WriteGroupChars= true;
+        NumberFormat  nfG; nfG.Flags+= NumberFormatFlags::WriteGroupChars;
 
         ui= 0;       ms.Reset( ui );                   UT_EQ(      A_CHAR("0"), ms )
         ui= 0;       ms.Reset( Format( ui, 1  ,nf ));  UT_EQ(      A_CHAR("0"), ms )
@@ -216,7 +216,7 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
     {
         AString ms;
         int32_t   i;
-        NumberFormat nf; nf.WriteGroupChars= true;
+        NumberFormat nf; nf.Flags+= NumberFormatFlags::WriteGroupChars;
         i= 49;                            ms.Reset( i );                  UT_EQ(     A_CHAR("49"), ms )
         i= 49;      nf.PlusSign=' '; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR(" 49"), ms )
         i= 49;      nf.PlusSign='+'; ms.Reset( Format ( i, -1, &nf  ) );  UT_EQ(    A_CHAR("+49"), ms )
@@ -229,7 +229,7 @@ ut.EQ( __FILE__, __LINE__,  0,  as.ParseInt()   );
         AString ms;
         int64_t   i;
         int64_t   ui;
-        NumberFormat nf; nf.WriteGroupChars= true;
+        NumberFormat nf; nf.Flags+= NumberFormatFlags::WriteGroupChars;
         int w;
 
         w=  3; ms._(); ui=              100;      ms._( Format( ui , w, &nf  ) );   UT_EQ(                A_CHAR("100"),  ms )  UT_EQ( w, ms.Length() )
@@ -513,7 +513,10 @@ void floatTest( AWorxUnitTesting& ut, double d, character decimalPoint, int8_t m
 {
     String64 ms;
     NumberFormat nf;
-    nf.ForceScientific=   forceScientifc;
+    if(forceScientifc)
+        nf.Flags+= NumberFormatFlags::ForceScientific;
+    else
+        nf.Flags-= NumberFormatFlags::ForceScientific;
     nf.IntegralPartMinimumWidth=  minDigitsBeforeDot;
     nf.FractionalPartWidth=   digitsAfterDot;
 
@@ -550,7 +553,7 @@ void floatTest( AWorxUnitTesting& ut, double d, character decimalPoint, int8_t m
     }
     #endif
 
-    // check with aworx parsing
+    // check with alib parsing
     double dALib= ms.ParseFloat(&nf);
     UT_NEAR( d, dALib, precision )
 }
@@ -1038,8 +1041,8 @@ UT_METHOD( FormatterJavaStyle )
     UT_INIT()
     UT_PRINT(  "ALib Format Tests Java Style: Start" )
 
-    aworx::FormatterJavaStyle          formatterJS;
-    formatterJS.Next.reset( new aworx::FormatterPythonStyle() );
+    alib::FormatterJavaStyle          formatterJS;
+    formatterJS.Next.reset( new alib::FormatterPythonStyle() );
     testFormatter= &formatterJS;
     testFormatter->Acquire(ALIB_CALLER_PRUNED);
 
@@ -1050,24 +1053,24 @@ UT_METHOD( FormatterJavaStyle )
     nfBackup.Set( &formatterJS.DefaultNumberFormat );
 
     //===== Simple initial tests =========
-    checkError (ut, Exceptions::IncompatibleTypeCode     , "FLoat as int: %d", 3.1    );
+    checkError (ut, FMTExceptions::IncompatibleTypeCode     , "FLoat as int: %d", 3.1    );
 
     checkFormat(ut,   "No JSF"                           , ""               , "No JSF"        );
     checkFormat(ut, "%%No JSF"                           , "%%"             , "No JSF"        );
-    checkError (ut, Exceptions::UnknownConversionJS      , "% %"            , "Hello JSF"     );
-    checkError (ut, Exceptions::UnknownConversionJS      , "%U"             , "Hello JSF"     );
-    checkError (ut, Exceptions::ArgumentIndexIs0         , "Test %0$d %d %d", 1,2,3 );
-    checkError (ut, Exceptions::ArgumentIndexOutOfBounds , "Test %4$d %d %d", 1,2,3 );
+    checkError (ut, FMTExceptions::UnknownConversionJS      , "% %"            , "Hello JSF"     );
+    checkError (ut, FMTExceptions::UnknownConversionJS      , "%U"             , "Hello JSF"     );
+    checkError (ut, FMTExceptions::ArgumentIndexIs0         , "Test %0$d %d %d", 1,2,3 );
+    checkError (ut, FMTExceptions::ArgumentIndexOutOfBounds , "Test %4$d %d %d", 1,2,3 );
     checkFormat(ut, "Test 3 1 2"                         , "Test %3$d %d %d", 1,2,3 );
     checkFormat(ut, "Test 2 1 23"                        , "Test %2$d %d %d", 1,2,3 );
     checkFormat(ut, "Test 1 1 23"                        , "Test %1$d %d %d", 1,2,3 );
-    checkError (ut, Exceptions::ArgumentIndexOutOfBounds , "Test %d %d %d"  , 1,2 );
+    checkError (ut, FMTExceptions::ArgumentIndexOutOfBounds , "Test %d %d %d"  , 1,2 );
 
     checkFormat(ut, "Hello JSF"                          , "%1$s"           , "Hello JSF"     );
     checkFormat(ut, "Hello JSF"                          , "%1$s %2$s"      , "Hello", "JSF"  );
     checkFormat(ut, "Hello HelloJSF"                     , "%1$s %1$s"      , "Hello", "JSF"  );
     checkFormat(ut, "JSF Hello"                          , "%2$s %1$s"      , "Hello", "JSF"  );
-    checkError (ut,  Exceptions::MissingPrecisionValueJS , "%.s"            , "x"             );
+    checkError (ut,  FMTExceptions::MissingPrecisionValueJS , "%.s"            , "x"             );
 
     //===== replace %% and new line =========
     checkFormat(ut, "repl. percents% X"   , "repl. percents%% %s"              , "X" );
@@ -1127,12 +1130,12 @@ UT_METHOD( FormatterJavaStyle )
 
     //===== Hash code 'h'/'H' =========
     NAString tExpect;
-    tExpect._() << lib::strings::TFormat<char>::Hex(reinterpret_cast<uinteger>( &formatterJS ) ) ;
+    tExpect._() << strings::TFormat<char>::Hex(reinterpret_cast<uinteger>( &formatterJS ) ) ;
     checkFormat(ut, tExpect.ToLower()         , "%h" , reinterpret_cast<uinteger>( &formatterJS )  );
     checkFormat(ut, tExpect.ToUpper()         , "%H" , reinterpret_cast<uinteger>( &formatterJS )  );
 
     //===== Date/Time 't'/'T' =========
-#if ALIB_SYSTEM
+#if ALIB_CAMP
     CalendarDateTime ctAM;
     ctAM.Year     = 2015;
     ctAM.Day      =    3;
@@ -1152,8 +1155,8 @@ UT_METHOD( FormatterJavaStyle )
     DateTime dateTimePM( ctPM.Get() );
 #endif
 
-#if ALIB_SYSTEM
-    checkError (ut, Exceptions::UnknownDateTimeConversionSuffix, "Test %tX"     , dateTimeAM );
+#if ALIB_CAMP
+    checkError (ut, FMTExceptions::UnknownDateTimeConversionSuffix, "Test %tX"     , dateTimeAM );
 
     checkFormat(ut,  "05"                         , "%tH"         ,dateTimeAM );
     checkFormat(ut,  "14"                         , "%tH"         ,dateTimePM );
@@ -1209,12 +1212,12 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut,  "    x"                    , "%5c"          , 'x'    );
 
     // errors
-    checkError (ut, Exceptions::NoPrecisionWithConversion    , "%5.2c"   , 'x' );
-    checkError (ut, Exceptions::NoAlternateFormOfConversion  , "%#c"     , 'x' );
+    checkError (ut, FMTExceptions::NoPrecisionWithConversion    , "%5.2c"   , 'x' );
+    checkError (ut, FMTExceptions::NoAlternateFormOfConversion  , "%#c"     , 'x' );
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
     // wchar (test this only if the LOCALE was properly set)
-    if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+    if(BASECAMP.LocaleFound.IsNotNull() && BASECAMP.LocaleFound.IndexOf<false, lang::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
     {
         checkFormat(ut,  NString64()._(L"\u03B1")      , "%c"         , L'\u03B1'    ); //greek alpha
         checkFormat(ut,  NString64()._(L"    \u03B1")  , "%5c"        , L'\u03B1'    ); //greek alpha
@@ -1295,14 +1298,14 @@ UT_METHOD( FormatterJavaStyle )
     checkFormat(ut,  " 01"                 , "% 03d"          ,  1    );
     checkFormat(ut,  "-01"                 , "% 03d"          , -1    );
 
-    checkError (ut, Exceptions::NegativeValuesInBracketsNotSupported  , "No negative: %(d"     , -1 );
+    checkError (ut, FMTExceptions::NegativeValuesInBracketsNotSupported  , "No negative: %(d"     , -1 );
 
 
 
 
     //========================================= Floats =============================================
     // mixed tests
-    checkError (ut,  Exceptions::HexadecimalFloatFormatNotSupported, "Hex float: %a"      , 0.0  );
+    checkError (ut,  FMTExceptions::HexadecimalFloatFormatNotSupported, "Hex float: %a"      , 0.0  );
     checkFormat(ut,                     "0.0", "%s"                 , 0.0          ) ;
     checkFormat(ut,      "0.3333333333333333", "%s"                 , 1.0/3.0      ) ;
     checkFormat(ut,       "3.333333333333334", "%s"                 , 10.0/3.0     ) ;
@@ -1610,8 +1613,8 @@ UT_METHOD( FormatterPythonStyle )
     UT_INIT()
     UT_PRINT( "ALib Format Tests Python Style: Start" )
 
-    aworx::FormatterPythonStyle formatterPS;
-    formatterPS.Next.reset( new aworx::FormatterJavaStyle() );
+    alib::FormatterPythonStyle formatterPS;
+    formatterPS.Next.reset( new alib::FormatterJavaStyle() );
     testFormatter= &formatterPS;
     testFormatter->Acquire(ALIB_CALLER_PRUNED);
 
@@ -1728,7 +1731,7 @@ UT_METHOD( FormatterPythonStyle )
     // checkFormat(ut,  "0xFF"            , "{:#H}"                   , 255);
 
     //===== DateTime/calendar =========
-#if ALIB_SYSTEM
+#if ALIB_CAMP
     CalendarDateTime ct;
     ct.Year     = 2016;
     ct.Day      =    5;
@@ -1769,32 +1772,33 @@ UT_METHOD( FormatterPythonStyle )
 
     //======================================= Errors ===========================================
 
-    checkError (ut,  Exceptions::DuplicateTypeCode         , "{:df}"             , 'x'  );
-    checkError (ut,  Exceptions::DuplicateTypeCode         , "{:dfdf}"           , 'x'  );
-    checkError (ut,  Exceptions::IncompatibleTypeCode      , "{:f}"              , 'x'  );
-    checkError (ut,  Exceptions::ArgumentIndexOutOfBounds  , "{}{}"              , 'x'  );
-    checkError (ut,  Exceptions::ArgumentIndexOutOfBounds  , "{2}"               , 'x'  );
-    checkError (ut,  Exceptions::ArgumentIndexOutOfBounds  , "{1}"               , 'x'  );
+    checkError (ut,  FMTExceptions::DuplicateTypeCode         , "{:df}"             , 'x'  );
+    checkError (ut,  FMTExceptions::DuplicateTypeCode         , "{:dfdf}"           , 'x'  );
+    checkError (ut,  FMTExceptions::IncompatibleTypeCode      , "{:f}"              , 'x'  );
+    checkError (ut,  FMTExceptions::ArgumentIndexOutOfBounds  , "{}{}"              , 'x'  );
+    checkError (ut,  FMTExceptions::ArgumentIndexOutOfBounds  , "{2}"               , 'x'  );
+    checkError (ut,  FMTExceptions::ArgumentIndexOutOfBounds  , "{1}"               , 'x'  );
     checkFormat(ut,  "x"                                   , "{0}"               , 'x'  );
-    checkError (ut,  Exceptions::MissingClosingBracket     , "abc {-1}"          , 'x'  );
-    checkError (ut,  Exceptions::MissingClosingBracket     , "abc {"             , 'x'  );
-    checkError (ut,  Exceptions::MissingClosingBracket     , "abc {!Q:<"         , 'x'  );
-    checkError (ut,  Exceptions::UnknownConversionPS       , "abc {!P}"          , 'x'  );
-    checkError (ut,  Exceptions::ExclamationMarkExpected   , "abc {!Qack}"       , 'x'  );
-    checkError (ut,  Exceptions::ExclamationMarkExpected   , "abc {!Quo!UppR}"   , 'x'  );
+    checkError (ut,  FMTExceptions::MissingClosingBracket     , "abc {-1}"          , 'x'  );
+    checkError (ut,  FMTExceptions::MissingClosingBracket     , "abc {"             , 'x'  );
+    checkError (ut,  FMTExceptions::MissingClosingBracket     , "abc {!Q:<"         , 'x'  );
+    checkError (ut,  FMTExceptions::UnknownConversionPS       , "abc {!P}"          , 'x'  );
+    checkError (ut,  FMTExceptions::ExclamationMarkExpected   , "abc {!Qack}"       , 'x'  );
+    checkError (ut,  FMTExceptions::ExclamationMarkExpected   , "abc {!Quo!UppR}"   , 'x'  );
 
-    checkError (ut,  Exceptions::UnknownTypeCode           , "abc {:t}"          , 'x'  );
-    checkError (ut,  Exceptions::UnknownTypeCode           , "abc {:<.5t}"       , 'x'  );
+    checkError (ut,  FMTExceptions::UnknownTypeCode           , "abc {:t}"          , 'x'  );
+    checkError (ut,  FMTExceptions::UnknownTypeCode           , "abc {:<.5t}"       , 'x'  );
 
-    checkError (ut,  Exceptions::MissingPrecisionValuePS   , "abc {:<.g}"       , 3.154  );
-    checkError (ut,  Exceptions::MissingPrecisionValuePS   , "abc {:-.<g}"      , 3.154  );
+    checkError (ut,  FMTExceptions::MissingPrecisionValuePS   , "abc {:<.g}"       , 3.154  );
+    checkError (ut,  FMTExceptions::MissingPrecisionValuePS   , "abc {:-.<g}"      , 3.154  );
 
 
     //======================================= Characters ===========================================
 
     // wchar (test this only if the LOCALE was properly set)
-    #if ALIB_SYSTEM
-        if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+    #if ALIB_CAMP
+        if(    BASECAMP.LocaleFound.IsNotNull()
+            && BASECAMP.LocaleFound.IndexOf<false, lang::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
         {
             checkFormat(ut,  "x"                         , "{}"           , 'x'          );
             checkFormat(ut,  "x    "                     , "{:5c}"        , 'x'          );
@@ -1810,7 +1814,6 @@ UT_METHOD( FormatterPythonStyle )
     checkFormat(ut,  "#x  #"                     , "#{:<3}#"      , 'x'          );
     checkFormat(ut,  "# x #"                     , "#{:^3}#"      , 'x'          );
     checkFormat(ut,  "#  x#"                     , "#{:>3}#"      , 'x'          );
-
 
 
     //======================================= Strings ===========================================
@@ -1945,8 +1948,8 @@ UT_METHOD( FormatterPythonStyle )
     checkFormat(ut,   " 01"                 , "{:03 }"          ,  1    );
     checkFormat(ut,   "-01"                 , "{:03 }"          , -1    );
 
-    checkError (ut,  Exceptions::PrecisionSpecificationWithInteger, "Test {:.3}"    ,  123456);
-    checkError (ut,  Exceptions::PrecisionSpecificationWithInteger, "Test {!Q:.3}"  ,  123456);
+    checkError (ut,  FMTExceptions::PrecisionSpecificationWithInteger, "Test {:.3}"    ,  123456);
+    checkError (ut,  FMTExceptions::PrecisionSpecificationWithInteger, "Test {!Q:.3}"  ,  123456);
 
 
     //======================================= Binary ===========================================
@@ -2069,7 +2072,7 @@ UT_METHOD( FormatterPythonStyle )
     formatterPS.DefaultNumberFormat.HexByteGroupChar=     '\0';
     checkFormat(ut,  "FF#1122-3344", "{:X,}"                , 0xFF11223344  );
     formatterPS.DefaultNumberFormat.SetComputational();
-    formatterPS.DefaultNumberFormat.WriteExponentPlusSign= true;
+    formatterPS.DefaultNumberFormat.Flags+= NumberFormatFlags::WriteExponentPlusSign;
 
 
 

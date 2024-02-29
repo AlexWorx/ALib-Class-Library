@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_LOX
@@ -16,9 +16,11 @@
     #include "alib/enums/bitwise.hpp"
 #endif
 
+#include "alib/lang/platformincludes.hpp"
 
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+
+namespace alib {  namespace lox { namespace detail {
 
     class Logger;
 
@@ -26,7 +28,7 @@ namespace aworx { namespace lib { namespace lox { namespace detail {
     {
         class TextLogger;
     }
-} // namespace aworx::lib::lox[::detail]
+} // namespace alib::lox[::detail]
 
 
 
@@ -56,13 +58,13 @@ enum class StateInfo
    All                      = ~0L,
 };
 
-}}}
+}} // namespace [alib::lox]
 
-ALIB_ENUMS_ASSIGN_RECORD( aworx::lib::lox::StateInfo, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( alib::lox::StateInfo, alib::enums::ERSerializable )
 
 #include "alib/alox/detail/loxpimpl.inl"
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 /** ************************************************************************************************
  * This class acts as a container for \e Loggers and provides a convenient interface to logging.
@@ -77,7 +79,7 @@ namespace aworx { namespace lib { namespace lox {
  * While other \alox implementations, like ALox for C# or ALox for Java use the 'run-time type
  * information' feature of their underlying programming language to identify any object type,
  * in the C++ version
- * \ref aworx::lib::boxing "%ALib Boxing" is used to be able to log arbitrary object types.
+ * \ref alib::boxing "%ALib Boxing" is used to be able to log arbitrary object types.
  **************************************************************************************************/
 class Lox
 {
@@ -132,14 +134,14 @@ class Lox
          * In addition, name \c "GLOBAL" is not allowed.
          *
          * If parameter \p{register} is \c true (the default), static method
-         * \ref aworx::lib::lox::ALox::Register "ALox::Register" is invoked and the object will be
+         * \ref alib::lox::ALox::Register "ALox::Register" is invoked and the object will be
          * retrievable with static method
-         * \ref aworx::lib::lox::ALox::Get "ALox::Get". In some situations, such 'registration'
+         * \ref alib::lox::ALox::Get "ALox::Get". In some situations, such 'registration'
          * may not be wanted.
          *
          * @param name       The name of the Lox. Will be copied and converted to upper case.
          * @param doRegister If \c true, this object is registered with static class
-         *                   \ref aworx::lib::lox::ALox "ALox".
+         *                   \ref alib::lox::ALox "ALox".
          *                   Optional and defaults to \c true.
          ******************************************************************************************/
         Lox(const NString& name, bool doRegister =true )
@@ -288,14 +290,14 @@ class Lox
          *                        or applies to all instances of class \b %Lox.
          *                        Defaults to \b %Reach::Global.
          * @param priority        The priority of the setting. Defaults to
-         *                        \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+         *                        \ref alib::config::Priorities "Priorities::DefaultValues".
          ******************************************************************************************/
         void      SetSourcePathTrimRule( const NCString& path,
-                                         Inclusion       includeString   = Inclusion::Exclude,
+                                         lang::Inclusion includeString   = lang::Inclusion::Exclude,
                                          int             trimOffset      = 0,
-                                         Case            sensitivity     = Case::Ignore,
+                                         lang::Case      sensitivity     = lang::Case::Ignore,
                                          const NString&  trimReplacement = NullNString(),
-                                         Reach           reach           = Reach::Global,
+                                         lang::Reach     reach           = lang::Reach::Global,
                                          Priorities      priority        = Priorities::DefaultValues )
 
         {
@@ -312,34 +314,32 @@ class Lox
          * Setting parameter \p{allowAutoRule} to \c false, allows to suppress the creation of an
          * automatic rule based on the executables path.
          *
-         * \see \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}
-         *      for more information.
+         * \see Chapter \ref alox_man_trim_source_path for more information.
          *
          * @param reach         Denotes whether only local rules are cleared or also global ones.
          *                      Defaults to \b %Reach::Global.
          * @param allowAutoRule Determines if an auto rule should be tried to be detected next
          *                      no appropriate rule is found.
          ******************************************************************************************/
-        void      ClearSourcePathTrimRules( Reach       reach           = Reach::Global,
+        void      ClearSourcePathTrimRules( lang::Reach reach           = lang::Reach::Global,
                                             bool        allowAutoRule   = true                  )
         {
-            detail::LI::SetSourcePathTrimRule( impl, nullptr, allowAutoRule ? Inclusion::Include
-                                                                    : Inclusion::Exclude,
+            detail::LI::SetSourcePathTrimRule( impl, nullptr, allowAutoRule ? lang::Inclusion::Include
+                                                                            : lang::Inclusion::Exclude,
                                              999999, // code for clearing
-                                             Case::Ignore, NullNString(), reach, Priorities::NONE  );
+                                             lang::Case::Ignore, NullNString(), reach, Priorities::NONE  );
         }
 
         /** ****************************************************************************************
          * This static method creates a console logger. To decide which logger type to choose,
-         * configuration variable
-         * \https{ALOX_CONSOLE_TYPE,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}
-         * is checked. If this variable is not set, then the decision is made as follows:
+         * configuration variable \ref ALOX_CONSOLE_TYPE is checked. If this variable is not set,
+         * then the decision is made as follows:
          * - On GNU/Linux OS, a
-         *   \ref aworx::lib::lox::loggers::AnsiConsoleLogger "AnsiConsoleLogger" is chosen.
+         *   \ref alib::lox::loggers::AnsiConsoleLogger "AnsiConsoleLogger" is chosen.
          * - On Windows OS, if a console window is attached, type
-         *   \ref aworx::lib::lox::loggers::WindowsConsoleLogger "WindowsConsoleLogger" is chosen. If
+         *   \ref alib::lox::loggers::WindowsConsoleLogger "WindowsConsoleLogger" is chosen. If
          *   no console is attached to the process, instead a
-         *   \ref aworx::lib::lox::loggers::ConsoleLogger "ConsoleLogger" is returned.
+         *   \ref alib::lox::loggers::ConsoleLogger "ConsoleLogger" is returned.
          *
          *
          * @param name The name of the \e Logger. Defaults to nullptr, which implies standard
@@ -407,7 +407,7 @@ class Lox
          * \b %Verbosity::Off and \p{domain} to \c "/".
          *
          * Optional parameter \p{priority} defaults to
-         * \ref aworx::lib::config::Priorities "Priorities::DefaultValues",
+         * \ref alib::config::Priorities "Priorities::DefaultValues",
          * which is a lower priority than those of the standard plug-ins of external configuration
          * data. Therefore, external configuration by default 'overwrite' settings made from
          * 'within the source code', which simply means by invoking this method.<br>
@@ -419,8 +419,7 @@ class Lox
          *   by future invocations of this method with standard-priority given.
          *
          * For more information on how to use external configuration variables with priority and
-         * on protecting verbosity settings, consult the
-         * \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}.
+         * on protecting verbosity settings, consult the \ref alib_mod_alox.
          *
          * \attention
          *   The same as with most interface methods of this class, the given \p{domain} parameter is
@@ -450,7 +449,7 @@ class Lox
          *                   starting with <c> '/'</c> are recommended.
          *                   Defaults to root domain \"/\".
          * @param priority   The priority of the setting. Defaults to
-         *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+         *                   \ref alib::config::Priorities "Priorities::DefaultValues".
          ******************************************************************************************/
         void            SetVerbosity( detail::Logger*  logger,
                                       Verbosity        verbosity,
@@ -473,7 +472,7 @@ class Lox
          *                   starting with <c> '/'</c> are recommended.
          *                   Defaults to root domain \"/\".
          * @param priority   The priority of the setting. Defaults to
-         *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+         *                   \ref alib::config::Priorities "Priorities::DefaultValues".
          ******************************************************************************************/
         void            SetVerbosity( const NString&   loggerName,
                                       Verbosity        verbosity,
@@ -588,8 +587,8 @@ class Lox
          * be \e overwritten using further configuration variables.
          * Any prioritized \e 'internal' setting of \e Verbosities this way could be circumvented!
          *
-         * For more information consult the
-         * \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/alox_man_domain_substitution.html}.
+         * For more information consult the chapter \ref alox_man_domain_substitution of the
+         * Programmer's Manual.
          *
          * @param domainPath  The path to search. Has to start with either  <c> '/'</c> or <c> '*'</c>.
          * @param replacement The replacement path.
@@ -654,8 +653,8 @@ class Lox
          *   objects got set as a <em>Prefix Logable</em>, are \b not reflected.<br>
          *   To implement a "variable" <em>Prefix Logable</em> of string-type, an object of type
          *   \b %AString might be passed wrapped in class \c std::reference_wrapper<AString>.<br>
-         *   For more information consult the
-         *   \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/alox_man_prefix_logables.html#alox_man_prefix_logables_cppspecifics}.
+         *   For more information consult manual chapter
+         *   \ref alox_man_prefix_logables_lifecycle
          *   as well as chapter \ref alib_boxing_customizing_identity of the Programmer's Manual
          *   of module \alib_boxing.
          *<p>
@@ -663,7 +662,7 @@ class Lox
          *   Unlike other methods of this class which accept an arbitrary amount of logables, this
          *   method and its overloaded variants accept only one logable (the prefix).
          *   To supply several objects to be prefix logables at once, a container of type
-         *   \ref aworx::lib::boxing::Boxes "Boxes" may be passed with parameter \p{logables}, like
+         *   \ref alib::boxing::Boxes "Boxes" may be passed with parameter \p{logables}, like
          *   in the following sample:
          *   \snippet "ut_alox_log_scopes.cpp"      DOX_ALOX_LOX_SETPREFIX
          *   The provided container as well as the prefixes themselves have to be kept in memory
@@ -730,26 +729,29 @@ class Lox
          *   <em>Prefix Logables</em>.
          *   This means, different to <em>Prefix Logables</em> of type \b %AString or custom types,
          *   the life-cycle of the object passed in parameter \p{prefix} is allowed to end
-         *   right after the invocation of this method.
+         *   right after the invocation of this method. For more information consult manual chapter
+         *   \ref alox_man_prefix_logables_lifecycle as well as chapter
+         *   \ref alib_boxing_customizing_identity of the Programmer's Manual of module
+         *   \alib_boxing.
          *
          * \attention
-         *   The same as with most interface methods of this class, the given \p{domain} parameter is
-         *   combined with <em>%Scope Domains</em> set for the caller's \e %Scope.
-         *   To suppress this, an absolute domain path can be used. (Still any <em>Scope Domain</em> of
-         *   \e %Scope::Thread::Inner will be applied).
+         *   The same as with most interface methods of this class, the given \p{domain} parameter
+         *   is combined with <em>%Scope Domains</em> set for the caller's \e %Scope.
+         *   To suppress this, an absolute domain path can be used. (Still any <em>Scope Domain</em>
+         *   of \e %Scope::Thread::Inner will be applied).
          *   The default value of parameter \p{domain} is \c "" which addresses the domain evaluated
          *   for the current scope.
          *
          * @param prefix      The <em>Prefix Logable</em> to set.
          * @param domain      The domain path. Defaults to \c nullptr, resulting in
          *                    evaluated <em>Scope Domain</em> path.
-         * @param otherPLs    If set to \c Inclusion::Exclude, scope-related <em>Prefix Logables</em>
-         *                    are ignored and only domain-related <em>Prefix Logables</em> are passed to
-         *                    the \e Loggers.
+         * @param otherPLs    If set to \c Inclusion::Exclude, scope-related
+         *                    <em>Prefix Logables</em> are ignored and only domain-related
+         *                    <em>Prefix Logables</em> are passed to the \e Loggers.<br>
          *                    Defaults to \c Inclusion::Include.
          ******************************************************************************************/
         void        SetPrefix( const Box& prefix, const NString& domain= nullptr,
-                               Inclusion otherPLs=  Inclusion::Include )
+                               lang::Inclusion otherPLs=  lang::Inclusion::Include )
         {
             detail::LI::SetPrefix(impl, prefix, domain, otherPLs);
         }
@@ -771,7 +773,7 @@ class Lox
          *                   Defaults to nullptr, which indicates that all loggers are to
          *                   be affected.
          ******************************************************************************************/
-        void SetStartTime( Ticks           startTime    = lib::time::Ticks    (),
+        void SetStartTime( Ticks           startTime    = time::Ticks    (),
                            const NString&  loggerName   = nullptr                 )
         {
             detail::LI::SetStartTime(impl, startTime, loggerName);
@@ -832,7 +834,7 @@ class Lox
 
         /** ****************************************************************************************
          * Stores data encapsulated in an object of class
-         * \ref aworx::lib::boxing::Box "Box" which can be retrieved back by invoking
+         * \ref alib::boxing::Box "Box" which can be retrieved back by invoking
          * #Retrieve. Using the optional \p{key} and \p{scope} offer various possibilities to
          * reference this data later.
          *
@@ -841,8 +843,8 @@ class Lox
          * \attention
          *  When data objects are 'overwritten', previous objects will be deleted internally.
          *  Hence, only pointers to heap-allocated objects (created with \c new) may be passed!<br>
-         *  For more information, consult the
-         *  \https{ALox User Manual,alexworx.github.io/ALox-Logging-Library/manual.html}.
+         *  For more information, consult chapter \ref alox_man_log_data of the
+         *  Programmer's Manual.
          *
          * \note <em>Log Data</em> is a feature provided by \alox to support debug-logging.
          *       It is not advised to use <em>Log Data</em> to implement application logic.
@@ -877,12 +879,12 @@ class Lox
 
         /** ****************************************************************************************
          * Retrieves \alox <em>Log Data</em>, an object type
-         * \ref aworx::lib::boxing::Box "Box" which had been stored in a prior call to
+         * \ref alib::boxing::Box "Box" which had been stored in a prior call to
          * #Store. Using the optional \p{key} and \p{scope} offer various possibilities to reference
          * such objects.<br>
          *
          * \note If no data is found, an \e nulled object is returned. This can be tested using method
-         *       \ref aworx::lib::boxing::Box::IsNull "Box::IsNull".
+         *       \ref alib::boxing::Box::IsNull "Box::IsNull".
          *
          * <p>
          * \note <em>Log Data</em> is a feature provided by \alox to support debug-logging.
@@ -922,8 +924,7 @@ class Lox
          *
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
-         *   your code, \alox provides configuration variable
-         *   \https{ALOX_LOXNAME_DUMP_STATE_ON_EXIT,group__GrpALoxConfigVars.html}.
+         *   your code, \alox provides configuration variable\ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.
@@ -948,8 +949,7 @@ class Lox
          *
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
-         *   your code, \alox provides configuration variable
-         *   \https{ALOX_LOXNAME_DUMP_STATE_ON_EXIT,group__GrpALoxConfigVars.html}.
+         *   your code, \alox provides configuration variable \ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.
@@ -1046,7 +1046,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
@@ -1066,7 +1066,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
@@ -1086,7 +1086,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
@@ -1106,7 +1106,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * @param logables  The list of \e Logables, optionally including a domain name at the start.
@@ -1127,7 +1127,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * @param condition If \c false, the <em>Log Statement</em> is executed.
@@ -1177,7 +1177,7 @@ class Lox
          * ambiguities in respect to domain names.
          *
          * If one of the arguments (or a single argument given) is of type
-         * \ref aworx::lib::boxing::Boxes "Boxes", then the contents of this list is inserted into
+         * \ref alib::boxing::Boxes "Boxes", then the contents of this list is inserted into
          * the list of logables. This allows to collect logables prior to invoking the method.
          *
          * \see Method #Assert.
@@ -1207,10 +1207,10 @@ class Lox
          * With parameter \p{group}, a set of <em>Log Statements</em> that share the same group key,
          * can be grouped and of such set, only the one which is first executed actually logs.<br>
          * Alternatively, when \p{key} is omitted (or nullptr or empty), but a
-         * \ref aworx::lib::lox::Scope "Scope" is given with parameter \p{scope}, then the
+         * \ref alib::lox::Scope "Scope" is given with parameter \p{scope}, then the
          * counter is associated with the scope.<br>
          * Finally, parameters \p{key} and \p{scope} can also be used in combination. The key is
-         * then unique in respect to the \ref aworx::lib::lox::Scope "Scope" provided.
+         * then unique in respect to the \ref alib::lox::Scope "Scope" provided.
          *
          * Using, none, one or both of the parameters \p{group} and \p{scope}, among others, the
          * following use cases can be achieved.
@@ -1238,7 +1238,7 @@ class Lox
          *   Unlike other methods of this class which accept an arbitrary amount of logables, this
          *   method and its overloaded variants accept only one boxed object.
          *   To still be able to  supply several objects at once, an array of boxes or a container
-         *   of type \ref aworx::lib::boxing::Boxes "Boxes" may be passed with parameter
+         *   of type \ref alib::boxing::Boxes "Boxes" may be passed with parameter
          *   \p{logables}, like in the following sample:
          *   \snippet "ut_alox_lox.cpp"      DOX_ALOX_LOX_ONCE
          *   This is why the parameter name \p{logables} still uses the plural with its name!
@@ -1486,13 +1486,13 @@ class Lox
 
 }; // class Lox
 
-}} // namespace aworx[::lib::lox]
+} // namespace alib[::lox]
 
-/// Type alias in namespace #aworx.
-using     Lox=           lib::lox::Lox;
+/// Type alias in namespace \b alib.
+using     Lox=           lox::Lox;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
-ALIB_ENUMS_MAKE_BITWISE( aworx::lib::lox::StateInfo )
+ALIB_ENUMS_MAKE_BITWISE( alib::lox::StateInfo )
 
 #endif // HPP_ALOX_LOX

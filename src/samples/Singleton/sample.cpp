@@ -2,7 +2,7 @@
 //  ALib C++ Library
 //  Singleton Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/singletons/singleton.hpp"
@@ -12,15 +12,15 @@
 
 
 // Derive a class from singleton, providing its name as template parameter:
-class MyClass : public aworx::Singleton<MyClass>
+class MyClass : public alib::Singleton<MyClass>
 {
     //... MyClass implementation
 };
 
 // Sample for a strict singleton: only one instance may exist
-class JustOne : public aworx::Singleton<JustOne>
+class JustOne : public alib::Singleton<JustOne>
 {
-    friend aworx::Singleton<JustOne>;
+    friend alib::Singleton<JustOne>;
     private: JustOne() {}
 
     //... class JustOne implementation
@@ -37,7 +37,7 @@ void  DumpSingletons()
     std::cout << std::endl
               << "Debug-compilation and mapped mode: Dumping Singletons: " << std::endl;
 
-    for( auto mapPair : aworx::lib::singletons::DbgGetSingletons() )
+    for( auto mapPair : alib::singletons::DbgGetSingletons() )
         std::cout << "  "
              << mapPair.first->name()
              << " = 0x" << std::hex

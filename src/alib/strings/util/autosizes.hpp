@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_AUTOSIZES
@@ -21,7 +21,7 @@
     #include <vector>
 #endif
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 /** ************************************************************************************************
  * This class stores and manages tabulator positions and field sizes. The class supports a
@@ -173,7 +173,7 @@ class AutoSizes
          * Usually, string data are used for importing values was previously generated
          * with method #Export.
          *
-         * If parameter \p{session} equals \alib{CurrentData,Clear} (which is the default),
+         * If parameter \p{session} equals \alib{lang::CurrentData,Clear} (which is the default),
          * then after the import, method #Consolidate is invoked.
          *
          * \note
@@ -186,10 +186,10 @@ class AutoSizes
          *
          * @param source    The \b %String that is parsed for the exported data.
          * @param session   Denotes if #Consolidate is to be invoked after import.
-         *                  Defaults to \alib{CurrentData,Clear}.
+         *                  Defaults to \alib{lang::CurrentData,Clear}.
          ******************************************************************************************/
         ALIB_API
-        void        Import( const String& source, CurrentData session= CurrentData::Clear );
+        void        Import( const String& source, lang::CurrentData session= lang::CurrentData::Clear );
 
         /** ****************************************************************************************
          * Exports the current session values by converting the stored values to a string
@@ -206,12 +206,12 @@ class AutoSizes
 };
 
 
-}}} // namespace aworx[::lib::strings::util]
+}} // namespace alib[::strings::util]
 
 
-/// Type alias in namespace #aworx.
-using     AutoSizes=            lib::strings::util::AutoSizes;
+/// Type alias in namespace \b alib.
+using     AutoSizes=            strings::util::AutoSizes;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_STRINGS_UTIL_AUTOSIZES

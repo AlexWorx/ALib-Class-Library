@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -19,11 +19,11 @@
 #   include "alib/config/configuration.hpp"
 #endif
 
-#if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-#   include "alib/system/directory.hpp"
+#if !defined (HPP_ALIB_CAMP_DIRECTORY)
+#   include "alib/lang/system/directory.hpp"
 #endif
-#if !defined (HPP_ALIB_SYSTEM_PROCESSINFO)
-#   include "alib/system/processinfo.hpp"
+#if !defined (HPP_ALIB_CAMP_PROCESSINFO)
+#   include "alib/lang/system/processinfo.hpp"
 #endif
 #if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
 #   include "alib/strings/util/tokenizer.hpp"
@@ -31,8 +31,8 @@
 #if !defined (HPP_ALIB_STRINGS_UTIL_SPACES)
 #   include "alib/strings/util/spaces.hpp"
 #endif
-#if !defined (HPP_ALIB_TEXT_PARAGRAPHS)
-#   include "alib/text/paragraphs.hpp"
+#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+#   include "alib/lang/format/paragraphs.hpp"
 #endif
 #if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
 #   include "alib/compatibility/std_strings_iostream.hpp"
@@ -47,7 +47,7 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // #################################################################################################
 // static/globals
@@ -237,11 +237,11 @@ void  IniFile::ReadFile()
         int errNo= errno;
 
         // file does not exist ?
-        if ( errNo == UnderlyingIntegral(system::SystemErrors::enoent) )
+        if ( errNo == UnderlyingIntegral(SystemErrors::enoent) )
             return;
 
         // other errors: throw
-        Exception e=  system::CreateSystemException( ALIB_CALLER_NULLED, errNo );
+        Exception e=   lang::system::CreateSystemException( ALIB_CALLER_NULLED, errNo );
                   e.Add( ALIB_CALLER_NULLED,  config::Exceptions::ErrorOpeningFile,
                          A_CHAR("INI-"), FileName                                        );
         throw e;
@@ -312,7 +312,7 @@ void  IniFile::ReadFile()
 
         // Variable line
         value.Reset();
-        integer idx= line.IndexOfAny<Inclusion::Include>( separatorCharacters );
+        integer idx= line.IndexOfAny<lang::Inclusion::Include>( separatorCharacters );
         if( idx < 0 )
         {
             name.Reset( line );
@@ -370,7 +370,7 @@ void  IniFile::writeComments( StringWriter& writer, const AString& comments )
     Tokenizer tknzr( comments, '\n' );
     tknzr.TrimChars= A_CHAR(" \r\t"); // \n is not a whitespace
 
-    while( tknzr.Next(Whitespaces::Keep).IsNotNull() )
+    while( tknzr.Next(lang::Whitespaces::Keep).IsNotNull() )
     {
         if ( !startsWithCommentSymbol( tknzr.Actual ) )
             writer.Write( DefaultCommentPrefix );
@@ -405,7 +405,7 @@ void IniFile::WriteFile()
     if ( !outputFileStream.is_open() )
     {
         int errNo= errno;
-        Exception e= system::CreateSystemException( ALIB_CALLER_NULLED, errNo );
+        Exception e=  lang::system::CreateSystemException( ALIB_CALLER_NULLED, errNo );
                   e.Add( ALIB_CALLER_NULLED, config::Exceptions::ErrorWritingFile, "INI-", FileName );
         throw e;
     }
@@ -644,7 +644,4 @@ void IniFile::AddResourcedSectionComments( Configuration&   config,
 
 }
 
-
-
-}}}// namespace [aworx::lib::config]
-
+}} // namespace [alib::config]

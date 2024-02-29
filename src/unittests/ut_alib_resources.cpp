@@ -1,18 +1,18 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_RESOURCES
+#if ALIB_UT_CAMP
 
-#include "alib/lib/fs_modules/distribution.hpp"
-#include "alib/resources/localresourcepool.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
+#include "alib/lang/resources/localresourcepool.hpp"
 
 
-using namespace aworx;
+using namespace alib;
 
 #include <iostream>
 
@@ -20,7 +20,7 @@ using namespace aworx;
 #include "unittests/aworx_unittests.hpp"
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -34,7 +34,7 @@ UT_METHOD( ResourceStats )
 {
     UT_INIT()
 
-    auto* localPool= dynamic_cast<lib::resources::LocalResourcePool*>( &ALIB.GetResourcePool() );
+    auto* localPool= dynamic_cast<resources::LocalResourcePool*>( &BASECAMP.GetResourcePool() );
     UT_TRUE( localPool )
 
     auto categoryList= localPool->DbgGetCategories();
@@ -54,4 +54,4 @@ UT_METHOD( ResourceStats )
 
 } //namespace
 
-#endif // ALIB_UT_RESOURCES
+#endif // ALIB_UT_CAMP

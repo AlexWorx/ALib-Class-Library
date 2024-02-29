@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,14 +10,14 @@
 #   if !defined (HPP_ALIB_CONFIG_CONFIG)
 #      include "alib/config/config.hpp"
 #   endif
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
-#   if !defined(HPP_ALIB_SYSTEM_ERRORS)
-#      include "alib/system/systemerrors.hpp"
+#   if !defined(HPP_ALIB_CAMP_ERRORS)
+#      include "alib/lang/system/systemerrors.hpp"
 #   endif
-#   if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#      include "alib/resources/resources.hpp"
+#   if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#      include "alib/lang/resources/resources.hpp"
 #   endif
 #   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
 #      include "alib/enums/recordbootstrap.hpp"
@@ -29,38 +29,34 @@
 
 
 
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::config::Priorities, vt_config_priorities )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::config::Exceptions, vt_config_exceptions )
+ALIB_BOXING_VTABLE_DEFINE( alib::config::Priorities, vt_config_priorities )
+ALIB_BOXING_VTABLE_DEFINE( alib::config::Exceptions, vt_config_exceptions )
 
-using namespace aworx;
-using namespace aworx::lib::config;
+using namespace alib;
+using namespace alib::config;
 
-namespace aworx { namespace lib {
+namespace alib {
 
-Config CONFIG;
+config::Config CONFIG;
 
 namespace config  {
 
-
-
 Config::Config()
-: Module( ALIB_VERSION, ALIB_REVISION, "CFG" )
+: Camp( "CFG" )
 {
     ALIB_ASSERT_ERROR( this == &CONFIG, "CONFIG",
-        "Instances of class Config must not be created. Use singleton aworx::lib::CONFIG" )
+        "Instances of class Config must not be created. Use singleton  alib::CONFIG" )
 }
 
 
-void Config::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
+void Config::bootstrap( BootstrapPhases phase )
 {
     if( phase == BootstrapPhases::PrepareResources )
     {
-        ALIB.CheckDistribution();
-
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_priorities )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_config_exceptions )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( config::Exceptions     )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::config::Priorities )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::config::Priorities )
 
 
 #if !ALIB_RESOURCES_OMIT_DEFAULTS
@@ -118,8 +114,4 @@ void ERPriorities::Parse()
     enums::EnumRecordParser::Get( ERSerializable::EnumElementName  );
     enums::EnumRecordParser::Get( Priority                  , true );
 }
-}}} // namespace [aworx::lib::config]
-
-
-
-
+}} // namespace [alib::config]

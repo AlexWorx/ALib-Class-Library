@@ -1,14 +1,14 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
 #if ALIB_UT_CONFIGURATION
 
-#include "alib/lib/fs_modules/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
 #include "alib/alox.hpp"
 
 #if ALIB_ALOX && !defined (HPP_ALIB_ALOXMODULE)
@@ -20,8 +20,8 @@
 #if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
 #   include "alib/config/configuration.hpp"
 #endif
-#if !defined (HPP_ALIB_SYSTEM_DIRECTORY)
-#   include "alib/system/directory.hpp"
+#if !defined (HPP_ALIB_CAMP_DIRECTORY)
+#   include "alib/lang/system/directory.hpp"
 #endif
 #if !defined (HPP_ALIB_STRINGS_FORMAT)
 #    include "alib/strings/format.hpp"
@@ -31,9 +31,6 @@
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
-
 #define TESTCLASSNAME       CPP_ALib_Config
 #include "unittests/aworx_unittests.hpp"
 
@@ -42,7 +39,7 @@
 #include <fstream>
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -73,7 +70,7 @@ UT_METHOD(ConfigCommandLineArgs)
         "--ALIB_TEST=passed"               ,
     };
 
-    Configuration cfg(CreateDefaults::Yes);
+    Configuration cfg(lang::CreateDefaults::Yes);
     cfg.SetCommandLineArgs( sizeof(args)/sizeof(const char*), const_cast<const char**>( args ) );
 
     Variable var;
@@ -93,7 +90,7 @@ UT_METHOD(ConfigCommandLineArgs)
     UT_EQ( Priorities::CLI,    cfg.Load   ( var.Declare( A_CHAR("ALIB"),     A_CHAR("test")         )) )   UT_EQ( A_CHAR("passed"),     var.GetString()   )
     UT_EQ( Priorities::NONE,   cfg.Load   ( var.Declare( EmptyString(),      A_CHAR("notexistent")  )) )   UT_EQ( 0.0,                  var.GetFloat()    )
 
-    auto* it= cfg.GetPluginTypeSafe<lib::config::CLIArgs>()->GetIterator(A_CHAR("ALIB"));
+    auto* it= cfg.GetPluginTypeSafe<config::CLIArgs>()->GetIterator(A_CHAR("ALIB"));
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("ITER")) , var.Name() )  UT_EQ( A_CHAR("x"),        var.GetString()     )
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("ITER2")), var.Name() )  UT_EQ( A_CHAR("y"),        var.GetString()     )
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("TEST")) , var.Name() )  UT_EQ( A_CHAR("passed"),   var.GetString()     )
@@ -123,7 +120,7 @@ UT_METHOD(ConfigCommandLineArgsWChar)
         L"--ALIB_TEST=passed"               ,
     };
 
-    Configuration cfg(CreateDefaults::Yes);
+    Configuration cfg(lang::CreateDefaults::Yes);
     cfg.SetCommandLineArgs( sizeof(args)/sizeof(wchar_t*),  args  );
 
     Variable var;
@@ -143,19 +140,19 @@ UT_METHOD(ConfigCommandLineArgsWChar)
     UT_EQ( Priorities::CLI,    cfg.Load   ( var.Declare( A_CHAR("ALIB"),     A_CHAR("test")         )) )   UT_EQ( A_CHAR("passed"),      var.GetString()   )
 
     UT_EQ( Priorities::NONE,   cfg.Load   ( var.Declare( A_CHAR("IGNORE"),   A_CHAR("Home")         )) )
-    lib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
-        cfg.GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->DefaultCategories.emplace_back(A_CHAR("IGNORE"));
-    lib::monomem::ReleaseGlobalAllocator();
+    monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
+        cfg.GetPluginTypeSafe<alib::config::CLIArgs>()->DefaultCategories.emplace_back(A_CHAR("IGNORE"));
+    monomem::ReleaseGlobalAllocator();
 
     UT_EQ( Priorities::CLI,    cfg.Load   ( var.Declare( A_CHAR("IGNORE"),   A_CHAR("Home")         )) )   UT_EQ( A_CHAR("overwritten"), var.GetString()   )
     UT_EQ( Priorities::NONE,   cfg.Load   ( var.Declare( A_CHAR("IGNORE"),   A_CHAR("Homexyz")      )) )
-    cfg.GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->AllowedMinimumShortCut=5;
+    cfg.GetPluginTypeSafe<alib::config::CLIArgs>()->AllowedMinimumShortCut=5;
     UT_EQ( Priorities::NONE,   cfg.Load   ( var.Declare( A_CHAR("IGNORE"),   A_CHAR("Homexyz")      )) )
-    cfg.GetPluginTypeSafe<aworx::lib::config::CLIArgs>()->AllowedMinimumShortCut=4;
+    cfg.GetPluginTypeSafe<alib::config::CLIArgs>()->AllowedMinimumShortCut=4;
     UT_EQ( Priorities::CLI,    cfg.Load   ( var.Declare( A_CHAR("IGNORE"),   A_CHAR("Homexyz")      )) )   UT_EQ( A_CHAR("overwritten"), var.GetString()   )
 
 
-    auto* it= cfg.GetPluginTypeSafe<lib::config::CLIArgs>()->GetIterator(A_CHAR("ALIB"));
+    auto* it= cfg.GetPluginTypeSafe<config::CLIArgs>()->GetIterator(A_CHAR("ALIB"));
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("ITER")) , var.Name() )   UT_EQ( A_CHAR("x"),        var.GetString()     )
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("ITER2")), var.Name() )   UT_EQ( A_CHAR("y"),        var.GetString()     )
     UT_TRUE ( it->Next( var ) ) UT_EQ(String(A_CHAR("TEST")) , var.Name() )   UT_EQ( A_CHAR("passed"),   var.GetString()     )
@@ -271,18 +268,18 @@ UT_METHOD(ConfigIniFiles)
 
 
     // add it to ALIB config
-    ALIB.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
-    ALIB.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("CUBA")              ) );   UT_EQ( A_CHAR("a country")  , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("cUbA")              ) );   UT_EQ( A_CHAR("a country")  , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("SIZE")              ) );   UT_EQ( A_CHAR("25")         , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("concat"), ','       ) );   UT_EQ( 11 , var.Size())
-                                                                                                 UT_EQ( A_CHAR("start =5")   , var.GetString(0))
-                                                                                                 UT_EQ( A_CHAR("end   =32")  , var.GetString(1))
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SectionVar")        ) );   UT_EQ( A_CHAR("5")          , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("2nd Section"),    A_CHAR("SectionVar")        ) );   UT_EQ( A_CHAR("6")          , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SECTION_CONTINUED") ) );   UT_EQ( A_CHAR("yEs")        , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("Tricky")            ) );   UT_EQ( A_CHAR("backslash\\"), var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SECTION_CONTINUED") ) );   UT_TRUE( var.IsTrue() )
+    BASECAMP.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
+    BASECAMP.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("CUBA")              ) );   UT_EQ( A_CHAR("a country")  , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("cUbA")              ) );   UT_EQ( A_CHAR("a country")  , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("SIZE")              ) );   UT_EQ( A_CHAR("25")         , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( EmptyString(),            A_CHAR("concat"), ','       ) );   UT_EQ( 11 , var.Size())
+                                                                                                           UT_EQ( A_CHAR("start =5")   , var.GetString(0))
+                                                                                                           UT_EQ( A_CHAR("end   =32")  , var.GetString(1))
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SectionVar")        ) );   UT_EQ( A_CHAR("5")          , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("2nd Section"),    A_CHAR("SectionVar")        ) );   UT_EQ( A_CHAR("6")          , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SECTION_CONTINUED") ) );   UT_EQ( A_CHAR("yEs")        , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("Tricky")            ) );   UT_EQ( A_CHAR("backslash\\"), var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("Great Section"),  A_CHAR("SECTION_CONTINUED") ) );   UT_TRUE( var.IsTrue() )
 
 
     // check if environment variable "home" overwrites INI file
@@ -294,7 +291,7 @@ UT_METHOD(ConfigIniFiles)
     #endif
 
     Variable vIniFile;   iniFile.Load( vIniFile.Declare( EmptyString(), HOME_ENV_NAME) );                 UT_EQ( A_CHAR("overwritten_by_environment"), vIniFile.GetString() )
-    ALIB.GetConfig().Load  ( var.Declare(EmptyString(), HOME_ENV_NAME) ); UT_EQ( Priorities::Environment, var.Priority() )
+    BASECAMP.GetConfig().Load  ( var.Declare(EmptyString(), HOME_ENV_NAME) ); UT_EQ( Priorities::Environment, var.Priority() )
     UT_TRUE( var.GetString().IsNotEmpty() )
     UT_TRUE( !vIniFile.GetString().Equals( var.GetString() ) )
 
@@ -303,13 +300,13 @@ UT_METHOD(ConfigIniFiles)
     var.Declare( A_CHAR("New Section"),  A_CHAR("newvar"));
     var.SetPriority( Priorities::Standard );
 
-    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store( var, A_CHAR("new") ) )
-    ALIB.GetConfig().Load  ( var.Declare(A_CHAR("New Section"),  A_CHAR("newvar")) );  UT_EQ( A_CHAR("new"),   var.GetString() )
+    UT_EQ( Priorities::Standard, BASECAMP.GetConfig().Store( var, A_CHAR("new") ) )
+    BASECAMP.GetConfig().Load  ( var.Declare(A_CHAR("New Section"),  A_CHAR("newvar")) );  UT_EQ( A_CHAR("new"),   var.GetString() )
 
     var.Declare( EmptyString(),             A_CHAR("newvar"));
     var.SetPriority( Priorities::Standard );
-    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store( var, A_CHAR("aworx")) )
-    ALIB.GetConfig().Load  ( var.Declare(EmptyString(),             A_CHAR("newvar")) );  UT_EQ( A_CHAR("aworx"), var.GetString() )
+    UT_EQ( Priorities::Standard, BASECAMP.GetConfig().Store( var, A_CHAR("alib")) )
+    BASECAMP.GetConfig().Load  ( var.Declare(EmptyString(),             A_CHAR("newvar")) );  UT_EQ( A_CHAR("alib"), var.GetString() )
 
 
     var.Declare( EmptyString(),   A_CHAR("newvarList"), ',');
@@ -317,13 +314,13 @@ UT_METHOD(ConfigIniFiles)
     var.Add(A_CHAR("val2=10"));
     var.Add(A_CHAR("val3=hello"));
     var.SetPriority( Priorities::Standard );
-    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store(var) )
-    ALIB.GetConfig().Load (  var.Declare( EmptyString(),  A_CHAR("newvarList"))   );
+    UT_EQ( Priorities::Standard, BASECAMP.GetConfig().Store(var) )
+    BASECAMP.GetConfig().Load (  var.Declare( EmptyString(),  A_CHAR("newvarList"))   );
 
 
     var.Declare( EmptyString(),   A_CHAR("commented"), ',', A_CHAR("2lines"));
     var.SetPriority( Priorities::Standard );
-    UT_EQ( Priorities::Standard, ALIB.GetConfig().Store(  var, A_CHAR("this is c-line 1\nand this line 2") ) )
+    UT_EQ( Priorities::Standard, BASECAMP.GetConfig().Store(  var, A_CHAR("this is c-line 1\nand this line 2") ) )
 
     // iterate
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
@@ -364,7 +361,7 @@ UT_METHOD(ConfigIniFiles)
             for ( auto& entry : section.Entries() )
             {
                 msg.Reset( "Reading variable " )
-                ._(Format::Field( String256() << section.Name() << '/' << entry.Name(), 40, Alignment::Left) );
+                ._(Format::Field( String256() << section.Name() << '/' << entry.Name(), 40, lang::Alignment::Left) );
                 UT_PRINT( msg )
 
                 character delim= '\0';
@@ -399,17 +396,17 @@ UT_METHOD(ConfigIniFiles)
     }
 
     readBack.Load ( var.Declare( A_CHAR("New Section"),  A_CHAR("newvar") ) );   UT_EQ( A_CHAR("new")      , var.GetString() )
-    readBack.Load ( var.Declare( EmptyString(),          A_CHAR("newvar") ) );   UT_EQ( A_CHAR("aworx")    , var.GetString() )
+    readBack.Load ( var.Declare( EmptyString(),          A_CHAR("newvar") ) );   UT_EQ( A_CHAR("alib")    , var.GetString() )
 
 
-    ALIB.GetConfig().RemovePlugin( &iniFile );
+    BASECAMP.GetConfig().RemovePlugin( &iniFile );
 
 
-    ALIB.GetConfig().InsertPlugin( &readBack, Priorities::Standard );
-    ALIB.GetConfig().Load( var.Declare( A_CHAR("New Section"),  A_CHAR("newvar")  ) );   UT_EQ( A_CHAR("new")  , var.GetString() )
-    ALIB.GetConfig().Load( var.Declare( EmptyString(),          A_CHAR("newvar")  ) );   UT_EQ( A_CHAR("aworx"), var.GetString() )
+    BASECAMP.GetConfig().InsertPlugin( &readBack, Priorities::Standard );
+    BASECAMP.GetConfig().Load( var.Declare( A_CHAR("New Section"),  A_CHAR("newvar")  ) );   UT_EQ( A_CHAR("new")  , var.GetString() )
+    BASECAMP.GetConfig().Load( var.Declare( EmptyString(),          A_CHAR("newvar")  ) );   UT_EQ( A_CHAR("alib"), var.GetString() )
 
-    ALIB.GetConfig().RemovePlugin( &readBack );
+    BASECAMP.GetConfig().RemovePlugin( &readBack );
 }
 
 /** ********************************************************************************************
@@ -426,12 +423,12 @@ UT_METHOD(ConfigDefaultAndProtected)
         L"--TEST_VARIABLE=fromCommandLine",
     };
 
-    Configuration cfg(CreateDefaults::Yes);
+    Configuration cfg(lang::CreateDefaults::Yes);
     cfg.SetCommandLineArgs( 2, args  );
     Variable var;
 
-    InMemoryPlugin& defaultValues  = *cfg.GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   );
-    InMemoryPlugin& protectedValues= *cfg.GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues );
+    InMemoryPlugin& defaultValues  = *cfg.GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   );
+    InMemoryPlugin& protectedValues= *cfg.GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues );
 
     // command line
     UT_EQ( Priorities::CLI,    cfg.Load  ( var.Declare( A_CHAR("TEST"),      A_CHAR("VARIABLE") ) ) )   UT_EQ( A_CHAR("fromCommandLine")    ,var.GetString() )
@@ -476,26 +473,25 @@ UT_METHOD(ConfigDefaultAndProtected)
     // protected
     var.Declare( A_CHAR("TEST"), A_CHAR("Protected"));  UT_EQ( 0, var.Size() )     UT_EQ( Priorities::NONE          ,var.Priority() )
     var.ReplaceDefaultValue( A_CHAR("Default")  );
-    ALIB.GetConfig().StoreDefault(var, A_CHAR("def par"));  UT_EQ( A_CHAR("def par"),   var.GetString() ) UT_EQ( Priorities::DefaultValues   ,var.Priority() )
+    BASECAMP.GetConfig().StoreDefault(var, A_CHAR("def par"));  UT_EQ( A_CHAR("def par"),   var.GetString() ) UT_EQ( Priorities::DefaultValues   ,var.Priority() )
 
     var.ClearValues();
     var.Add( A_CHAR("def var") );
-    ALIB.GetConfig().StoreDefault( var );                 UT_EQ( A_CHAR("def var"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
+    BASECAMP.GetConfig().StoreDefault( var );                 UT_EQ( A_CHAR("def var"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
 
     var.ClearValues();
-    ALIB.GetConfig().StoreDefault( var );                 UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
+    BASECAMP.GetConfig().StoreDefault( var );                 UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
 
     var.ClearValues();
     var.Add( A_CHAR("def var") );
-    ALIB.GetConfig().Protect( var );                      UT_EQ( A_CHAR("def var"),   var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
-    ALIB.GetConfig().Protect( var,A_CHAR("prot par"));    UT_EQ( A_CHAR("prot par"),  var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
+    BASECAMP.GetConfig().Protect( var );                      UT_EQ( A_CHAR("def var"),   var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
+    BASECAMP.GetConfig().Protect( var,A_CHAR("prot par"));    UT_EQ( A_CHAR("prot par"),  var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
     var.ClearValues();
-    ALIB.GetConfig().Protect( var );                      UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
+    BASECAMP.GetConfig().Protect( var );                      UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::ProtectedValues ,var.Priority() )
     var.ReplaceDefaultValue( NullString() );
     var.ClearValues();
-    ALIB.GetConfig().Protect( var );                      UT_EQ( 0, var.Size() )                          UT_EQ( Priorities::ProtectedValues ,var.Priority() )
-    ALIB.GetConfig().Load( var );                         UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
-
+    BASECAMP.GetConfig().Protect( var );                      UT_EQ( 0, var.Size() )                          UT_EQ( Priorities::ProtectedValues ,var.Priority() )
+    BASECAMP.GetConfig().Load( var );                         UT_EQ( A_CHAR("Default"),   var.GetString() )   UT_EQ( Priorities::DefaultValues   ,var.Priority() )
 }
 
 /** ********************************************************************************************
@@ -511,12 +507,12 @@ UT_METHOD(ConfigReplacementVariables)
         L"--NOCATCMDLINE=NoCatCommandLine",
     };
 
-    Configuration cfg(CreateDefaults::Yes);
+    Configuration cfg(lang::CreateDefaults::Yes);
     cfg.SetCommandLineArgs( 3, args );
     Variable var;
 
-    InMemoryPlugin& defaultValues  = *cfg.GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   );
-    InMemoryPlugin& protectedValues= *cfg.GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues );
+    InMemoryPlugin& defaultValues  = *cfg.GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   );
+    InMemoryPlugin& protectedValues= *cfg.GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues );
 
     // replacements from command line plugin
     protectedValues.Store( var.Declare(A_CHAR("TEST"), A_CHAR("VARIABLE")), A_CHAR("no replacment")               ); cfg.Load( var );   UT_EQ( A_CHAR("no replacment")                   ,var.GetString() )
@@ -601,11 +597,11 @@ UT_METHOD(ConfigIteration)
     UT_INIT()
 
     // we fake a second command line plug-in to test that each variable is delivered only once
-    aworx::lib::config::CLIArgs cliArgs;
+    alib::config::CLIArgs cliArgs;
     cliArgs.AlternativeArgs.emplace_back( A_CHAR("--ALOX_CONSOLE_TYPE=overwritten")  );
-    lib::ALOX.GetConfig().InsertPlugin( &cliArgs, Priorities::CLI + 1 );
+    ALOX.GetConfig().InsertPlugin( &cliArgs, Priorities::CLI + 1 );
 
-    auto* it= lib::ALOX.GetConfig().GetIterator(A_CHAR("ALOX"));
+    auto* it= ALOX.GetConfig().GetIterator(A_CHAR("ALOX"));
     int cntVars= 0;
     int cntALOX_CONSOLE_TYPE= 0;
 
@@ -644,7 +640,7 @@ UT_METHOD(ConfigIteration)
     delete it;
 
 
-    lib::ALOX.GetConfig().RemovePlugin( &cliArgs );
+    ALOX.GetConfig().RemovePlugin( &cliArgs );
 }
 #endif
 

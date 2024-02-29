@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -26,8 +26,8 @@
 #if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
     #include "alib/strings/numberformat.hpp"
 #endif
-#if ALIB_SYSTEM && !defined (HPP_ALIB_SYSTEM_CALENDAR)
-    #include "alib/system/calendar.hpp"
+#if ALIB_CAMP && !defined (HPP_ALIB_CAMP_CALENDAR)
+    #include "alib/lang/system/calendar.hpp"
 #endif
 #if !defined (HPP_ALIB_TIME_TIMEPOINTBASE)
 #   include "alib/time/timepointbase.hpp"
@@ -37,15 +37,13 @@
 #   include "alib/threads/thread.hpp"
 #endif
 
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
 #define TESTCLASSNAME       CPP_ALib_Time
 #include "unittests/aworx_unittests.hpp"
 
 #include <numeric>
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -53,37 +51,37 @@ namespace  {
 template<typename TClock>
 void print_clock_info(AWorxUnitTesting& ut, const NString& name)
 {
-	typename TClock::duration unit(1);
-	using TPeriod= typename TClock::period ;
+    typename TClock::duration unit(1);
+    using TPeriod= typename TClock::period ;
 
-	// general info
-	UT_PRINT( "Clock info for:        {}\n"
-		      "period:                {} ns\n"
-		      "unit:                  {} ns\n"
-		      "Steady:                {}\n",
+    // general info
+    UT_PRINT( "Clock info for:        {}\n"
+              "period:                {} ns\n"
+              "unit:                  {} ns\n"
+              "Steady:                {}\n",
               name,
               TPeriod::num*1000000000ull / TPeriod::den,
               chrono::duration_cast<chrono::nanoseconds>(unit).count(),
               (TClock::is_steady?"true":"false") )
 
     // take n measurements
-	const long long qtyIterations = 3;
-	vector<typename TClock::time_point> timePoints(qtyIterations);
-	Ticks timer;
-	    for(size_t i=0; i<qtyIterations; ++i)
-		    timePoints[i] = TClock::now();
-	auto duration= timer.Age();
+    const long long qtyIterations = 3;
+    vector<typename TClock::time_point> timePoints(qtyIterations);
+    Ticks timer;
+        for(size_t i=0; i<qtyIterations; ++i)
+            timePoints[i] = TClock::now();
+    auto duration= timer.Age();
 
-	UT_PRINT( "Time per measure:      {} ns", duration.InNanoseconds() / qtyIterations )
+    UT_PRINT( "Time per measure:      {} ns", duration.InNanoseconds() / qtyIterations )
 
-	auto minDuration= timePoints[1] - timePoints[0];
-	for( size_t i= 2 ; i < qtyIterations ; ++i )
+    auto minDuration= timePoints[1] - timePoints[0];
+    for( size_t i= 2 ; i < qtyIterations ; ++i )
     {
-    	auto actDuration= timePoints[i] - timePoints[i-1];
-    	if( actDuration < minDuration )
-    	    actDuration=  minDuration;
+        auto actDuration= timePoints[i] - timePoints[i-1];
+        if( actDuration < minDuration )
+            actDuration=  minDuration;
     }
-	UT_PRINT( "Min measurement delta: {} ns", std::chrono::duration_cast<std::chrono::nanoseconds>( minDuration ).count() )
+    UT_PRINT( "Min measurement delta: {} ns", std::chrono::duration_cast<std::chrono::nanoseconds>( minDuration ).count() )
 }
 }
 UT_CLASS
@@ -148,7 +146,7 @@ UT_METHOD(Basics)
 
     // check time library creation time
     {
-        auto creationTimeDiff= lib::time::CreationTime().Age();
+        auto creationTimeDiff= time::CreationTime().Age();
         UT_PRINT( "Time library creation was: {} ns ago"        , creationTimeDiff.InNanoseconds()  )
         UT_PRINT( "Time library creation was: {} \u00B5s ago"   , creationTimeDiff.InAbsoluteMicroseconds() )
         UT_PRINT( "Time library creation was: {} ms ago"        , creationTimeDiff.InAbsoluteMilliseconds() )
@@ -171,10 +169,10 @@ UT_METHOD(Basics)
 
     // check initialization
     {
-        Ticks     ticksI;                               UT_EQ( true , ticksI   .IsSet() )
-        Ticks     ticksU(Initialization::Suppress);     UT_EQ( false, ticksU   .IsSet() )
-        DateTime dateTimeI;                             UT_EQ( true , dateTimeI.IsSet() )
-        DateTime dateTimeU(Initialization::Suppress);   UT_EQ( false, dateTimeU.IsSet() )
+        Ticks     ticksI;                                     UT_EQ( true , ticksI   .IsSet() )
+        Ticks     ticksU(lang::Initialization::Suppress);     UT_EQ( false, ticksU   .IsSet() )
+        DateTime dateTimeI;                                   UT_EQ( true , dateTimeI.IsSet() )
+        DateTime dateTimeU(lang::Initialization::Suppress);   UT_EQ( false, dateTimeU.IsSet() )
     }
 
     // check boxing
@@ -350,7 +348,7 @@ UT_METHOD(DateTimeConversion)
             }
 
             // now we add a day
-            #if ALIB_SYSTEM
+            #if ALIB_CAMP
             {
                 time_t          timetTomorrowTime= timetNowFromTicks + 3600*24 + 2*3600 + 3*60 + 4;
                 DateTime        ticksTomorrow( ticksNowOrig );
@@ -437,7 +435,7 @@ UT_METHOD(DateTimeConversion)
 
 
     // CalendarDateTime
-    #if ALIB_SYSTEM
+    #if ALIB_CAMP
     {
         DateTime   tNow;
 
@@ -445,8 +443,8 @@ UT_METHOD(DateTimeConversion)
         #if defined (__GLIBCXX__) || defined(__APPLE__)
             tNow= DateTime::FromEpochSeconds( tNow.InEpochSeconds() );
         #elif defined( _WIN32 )
-            SYSTEMTIME st= tNow.ToSystemTime( Timezone::Local );
-            tNow= DateTime::FromSystemTime( st, Timezone::Local );
+            SYSTEMTIME st= tNow.ToSystemTime( lang::Timezone::Local );
+            tNow= DateTime::FromSystemTime( st, lang::Timezone::Local );
         #endif
         CalendarDateTime   cNow( tNow );
 
@@ -470,15 +468,15 @@ UT_METHOD(DateTimeConversion)
         #if defined (__GLIBCXX__) || defined(__APPLE__)
             tNow= DateTime::FromEpochSeconds( tNow.InEpochSeconds() );
         #elif defined( _WIN32 )
-            SYSTEMTIME st= tNow.ToSystemTime( Timezone::Local );
-            tNow= DateTime::FromSystemTime(  st, Timezone::Local );
+            SYSTEMTIME st= tNow.ToSystemTime( lang::Timezone::Local );
+            tNow= DateTime::FromSystemTime(  st, lang::Timezone::Local );
         #endif
-        CalendarDateTime   cNow( tNow, Timezone::UTC );
+        CalendarDateTime   cNow( tNow, lang::Timezone::UTC );
 
         UT_PRINT( "Today UTC is:  {}/{}/{} {}:{:02}:{:02}", cNow.Year, cNow.Month , cNow.Day,
                                                             cNow.Hour, cNow.Minute, cNow.Second   )
 
-        DateTime   tNowBack( cNow.Get( Timezone::UTC ) );
+        DateTime   tNowBack( cNow.Get( lang::Timezone::UTC ) );
 
         auto diff= (tNow-tNowBack).InAbsoluteSeconds();
         #if defined(_WIN32) // currently, this does not do better than this!
@@ -665,7 +663,7 @@ UT_METHOD(SpeedTestIndexOf)
 }
 #endif // !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 void dateFormatCheck( AWorxUnitTesting& ut, CalendarDateTime& ct,  const character * fmt, const character * expected )
 {
     String128 res;
@@ -750,7 +748,7 @@ UT_METHOD(DurationConversion)
     #endif
 }
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 void durationToStringCheck( AWorxUnitTesting& ut, Ticks::Duration& ts, const String& expected )
 {
     String128 res;
@@ -794,7 +792,7 @@ UT_METHOD(DurationAppend)
 //--------------------------------------------------------------------------------------------------
 //--- Ages
 //--------------------------------------------------------------------------------------------------
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 UT_METHOD(CalendarDate_Time)
 {
     UT_INIT()
@@ -812,7 +810,7 @@ UT_METHOD(CalendarDate_Time)
     UT_PRINT("Looping 5 years..." )
     const CalendarDateTime StartCDT( 2023, 01, 27, 12, 0, 0 );
     const CalendarDate     StartCD ( 2023, 01, 27 );
-    const DateTime         StartDate= StartCDT.Get(Timezone::UTC);
+    const DateTime         StartDate= StartCDT.Get(lang::Timezone::UTC);
     UT_EQ( 2023, StartCDT.Year     )      UT_EQ( 2023, StartCD.Year     () )
     UT_EQ(    1, StartCDT.Month    )      UT_EQ(    1, StartCD.Month    () )
     UT_EQ(   27, StartCDT.Day      )      UT_EQ(   27, StartCD.Day      () )
@@ -822,9 +820,9 @@ UT_METHOD(CalendarDate_Time)
         UT_FALSE( incCD <  StartCD )   UT_FALSE( incCD >  StartCD )
         UT_TRUE ( incCD <= StartCD )   UT_TRUE ( incCD >= StartCD )
         UT_FALSE( incCD != StartCD )   UT_TRUE ( incCD == StartCD )
-        const DateTime        EndDate= StartCD.Get(Timezone::UTC) + DateTime::Duration::FromAbsoluteDays( 5 * 365 );
-              CalendarDate    decCD( EndDate, Timezone::UTC );
-        const CalendarDate    EndCD( EndDate, Timezone::UTC );
+        const DateTime        EndDate= StartCD.Get(lang::Timezone::UTC) + DateTime::Duration::FromAbsoluteDays( 5 * 365 );
+              CalendarDate    decCD( EndDate, lang::Timezone::UTC );
+        const CalendarDate    EndCD( EndDate, lang::Timezone::UTC );
         UT_TRUE( incCD <  decCD )   UT_FALSE( incCD >  decCD )
         UT_TRUE( incCD <= decCD )   UT_FALSE( incCD >= decCD )
         UT_TRUE( incCD != decCD )   UT_FALSE( incCD == decCD )
@@ -832,7 +830,7 @@ UT_METHOD(CalendarDate_Time)
         {
                              incCD++;
             auto             jmpCD= StartCD + i;
-            CalendarDateTime cdt( StartDate + DateTime::Duration::FromAbsoluteDays( i ), Timezone::UTC );
+            CalendarDateTime cdt( StartDate + DateTime::Duration::FromAbsoluteDays( i ), lang::Timezone::UTC );
 
             UT_EQ( cdt.Year     , incCD.Year     ())   UT_EQ( cdt.Year     , jmpCD.Year     ())
             UT_EQ( cdt.Month    , incCD.Month    ())   UT_EQ( cdt.Month    , jmpCD.Month    ())
@@ -841,7 +839,7 @@ UT_METHOD(CalendarDate_Time)
 
                             decCD--;
                             jmpCD= EndCD - i;
-                            cdt.Set( EndDate - DateTime::Duration::FromAbsoluteDays( i ), Timezone::UTC );
+                            cdt.Set( EndDate - DateTime::Duration::FromAbsoluteDays( i ), lang::Timezone::UTC );
             UT_EQ( cdt.Year     , decCD.Year     ())   UT_EQ( cdt.Year     , jmpCD.Year     ())
             UT_EQ( cdt.Month    , decCD.Month    ())   UT_EQ( cdt.Month    , jmpCD.Month    ())
             UT_EQ( cdt.Day      , decCD.Day      ())   UT_EQ( cdt.Day      , jmpCD.Day      ())
@@ -851,7 +849,7 @@ UT_METHOD(CalendarDate_Time)
     UT_PRINT("...done" )
 
 }
-#endif // ALIB_SYSTEM
+#endif // ALIB_CAMP
 
 
 

@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Samples
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -26,7 +26,7 @@
 # -------------------------------------------------------------------------------------------------
 
     cmake_minimum_required( VERSION 3.18.0 )
-    project("ALib.Text.Sample")
+    project("ALib.Format.Sample")
 
 
 ## -------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@
 ## -------------------------------------------------------------------------------------------------
 
     # select module(s)
-    list( APPEND  ALIB_DISTRIBUTION           "TEXT"    )
+    list( APPEND  ALIB_DISTRIBUTION           "CAMP"    )
 
     # add options
     #list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )

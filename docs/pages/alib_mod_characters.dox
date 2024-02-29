@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -30,7 +30,7 @@ This module introduces own type definitions and "type traits" aiming to overcome
 while still using the same strictness and clarity that a programmer is used from the C++ language.
 
 And here, the scope of the module already ends! Further functionality is only found with
-separated modules like \alib_strings, \alib_boxing or \alib_text.
+separated modules like \alib_strings, \alib_boxing or \alib_basecamp.
 We think that the combination of the modules together form an unrivalled team and no other
 C++ library that we know of, makes character and string handling as convenient, seamless, compatible,
 readable and flexible as these.
@@ -85,8 +85,8 @@ The ways to choose are:
 The explicit choice of the character width is the less frequent approach and rather used
 internally in the library and when it comes to interacting with system and 3rd-party libraries.
 For this, type definitions
-- \ref aworx::nchar
-- \ref aworx::wchar
+- \ref alib::nchar
+- \ref alib::wchar
 
 are provided. While \b nchar is always an identity type of C++ type \c char (hence a simple alias name),
 type \c wchar might resolve to either of built-in types \c wchar_t, \c char16_t or \c char32_t.
@@ -101,18 +101,18 @@ Instead, the \alib library decides. The comprises the first step towards platfor
 \I{################################################################################################}
 ## 2.3 ALib Logical Character Types ## {#alib_characters_chars_by_logic}
 
-While the two explicit character types \aworx{nchar} and \aworx{wchar} are
+While the two explicit character types \alib{nchar} and \alib{wchar} are
 aliasing two of the four built-in types (\c char, \c wchar_t, \c char16_t or \c char32_t.),
 the two types themselves are aliased once more by two further type definitions:
 
-- \ref aworx::character and
-- \ref aworx::complementChar.
+- \ref alib::character and
+- \ref alib::complementChar.
 
 Depending on the compiler, the platform defaults and the compiler symbol
 \ref ALIB_CHARACTERS_WIDE, one of these types aliases equals \b nchar and the other \b wchar.
 
-This logical naming means that a \aworx{character} is the default type for characters used with
-\alib and type \ref aworx::complementChar "complementChar" is just the counterpart.
+This logical naming means that a \alib{character} is the default type for characters used with
+\alib and type \ref alib::complementChar "complementChar" is just the counterpart.
 It is recommended to just use the logical type \b character for all string operations
 of a normal software entity. Its use expresses "I don't care, don't bother me!" and \alib will
 help that even if string types based on other characters come in, this is not even noticed
@@ -123,16 +123,16 @@ All together this results in a three-level type/alias scheme. For example, the
 
        Logical Type                     Explicit Type               C++ Type
        --------------------------------------------------------------------------
-       aworx::character         <==>    aworx::nchar     <==>       char
-       aworx::complementChar    <==>    aworx::wchar     <==>       wchar_t
+       alib::character         <==>    alib::nchar     <==>       char
+       alib::complementChar    <==>    alib::wchar     <==>       wchar_t
 
 In contrast to this, under <b>Windows OS</b> using the Microsoft compiler the scheme is:
 
-       aworx::character         <==>    aworx::wchar     <==>       wchar_t
-       aworx::complementChar    <==>    aworx::nchar     <==>       char
+       alib::character         <==>    alib::wchar     <==>       wchar_t
+       alib::complementChar    <==>    alib::nchar     <==>       char
 
-The attentive reader now notices that an \b aworx::character under Windows OS is not equivalent
-to an aworx::complementChar GNU/Linux, although both are aliasing C++ type <c>wchar_t</c>:
+The attentive reader now notices that an \b alib::character under Windows OS is not equivalent
+to an alib::complementChar GNU/Linux, although both are aliasing C++ type <c>wchar_t</c>:
 As explained above, this type is platform dependent, hence might be 2-bytes or 4-bytes.
 (Note that in theory, it might be even only 1-byte wide, which is not supported by \alib.)
 
@@ -140,14 +140,14 @@ To write software that is able to cope with just all possible character types, t
 "narrow" and "wide" obviously are not sufficient. Therefore, this  \alibmod defines a \b third
 logical character type, which holds this third possible width:
 
-- \ref aworx::strangeChar
+- \ref alib::strangeChar
 
 This (strange!) name was chosen to express that this third type is neither compatible with
 \alib narrow characters nor with \alib wide characters.
 By default it is also neither equivalent to C++ \c char nor \c wchar_t. However, this might
 be changed, as we will see later.
 
-Now, just for completeness, this \e logical type has an \e explicit counterpart with \ref aworx::xchar.
+Now, just for completeness, this \e logical type has an \e explicit counterpart with \ref alib::xchar.
 The underlying C++ type of logical type \b strangeChar and explicit type \b xchar are always the same.
 Both types are identical.
 
@@ -160,15 +160,15 @@ With this, the \ref ALIB_CHARACTERS_SIZEOF_WCHAR "default" on GNU/Linux is:
 
        Logical Type                     Explicit Type               C++ Type
        -----------------------------------------------------------------------------------
-       aworx::character         <==>    aworx::nchar     ==         char      (1 byte)
-       aworx::complementChar    <==>    aworx::wchar    <==>        wchar_t   (4 bytes)
-       aworx::strangeChar        ==     aworx::xchar    <==>        char16_t  (2 bytes)
+       alib::character         <==>    alib::nchar     ==         char      (1 byte)
+       alib::complementChar    <==>    alib::wchar    <==>        wchar_t   (4 bytes)
+       alib::strangeChar        ==     alib::xchar    <==>        char16_t  (2 bytes)
 
 On windows with Microsoft compiler:
 
-       aworx::character         <==>    aworx::wchar    <==>        wchar_t   (2 bytes)
-       aworx::complementChar    <==>    aworx::nchar     ==         char      (1 byte)
-       aworx::strangeChar        ==     aworx::xchar    <==>        char32_t  (4 bytes)
+       alib::character         <==>    alib::wchar    <==>        wchar_t   (2 bytes)
+       alib::complementChar    <==>    alib::nchar     ==         char      (1 byte)
+       alib::strangeChar        ==     alib::xchar    <==>        char32_t  (4 bytes)
 
 Each table uses two times <em>'=='</em>. This should illustrate that the pairs of types:
 1. \b nchar and \c char, and
@@ -179,12 +179,12 @@ this is never sure and depends on the compiler, platform and library compilation
 
 \note
   From this perspective, if mixing \alib characters with the character definition found in
-  \https{QT Class Library,www.qt.io},  \c QChar is equivalent to logical type \aworx{strangeChar}
-  under GNU/Linux,  while it is equivalent to type \aworx{character}
+  \https{QT Class Library,www.qt.io},  \c QChar is equivalent to logical type \alib{strangeChar}
+  under GNU/Linux,  while it is equivalent to type \alib{character}
   on Windows OS. This is true, because on any platform, type \c QChar is defined to have a width of
   of 2 bytes!
 
-While it is obvious that the default character type \ref aworx::character is needed
+While it is obvious that the default character type \ref alib::character is needed
 to write platform independent code, it might not be so simple to imagine a use case for types
 \c complementChar and \c strangeChar.
 Mostly those two are needed internally, but they are also very useful when it
@@ -200,18 +200,18 @@ Let us quickly summarize what was said in this chapter about character types:
 - Four C++ built-in types exist: \c char, \c char16_t or \c char32_t, \c wchar_t.<br>
   None of the four have a defined size in bits.
 - Module \alib_characters_nl provides three alias types that define character width \e explicitly:
-   - \ref aworx::nchar for narrow characters, always an alias to \c char, and
-   - \ref aworx::wchar for wide characters, not necessarily an alias to \c wchar_t.
-   - \ref aworx::xchar, for the third possible size that is neither narrow nor wide and can be
+   - \ref alib::nchar for narrow characters, always an alias to \c char, and
+   - \ref alib::wchar for wide characters, not necessarily an alias to \c wchar_t.
+   - \ref alib::xchar, for the third possible size that is neither narrow nor wide and can be
      considered as an incompatible wide character.
 
 - Module \alib_characters_nl provides three alias types that define character width in a logical
   sense:
-   - \ref aworx::character is the default character type chosen with compiling the library.
+   - \ref alib::character is the default character type chosen with compiling the library.
      This either resolves to \b nchar or \b wchar.
-   - \ref aworx::complementChar providing the complementary character to \b %character, hence
+   - \ref alib::complementChar providing the complementary character to \b %character, hence
      it aliases \b wchar if \b character aliases \b nchar and vice versa.
-   - \ref aworx::strangeChar providing the third possible character width which is neither
+   - \ref alib::strangeChar providing the third possible character width which is neither
      \b nchar nor \b wchar.
 
 While these definitions might sound like introducing a next complexity level on top of the already
@@ -763,7 +763,7 @@ The definitions for the three types is summarized in the following table:
 
 \note
   Of-course, corresponding specializations of TMP structs \b T_CharArray and \b T_ZTCharArray
-  are made for the three classes and for all three character widths, \aworx{nchar}, \aworx{wchar} and \aworx{xchar}.
+  are made for the three classes and for all three character widths, \alib{nchar}, \alib{wchar} and \alib{xchar}.
   Therefore, altogether 18 specializations are made.
 
 
@@ -792,7 +792,7 @@ types of the \https{QT Class Library,www.qt.io}:
 |\c QByteArray    | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 |\c QVector<uint> | Implicit&nbsp;Access<br>Explicit&nbsp;Construction | Explicit&nbsp;Access<br>Explicit&nbsp;Construction
 
-If module \alib_strings is included in the \alibdist, in addition to the these type traits, the
+If module \alib_strings is included in the \alibdist, in addition to these type traits, the
 inclusion of header file alib/compatibility/chararray_qt.hpp provides a specialization of
 \alib{strings,T_Append} for \b QT type \b QChar.
 
@@ -812,6 +812,4 @@ Please consult the reference documentation of these types for more information:
 - \alib{characters,TT_ComplementChar}
 - \alib{characters,CharArray}
 
-*/
-
-
+<br><br><br><br><br><br> */

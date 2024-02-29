@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -497,16 +497,16 @@ apply in respect to <em>"node recycling"</em> .
 
 For all uses cases that constitute monotonic allocation
 \ref alib_monomem_intro_recycling "without the need of recycling internal container node objects",
-template types that satisfy C++ 11 <c>std::allocator</c> are provided with \alib{monomem,StdContMA}
+template types that satisfy <c>std::allocator</c> are provided with \alib{monomem,StdContMA}
 and \alib{monomem,StdContMAOptional}.
 
 Both can be used with any container type found in namespace <c>std</c>. To use them, an understanding
-general concept of using C++ 11 <c>std::allocator</c> type is helpful.
+general concept of using <c>std::allocator</c> type is helpful.
 
-As most of \alib types do, also these types dispose about an \ref aworx "alias type definition in namespace aworx".
+As most of \alib types do, also these types dispose about an \ref alib "alias type definition in namespace alib".
 
-A standard container is declared by providing the allocator types \b aworx::StdContMA<T>
-or \b aworx::StdContMAOptional<T> for the allocator template typename with repeating the contained
+A standard container is declared by providing the allocator types \b alib::StdContMA<T>
+or \b alib::StdContMAOptional<T> for the allocator template typename with repeating the contained
 object's type:
 
  \snippet "ut_alib_monomem_monomem.cpp"     DOX_ALIB_MONOMEM_STDCONTMA_DECL
@@ -633,7 +633,7 @@ While it may not be very reasonable to make the effort emplace a type that imple
 dictionary inside the allocator that it uses, in other occasions this surely is.
 An advantage of this concept is that the footprint of the resulting type has just the size of
 one pointer and this way instances can be moved to other places very easily.<br>
-The standard throwable type of \alib, class \alib{results,Exception}, is a prominent sample.
+The standard throwable type of \alib, class \alib{lang,Exception}, is a prominent sample.
 
 \I{################################################################################################}
 # 6. Thread Safeness # {#alib_monomem_threadsafeness}
@@ -714,7 +714,7 @@ to type \b MAString is to emplace an instance of class \alib{strings,TLocalStrin
 monotonic memory. The effect of doing so is that the internal reserved buffer is monotonically
 allocated together with the object itself. If the buffer is exceeded, dynamic allocation is
 used.<br>
-It is good practice to use \b type LocalString (for example \aworx{String32} with container types.
+It is good practice to use \b type LocalString (for example \alib{String32} with container types.
 They can be used for attributes of the contained value the same as for key-attributes (for example
 in case of \c HashTable). Their fixed (templated) internal buffer size has to be chosen carefully
 depending on the data that the strings are supposed to hold. The goal here is to find a good
@@ -745,6 +745,6 @@ With special compilation symbol \ref ALIB_DEBUG_MONOMEM, the following features 
   - Function \alib{monomem,DbgGetHashTableDistribution}.
   - Function \alib{monomem,DbgDumpDistribution}.
   - Function \alib{monomem,DbgDumpHashtable}.
-*/
 
 
+<br><br><br><br><br><br> */

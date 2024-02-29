@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN
@@ -28,7 +28,7 @@
 #   include "alib/monomem/mastring.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 
 /** ************************************************************************************************
@@ -38,7 +38,7 @@ namespace aworx { namespace lib { namespace expressions {
  * expression strings.
  *
  * In depth information on how this class is used is given in the
- * \ref aworx::lib::expressions "User Manual And Tutorial" of module \alib_expressions_nl.
+ * \ref alib::expressions "User Manual And Tutorial" of module \alib_expressions_nl.
  *
  * The overloaded methods #TryCompilation are not abstract, but have a default implementation
  * that return constant \c false. A plug-in derived from this class needs to override only those
@@ -656,12 +656,12 @@ struct CompilerPlugin
 
 };
 
-}} // namespace aworx[::lib::expressions]
+} // namespace alib[::expressions]
 
-/// Type alias in namespace #aworx.
-using     CompilerPlugin=    lib::expressions::CompilerPlugin;
+/// Type alias in namespace \b alib.
+using     CompilerPlugin=    expressions::CompilerPlugin;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 #endif // HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN

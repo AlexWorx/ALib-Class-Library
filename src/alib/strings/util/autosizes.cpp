@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -24,7 +24,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPadding )
 {
@@ -66,7 +66,7 @@ void    AutoSizes::Export( AString& target  )
         target.DeleteEnd<false>(target.Length() - target.LastIndexOf('('));
 }
 
-void    AutoSizes::Import( const String& sourceString, CurrentData session  )
+void    AutoSizes::Import( const String& sourceString, lang::CurrentData session  )
 {
     Reset();
 
@@ -82,15 +82,15 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
     {
         parser.TrimStart();
         Types type;
-        if( !parser.ConsumeChar<Case::Sensitive, Whitespaces::Trim>( '(' ) )
+        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( '(' ) )
         {
             PARSERROR
             break;
         }
 
-        if( parser.ConsumeChar<Case::Ignore, Whitespaces::Trim>( 'T' ) )
+        if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'T' ) )
             type= Types::Tabstop;
-        else if( parser.ConsumeChar<Case::Ignore,Whitespaces::Trim>( 'F' ) )
+        else if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'F' ) )
             type= Types::Field;
         else
         {
@@ -98,7 +98,7 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
             break;
         }
 
-        if( !parser.ConsumeChar<Case::Sensitive, Whitespaces::Trim>( ',' ) )
+        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ',' ) )
         {
             PARSERROR
             break;
@@ -108,7 +108,7 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
         integer   actual;
         parser.ConsumeInt( actual        );
 
-        if( !parser.ConsumeChar<Case::Sensitive, Whitespaces::Trim>( ',' ) )
+        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ',' ) )
         {
             PARSERROR
             break;
@@ -118,7 +118,7 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
         integer   sessionValue;
         parser.ConsumeInt( sessionValue );
 
-        if( !parser.ConsumeChar<Case::Sensitive, Whitespaces::Trim>( ')' ) )
+        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ')' ) )
         {
             PARSERROR
             break;
@@ -127,7 +127,7 @@ void    AutoSizes::Import( const String& sourceString, CurrentData session  )
         data.emplace_back( type, actual, sessionValue );
     }
 
-    if( session == CurrentData::Clear )
+    if( session == lang::CurrentData::Clear )
         Consolidate();
 }
 
@@ -167,4 +167,4 @@ void    AutoSizes::Consolidate()
 }
 
 
-}}}} // namespace [aworx::lib::strings::util]
+}}} // namespace [alib::strings::util]

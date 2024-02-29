@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * <b>Legal Notice:</b>
@@ -15,8 +15,8 @@
 #ifndef HPP_ALIB_COMPATIBILITY_QT_CHARACTERS
 #define HPP_ALIB_COMPATIBILITY_QT_CHARACTERS 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CHARACTERS)
@@ -50,7 +50,7 @@ ALIB_ASSERT_MODULE(CHARACTERS)
 #   include "alib/characters/characters.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::custom to keep the documentation of namespace string clean!
@@ -65,8 +65,8 @@ namespace qt {} }
 
 #else
 
-#define ALIB_QTCHAR   typename aworx::lib::characters::TT_CharOfSize<2>::type
-#define ALIB_QTCHAR_4 typename aworx::lib::characters::TT_CharOfSize<4>::type
+#define ALIB_QTCHAR   typename alib::characters::TT_CharOfSize<2>::type
+#define ALIB_QTCHAR_4 typename alib::characters::TT_CharOfSize<4>::type
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 // QStringView
@@ -184,7 +184,7 @@ ALIB_WARNINGS_RESTORE
 
 #endif  //ALIB_DOX
 
-}}}  // namespace [aworx::lib::characters]
+}}  // namespace [alib::characters]
 
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project

@@ -1,26 +1,23 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_RESULTS_RESULTS)
-#      include "alib/results/results.hpp"
-#   endif
 #   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE)
 #      include "alib/expressions/detail/virtualmachine.hpp"
 #   endif
-#   if ALIB_SYSTEM && !defined(HPP_ALIB_SYSTEM_ERRORS)
-#       include "alib/system/systemerrors.hpp"
+#   if ALIB_CAMP && !defined(HPP_ALIB_CAMP_ERRORS)
+#       include "alib/lang/system/systemerrors.hpp"
 #   endif
-#   if ALIB_SYSTEM && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
+#   if ALIB_CAMP && !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
 #      include "alib/expressions/plugins/dateandtime.hpp"
 #   endif
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #   if ALIB_CONFIGURATION && !defined (HPP_ALIB_CONFIG_CONFIG)
 #      include "alib/config/config.hpp"
@@ -31,15 +28,15 @@
 #   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
 #      include "alib/enums/recordbootstrap.hpp"
 #   endif
-#   if ALIB_SYSTEM && !defined( HPP_ALIB_TIME_DATETIME)
+#   if ALIB_CAMP && !defined( HPP_ALIB_TIME_DATETIME)
 #      include "alib/time/datetime.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::expressions::Exceptions                              , vt_expressions_exceptions )
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
+ALIB_BOXING_VTABLE_DEFINE( alib::expressions::Exceptions                              , vt_expressions_exceptions )
+ALIB_BOXING_VTABLE_DEFINE( alib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
 
-namespace aworx { namespace lib {
+namespace alib {
 
 expressions::Expressions EXPRESSIONS;
 
@@ -52,9 +49,6 @@ expressions::Expressions EXPRESSIONS;
  **************************************************************************************************/
 namespace expressions {
 
-
-
-
 // ##########################################################################################
 // ### Static sample objects and signatures
 // ##########################################################################################
@@ -64,7 +58,7 @@ Box Types::Integer = static_cast<integer>(0);
 Box Types::Float   = static_cast<double >(0.0);
 Box Types::String  = A_CHAR("");
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 Box Types::DateTime= time::DateTime::FromRaw(0);
 Box Types::Duration= time::DateTime::Duration::FromNanoseconds(0);
 #endif
@@ -85,7 +79,7 @@ Box* Signatures::SSI [3]  = { &Types::String     ,  &Types::String    ,  &Types:
 Box* Signatures::SII [3]  = { &Types::String     ,  &Types::Integer   ,  &Types::Integer  };
 Box* Signatures::SSB [3]  = { &Types::String     ,  &Types::String    ,  &Types::Boolean  };
 Box* Signatures::SSS [3]  = { &Types::String     ,  &Types::String    ,  &Types::String   };
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 Box* Signatures::D   [1]  = { &Types::DateTime                                            };
 Box* Signatures::Dur [1]  = { &Types::Duration                                            };
 Box* Signatures::DDur[2]  = { &Types::DateTime   ,  &Types::Duration                      };
@@ -100,25 +94,23 @@ Box* Signatures::DDur[2]  = { &Types::DateTime   ,  &Types::Duration            
 // ##########################################################################################
 
 Expressions::Expressions()
-: Module( ALIB_VERSION, ALIB_REVISION, "EXPR" )
+: Camp( "EXPR" )
 {
     ALIB_ASSERT_ERROR( this == &EXPRESSIONS, "EXPR",
-       "Instances of class Expressions must not be created. Use singleton aworx::lib::EXPRESSIONS" )
+       "Instances of class Expressions must not be created. Use singleton alib::EXPRESSIONS" )
 }
 
 
-void Expressions::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
+void Expressions::bootstrap( BootstrapPhases phase )
 {
     if( phase == BootstrapPhases::PrepareResources )
     {
-        ALIB.CheckDistribution();
-
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_exceptions )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_expressions_vmopcodes  )
-        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::expressions::Exceptions )
-ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes ) )
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::Exceptions )
+ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::expressions::detail::VirtualMachine::Command::OpCodes ) )
 
-        ALIB_IF_SYSTEM( plugins::DateAndTime::Bootstrap(); )
+        ALIB_IF_CAMP( plugins::DateAndTime::Bootstrap(); )
 
         // add resources
 #if !ALIB_RESOURCES_OMIT_DEFAULTS
@@ -294,7 +286,7 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
 
     "ProgListHeader",      A_CHAR( "@HL-"
                                    "ALib Expression Compiler\n"
-                                   "(c) 2023 AWorx GmbH. Published under MIT License (Open Source).\n"
+                                   "(c) 2024 AWorx GmbH. Published under MIT License (Open Source).\n"
                                    "More Info: https://alib.dev\n"
                                    "@HL-"
                                    "Expression name: {}\n"
@@ -397,7 +389,7 @@ ALIB_DBG(ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( aworx::lib:
                                                       EOS
 
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
      "CPD0"   , A_CHAR( "January"               " I 3,"         ),
      "CPD1"   , A_CHAR( "February"              " I 3,"         ),
      "CPD2"   , A_CHAR( "March"                 " I 3,"         ),
@@ -495,7 +487,7 @@ void EROperatorAlias::Parse()
 }
 
 
-}}} // namespace [aworx::lib::expressions]
+}} // namespace [alib::expressions]
 
 
 #undef EOS

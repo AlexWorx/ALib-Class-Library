@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -12,11 +12,11 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 
 #if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_SYSTEM_CALENDAR)
-#   include "alib/system/calendar.hpp"
+#if !defined (HPP_ALIB_CAMP_CALENDAR)
+#   include "alib/lang/system/calendar.hpp"
 #endif
 #endif // !defined(ALIB_DOX)
 
@@ -39,7 +39,7 @@
 #   define TOINT(arg) static_cast<integer>(arg)
 #endif
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 
 namespace {
@@ -100,7 +100,7 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_3])
 
 void FToLiteral_DateTime( const Box& constantValue, AString& expressionString )
 {
-    CalendarDateTime ct( constantValue.Unbox<DateTime>(), Timezone::UTC );
+    CalendarDateTime ct( constantValue.Unbox<DateTime>(), lang::Timezone::UTC );
 
     expressionString << "UTCDateTime( " << ct.Year         << ','
                                         << ct.Month        << ','
@@ -124,7 +124,7 @@ FUNC( dateTime        , auto qtyArgs= end-args;
                                              ( qtyArgs> 5  ) ?  static_cast<int>( INT(*(args+5)) ) : 0, // second
                                              ( qtyArgs> 6  ) ?  static_cast<int>( INT(*(args+6)) ) : 0  // millisecond
                                            )
-                               .Get(Timezone::Local);
+                               .Get(lang::Timezone::Local);
            )
 
 FUNC( utcDateTime     , auto qtyArgs= end-args;
@@ -136,32 +136,32 @@ FUNC( utcDateTime     , auto qtyArgs= end-args;
                                              ( qtyArgs> 5  ) ?  static_cast<int>( INT(*(args+5)) ) : 0, // second
                                              ( qtyArgs> 6  ) ?  static_cast<int>( INT(*(args+6)) ) : 0  // millisecond
                                            )
-                               .Get(Timezone::UTC);
+                               .Get(lang::Timezone::UTC);
            )
 
-FUNC( today           , CalendarDateTime ct(DateTime(), Timezone::Local);
+FUNC( today           , CalendarDateTime ct(DateTime(), lang::Timezone::Local);
                         ct.Hour= ct.Minute= ct.Second= ct.Millisecond= 0;
-                        return ct.Get(Timezone::Local);                     )
-FUNC( utcToday        , CalendarDateTime ct(DateTime(), Timezone::UTC);
+                        return ct.Get(lang::Timezone::Local);                     )
+FUNC( utcToday        , CalendarDateTime ct(DateTime(), lang::Timezone::UTC);
                         ct.Hour= ct.Minute= ct.Second= ct.Millisecond= 0;
-                        return ct.Get(Timezone::UTC);                     )
+                        return ct.Get(lang::Timezone::UTC);                     )
 FUNC( now             , return DateTime();                                 )
 FUNC( age             , return DT(ARG0).Age();                            )
 FUNC( isOlderThan     , return DT(ARG0).IsOlderThan( DUR(ARG1) );      )
-FUNC( year            , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Year       ); )
-FUNC( month           , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Month      ); )
-FUNC( day             , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Day        ); )
-FUNC( dayOfWeek       , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).DayOfWeek  ); )
-FUNC( hour            , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Hour       ); )
-FUNC( minute          , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Minute     ); )
-FUNC( millisecond     , return TOINT(CalendarDateTime(DT(ARG0), Timezone::Local).Millisecond); )
-FUNC( utcYear         , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Year       ); )
-FUNC( utcMonth        , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Month      ); )
-FUNC( utcDay          , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Day        ); )
-FUNC( utcDayOfWeek    , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).DayOfWeek  ); )
-FUNC( utcHour         , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Hour       ); )
-FUNC( utcMinute       , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Minute     ); )
-FUNC( utcMillisecond  , return TOINT(CalendarDateTime(DT(ARG0), Timezone::UTC  ).Millisecond); )
+FUNC( year            , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Year       ); )
+FUNC( month           , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Month      ); )
+FUNC( day             , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Day        ); )
+FUNC( dayOfWeek       , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).DayOfWeek  ); )
+FUNC( hour            , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Hour       ); )
+FUNC( minute          , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Minute     ); )
+FUNC( millisecond     , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::Local).Millisecond); )
+FUNC( utcYear         , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Year       ); )
+FUNC( utcMonth        , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Month      ); )
+FUNC( utcDay          , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Day        ); )
+FUNC( utcDayOfWeek    , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).DayOfWeek  ); )
+FUNC( utcHour         , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Hour       ); )
+FUNC( utcMinute       , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Minute     ); )
+FUNC( utcMillisecond  , return TOINT(CalendarDateTime(DT(ARG0), lang::Timezone::UTC  ).Millisecond); )
 
 
 // #################################################################################################
@@ -277,9 +277,9 @@ void  DateAndTime::Bootstrap()
 {
 DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
 // register ToLiteral interface for class DateTime::Duration with boxing
-boxing::BootstrapRegister<FToLiteral, lib::boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
+boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
 DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
-boxing::BootstrapRegister<FToLiteral, lib::boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
+boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
 }
 
 DateAndTime::DateAndTime( Compiler& compiler )
@@ -372,7 +372,7 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
 /**/}
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #undef BOL
 #undef INT
@@ -383,6 +383,6 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
 #undef BIN_MAP_ENTRY
 #undef BIN_ALIAS_ENTRY
 
-#endif // ALIB_SYSTEM
+#endif // ALIB_CAMP
 
 //! @endcond

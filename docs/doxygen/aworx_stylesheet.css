@@ -497,16 +497,16 @@ div.toc h3 {
 }
 
 /* ######################## A-Worx header menu #########################*/
-.aworx-menutable {
+.alib-menutable {
 }
 
-.aworx-menutable td  {
+.alib-menutable td  {
 
     width: auto;
     white-space: nowrap;
 }
 
-.aworx-menutable td:last-child {
+.alib-menutable td:last-child {
   width:100%;
   text-align: right;
   background-image: url('GitHub-Mark-Light-64px.png');
@@ -516,7 +516,7 @@ div.toc h3 {
 
 }
 
-.aworx-menu {
+.alib-menu {
     font-family: "Open Sans";
     font-size: 15px;
     font-weight: bold;
@@ -527,7 +527,7 @@ div.toc h3 {
 
 }
 
-.aworx-menu_hl {
+.alib-menu_hl {
     font-family: "Open Sans";
     font-size: 15px;
     font-weight: bold;
@@ -1979,5 +1979,3 @@ tr.heading h2 {
     display:inline;
   }
 }
-
-

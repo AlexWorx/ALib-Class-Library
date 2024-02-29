@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_MASTRING
@@ -19,7 +19,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /** ************************************************************************************************
  * The name of this class stands for "monotonically allocated string".
@@ -33,15 +33,15 @@ namespace aworx { namespace lib { namespace monomem {
  *
  * If it is assured that no dynamic allocation was performed during the life-cycle of an instance,
  * the instance does not need to be destructed. In this case, the instance itself might be allocated
- * in the same \alib{monomem,MonoAllocator} (without performing additional precautions for propper
+ * in the same \alib{monomem,MonoAllocator} (without performing additional precautions for proper
  * destruction).
  *
  * @tparam TChar The character type.<br>
  *   Alias names for specializations of this class using character types
  *   \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar},
  *   \alib{characters,xchar}, \alib{characters,complementChar} and \alib{characters,strangeChar}
- *   are provided in namespace #aworx with type definitions \aworx{MAString}, \aworx{NMAString},
- *   \aworx{WMAString}, \aworx{XMAString}, \aworx{ComplementMAString} and \aworx{StrangeMAString}.
+ *   are provided in namespace #alib with type definitions \alib{MAString}, \alib{NMAString},
+ *   \alib{WMAString}, \alib{XMAString}, \alib{ComplementMAString} and \alib{StrangeMAString}.
  **************************************************************************************************/
 template<typename TChar>
 class TMAString : public strings::TAString<TChar>
@@ -92,41 +92,40 @@ class TMAString : public strings::TAString<TChar>
 
         strings::TAString<TChar>::SetBuffer( allocator.AllocArray<TChar>( tmp.Length() + additionalCapacity + 1 ),
                                              tmp.Length() + additionalCapacity + 1  ,
-                                             tmp.Length(), Responsibility::KeepWithSender );
+                                             tmp.Length(), lang::Responsibility::KeepWithSender );
 
         tmp.CopyTo( strings::TString<TChar>::vbuffer );
     }
 };
 
 
-}} // namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx.
-using  MAString          =     lib::monomem::TMAString<character>;
+/// Type alias in namespace \b alib.
+using  MAString          =     monomem::TMAString<character>;
 
-/// Type alias in namespace #aworx.
-using  ComplementMAString=     lib::monomem::TMAString<complementChar>;
+/// Type alias in namespace \b alib.
+using  ComplementMAString=     monomem::TMAString<complementChar>;
 
-/// Type alias in namespace #aworx.
-using  StrangeMAString   =     lib::monomem::TMAString<strangeChar>;
+/// Type alias in namespace \b alib.
+using  StrangeMAString   =     monomem::TMAString<strangeChar>;
 
-/// Type alias in namespace #aworx.
-using  NMAString         =     lib::monomem::TMAString<nchar>;
+/// Type alias in namespace \b alib.
+using  NMAString         =     monomem::TMAString<nchar>;
 
-/// Type alias in namespace #aworx.
-using  WMAString         =     lib::monomem::TMAString<wchar>;
+/// Type alias in namespace \b alib.
+using  WMAString         =     monomem::TMAString<wchar>;
 
-/// Type alias in namespace #aworx.
-using  XMAString         =     lib::monomem::TMAString<xchar>;
+/// Type alias in namespace \b alib.
+using  XMAString         =     monomem::TMAString<xchar>;
 
-
-} // namespace [aworx]
+} // namespace [alib]
 
 
 // set character array type traits for TMAString
 #if !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace characters {
+namespace alib::characters {
 template<typename TChar>
 struct  T_CharArray<monomem::TMAString<TChar>, TChar>
 {
@@ -136,11 +135,10 @@ struct  T_CharArray<monomem::TMAString<TChar>, TChar>
 
     static constexpr ConstructionType Construction = ConstructionType::NONE;
 };
-}}}
+} // namespace [alib::characters]
 
 #endif // !defined(ALIB_DOX)
 
 
 #endif // ALIB_STRINGS
 #endif // HPP_ALIB_MONOMEM_MASTRING
-

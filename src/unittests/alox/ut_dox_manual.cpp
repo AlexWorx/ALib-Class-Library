@@ -2,12 +2,12 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_ALOX
+#if ALIB_UT_DOCS && ALIB_UT_ALOX
 
 
 #include "alib/alox.hpp"
@@ -27,7 +27,7 @@ ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 #endif
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 
 //##################################################################################################
@@ -50,7 +50,7 @@ Log_Prune( Lox_Prune( Logger* myReleaseLogger= nullptr; ) )
 
 //! [DOX_ALOX_INSTALL_REPORT_WRITER]
 Log_Prune( Log::AddALibReportWriter( &LOX_LOX ); )
-Log_Prune( Lox_SetVerbosity( myReleaseLogger, Verbosity::Info, lib::lox::ALoxReportWriter::LogDomain() ); )
+Log_Prune( Lox_SetVerbosity( myReleaseLogger, Verbosity::Info, lox::ALoxReportWriter::LogDomain() ); )
 //! [DOX_ALOX_INSTALL_REPORT_WRITER]
 
 //! [DOX_ALOX_INSTALL_REPORT_WRITER_2]

@@ -2,7 +2,7 @@
 //  ALib C++ Library
 //  Configuration Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #if !defined(ALIB_DOX) // otherwise this sample would be seen in the ALib dox
@@ -12,16 +12,17 @@
 #include "alib/cli/commandline.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"   // Support to write ALib strings and boxes to cout
 #include "alib/compatibility/std_strings_functional.hpp" // Support to write ALib strings and boxes to cout
-#include "alib/distribution.hpp"                         // Support customized module bootstrapping
+#include "alib/lang/basecamp/camp_inlines.hpp"               // Add missing inline functions of class Camp
+#include "alib/lang/basecamp/bootstrap.hpp"                  // Support customized module bootstrapping
 #include "alib/cli/cliutil.hpp"
 #include "alib/enums/recordbootstrap.hpp"                // Support for bootstrapping resourced enum records
 #include "alib/time/datetime.hpp"                        // ALib date/time types
-#include "alib/system/calendar.hpp"                      // ALib calendar formatting
+#include "alib/lang/system/calendar.hpp"                      // ALib calendar formatting
 #include <filesystem>                                    // C++ filesystem
 
 // namespaces to use locally
-using namespace aworx;
-using namespace aworx::lib::cli;
+using namespace alib;
+using namespace alib::cli;
 //! [DOX_ALIB_EXPR_TUT_CLI_INCLUDES]
 
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS]
@@ -61,33 +62,30 @@ enum class ExitCodes
 
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN]
 // assigning ALib enum records
-ALIB_ENUMS_ASSIGN_RECORD( Commands        , aworx::lib::cli::ERCommandDecl        )
-ALIB_ENUMS_ASSIGN_RECORD( Options         , aworx::lib::cli::EROptionDecl         )
-ALIB_ENUMS_ASSIGN_RECORD( Parameters      , aworx::lib::cli::ERParameterDecl      )
-ALIB_ENUMS_ASSIGN_RECORD( ExitCodes       , aworx::lib::cli::ERExitCodeDecl       )
+ALIB_ENUMS_ASSIGN_RECORD( Commands        , alib::cli::ERCommandDecl        )
+ALIB_ENUMS_ASSIGN_RECORD( Options         , alib::cli::EROptionDecl         )
+ALIB_ENUMS_ASSIGN_RECORD( Parameters      , alib::cli::ERParameterDecl      )
+ALIB_ENUMS_ASSIGN_RECORD( ExitCodes       , alib::cli::ERExitCodeDecl       )
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN]
 
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE]
+//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP]
 // #################################################################################################
 // The custom ALib module, needed to define externalized resources.
 // #################################################################################################
-class SampleModule  : public lib::Module
+class SampleCamp  : public lang::Camp
 {
-    public:
+  public:
     //  Constructor. Passes version number and resource name to the module class
-    SampleModule()
-    : lib::Module( 1, 0, "DATEMOD" )
+    SampleCamp()
+    : Camp( "DATEMOD" )
     {}
 
-    protected:
+  protected:
     // Initialization of the module.
-    virtual void    bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )  override
+    virtual void    bootstrap( BootstrapPhases phase )                                      override
     {
         if( phase == BootstrapPhases::PrepareResources)
         {
-            ALIB.CheckDistribution( ALIB_VERSION, ALIB_COMPILATION_FLAGS );
-
-
             // Add bulk !
             resourcePool->BootstrapBulk( ResourceCategory,
             #define EOS ,
@@ -144,11 +142,11 @@ class SampleModule  : public lib::Module
             "1,"  "TOPIC"            ",1,"        ""                 ","          "="  ","  ",-1"          ",1"   ) EOS
 
             "Parameters<",           A_CHAR("datesample::Parameters::"),
-            "THlpParSht_FILENAME",   A_CHAR("Mandatory paramter of command 'file."),
+            "THlpParSht_FILENAME",   A_CHAR("Mandatory parameter of command 'file."),
             "THlpParLng_FILENAME",   A_CHAR("Denotes the file that is used for retrieving the modification date.\n"
                                             "This parameter is mandatory to command file and has to be appended\n"
                                             "to this command, separated by '='"),
-            "THlpParSht_TOPIC"   ,   A_CHAR("Optional paramter of command (or option) 'help'."),
+            "THlpParSht_TOPIC"   ,   A_CHAR("Optional parameter of command (or option) 'help'."),
             "THlpParLng_TOPIC"   ,   A_CHAR("Denotes a specific toopic that the help command should be verbose about.")
             EOS
 
@@ -208,21 +206,21 @@ class SampleModule  : public lib::Module
     virtual void    shutdown( ShutdownPhases phase )  override
     { (void) phase;  }
 
-}; // class SampleModule
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE]
+}; // class SampleCamp
+//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP]
 
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE_SINGLETON]
+//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON]
 // The module singleton object
-extern SampleModule SAMPLE_MODULE_SINGLETON;
-SampleModule SAMPLE_MODULE_SINGLETON;
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_MODULE_SINGLETON]
+extern SampleCamp SAMPLE_CAMP;
+SampleCamp SAMPLE_CAMP;
+//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON]
 
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2]
 // Specifying our custom module to hold resources of our enum records
-ALIB_RESOURCED_IN_MODULE( Commands  , SAMPLE_MODULE_SINGLETON, "Commands"   )
-ALIB_RESOURCED_IN_MODULE( Parameters, SAMPLE_MODULE_SINGLETON, "Parameters" )
-ALIB_RESOURCED_IN_MODULE( Options   , SAMPLE_MODULE_SINGLETON, "Options"    )
-ALIB_RESOURCED_IN_MODULE( ExitCodes , SAMPLE_MODULE_SINGLETON, "ExitCodes"  )
+ALIB_RESOURCED_IN_MODULE( Commands  , SAMPLE_CAMP, "Commands"   )
+ALIB_RESOURCED_IN_MODULE( Parameters, SAMPLE_CAMP, "Parameters" )
+ALIB_RESOURCED_IN_MODULE( Options   , SAMPLE_CAMP, "Options"    )
+ALIB_RESOURCED_IN_MODULE( ExitCodes , SAMPLE_CAMP, "ExitCodes"  )
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2]
 
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_FWDDECL]
@@ -236,13 +234,15 @@ ExitCodes processCLI( CommandLine& cli );
 // #################################################################################################
 int main( int argc, const char **argv )
 {
+    alib::ArgC  = argc;
+    alib::ArgVN = argv;
+
     // 1. Add our custom module to the list of modules
-    ALIB.BootstrapFillDefaultModuleList();
-    ALIB.Modules.PushBack( &SAMPLE_MODULE_SINGLETON );
+    alib::BootstrapAddDefaultCamps();
+    alib::Camps.PushBack( &SAMPLE_CAMP );
 
     // 2. Initialize all modules
-    SAMPLE_MODULE_SINGLETON.Bootstrap(argc, argv);
-    ALIB.CheckDistribution(); // consitancy checks in respect to ALib version & compilation flags
+    alib::Bootstrap();
 
     // 3. now we start catching exceptions
     Enum result= ExitCodes::ErrInternalError;
@@ -255,14 +255,14 @@ int main( int argc, const char **argv )
             // Read copyright string from resources and format to current version and year
             Paragraphs buffer;
             buffer.LineWidth= 70;
-            buffer.AddMarked( SAMPLE_MODULE_SINGLETON.GetResource( "AppInfo" ),
-                              SAMPLE_MODULE_SINGLETON.Version,
-                              SAMPLE_MODULE_SINGLETON.Revision,
+            buffer.AddMarked( SAMPLE_CAMP.GetResource( "AppInfo" ),
+                              alib::Version,
+                              alib::Revision,
                               CalendarDateTime(DateTime()).Year      );
             cli.AppInfo= cli.GetAllocator().EmplaceString( buffer.Buffer );
 
             // Initialize the CLI with the module to fetch the resources from.
-            cli.Init( &SAMPLE_MODULE_SINGLETON );
+            cli.Init( &SAMPLE_CAMP );
 
             // Read enum records from resources and build up corresponding object lists.
             cli.DefineParameters<enum Parameters>();
@@ -305,7 +305,7 @@ int main( int argc, const char **argv )
 
     // 7. That's it.
     END:
-    SAMPLE_MODULE_SINGLETON.Shutdown();
+    alib::Shutdown();
     return int(result.Integral());
 }
 //! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_MAIN]
@@ -364,7 +364,7 @@ ExitCodes processCLI( CommandLine& cli )
         // No command, results in command "now"
         CalendarDateTime  calendar= CalendarDateTime(dt);
         AString printBuffer;
-        calendar.Format( format, printBuffer, lib::CurrentData::Clear );
+        calendar.Format( format, printBuffer, lang::CurrentData::Clear );
         std::cout << printBuffer << std::endl;
 
         return ExitCodes::OK;
@@ -418,7 +418,7 @@ ExitCodes processCLI( CommandLine& cli )
         // execute printing of commands "now" and "file"
         CalendarDateTime  calendar= CalendarDateTime(dt);
         AString printBuffer;
-        calendar.Format( format, printBuffer, lib::CurrentData::Clear );
+        calendar.Format( format, printBuffer, lang::CurrentData::Clear );
         std::cout << printBuffer << std::endl;
     }
     return ExitCodes::OK;

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -18,7 +18,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 /** ************************************************************************************************
  * This is the C++ namespace for the implementation of <em>logger classes</em> that are provided
  * by default with <b>%ALox Logging Library</b>.
@@ -31,7 +31,7 @@ namespace loggers {
  * A logger that logs all messages to the standard output <em>cout</em>.
  * The name of the \e Logger defaults to "CONSOLE".
  *
- * \alox text logger escape sequences (see class \ref aworx::lib::lox::ESC "ESC")
+ * \alox text logger escape sequences (see class \ref alib::lox::ESC "ESC")
  * are removed and ignored.
  **************************************************************************************************/
 class ConsoleLogger : public detail::textlogger::PlainTextLogger
@@ -69,7 +69,7 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool        notifyLogOp( Phase phase )                                     override;
+        virtual bool        notifyLogOp( lang::Phase phase )                               override;
 
         /** ****************************************************************************************
          * Writes the given region of the given string to the console.
@@ -87,17 +87,16 @@ class ConsoleLogger : public detail::textlogger::PlainTextLogger
         /** ****************************************************************************************
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
-        virtual void        notifyMultiLineOp( Phase )                                   override {}
+        virtual void        notifyMultiLineOp( lang::Phase )                             override {}
 
 }; // class ConsoleLogger
 
 
-}}}// namespace aworx[::lib::lox::loggers]
+}} // namespace alib[::lox::loggers]
 
-/// Type alias in namespace #aworx.
-using     ConsoleLogger=           lib::lox::loggers::ConsoleLogger;
+/// Type alias in namespace \b alib.
+using     ConsoleLogger=           lox::loggers::ConsoleLogger;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #endif // HPP_ALOX_CONSOLE_LOGGER
-

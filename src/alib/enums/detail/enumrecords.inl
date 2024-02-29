@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_DETAIL_ENUMRECORDS
@@ -12,15 +12,15 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-#if !defined(HPP_ALIB_INTEGERS)
-#   include "alib/lib/integers.hpp"
+#if !defined(HPP_ALIB_LANG_INTEGERS)
+#   include "alib/lang/integers.hpp"
 #endif
 
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 /**
- * Details of namespace #aworx::lib::enums.
+ * Details of namespace #alib::enums.
  */
 namespace detail {
 
@@ -63,7 +63,7 @@ template<typename TEnum>
 struct EnumRecordHook : public    Singleton<EnumRecordHook<TEnum>>
 {
     #if !defined(ALIB_DOX)
-        friend aworx::Singleton<EnumRecordHook>;
+        friend alib::Singleton<EnumRecordHook>;
     #endif
 
     /** The enum's underlying integer type. */
@@ -135,7 +135,7 @@ struct EnumRecordHook : public    Singleton<EnumRecordHook<TEnum>>
 
 };
 
-}}}}   // namespace [aworx::lib::enums::detail]
+}}} // namespace [alib::enums::detail]
 
 
 #endif // HPP_ALIB_ENUMS_DETAIL_ENUMRECORDS

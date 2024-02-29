@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_DETAIL_LOXPIMPL
@@ -25,7 +25,7 @@
 #endif
 
 // forwards
-namespace aworx { namespace lib {
+namespace alib {
 
 namespace threads
 {
@@ -43,11 +43,10 @@ namespace lox { namespace detail {
     }
 }
 
+}} // namespace [alib::lox]
 
-}}}
 
-
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 struct LoxImpl;
 
@@ -63,7 +62,7 @@ struct LI
      * @param lox The \b %Lox that is to be constructed.
      * @param name The name of the Lox. Will be copied and converted to upper case.
      * @param doRegister If \c true, this object is registered with static class
-     *                   \ref aworx::lib::lox::ALox "ALox".
+     *                   \ref alib::lox::ALox "ALox".
      **********************************************************************************************/
     ALIB_API static
     void            Construct( Lox* lox, const NString& name, bool doRegister );
@@ -143,16 +142,16 @@ struct LI
      *                        or applies to all instances of class \b %Lox.
      *                        Defaults to \b %Reach::Global.
      * @param priority        The priority of the setting. Defaults to
-     *                        \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+     *                        \ref alib::config::Priorities "Priorities::DefaultValues".
      **********************************************************************************************/
     ALIB_API static
     void            SetSourcePathTrimRule( LoxImpl* impl,
                                            const NCString& path,
-                                           Inclusion       includeString  ,
+                                           lang::Inclusion includeString  ,
                                            int             trimOffset     ,
-                                           Case            sensitivity    ,
+                                           lang::Case      sensitivity    ,
                                            const NString&  trimReplacement,
-                                           Reach           reach          ,
+                                           lang::Reach     reach          ,
                                            Priorities      priority         );
 
 
@@ -192,7 +191,7 @@ struct LI
      *                   starting with <c> '/'</c> are recommended.
      *                   Defaults to root domain \"/\".
      * @param priority   The priority of the setting. Defaults to
-     *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+     *                   \ref alib::config::Priorities "Priorities::DefaultValues".
      **********************************************************************************************/
     ALIB_API static
     void            SetVerbosity( LoxImpl* impl,
@@ -211,7 +210,7 @@ struct LI
      *                   starting with <c> '/'</c> are recommended.
      *                   Defaults to root domain \"/\".
      * @param priority   The priority of the setting. Defaults to
-     *                   \ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+     *                   \ref alib::config::Priorities "Priorities::DefaultValues".
      **********************************************************************************************/
     ALIB_API static
     void            SetVerbosity( LoxImpl* impl,
@@ -270,7 +269,7 @@ struct LI
      **********************************************************************************************/
     ALIB_API static
     void            SetPrefix( LoxImpl* impl, const Box& prefix, const NString& domain,
-                               Inclusion otherPLs );
+                               lang::Inclusion otherPLs );
 
     /** ********************************************************************************************
      * Implementation of method \alib{lox,Lox::SetStartTime}.
@@ -406,14 +405,14 @@ struct LI
      * The resulting full domain string is assembled from inner to outer scope.
      * If \p{domainPath}, respectively as soon as any of the Scope Domain's paths
      * start with the character defined with
-     * \ref aworx::lib::lox::detail::Domain::Separator "Domain::Separator",
+     * \ref alib::lox::detail::Domain::Separator "Domain::Separator",
      * the evaluation is stopped (the path is interpreted as absolute).
      *
      * @param impl       The implementation struct of the \b Lox.
      * @param domainPath The domain path. If starting with the character defined with
-     *                   \ref aworx::lib::lox::detail::Domain::Separator "Domain::Separator",
+     *                   \ref alib::lox::detail::Domain::Separator "Domain::Separator",
      *                   no scope domains are applied.
-     * @return The resulting \ref aworx::lib::lox::detail::Domain "Domain".
+     * @return The resulting \ref alib::lox::detail::Domain "Domain".
      **********************************************************************************************/
     ALIB_API static
     detail::Domain* evaluateResultDomain( LoxImpl* impl, const NString& domainPath );
@@ -425,7 +424,7 @@ struct LI
      * @param impl          The implementation struct of the \b Lox.
      * @param domainSystem  The domain system. Either the standard or the internal one.
      * @param domainPath    The domain path.
-     * @return The resulting \ref aworx::lib::lox::detail::Domain "Domain".
+     * @return The resulting \ref alib::lox::detail::Domain "Domain".
      **********************************************************************************************/
     ALIB_API static
     detail::Domain* findDomain( LoxImpl* impl, detail::Domain& domainSystem, NString domainPath );
@@ -442,13 +441,16 @@ struct LI
      * @param prefixes     Denotes if prefixes should be included or not.
      **********************************************************************************************/
     ALIB_API static
-    void            log( LoxImpl* impl, detail::Domain*  dom,  Verbosity verbosity,
-                         Boxes&         logables            ,  Inclusion prefixes    );
+    void            log( LoxImpl*         impl,
+                         detail::Domain*  dom,
+                         Verbosity        verbosity,
+                         Boxes&           logables,
+                         lang::Inclusion  prefixes    );
 
 
     /** ********************************************************************************************
      * Logs an internal error message using the internal domain tree as defined in
-     * \ref aworx::lib::lox::Lox::InternalDomains "Lox::InternalDomains".
+     * \ref alib::lox::Lox::InternalDomains "Lox::InternalDomains".
      *
      * @param impl      The implementation struct of the \b Lox.
      * @param verbosity The verbosity.
@@ -592,7 +594,7 @@ struct LI
      * @param[in,out] scope  A reference to the scope that is to be checked (and eventually
      *                       modified.
      * @param internalDomain The internal sub-domain to log any error/warning into.
-     * @return A positive value providing the path level deducted from \p{scope} if all is fine,
+     * @return A positive value providing the path level deduced from \p{scope} if all is fine,
      *        \c -1 else.
      **********************************************************************************************/
     ALIB_API static
@@ -675,8 +677,6 @@ struct LI
 
 }; // struct LI
 
-}}}} // namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]
 
 #endif // HPP_ALOX_DETAIL_LOXPIMPL
-
-

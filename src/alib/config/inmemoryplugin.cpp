@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -14,7 +14,7 @@
 
 
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // #################################################################################################
 // interface
@@ -56,7 +56,7 @@ const InMemoryPlugin::Section* InMemoryPlugin::SearchSection( const String& sect
     auto sIt= sections.begin();
     while( sIt != sections.end() )
     {
-        if( sIt->Name().Equals<Case::Ignore>( sectionName ) )
+        if( sIt->Name().Equals<true, lang::Case::Ignore>( sectionName ) )
             return &*sIt;
         ++sIt;
     }
@@ -201,5 +201,4 @@ ConfigurationPlugin::Iterator*   InMemoryPlugin::GetIterator( const String& sect
 
 
 
-}}}// namespace [aworx::lib::config]
-
+}} // namespace [alib::config]

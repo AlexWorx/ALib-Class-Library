@@ -1,7 +1,6 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Private, not published in git ( I hope! )
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -12,9 +11,7 @@
 #include <array>
 #include <algorithm>
 #include <assert.h>
-#if ALIB_CPPVER >= 17
-#   include <any>
-#endif
+#include <any>
 
 // Fix the method name of logging (needed for unity builds)
 ALIB_WARNINGS_IGNORE_UNUSED_MACRO
@@ -44,7 +41,7 @@ int main( int, char** );
 #include "alib/boxing/boxing.hpp"
 
 // Needed for ALib initialization
-#include "alib/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
 
 // Get support for writing boxes to std::cout
 #include "alib/compatibility/std_strings_iostream.hpp"
@@ -53,12 +50,12 @@ int main( int, char** );
 #include "alib/enums/serialization.hpp"
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 int main( int, char** )
 {
     // Initialize ALib
-    aworx::ALIB.Bootstrap();
+    alib::Bootstrap();
 
     // Create a box containing a string
     Box myBox= "Hello World";
@@ -66,6 +63,8 @@ int main( int, char** )
     // Write the contents of the box
     cout << "My box contains: " << myBox << endl;
 
+    // Terminate ALib
+    // alib::Shutdown();   <-- commented out, because this sample code is in fact run in the unit tests
     return 0;
 }
 //! [DOX_ALIB_BOXING_TUT_MAIN]
@@ -74,7 +73,7 @@ int main( int, char** )
 #undef main
 
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_BOXING
+#if ALIB_UT_DOCS && ALIB_UT_BOXING
 
 #include "alib/alox.hpp"
 
@@ -98,7 +97,7 @@ int main( int, char** )
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/compatibility/std_boxing_functional.hpp"
 #include "alib/boxing/dbgboxing.hpp"
-#include "alib/lib/fs_commonenums/commonenums.hpp"
+#include "alib/lang/commonenums.hpp"
 #include "alib/compatibility/std_boxing.hpp"
 
 
@@ -113,7 +112,7 @@ int main( int, char** )
 
 
 //! [DOX_ALIB_BOXING_CUSTOM_VECTOR_POINTERS_CUSTOMIZE]
-namespace aworx { namespace lib { namespace boxing {
+namespace alib::boxing {
 
 template<typename TElem>
 struct T_Boxer< std::vector<TElem>* >
@@ -130,8 +129,7 @@ struct T_Boxer< std::vector<TElem>* >
         return src.Read<std::vector<TElem>*>();
     }
 };
-
-}}}
+}
 //! [DOX_ALIB_BOXING_CUSTOM_VECTOR_POINTERS_CUSTOMIZE]
 
 
@@ -202,12 +200,12 @@ void isType()
 {
 //! [DOX_ALIB_BOXING_TUT_ISTYPE]
 Box myBox= true;
-cout << "Is the type boolean? " << lib::Bool( myBox.IsType<bool  >() ) << endl;
-cout << "Is the type double? "  << lib::Bool( myBox.IsType<double>() ) << endl;
+cout << "Is the type boolean? " << lang::Bool( myBox.IsType<bool  >() ) << endl;
+cout << "Is the type double? "  << lang::Bool( myBox.IsType<double>() ) << endl;
 
 myBox    = 5.5;
-cout << "Is the type boolean? " << lib::Bool( myBox.IsType<bool  >() ) << endl;
-cout << "Is the type double? "  << lib::Bool( myBox.IsType<double>() ) << endl;
+cout << "Is the type boolean? " << lang::Bool( myBox.IsType<bool  >() ) << endl;
+cout << "Is the type double? "  << lang::Bool( myBox.IsType<double>() ) << endl;
 //! [DOX_ALIB_BOXING_TUT_ISTYPE]
 }
 
@@ -257,7 +255,7 @@ bool ProcessBox( const Box& box )
     // With compilation symbol ALIB_DEBUG_BOXING set, we can use a helper class to display the
     // given type name in the warning.
     #if ALIB_DEBUG_BOXING
-        cout << "  Type given: " << aworx::DbgBoxing::TypeName( box.DbgGetVTable() ) << endl;
+        cout << "  Type given: " << alib::DbgBoxing::TypeName( box.DbgGetVTable() ) << endl;
     #endif
 
     return false;
@@ -315,7 +313,6 @@ void surjectiveStaticCast()
 
 void surjectiveStringTypes()
 {
-#if ALIB_CPPVER >= 17
 //! [DOX_ALIB_BOXING_TUT_SURJECTIVE_STRINGTYPES]
     std::string  stdString  = "Hello";
     NString      alibString = "World";
@@ -325,17 +322,16 @@ void surjectiveStringTypes()
     box        =  stdString;
     assert( box.IsType<std::string_view>() );
             box.Unbox <std::string_view>();
-    assert( box.IsType<aworx::NString  >() );
-            box.Unbox <aworx::NString  >();
+    assert( box.IsType<alib::NString  >() );
+            box.Unbox <alib::NString  >();
 
     // box an ALib string
     box        =  alibString;
     assert( box.IsType<std::string_view>() );
             box.Unbox <std::string_view>();
-    assert( box.IsType<aworx::NString  >() );
-            box.Unbox <aworx::NString  >();
+    assert( box.IsType<alib::NString  >() );
+            box.Unbox <alib::NString  >();
 //! [DOX_ALIB_BOXING_TUT_SURJECTIVE_STRINGTYPES]
-#endif
 }
 
 } // namespace dox_boxing_chpt2_4
@@ -347,7 +343,7 @@ namespace dox_boxing_sample_arr {
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_SAMPLE_ARR]
-bool ProcessArray( const aworx::Box& box )
+bool ProcessArray( const alib::Box& box )
 {
     // not an array type?
     if ( !box.IsArray() )
@@ -361,7 +357,7 @@ bool ProcessArray( const aworx::Box& box )
     {
         cout << "int[" << box.UnboxLength() << "]= { ";
 
-        for( aworx::integer i= 0; i < box.UnboxLength(); ++i )
+        for( alib::integer i= 0; i < box.UnboxLength(); ++i )
             cout << box.UnboxElement<int>( i ) << " ";
 
         cout << "}" << endl;
@@ -376,7 +372,7 @@ bool ProcessArray( const aworx::Box& box )
         cout << "double[" << box.UnboxLength() << "]= { ";
 
         double* array= box.UnboxArray<double>();
-        for( aworx::integer i= 0; i != box.UnboxLength(); ++i )
+        for( alib::integer i= 0; i != box.UnboxLength(); ++i )
             cout << array[ i ] << " ";
 
         cout << "}" << endl;
@@ -410,7 +406,7 @@ void sampleFunc3()
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 //! [DOX_ALIB_BOXING_SAMPLE_ARR_3]
 int mArray[2][3] = {{ 1,2,3 },{ 4,5,6 } };
-aworx::Box box( mArray );
+alib::Box box( mArray );
 
 std::cout << "Is int[][3]: " << box.IsArrayOf<int[3]>() << std::endl;
 
@@ -440,7 +436,7 @@ int  intArray[3] = { 1  , 2  , 3 };
 Box box= intArray;
 
 std::vector<int> intVector;
-aworx::lib::boxing::compatibility::std::CopyToVector( intVector, box );
+alib::boxing::compatibility::std::CopyToVector( intVector, box );
 //! [DOX_ALIB_BOXING_SAMPLE_ARR_UNBOX_VECTOR]
 }
 
@@ -612,7 +608,7 @@ struct  MyDerived : public MyBase
 
 
 //! [DOX_ALIB_BOXING_CONDITIONAL_CUSTOMIZING]
-namespace aworx { namespace lib { namespace boxing {
+namespace alib::boxing {
 
 template<typename TBaseOrDerived>   struct  T_Boxer< TBaseOrDerived,
 
@@ -647,7 +643,7 @@ typename std::enable_if<  std::is_base_of<MyBase, TBaseOrDerived>::value  >::typ
     }
 };
 
-}}}
+}
 //! [DOX_ALIB_BOXING_CONDITIONAL_CUSTOMIZING]
 
 
@@ -678,10 +674,9 @@ box.Unbox<MyDerived>();
 
 
 // ########################################################################################
-#if ALIB_CPPVER >= 17
 namespace dox_boxing_sample_customization_bypass {
 
-void process( const aworx::Box & box );
+void process( const alib::Box & box );
 //! [DOX_ALIB_BOXING_CUSTOM_BYPASS_WRAPPERS]
 // A wrapper for float values
 struct WrappedFloat
@@ -690,7 +685,7 @@ struct WrappedFloat
 };
 
 // A wrapper for AString objects
-using WrappedAString= std::reference_wrapper<aworx::AString>;
+using WrappedAString= std::reference_wrapper<alib::AString>;
 //! [DOX_ALIB_BOXING_CUSTOM_BYPASS_WRAPPERS]
 
 void sampleFunc()
@@ -699,7 +694,7 @@ void sampleFunc()
 process(                 3.1415f   );    // boxed as double
 process( WrappedFloat  { 3.1415f } );    // float value wrapped, will not be converted to double
 
-aworx::AString astring("Hello");
+alib::AString astring("Hello");
 process(                 astring   );    // boxed as character array
 process( WrappedAString( astring ) );    // AString wrapped, the whole object "survives" boxing
 //! [DOX_ALIB_BOXING_CUSTOM_BYPASS]
@@ -707,7 +702,7 @@ process( WrappedAString( astring ) );    // AString wrapped, the whole object "s
 
 
 //! [DOX_ALIB_BOXING_CUSTOM_BYPASS_PROCESS]
-void process( const aworx::Box & box )
+void process( const alib::Box & box )
 {
     // 'normal' boxed types
          if ( box.IsType   <double>() )      std::cout << "double value: " << box.Unbox<double          >();
@@ -722,7 +717,6 @@ void process( const aworx::Box & box )
 //! [DOX_ALIB_BOXING_CUSTOM_BYPASS_PROCESS]
 
 }//namespace dox_boxing_sample_customization_bypass
-#endif
 
 
 // ########################################################################################
@@ -740,7 +734,7 @@ struct FToString
     //
     // @param self    The box that the function was invoked on.
     // @param buffer  A string buffer used for string creation.
-    using Signature = aworx::String (*) ( const Box& self, aworx::AString& buffer );
+    using Signature = alib::String (*) ( const Box& self, alib::AString& buffer );
 };
 //! [DOX_ALIB_BOXING_FUNCTIONS_DESCRIPTOR]
 
@@ -749,20 +743,20 @@ struct FToString
 namespace {
 
     // Implementation of FToString for boxed type 'integer'
-    aworx::String FToString_integer( const Box& self, aworx::AString& buffer )
+    alib::String FToString_integer( const Box& self, alib::AString& buffer )
     {
         return buffer.Reset() << self.Unbox< integer>();
     }
 
     // Implementation of FToString for boxed type 'double'
-    aworx::String FToString_double ( const Box& self, aworx::AString& buffer )
+    alib::String FToString_double ( const Box& self, alib::AString& buffer )
     {
         return buffer.Reset() << self.Unbox< double>();
     }
 
     // Templated implementation of FToString for array types
     template<typename T>
-    aworx::String FToString_array( const Box& self, aworx::AString& buffer )
+    alib::String FToString_array( const Box& self, alib::AString& buffer )
     {
         buffer.Reset() << "{";
         for( int i= 0 ; i < self.UnboxLength() ; ++i )
@@ -782,19 +776,19 @@ void RegisterMyFunctions()
     // We do this, here because this sample code is run in the unit tests, when ALib is already
     // bootstrapped.
     // See note in reference documentation of function BootstrapRegister()
-    ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+    ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
 
     // registering FToString for type integer
-    aworx::lib::boxing::BootstrapRegister<FToString, aworx::lib::boxing::TMappedTo       <integer> >( FToString_integer        );
+    alib::boxing::BootstrapRegister<FToString, alib::boxing::TMappedTo       <integer> >( FToString_integer        );
 
     // registering FToString for type double
-    aworx::lib::boxing::BootstrapRegister<FToString, aworx::lib::boxing::TMappedTo       <double > >( FToString_double         );
+    alib::boxing::BootstrapRegister<FToString, alib::boxing::TMappedTo       <double > >( FToString_double         );
 
     // registering FToString for character arrays
-    aworx::lib::boxing::BootstrapRegister<FToString, aworx::lib::boxing::TMappedToArrayOf<char   > >( FToString_array<char   > );
+    alib::boxing::BootstrapRegister<FToString, alib::boxing::TMappedToArrayOf<char   > >( FToString_array<char   > );
 
     // registering FToString for integer arrays
-    aworx::lib::boxing::BootstrapRegister<FToString, aworx::lib::boxing::TMappedToArrayOf<integer> >( FToString_array<integer> );
+    alib::boxing::BootstrapRegister<FToString, alib::boxing::TMappedToArrayOf<integer> >( FToString_array<integer> );
 }
 //! [DOX_ALIB_BOXING_FUNCTIONS_REGISTER]
 
@@ -835,16 +829,14 @@ cout << "box.ToString(): \"" <<  box.Call<FToString>( buffer )  << '\"' << endl;
 
 
 } //dox_boxing_sample_functions {
-#if !defined(HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
+
 namespace dox_boxing_sample_functions {
 
 
 //! [DOX_ALIB_BOXING_FUNCTIONS_IMPLEMENTATION3]
 namespace {
 
-    aworx::String FToString_Default( const Box& self, aworx::AString& buffer )
+    alib::String FToString_Default( const Box& self, alib::AString& buffer )
     {
         buffer.Reset();
 
@@ -855,9 +847,9 @@ namespace {
                 buffer << "Boxed <unknown" << '['  << self.UnboxLength() << "]>";
         #else
             if( !self.IsArray() )
-                buffer << "Boxed <" << aworx::lib::DbgTypeDemangler( self.TypeID()        ).Get() << '>';
+                buffer << "Boxed <" << alib::lang::DbgTypeDemangler( self.TypeID()        ).Get() << '>';
             else
-                buffer << "Boxed <" << aworx::lib::DbgTypeDemangler( self.ElementTypeID() ).Get()
+                buffer << "Boxed <" << alib::lang::DbgTypeDemangler( self.ElementTypeID() ).Get()
                        << '['  << self.UnboxLength() << "]>";
 
             buffer << " (missing box-function FToString)";
@@ -876,10 +868,10 @@ void RegisterMyFunctions3()
     // We do this, here because this sample code is run in the unit tests, when ALib is already
     // bootstrapped.
     // See note in reference documentation of function BootstrapRegister()
-    ALIB_LOCK_WITH( aworx::lib::monomem::GlobalAllocatorLock )
+    ALIB_LOCK_WITH( alib::monomem::GlobalAllocatorLock )
 
     // registering FToString default implementation
-    aworx::lib::boxing::BootstrapRegisterDefault<FToString>( FToString_Default );
+    alib::boxing::BootstrapRegisterDefault<FToString>( FToString_Default );
 //! [DOX_ALIB_BOXING_FUNCTIONS_REGISTER3]
 }
 
@@ -938,12 +930,12 @@ ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 template <typename... T> void VariadicFunction( const T&... args )
 {
     // fetch the arguments into an array of boxes
-    aworx::Box boxes[]= { args... };
+    alib::Box boxes[]= { args... };
 
     // do something
     for( size_t i= 0; i < sizeof...(T) ; ++i )
     {
-        aworx::Box& box= boxes[i];
+        alib::Box& box= boxes[i];
         //...
     }
 }
@@ -954,7 +946,7 @@ ALIB_WARNINGS_RESTORE
 template <typename... T> void VariadicRecipe( T&&... args )
 {
     // fetch the arguments into an array of boxes
-    aworx::Box boxes[]= { std::forward<T>( args )... };
+    alib::Box boxes[]= { std::forward<T>( args )... };
 
     // ...
 }
@@ -980,14 +972,14 @@ namespace dox_boxing_sample_boxes {
 template <typename... T> void VariadicFunction( T&&... args )
 {
     // fetch the arguments into a Boxes object
-    aworx::Boxes boxes;
+    alib::Boxes boxes;
     boxes.Add( std::forward<T>( args )... );
 
     // do something
-    for( aworx::Box& box : boxes )
+    for( alib::Box& box : boxes )
     {
-        if( box.IsType<aworx::integer>() )
-            std::cout << box.Unbox<aworx::integer>() << " ";
+        if( box.IsType<alib::integer>() )
+            std::cout << box.Unbox<alib::integer>() << " ";
         else
             std::cout << " Unknown Argument Type ";
     }
@@ -1000,7 +992,7 @@ void sampleFunc()
 {
     {
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_1]
-aworx::Boxes boxes;
+alib::Boxes boxes;
 boxes.Add( 7, "ALib", 3.14 );
 boxes.Add( 42, "Yipee-yeah" );
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_1]
@@ -1018,7 +1010,7 @@ void sampleFunc2()
 {
     {
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_CALL_1]
-aworx::Boxes boxes;
+alib::Boxes boxes;
 boxes.Add( 2, 3 );
 VariadicFunction( 1, boxes, 4 );
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_CALL_1]
@@ -1029,9 +1021,9 @@ void sampleFunc3()
 {
     {
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_CALL_2]
-aworx::Boxes boxes;
+alib::Boxes boxes;
 boxes.Add( 2, 3 );
-aworx::Box   box( boxes );
+alib::Box   box( boxes );
 VariadicFunction( 1, box, 4 );
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_CALL_2]
     }
@@ -1042,18 +1034,18 @@ VariadicFunction( 1, box, 4 );
 namespace dox_boxing_sample_boxes_box {
 
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE]
-void HeavilyOverloadedFunction( const aworx::Box& boxOrBoxes )
+void HeavilyOverloadedFunction( const alib::Box& boxOrBoxes )
 {
     // pass the single box into a Boxes object. This way, if another boxes object gets passed,
     // its elements are added to the list!
-    aworx::Boxes boxes;
-    boxes.Add( std::forward<const aworx::Box>( boxOrBoxes ) );
+    alib::Boxes boxes;
+    boxes.Add( std::forward<const alib::Box>( boxOrBoxes ) );
 
     // do something
-    for( aworx::Box& box : boxes )
+    for( alib::Box& box : boxes )
     {
-        if( box.IsType<aworx::integer>() )
-            std::cout << box.Unbox<aworx::integer>() << "  ";
+        if( box.IsType<alib::integer>() )
+            std::cout << box.Unbox<alib::integer>() << "  ";
         else
             std::cout << " Unknown Argument Type ";
     }
@@ -1066,7 +1058,7 @@ void sampleFunc()
 {
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE_1]
 HeavilyOverloadedFunction( 1 );
-aworx::Boxes boxes;
+alib::Boxes boxes;
 boxes.Add(1, 2, 3);
 HeavilyOverloadedFunction( boxes );
 //! [DOX_ALIB_BOXING_BOXES_SAMPLE_VARIADIC_SINGLE_1]
@@ -1092,7 +1084,7 @@ void typeName()
 {
 #if ALIB_DEBUG_BOXING
 //! [DOX_ALIB_BOXING_DEBUG_TYPENNAME]
-cout << "The mapped type is: " << aworx::DbgBoxing::TypeName( "char array" ) << endl;
+cout << "The mapped type is: " << alib::DbgBoxing::TypeName( "char array" ) << endl;
 //! [DOX_ALIB_BOXING_DEBUG_TYPENNAME]
 #endif
 }
@@ -1101,7 +1093,7 @@ void typeInfo()
 {
 #if ALIB_DEBUG_BOXING
 //! [DOX_ALIB_BOXING_DEBUG_TYPEINFO]
-cout << aworx::DbgBoxing::TypeInfo<aworx::String>();
+cout << alib::DbgBoxing::TypeInfo<alib::String>();
 //! [DOX_ALIB_BOXING_DEBUG_TYPEINFO]
 #endif
 }
@@ -1110,7 +1102,7 @@ void dynamicTable()
 {
 #if ALIB_DEBUG_BOXING
 //! [DOX_ALIB_BOXING_DEBUG_DYNAMICTABLE]
-cout << aworx::DbgBoxing::DumpVTables(false);
+cout << alib::DbgBoxing::DumpVTables(false);
 //! [DOX_ALIB_BOXING_DEBUG_DYNAMICTABLE]
 #endif
 }
@@ -1119,7 +1111,7 @@ void knownFunctions()
 {
 #if ALIB_DEBUG_BOXING
 //! [DOX_ALIB_BOXING_DEBUG_KNOWNFUNCTIONS]
-cout << aworx::DbgBoxing::DumpFunctions( aworx::DbgBoxing::GetKnownFunctionTypes() );
+cout << alib::DbgBoxing::DumpFunctions( alib::DbgBoxing::GetKnownFunctionTypes() );
 //! [DOX_ALIB_BOXING_DEBUG_KNOWNFUNCTIONS]
 #endif
 }
@@ -1128,7 +1120,7 @@ void dumpAll()
 {
 #if ALIB_DEBUG_BOXING
 //! [DOX_ALIB_BOXING_DEBUG_DUMPALL]
-cout << aworx::DbgBoxing::DumpAll();
+cout << alib::DbgBoxing::DumpAll();
 //! [DOX_ALIB_BOXING_DEBUG_DUMPALL]
 #endif
 }
@@ -1144,7 +1136,7 @@ namespace dox_boxing_reference_manual {
 void sampleFIsLess()
 {
 //! [DOX_ALIB_BOXING_FISLESS]
-std::vector<aworx::Box> myVec= { 2, A_CHAR('b'), 3.0, "BBB", A_WCHAR('a'), -6, 1.0,
+std::vector<alib::Box> myVec= { 2, A_CHAR('b'), 3.0, "BBB", A_WCHAR('a'), -6, 1.0,
                                  "AAA", A_WCHAR('d'), 4, "CCC", A_CHAR('c'),5.0, 0  };
 
 std::sort( myVec.begin(), myVec.end(), std::less<Box>() );
@@ -1266,11 +1258,9 @@ UT_METHOD(Boxing_Dox)
     ut.WriteResultFile( "DOX_ALIB_BOXING_CONDITIONAL.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
 
-#if ALIB_CPPVER >= 17
     dox_boxing_sample_customization_bypass::sampleFunc();
     ut.WriteResultFile( "DOX_ALIB_BOXING_CUSTOM_BYPASS.txt", testOutputStreamN.str() );
     testOutputStreamN.str("");
-#endif
 
 
     // ########################################################################################

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOXES
@@ -18,9 +18,9 @@
 #endif
 
 #if ALIB_MONOMEM
-namespace aworx { namespace lib { namespace monomem { class MonoAllocator; }}}
+namespace alib {  namespace monomem { class MonoAllocator; }}
 
-namespace aworx { namespace lib { namespace boxing { namespace detail {
+namespace alib {  namespace boxing { namespace detail {
 
 //
 /**
@@ -55,24 +55,8 @@ struct BoxesAllocator
     using  is_always_equal= std::false_type;
 
     // deprecated types
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-        using  pointer        =  T*       ;
-        using  const_pointer  =  const T* ;
-        using  reference      =  T&       ;
-        using  const_reference=  const T& ;
-    #endif
-
-    #if ALIB_CPPVER <= 17 || defined(ALIB_DOX)
+    #if ALIB_CPP_STANDARD == 17
         size_t          max_size()     const  noexcept  { return static_cast<size_t>(-1) / 2; }
-    #endif
-
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-        template< typename U, typename... Args >
-        void            construct( U* p, Args&&... args ) {::new(p) U(std::forward<Args>(args)...);}
-        template< typename U >
-        void            destroy( U* p )                              { p->~U();   }
-        pointer         address( reference x )        const noexcept { return &x; }
-        const_pointer   address( const_reference x )  const noexcept { return &x; }
     #endif
 
     monomem::MonoAllocator*  allocator;
@@ -84,14 +68,14 @@ struct BoxesAllocator
                                                                   : allocator(pAllocator)         {}
 
     template<typename T2>
-    bool operator==( const aworx::lib::boxing::detail::BoxesAllocator<T2>& rhs )    noexcept
+    bool operator==( const alib::boxing::detail::BoxesAllocator<T2>& rhs )    noexcept
     { return allocator == rhs.allocator; }
 
     template<typename T2>
-    bool operator!=( const aworx::lib::boxing::detail::BoxesAllocator<T2>& rhs )    noexcept
+    bool operator!=( const alib::boxing::detail::BoxesAllocator<T2>& rhs )    noexcept
     { return (allocator != rhs.allocator); }
 
-    ALIB_NODISCARD
+    [[nodiscard]]
     T*   allocate(   size_t n, const void* = nullptr )
     {
         if( allocator == nullptr )
@@ -110,12 +94,12 @@ struct BoxesAllocator
 #endif
 }; // struct BoxesAllocator
 
-}}}} // namespace [aworx::lib::boxing::detail]
+}}} // namespace [alib::boxing::detail]
 
 
 #endif
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 /** ************************************************************************************************
  * A vector of objects of type \alib{boxing,Box}.
  * Specializes class \c std::vector<Box> (publicly) with a constructor and methods to add a
@@ -343,7 +327,6 @@ class Boxes
 
 
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 #endif // HPP_ALIB_BOXING_BOXES
-

@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKEN
 #define HPP_ALIB_STRINGS_UTIL_TOKEN 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if !defined (HPP_ALIB_STRINGS_SUBSTRING)
@@ -20,8 +20,8 @@
     #include "alib/strings/localstring.hpp"
 #endif
 
-#if ALIB_FILESET_MODULES && ALIB_RESOURCES && !defined(HPP_ALIB_FS_MODULES_MODULE)
-#   include "alib/lib/fs_modules/module.hpp"
+#if ALIB_CAMP && !defined(HPP_ALIB_LANG_CAMP)
+#   include "alib/lang/basecamp/camp.hpp"
 #endif
 
 #if ALIB_BOXING && !defined(HPP_ALIB_BOXING_BOXING)
@@ -29,7 +29,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings::util  {
 
 
 /** ************************************************************************************************
@@ -225,7 +225,7 @@ class Token
          * @param minLength      The minimum starting portion of the function name to read..
          ******************************************************************************************/
         ALIB_API
-        Token(const String& name, Case sensitivity, int8_t minLength);
+        Token(const String& name, lang::Case sensitivity, int8_t minLength);
 
 
         /** ****************************************************************************************
@@ -248,7 +248,7 @@ class Token
          *                       Defaults to \c 1.
          ******************************************************************************************/
         ALIB_API
-        Token( const String& name, Case sensitivity, int8_t minLength1, int8_t minLength2,
+        Token( const String& name, lang::Case sensitivity, int8_t minLength1, int8_t minLength2,
                int8_t minLength3= -1, int8_t minLength4= -1, int8_t minLength5= -1,
                int8_t minLength6= -1, int8_t minLength7= -1                                 );
 
@@ -347,10 +347,10 @@ class Token
          *       These three informational methods are rather provided to support the unit tests.
          * @return The letter case sensitivity used with method #Match.
          ******************************************************************************************/
-        Case            Sensitivity()                                                          const
+        lang::Case            Sensitivity()                                                    const
         {
-            return (int(format) & 1 ) == 1 ? Case::Ignore
-                                           : Case::Sensitive;
+            return (int(format) & 1 ) == 1 ? lang::Case::Ignore
+                                           : lang::Case::Sensitive;
         }
 
         /** ****************************************************************************************
@@ -382,7 +382,7 @@ class Token
         /** ****************************************************************************************
          * Defines or redefines this token by parsing the attributes from the given sub-string.
          * This method is usually invoked by code that loads tokens and other data from
-         * \alib{resources,ResourcePool,resources} of \alib \alib{Module} objects.
+         * \alib{lang::resources,ResourcePool,resources} of \alib \alib{lang,Camp} objects.
          *
          * The expected format is defined as a list of the following values, separated by
          * the character given with parameter \p{separator}:
@@ -391,7 +391,7 @@ class Token
          *   strings.
          * - Letter case sensitivity. This can be "Sensitive" or "Ignore"
          *   (respectively what is defined with resourced
-         *   \ref alib_enums_records "ALib Enum Records" of type \alib{Case}),
+         *   \ref alib_enums_records "ALib Enum Records" of type \alib{lang::Case}),
          *   can be abbreviated to just one character (i.e. <c>'s'</c> and
          *   <c>'i'</c>) and itself is not parsed taking letter case into account.
          * - The list of minimum length for each segment of the name. The number of values have
@@ -417,7 +417,7 @@ class Token
         ALIB_API
         bool Match( const String& needle );
 
-    #if ALIB_ENUMS && ALIB_RESOURCES
+    #if ALIB_ENUMS && ALIB_CAMP
       #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Static utility function that defines a table of token objects from external resourced
@@ -454,36 +454,36 @@ class Token
          *                         Defaults to <c>' '</c> (space).
          *
          * \par Module Dependencies
-         *   This method is only available if module \alib_enums as well as module \alib_resources
+         *   This method is only available if module \alib_enums as well as module \alib_basecamp
          *   is included in the \alibdist.
          ******************************************************************************************/
         ALIB_API static
-        void LoadResourcedTokens( ResourcePool&         resourcePool,
-                                  const NString&        resourceCategory,
-                                  const NString&        resourceName,
-                                  strings::util::Token* target,
-                                  int                   dbgSizeVerifier,
-                                  character             outerSeparator = ',',
-                                  character             innerSeparator = ' '     );
+        void LoadResourcedTokens( lang::resources::ResourcePool&    resourcePool,
+                                  const NString&                    resourceCategory,
+                                  const NString&                    resourceName,
+                                  strings::util::Token*             target,
+                                  int                               dbgSizeVerifier,
+                                  character                         outerSeparator = ',',
+                                  character                         innerSeparator = ' '     );
       #else
         ALIB_API static
-        void LoadResourcedTokens( ResourcePool&         resourcePool,
-                                  const NString&        resourceCategory,
-                                  const NString&        resourceName,
-                                  strings::util::Token* target,
-                      ALIB_DBG(   int                   dbgSizeVerifier, )
-                                  character             outerSeparator = ',' ,
-                                  character             innerSeparator = ' '     );
+        void LoadResourcedTokens( lang::resources::ResourcePool&    resourcePool,
+                                  const NString&                    resourceCategory,
+                                  const NString&                    resourceName,
+                                  strings::util::Token*             target,
+                      ALIB_DBG(   int                               dbgSizeVerifier, )
+                                  character                         outerSeparator = ',' ,
+                                  character                         innerSeparator = ' '     );
       #endif
     #endif
 
-    #if ALIB_FILESET_MODULES && ALIB_RESOURCES
+    #if ALIB_CAMP
      #if defined(ALIB_DOX)
         /** ****************************************************************************************
          * Shortcut to #LoadResourcedTokens that accepts a module and uses its resource pool
          * and resource category.
          *
-         * @param module          The resource module to load the resource from.
+         * @param module          The \alibcamp to load the resource from.
          * @param resourceName    The resource name.
          * @param target          The table to fill.
          * @param dbgSizeVerifier This parameter has to be specified only in debug comilations and
@@ -496,11 +496,10 @@ class Token
          *                        Defaults to <c>' '</c> (space).
          *
          * \par Module Dependencies
-         *   This method is only available if module \alib_resources as well as
-         *   \ref alib_manual_modules_filesets "file-set" "Modules" is included in the \alibdist.
+         *   This method is only available if module \alib_basecamp is included in the \alibdist.
          ******************************************************************************************/
         static inline
-        void LoadResourcedTokens( Module&               module,
+        void LoadResourcedTokens( lang::Camp&     module,
                                   const NString&        resourceName,
                                   strings::util::Token* target,
                                   int                   dbgSizeVerifier,
@@ -508,7 +507,7 @@ class Token
                                   character             innerSeparator = ' '     );
       #else
         static
-        void LoadResourcedTokens( Module&               module,
+        void LoadResourcedTokens( lang::Camp&     module,
                                   const NString&        resourceName,
                                   strings::util::Token* target,
                       ALIB_DBG(   int                   dbgSizeVerifier, )
@@ -532,25 +531,25 @@ class Token
 
 }; // struct Token
 
-}}} // namespace aworx[::lib::strings::util]
+} // namespace alib[::strings::util]
 
-/// Type alias in namespace #aworx.
-using     Token=     lib::strings::util::Token;
+/// Type alias in namespace \b alib.
+using     Token=     strings::util::Token;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #if ALIB_BOXING
-    ALIB_BOXING_VTABLE_DECLARE( aworx::lib::strings::util::Token*, vt_alib_strings_token )
+    ALIB_BOXING_VTABLE_DECLARE( alib::strings::util::Token*, vt_alib_strings_token )
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 #if defined(ALIB_DOX)
             namespace APPENDABLES {
 #endif
     /** ********************************************************************************************
      * Specialization of functor \alib{strings,T_Append} for type \alib{strings::util,Token}.
      **********************************************************************************************/
-    template<> struct T_Append<strings::util::Token, aworx::character>
+    template<> struct T_Append<strings::util::Token, alib::character>
     {
         /**
          * Appends the result of \alib{strings::util,Token::GetRawName} to the \p{target}.<br>
@@ -569,6 +568,6 @@ namespace aworx { namespace lib { namespace strings {
 #if defined(ALIB_DOX)
             }
 #endif
-        }}}
+        }}
 
 #endif // HPP_ALIB_STRINGS_UTIL_TOKEN

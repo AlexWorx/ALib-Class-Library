@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION
@@ -12,7 +12,7 @@
 #   include "alib/strings/numberformat.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace strings { namespace detail {
+namespace alib {  namespace strings { namespace detail {
 
 
 // clang 7.0.1 - 14.0.6 (as of today 221216) falsely reports:
@@ -497,7 +497,7 @@ extern template ALIB_API integer  WriteFloat      <xchar>( double  , xchar*, int
 #endif //!defined(ALIB_DOX)
 
 
-}}}} // namespace [aworx::lib::strings::detail]
+}}} // namespace [alib::strings::detail]
 
 
 #endif // HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION

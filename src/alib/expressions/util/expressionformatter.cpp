@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,8 +10,8 @@
 #   if !defined (HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER)
 #      include "alib/expressions/util/expressionformatter.hpp"
 #   endif
-#   if !defined(HPP_ALIB_TEXT_TEXT)
-#      include "alib/text/text.hpp"
+#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
+#      include "alib/lang/format/fmtexceptions.hpp"
 #   endif
 
 #   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
@@ -19,7 +19,7 @@
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace expressions { namespace util {
+namespace alib::expressions::util {
 
 ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
                                           Compiler*      pCompiler,
@@ -113,7 +113,7 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     catch(Exception& e)
     {
         stdFormatter->Release();
-        e.Add( ALIB_CALLER_NULLED, text::Exceptions::ErrorInResultingFormatString,
+        e.Add( ALIB_CALLER_NULLED,  lang::format::FMTExceptions::ErrorInResultingFormatString,
                originalFormatString );
         throw;
     }
@@ -121,5 +121,4 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     stdFormatter->Release();
 }
 
-
-}}}} // namespace [aworx::lib::expressions::util]
+} // namespace [alib::expressions::util]

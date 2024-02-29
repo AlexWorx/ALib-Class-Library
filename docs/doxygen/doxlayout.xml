@@ -16,6 +16,7 @@
             <tab type="hierarchy"        visible="yes" title="" intro=""/>
             <tab type="classmembers"     visible="yes" title="" intro=""/>
             <tab type="user"             visible="yes" title="Preprocessor Symbols And Macros"     url="@ref alib_ref_prepro" />
+            <tab type="user"             visible="yes" title="External Configuration Variables"    url="@ref GrpALibConfigVars" />
             <tab type="filelist"         visible="yes" title="" intro=""/>
         </tab>
 

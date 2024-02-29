@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -37,7 +37,7 @@ The only class found in this module is \alib{singletons,Singleton}, which implem
 With C++ templates, the usually proposed solution is so simple, that it would not justify even this
 tiny module. Such simple solution looks as follows:
 
-\verbatim
+\code{.cpp}
     // template class to provide singleton functionality
     template<typename T> class Singleton
     {
@@ -55,7 +55,7 @@ tiny module. Such simple solution looks as follows:
     };
 
     Sample* sample= Sample::get();
-\endverbatim
+\endcode
 
 This works fine in general unless a software running on Windows OS, starts to access the same
 singleton object from within different Windows DLLs or a Windows DLL and the main executable.
@@ -134,8 +134,7 @@ deleted using namespace function \alib{singletons,Shutdown}.
 See this method's description for more information.
 
 Especially note that \ref alib_manual_bootstrapping "default module termination" (namely invoking
-method \alib{Module,Shutdown} on singleton \ref aworx::ALIB of type \alib{ALibDistribution})
-invokes this method already.
+function \alib{Shutdown} invokes this method already.
 
 
 \I{################################################################################################}
@@ -268,7 +267,4 @@ For further details on this implementation, consult chapter
 \ref alib_boxing_more_opt_staticvt of the Programmer's Manual of module \alib_boxing_nl
 and feel free to review relevant source code found in \alibheader{boxing/detail/vtable.inl}.
 
-
-*/
-
-
+<br><br><br><br><br><br> */

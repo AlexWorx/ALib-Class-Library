@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 /**
@@ -66,7 +66,7 @@ such signal often is either:
 The algorithms incorporated with \alib address such specialties.
 
 All mechanics in respect to array compression are interfaced by class
-#aworx::lib::bitbuffer::ac_v1::ArrayCompressor which is as usually aliased to #aworx::ArrayCompressor.
+#alib::bitbuffer::ac_v1::ArrayCompressor which is as usually aliased to #alib::ArrayCompressor.
 The rational for introducing sub-namespace \c v1 is that future versions of \alib may incorporate
 changes in the binary format of one or more of the algorithms. In this case, a new namespace
 \c v2 will be introduced and the old version will still be available to support the de-serialization
@@ -103,6 +103,4 @@ Now, if this vehicle takes a tour of five hours where the three values are captu
 might be more efficient to split the data into hourly packages of 3600 values for each of the
 three signals. After giving this some thought, the rational should be quite obvious.
 
-*/
-
-
+<br><br><br><br><br><br> */

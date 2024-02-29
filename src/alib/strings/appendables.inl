@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_APPENDABLES
@@ -12,7 +12,7 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 // #################################################################################################
 // struct T_Append: fundamental types
@@ -266,6 +266,6 @@ extern template ALIB_API void T_Append<std::type_info, xchar>::operator()( TAStr
 #endif
 
 
-}}} // namespace [aworx::lib::strings]
+}} // namespace [alib::strings]
 
 #endif // HPP_ALIB_STRINGS_APPENDABLES

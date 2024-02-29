@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -27,7 +27,7 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 // #################################################################################################
 // static fields
@@ -141,11 +141,11 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     Domain* subDomain= nullptr;
 
     // "."
-    if( domainPath.Equals( "." ) )
+    if( domainPath.Equals<false>( "." ) )
         subDomain= this;
 
     // ".."
-    else if( domainPath.Equals( ".." ) )
+    else if( domainPath.Equals<false>( ".." ) )
         subDomain= Parent != nullptr ? Parent : this;
 
     // search in sub-domain
@@ -158,7 +158,7 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
             subDomainIt=  SubDomains.begin();
             while ( subDomainIt != SubDomains.end() )
             {
-                int comparison= (*subDomainIt).Name.CompareTo<false, Case::Sensitive>( domainPath );
+                int comparison= (*subDomainIt).Name.CompareTo<false, lang::Case::Sensitive>( domainPath );
 
                 if( comparison >= 0 )
                 {
@@ -265,6 +265,4 @@ void Domain::ToString( NAString& tAString )
 }
 
 
-}}}}// namespace [aworx::lib::lox::detail]
-
-
+}}}// namespace [alib::lox::detail]

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -28,9 +28,7 @@
 #   include "alib/threads/thread.hpp"
 #endif
 
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
-using namespace aworx;
+using namespace alib;
 
 #include <iostream>
 
@@ -185,7 +183,7 @@ UT_METHOD( ThreadSimple )
                          t             .GetId  ()   )
 
             UT_TRUE( cntWait < 10 )
-            
+
             UT_PRINT( "  Result should be 2: ", r.a  )
             UT_EQ( 2, r.a )
             t.Terminate();
@@ -201,7 +199,7 @@ UT_METHOD( ThreadLockSimple )
 {
     UT_INIT()
 
-    lib::results::Report::GetDefault().PushHaltFlags( false, false );
+    lang::Report::GetDefault().PushHaltFlags( false, false );
 
     // lock a recursive lock
     {
@@ -218,17 +216,17 @@ UT_METHOD( ThreadLockSimple )
         aLock.Release();                            UT_EQ ( 0, aLock.CountAcquirements() )
 
         // set unsafe
-        aLock.SetSafeness( Safeness::Unsafe );      UT_EQ ( 0, aLock.CountAcquirements() )
-        aLock.SetSafeness( Safeness::Safe   );      UT_EQ ( 0, aLock.CountAcquirements() )
+        aLock.SetSafeness( lang::Safeness::Unsafe );UT_EQ ( 0, aLock.CountAcquirements() )
+        aLock.SetSafeness( lang::Safeness::Safe   );UT_EQ ( 0, aLock.CountAcquirements() )
 
-        aLock.SetSafeness( Safeness::Unsafe );      UT_EQ ( 0, aLock.CountAcquirements() )
+        aLock.SetSafeness( lang::Safeness::Unsafe );UT_EQ ( 0, aLock.CountAcquirements() )
         aLock.Acquire(ALIB_CALLER_PRUNED);          UT_EQ ( 1, aLock.CountAcquirements() )
         aLock.Release();                            UT_EQ ( 0, aLock.CountAcquirements() )
 
         // unsafe
         aLock.Acquire(ALIB_CALLER_PRUNED);          UT_EQ ( 1, aLock.CountAcquirements() )
         UT_PRINT( "Expecting error: set unsafe when already locked" )
-        aLock.SetSafeness( Safeness::Safe   );      UT_EQ ( 1, aLock.CountAcquirements() )
+        aLock.SetSafeness( lang::Safeness::Safe   );      UT_EQ ( 1, aLock.CountAcquirements() )
         UT_PRINT( "Expecting error: destruction while locked" )
     }
 
@@ -237,7 +235,7 @@ UT_METHOD( ThreadLockSimple )
         ThreadLock aLock;
         aLock.Acquire(ALIB_CALLER_PRUNED);       UT_EQ ( 1, aLock.CountAcquirements() )
         UT_PRINT( "Expecting error: set unsafe when already locked" )
-        aLock.SetSafeness( Safeness::Unsafe );   UT_EQ ( 1, aLock.CountAcquirements() )
+        aLock.SetSafeness( lang::Safeness::Unsafe );   UT_EQ ( 1, aLock.CountAcquirements() )
         aLock.Release();                         UT_EQ ( 0, aLock.CountAcquirements() )
         UT_PRINT( "Expecting error: release without lock" )
         aLock.Release();                         UT_EQ ( static_cast<uint16_t>(-1), aLock.CountAcquirements() )
@@ -255,7 +253,7 @@ UT_METHOD( ThreadLockSimple )
         UT_EQ ( 0, aLock.CountAcquirements() )
     }
 
-    lib::results::Report::GetDefault().PopHaltFlags();
+    lang::Report::GetDefault().PopHaltFlags();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -267,7 +265,7 @@ UT_METHOD( ThreadLockWarning )
 {
     UT_INIT()
 
-    lib::results::Report::GetDefault().PushHaltFlags( false, false );
+    lang::Report::GetDefault().PushHaltFlags( false, false );
 
         ThreadLock aLock;
         Test_ThreadLock_SharedInt* shared= new Test_ThreadLock_SharedInt();
@@ -303,7 +301,7 @@ UT_METHOD( ThreadLockWarning )
         delete t;
         delete shared;
 
-    lib::results::Report::GetDefault().PopHaltFlags();
+    lang::Report::GetDefault().PopHaltFlags();
 }
 #endif // ALIB_DEBUG
 #endif // !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
@@ -317,68 +315,68 @@ UT_METHOD( SmartLockTest )
 {
     UT_INIT()
 
-    lib::results::Report::GetDefault().PushHaltFlags( false, false );
+    lang::Report::GetDefault().PushHaltFlags( false, false );
     ut.lox.GetLogCounter()= 0;
 
     // SmartLock with null-users
     {
-        SmartLock sl;                          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        SmartLock sl;                          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
     }
 
     // SmartLock with threadlocks
     {
         ThreadLock tl1, tl2, tl3;
-        SmartLock  sl;                         UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        SmartLock  sl;                         UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl2    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl2    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
     }
 
     // mixed
     {
         ThreadLock tl1, tl2, tl3;
-        SmartLock  sl;                         UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        SmartLock  sl;                         UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.AddAcquirer   ( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl2    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.AddAcquirer   ( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl1    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Safe   )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "Three warnings should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( &tl2    );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl3    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( &tl2    );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 0 ) ut.lox.GetLogCounter()= 0;
         UT_PRINT( "One warning should follow" ) ut.lox.GetLogCounter()= 0;
-        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
+        sl.RemoveAcquirer( nullptr );          UT_TRUE( sl.GetSafeness() == lang::Safeness::Unsafe )  UT_TRUE( ut.lox.GetLogCounter()== 1 ) ut.lox.GetLogCounter()= 0;
     }
-    lib::results::Report::GetDefault().PopHaltFlags();
+    lang::Report::GetDefault().PopHaltFlags();
 }
 #endif
 #endif // ALIB_ALOX
@@ -442,7 +440,7 @@ UT_METHOD( LockSpeedTest )
     {
         UT_PRINT( "Run {}/{}", run, rrepeats )
 
-        aLock.SetSafeness( Safeness::Safe );
+        aLock.SetSafeness( lang::Safeness::Safe );
         stopwatch= Ticks::Now();
         for ( int i= 0; i < repeats; ++i )
         {
@@ -452,7 +450,7 @@ UT_METHOD( LockSpeedTest )
         auto time= stopwatch.Age().InAbsoluteMicroseconds();
         UT_PRINT( "  Safe mode:    {} lock/unlock ops: {}\u00B5s", repeats, time ) // greek 'm' letter
 
-        aLock.SetSafeness( Safeness::Unsafe );
+        aLock.SetSafeness( lang::Safeness::Unsafe );
         stopwatch= Ticks::Now();
         volatile int ii= 0;
         for ( int i= 0; i < repeats; ++i )

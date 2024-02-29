@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_singletons of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_SINGLETONS_DBGSINGLETONS
@@ -36,7 +36,7 @@
 #      include <cstring>
 #   endif
 #endif
-namespace aworx { namespace lib { namespace singletons {
+namespace alib {  namespace singletons {
 
 #if ALIB_MONOMEM
     /** ********************************************************************************************
@@ -80,7 +80,7 @@ namespace aworx { namespace lib { namespace singletons {
          * \note
          *   This method is available only
          *   - with \ref ALIB_DEBUG "debug builds" of the software,
-         *   - if module \ref aworx::lib::strings "ALib Strings" is included in the \alibdist, and
+         *   - if module \ref alib::strings "ALib Strings" is included in the \alibdist, and
          *   - if code selection symbol \ref ALIB_FEAT_SINGLETON_MAPPED is \c true.
          *
          *   The method included with \alibheader{singletons/dbgsingletons.hpp}.
@@ -97,7 +97,7 @@ namespace aworx { namespace lib { namespace singletons {
         ALIB_API  int           DbgGetSingletons( NAString& target );
     #endif // ALIB_STRINGS
 
-}}} // namespace [aworx::lib::singletons]
+}} // namespace [alib::singletons]
 
 
 #endif // ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG

@@ -2,7 +2,7 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -28,8 +28,8 @@
 
 using namespace std;
 
-using namespace aworx;
-using namespace aworx::lib::lox::detail::textlogger;
+using namespace alib;
+using namespace alib::lox::detail::textlogger;
 
 
 namespace ut_alox {
@@ -80,7 +80,7 @@ UT_METHOD(Lox_IllegalDomainNames)
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
     ml.MetaInfo->Format.Reset("<%D>");
 
-    Lox& lox=  *lib::lox::Log::Get();
+    Lox& lox=  *lox::Log::Get();
 
     LOG_CHECK( ""        , "</>"              , ml,lox)
     LOG_CHECK( "LOC"     , "</LOC>"           , ml,lox)
@@ -154,7 +154,7 @@ UT_METHOD(Log_DomainSubstitutions)
     Log_SetVerbosity(&ml, Verbosity::Verbose )
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Info, Lox::InternalDomains )
     ml.MetaInfo->Format.Reset("<%D>");
-    Lox& lox=  *lib::lox::Log::Get();
+    Lox& lox=  *lox::Log::Get();
 
         LOG_CHECK( ""     , "</>"                    , ml,lox)
         LOG_CHECK( "LOC"  , "</LOC>"                 , ml,lox)
@@ -251,6 +251,23 @@ UT_METHOD(Log_DomainSubstitutions)
  * Log_DomainSubstitutions_IniFile
  **********************************************************************************************/
 #if ALOX_DBG_LOG
+// SNIPPIT FOR Dox
+#if defined(NEVER_DEFINED)
+
+//! [Man_DomSubst_Config]
+[ALOX]
+MYLOX_DOMAIN_SUBSTITUTION= /A_DOM -> /BETTER_NAME   ; \
+                           /UI    -> /LIBS/UI
+//! [Man_DomSubst_Config]
+
+//! [Man_DomSubst_Config_Prevent]
+// Note: the name will be converted to upper case for searching configuration settings
+Lox myLox( "MyLox" );
+
+// clear rules which eventually just got read from external configuration
+myLox.SetDomainSubstitutionRule( null, null );
+//! [Man_DomSubst_Config_Prevent]
+#endif
 
 UT_METHOD(Log_DomainSubstitutions_IniFile)
 {
@@ -277,11 +294,11 @@ UT_METHOD(Log_DomainSubstitutions_IniFile)
         iniFile.close();
     }
 
-    aworx::IniFile iniFile( fileName );
+    alib::IniFile iniFile( fileName );
     iniFile.ReadFile();
 
     // add to config
-    lib::ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
+    ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
     // create lox, loggers
     Lox myLox( "MyLox" ); // name will be upper case
@@ -304,7 +321,7 @@ UT_METHOD(Log_DomainSubstitutions_IniFile)
         myLox.RemoveLogger( "CONSOLE" );
         delete consoleLogger;
     myLox.Release();
-    lib::ALOX.GetConfig().RemovePlugin( &iniFile );
+    ALOX.GetConfig().RemovePlugin( &iniFile );
 }
 #endif
 
@@ -334,7 +351,7 @@ UT_METHOD(Log_Domain_IniFile)
                            "*SUBSTR*   = Info       ;"
                            "/OVERWRITE = Info       ;")
                       );
-        lib::ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
+        ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
 
         // test
@@ -432,7 +449,7 @@ UT_METHOD(Log_Domain_IniFile)
 
             //lox.State( "/CONSOLE", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
 
-            lib::ALOX.GetConfig().RemovePlugin( &iniFile );
+            ALOX.GetConfig().RemovePlugin( &iniFile );
             lox.RemoveLogger( &ml );
             lox.RemoveLogger( "CONSOLE" );
             delete consoleLogger;

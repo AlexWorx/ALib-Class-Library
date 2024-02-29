@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -18,7 +18,7 @@
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 int StandardRepository::StoreLoadedExpressions( Compiler*  compiler, Priorities slot )
 {
@@ -83,7 +83,4 @@ bool StandardRepository::Get( const String& identifier, AString& target )
     return false;
 }
 
-
-
-}}} // namespace [aworx::lib::expressions]
-
+}} // namespace [alib::expressions]

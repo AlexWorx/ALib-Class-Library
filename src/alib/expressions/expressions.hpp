@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_EXPRESSIONS
 #define HPP_ALIB_EXPRESSIONS_EXPRESSIONS 1
 
-#if !defined(HPP_ALIB_RESULTS_EXCEPTION)
-#   include "alib/results/exception.hpp"
+#if !defined(HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
+#   include "alib/lang/message/exception.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(EXPRESSIONS)
@@ -18,15 +18,15 @@ ALIB_ASSERT_MODULE(EXPRESSIONS)
     #include "alib/compatibility/std_boxing_functional.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_MODULES_MODULE)
-#   include "alib/lib/fs_modules/module.hpp"
+#if !defined(HPP_ALIB_LANG_CAMP)
+#   include "alib/lang/basecamp/camp.hpp"
 #endif
 
 #if !defined(HPP_ALIB_ENUMS_ENUM_B)
 #   include "alib/enums/bitwise.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 struct Scope;
 
@@ -36,7 +36,7 @@ struct Scope;
  *
  * \note
  *   This enum type is associated with \ref alib_enums_records "ALib Enum Records" according to
- *   the specification documented with class \alib{results,Exception}.
+ *   the specification documented with class \alib{lang,Exception}.
  **************************************************************************************************/
 enum class Exceptions
 {
@@ -112,7 +112,7 @@ enum class Exceptions
     /**
      * This is a "wrapper" exception thrown when a plug-in or a compile-time invoked callback
      * function throws an exception of type \c std::exception or of type
-     * \alib{results,Exception} with a code that is not of this enumeration type.<br>
+     * \alib{lang,Exception} with a code that is not of this enumeration type.<br>
      * Used only if compilation \alib{expressions,Compilation::PluginExceptionFallThrough}
      * is not set.
      */
@@ -120,7 +120,7 @@ enum class Exceptions
 
     /**
      * This is a "wrapper" exception thrown when callback functions throws an exception of type
-     * \c std::exception or of type \alib{results,Exception}.
+     * \c std::exception or of type \alib{lang,Exception}.
      * Used only if compilation \alib{expressions,Compilation::CallbackExceptionFallThrough}
      * is not set.
      */
@@ -240,7 +240,7 @@ enum class CompilePriorities
     Math                    = 500,
 
     /**
-     * Collection of date and time functions based on \ref aworx::lib::time.
+     * Collection of date and time functions based on \ref alib::time.
      */
     DateAndTime             = 600,
 
@@ -287,13 +287,11 @@ struct Types
      *  any custom string type is compatible, including of-course \c std::string.                 */
     static ALIB_API Box String;
 
-#if ALIB_SYSTEM
     /** Sample <em>type-box</em> for date and time values of type \alib{time,DateTime}). */
     static ALIB_API Box DateTime;
 
     /** Sample <em>type-box</em> for values of type \alib{time,TimePointBase::Duration,DateTime::Duration}). */
     static ALIB_API Box Duration;
-#endif
 };
 
 /** ************************************************************************************************
@@ -332,7 +330,7 @@ struct Signatures
     static ALIB_API Box*  SSI [3];  ///< Function accepts two string arguments, followed by an integral argument.
     static ALIB_API Box*  SII [3];  ///< Function accepts one string argument, followed by two integral arguments.
     static ALIB_API Box*  SSS [3];  ///< Function accepts three string arguments.
-#if ALIB_SYSTEM
+#if ALIB_CAMP
     static ALIB_API Box*  D   [1];  ///< Function accepts a \alib{time,DateTime} argument.
     static ALIB_API Box*  Dur [1];  ///< Function accepts a \alib{time,TimePointBase::Duration,Duration} argument.
     static ALIB_API Box*  DDur[2];  ///< Function accepts a \alib{time,DateTime} argument, followed by a \alib{time,TimePointBase::Duration,Duration}.
@@ -709,7 +707,7 @@ enum class Compilation
 
     /**
      * This is an "evaluation-time compiler flag". If not set (the default) exceptions of type
-     * \alib{results,Exception} and \c std::exception thrown in callback functions during expression
+     * \alib{lang,Exception} and \c std::exception thrown in callback functions during expression
      * evaluation are caught and transformed to \alib{expressions,Exceptions::ExceptionInCallback}
      * letter case.
      */
@@ -1040,7 +1038,7 @@ enum class Normalization : uint64_t
      *
      * Note that scientific format can be forced for all floating point number output by setting
      * flag \alib{strings,TNumberFormat::ForceScientific,NumberFormat::ForceScientific} of member
-     * member \alib{text,Formatter::DefaultNumberFormat} which in turn is found
+     * member \alib{lang::format,Formatter::DefaultNumberFormat} which in turn is found
      * in member \alib{expressions,Compiler::CfgFormatter}. Such setting would supersede
      * this flag.
      *
@@ -1135,7 +1133,7 @@ enum class Normalization : uint64_t
  * \see For more information, see
  *      \ref alib_expressions_prereq_sb "3.2 Type definitions With Sample Boxes".
  */
-using Type= const aworx::lib::boxing::Box&;
+using Type= const alib::boxing::Box&;
 
 /**
  * Type definition for passing arguments to expression callbacks.
@@ -1221,7 +1219,7 @@ using  CallbackDecl = Box (*)( Scope& scope, ArgIterator argsBegin, ArgIterator 
  * The implementation is given in an anonymous namespace of the compilation unit of compiler plug-in
  * \b %DateAndTime.  The function's signature has to meet the one given with type definition #Signature
  * of this struct. Besides the first parameter that passes the box that the function is invoked
- * on (the one containing the constant value of custom type), second paramter \p{expressionString}
+ * on (the one containing the constant value of custom type), second parameter \p{expressionString}
  * provides the \b AString that the function is requested to write the "generation expression" to.<br>
  * The implementation code looks as follows:
  *
@@ -1282,15 +1280,15 @@ struct FToLiteral
  * The module class for module \alib_expressions_nl.
  *
  * This is a strict singleton class. The only instance found with namespace variable
- * \ref aworx::lib::EXPRESSIONS.
+ * \ref alib::EXPRESSIONS.
  **************************************************************************************************/
-class Expressions  : public Module
+class Expressions  : public lang::Camp
 {
     public:
         /** ****************************************************************************************
          * Constructor.<br>
          * While this is public, it must not be invoked as this is a strict singleton type.
-         * (See notes in \ref alib_manual_bootstrapping_class_module_singletons).
+         * (See notes in \ref alib_manual_camp_modules_campmodule).
          ******************************************************************************************/
         Expressions();
 
@@ -1299,12 +1297,8 @@ class Expressions  : public Module
          * Initializes this module and namespace.
          *
          * @param phase  The initialization phase to perform.
-         * @param argc   The number of command line arguments. Defaults to \c 0.
-         * @param argv   List of command line arguments if given as single byte character strings.
-         * @param wargv  List of command line arguments if given as multi-byte character strings.
          ******************************************************************************************/
-        virtual void    bootstrap( BootstrapPhases phase,
-                                   int argc, const char** argv, const wchar_t** wargv )    override;
+        virtual void    bootstrap( BootstrapPhases phase )                                 override;
 
         /** ****************************************************************************************
          * Terminates this module. (Nothing to do.)
@@ -1315,28 +1309,28 @@ class Expressions  : public Module
 
 }; // class Expressions
 
-} // namespace aworx::lib[::expressions]
+} // namespace alib[::expressions]
 
-/** The singleton of module-class \alib{expressions,Expressions}. */
+/** The singleton instance of \alibcamp class \alib{expressions,Expressions}. */
 extern ALIB_API expressions::Expressions EXPRESSIONS;
 
-}} // namespace [aworx::lib]
+} // namespace [alib]
 
-ALIB_BOXING_VTABLE_DECLARE(  aworx::lib::expressions::Exceptions, vt_expressions_exceptions )
+ALIB_BOXING_VTABLE_DECLARE(  alib::expressions::Exceptions, vt_expressions_exceptions )
 
-ALIB_ENUMS_MAKE_ARITHMETICAL( aworx::lib::expressions::CompilePriorities )
-ALIB_ENUMS_MAKE_BITWISE(      aworx::lib::expressions::Compilation   )
-ALIB_ENUMS_MAKE_BITWISE(      aworx::lib::expressions::Normalization )
+ALIB_ENUMS_MAKE_ARITHMETICAL( alib::expressions::CompilePriorities )
+ALIB_ENUMS_MAKE_BITWISE(      alib::expressions::Compilation   )
+ALIB_ENUMS_MAKE_BITWISE(      alib::expressions::Normalization )
 
-ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultUnaryOperators , ERSerializable )
-ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultBinaryOperators,
-                             aworx::lib::expressions::ERBinaryOperator                        )
-ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultAlphabeticUnaryOperatorAliases ,
-                             aworx::lib::expressions::EROperatorAlias                         )
-ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::DefaultAlphabeticBinaryOperatorAliases,
-                             aworx::lib::expressions::EROperatorAlias                         )
+ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::DefaultUnaryOperators , ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::DefaultBinaryOperators,
+                             alib::expressions::ERBinaryOperator                        )
+ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::DefaultAlphabeticUnaryOperatorAliases ,
+                             alib::expressions::EROperatorAlias                         )
+ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::DefaultAlphabeticBinaryOperatorAliases,
+                             alib::expressions::EROperatorAlias                         )
 
-ALIB_ENUMS_ASSIGN_RECORD(    aworx::lib::expressions::Exceptions, aworx::lib::results::ERException )
-ALIB_RESOURCED_IN_MODULE(    aworx::lib::expressions::Exceptions, aworx::lib::EXPRESSIONS, "E" )
+ALIB_ENUMS_ASSIGN_RECORD(    alib::expressions::Exceptions, alib::lang::ERException )
+ALIB_RESOURCED_IN_MODULE(    alib::expressions::Exceptions, alib::EXPRESSIONS, "E" )
 
 #endif // HPP_ALIB_EXPRESSIONS_EXPRESSIONS

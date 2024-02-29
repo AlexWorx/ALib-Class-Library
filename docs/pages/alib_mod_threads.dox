@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -56,7 +56,7 @@ imposed by the standard library of C++ 11 and later.
 # 2. Bootstrapping and Termination # {#alib_threads_bootstrap}
 
 In case this module is used within a very limited \alibdist, please note the explanations found
-in the \ref alib_manual, chapter \ref alib_manual_bootstrapping_smallmods.
+in the \ref alib_manual, chapter \ref alib_manual_bootstrapping_nocamps.
 
 \I{################################################################################################}
 # 3. Thread Creation And Management# {#alib_threads_creation}
@@ -111,7 +111,7 @@ module in the \alibdist. This does not mean that these modules are not implement
 do this only "optionally": While the dependency graph shows only \e mandatory dependencies, there
 are a lot of "optional dependencies" between other modules and this one.
 
-For example, class \alib{config,Configuration} inherits from library class \alib{detail::PluginContainer}
+For example, class \alib{config,Configuration} inherits from library class \alib{lang::PluginContainer}
 which, in case code selector symbol \b ALIB_THREADS evaluates to \c true, inherits from
 class \alib{threads,ThreadLock}. Then class \b %Configuration uses macro \ref ALIB_LOCK to
 lock critical code sections against concurrent thread access. This macro is empty in the case
@@ -122,6 +122,4 @@ have a (very small) gain in application footprint size and execution time.
 
 \I{################################################################################################}
 
-*/
-
-
+<br><br><br><br><br><br> */

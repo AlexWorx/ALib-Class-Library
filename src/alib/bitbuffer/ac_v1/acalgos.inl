@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_bitbuffer of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BITBUFFER_AC_V1_ALGOS
@@ -16,7 +16,7 @@
 #   include "alib/bitbuffer/ac_v1/huffman.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace bitbuffer { namespace ac_v1 {
+namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 
 /**
@@ -59,7 +59,7 @@ void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
     for(size_t i= 0; i < data.length(); ++i)
     {
         TUI val= data.get( i );
-        ShiftOpRHS bits= (sizeof(TUI) - 1) * 8;
+        ShiftOpRHS bits= bitsof(TUI) - 8;
         while( bits >= 0 )
         {
             ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW
@@ -149,10 +149,10 @@ void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data )
     data.calcMinMax();
 
     // get bits needed
-    int bitCnt= MSB0(TUI(data.max - data.min));
+    int bitCnt= lang::MSB0(TUI(data.max - data.min));
 
     // write data
-    bw.Write<BitCounterWidth<TUI>()>( bitCnt );
+    bw.Write<lang::Log2OfSize<TUI>() + 1>( bitCnt );
     bw.Write( data.min );
     if( !bitCnt )
         return;
@@ -171,7 +171,7 @@ template<typename TI>
 void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data )
 {
     using TUI= typename std::make_unsigned<TI>::type;
-    auto bitCnt=  br.Read<BitCounterWidth<TUI>()>();
+    auto bitCnt=  br.Read<lang::Log2OfSize<TUI>() + 1>();
     TUI  min   =  br.Read<TUI>();
 
     if( !bitCnt )
@@ -315,12 +315,12 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
         // pass 0 done: calc and write bits needed for value and repetition
         if( pass == 0)
         {
-            bitCntVal= MSB0( TUI(data.max - data.min) );
-            bitCntRep= MSB (maxSegLen);
+            bitCntVal= lang::MSB0( TUI(data.max - data.min) );
+            bitCntRep= lang::MSB (maxSegLen);
 
-            bw.Write<BitCounterWidth<uint32_t>() + BitCounterWidth<TUI>()>(
+            bw.Write<lang::Log2OfSize<uint32_t>()+1 + lang::Log2OfSize<TUI>()+1>(
                           bitCntRep
-                        | bitCntVal << BitCounterWidth<uint32_t>()  );
+                        | bitCntVal << (lang::Log2OfSize<uint32_t>()+1) );
             bw.Write( data.min );
         }
     } // 2 pass loop
@@ -338,9 +338,9 @@ void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data )
     using TUI= typename std::make_unsigned<TI>::type;
     if( !data.length() )                                       return;
 
-    auto bitCntRep =  br.Read<BitCounterWidth<uint32_t>() + BitCounterWidth<TUI>()>();
-    auto bitCntVal =  bitCntRep >> BitCounterWidth<uint32_t>();
-         bitCntRep&=  LowerMask<BitCounterWidth<uint32_t>(), int>();
+    auto bitCntRep =  br.Read<lang::Log2OfSize<uint32_t>()+1 + lang::Log2OfSize<TUI>()+1>();
+    auto bitCntVal =  bitCntRep >> (lang::Log2OfSize<uint32_t>() + 1);
+         bitCntRep&=  lang::LowerMask<lang::Log2OfSize<uint32_t>() + 1, int>();
 
     TUI  minVal   = br.Read<TUI>();
 
@@ -386,12 +386,12 @@ void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 
     // calc min diff bits needed to write diff
     data.calcMinMax();
-    auto bitCntPos= MSB0(TUI( data.maxInc - data.minInc));
-    auto bitCntNeg= MSB0(TUI( data.maxDec - data.minDec));
+    auto bitCntPos= lang::MSB0(TUI( data.maxInc - data.minInc));
+    auto bitCntNeg= lang::MSB0(TUI( data.maxDec - data.minDec));
 
     // write data
-    bw.Write<2 * BitCounterWidth<TUI>()>(   bitCntPos
-                                          | bitCntNeg << BitCounterWidth<TUI>()  );
+    bw.Write<2 * (lang::Log2OfSize<TUI>() + 1)>(   bitCntPos
+                                                 | bitCntNeg << (lang::Log2OfSize<TUI>() + 1)  );
 
     bw.Write( data.minInc );
     bw.Write( data.minDec );
@@ -436,9 +436,9 @@ void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
         return;
     }
 
-    auto bitCntPos =  br.Read<2* BitCounterWidth<TUI>()>();
-    auto bitCntNeg =  bitCntPos >> BitCounterWidth<TUI>();
-         bitCntPos&=  LowerMask<BitCounterWidth<TUI>(), int>();
+    auto bitCntPos =  br.Read<2 * (lang::Log2OfSize<TUI>()+1)>();
+    auto bitCntNeg =  bitCntPos >> (lang::Log2OfSize<TUI>()+1);
+         bitCntPos&=  lang::LowerMask<(lang::Log2OfSize<TUI>()+1), int>();
     auto minDiffPos=  br.Read<TUI>();
     auto minDiffNeg=  br.Read<TUI>();
     auto prevVal   =  br.Read<TUI>();
@@ -461,6 +461,6 @@ void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
 
 
 
-}}}} // namespace [aworx::lib::bitbuffer::ac_v1]
+}}} // namespace [alib::bitbuffer::ac_v1]
 
 #endif // HPP_ALIB_BITBUFFER_AC_V1_ALGOS

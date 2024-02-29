@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,18 +17,15 @@
 #   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
 #      include "alib/enums/recordbootstrap.hpp"
 #   endif
-#   if !defined (HPP_ALIB_RESULTS_RESULTS)
-#      include "alib/results/results.hpp"
-#   endif
-#   if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#      include "alib/lib/fs_modules/distribution.hpp"
+#   if !defined (HPP_ALIB_LANG_BASECAMP)
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #endif // !defined(ALIB_DOX)
 
 
-ALIB_BOXING_VTABLE_DEFINE( aworx::lib::cli::Exceptions, vt_cli_exceptions )
+ALIB_BOXING_VTABLE_DEFINE( alib::cli::Exceptions, vt_cli_exceptions )
 
-namespace aworx { namespace lib {
+namespace alib {
 
 cli::Cli CLI;
 
@@ -42,19 +39,17 @@ cli::Cli CLI;
 namespace cli {
 
 Cli::Cli()
-: Module( ALIB_VERSION, ALIB_REVISION, "CLI" )
+: Camp( "CLI" )
 {
     ALIB_ASSERT_ERROR( this == &CLI, "CLI",
-        "Instances of class Cli must not be created. Use singleton aworx::lib::CLI" )
+        "Instances of class Cli must not be created. Use singleton alib::CLI" )
 }
 
 #define EOS ,
-void Cli::bootstrap( BootstrapPhases phase, int, const char**, const wchar_t** )
+void Cli::bootstrap( BootstrapPhases phase )
 {
     if( phase == BootstrapPhases::PrepareResources )
     {
-        ALIB.CheckDistribution();
-
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_cli_exceptions )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( cli::Exceptions )
 
@@ -121,4 +116,4 @@ DOX_MARKER([DOX_ALIB_CLI_DRYRUN_RESOURCES])
 }
 
 
-}}}// namespace aworx::lib::cli
+}} // namespace alib::cli

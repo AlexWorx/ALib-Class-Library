@@ -1,7 +1,6 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Private, not published in git ( I hope! )
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,7 +16,7 @@ namespace dox_lang_singleton {
 
 //! [DOX_ALIB_SINGLETON_1]
 // Derive a class from singleton, providing its name as template parameter:
-class MyClass : public aworx::Singleton<MyClass>
+class MyClass : public alib::Singleton<MyClass>
 {
     //... MyClass implementation
 };
@@ -25,9 +24,9 @@ class MyClass : public aworx::Singleton<MyClass>
 
 //! [DOX_ALIB_SINGLETON_STRICT_1]
 // Derive a class from singleton, providing its name as template parameter:
-class JustOne : public aworx::Singleton<JustOne>
+class JustOne : public alib::Singleton<JustOne>
 {
-    friend aworx::Singleton<JustOne>;
+    friend alib::Singleton<JustOne>;
     private: JustOne() {}
 
     //... class JustOne implementation

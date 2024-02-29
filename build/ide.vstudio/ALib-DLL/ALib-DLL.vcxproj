@@ -185,7 +185,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -202,7 +202,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -219,7 +219,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -237,7 +237,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -257,7 +257,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -278,7 +278,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -299,7 +299,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -320,7 +320,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ALIB_API_IS_DLL;ALIB_IDE_VSTUDIO;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);ALIB_PRECOMPILED_HEADER;ALIB_BASE_DIR=R"($(ProjectDir)/../../..)";ALIB_BASE_DIR=R"($(ProjectDir)/../../..)"</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4652;4711;4458;4459; 4592;4820;4626;5027;4668;4710;4673;4670;4127;5045;26495;4702;4866;4566;4702</DisableSpecificWarnings>
       <PrecompiledHeaderFile>alib/alib_precompile.hpp</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -333,6 +333,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\alib\alib.hpp" />
     <ClInclude Include="..\..\..\src\alib\alib_precompile.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox.hpp" />
     <ClInclude Include="..\..\..\src\alib\alox\alox.hpp" />
@@ -379,7 +380,6 @@
     <ClInclude Include="..\..\..\src\alib\config\plugins.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\variable.hpp" />
     <ClInclude Include="..\..\..\src\alib\config\variabledecl.hpp" />
-    <ClInclude Include="..\..\..\src\alib\distribution.hpp" />
     <ClInclude Include="..\..\..\src\alib\enums\arithmetical.hpp" />
     <ClInclude Include="..\..\..\src\alib\enums\bitwise.hpp" />
     <ClInclude Include="..\..\..\src\alib\enums\iteratable.hpp" />
@@ -407,23 +407,52 @@
     <ClInclude Include="..\..\..\src\alib\expressions\plugins\strings.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\scope.hpp" />
     <ClInclude Include="..\..\..\src\alib\expressions\util\expressionformatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\bits.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\compilers.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\features.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenumdefs.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenumdefs_aliased.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_commonenums\commonenums.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\bidilist.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_lists\sidilist.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\distribution.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_modules\module.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_owner\owner.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\fs_plugins\plugins.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\integers.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\modules.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\platforms.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\tmp.hpp" />
-    <ClInclude Include="..\..\..\src\alib\lib\tools.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\ffilter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\fileexpressions.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\filescamp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\finfo.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\fscanner.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\ftools.hpp" />
+    <ClInclude Include="..\..\..\src\alib\files\ftree.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\basecamp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\bootstrap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\camp.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\basecamp\camp_inlines.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\bidilist.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\bits.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\bitset.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\commonenumdefs.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\commonenums.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\dbgtypedemangler.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\bytesize.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\fmtexceptions.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterjavastyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterpythonstyle.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\formatterstdimpl.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\fwds.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\paragraphs.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\propertyformatter.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\format\propertyformatters.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\integers.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\message\exception.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\message\message.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\message\report.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\owner.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\platformincludes.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\plugins.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\resources\configresourcepool.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\resources\detail\resourcemap.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\resources\localresourcepool.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\resources\resources.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\sidilist.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\calendar.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\console.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\directory.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\environment.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\processinfo.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\system\systemerrors.hpp" />
+    <ClInclude Include="..\..\..\src\alib\lang\tmp.hpp" />
     <ClInclude Include="..\..\..\src\alib\monomem\fwds.hpp" />
     <ClInclude Include="..\..\..\src\alib\monomem\hashmap.hpp" />
     <ClInclude Include="..\..\..\src\alib\monomem\hashset.hpp" />
@@ -437,15 +466,6 @@
     <ClInclude Include="..\..\..\src\alib\monomem\stringtree.hpp" />
     <ClInclude Include="..\..\..\src\alib\monomem\util\fixedcapacityvector.hpp" />
     <ClInclude Include="..\..\..\src\alib\monomem\util\rttrallocator.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\configresourcepool.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\detail\resourcemap.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\localresourcepool.hpp" />
-    <ClInclude Include="..\..\..\src\alib\resources\resources.hpp" />
-    <ClInclude Include="..\..\..\src\alib\results\exception.hpp" />
-    <ClInclude Include="..\..\..\src\alib\results\iclonemessageargument.hpp" />
-    <ClInclude Include="..\..\..\src\alib\results\message.hpp" />
-    <ClInclude Include="..\..\..\src\alib\results\report.hpp" />
-    <ClInclude Include="..\..\..\src\alib\results\results.hpp" />
     <ClInclude Include="..\..\..\src\alib\singletons\dbgsingletons.hpp" />
     <ClInclude Include="..\..\..\src\alib\singletons\singleton.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\astring.hpp" />
@@ -465,22 +485,6 @@
     <ClInclude Include="..\..\..\src\alib\strings\util\token.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\tokenizer.hpp" />
     <ClInclude Include="..\..\..\src\alib\strings\util\wildcardmatcher.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\calendar.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\console.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\directory.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\environment.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\processinfo.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\system.hpp" />
-    <ClInclude Include="..\..\..\src\alib\system\systemerrors.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\formatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\formatterjavastyle.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\formatterpythonstyle.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\formatterstdimpl.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\fwds.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\paragraphs.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\propertyformatter.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\propertyformatters.hpp" />
-    <ClInclude Include="..\..\..\src\alib\text\text.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\smartlock.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\thread.hpp" />
     <ClInclude Include="..\..\..\src\alib\threads\threadlock.hpp" />
@@ -492,6 +496,7 @@
     <ClInclude Include="..\..\..\src\alib\time\time.hpp" />
     <ClInclude Include="..\..\..\src\alib\time\timepointbase.hpp" />
     <ClInclude Include="targetver.h" />
+    <ClCompile Include="..\..\..\src\alib\alib.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\aloxmodule.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\domain.cpp" />
     <ClCompile Include="..\..\..\src\alib\alox\detail\loxpimpl.cpp" />
@@ -544,16 +549,31 @@
     <ClCompile Include="..\..\..\src\alib\expressions\plugins\math.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\plugins\strings.cpp" />
     <ClCompile Include="..\..\..\src\alib\expressions\util\expressionformatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\alib.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\distribution.cpp" />
-    <ClCompile Include="..\..\..\src\alib\lib\fs_modules\module.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\fileexpressions.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\filescamp.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\finfo.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\fscanner.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\ftools.cpp" />
+    <ClCompile Include="..\..\..\src\alib\files\ftree.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\basecamp\basecamp.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\basecamp\bootstrap.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterjavastyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterpythonstyle.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\formatterstdimpl.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\paragraphs.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\format\propertyformatter.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\message\exception.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\message\report.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\resources\configresourcepool.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\resources\localresourcepool.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\system\calendar.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\system\console.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\system\directory.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\system\environment.cpp" />
+    <ClCompile Include="..\..\..\src\alib\lang\system\processinfo.cpp" />
     <ClCompile Include="..\..\..\src\alib\monomem\detail\hashtablebase.cpp" />
     <ClCompile Include="..\..\..\src\alib\monomem\monoallocator.cpp" />
-    <ClCompile Include="..\..\..\src\alib\resources\configresourcepool.cpp" />
-    <ClCompile Include="..\..\..\src\alib\resources\localresourcepool.cpp" />
-    <ClCompile Include="..\..\..\src\alib\results\exception.cpp" />
-    <ClCompile Include="..\..\..\src\alib\results\report.cpp" />
-    <ClCompile Include="..\..\..\src\alib\results\results.cpp" />
     <ClCompile Include="..\..\..\src\alib\singletons\singleton.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\appendables.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\astring.cpp" />
@@ -568,19 +588,6 @@
     <ClCompile Include="..\..\..\src\alib\strings\util\token.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\util\tokenizer.cpp" />
     <ClCompile Include="..\..\..\src\alib\strings\util\wildcardmatcher.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\calendar.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\console.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\directory.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\environment.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\processinfo.cpp" />
-    <ClCompile Include="..\..\..\src\alib\system\system.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\formatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\formatterjavastyle.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\formatterpythonstyle.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\formatterstdimpl.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\paragraphs.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\propertyformatter.cpp" />
-    <ClCompile Include="..\..\..\src\alib\text\text.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\smartlock.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\thread.cpp" />
     <ClCompile Include="..\..\..\src\alib\threads\threadlock.cpp" />
@@ -662,7 +669,6 @@
     <None Include="..\..\..\src\alib\monomem\detail\stringtreebase.inl" />
     <None Include="..\..\..\src\alib\strings\appendables.inl" />
     <None Include="..\..\..\src\alib\strings\chararraytraits.inl" />
-    <None Include="..\..\..\src\alib\system\directory.mm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

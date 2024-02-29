@@ -2,33 +2,524 @@
 //  Unit Tests - ALox Logging Library
 //  (Unit Tests to create tutorial sample code and output)
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_ALOX
+#if ALIB_UT_DOCS && ALIB_UT_ALOX
 
-//! [Tut_include_statement]
+//! [ALoxTut_include_statement]
 #include "alib/alox.hpp"
 #include "alib/alox/aloxmodule.hpp"
 #include "alib/alox/loggers/memorylogger.hpp"
 #include "alib/alox/loggers/ansilogger.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
-//! [Tut_include_statement]
-
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
+//! [ALoxTut_include_statement]
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <list>
 
-//! [Tut_using_statement]
+//! [ALoxTut_using_statement]
 using namespace std;
-using namespace aworx;
-//! [Tut_using_statement]
+using namespace alib;
+//! [ALoxTut_using_statement]
 
-extern void HelloALox();
+#define main           tutAloxMain
+int main( int, const char** );
+//! [ALoxTut_Minimum_Hello]
+#include "alib/alox.hpp"
+
+int main( int, const char** )
+{
+    // bootstrap ALib
+    alib::Bootstrap();
+
+    // the main program
+    Log_Info ( "Hello ALox!" )
+
+    // alib termination
+    alib::Shutdown();
+    return 0;
+}
+//! [ALoxTut_Minimum_Hello]
+#undef main
+#define main    tutAloxMain2
+int main( int argc, const char** argv);
+
+//! [ALoxTut_Minimum_Hello2]
+#include "alib/alox.hpp"
+
+int main( int argc, const char** argv)
+{
+    // bootstrap ALib
+    alib::ArgC  = argc;
+    alib::ArgVN = argv;
+    alib::Bootstrap();
+
+    // the main program
+    Log_Info ( "Hello ALox!" )
+
+    // alib termination
+    alib::Shutdown();
+    return 0;
+}
+//! [ALoxTut_Minimum_Hello2]
+#undef main
+
+// #################################################################################################
+// #################################################################################################
+// ################################       ALox Manual Samples       ################################
+// #################################################################################################
+// #################################################################################################
+namespace ut_alox_manual {
+
+void Domains_Hierarchical();
+void Domains_Hierarchical()
+{
+//! [Man_DOMAINS___1]
+Log_SetVerbosity( Log::DebugLogger, Verbosity::Error,   "/" ) // could also just omit parameter "/"
+//! [Man_DOMAINS___1]
+
+//! [Man_DOMAINS___2]
+Log_SetVerbosity( Log::DebugLogger, Verbosity::Info,    "/UI" )
+Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "/UI/DIALOGS" )
+//! [Man_DOMAINS___2]
+
+//! [Man_DOMAINS___2reverse]
+Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "/UI/DIALOGS" )
+Log_SetVerbosity( Log::DebugLogger, Verbosity::Info,    "/UI" )
+//! [Man_DOMAINS___2reverse]
+}
+
+
+void MyMethod();
+//! [Man_DOMAINS___3]
+void MyMethod()
+{
+    Log_SetDomain( "/MYDOM", Scope::Method )
+
+    Log_Info( "This log statment uses domain /MYDOM" )
+}
+//! [Man_DOMAINS___3]
+
+
+struct ManualSampleCode2
+{
+static
+//! [Man_DOMAINS___4]
+void MyMethod()
+{
+    Log_SetDomain( "/MYDOM", Scope::Method )
+
+    Log_Info(           "This log statment uses domain '/MYDOM'" )
+    Log_Info( "/MYDOM", "Of-course we can still use domains explicitly" )
+}
+//! [Man_DOMAINS___4]
+};
+
+
+struct ManualSampleCode5
+{
+static
+//! [Man_DOMAINS___5]
+void MyMethod()
+{
+    Log_SetDomain( "/MYDOM", Scope::Method )
+
+    Log_Info(          "This log statment uses domain 'MYDOM'" )
+    Log_Info( "MYDOM", "Oooops, this goes to '/MYDOM/MYDOM'!" )
+}
+//! [Man_DOMAINS___5]
+
+static
+void PrefixLogablesNotCalled()
+{
+//! [Man_PREFIXLOGABLES_1]
+Log_SetPrefix( ">>> " )
+Log_Info( "With prefix" )
+
+Log_SetPrefix( lox::ESC::MAGENTA )
+Log_Info( "With prefix, now also in magenta" )
+//! [Man_PREFIXLOGABLES_1]
+
+//! [Man_PREFIXLOGABLES_2]
+Log_Prune(  Boxes myPrefixes;
+            myPrefixes.Add( "Never forget: 6 * 7 = " );
+            myPrefixes.Add( 6 * 7 );
+            myPrefixes.Add( ": "  );                       )
+Log_SetPrefix( myPrefixes )
+
+
+//...
+
+// Somewhere else:
+Log_Info( "Let's hope the lifecycle of the myPrefixes encloses this log statement!" )
+//! [Man_PREFIXLOGABLES_2]
+}
+
+static
+void PrefixLogablesLifecycle()
+{
+//! [Man_PREFIXLOGABLES_Lifecycle]
+// Adding a string buffer as prefix
+Log_Prune(      AString prefix( "Orig: " );                              )
+Log_SetPrefix(  prefix                                                   )
+Log_Info(       "Testlog before change of AString"                       )
+
+// changing the buffer, does NOT change the prefix, because ALib volunteered
+// to copy the string buffer.
+Log_Prune(      prefix.Reset("Changed: ");                               )
+Log_Info(       "Testlog after change of AString (was not effecitve)"    )
+
+// remove the previous prefix and add it again wrapped as reference
+Log_SetPrefix(  nullptr                                                  )
+Log_Prune(      prefix.Reset("Orig: ");                                  )
+Log_SetPrefix(  std::reference_wrapper(prefix)                           )
+Log_Info(       "Testlog before change of AString"                       )
+
+// now changing the buffer, does also change the prefix.
+// But: We are now responsible that the lifecycle of our string buffer
+// supersedes all log statements!
+Log_Prune(      prefix.Reset("Changed: ");                               )
+Log_Info(       "Testlog after change of AString (now it is effecitve!)" )
+//! [Man_PREFIXLOGABLES_Lifecycle]
+Log_SetPrefix(  nullptr                                                  )
+}
+
+
+void TrimSource()
+{
+//! [Man_TRIM_SOURCE_PATH]
+    Log_SetSourcePathTrimRule( "*/myapp/src/", lang::Inclusion::Include )
+//! [Man_TRIM_SOURCE_PATH]
+}
+};
+
+
+
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+// space to reach line 100
+void ReadChangeAndWriteBack();
+
+//! [Man_DOMAINS___RelativePaths]
+void ReadChangeAndWriteBack()
+{
+    Log_SetDomain( "/IO", Scope::Method )
+
+    // Reading file
+    Log_Info( "READ",   "Reading file" )
+    // ...
+    // ...
+    // ...
+
+    // Process file
+    Log_Info( "PROCESS",  "Processing data" )
+    // ...
+    // ...
+    // ...
+
+    // Writing file
+    Log_Info( "./WRITE",  "Writing file" ) // note relative-path-prefix "./", same as if omitted (!)
+    // ...
+    // ...
+    // ...
+
+    Log_Info(  "Success!" )
+}
+//! [Man_DOMAINS___RelativePaths]
+
+void unnamed();
+void unnamed()
+{
+    //! [Man_DOMAINS___RelativePaths_Set]
+    Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "./" )
+    //! [Man_DOMAINS___RelativePaths_Set]
+}
+
+//! [Man_DOMAINS___nested_scope]
+struct IO
+{
+    // constructor setting the Scope Domain for this file (class) once
+    IO()
+    {
+        Log_SetDomain( "IO", Scope::Filename )
+    }
+
+    // interface
+    void ReadChangeAndWriteBack()
+    {
+        checkSetup();
+        read();
+        process();
+        write();
+        writeStats();
+    }
+
+    // private methods
+  private:
+    void checkSetup()
+    {
+        Log_SetDomain( "/CHECKS", Scope::Method )
+
+        Log_Info(  "Setup OK!" )
+    }
+
+
+    void read()
+    {
+        Log_SetDomain( "READ", Scope::Method )
+
+        Log_Info("Reading file" )
+    }
+
+    void process()
+    {
+        Log_SetDomain( "PROCESS", Scope::Method )
+
+        Log_Info( "Processing data" )
+    }
+
+    void write()
+    {
+        Log_SetDomain( "./WRITE", Scope::Method )
+
+        Log_Info( "Writing file" )
+    }
+
+    void writeStats()
+    {
+        Log_SetDomain( "../STATS", Scope::Method )
+
+        Log_Info(  "Statistics" )
+    }
+};
+//! [Man_DOMAINS___nested_scope]
+
+
+// #################################################################################################
+// ### Log_Once Samples
+// #################################################################################################
+
+class ManualSampleCodeLogOnce
+{
+void LogOnce()
+{
+//! [Man_LogOnce___1]
+Log_Once( "Kilroy was here!" )
+//! [Man_LogOnce___1]
+
+//! [Man_LogOnce___1_wrapup]
+Log_Once( "This is what happened: ..." )
+//! [Man_LogOnce___1_wrapup]
+
+//! [Man_LogOnce___2]
+Log_Once( "IO", Verbosity::Error, "Directory given in config.ini not found. Using default." )
+//! [Man_LogOnce___2]
+
+
+//! [Man_LogOnce___4]
+Log_Once( "This is logged 10 times. After that, never again.", 10 )
+//! [Man_LogOnce___4]
+
+//! [Man_LogOnce___5]
+Log_Once( "This is logged the first time and then every 100th invocation.", -100 )
+//! [Man_LogOnce___5]
+}
+
+//! [Man_LogOnce___11]
+void ReadData()
+{
+    //...
+
+    // directory not found
+    Log_Once( "IO", Verbosity::Warning,
+              "Directory given in config.ini not found. Using default." )
+    //...
+}
+
+void WriteData()
+{
+    //...
+
+    // directory not found
+    Log_Once( "IO", Verbosity::Warning,
+              "Directory given in config.ini not found. Using default." )
+    //...
+}
+//! [Man_LogOnce___11]
+
+}; // class ManualSampleCodeLogOnce
+
+class ManualSampleCodeLogOnce2
+{
+//! [Man_LogOnce___12]
+void ReadData()
+{
+    //...
+
+    // directory not found
+    Log_Once( "IO", Verbosity::Warning,
+              "Directory given in config.ini not found. Using default.",
+              A_CHAR("INI_DIR_ERROR") )
+    //...
+}
+void WriteData()
+{
+    //...
+
+    // directory not found
+    Log_Once( "IO", Verbosity::Warning,
+              "Directory given in config.ini not found. Using default.",
+              A_CHAR("INI_DIR_ERROR") )
+    //...
+}
+//! [Man_LogOnce___12]
+}; // class
+
+
+//! [Man_LogOnce___21]
+class MyIOManager
+{
+    MyIOManager()
+    {
+        // bind all log statements of this file to domain path 'IO'
+        Log_SetDomain( "IO", Scope::Filename )
+    }
+
+    void ReadData()
+    {
+        //...
+
+        // directory not found
+        Log_Once( Verbosity::Warning,
+                  "Directory given in config.ini not found. Using default.",
+                  Scope::Filename )
+        //...
+    }
+    void WriteData()
+    {
+        //...
+
+        // directory not found
+        Log_Once( Verbosity::Warning,
+                  "Directory given in config.ini not found. Using default.",
+                  Scope::Filename )
+        //...
+    }
+
+}; // class
+//! [Man_LogOnce___21]
+
+
+
+// #################################################################################################
+// ### Log_SetPrefix Samples
+// #################################################################################################
+void LogSetPrefix();
+void LogSetPrefix()
+{
+//! [Man_LogSetPrefix___1]
+Log_SetPrefix( "Data File: ", Scope::Filename )
+//...
+//...
+Log_Info( "Opened." )
+//...
+//...
+Log_Info( "Read." )
+//...
+//...
+Log_Info( "Closed." )
+//! [Man_LogSetPrefix___1]
+Log_SetPrefix( nullptr, Scope::Filename )
+
+}
+
+struct RecursiveDataType
+{
+    String                       Name;
+    std::list<RecursiveDataType> Children;
+
+    RecursiveDataType() { Name= A_CHAR(""); }
+
+
+//! [Man_LogSetPrefix___2]
+RecursiveDataType* Search( String name )
+{
+    Log_SetPrefix( "  ", Scope::ThreadOuter ) // add indent
+
+    Log_Info( "Inspecting object: ", Name )
+
+    if ( Name.Equals ( name ) )
+    {
+        Log_SetPrefix( nullptr, Scope::ThreadOuter ) // remove indent
+        return this;
+    }
+
+    // recursion
+    RecursiveDataType* returnValue= nullptr;
+    for( RecursiveDataType& child : Children )
+        if( (returnValue= child.Search( name )) != nullptr )
+            break;
+
+    Log_SetPrefix( nullptr, Scope::ThreadOuter ) // remove indent
+    return returnValue;
+}
+//! [Man_LogSetPrefix___2]
+
+}; //class ManualSampleCodeSetPrefix
+
+
+// #################################################################################################
+// ### Man.InternalDomains Samples
+// #################################################################################################
+
+class Manual_InternalDomains
+{
+void x()
+{
+//! [Man_InternalDomains___1]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, "/" )
+//! [Man_InternalDomains___1]
+
+//! [Man_InternalDomains___2]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, Lox::InternalDomains )
+//! [Man_InternalDomains___2]
+
+//! [Man_InternalDomains___3]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, "$/" )
+//! [Man_InternalDomains___3]
+
+//! [Man_InternalDomains___4]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Off    , Lox::InternalDomains )
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, NString64(Lox::InternalDomains) << "DMN" )
+//! [Man_InternalDomains___4]
+
+//! [Man_InternalDomains_ext___3]
+Log_Info( NString64(Lox::InternalDomains) << "MYDOM", "Hello, this logs 'on' internal domain '$/MYDOM'!" )
+//! [Man_InternalDomains_ext___3]
+
+}
+
+}; //class Manual_InternalDomains
+
+} // namespace ut_alox_manual
+
+// #################################################################################################
+// #################################################################################################
+// ### START of Unit tests
+// #################################################################################################
+// #################################################################################################
+
 
 namespace ut_alox {
 
@@ -47,7 +538,7 @@ void notCompiledConditionalLogging()
     int len= 5;
     basic_string<character> search= A_CHAR("");
 
-    //! [Tut_ConditionalLogging]
+    //! [ALoxTut_ConditionalLogging]
     int i= 0;
     while( i < len )
     {
@@ -62,31 +553,31 @@ void notCompiledConditionalLogging()
     {
         Log_Error( "Nothing found :-(" )
     }
-    //! [Tut_ConditionalLogging]
+    //! [ALoxTut_ConditionalLogging]
 
-    //! [Tut_ConditionalLogging2]
+    //! [ALoxTut_ConditionalLogging2]
     Log_Assert( i != len, "Nothing found :-(" )
-    //! [Tut_ConditionalLogging2]
+    //! [ALoxTut_ConditionalLogging2]
 
-    //! [Tut_ConditionalLogging3]
+    //! [ALoxTut_ConditionalLogging3]
     Log_If( i == len, Verbosity::Error, "Nothing found :-(" )
-    //! [Tut_ConditionalLogging3]
+    //! [ALoxTut_ConditionalLogging3]
 
-    //! [Tut_ConditionalLoggingOnce]
+    //! [ALoxTut_ConditionalLoggingOnce]
     Log_Once( "I tell you this now only once!" )
-    //! [Tut_ConditionalLoggingOnce]
+    //! [ALoxTut_ConditionalLoggingOnce]
     ALIB_WARNINGS_RESTORE
 }
 
 // #################################################################################################
-// Tut_ScopeDomains
+// ALoxTut_ScopeDomains
 // #################################################################################################
 #if ALOX_DBG_LOG
 class TutScopeDom
 {
     public:
-    //! [Tut_ScopeDomains]
-    void* Extract( const aworx::NString& fileName, void* buffer )
+    //! [ALoxTut_ScopeDomains]
+    void* Extract( const alib::NString& fileName, void* buffer )
     {
         Log_SetDomain( "ZIP/EXTRACT", Scope::Method ) // set Scope Domain path for this method
         //...
@@ -97,10 +588,10 @@ class TutScopeDom
         //...
         return buffer;
     }
-    //! [Tut_ScopeDomains]
+    //! [ALoxTut_ScopeDomains]
 };
 
-//! [Tut_ScopeDomains_Zipper]
+//! [ALoxTut_ScopeDomains_Zipper]
 class Zipper
 {
     public:
@@ -112,7 +603,7 @@ class Zipper
         //...
     }
 
-    void* Compress( const aworx::NString& fileName, void* buffer )
+    void* Compress( const alib::NString& fileName, void* buffer )
     {
         Log_SetDomain( "COMPRESS", Scope::Method ) // set Scope Domain path for this method
         //...
@@ -124,7 +615,7 @@ class Zipper
         return buffer;
     }
 
-    void* Extract( const aworx::NString& fileName, void* buffer )
+    void* Extract( const alib::NString& fileName, void* buffer )
     {
         Log_SetDomain( "EXTRACT", Scope::Method ) // set Scope Domain path for this method
         //...
@@ -136,17 +627,17 @@ class Zipper
         return buffer;
     }
 };
-//! [Tut_ScopeDomains_Zipper]
+//! [ALoxTut_ScopeDomains_Zipper]
 
 // #################################################################################################
-// Tut_LogData
+// ALoxTut_LogData
 // #################################################################################################
-//! [Tut_LogData]
+//! [ALoxTut_LogData]
 class FileIO
 {
     public:
 
-    void Read( const aworx::NString& fileName )
+    void Read( const alib::NString& fileName )
     {
         Log_SetDomain( "READ", Scope::Method )
         Log_Info( "Reading {!Q}", fileName )
@@ -164,7 +655,7 @@ class FileIO
         Log_Info( "Success" )
     }
 };
-//! [Tut_LogData]
+//! [ALoxTut_LogData]
 
 #endif
 
@@ -181,13 +672,6 @@ namespace ut_alox {
 
 UT_CLASS
 
-
-UT_METHOD(MiniMumAlox)
-{
-    UT_INIT()
-    HelloALox();
-}
-
 // #################################################################################################
 // Hello_ALox
 // #################################################################################################
@@ -203,20 +687,24 @@ UT_METHOD(Hello_ALox)
 
 
 
-    //! [Tut_ALox_Logger_1]
+    //! [ALoxTut_Logger_1]
     Log_AddDebugLogger()
-    //! [Tut_ALox_Logger_1]
+    //! [ALoxTut_Logger_1]
 
     Log_RemoveDebugLogger()
 
     Log_SetVerbosity( &memLog, Verbosity::Verbose )
 
-    //! [Tut_ALox_Logger_2]
+    //! [ALoxTut_Logger_2]
+    // Dont forget to bootstrap on top of main()! It is removed here, because this code runs
+    // in the unit tests, where bootstrapping was already performed.
+    // alib::Bootstrap();
+
     Log_AddDebugLogger()
     Log_Info ( "Hello ALox" )
-    //! [Tut_ALox_Logger_2]
+    //! [ALoxTut_Logger_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_ALox_Logger.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Logger.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_RemoveLogger( &memLog )
     Log_RemoveDebugLogger()
 }
@@ -228,38 +716,38 @@ UT_METHOD(Hello_ALox)
 // moved to 3-digit line number, to have log output formatted well :-)
 
 // #################################################################################################
-// Tut_Verbosity
+// ALoxTut_Verbosity
 // #################################################################################################
-UT_METHOD(Tut_Verbosity)
+UT_METHOD(ALoxTut_Verbosity)
 {
     UT_INIT()
 
     MemoryLogger memLog;
     Log_SetVerbosity( &memLog, Verbosity::Verbose)
 
-    //! [Tut_Verbosity]
+    //! [ALoxTut_Verbosity]
     Log_AddDebugLogger()
 
     Log_Error  ( "A severe error happened :-(" )
     Log_Warning( "This is a warning :-/ Maybe an error follows?" )
     Log_Info   ( "Just for your further information!" )
     Log_Verbose( "Today, I am in the mood to talk..." )
-    //! [Tut_Verbosity]
+    //! [ALoxTut_Verbosity]
 
-    //! [Tut_Verbosity_SetVerbosity]
+    //! [ALoxTut_Verbosity_SetVerbosity]
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning )
-    //! [Tut_Verbosity_SetVerbosity]
-    //! [Tut_Verbosity_SetVerbosity_2]
+    //! [ALoxTut_Verbosity_SetVerbosity]
+    //! [ALoxTut_Verbosity_SetVerbosity_2]
     Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Warning )
-    //! [Tut_Verbosity_SetVerbosity_2]
+    //! [ALoxTut_Verbosity_SetVerbosity_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Verbosity.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Verbosity.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     Log_Prune( Log_RemoveDebugLogger();  )
 
     Log_SetVerbosity( &memLog, Verbosity::Warning )
 
-    //! [Tut_Verbosity_2]
+    //! [ALoxTut_Verbosity_2]
     Log_AddDebugLogger()
 
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning )
@@ -268,9 +756,9 @@ UT_METHOD(Tut_Verbosity)
     Log_Warning( "This is a warning :-/ Maybe an error follows?" )
     Log_Info   ( "Just for your further information!" )
     Log_Verbose( "Today, I am in the mood to talk..." )
-    //! [Tut_Verbosity_2]
+    //! [ALoxTut_Verbosity_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Verbosity_2.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Verbosity_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog )
@@ -279,16 +767,16 @@ UT_METHOD(Tut_Verbosity)
 
 
 // #################################################################################################
-// Tut_Domains
+// ALoxTut_Domains
 // #################################################################################################
-UT_METHOD(Tut_Domains)
+UT_METHOD(ALoxTut_Domains)
 {
     UT_INIT()
 
     MemoryLogger memLog;
     Log_SetVerbosity( &memLog, Verbosity::Verbose)
 
-    //! [Tut_Domains]
+    //! [ALoxTut_Domains]
     Log_AddDebugLogger()
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose ) // the default anyhow
     //...
@@ -298,17 +786,17 @@ UT_METHOD(Tut_Domains)
     //...
     Log_Verbose( "UI",   "Somebody moved the mouse!" )
     //...
-    //! [Tut_Domains]
+    //! [ALoxTut_Domains]
 
 
-    Log_Prune( ut.WriteResultFile( "Tut_Domains.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Domains.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
     Log_Prune( Log_RemoveDebugLogger();  )
 
     Log_SetVerbosity( &memLog, Verbosity::Verbose,  "HTTP" ) // our interest
     Log_SetVerbosity( &memLog, Verbosity::Error,    "UI"   ) // only if ouch!
 
-    //! [Tut_Domains_2]
+    //! [ALoxTut_Domains_2]
     Log_AddDebugLogger()
 
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose,  "HTTP" ) // our interest
@@ -320,21 +808,21 @@ UT_METHOD(Tut_Domains)
     //...
     Log_Verbose( "UI",   "Somebody moved the mouse!" )
     //...
-    //! [Tut_Domains_2]
+    //! [ALoxTut_Domains_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Domains_2.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Domains_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog )
     Log_RemoveDebugLogger()
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 
 // #################################################################################################
-// Tut_Domains
+// ALoxTut_Domains
 // #################################################################################################
 UT_METHOD(Tut_HierDom)
 {
@@ -343,7 +831,7 @@ UT_METHOD(Tut_HierDom)
     MemoryLogger memLog;
     Log_SetVerbosity( &memLog, Verbosity::Verbose)
 
-    //! [Tut_DomainsHierarchical]
+    //! [ALoxTut_DomainsHierarchical]
     Log_AddDebugLogger()
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose ) // the default anyhow
     //...
@@ -356,35 +844,35 @@ UT_METHOD(Tut_HierDom)
     //...
     Log_Verbose( "UI/DLG",     "About dialog, link to product page pressed." )
     //...
-    //! [Tut_DomainsHierarchical]
+    //! [ALoxTut_DomainsHierarchical]
 
 
-    Log_Prune( ut.WriteResultFile( "Tut_DomainsHierarchical.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_DomainsHierarchical.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     Log_RemoveDebugLogger()
 
-    //! [Tut_DomainsHierarchical_2]
+    //! [ALoxTut_DomainsHierarchical_2]
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "UI"  ) // Always sets all sub-domains!
-    //! [Tut_DomainsHierarchical_2]
+    //! [ALoxTut_DomainsHierarchical_2]
 
-    //! [Tut_DomainsHierarchical_3]
+    //! [ALoxTut_DomainsHierarchical_3]
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Warning, "UI"       ) // First set parent...
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, "UI/MOUSE" ) // ...then children!
-    //! [Tut_DomainsHierarchical_3]
+    //! [ALoxTut_DomainsHierarchical_3]
 
     Log_RemoveLogger( &memLog )
 
     // clean the config (for subsequent tests)
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    lib::ALOX.GetConfig().GetPluginTypeSafe<aworx::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
+    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 
 
 // #################################################################################################
-// Tut_ScopeDomains
+// ALoxTut_ScopeDomains
 // #################################################################################################
 #if ALOX_DBG_LOG
-UT_METHOD(Tut_ScopeDomains)
+UT_METHOD(ALoxTut_ScopeDomains)
 {
     UT_INIT()
 
@@ -395,7 +883,7 @@ UT_METHOD(Tut_ScopeDomains)
     TutScopeDom tsd;
     tsd.Extract( "myfile.zip", nullptr );
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ScopeDomains.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
 
     // do it once to set the tab positions of the meta info...
@@ -412,13 +900,13 @@ UT_METHOD(Tut_ScopeDomains)
         zip.Extract( "myfile.zip", nullptr );
     }
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ScopeDomains_Zipper.txt", memLog.MemoryLog, EmptyNString() ); )
 
     //---------- with scope path ---------------
 
-    //! [Tut_ScopeDomains_Path]
+    //! [ALoxTut_ScopeDomains_Path]
     Log_SetDomain( "UTIL", Scope::Path )
-    //! [Tut_ScopeDomains_Path]
+    //! [ALoxTut_ScopeDomains_Path]
 
     Log_Prune( memLog.MemoryLog.Reset(); memLog.CntLogs= 0; )
     // do it once to set the tab positions of the meta info...
@@ -434,17 +922,17 @@ UT_METHOD(Tut_ScopeDomains)
         zip.Compress( "myfile.zip", nullptr );
         zip.Extract( "myfile.zip", nullptr );
     }
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_Zipper_Path.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ScopeDomains_Zipper_Path.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
     Log_SetDomain( nullptr, Scope::Path )
     Log_SetDomain( nullptr, Scope::Filename )
 
-    //! [Tut_ScopeDomains_ParamDom]
+    //! [ALoxTut_ScopeDomains_ParamDom]
     Log_SetDomain( "METHOD", Scope::Method )
     Log_Info(          "No domain parameter given" )
     Log_Info( "PARAM", "Domain parameter \"PARAM\" given" )
-    //! [Tut_ScopeDomains_ParamDom]
+    //! [ALoxTut_ScopeDomains_ParamDom]
 
     // clear autosizes, repeat it twice
     Log_Prune( memLog.AutoSizes.Reset(); )
@@ -454,19 +942,19 @@ UT_METHOD(Tut_ScopeDomains)
     Log_Info(          "No domain parameter given" )
     Log_Info( "PARAM", "Domain parameter \"PARAM\" given" )
 
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ScopeDomains_ParamDom.txt", memLog.MemoryLog, EmptyNString() ); )
     Log_Prune( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
 
-    //! [Tut_ScopeDomains_ParamDom_2]
+    //! [ALoxTut_ScopeDomains_ParamDom_2]
     Log_SetDomain( "READ", Scope::Method )
     Log_Info( "Reading file" )
     //...
     //...
     Log_Info( "/CONFIG",   "Path not found." )
     //...
-    //! [Tut_ScopeDomains_ParamDom_2]
-    Log_Prune( ut.WriteResultFile( "Tut_ScopeDomains_ParamDom_2.txt", memLog.MemoryLog, EmptyNString() ); )
+    //! [ALoxTut_ScopeDomains_ParamDom_2]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ScopeDomains_ParamDom_2.txt", memLog.MemoryLog, EmptyNString() ); )
 
 
     Log_RemoveLogger( &memLog )
@@ -476,9 +964,9 @@ UT_METHOD(Tut_ScopeDomains)
 
 
 // #################################################################################################
-// Tut_Prefix
+// ALoxTut_Prefix
 // #################################################################################################
-UT_METHOD(Tut_Prefix)
+UT_METHOD(ALoxTut_Prefix)
 {
     UT_INIT()
 
@@ -486,17 +974,17 @@ UT_METHOD(Tut_Prefix)
     Log_SetVerbosity( &memLog, Verbosity::Verbose)
     Log_AddDebugLogger()
 
-    //! [Tut_Prefix]
+    //! [ALoxTut_Prefix]
     Log_SetPrefix( "ALOX TUTORIAL: ", Scope::Method )
 
     Log_Info( "Well, just a sample" )
-    //! [Tut_Prefix]
+    //! [ALoxTut_Prefix]
 
-    Log_Prune( ut.WriteResultFile( "Tut_Prefix.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Prefix.txt", memLog.MemoryLog, EmptyNString() ); )
 
-    //! [Tut_Prefix_2]
+    //! [ALoxTut_Prefix_2]
     Log_SetPrefix( ESC::BG_MAGENTA, Scope::Filename )
-    //! [Tut_Prefix_2]
+    //! [ALoxTut_Prefix_2]
 
     Log_Warning( "magenta" )
 
@@ -505,9 +993,9 @@ UT_METHOD(Tut_Prefix)
 }
 
 // #################################################################################################
-// Tut_ThreadName
+// ALoxTut_ThreadName
 // #################################################################################################
-UT_METHOD(Tut_ThreadName )
+UT_METHOD(ALoxTut_ThreadName )
 {
     UT_INIT()
 
@@ -516,22 +1004,22 @@ UT_METHOD(Tut_ThreadName )
     Log_Prune ( memLog.MemoryLog.Reset();  memLog.CntLogs= 0; )
 
 
-    //! [Tut_MapThreadName]
+    //! [ALoxTut_MapThreadName]
     Log_MapThreadName( A_CHAR("BKGRND") )
     Log_Info ( "Hello ALox" )
-    //! [Tut_MapThreadName]
+    //! [ALoxTut_MapThreadName]
     Log_MapThreadName( A_CHAR("MAIN") )
 
 
     Log_RemoveLogger( & memLog)
     Log_Prune( memLog.MemoryLog.SearchAndReplace( A_CHAR("MONOMEM"), A_CHAR("CONSOLE") );            )
-    Log_Prune( ut.WriteResultFile( "Tut_ThreadName.txt", memLog.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_ThreadName.txt", memLog.MemoryLog, EmptyNString() ); )
 
 }
 
 
 // #################################################################################################
-// Tut_ConditionalLogging
+// ALoxTut_ConditionalLogging
 // #################################################################################################
 
 // restore original ALib param macro
@@ -542,13 +1030,13 @@ UT_METHOD(Tut_ThreadName )
 
 
 // #################################################################################################
-// Tut_LogState
+// ALoxTut_LogState
 // #################################################################################################
-UT_METHOD(Tut_LogState)
+UT_METHOD(ALoxTut_LogState)
 {
     UT_INIT()
 
-    //! [Tut_LogState]
+    //! [ALoxTut_LogState]
     // create two different loggers
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
@@ -587,26 +1075,26 @@ UT_METHOD(Tut_LogState)
     Log_SetPrefix( "MPre: "  , Scope::Method )
     Log_SetPrefix( "DomPre: " )
     Log_SetPrefix( "Mouse: ", "/UI/MOUSE" )
-    Log_SetPrefix( ESC::RED,  "/ERRORS", Inclusion::Exclude )
+    Log_SetPrefix( ESC::RED,  "/ERRORS", lang::Inclusion::Exclude )
 
     Log_MapThreadName( A_CHAR("TUTORIAL") )
 
     // now, log the current config
     Log_LogState( nullptr, Verbosity::Info, A_CHAR("The current configuration of this Lox is:") )
-    //! [Tut_LogState]
+    //! [ALoxTut_LogState]
 
-    Log_Prune( ut.WriteResultFile( "Tut_LogState.txt", memLogger.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_LogState.txt", memLogger.MemoryLog, EmptyNString() ); )
     Log_RemoveDebugLogger()
     Log_RemoveLogger( &memLogger )
 }
 
 
-UT_METHOD(Tut_LogInternalDomains)
+UT_METHOD(ALoxTut_LogInternalDomains)
 {
     UT_INIT()
 
     {
-    //! [Tut_LogInternalDomains]
+    //! [ALoxTut_LogInternalDomains]
     // This is the very same code as above...
     Log_AddDebugLogger()
     Log_Prune( MemoryLogger memLogger;  )
@@ -642,11 +1130,11 @@ UT_METHOD(Tut_LogInternalDomains)
     Log_SetPrefix( "MPre: "  , Scope::Method )
     Log_SetPrefix( "DomPre: " )
     Log_SetPrefix( "Mouse: ", "/UI/MOUSE" )
-    Log_SetPrefix( ESC::RED,  "/ERRORS", Inclusion::Exclude )
+    Log_SetPrefix( ESC::RED,  "/ERRORS", lang::Inclusion::Exclude )
 
     Log_MapThreadName( A_CHAR("TUTORIAL") )
-    //! [Tut_LogInternalDomains]
-    Log_Prune( ut.WriteResultFile( "Tut_LogInternalDomains.txt", memLogger.MemoryLog, EmptyNString() ); )
+    //! [ALoxTut_LogInternalDomains]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_LogInternalDomains.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     Log_RemoveDebugLogger()
     Log_RemoveLogger( "MEMORY" )
@@ -655,7 +1143,7 @@ UT_METHOD(Tut_LogInternalDomains)
 
 
 #if ALOX_DBG_LOG
-UT_METHOD(Tut_LogData)
+UT_METHOD(ALoxTut_LogData)
 {
     UT_INIT()
 
@@ -675,16 +1163,16 @@ UT_METHOD(Tut_LogData)
     FileIO fileIo;
     fileIo.Read( "myfile.dat" );
 
-    //! [Tut_LogData_2]
+    //! [ALoxTut_LogData_2]
     Log_Retrieve( dbgFileVersion, "FILE_VERSION" )
     Log_Info( "Working on file version {!Q}", dbgFileVersion.Unbox<String>() )
-    //! [Tut_LogData_2]
+    //! [ALoxTut_LogData_2]
 
-    Log_Prune( ut.WriteResultFile( "Tut_LogData.txt", memLogger.MemoryLog, EmptyNString() ); )
+    Log_Prune( ut.WriteResultFile( "ALoxTut_LogData.txt", memLogger.MemoryLog, EmptyNString() ); )
 
-    //! [Tut_LogData_3]
+    //! [ALoxTut_LogData_3]
     Log_Info( "Working on file version {!Q}", LOG_LOX.Retrieve("FILE_VERSION").Unbox<String>() )
-    //! [Tut_LogData_3]
+    //! [ALoxTut_LogData_3]
 
 
     Log_RemoveDebugLogger()
@@ -702,35 +1190,35 @@ UT_METHOD(Tut_Format)
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
 
 
-    //! [Tut_Format_1]
+    //! [ALoxTut_Format1]
     Log_Info( "Value=", 5 )
-    //! [Tut_Format_1]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_1.txt", memLogger.MemoryLog, EmptyNString() ); )
+    //! [ALoxTut_Format1]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Format1.txt", memLogger.MemoryLog, EmptyNString() ); )
 
-    //! [Tut_Format_P]
+    //! [ALoxTut_FormatP]
     Log_Info( "Value={}", 5 )
-    //! [Tut_Format_P]
+    //! [ALoxTut_FormatP]
 
-    //! [Tut_Format_J]
+    //! [ALoxTut_FormatJ]
     Log_Info( "Value=%s", 5 )
-    //! [Tut_Format_J]
+    //! [ALoxTut_FormatJ]
 
 
-    //! [Tut_Format_Multi]
+    //! [ALoxTut_Format_Multi]
     Log_Info( "One-", "Two-", "Three" )
     Log_Info( "{}-{}-{}", "One", "Two", "Three" )
     Log_Info( "{}-{}-"  , "One", "Two", "Three" )
     Log_Info( "{}-"  , "One", "{}-", "Two", "{}", "Three" )
-    //! [Tut_Format_Multi]
+    //! [ALoxTut_Format_Multi]
 
     Log_Prune( memLogger.MemoryLog.Reset(); )
-    //! [Tut_Format_Mix]
+    //! [ALoxTut_Format_Mix]
     Log_Info( "Python Style: {!s}","PS", " - ", "Java Style: \"%s\"", "JS" )
-    //! [Tut_Format_Mix]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_Mix.txt", memLogger.MemoryLog, EmptyNString() ); )
+    //! [ALoxTut_Format_Mix]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Format_Mix.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     Log_Prune( memLogger.MemoryLog.Reset(); )
-    //! [Tut_Format_Sample_1]
+    //! [ALoxTut_Format_Sample_1]
     Log_Info( ">{:<10}<" , "left" )
     Log_Info( ">{:>10}<" , "right" )
     Log_Info( ">{:^10}<" , "center" )
@@ -750,15 +1238,194 @@ UT_METHOD(Tut_Format)
     Log_Info( "Hex: {:#x}. With group chars: {0:x,}", 0x11FF22EE )
     Log_Info( "Oct: {:#o}. With group chars: {0:o,}", 012345670 )
     Log_Info( "Bin: {:#b}. With group chars: {0:b,}", 145 )
-    //! [Tut_Format_Sample_1]
-    Log_Prune( ut.WriteResultFile( "Tut_Format_Sample_1.txt", memLogger.MemoryLog, EmptyNString() ); )
+    //! [ALoxTut_Format_Sample_1]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Format_Sample_1.txt", memLogger.MemoryLog, EmptyNString() ); )
 
+    Log_Prune( memLogger.MemoryLog.Reset(); )
+    //! [ALoxTut_Format_Sample_2]
+    Log_Info   ( "Custom Date Format: {:yyyy * MM * dd}", DateTime() )
+    //! [ALoxTut_Format_Sample_2]
+    Log_Prune( ut.WriteResultFile( "ALoxTut_Format_Sample_2.txt", memLogger.MemoryLog, EmptyNString() ); )
 
     Log_RemoveDebugLogger()
     Log_RemoveLogger( "MEMORY" )
 }
 
-#endif
+
+// #################################################################################################
+// #################################################################################################
+// ################################       ALox Manual Samples       ################################
+// #################################################################################################
+// #################################################################################################
+
+// #################################################################################################
+// ### Create manual sample output
+// #################################################################################################
+
+    UT_METHOD(ALox_Manual)
+    {
+        UT_INIT()
+    Log_Prune( MemoryLogger memLog;  )
+    Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+        // 3
+        Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+        ut_alox_manual::MyMethod();
+
+        Log_Prune( ut.WriteResultFile( "ALoxMan_Domains_3.txt", memLog.MemoryLog, EmptyNString() ); )
+
+
+
+        // 5
+        //Log_Reset();
+        Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+        // trick to pre-size domain field
+        Log_Info("/MYDOM/MYDOM", "x" )
+        memLog.MemoryLog.Reset();
+
+        ut_alox_manual::ManualSampleCode5::MyMethod();
+
+        Log_Prune( ut.WriteResultFile( "ALoxMan_Domains_5.txt", memLog.MemoryLog, EmptyNString() ); )
+
+
+
+        // relativePaths
+        //Log_Reset();
+        Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+        // trick to pre-size domain field
+        Log_Info("/IO/PROCESS", "x" )
+        memLog.MemoryLog.Reset();
+
+        ut_alox_manual::ReadChangeAndWriteBack();
+
+        Log_Prune( ut.WriteResultFile( "ALoxMan_Domains_RelativePaths.txt", memLog.MemoryLog, EmptyNString() ); )
+
+        // Man_DOMAINS___nested_scope
+        //Log_Reset();
+        Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+        // trick to pre-size domain field
+        memLog.AutoSizes.Reset();
+        Log_Info("/IO/PROCESS", "x" )
+        memLog.MemoryLog.Reset();
+
+        ut_alox_manual::IO io;
+        io.ReadChangeAndWriteBack();
+        Log_Prune( ut.WriteResultFile( "ALoxMan_DOMAINS___nested_scope.txt", memLog.MemoryLog, EmptyNString() ); )
+
+        memLog.AutoSizes.Reset();
+        memLog.MemoryLog.Reset();
+        ut_alox_manual::ManualSampleCode5::PrefixLogablesLifecycle();
+        Log_Prune( ut.WriteResultFile( "ALoxMan_PREFIXLOGABLES_Lifecycle.txt", memLog.MemoryLog, EmptyNString() ); )
+
+        memLog.AutoSizes.Reset();
+        memLog.MemoryLog.Reset();
+        ut_alox_manual::LogSetPrefix();
+        Log_Prune( ut.WriteResultFile( "ALoxMan_LogSetPrefix___1.txt", memLog.MemoryLog, EmptyNString() ); )
+
+    } // UT_METHOD(ALox_Manual)
+
+
+    UT_METHOD(ALox_Manual2)
+    {
+        UT_INIT()
+    Log_Prune( MemoryLogger memLog;  )
+    Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+
+
+//! [Man_ExtVerbosityConfig___1]
+// switching on with default priority
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Info, "/MYDOM" )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will not be logged" )
+
+// switching on with higher priority
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Info, "/MYDOM", config::Priorities::DefaultValues +1 )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will still be logged. Domain was not switched off!" )
+//! [Man_ExtVerbosityConfig___1]
+
+// Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, "$/" );
+
+//! [Man_ExtVerbosityConfig___2]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, Lox::InternalDomains )
+//! [Man_ExtVerbosityConfig___2]
+
+    Log_RemoveDebugLogger()
+    Log_RemoveLogger(&memLog)
+
+//---------- ALoxMan_ExtVerbosityConfig_1.txt ------------
+        memLog.AutoSizes.Reset();
+        memLog.MemoryLog.Reset();
+
+// switching on with default priority
+Log_SetVerbosity( &memLog, Verbosity::Info, "/MYDOM" )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( &memLog, Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will not be logged" )
+
+// switching on with higher priority
+Log_SetVerbosity( &memLog, Verbosity::Info, "/MYDOM", config::Priorities::DefaultValues +1 )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( &memLog, Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will still be logged. Domain was not switched off!" )
+
+    memLog.MemoryLog.SearchAndReplace(A_CHAR("\"MEMORY\":")  , A_CHAR("\"DEBUG_LOGGER\":") );
+    Log_Prune( ut.WriteResultFile( "ALoxMan_ExtVerbosityConfig_1.txt", memLog.MemoryLog, EmptyNString() ); )
+
+//---------- ALoxMan_ExtVerbosityConfig_2.txt ------------
+        memLog.AutoSizes.Reset();
+        memLog.MemoryLog.Reset();
+    Log_RemoveLogger(&memLog)
+    Log_SetVerbosity( &memLog, Verbosity::Verbose )
+
+    Log_SetVerbosity( &memLog, Verbosity::Verbose, Lox::InternalDomains )
+
+// switching on with default priority
+Log_SetVerbosity( &memLog, Verbosity::Info, "/MYDOM" )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( &memLog, Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will not be logged" )
+
+// switching on with higher priority
+Log_SetVerbosity( &memLog, Verbosity::Info, "/MYDOM", config::Priorities::DefaultValues +1 )
+Log_Info( "MYDOM", "This line will be logged" )
+
+// switching off with default priority
+Log_SetVerbosity( &memLog, Verbosity::Off, "/MYDOM" )
+Log_Info( "MYDOM", "This line will still be logged. Domain was not switched off!" )
+
+        memLog.MemoryLog.SearchAndReplace( A_CHAR("\"MEMORY\""), A_CHAR("\"DEBUG_LOGGER\"") );
+        Log_Prune( ut.WriteResultFile( "ALoxMan_ExtVerbosityConfig_2.txt", memLog.MemoryLog, EmptyNString() ); )
+
+
+
+
+
+//! [Man_ExtVerbosityConfig___3]
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, "/UI/MOUSE"        , config::Priorities::DefaultValues + 1 )
+Log_SetVerbosity( "DEBUG_LOGGER", Verbosity::Verbose, "/UI/DIALOGS/MOUSE", config::Priorities::DefaultValues + 1 )
+//! [Man_ExtVerbosityConfig___3]
+
+    }  // UT_METHOD(ALox_Manual2)
+    
+#endif // #if ALOX_DBG_LOG
 
 
 #include "unittests/aworx_unittests_end.hpp"

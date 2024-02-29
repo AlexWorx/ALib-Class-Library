@@ -2,13 +2,13 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for module ALib CLI.
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
 
-#if ALIB_UT_DOCS && ALIB_CLI && ALIB_SYSTEM  && !defined(_WIN32)
+#if ALIB_UT_DOCS && ALIB_UT_CLI && ALIB_CAMP  && !defined(_WIN32)
 
 // the namespace of our software
 
@@ -18,7 +18,7 @@
 #include "alib/compatibility/std_boxing.hpp"
 #include <array>
 
-using namespace aworx;
+using namespace alib;
 
 // #################################################################################################
 // #### Unit test executing tutorial code
@@ -95,37 +95,37 @@ UT_METHOD( CLI )
     }
 
     auto
-    r= utExecCLI(ut, ""                            , "NOCMD"            );  UT_EQ( r.first, 0)
-                                                                            UT_EQ( r.second.Length(), 19 + NewLine().Length())
-    r= utExecCLI(ut, "now"                         , "CMDNOW"           );  UT_EQ( r.first, 0)
-                                                                            UT_EQ( r.second.Length(), 19 + NewLine().Length())
-    r= utExecCLI(ut, "--format=\"MMM dd, yyyy\""   , "CMDNOW_FORMAT"    );  UT_EQ( r.first, 0)
-                                                                            UT_EQ( r.second.Length(), 12 + NewLine().Length())
+    r= utExecCLI(ut, ""                            , "NOCMD"            );  UT_EQ( 0, r.first)
+                                                                            UT_EQ( 19 + NewLine().Length()  , r.second.Length() )
+    r= utExecCLI(ut, "now"                         , "CMDNOW"           );  UT_EQ( 0, r.first)
+                                                                            UT_EQ( 19 + NewLine().Length()  , r.second.Length() )
+    r= utExecCLI(ut, "--format=\"MMM dd, yyyy\""   , "CMDNOW_FORMAT"    );  UT_EQ( 0, r.first)
+                                                                            UT_EQ( 12 + NewLine().Length()  , r.second.Length())
        utExecCLI(ut, "file /home"                  , "CMDFILE"          );
 
     r= utExecCLI(ut, "file"                        , "FILE_MISSING_PAR" );  UT_EQ( r.first, 102)
-                                                                            UT_EQ( r.second.Length(), 70 + NewLine().Length())
+                                                                            UT_EQ( 70 + NewLine().Length()  , r.second.Length())
 
     r= utExecCLI(ut, "--format"                    , "FILE_MISSING_PAR2");  UT_EQ( r.first, 10)
-                                                                            UT_EQ( r.second.Length(), 225 + NewLine().Length())
+                                                                            UT_EQ( 225 + NewLine().Length() , r.second.Length())
 
     r= utExecCLI(ut, "unknown"                     , "UNKN_CMD");           UT_EQ( r.first, 100)
-                                                                            UT_EQ( r.second.Length(), 38 + NewLine().Length())
+                                                                            UT_EQ( 38 + NewLine().Length()  , r.second.Length())
 
     r= utExecCLI(ut, "--unknown"                   , "UNKN_OPT");           UT_EQ( r.first, 101)
-                                                                            UT_EQ( r.second.Length(), 39 + NewLine().Length())
+                                                                            UT_EQ( 39 + NewLine().Length()  , r.second.Length() )
 
     r= utExecCLI(ut, "--help"                      , "HELP");               UT_EQ( r.first, 0 )
-                                                                            UT_EQ( r.second.Length(), 1258 + NewLine().Length())
+                                                                            UT_EQ( 1261 + NewLine().Length(), r.second.Length())
 
     r= utExecCLI(ut, "--help now"                  , "HELP_NOW");           UT_EQ( r.first, 0 )
-                                                                            UT_EQ( r.second.Length(), 507 + NewLine().Length())
+                                                                            UT_EQ( 510 + NewLine().Length() , r.second.Length())
 
     r= utExecCLI(ut, "--help file"                 , "HELP_FILE");          UT_EQ( r.first, 0 )
-                                                                            UT_EQ( r.second.Length(), 531 + NewLine().Length())
+                                                                            UT_EQ( 535 + NewLine().Length() , r.second.Length())
 
     r= utExecCLI(ut, "--help format"               , "HELP_FORMAT");        UT_EQ( r.first, 0 )
-                                                                            UT_EQ( r.second.Length(), 611 + NewLine().Length())
+                                                                            UT_EQ( 614 + NewLine().Length() , r.second.Length())
 }
 #undef SAMPLE_EXE_DIR
 

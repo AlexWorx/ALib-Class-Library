@@ -2,17 +2,17 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_TIME
 #define HPP_ALIB_TIME_TIME 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace time {
+namespace alib {  namespace time {
 
 class Ticks;
 
@@ -20,23 +20,23 @@ class Ticks;
  * Initializes \alib time logic.
  * Multiple invocations of this method are ignored.
  *
- * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib will perform this.
- * Only if fileset fileset \alibfs_modules is not included in the \alibdist_nl, this
- * function has to be invoked "manually".
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Bootstrap will call this function.
  *
  * \see
  *   For information about using this method, consult chapter
- *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
+ *   \ref alib_manual_bootstrapping_nocamps of the \ref alib_manual.
  **************************************************************************************************/
 ALIB_API
 void       Bootstrap();
 
 /** ************************************************************************************************
- * Frees resources and shuts down \alib time logic.
- * Multiple invocations of this method are ignored.
+ * Frees resources and shuts down \alib time logic. Multiple invocations of this method are ignored.
+ * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+ * functions \ref alib::Shutdown will call this function.
  *
  * \see
- *   Sibling function \alib{time,Bootstrap}.
+ *   Sibling function \alib{time::Bootstrap}.
  **************************************************************************************************/
 ALIB_API
 void       Shutdown();
@@ -50,6 +50,6 @@ void       Shutdown();
 ALIB_API
 Ticks&     CreationTime();
 
-}}} // namespace [aworx::lib::time]
+}} // namespace [alib::time]
 
 #endif // HPP_ALIB_TIME_TIME

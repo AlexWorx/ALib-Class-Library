@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_SERIALIZATION
@@ -14,8 +14,8 @@
 
 ALIB_ASSERT_MODULE(STRINGS)
 
-#if ALIB_RESOURCES && !defined(HPP_ALIB_RESOURCES_RESOURCES)
-#   include "alib/resources/resources.hpp"
+#if ALIB_CAMP && !defined(HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#   include "alib/lang/resources/resources.hpp"
 #endif
 
 #if !defined (HPP_ALIB_ENUMS_BITWISE)
@@ -29,7 +29,7 @@ ALIB_ASSERT_MODULE(STRINGS)
 #    include "alib/strings/format.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 // #################################################################################################
 // Parsing (Consume)
@@ -44,7 +44,8 @@ namespace aworx { namespace lib { namespace enums {
  *
  * In debug builds, the method asserts that at least one record is defined for \p{TEnum}.
  *
- * For more information consult chapter \ref alib_enums_records_details_serialization of the
+ * For more information consult chapter
+ * \ref alib_enums_records_details_serialization "4.3.1 Serialization/Deserialization" of the
  * Programmer's Manual of module \alib_enums.
  *
  * \note
@@ -86,15 +87,15 @@ bool    Parse(  strings::TSubstring<TChar>& input, TEnum&  result );
 
 template<typename    TEnum,
          typename    TChar,
-         Case        TSensitivity        = Case::Ignore,
-         Whitespaces TTrimBeforeConsume  = Whitespaces::Trim >
+         lang::Case        TSensitivity        = lang::Case::Ignore,
+         lang::Whitespaces TTrimBeforeConsume  = lang::Whitespaces::Trim >
 ATMP_T_IF(bool, EnumRecords<TEnum>::template AreOfType<ERSerializable>() )
 Parse( strings::TSubstring<TChar>& input,  TEnum&  result )
 {
     ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                        NString128() << "No Enum Records for type <"
-                                    << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
-    if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+                                    << lang::DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
+    if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
         input.TrimStart();
 
     for( auto recordIt=   EnumRecords<TEnum>().begin() ;
@@ -157,12 +158,12 @@ template<typename    TEnum,
 inline
 bool    ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result );
 #else
-template<typename    TEnum,
-         typename    TChar,
-         Case        TSensitivity       = Case::Ignore,
-         Whitespaces TTrimBeforeConsume = Whitespaces::Trim,
-         TChar       delimiter          = ',',
-         bool        keepLastDelim      = true                  >
+template<typename          TEnum,
+         typename          TChar,
+         lang::Case        TSensitivity       = lang::Case::Ignore,
+         lang::Whitespaces TTrimBeforeConsume = lang::Whitespaces::Trim,
+         TChar             delimiter          = ',',
+         bool              keepLastDelim      = true                  >
 ATMP_T_IF(bool,      EnumRecords<TEnum>::template AreOfType<ERSerializable>()
                 && T_EnumIsBitwise<TEnum>::value)
 ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
@@ -170,24 +171,24 @@ ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
     bool mResult= false;
     result= TEnum(0);
     strings::TSubstring<TChar> restoreBeforeDelim;
-    if ALIB_CONSTEXPR17 ( keepLastDelim )
+    if constexpr ( keepLastDelim )
         restoreBeforeDelim= input;
     for(;;)
     {
-        if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+        if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             input.TrimStart();
         TEnum actEnum;
         if ( !Parse<TEnum, TChar, TSensitivity, TTrimBeforeConsume>( input, actEnum ) )
         {
-            if ALIB_CONSTEXPR17 ( keepLastDelim )
+            if constexpr ( keepLastDelim )
                 input= restoreBeforeDelim;
             return mResult;
         }
         result|=  actEnum;
         mResult=  true;
-        if ALIB_CONSTEXPR17 ( TTrimBeforeConsume == Whitespaces::Trim )
+        if constexpr ( TTrimBeforeConsume == lang::Whitespaces::Trim )
             input.TrimStart();
-        if ALIB_CONSTEXPR17 ( keepLastDelim )
+        if constexpr ( keepLastDelim )
             restoreBeforeDelim=  input;
 
         if( !input.template ConsumeChar<TSensitivity, TTrimBeforeConsume>( delimiter ) )
@@ -201,23 +202,20 @@ ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
 
 #endif
 
-#if ALIB_FILESET_COMMON_ENUMS
 #if defined(ALIB_DOX)
 /** ************************************************************************************************
  * Convenience method that first uses \alib{enums,Parse} to try and read an element of a C++
- * enum. If this is not successful, an enum of type \alib{Bool} is tried to be read.
+ * enum. If this is not successful, an enum of type \alib{lang,Bool} is tried to be read.
  * If this is successful, depending on the value read, the \p{TEnum} values given
  * as parameters \p{falseValue} and \p{trueValue} are assigned.
  * Otherwise false is returned.
  *
  * In debug builds, the method asserts that at least one record is defined for \p{TEnum}.
  *
- * ### Availability ###
- * This function is available only if \ref alib_manual_modules_filesets "fileset \"Common Enums\""
- * is included in the \alibdist.
  * \see
- *   For more information consult chapter \ref alib_enums_records_details_serialization of the
- *   Programmer's Manual of module \alib_resources.
+ *   For more information consult chapter
+ *   \ref alib_enums_records_details_serialization of the
+ *   Programmer's Manual of module \alib_basecamp.
  *
  * @tparam TEnum              The enumeration type equipped with <b>ALib Enum Records</b>
  *                            of (derived) type \alib{enums,ERSerializable}.
@@ -235,7 +233,7 @@ ParseBitwise( strings::TSubstring<TChar>& input, TEnum&  result )
  *                            substring will be shortened by the characters consumed. On failure
  *                            only trimmed characters are consumed.
  * @param[out] result         The result enum element given as reference.
- * @return \c true if an element of \p{TEnum} or \alib{Bool} could be read,
+ * @return \c true if an element of \p{TEnum} or \alib{lang,Bool} could be read,
  *         \c false otherwise.
  **************************************************************************************************/
 template<typename    TEnum,
@@ -248,10 +246,10 @@ bool    ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
                              TEnum                         falseValue,
                              TEnum                         trueValue         );
 #else
-template<typename    TEnum,
-         typename    TChar,
-         Case        TSensitivity       = Case::Ignore,
-         Whitespaces TTrimBeforeConsume = Whitespaces::Trim >
+template<typename          TEnum,
+         typename          TChar,
+         lang::Case        TSensitivity       = lang::Case::Ignore,
+         lang::Whitespaces TTrimBeforeConsume = lang::Whitespaces::Trim >
 ATMP_T_IF(bool, EnumRecords<TEnum>::template AreOfType<ERSerializable>() )
 ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
                      TEnum&                        result,
@@ -263,10 +261,10 @@ ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
         return true;
 
     // if failed, read boolean
-    Bool boolEnum;
-    if( enums::Parse<Bool, TChar, TSensitivity, Whitespaces::Keep>( input, boolEnum ) )
+    lang::Bool boolEnum;
+    if( enums::Parse<lang::Bool, TChar, TSensitivity, lang::Whitespaces::Keep>( input, boolEnum ) )
     {
-        result= (boolEnum == Bool::True) ? trueValue : falseValue;
+        result= (boolEnum == lang::Bool::True) ? trueValue : falseValue;
         return true;
     }
 
@@ -274,9 +272,8 @@ ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
     return false;
 }
 #endif
-#endif // ALIB_FILESET_COMMON_ENUMS
 
-}}} // namespace [aworx::lib::enums]
+}} // namespace [alib::enums]
 
 
 
@@ -284,9 +281,9 @@ ParseEnumOrTypeBool( strings::TSubstring<TChar>&   input,
 // Writing (T_Append<Enum>)
 // #################################################################################################
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
-// Faking specializations of T_Append for doxygen into namespace aworx::lib::strings::APPENDABLES
+// Faking specializations of T_Append for doxygen into namespace alib::strings::APPENDABLES
 #if defined(ALIB_DOX)
     namespace APPENDABLES {
 #endif
@@ -309,18 +306,18 @@ namespace aworx { namespace lib { namespace strings {
  * As with all specializations of functor \b %T_Append, the use of it is done implicitly
  * with various interface method of class \alib{strings,TAString,AString}.
  *
- * If furthermore TMP struct \alib{resources,T_Resourced} is specialized for type \p{TEnum}
+ * If furthermore TMP struct \alib{lang::resources,T_Resourced} is specialized for type \p{TEnum}
  * and an externalizd resouce string exists according to the specification described with
- * methods \alib{resources,ResourcedType::TypeNamePrefix} and
- * \alib{resources,ResourcedType::TypeNamePostfix} then these resourced strings are written
+ * methods \alib{lang::resources,ResourcedType::TypeNamePrefix} and
+ * \alib{lang::resources,ResourcedType::TypeNamePostfix} then these resourced strings are written
  * prior and after the enumeration element's name.
  *
  * \see
  *   - Sibling specialization
  *     \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}
  *   - \ref alib_enums_records "ALib Enum Records".
- *   - TMP struct \alib{resources,T_Resourced}.
- *   - Corresponding convenience type  \alib{resources,ResourcedType}.
+ *   - TMP struct \alib{lang::resources,T_Resourced}.
+ *   - Corresponding convenience type  \alib{lang::resources,ResourcedType}.
  *   - Some sample code is given with documentation \ref alib_enums_records "ALib Enum Records".
  *
  * @tparam TEnum The enumeration type of the element that is to be appended to an \b %AString.
@@ -339,8 +336,8 @@ struct  T_Append<TEnum, TChar,
      * Writes the name of the given enumeration \p{element} it to \p{target}.
      *
      * If available for \p{TEnum}, the resourced name
-     * \alib{resources,ResourcedType::TypeNamePrefix,prefix} and
-     * \alib{resources,ResourcedType::TypeNamePostfix,postfix} are written before and after the
+     * \alib{lang::resources,ResourcedType::TypeNamePrefix,prefix} and
+     * \alib{lang::resources,ResourcedType::TypeNamePostfix,postfix} are written before and after the
      * element's name.
      *
      * If no record exists for \p{element}, its underlying integral value is written.
@@ -354,15 +351,15 @@ struct  T_Append<TEnum, TChar,
     {
         ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                            NString128() << "No Enum Records for type <"
-                                        << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
+                                        << lang::DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
 
-        ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePrefix(); )
+        ALIB_IF_CAMP( target << ResourcedType<TEnum>::TypeNamePrefix(); )
         auto* record= enums::TryRecord( element );
         if( record != nullptr )
             target << record->EnumElementName;
         else
             target << UnderlyingIntegral( element );
-        ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePostfix(); )
+        ALIB_IF_CAMP( target << ResourcedType<TEnum>::TypeNamePostfix(); )
     }
 };
 
@@ -416,17 +413,17 @@ struct  T_Append<TEnum, TChar,
  * produces this output:
  *  \snippet "DOX_ALIB_ENUMS_BITWISE_OUTPUT.txt"     OUTPUT
  *
- * If furthermore TMP struct \alib{resources,T_Resourced} is specialized for type \p{TEnum}
+ * If furthermore TMP struct \alib{lang::resources,T_Resourced} is specialized for type \p{TEnum}
  * and an externalizd resouce string exists according to the specification described with
- * methods \alib{resources,ResourcedType::TypeNamePrefix} and
- * \alib{resources,ResourcedType::TypeNamePostfix} then these resourced strings are written
+ * methods \alib{lang::resources,ResourcedType::TypeNamePrefix} and
+ * \alib{lang::resources,ResourcedType::TypeNamePostfix} then these resourced strings are written
  * prior and after the enumeration element name(s).
  *
  * \see
  *   - Sibling specialization
  *     \alib{strings::APPENDABLES,T_Append<TEnum\,TChar>,T_Append<TEnum\,TChar>}
- *   - TMP struct \alib{resources,T_Resourced}.
- *   - Corresponding convenience type  \alib{resources,ResourcedType}.
+ *   - TMP struct \alib{lang::resources,T_Resourced}.
+ *   - Corresponding convenience type  \alib{lang::resources,ResourcedType}.
  *   - Some sample code is given with documentation \ref alib_enums_records "ALib Enum Records".
  *
  * # Reference Documentation #
@@ -463,9 +460,9 @@ struct  T_Append<TEnum, TChar,
     {
         ALIB_ASSERT_ERROR( EnumRecords<TEnum>().begin() != EnumRecords<TEnum>().end(), "ENUMS",
                            NString128() << "No Enum Records for type <"
-                                        << DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
+                                        << lang::DbgTypeDemangler( typeid(TEnum)).Get() << "> found." )
 
-        ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePrefix(); )
+        ALIB_IF_CAMP( target << ResourcedType<TEnum>::TypeNamePrefix(); )
 
         // check what has been covered and omit double entries
         TEnum covered= TEnum(0);
@@ -482,7 +479,7 @@ struct  T_Append<TEnum, TChar,
                 if( elements == TEnum(0) )
                 {
                     target << recordIt->EnumElementName;
-                    ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePostfix(); )
+                    ALIB_IF_CAMP( target << ResourcedType<TEnum>::TypeNamePostfix(); )
                     return;
                 }
             }
@@ -503,7 +500,7 @@ struct  T_Append<TEnum, TChar,
             ALIB_ASSERT_ERROR( covered == elements, "ENUMS",
                NString128() << "Not all bits have been covered while writing bitset '"
                             << NFormat::Bin( elements ) << "' of enumeration type <"
-                            << DbgTypeDemangler( typeid(TEnum)).Get() << ">. Remaining bits are '"
+                            << lang::DbgTypeDemangler( typeid(TEnum)).Get() << ">. Remaining bits are '"
                             << NFormat::Bin( covered & elements )  << "'."                        )
         #else
             ALIB_ASSERT_ERROR( covered == elements, "ENUMS",
@@ -511,15 +508,15 @@ struct  T_Append<TEnum, TChar,
                                DbgTypeDemangler( typeid(TEnum)).Get(),   ">."                     )
         #endif
 
-        ALIB_IF_RESOURCES( target << ResourcedType<TEnum>::TypeNamePostfix(); )
+        ALIB_IF_CAMP( target << ResourcedType<TEnum>::TypeNamePostfix(); )
     }
 };
 
 
 #if defined(ALIB_DOX)
-} // namespace aworx::lib::strings[::appendables]
+} // namespace alib::strings[::appendables]
 #endif
-}}} // namespace [aworx::lib::strings]
+}} // namespace [alib::strings]
 
 
 #endif // HPP_ALIB_ENUMS_SERIALIZATION

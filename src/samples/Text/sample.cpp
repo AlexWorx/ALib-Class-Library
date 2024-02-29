@@ -2,16 +2,15 @@
 //  ALib C++ Library
 //  Boxing And Strings Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/distribution.hpp"
 #include "alib/compatibility/std_characters.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
-#include "alib/text/formatterpythonstyle.hpp"
+#include "alib/lang/format/formatterpythonstyle.hpp"
 
 
-using namespace aworx;
+using namespace alib;
 
 // Note
 // There is a lot to say and demonstrate about both "ALib Boxing" and "ALib Strings".
@@ -20,12 +19,12 @@ using namespace aworx;
 // - to be able to append any boxed value to an AString.
 // - to have type-safe formatter classes which allow to format "anything" into AString representation.
 //
-// Such formatter classes reside in namespace "aworx::lib::strings", but are not included in the
+// Such formatter classes reside in namespace "alib::strings", but are not included in the
 // plain ALib String module distribution (due to the lack of ALib Boxing).
 //
 // Therefore, the formatting options and classes is what we exclusively want to demonstrate here.
 // For other samples, documentation and inspiration consult the complete ALib distribution
-// at https://github.com/AlexWorx/ALox-Logging-Library.
+// at https://alib.dev.
 
 void AppendToAString( const Box& box );
 void AppendToAString( const Box& box )
@@ -41,12 +40,12 @@ void AppendToAString( const Box& box )
 int main()
 {
     // it is important to initialize ALib once on bootstrap
-    aworx::ALIB.Bootstrap();
+    alib::Bootstrap();
 
     // Simple appending of different boxed types to an AString.
-    // Note: This is sampled here, because with module TEXT, modules Strings and Boxing are
+    // Note: This is sampled here, because with module CAMP, modules Strings and Boxing are
     //       included, which allows to append boxes to AString objects.)
-    AppendToAString( "Hello ALib Text" );
+    AppendToAString( "Hello ALib" );
     AppendToAString( 12345 );
     AppendToAString( 3.1415 );
 
@@ -66,5 +65,5 @@ int main()
     std::cout << target <<  std::endl;
 
     // shutdown the library and exit
-    ALIB.Shutdown();
+    alib::Shutdown();
 }

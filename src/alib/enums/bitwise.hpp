@@ -2,21 +2,17 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_BITWISE
 #define HPP_ALIB_ENUMS_BITWISE 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(ENUMS)
-
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
 
 #if !defined(HPP_ALIB_ENUMS_ARITHMETICAL)
 #   include "alib/enums/arithmetical.hpp"
@@ -26,11 +22,11 @@ ALIB_ASSERT_MODULE(ENUMS)
 #   include "alib/enums/underlyingintegral.hpp"
 #endif
 
-#if !defined(HPP_ALIB_BITS)
-#   include "alib/lib/bits.hpp"
+#if !defined(HPP_ALIB_LANG_BITS)
+#   include "alib/lang/bits.hpp"
 #endif
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /**
  * This is the reference documentation of sub-namespace \c enums of the \aliblink, which
@@ -69,7 +65,7 @@ namespace enums {
  *
  * \attention
  *   Likewise with the operators introduced with TMP struct \alib{enums,T_EnumIsArithmetical},
- *   this documentation "fakes" the operators into namespace <c>aworx::lib::enums</c>,
+ *   this documentation "fakes" the operators into namespace <c>alib::enums</c>,
  *   while in fact they are defined in the global namespace!<br>
  *   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
  *   for details.
@@ -109,22 +105,22 @@ template<typename TEnum,
 struct T_EnumIsBitwise : public std::false_type {};
 #endif
 
-}} // namespace aworx[::lib::enums]
+} // namespace alib[::enums]
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TEnum>
-using     T_EnumIsBitwise=       lib::enums::T_EnumIsBitwise<TEnum>;
+using     T_EnumIsBitwise=       enums::T_EnumIsBitwise<TEnum>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 // #################################################################################################
 // Helper Macros
 // #################################################################################################
 
 #define  ALIB_ENUMS_MAKE_BITWISE(TEnum)                                                            \
-namespace aworx { namespace lib { namespace enums {                                                \
+namespace alib::enums {                                                                            \
 template<>                                                                                         \
-struct T_EnumIsBitwise<TEnum> : public std::true_type {};}}}
+struct T_EnumIsBitwise<TEnum> : public std::true_type {}; }
 
 
 
@@ -133,9 +129,9 @@ struct T_EnumIsBitwise<TEnum> : public std::true_type {};}}}
 // #################################################################################################
 
 // For documentation, all operators and enum related template functions are faked into namespace
-// aworx::lib::enums
+// alib::enums
 #if defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 /**
  * Operators available to elements of enumerations if \alib{enums,T_EnumIsBitwise} is
  * specialized.
@@ -145,7 +141,7 @@ namespace aworx { namespace lib { namespace enums {
  *   When parsed by a C++ compiler, <b>the operators reside in the global namespace</b> and
  *   functions \alib{enums::bitwise,HasBits}, \alib{enums::bitwise,CountElements},
  *   \alib{enums::bitwise,ToBitwiseEnumeration} and \alib{enums::bitwise,ToSequentialEnumeration}
- *   reside in namespace \ref aworx.
+ *   reside in namespace \ref alib.
  *
  * As required, when parsed by a C++ compiler, the operators reside in the global namespace.
  */
@@ -170,7 +166,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator&  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -194,7 +190,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator&=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -218,7 +214,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator|  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -242,7 +238,7 @@ constexpr
 #if defined(ALIB_DOX)
 bool
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator|=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -266,7 +262,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator^  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -290,7 +286,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator^=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -317,7 +313,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<aworx::lib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
+typename  std::enable_if<alib::enums::T_EnumIsBitwise<TEnum>::value, TEnum>::type
 #endif
 operator~ (TEnum  op) noexcept(true)
 {
@@ -344,8 +340,8 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<    aworx::lib::enums::T_EnumIsBitwise     <TEnum>::value
-                         && !aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
+typename  std::enable_if<    alib::enums::T_EnumIsBitwise     <TEnum>::value
+                         && !alib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
 #endif
 operator+  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -371,8 +367,8 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<    aworx::lib::enums::T_EnumIsBitwise     <TEnum>::value
-                         && !aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
+typename  std::enable_if<    alib::enums::T_EnumIsBitwise     <TEnum>::value
+                         && !alib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
 #endif
 operator+=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -400,8 +396,8 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<    aworx::lib::enums::T_EnumIsBitwise     <TEnum>::value
-                         && !aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
+typename  std::enable_if<    alib::enums::T_EnumIsBitwise     <TEnum>::value
+                         && !alib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
 #endif
 operator-  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -429,8 +425,8 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-typename  std::enable_if<    aworx::lib::enums::T_EnumIsBitwise     <TEnum>::value
-                         && !aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
+typename  std::enable_if<    alib::enums::T_EnumIsBitwise     <TEnum>::value
+                         && !alib::enums::T_EnumIsArithmetical<TEnum>::value, TEnum>::type
 #endif
 operator-=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -439,7 +435,7 @@ operator-=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 }
 
 #if !defined(ALIB_DOX)
-namespace aworx {
+namespace alib {
 #endif
 
 #if defined(ALIB_DOX)
@@ -464,90 +460,11 @@ bool HasBits(TEnum  element, TEnum selection)                           noexcept
 #else
 template<typename TEnum>
 constexpr
-ATMP_T_IF(bool, aworx::lib::enums::T_EnumIsBitwise<TEnum>::value)
+ATMP_T_IF(bool, alib::enums::T_EnumIsBitwise<TEnum>::value)
 HasBits(TEnum  element, TEnum selection)                           noexcept
 {
     using TBits= typename std::underlying_type<TEnum>::type;
     return ( TBits(element) & TBits(selection) ) == TBits(selection);
-}
-#endif
-
-#if defined(ALIB_DOX)
-/**
- * Returns the bitwise enumeration element of \p TEnum from a given sequential enumeration.
- *
- * Selected by the compiler only if \alib{enums,T_EnumIsBitwise} is specialized for
- * template enum type \p{TEnum} to inherit \c std::true_type.
- *
- * \see The reverse function #ToSequentialEnumeration.
- *
- * @tparam TEnum An enumeration type which is defined to be "bitwise".
- * @param number A sequentially enumerated number, for which the corresponding bitwise
- *               enumeration element is requested.
- *               \ref alib_enums_arithmetic_bitwise "bitwise enumeration".
- * @return Returns <c>1 << number</c>.
- */
-template<typename TEnum>
-constexpr
-TEnum ToBitwiseEnumeration(typename std::underlying_type<TEnum>::type number );
-#else
-
-}
-
-#if !defined (HPP_ALIB_ENUMS_ITERABLE)
-#   include "alib/enums/iterable.hpp"
-#endif
-
-namespace aworx {
-template<typename TEnum>
-ALIB_CONSTEXPR17
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsBitwise<TEnum>::value)
-ToBitwiseEnumeration(typename std::underlying_type<TEnum>::type number )
-{
-    #if !defined (HPP_ALIB_ENUMS_ITERABLE)
-        ALIB_ASSERT_ERROR( number >= 0
-                           && (   !lib::enums::T_EnumIsIterable<TEnum>::value
-                                || lib::enums::T_EnumIsIterable<TEnum>::End  > TEnum( 1 << number ) ),
-                                "ENUMS",  "Number out of bounds."                                      )
-    #endif
-    return TEnum( 1 << number );
-}
-#endif
-
-#if defined(ALIB_DOX)
-
-/**
- * Returns the sequentially enumerated number derived from the given bitwise enumeration
- * value.
- * In other words, the positon of the most significant bit set in the underlying integral of the
- * given enum \p element is returned.<br>
- * In debug-compilations an \alib assertion is raised in case that the given value is not a
- * single enum element but a combination of bits.
- *
- * Selected by the compiler only if \alib{enums,T_EnumIsBitwise} is specialized for
- * template enum type \p{TEnum} to inherit \c std::true_type.
- *
- * \see The reverse function #ToBitwiseEnumeration.
- * @tparam TEnum  A bitwise defined enumeration type. Deduced by the compiler.
- * @param element An enumeration value.
- * @return The sequential number of an element of an enum type which is defined bitwise.
- */
-template<typename TEnum>
-static constexpr
-typename std::underlying_type<TEnum>::type
-ToSequentialEnumeration( TEnum element );
-#else
-template<typename TEnum>
-ALIB_CONSTEXPR17
-ATMP_T_IF(typename std::underlying_type<TEnum>::type, aworx::lib::enums::T_EnumIsBitwise<TEnum>::value)
-ToSequentialEnumeration( TEnum element )
-{
-    ALIB_ASSERT_ERROR(               UnderlyingIntegral(element)  != 0, "ENUMS",
-                       "No bits set in given enum value"  )
-    ALIB_ASSERT_ERROR( lib::BitCount(UnderlyingIntegral(element)) == 1, "ENUMS",
-                       "Multiple bits given with enum value"  )
-    return static_cast<typename std::underlying_type<TEnum>::type>(
-           aworx::lib::MSB( UnderlyingIntegral(element) ) - 1    );
 }
 #endif
 
@@ -560,7 +477,7 @@ ToSequentialEnumeration( TEnum element )
  * template enum type \p{TEnum} to inherit \c std::true_type.
  *
  * @param value A single or composite selection of bits.
- * @return The result of a call to #aworx::lib::BitCount().
+ * @return The result of a call to #alib::BitCount().
  */
 template<typename TEnum>
 static constexpr
@@ -568,18 +485,17 @@ int CountElements( TEnum value );
 #else
 template<typename TEnum>
 constexpr
-ATMP_T_IF(int, aworx::lib::enums::T_EnumIsBitwise<TEnum>::value)
+ATMP_T_IF(int, alib::enums::T_EnumIsBitwise<TEnum>::value)
 CountElements( TEnum value )
 {
-    return lib::BitCount(UnderlyingIntegral(value));
+    return lang::BitCount(UnderlyingIntegral(value));
 }
 #endif
 
-
 #if defined(ALIB_DOX)
-}}}} // doxygen namespace [aworx::lib::enums::bitwise]
+}}} // doxygen namespace [alib::enums::bitwise]
 #else
-} // namespace [aworx]
+} // namespace [alib]
 #endif
 
 #endif // HPP_ALIB_ENUMS_BITWISE

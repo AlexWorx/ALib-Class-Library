@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_RECORDS
@@ -18,23 +18,13 @@ ALIB_ASSERT_MODULE(ENUMS)
 #    include "alib/enums/underlyingintegral.hpp"
 #endif
 
-#if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_STRING)
-#    include "alib/strings/string.hpp"
+#if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#    include "alib/strings/localstring.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+#if ALIB_DEBUG && !defined(HPP_ALIB_LANG_DBGTYPEDEMANGLER)
+#   include "alib/lang/dbgtypedemangler.hpp"
 #endif
-
-#if ALIB_DEBUG
-#   if !defined (HPP_ALIB_TOOLS)
-#      include "alib/lib/tools.hpp"
-#   endif
-#   if ALIB_STRINGS && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
-#       include "alib/strings/localstring.hpp"
-#   endif
-#endif
-
 
 #if !defined(_GLIBCXX_UTILITY) || !defined(_UTILITY_)
 #   include <utility>
@@ -45,15 +35,12 @@ ALIB_ASSERT_MODULE(ENUMS)
 #endif
 
 
-namespace aworx { namespace lib {
+namespace alib {
 
 // forwards
-#if ALIB_FILESET_MODULES
-    class Module;
-#endif
-
-#if ALIB_RESOURCES
-namespace resources { class ResourcePool; }
+#if ALIB_CAMP
+    namespace lang            {class Camp; }
+    namespace lang::resources { class ResourcePool; }
 #endif
 
 namespace enums {
@@ -63,37 +50,32 @@ namespace enums {
 // enums::Bootstrap()
 // #################################################################################################
 
-#if defined(ALIB_DOX)
-            /** ************************************************************************************************
-             * This method initializes enum records, of built-in types i.e. those of the enumerations found
-             * in header file \alibheader{lib/fs_commonenums/commonenums.hpp}.
-             *
-             * This method needs to be called with bootstrapping a software.
-             * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib will perform this.
-             * Only if fileset \alibfs_modules is not included in the \alibdist_nl, this
-             * function has to be invoked "manually".
-             *
-             * \note
-             *   In fact, if fileset \alibfs_modules is included, then this function is empty, because
-             *   the enumeration records will in this case be resourced in singleton \ref aworx::ALIB of type
-             *   \alib{ALibDistribution}.
-             *
-             * Multiple invocations of this method are ignored.
-             *
-             * \see
-             *   For information about using this method, consult chapter
-             *   \ref alib_manual_bootstrapping_smallmods of the \ref alib_manual.
-             * ************************************************************************************************/
-            ALIB_API
-            void        Bootstrap();
-#elif !ALIB_FILESET_MODULES
-            ALIB_API void   Bootstrap();
+#if !ALIB_CAMP || defined(ALIB_DOX)
+    /** ************************************************************************************************
+     * This method initializes enum records, of built-in types i.e. those of the enumerations found
+     * in header file \alibheader{lang/commonenums.hpp}.
+     *
+     * This method needs to be called with bootstrapping a software.
+     * The \ref alib_manual_bootstrapping "standard bootstrap" code of \alib, hence the (overloaded)
+     * functions \ref alib::Bootstrap will call this function.
+     *
+     * \note
+     *   In fact, if module \alib_basecamp is included, then this function is empty, because
+     *   the enumeration records will in this case be resourced in singleton
+     *   \ref alib::BASECAMP of type  \alib{lang::basecamp,BaseCamp}.
+     *
+     * Multiple invocations of this method are ignored.
+     *
+     * \see
+     *   For information about using this method, consult chapter
+     *   \ref alib_manual_bootstrapping_nocamps of the \ref alib_manual.
+     * ************************************************************************************************/
+    ALIB_API
+    void        Bootstrap();
 #else
-
-            inline void Bootstrap()
-            {}
-
-#endif // !ALIB_FILESET_MODULES
+    inline void Bootstrap()
+    {}
+#endif // !ALIB_CAMP
 
 
 // #################################################################################################
@@ -101,49 +83,49 @@ namespace enums {
 // #################################################################################################
 
 #if defined(ALIB_DOX)
-            /** ************************************************************************************************
-             * This TMP struct is used to associate an <b><em>"ALib Enum Record"</em></b> type to a
-             * (non-scoped or C++ 11 scoped) enumeration type.
-             *
-             * In the non-specialized version type definition #Type (the only entity of this struct)
-             * evaluates to <c>void</c>. To assign a record, specify a data record type, similar to what
-             * is prototyped with \alib{enums,EnumRecordPrototype}
-             *
-             * \see
-             *   Please consult chapter \ref alib_enums_records "4. Enum Records" of the Programmer's Manual
-             *   of \alib_enums for detailed documentation and sample code on this struct and underlying
-             *   concept.
-             *
-             * \see
-             *   Macro \ref ALIB_ENUMS_ASSIGN_RECORD offers a well readable alternative to specialize this
-             *   struct for an enum type.
-             *
-             * @tparam TEnum      The enumeration type this struct applies to.
-             * @tparam TEnableIf  Internally used to ensure that given type \p{TEnum} is an enumeration.
-             *                    Defaulted. Please do not specify!
-             **************************************************************************************************/
-            template<typename TEnum, typename TEnableIf>
-            struct T_EnumRecords
-            {
-                /** The data type associated with elements of \p{TEnum}.   */
-                using  Type=   void;
-            };
+    /** ************************************************************************************************
+     * This TMP struct is used to associate an <b><em>"ALib Enum Record"</em></b> type to a
+     * (scoped or non-scoped) enumeration type.
+     *
+     * In the non-specialized version type definition #Type (the only entity of this struct)
+     * evaluates to <c>void</c>. To assign a record, specify a data record type, similar to what
+     * is prototyped with \alib{enums,EnumRecordPrototype}
+     *
+     * \see
+     *   Please consult chapter \ref alib_enums_records "4. Enum Records" of the Programmer's Manual
+     *   of \alib_enums for detailed documentation and sample code on this struct and underlying
+     *   concept.
+     *
+     * \see
+     *   Macro \ref ALIB_ENUMS_ASSIGN_RECORD offers a well readable alternative to specialize this
+     *   struct for an enum type.
+     *
+     * @tparam TEnum      The enumeration type this struct applies to.
+     * @tparam TEnableIf  Internally used to ensure that given type \p{TEnum} is an enumeration.
+     *                    Defaulted. Please do not specify!
+     **************************************************************************************************/
+    template<typename TEnum, typename TEnableIf>
+    struct T_EnumRecords
+    {
+        /** The data type associated with elements of \p{TEnum}.   */
+        using  Type=   void;
+    };
 #else
-            template<typename TEnum,
-                typename TEnableIf= ATMP_VOID_IF( std::is_enum<TEnum>::value )>
-            struct T_EnumRecords
-            {
-                using Type=   void;
-            };
+    template<typename TEnum,
+             typename TEnableIf= ATMP_VOID_IF( std::is_enum<TEnum>::value )>
+    struct T_EnumRecords
+    {
+        using Type=   void;
+    };
 #endif
 
 // #################################################################################################
 // detail {}
 // #################################################################################################
-}}}
-#include "alib/enums/detail/enumrecords.inl"
-namespace aworx { namespace lib { namespace enums {
+}} // namespace [alib::enums]
 
+#include "alib/enums/detail/enumrecords.inl"
+namespace alib {  namespace enums {
 
 
 // #################################################################################################
@@ -187,7 +169,7 @@ GetRecord( TEnum element )
                                                static_cast<integer>( UnderlyingIntegral(element) ) );
     #if ALIB_STRINGS
         ALIB_ASSERT_ERROR( result != nullptr, "ENUMS",
-                           NString128() << "Enum Record for type <" << DbgTypeDemangler( typeid(TEnum)).Get()
+                           NString128() << "Enum Record for type <" << lang::DbgTypeDemangler( typeid(TEnum)).Get()
                                         << ">(" << UnderlyingIntegral(element)
                                         << ") not found." )
     #else
@@ -432,7 +414,7 @@ struct EnumRecords
      *
      *  \note
      *     Like any other entity in this class, this method is static, apart from a defaulted
-     *     (empty) constructor, which is provided for the sole purpose of allowing C++ 11
+     *     (empty) constructor, which is provided for the sole purpose of allowing
      *     range-based <em><c>for(:)</c></em> loops.
      *
      *  @return An iterator to the first record defined for enumeration type \p{TEnum}.
@@ -493,7 +475,7 @@ struct EnumRecords
      *   preferred to bootstrap enum records as "bulk" data.
      *   Furthermore, it is preferred to use overloaded versions that accept static string data
      *   used to parse the data from. This is more efficient in respect to the footprint of
-     *   an application, and - if strings are \ref alib_mod_resources "resourced" -
+     *   an application, and - if strings are \ref alib_basecamp_resources "resourced" -
      *   far more flexible.
      *
      * \see Chapter \ref alib_enums_records_firststep_init for a sample of how this method
@@ -521,7 +503,7 @@ struct EnumRecords
      * \note
      *   It is preferred to use overloaded versions that parse definitions from
      *   static string data. This is more efficient in respect to the footprint of
-     *   an application, and - if strings are \ref alib_mod_resources "resourced" -
+     *   an application, and - if strings are \ref alib_basecamp_resources "resourced" -
      *   far more flexible.
      *
      * \see Chapter \ref alib_enums_records_firststep_init for a sample of how this method
@@ -545,7 +527,7 @@ struct EnumRecords
          *
          * This is due to the static nature of \ref alib_enums_records "ALib Enum Records" and their
          * creation during bootstrap, either from C++ string literals or
-         * \ref alib_mod_resources "ALib Externalized Resources", which comply to the same contract.
+         * \ref alib_basecamp_resources "ALib Externalized Resources", which comply to the same contract.
          *
          * ### Availability ###
          * This method is available only if \alib_strings is included in the \alibdist.
@@ -563,7 +545,7 @@ struct EnumRecords
         void Bootstrap( const String& input, character innerDelim=',', character outerDelim= ',' );
     #endif
 
-    #if ALIB_RESOURCES
+    #if ALIB_CAMP
         /**
          * Reads a list of enum data records from an (externalized) resource string.
          *
@@ -580,7 +562,7 @@ struct EnumRecords
          * manipulation, etc.) is most probably simplified with this approach.
          *
          * ### Availability ###
-         * This method is available only if \alib_resources is included in the \alibdist.
+         * This method is available only if \alib_basecamp is included in the \alibdist.
          *
          * \see Chapter \ref alib_enums_records_resourced for a sample of how this method
          *      can be invoked.
@@ -599,17 +581,20 @@ struct EnumRecords
          */
         static
         inline
-        void Bootstrap( resources::ResourcePool& pool, const NString& category, const NString& name,
-                        character innerDelim= ',', character outerDelim= ','                 );
+        void Bootstrap( lang::resources::ResourcePool& pool,
+                        const NString&                   category,
+                        const NString&                   name,
+                        character                        innerDelim= ',',
+                        character                        outerDelim= ','                 );
 
         /**
-         * This method is available if TMP struct \alib{resources,T_Resourced} is specialized for
+         * This method is available if TMP struct \alib{lang::resources,T_Resourced} is specialized for
          * enum type \p{TEnum}.<br>
          * Invokes #Bootstrap(ResourcePool&, const NString&, const NString&, character, character)
          *
          *
          * ### Availability ###
-         * This method is available only if \alib_resources is included in the \alibdist.
+         * This method is available only if \alib_basecamp is included in the \alibdist.
          *
          * \see Chapter \ref alib_enums_records_resourced_tresourced of the Programmer's Manual
          *      of this module.
@@ -623,45 +608,42 @@ struct EnumRecords
         static inline
         void Bootstrap( character innerDelim=',', character outerDelim= ',' );
 
-        #if ALIB_FILESET_MODULES
-            /**
-             * This method can be used if a set of enum records is resourced using an \alib
-             * \alib{Module}'s resource instance.
-             *
-             * Invokes #Bootstrap(ResourcePool&, const NString&, const NString&, character, character)
-             * accepting a \alib{Module} and using its \alib{resources,ResourcePool} and
-             * field \alib{Module::ResourceCategory}.
-             *
-             * \note
-             *   This is the preferred overload taken with \alib to load built-in enum records.
-             *   The only exclamation is the use of overload #Bootstrap(character, character)
-             *   for enum record types that require a specialization of \alib{resources,T_Resourced}
-             *   to perform "recursive" acquisition of other resources defined by fields of the
-             *   records.
-             *
-             * ## Availability ##
-             * This method is available only if
-             * \ref alib_manual_modules_filesets "fileset \"Modules\"" is included in the \alibdist.
-             *
-             * \see Chapters \ref alib_enums_records_resourced_tresourced and
-             *      \ref alib_enums_records_resourced_from_modules for more information.
-             *
-             * @param module     The module to use the resource pool and category name from.
-             * @param name       The resource name of the externalized name. In the case that a
-             *                   resource with that name does not exist, it is tried to load
-             *                   a resource with index number \c 0 appended to this name, aiming to
-             *                   parse a single record. On success, the index is incremented until
-             *                   no consecutive resource is found.
-             * @param innerDelim The delimiter used for separating the fields of a record.
-             *                   Defaults to <c>','</c>.
-             * @param outerDelim The character delimiting enum records.
-             *                   Defaults to <c>','</c>.
-             */
-            static inline
-            void Bootstrap( Module&    module          , const NString& name,
-                            character  innerDelim= ',' , character      outerDelim= ',' );
-        #endif
-    #endif
+        /**
+         * This method can be used if a set of enum records is resourced using an \alib
+         * \alib{lang,Camp}'s resource instance.
+         *
+         * Invokes #Bootstrap(ResourcePool&, const NString&, const NString&, character, character)
+         * accepting a \alib{lang,Camp} and using its \alib{lang::resources,ResourcePool} and
+         * field \alib{lang,Camp::ResourceCategory}.
+         *
+         * \note
+         *   This is the preferred overload taken with \alib to load built-in enum records.
+         *   The only exclamation is the use of overload #Bootstrap(character, character)
+         *   for enum record types that require a specialization of \alib{lang::resources,T_Resourced}
+         *   to perform "recursive" acquisition of other resources defined by fields of the
+         *   records.
+         *
+         * ## Availability ##
+         * This method is available only if module \alib_basecamp is included in the \alibdist.
+         *
+         * \see Chapters \ref alib_enums_records_resourced_tresourced and
+         *      \ref alib_enums_records_resourced_from_modules for more information.
+         *
+         * @param module     The module to use the resource pool and category name from.
+         * @param name       The resource name of the externalized name. In the case that a
+         *                   resource with that name does not exist, it is tried to load
+         *                   a resource with index number \c 0 appended to this name, aiming to
+         *                   parse a single record. On success, the index is incremented until
+         *                   no consecutive resource is found.
+         * @param innerDelim The delimiter used for separating the fields of a record.
+         *                   Defaults to <c>','</c>.
+         * @param outerDelim The character delimiting enum records.
+         *                   Defaults to <c>','</c>.
+         */
+        static inline
+        void Bootstrap( lang::Camp& module          , const NString& name,
+                        character         innerDelim= ',' , character      outerDelim= ',' );
+    #endif  // ALIB_CAMP
 
 }; // struct EnumRecords
 
@@ -679,19 +661,20 @@ struct EnumRecords
  * characters are to be read to recognize the element when parsed.
  *
  * Basic versions of such serialization and de-serialization is implemented with this module
- * and documented with chapter \ref alib_enums_records_details_serialization of the Programmer's Manual
- * of this \alibmod_nl. This functionality is likewise available for enumerations equipped with
- * a custom record type that derives from this type. For this reason, all built-in
- * record types of various \alibmods_nl derive from this type.
+ * and documented with chapter
+ * \ref alib_enums_records_details_serialization "4.3.1 Serialization/Deserialization" of the
+ * Programmer's Manual of this \alibmod_nl. This functionality is likewise available for
+ * enumerations equipped with a custom record type that derives from this type. For this reason,
+ * all built-in record types of various \alibmods_nl derive from this type.
  *
  * If deserialization is not of importance, a derived type may choose to not parse member
  * #MinimumRecognitionLength from a (resourced) string, but initialize it to fixed \c 0 value.
- * This behavior is for example implemented with record \alib{results,ERException} and various
+ * This behavior is for example implemented with record \alib{lang,ERException} and various
  * types found in module \alib_cli.
  *
  * \see For more information see:
  *   - Chapter \ref alib_enums_records "ALib Enum Records" and its sub-section
- *     \ref alib_enums_records_details_serialization.
+ *     \ref alib_enums_records_details_serialization "4.3.1 Serialization/Deserialization".
  *   - Specializations
  *     \alib{strings::APPENDABLES,T_Append<TEnum\,TChar>,T_Append<TEnum\,TChar>} and
  *     \alib{strings::APPENDABLES,T_Append<TEnumBitwise\,TChar>,T_Append<TEnumBitwise\,TChar>}.
@@ -751,26 +734,26 @@ struct ERSerializable
 
 
 
-}} // namespace aworx[::lib::enums]
+} // namespace alib[::enums]
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TEnum>
-using     T_EnumRecords=        lib::enums::T_EnumRecords<TEnum>;
+using     T_EnumRecords=        enums::T_EnumRecords<TEnum>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TEnum>
-using     EnumRecords=          lib::enums::EnumRecords<TEnum>;
+using     EnumRecords=          enums::EnumRecords<TEnum>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 // #################################################################################################
 // Helper Macros
 // #################################################################################################
 #define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                                                \
-namespace aworx { namespace lib { namespace enums {                                                \
+namespace alib::enums {                                                                            \
 template<> struct T_EnumRecords<TEnum>  :  public std::true_type                                   \
 {                                                                                                  \
     using  Type=  TRecord;                                                                         \
-};}}}
+};}
 
 #endif // HPP_ALIB_ENUMS_RECORDS

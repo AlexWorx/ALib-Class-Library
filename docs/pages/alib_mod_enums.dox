@@ -1,16 +1,14 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
 /**
 \page alib_mod_enums  ALib Module Enums - Programmer's Manual
 
-
 \tableofcontents
-
 
 \I{################################################################################################}
 # 1. Introduction # {#alib_enums_intro}
@@ -39,11 +37,10 @@ are provided.
 \I{################################################################################################}
 # 2. Arithmetical and Bitwise Enums #  {#alib_enums_arithmetic}
 
-With scoped enums, introduced by C++ 11, neither arithmetical nor logical boolean operators
-that use enum elements as arguments, found their way into the language.
-This seems a little contradiction as enums have their underlying integral type, which even can
-be changed using a sort of inheritance syntax and with just a little static casting, these integral
-values are accessible.<br>
+With scoped enums, neither arithmetical nor logical boolean operators that use enum elements as
+arguments, found their way into the language. This seems a little contradiction as enums have their
+underlying integral type, which even can be changed using a sort of inheritance syntax and with
+just a little static casting, these integral values are accessible.<br>
 Also, the other way round, an enum value in C++ can be initialized by passing arbitrary integral
 values (even values that no corrsponding element exist for). With enum declaration:
 
@@ -58,8 +55,8 @@ Therefore, if operators are needed, the common approaches are to either
 - provide a set of operator functions that accept any enum types (restricted using
   <c>std::is_enum</c>).
 
-The first approach imoses a lot of code duplication, the second has the disadvantage that it
-undermines the intention of the C++ 11 language standard: The compiler would allow the operators
+The first approach imposes a lot of code duplication, the second has the disadvantage that it
+undermines the intention of the C++ language standard: The compiler would allow the operators
 even on enum types that are not considered to be <em>"arithmetically defined"</em>.
 
 Therefore, \alib takes a slightly more advanced approach: The operators defined by this
@@ -90,13 +87,13 @@ enumerations:
 - \alib{enums::arithmetical,operator-=}
 
 \attention
-  While in this documentation the operators are appearing under namespace <c>aworx::lib::enums</c>,
+  While in this documentation the operators are appearing under namespace <c>alib::enums</c>,
   in <em>reality</em> they are defined in the global namespace!<br>
   Faking the documentation namespace was done to have the documentation of the operator functions
   collected in this \alibmod_nl's namespace.<br>
   By using the global namespace, a using statement like
 
-         using namespace aworx::lib::enums;
+         using namespace alib::enums;
   is \b not needed in each source location that uses the operators.
 
 \attention
@@ -145,7 +142,7 @@ enumerations:
 
 \attention
   Likewise with the operators introduced in the previous section, this documentation "fakes" the
-  operators into namespace <c>aworx::lib::enums::bitwise</c>, while in fact they are defined in
+  operators into namespace <c>alib::enums::bitwise</c>, while in fact they are defined in
   the global namespace!<br>
   See note in the previous section for details.
 
@@ -179,7 +176,11 @@ In addition to these operators, namespace functions
 become applicable. Please consult the functions' reference documentation for further information.
 \attention
   Likewise with the operators, this documentation "fakes" these functions into namespace
-  <c>aworx::lib::enums::bitwise</c>, while in fact they are defined in namespace #aworx.
+  <c>alib::enums::bitwise</c>, while in fact they are defined in namespace #alib.
+
+\see A different approach to allow bitwise operations on <em>"ordinary"</em> enums
+     (like \b Fruits in the sample above) is introduced in later chapter
+     \ref alib_enums_iter_bitset "3.5 Using Class TBitSet with Iterable Enums".
 
 
 \I{################################################################################################}
@@ -188,7 +189,7 @@ become applicable. Please consult the functions' reference documentation for fur
 # 3. Iterable Enums  # {#alib_enums_iter}
 Another "missing feature" of the C++ language in respect to scoped enums is the possibility
 to iterate over all enum elements defined in an enum type.
-The obvious reason why standard iterator functionality \c std::iterator_traits and C++ 11 range-based
+The obvious reason why standard iterator functionality \c std::iterator_traits and C++ range-based
 iterations are not applicable to enumerations is that enumerations are types and not
 containers or other iterable object instances.
 
@@ -239,12 +240,11 @@ Besides the enum type, the macro expects the
 <em>"integral value of the last enum element plus 1"</em>.
 
 You might have noticed that the term <c>Pets::Snake + 1</c> usually is not valid
-C++ code, as we are adding an integral value to a C++ 11 scoped enum element.
+C++ code, as we are adding an integral value to a scoped enum element.
 
 The reason why this still compiles is that with a specialization of \alib{enums,T_EnumIsIterable}
 \alib{enums::iterable,operator+,operator+<TEnum, int>} and
 \alib{enums::iterable,operator-,operator-<TEnum, int>} become available.
-
 
 ### 3.2.2 Stopper Elements ###  {#alib_enums_iter_details_2}
 In the sample discussed,  <c>Pets::Snake + 1</c> was used as the "end value" of an iteration.
@@ -292,7 +292,6 @@ hence its internal value is doubled with each next element.
 Macro \ref ALIB_ENUMS_MAKE_ITERABLE, chooses integral value \c 1 as a start element.
 Again, if \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END is used, iteration might start on higher values.
 
-
 \I{################################################################################################}
 ## 3.4 Performance Considerations  ## {#alib_enums_iter_perf}
 Class \alib{enums,EnumIterator} is empty in respect to fields. Created on the stack there
@@ -305,6 +304,61 @@ while loop:
 
      int i= 0; int stop= 5;
      while( i++ < stop) { ... }
+
+\I{################################################################################################}
+## 3.5 Using Class TBitSet with Iterable Enums ## {#alib_enums_iter_bitset}
+Often, a subset of enumeration elements need to be stored in a set.
+If the only purpose for the enumeration is to do exactly this, the solution is to
+define an enum as "bitwise", as discussed in previous chapter
+\ref alib_enums_arithmetic_bitwise "2.2 Bitwise Operators". With that, a combination of elements
+can easily be be stored and tested in an integral value.
+If however, in contrast, the enumeration still "needs" to have a standard sequential numbering, then
+for the sake of storing permutations of elements, a "bitset", for example <c>std::bitset</c>
+which holds one bit per possible element is the way to go.
+
+\alib provides a powerful alternative to standard type
+<c>std::bitset</c>, which makes the work with enumerations very convenient.
+
+Let us come back to our \ref alib_enums_iter_struct "previous sample" of enum \e Pets:
+
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_ITER_SAMPLE
+
+As soon as we include additional header:
+
+ \snippet "DOX_ALIB_ENUMS.cpp"       DOX_ALIB_ENUMS_BITSET_HEADER
+
+type definition \alib{enums,EnumBitSet} becomes available. This type simply fills out
+the right template parameters for target type \alib{lang,TBitSet}.<br>
+Those are:
+- The "interface type into the bitset", namely \b Pets. This allows use to use elements of this
+  enumeration to pass as bit number specifiers.
+- The length of the enumeration by passing \alib{enums,T_EnumIsIterable::End}.
+- The start of numbering. In our case, this is \c 0, but the implementation also allows other
+  ranges like 1000..1050, resulting in a bit set with a capacity of 50.
+
+With this type, we can now define a bit set as follows:
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_BITSET_DEF
+
+And easily fill it with:
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_BITSET_FILL
+
+Because \alib{lang,TBitSet} provides efficient bidirectional iterator types that deliver just the bits
+that are set, a simple loop like this can be implemented:
+
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_BITSET_USE1
+
+We flip the set and loop again:
+ \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_BITSET_USE2
+
+The output of this code is:
+
+\snippet "DOX_ALIB_ENUMS_BITSET.txt"     OUTPUT
+
+For the full documentation of the features of type \b EnumBitSet, consult the
+\ref alib::lang::TBitSet "reference documentation" of underlying class \b TBitSet and keep in mind, that
+wherever template type \p{TInterface} is mentioned, a C++ enum element can be directly
+provided. The only prerequisite is that preprocessor macro \ref ALIB_ENUMS_MAKE_ITERABLE
+is applied to the enum class.
 
 
 \I{################################################################################################}
@@ -331,7 +385,7 @@ The features achieved with this are:
   elements of an arbitrary enum types as an argument, as long as they are of a certain <em>"base type"</em>.
 - In the presence of module \alib_strings in the \alibdist, enum elements can be easily serialized
   (to log files, configuration files, etc).
-- In the presence of module \alib_resources in the \alibdist_nl, data record definitions can be easily
+- In the presence of module \alib_basecamp in the \alibdist_nl, data record definitions can be easily
   <em>"externalized"</em>, for example with the aim of translating a software to different locales
   or for providing the ability to change default values of a software without recompilation
   and roll-out.
@@ -443,7 +497,7 @@ with the inclusion of \alibheader{enums/records.hpp}, the definition of the set 
  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_ENUMS_RECORDS_HEADER_INIT
 
 This is a precaution to assure that the methods are used only with bootstrap code, for example
-in implementations of abstract function \alib{Module::bootstrap}.
+in implementations of abstract function \alib{lang,Camp::bootstrap}.
 
 The simplest version of \b Bootstrap accepts one enumeration element along with variadic template
 parameters used to construct its record. This has to be invoked for each element:
@@ -665,7 +719,7 @@ If done, then
   previous section \ref alib_enums_records_access_iteration.
 
 Again a sample helps to quickly understand the rationale and a use case for multiple records.
-Built-in \alib enumeration type \alib{Bool} has two elements, \alib{Bool::False} and \alib{Bool::True}.
+Built-in \alib enumeration type \alib{lang,Bool} has two elements, \alib{lang,Bool::False} and \alib{lang,Bool::True}.
 The data record definition performed during bootstrap is found in this module's initialization
 function \alib{enums,Bootstrap}:
 
@@ -687,7 +741,7 @@ as <b>Bool::False</b>. For the names starting with <c>'O'</c> this value is \c 2
 ambiguities while parsing.
 
 Especially with parsing elements, sometimes the order of the records is important. This should
-quickly be demonstrated with the record definitions of built-in enum type\alib{ContainerOp}:
+quickly be demonstrated with the record definitions of built-in enum type\alib{lang,ContainerOp}:
 
 \snippet "alib/enums/records.cpp"  DOX_ALIB_ENUMS_MULTIPLE_RECORDS_2
 
@@ -720,16 +774,14 @@ This is very well in alignment with common string resources that may either resi
 segment of a software or that are <em>externalized</em> to be maintainable without recompiling
 the software (translations, core-configuration, etc.).
 
-\alib provides module \alib_resources which implements the concept of
-<em>Externalized String Resources</em> and as shown in this chapter, both modules go along
-very well.
+\alib provides module \alib_basecamp_nl which implements the concept of
+\ref alib_basecamp_resources "Externalized String Resources" and, as shown in this chapter, both
+modules go along very well.
 
 \note
   This is achieved by code selection in this module \alib_enums_nl, which provide additional
-  interfaces for record definition if module \alib_resources_nl is included in an
-  \alibdist.<br>
-  The other way round, no code selection is performed, which means module \alib_resources_nl
-  does not extend its functionality with the presence of module \alib_enums_nl.
+  interfaces for record definition if module \alib_basecamp_nl is included in an
+  \alibdist.
 
 
 \I{################################################################################################}
@@ -780,10 +832,11 @@ to
 
 
 \I{################################################################################################}
-### 4.4.2 ALib Module Resources And Enum Records  ### {#alib_enums_records_resourced_resourced}
+### 4.4.2 ALib Module BaseCamp And Enum Records  ### {#alib_enums_records_resourced_resourced}
 
-With the inclusion of module \alib_resources in an \alibdist, the strings used to define enum
-records should be resourced. A next overload of method \b Bootstrap supports this:
+With the inclusion of module \alib_basecamp_nl in an \alibdist, the strings used to define enum
+records should \ref alib_basecamp_resources "be resourced".
+A next overload of method \b Bootstrap supports this:
 
 - \alib{enums,EnumRecords::Bootstrap(ResourcePool&\, const NString& category\, const NString& name\, character innerDelim\, character outerDelim)}
 
@@ -797,7 +850,7 @@ This feature is likewise available for the upcoming two further methods.
 \I{################################################################################################}
 ### 4.4.3 Using TMP struct T_Resourced  ### {#alib_enums_records_resourced_tresourced}
 
-Module \alib_resources_nl provides tool TMP struct \alib{resources,T_Resourced} to announce
+Module \alib_basecamp_nl provides tool TMP struct \alib{lang::resources,T_Resourced} to announce
 resource information for a type, aiming to have this information available in independent places.
 If a specialization of that struct is given for an enumeration type, overloaded method
 
@@ -806,10 +859,10 @@ If a specialization of that struct is given for an enumeration type, overloaded 
 becomes available. The fact that this overload reads the information from \b T_Resourced, becomes
 obvious from the reduced argument list.
 
-An important advantage of using TMP struct \alib{resources,T_Resourced} when used with
+An important advantage of using TMP struct \alib{lang::resources,T_Resourced} when used with
 <em>ALib Enum Record</em> definition strings, is that code that reads and uses a record may
 string members of the records in turn as resource names, which it then loads when needed.
-For this, it ignores method \alib{resources,T_Resourced::Name} and uses the name given in
+For this, it ignores method \alib{lang::resources,T_Resourced::Name} and uses the name given in
 that field instead.
 
 If so, the "contract" that custom enums that are passed to such code have to fulfill then
@@ -826,16 +879,16 @@ may include that a specialization for \b T_Resourced is given.
 ### 4.4.4 Using Resources In ALib Modules  ### {#alib_enums_records_resourced_from_modules}
 The final overload of method is given with:
 
-- \alib{enums,EnumRecords::Bootstrap(Module&\, const NString& name\, character innerDelim\, character outerDelim)}
+- \alib{enums,EnumRecords::Bootstrap(lang::Camp&\, const NString& name\, character innerDelim\, character outerDelim)}
 
-This method should be used when a software uses class \alib{Module} to organize bootstrapping,
+This method should be used when a software uses class \alib{lang,Camp} to organize bootstrapping,
 resource management, configuration data, etc., just the same as any \e full \alibmod does.
 
 If so, this method is preferred over all others versions, except for the cases where the use of
 \b T_Resourced is mandatory or otherwise superior, as described in the previous section.
 
-Further information is given with the \ref alib_mod_resources "programmer's manual" of module
-\alib_resources_nl.<br>
+Further information is given with the \ref alib_basecamp_resources "programmer's manual" of module
+\alib_basecamp_nl.<br>
 A comprehensive sample of using \alib resources placed in a custom module is provided with the
 \ref alib_cli_tut "tutorial of ALib Module 'CLI'".
 The sample code provided there, can be easily used as a jump start into an own project that
@@ -919,7 +972,7 @@ This is all that needs to be done. The advantages are
 - The code that stores and retrieves variables is 100% independent from the internals needed to
   declare variables. It just passes the enum element.
 
-Another prominent sample is found with class \alib{results,Exception}. Furthermore, module
+Another prominent sample is found with class \alib{lang,Exception}. Furthermore, module
 \alib_cli makes really heavy use of this paradigm.
 
 
@@ -946,5 +999,4 @@ is also offered for the concept of <b>ALib Enum Records</b>.
 
 
 
-
-*/
+<br><br><br><br><br><br> */

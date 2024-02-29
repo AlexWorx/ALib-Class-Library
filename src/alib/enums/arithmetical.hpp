@@ -2,23 +2,23 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_ARITHMETICAL
 #define HPP_ALIB_ENUMS_ARITHMETICAL 1
 
-#if !defined(HPP_ALIB_COMPILERS) && !defined(ALIB_DOX)
-#   include "alib/lib/compilers.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(ENUMS)
 
-#if !defined (HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
+#if !defined (HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 // #################################################################################################
 // struct T_EnumIsArithmetical
@@ -37,12 +37,16 @@ namespace aworx { namespace lib { namespace enums {
  * - \alib{enums::arithmetical,operator>=}
  * - \alib{enums::arithmetical,operator+}
  * - \alib{enums::arithmetical,operator-}
+ * - \alib{enums::arithmetical,operator++}
+ * - \alib{enums::arithmetical,operator++(TEnum&,int)}
+ * - \alib{enums::arithmetical,operator--}
+ * - \alib{enums::arithmetical,operator--(TEnum&,int)}
  * - \alib{enums::arithmetical,operator+=}
  * - \alib{enums::arithmetical,operator-=}
  *
  * \attention
  *   Likewise with the operators introduced with TMP struct \alib{enums,T_EnumIsBitwise},
- *   this documentation "fakes" the operators into namespace <c>aworx::lib::enums</c>,
+ *   this documentation "fakes" the operators into namespace <c>alib::enums</c>,
  *   while in fact they are defined in the global namespace!<br>
  *   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
  *   for details.
@@ -71,21 +75,21 @@ struct T_EnumIsArithmetical : public std::false_type {};
 #endif
 
 
-}} // namespace aworx[::lib::enums]
-/// Type alias in namespace #aworx.
+} // namespace alib[::enums]
+/// Type alias in namespace \b alib.
 template<typename TEnum>
-using     T_EnumIsArithmetical=           lib::enums::T_EnumIsArithmetical<TEnum>;
+using     T_EnumIsArithmetical=           enums::T_EnumIsArithmetical<TEnum>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 // #################################################################################################
 // Helper Macros
 // #################################################################################################
 
-#define  ALIB_ENUMS_MAKE_ARITHMETICAL(TEnum)                                                        \
-namespace aworx { namespace lib { namespace enums {                                                \
-template<> struct T_EnumIsArithmetical<TEnum> : public std::true_type {};}}}                       \
+#define  ALIB_ENUMS_MAKE_ARITHMETICAL(TEnum)                                                       \
+namespace alib::enums {                                                                      \
+template<> struct T_EnumIsArithmetical<TEnum> : public std::true_type {}; }                        \
 
 
 // #################################################################################################
@@ -93,9 +97,9 @@ template<> struct T_EnumIsArithmetical<TEnum> : public std::true_type {};}}}    
 // #################################################################################################
 
 // For documentation, all operators and enum related template functions are faked into namespace
-// aworx::lib::enums
+// alib::enums
 #if defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 /**
  * Operators available to elements of enumerations if \alib{enums,T_EnumIsArithmetical} is
@@ -125,7 +129,7 @@ constexpr
 #if defined(ALIB_DOX)
 bool
 #else
-ATMP_T_IF(bool, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(bool, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -150,7 +154,7 @@ constexpr
 #if defined(ALIB_DOX)
 bool
 #else
-ATMP_T_IF(bool, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(bool, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator<=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -175,7 +179,7 @@ constexpr
 #if defined(ALIB_DOX)
 bool
 #else
-ATMP_T_IF(bool, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(bool, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -202,7 +206,7 @@ constexpr
 #if defined(ALIB_DOX)
 bool
 #else
-ATMP_T_IF(bool, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(bool, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator>=  (TEnum lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -227,7 +231,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator+  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -251,7 +255,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator+  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -276,7 +280,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator+=  (TEnum& lhs, TEnum rhs) noexcept(true)
 {
@@ -300,7 +304,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator+=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -323,7 +327,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value )
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value )
 #endif
 operator++  (TEnum&  arg) noexcept(true)
 {
@@ -342,11 +346,11 @@ operator++  (TEnum&  arg) noexcept(true)
  * @return The old value of \p{arg}.
  */
 template<typename TEnum>
-ALIB_CPP14_CONSTEXPR
+constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator++  (TEnum&  arg, int) noexcept(true)
 {
@@ -372,7 +376,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator-  (TEnum  lhs, TEnum rhs) noexcept(true)
 {
@@ -397,7 +401,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator-  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -421,7 +425,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator-=  (TEnum&  lhs, TEnum rhs) noexcept(true)
 {
@@ -445,7 +449,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator-=  (TEnum&  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -468,7 +472,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator--  (TEnum&  arg) noexcept(true)
 {
@@ -488,11 +492,11 @@ operator--  (TEnum&  arg) noexcept(true)
  * @return The old value of \p{arg}.
  */
 template<typename TEnum>
-ALIB_CPP14_CONSTEXPR
+constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator--  (TEnum&  arg, int) noexcept(true)
 {
@@ -517,7 +521,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator+  (TEnum  arg) noexcept(true)
 {
@@ -539,7 +543,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator-  (TEnum  arg) noexcept(true)
 {
@@ -564,7 +568,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator*  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -589,7 +593,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator*= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -613,7 +617,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator/  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -638,7 +642,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator/= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -663,7 +667,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator%  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -688,7 +692,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator%= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -713,7 +717,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator<<  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -737,7 +741,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator<<= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -762,7 +766,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator>>  (TEnum  lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -786,7 +790,7 @@ constexpr
 #if defined(ALIB_DOX)
 TEnum
 #else
-ATMP_T_IF(TEnum, aworx::lib::enums::T_EnumIsArithmetical<TEnum>::value)
+ATMP_T_IF(TEnum, alib::enums::T_EnumIsArithmetical<TEnum>::value)
 #endif
 operator>>= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcept(true)
 {
@@ -797,7 +801,7 @@ operator>>= (TEnum& lhs, typename std::underlying_type<TEnum>::type rhs) noexcep
 
 // Reset documentation fake
 #if defined(ALIB_DOX)
-}}}} // doxygen namespace [aworx::lib::enums::arithmetical]
+}}}} // doxygen namespace [alib::enums::arithmetical]
 #endif
 
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,37 +15,34 @@
 #   include "alib/cli/cliutil.hpp"
 #endif
 
-#if !defined (HPP_ALIB_FS_MODULES_DISTRIBUTION)
-#   include "alib/lib/fs_modules/distribution.hpp"
+#if !defined (HPP_ALIB_LANG_BASECAMP)
+#   include "alib/lang/basecamp/basecamp.hpp"
 #endif
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace cli {
+namespace alib::cli {
 
 // #################################################################################################
 // CommandLine Constructor
 // #################################################################################################
 
-void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCategory )
+void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
 {
     Resources       =  resourcePool;
     ResourceCategory=  resCategory;
-    ArgcOriginal=  ALIB.ArgC;
-    ArgWOriginal=  ALIB.ArgVW;
-    ArgNOriginal=  ALIB.ArgVN;
 
-    ArgStrings.reserve( static_cast<size_t>(ArgcOriginal) );
-    ArgsLeft  .reserve( static_cast<size_t>(ArgcOriginal) );
+    ArgStrings.reserve( static_cast<size_t>(ArgC) );
+    ArgsLeft  .reserve( static_cast<size_t>(ArgC) );
 
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
     #if !ALIB_CHARACTERS_WIDE
-        if( ArgNOriginal )
+        if( ArgVN )
         {
-            for ( int i= 1; i < ArgcOriginal ; ++i )
+            for ( int i= 1; i < ArgC ; ++i )
             {
-                ArgStrings.emplace_back( ArgNOriginal[i] );
+                ArgStrings.emplace_back( ArgVN[i] );
                 ArgsLeft  .emplace_back( i -1      );
             }
         }
@@ -55,20 +52,20 @@ void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCat
             NString1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ArgcOriginal ; ++i )
+            for ( int i= 1; i < ArgC ; ++i )
             {
-                converter.Reset() << ArgWOriginal[i];
+                converter.Reset() << ArgVW[i];
                 ArgStrings.emplace_back( allocator.EmplaceString(converter) );
                 ArgsLeft  .emplace_back( i - 1                              );
             }
         }
     #else
-        #if ALIB_CHARACTERS_NATIVE_WCHAR // use original strings only if aworx::wchar == wchar_t
-        if( ArgWOriginal )
+        #if ALIB_CHARACTERS_NATIVE_WCHAR // use original strings only if alib::wchar == wchar_t
+        if( ArgVW )
         {
-            for ( int i= 1; i < ArgcOriginal ; ++i )
+            for ( int i= 1; i < ArgC ; ++i )
             {
-                ArgStrings.emplace_back( ArgWOriginal[i] );
+                ArgStrings.emplace_back( ArgVW[i] );
                 ArgsLeft  .emplace_back( i - 1           );
             }
         }
@@ -79,9 +76,9 @@ void   CommandLine::Init( resources::ResourcePool* resourcePool, NCString resCat
             String1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ArgcOriginal ; ++i )
+            for ( int i= 1; i < ArgC ; ++i )
             {
-                converter.Reset() << ArgNOriginal[i];
+                converter.Reset() << ArgVN[i];
                 ArgStrings.emplace_back( allocator.EmplaceString(converter) );
                 ArgsLeft  .emplace_back( i -1                       );
             }
@@ -255,4 +252,4 @@ void  CommandLine::RemoveArg( integer argNo )
 
 
 
-}}}// namespace aworx::lib::system
+} // namespace alib::cli

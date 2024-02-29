@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALOX_LOG
@@ -12,7 +12,7 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 // forward declarations
 class Lox;
@@ -39,11 +39,6 @@ class ALoxReportWriter;
 /** ************************************************************************************************
  * Holds static objects used for standard debug logging and provides an interface to
  * create such objects. If compiler symbol #ALOX_DBG_LOG is set to \c 0, this class will be empty.
- *
- * \note:
- *   In C# and Java, this class is the interface class for debug logging which gets pruned,
- *   and mimics the functionality of class \ref aworx::lib::lox::Lox "Lox".
- *   In C++, there is no need to double functionality of \b Lox here.
  **************************************************************************************************/
 class Log
 {
@@ -61,11 +56,11 @@ class Log
         ALIB_API static detail::textlogger::TextLogger*   IDELogger;
 
         /**  The \alib ReportWriter. This will be created and registered in method
-         *   \ref aworx::lib::lox::Log::AddDebugLogger    "Log::AddDebugLogger" and removed and deleted in
-         *   \ref aworx::lib::lox::Log::RemoveDebugLogger "Log::RemoveDebugLogger" in the case that
+         *   \ref alib::lox::Log::AddDebugLogger    "Log::AddDebugLogger" and removed and deleted in
+         *   \ref alib::lox::Log::RemoveDebugLogger "Log::RemoveDebugLogger" in the case that
          * the original \alib \b ReportWriterStdIO is in place.
          */
-        static ALoxReportWriter*                        DebugReportWriter;
+        ALIB_API static ALoxReportWriter*                 DebugReportWriter;
 
     // #############################################################################################
     // Interface
@@ -94,16 +89,15 @@ class Log
          *
          * In the current version of \alox (future changes are likely), this method does:
          * - use
-         *   \ref aworx::lib::lox::Lox::CreateConsoleLogger "Lox::CreateConsoleLogger"
+         *   \ref alib::lox::Lox::CreateConsoleLogger "Lox::CreateConsoleLogger"
          *   to create the best compatible console logger for the
          *   running platform
          * - this logger will be added to the debug Lox object with specifying
          *   \c Verbosity::Error for internal domains.
          * - If under windows, a Visual Studio debug session is running, adds a
-         *   \ref aworx::lib::lox::loggers::VStudioLogger "VStudioLogger"
+         *   \ref alib::lox::loggers::VStudioLogger "VStudioLogger"
          *   in addition to the standard console logger. This can be suppressed using
-         *   configuration variable
-         *   \https{ALOX_NO_IDE_LOGGER,alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html}.
+         *   configuration variable \ref ALOX_NO_IDE_LOGGER.
          *
          * The name of the \e Logger created is \c "DEBUG_LOGGER". It will be registered with
          * the standard \b %Lox used for debug-logging, by setting \e Verbosities
@@ -130,9 +124,9 @@ class Log
 
         /** ****************************************************************************************
          * In the case that the original \alib \b ReportWriterStdIO is still in place,
-         * \ref aworx::lib::results::Report::PushWriter "Report::PushWriter" is invoked to provide a
+         * \ref alib::lang::Report::PushWriter "Report::PushWriter" is invoked to provide a
          * ReportWriter of type
-         * \ref aworx::lib::lox::ALoxReportWriter "ALoxReportWriter".
+         * \ref alib::lox::ALoxReportWriter "ALoxReportWriter".
          *
          * \note
          * This method is effective only with debug builds. Usually it is invoked indirectly by
@@ -140,11 +134,11 @@ class Log
          * they are using release logging exclusively), should invoke this method on bootstrap
          * providing their (release) lox.
          * In this case, the \e Verbosity of the internal domain used by class
-         * \ref aworx::lib::lox::ALoxReportWriter "ALoxReportWriter" has to be set for the
+         * \ref alib::lox::ALoxReportWriter "ALoxReportWriter" has to be set for the
          * the logger(s) in given \p{lox} in question.
          *
          * @param lox  The lox that the
-         *             \ref aworx::lib::lox::ALoxReportWriter "ALoxReportWriter" created will be using.
+         *             \ref alib::lox::ALoxReportWriter "ALoxReportWriter" created will be using.
          ******************************************************************************************/
         ALIB_API static void      AddALibReportWriter( Lox* lox );
 
@@ -158,11 +152,11 @@ class Log
 }; // LOG
 
 
-}} // namespace aworx[::lib::lox]
+} // namespace alib[::lox]
 
-/// Type alias in namespace #aworx.
-using     Log=           lib::lox::Log;
+/// Type alias in namespace \b alib.
+using     Log=           lox::Log;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 #endif // HPP_ALOX_LOG

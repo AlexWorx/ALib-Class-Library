@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 namespace ut_aworx {
 
@@ -40,7 +40,7 @@ UT_CLASS
 //--------------------------------------------------------------------------------------------------
 //--- Std_String
 //--------------------------------------------------------------------------------------------------
-#if ALIB_SYSTEM // otherwise locale is not set to UTF-8
+#if ALIB_CAMP // otherwise locale is not set to UTF-8
 UT_METHOD( Std_String )
 {
     UT_INIT()
@@ -68,8 +68,8 @@ UT_METHOD( Std_String )
 #endif
 
 // wide string (test this only if the LOCALE was properly set)
-#if ALIB_SYSTEM
-    if(ALIB.LocaleFound.IsNotNull() && ALIB.LocaleFound.IndexOf<false, lib::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
+#if ALIB_CAMP
+    if(BASECAMP.LocaleFound.IsNotNull() && BASECAMP.LocaleFound.IndexOf<false, lang::Case::Ignore>(A_CHAR("UTF-8")) >= 0)
     {
         test._().Append<true>( wStr.c_str(), static_cast<integer>( wStr.length()));  UT_EQ( compare , test )
         test._() <<         wStr;                                                    UT_EQ( compare , test )
@@ -136,7 +136,7 @@ UT_METHOD( Std_Vector )
         UT_EQ( A_CHAR("abc")   , as )
     }
 
-    // Creating a vector from aworx::String
+    // Creating a vector from alib::String
     {
         AString as( A_CHAR("abc") );
         auto vec= static_cast<std::vector<character>>( as );
@@ -181,7 +181,7 @@ UT_METHOD( String_Std_Iterator )
 
     UT_PRINT("") UT_PRINT( "### String/AString: Testing satisification of concept of std::RandomAccessIterator  ###" )
 
-    // Test iterator: Template code using std::string. This is copied below for aworx::String and aworx::AString
+    // Test iterator: Template code using std::string. This is copied below for alib::String and alib::AString
     {
         std::basic_string<character> str(A_CHAR("abcdef"));
 
@@ -221,9 +221,9 @@ UT_METHOD( String_Std_Iterator )
         UT_TRUE ( it <= itID )   UT_TRUE ( itID <= it )  UT_TRUE ( itID >= it  )   UT_TRUE (  it >= itID )
     }
 
-    // Test aworx::String::ConstIterator
+    // Test alib::String::ConstIterator
     {
-        aworx::String str(A_CHAR("abcdef"));
+        alib::String str(A_CHAR("abcdef"));
 
         auto it= std::find( str.begin(), str.end(), 'c' );
         UT_TRUE( it != str.end() )
@@ -259,9 +259,9 @@ UT_METHOD( String_Std_Iterator )
         UT_TRUE ( it <= itID )   UT_TRUE ( itID <= it )  UT_TRUE ( itID >= it  )   UT_TRUE (  it >= itID )
     }
 
-    // Test aworx::AString::Iterator
+    // Test alib::AString::Iterator
     {
-        aworx::AString str(A_CHAR("abcdef"));
+        alib::AString str(A_CHAR("abcdef"));
 
         auto it= std::find( str.begin(), str.end(), 'c' );
         UT_TRUE( it != str.end() )
@@ -318,7 +318,7 @@ UT_METHOD( String_Std_Iterator )
 
     // Test basic algorithms
     {
-        aworx::AString str(A_CHAR("cafdeb"));
+        alib::AString str(A_CHAR("cafdeb"));
 
         std::sort( str.begin(), str.end() );
         UT_EQ( A_CHAR("abcdef"), str)
@@ -326,7 +326,7 @@ UT_METHOD( String_Std_Iterator )
         std::rotate( str.begin() + 1, str.begin() + 4, str.end() - 1 );
         UT_EQ( A_CHAR("aebcdf"), str)
 
-        aworx::AString copy(A_CHAR("12345"));
+        alib::AString copy(A_CHAR("12345"));
         std::remove_copy( str.begin(), str.end(), copy.begin(), 'd' );
         UT_EQ( A_CHAR("aebcf"), copy)
 
@@ -440,7 +440,7 @@ UT_METHOD( Boxing_Std_String )
 
 #endif
 
-    UT_PRINT("") UT_PRINT( "### Boxing: Appending BoxedAs<QTxxx> ###" )
+    UT_PRINT("") UT_PRINT( "### Boxing: Appending boxed as <std::string> ###" )
     {
         AString test;
         { std::string       stdstr( "std::string"     ); test._() << Box( std::reference_wrapper<std::string      >( stdstr ) ); UT_EQ( A_CHAR("std::string"    ), test) }
@@ -459,4 +459,3 @@ UT_METHOD( Boxing_Std_String )
 } //namespace
 
 #endif // ALIB_UT_COMPATIBILITY
-

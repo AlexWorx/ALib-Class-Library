@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_PLACEHOLDER
@@ -16,7 +16,7 @@
 #   include <cstring>
 #endif
 
-namespace aworx { namespace lib { namespace boxing  { namespace detail {
+namespace alib {  namespace boxing  { namespace detail {
 /**
 * Inner struct providing a pointer and a length.<br>
 * A \c constexpr constructor is given (not shown in documentation).
@@ -192,7 +192,7 @@ union  UnionPointers
   #endif
 };
 
-} // namespace aworx::lib::boxing[::detail]
+} // namespace alib::boxing[::detail]
 
 /** ************************************************************************************************
  * A \alib{boxing,Box::data,protected member of this union} is contained in class
@@ -242,22 +242,20 @@ union  UnionPointers
  * data in this struct as reported by \alib{boxing,T_SizeInPlaceholder}.
  *
  * ####Constexpr Boxing####
- * As it explained in chapter \ref alib_boxing_more_opt_constexpr, method
+ * As explained in chapter \ref alib_boxing_more_opt_constexpr, method
  * \alib{boxing,T_Boxer::Write} may be defined with a different signature that returns a
  * value of this union, instead of receiving one to be filled. The aim is to allowing
  * \c constexpr instances of class \b Box to be created from likewise \c constexpr values.
- * The C++ language rules for \c constexpr constructors impose some restrictions. In C++ 11,
- * constructors have to be empty except member initializations. Apart from that, in all C++
- * versions, no reinterpret casts have to be performed. Furthermore, an union constructor must
- * not initialize a field of an inner union by accessing it using the dot operator. Instead,
- * the inner unions need to provide \c constexpr constructors that are called for the field of the
- * outer union.
+ * The C++ language rules for \c constexpr constructors impose some restrictions. No reinterpret
+ * casts have to be performed. Furthermore, an union constructor must not initialize a field of an
+ * inner union by accessing it using the dot operator. Instead, the inner unions need to provide
+ * \c constexpr constructors that are called for the field of the outer union.
  *
  * While this library defines <c>constexpr</c>-boxing for all fundamental types and for most
  * library types of other modules (if it provides customized boxing for), still such customization
  * is considered "expert use" as the gain to do it for custom types is marginal.
  * For this reason, the constructors of inner structs and unions, and all reflection of those
- * that with a corresponding constructor of this outer union are \b not documented.
+ * with a corresponding constructor of this outer union are \b not documented.
  * This is to keep the documentation lean and non-repetitive. Therefore, for reference
  * of the \c constexpr constructors available for this union, please consult the
  * source code, found in file \b alib/boxing/placeholder.inl.
@@ -354,14 +352,14 @@ union Placeholder
      * Sets a pointer of type \c char*.
      * @param value The value to set.
      */
-    ALIB_CPP14_CONSTEXPR
+    constexpr
     void                        Pointer    ( const char* value )       { Pointers.CChar= value;        }
 
     /**
      * Sets a pointer of type \c void*.
      * @param value The value to set.
      */
-    ALIB_CPP14_CONSTEXPR
+    constexpr
     void                        VoidPointer( const void* value )       { Pointers.CVoid= value;        }
 
     /**
@@ -389,7 +387,7 @@ union Placeholder
      * @param idx   The index to store \p{value} in. Only \c 0 and \c 1 is allowed.
      * @param value The value to set.
      */
-    ALIB_CPP14_CONSTEXPR
+    constexpr
     void                        SetInteger( int idx, integer value )
     {
         Integrals.Array [idx]= value;
@@ -407,7 +405,7 @@ union Placeholder
      * @param idx   The index to store \p{value} in. Only \c 0 and \c 1 is allowed.
      * @param value The value to set.
      */
-    ALIB_CPP14_CONSTEXPR
+    constexpr
     void                        SetUInteger( int idx, uinteger value )
     {
         Integrals.UArray[idx]= value;
@@ -428,17 +426,15 @@ union Placeholder
      * @tparam UsageLength The number of bytes to clear.
      * ********************************************************************************************/
     template<unsigned int UsageLength>
-    ALIB_CPP14_CONSTEXPR void    Clear()
+    constexpr void    Clear()
     {
-        ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         static_assert( UsageLength > 0 && ( UsageLength <= 2 * sizeof(uinteger) ),
                        "Invalid usage length given" );
 
-            Integrals.Array[0]= 0;
-            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-            if ALIB_CONSTEXPR17( UsageLength > sizeof(integer) )
-                Integrals.Array[1]= 0;
-            ALIB_WARNINGS_RESTORE
+        Integrals.Array[0]= 0;
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        if constexpr( UsageLength > sizeof(integer) )
+            Integrals.Array[1]= 0;
         ALIB_WARNINGS_RESTORE
     }
 
@@ -523,7 +519,7 @@ union Placeholder
     #else
 
     template<typename TArray>
-    ALIB_FORCE_INLINE ALIB_CPP14_CONSTEXPR
+    ALIB_FORCE_INLINE constexpr
     void Write( const TArray* pointer, integer length )
     {
         Array.Pointer =  pointer;
@@ -557,7 +553,6 @@ static_assert( sizeof(Placeholder) == 2 * sizeof(std::size_t),
                "Size of boxing::Placeholder is not two times the size of 'size_t'. "
                "Compilation platform not supported." );
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 #endif // HPP_ALIB_BOXING_PLACEHOLDER
-

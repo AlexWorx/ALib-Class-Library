@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_FUNCTIONDEFS
@@ -12,7 +12,7 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace boxing  {
+namespace alib {  namespace boxing  {
 
 #if !defined(ALIB_DOX)
 
@@ -72,39 +72,36 @@ ATMP_T_IF(bool, ATMP_IS_PTR(TComparableP) )  FIsLess::ComparableTypes( const Box
 template<size_t N>
 size_t FHashcode::UsePlaceholderBytes( const Box& self )
 {
-    ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
     ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
+        ALIB_ASSERT_ERROR(N == self.GetPlaceholderUsageLength(), "BOXING",
+                          "Hash function registered with type of wrong usage length")
 
-    ALIB_ASSERT_ERROR(N == self.GetPlaceholderUsageLength(), "BOXING",
-                      "Hash function registered with type of wrong usage length")
+        size_t result=  std::size_t(0x52a6937UL) - (N * 0x387e)
+                      + std::size_t( self.TypeID().hash_code() );
 
-    size_t result=  static_cast<std::size_t>(0x52a6937UL) - (N * 0x387e)
-                  + static_cast<std::size_t>( self.TypeID().hash_code() );
+        constexpr uinteger Bit1= static_cast<uinteger>( 1 );
 
-    constexpr uinteger Bit1= static_cast<uinteger>( 1 );
+        // smaller than first "word"
+        if constexpr( N < sizeof( uinteger ) )
+            return static_cast<size_t>( (  self.Data().GetUInteger(0)
+                                          & ((Bit1 << (N * 8) )- 1)   )   * 92334534 )
+                   + result;
 
-    // smaller than first "word"
-    if ALIB_CONSTEXPR17( N < sizeof( uinteger ) )
-        return static_cast<size_t>( (  self.Data().GetUInteger(0)
-                                      & ((Bit1 << (N * 8) )- 1)   )   * 92334534 )
-               + result;
+        // add first word
+        result+= self.Data().GetUInteger(0) * 52424735;
 
-    // add first word
-    result+= self.Data().GetUInteger(0) * 52424735;
+        if constexpr ( N == sizeof(uinteger) )
+            return result;
 
-    if ALIB_CONSTEXPR17 ( N == sizeof(uinteger) )
-        return result;
-
-    // tests if smaller than second "word"
-    else if ALIB_CONSTEXPR17 ( N - sizeof( uinteger ) < sizeof( uinteger ) )
-    {
-        return static_cast<size_t>( (   self.Data().GetUInteger(1)
-                                      & ((Bit1 << ((N - sizeof(uinteger)) * 8) )- 1)   )   * 892112 )
-               + result;
-    }
-    else
-        return  result + self.Data().GetUInteger(1) * 485923;
-    ALIB_WARNINGS_RESTORE
+        // tests if smaller than second "word"
+        else if constexpr ( N - sizeof( uinteger ) < sizeof( uinteger ) )
+        {
+            return static_cast<size_t>( (   self.Data().GetUInteger(1)
+                                          & ((Bit1 << ((N - sizeof(uinteger)) * 8) )- 1)   )   * 892112 )
+                   + result;
+        }
+        else
+            return  result + self.Data().GetUInteger(1) * 485923;
     ALIB_WARNINGS_RESTORE
 }
 
@@ -142,7 +139,6 @@ void FAppend<TChar>::WrappedAppendable( const Box& self, strings::TAString<TChar
     target.template _<false>( self.Unbox<std::reference_wrapper<TAppendable>>().get() );
 }
 #endif // defined(ALIB_DOX)
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 #endif // HPP_ALIB_BOXING_FUNCTIONDEFS
-

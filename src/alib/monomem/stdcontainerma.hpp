@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_STDCONTAINERMA
@@ -12,11 +12,11 @@
 #   include "alib/monomem/util/rttrallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
-#   include "alib/lib/fs_lists/sidilist.hpp"
+#if !defined(HPP_ALIB_LANG_SIDILIST)
+#   include "alib/lang/sidilist.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 namespace detail {
 
 /** ************************************************************************************************
@@ -37,26 +37,13 @@ struct StdContainerMABase
     using  value_type     =  T             ;  ///< Type definition as required by C++ library standards.
     using  is_always_equal= std::false_type;  ///< Type definition as required by C++ library standards.
 
-    // deprecated types
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-        using  pointer        =  T*       ;  ///< Type definition as required by C++ library standards.
-                                             ///< Available if <b>ALIB_CPPVER <= 14</b>.
-        using  const_pointer  =  const T* ;  ///< Type definition as required by C++ library standards.
-                                             ///< Available if <b>ALIB_CPPVER <= 14</b>.
-        using  reference      =  T&       ;  ///< Type definition as required by C++ library standards.
-                                             ///< Available if <b>ALIB_CPPVER <= 14</b>.
-        using  const_reference=  const T& ;  ///< Type definition as required by C++ library standards.
-                                             ///< Available if <b>ALIB_CPPVER <= 14</b>.
-    #endif
-
-
     // #############################################################################################
     // ### Other required members
     // #############################################################################################
-    #if ALIB_CPPVER <= 17 || defined(ALIB_DOX)
+    #if ALIB_CPP_STANDARD == 17 || defined(ALIB_DOX)
         /**
          * The possible allocation size.
-         * Note: Available only if <b>ALIB_CPPVER <= 14</b>.
+         * Note: Available only if <b>ALIB_CPP_STANDARD == 17, as it was deprecated afterwards.</b>.
          * @return returns the largest supported allocation size.
          */
         size_t          max_size()                                                   const  noexcept
@@ -64,64 +51,9 @@ struct StdContainerMABase
             return static_cast<size_t>(-1) / 2;
         }
     #endif
-
-
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-        /**
-         * Constructs an object of type T in allocated uninitialized storage pointed to by p, using
-         * placement-new.
-         *
-         * Note: Available only if <b>ALIB_CPPVER <= 14</b>.
-         *
-         * @tparam U     The type to construct. Deduced by the compiler from parameter \p{p}.
-         * @tparam Args  Variadic argument types.
-         * @param  p     Pointer to the object to construct.
-         * @param  args  The arguments forward to the constructor of \p{p}.
-         */
-        template< typename U, typename... Args >
-        void            construct( U* p, Args&&... args )
-        {
-            ::new(p) U(std::forward<Args>(args)...);
-        }
-
-        /**
-         * Constructs an object of type T in allocated uninitialized storage pointed to by p, using
-         * placement-new.
-         *
-         * Note: Available only if <b>ALIB_CPPVER <= 14</b>.
-         *
-         * @tparam U    The type to destroy. Deduced by the compiler from parameter \p{p}.
-         * @param  p    Pointer to the object to destruct.
-         */
-        template< typename U >
-        void            destroy( U* p )
-        {
-            p->~U();
-        }
-
-        /**
-         * Returns the address of \p{x} even in presence of overloaded <c>operator&</c>.
-         * @param  x The object to get the address for.
-         * @return The address of \p{x} even in presence of overloaded <c>operator&</c>.
-         */
-        pointer         address( reference x )                                        const noexcept
-        {
-            return &x;
-        }
-
-        /**
-         * Returns the address of \p{x} even in presence of overloaded <c>operator&</c>.
-         * @param  x The object to get the address for.
-         * @return The address of \p{x} even in presence of overloaded <c>operator&</c>.
-         */
-        const_pointer   address( const_reference x )                                  const noexcept
-        {
-            return &x;
-        }
-    #endif
 }; // struct StdContainerMABase
 
-}// namespace aworx::lib::monomem[::detail]
+} // namespace alib::monomem[::detail]
 
 
 /** ************************************************************************************************
@@ -160,23 +92,6 @@ struct StdContainerMABase
 template<typename T>
 struct StdContMA : public detail::StdContainerMABase<T>
 {
-    // #############################################################################################
-    // ### Type definition
-    // #############################################################################################
-
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-       /**
-        * Type definition as required by C++ library standards up to Version 14.
-        * @tparam U  The originating allocation type.
-        */
-        template<typename U>
-        struct rebind
-        {
-            /** The 'casted' allocator type. */
-            using other= StdContMA<U>;
-        };
-    #endif
-
     // #############################################################################################
     // ### Fields
     // #############################################################################################
@@ -285,7 +200,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
      * @return Pointer to the first byte of a memory block suitably aligned and sufficient to hold
      *         an array of n objects of type \p{T} .
      **********************************************************************************************/
-    ALIB_NODISCARD
+    [[nodiscard]]
     T*      allocate( size_t n, const void* = nullptr )
     {
         DBG_MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. ", typeid(T) )
@@ -323,23 +238,6 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
 template<typename T>
 struct StdContMAOptional : public detail::StdContainerMABase<T>
 {
-    // #############################################################################################
-    // ### Type definition
-    // #############################################################################################
-
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-       /**
-        * Type definition as required by C++ library standards up to Version 14.
-        * @tparam U  The originating allocation type.
-        */
-        template<typename U>
-        struct rebind
-        {
-            /** The 'casted' allocator type. */
-            using other= StdContMAOptional<U>;
-        };
-    #endif
-
     // #############################################################################################
     // ### Fields
     // #############################################################################################
@@ -441,7 +339,7 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
      * @return Pointer to the first byte of a memory block suitably aligned and sufficient to hold
      *         an array of n objects of type \p{T} .
      **********************************************************************************************/
-    ALIB_NODISCARD
+    [[nodiscard]]
     T*      allocate( size_t n, const void* = nullptr )
     {
         DBG_MONOMEM_VERBOSE( "STD_CONTAINER", "Allocating object of type {!Q<>}. "
@@ -500,23 +398,6 @@ ALIB_DBG( ,dbgDeallocationWarning(dbgDAWarning) )
 template<typename T>
 struct StdContMARecycling : public detail::StdContainerMABase<T>
 {
-    // #############################################################################################
-    // ### Type definition
-    // #############################################################################################
-
-    #if ALIB_CPPVER <= 14 || defined(ALIB_DOX)
-       /**
-        * Type definition as required by C++ library standards up to Version 14.
-        * @tparam U  The originating allocation type.
-        */
-        template<typename U>
-        struct rebind
-        {
-            /** The 'casted' allocator type. */
-            using other= StdContMARecycling<U>;
-        };
-    #endif
-
     // #############################################################################################
     // ### Fields
     // #############################################################################################
@@ -590,7 +471,7 @@ struct StdContMARecycling : public detail::StdContainerMABase<T>
      * @return Pointer to the first byte of a memory block suitably aligned and sufficient to
      *         hold an array of n objects of type \p{T} .
      **********************************************************************************************/
-    ALIB_NODISCARD
+    [[nodiscard]]
     T*      allocate( size_t n, const void* = nullptr )
     {
         if( n == 1 )
@@ -622,23 +503,22 @@ struct StdContMARecycling : public detail::StdContainerMABase<T>
 
 }; // struct StdContMARecycling
 
-}}// namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T>
-using     StdContMA           =   lib::monomem::StdContMA<T>;
+using     StdContMA           =   monomem::StdContMA<T>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T>
-using     StdContMAOptional   =   lib::monomem::StdContMAOptional<T>;
+using     StdContMAOptional   =   monomem::StdContMAOptional<T>;
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T>
-using     StdContMARecycling  =   lib::monomem::StdContMARecycling<T>;
+using     StdContMARecycling  =   monomem::StdContMARecycling<T>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 
 #endif // HPP_ALIB_MONOMEM_STDCONTAINERMA
-

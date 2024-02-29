@@ -2,7 +2,7 @@
 //  ALib C++ Library
 //  Boxing Sample
 //
-//  Copyright 2023 A-Worx GmbH, Germany
+//  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/compatibility/std_characters.hpp"
@@ -14,7 +14,7 @@
 
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 
 // method that accepts any type of object, reference, pointer, fundamental type,....
@@ -30,8 +30,8 @@ void AcceptAny( const Box&  box )
          if( box.IsType<bool             >() ) { cout << t << "bool        "; cout << v << (box.Unbox<bool             >() ? "true" : "false" ); }
 
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
-    else if( box.IsType<aworx::integer   >() ) { cout << t << "integer   "; cout << v <<  box.Unbox<aworx::integer >(); }
-    else if( box.IsType<aworx::uinteger  >() ) { cout << t << "uinteger  "; cout << v <<  box.Unbox<aworx::uinteger>(); }
+    else if( box.IsType<alib::integer   >() ) { cout << t << "integer   "; cout << v <<  box.Unbox<alib::integer >(); }
+    else if( box.IsType<alib::uinteger  >() ) { cout << t << "uinteger  "; cout << v <<  box.Unbox<alib::uinteger>(); }
 #else
     // If the non-bijective integral/float type boxing has been disabled in the library built, then a lot of more
     // types have to be fetched!
@@ -39,12 +39,12 @@ void AcceptAny( const Box&  box )
     else if( box.IsType<         int16_t >() ) { cout << t << "         int16_t"; cout << v <<  box.Unbox<        int16_t >(); }
     else if( box.IsType<         int32_t >() ) { cout << t << "         int32_t"; cout << v <<  box.Unbox<        int32_t >(); }
     else if( box.IsType<         int64_t >() ) { cout << t << "         int64_t"; cout << v <<  box.Unbox<        int64_t >(); }
-    else if( box.IsType< aworx::intGap_t >() ) { cout << t << " aworx::intGap_t"; cout << v <<  box.Unbox< aworx::intGap_t>(); }
+    else if( box.IsType< alib::intGap_t >() ) { cout << t << " alib::intGap_t"; cout << v <<  box.Unbox< alib::intGap_t>(); }
     else if( box.IsType<        uint8_t  >() ) { cout << t << "         uint8_t"; cout << v <<  static_cast<int>(box.Unbox<       uint8_t  >()); }
     else if( box.IsType<        uint16_t >() ) { cout << t << "        uint16_t"; cout << v <<  box.Unbox<       uint16_t >(); }
     else if( box.IsType<        uint32_t >() ) { cout << t << "        uint32_t"; cout << v <<  box.Unbox<       uint32_t >(); }
     else if( box.IsType<        uint64_t >() ) { cout << t << "        uint64_t"; cout << v <<  box.Unbox<       uint64_t >(); }
-    else if( box.IsType<aworx::uintGap_t >() ) { cout << t << "aworx::uintGap_t"; cout << v <<  box.Unbox<aworx::uintGap_t>(); }
+    else if( box.IsType<alib::uintGap_t >() ) { cout << t << "alib::uintGap_t"; cout << v <<  box.Unbox<alib::uintGap_t>(); }
 #endif
 
 #if ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
@@ -68,7 +68,7 @@ void AcceptAny( const Box&  box )
         // in this sample, no other types are covered
         cout << "  Type not known in this sample. " << std::endl;
         #if ALIB_DEBUG
-            cout << "  Dbg info: Type name: \"" << aworx::lib::DbgTypeDemangler( box.TypeID() ).Get() << "\""  <<  endl;
+            cout << "  Dbg info: Type name: \"" << alib::lang::DbgTypeDemangler( box.TypeID() ).Get() << "\""  <<  endl;
             cout << "  Note:     More convenient debug options are found when module ALib Strings is bundled with ALib Boxing!" << endl;
         #endif
     }
@@ -96,7 +96,7 @@ int main()
 {
     // bootstrap boxing: this is necessary as this sample compiles with single module boxing
     //                   only. With the full library, bootstrap of boxing is performed inherently.
-    aworx::lib::boxing::Bootstrap();
+    alib::boxing::Bootstrap();
 
 
     std::cout << "bool:" << std::endl;
@@ -109,12 +109,12 @@ int main()
     {         int16_t  val=  -2;    AcceptAny(val); AcceptAny(&val); }
     {         int32_t  val=  -3;    AcceptAny(val); AcceptAny(&val); }
     {         int64_t  val=  -4;    AcceptAny(val); AcceptAny(&val); }
-    {  aworx::intGap_t val=  -5;    AcceptAny(val); AcceptAny(&val); }
+    {  alib::intGap_t val=  -5;    AcceptAny(val); AcceptAny(&val); }
     {        uint8_t   val=   1;    AcceptAny(val); AcceptAny(&val); }
     {        uint16_t  val=   2;    AcceptAny(val); AcceptAny(&val); }
     {        uint32_t  val=   3;    AcceptAny(val); AcceptAny(&val); }
     {        uint64_t  val=   4;    AcceptAny(val); AcceptAny(&val); }
-    { aworx::uintGap_t val=   5;    AcceptAny(val); AcceptAny(&val); }
+    { alib::uintGap_t val=   5;    AcceptAny(val); AcceptAny(&val); }
 
 
     std::cout << std::endl << "float/double/long double:" << std::endl;
@@ -149,4 +149,3 @@ int main()
 
     return 0;
 }
-

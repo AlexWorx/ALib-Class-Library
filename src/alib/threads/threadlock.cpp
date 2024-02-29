@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -20,9 +20,9 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 
-ThreadLock::ThreadLock( Safeness pSafeness )
+ThreadLock::ThreadLock( lang::Safeness pSafeness )
 : owner(std::thread::id())
 , safeness(pSafeness)
 {}
@@ -40,7 +40,7 @@ void ThreadLock::Acquire() ,
 void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& dbgFunc )   )
 {
     // are we in unsafe mode?
-    if ( GetSafeness() == Safeness::Unsafe )
+    if ( GetSafeness() == lang::Safeness::Unsafe )
     {
         // we are still increasing the cntAcquirements
         ++cntAcquirements;
@@ -147,7 +147,7 @@ void ThreadLock::Acquire( const NCString& dbgFile, int dbgLine, const NCString& 
 void ThreadLock::Release()
 {
     // are we in unsafe mode?
-    if ( GetSafeness() == Safeness::Unsafe )
+    if ( GetSafeness() == lang::Safeness::Unsafe )
     {
         // not locked
         if( cntAcquirements == 0 )
@@ -183,17 +183,17 @@ void ThreadLock::Release()
 }
 
 
-void ThreadLock::SetSafeness( Safeness newSafeness )
+void ThreadLock::SetSafeness( lang::Safeness newSafeness )
 {
     // are we in unsafe mode?
-    if ( safeness == Safeness::Unsafe )
+    if ( safeness == lang::Safeness::Unsafe )
     {
         // already locked? ALIB Error
         if( cntAcquirements != 0 )
         {
             ALIB_ERROR( "THREADS", "Cannot switch safeness mode while already locked.\n"
                         "  Current mode: unsafe, requested mode: ",
-                        (newSafeness == Safeness::Safe ? "Safe" : "Unsafe" )
+                        (newSafeness == lang::Safeness::Safe ? "Safe" : "Unsafe" )
                       )
 
             return;
@@ -215,7 +215,7 @@ void ThreadLock::SetSafeness( Safeness newSafeness )
             ALIB_ERROR( "THREADS", NString256() <<
                "Cannot switch safeness mode while already locked.\n"
                "  Current mode: safe, requested mode: "  <<
-                (safeness == Safeness::Safe ? "Safe" : "Unsafe" )
+                (safeness == lang::Safeness::Safe ? "Safe" : "Unsafe" )
                 << "\n"
                "  Owner: " << ownerThread->GetId() << '/' << ownerThread->GetName()    )
             return;
@@ -227,6 +227,4 @@ void ThreadLock::SetSafeness( Safeness newSafeness )
 }
 
 
-}}}// namespace [aworx::lib::threads]
-
-
+}} // namespace [alib::threads]

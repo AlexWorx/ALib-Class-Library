@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_DETAIL_RECYCLER
@@ -12,26 +12,26 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-#if !defined(HPP_ALIB_TMP)
-#   include "alib/lib/tmp.hpp"
+#if !defined(HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+
+#if !defined(HPP_ALIB_LANG_SIDILIST)
+#   include "alib/lang/sidilist.hpp"
+#endif
+
+#if ALIB_DEBUG
+#   if !defined(HPP_ALIB_LANG_DBGTYPEDEMANGLER)
+#      include "alib/lang/dbgtypedemangler.hpp"
+#   endif
+#   if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_LOCALSTRING)
+#      include "alib/strings/localstring.hpp"
+#   endif
 #endif
 
 #if !defined (_GLIBCXX_VECTOR) && !defined(_VECTOR_)
 #   include <vector>
-#endif
-
-#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
-#   include "alib/lib/fs_lists/sidilist.hpp"
-#endif
-
-#if ALIB_DEBUG
-#   if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-#      include "alib/strings/localstring.hpp"
-#   endif
 #endif
 
 #if !defined (_GLIBCXX_MEMORY) && !defined(_MEMORY_)
@@ -39,7 +39,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace monomem { namespace detail {
+namespace alib {  namespace monomem { namespace detail {
 
 #if ALIB_DEBUG_MONOMEM && !defined(ALIB_DOX)
     void dbgMonoMemRecyclingOutput(size_t a, size_t b, size_t c, const std::type_info& typeInfo, size_t d  );
@@ -47,11 +47,11 @@ namespace aworx { namespace lib { namespace monomem { namespace detail {
 
 /** ************************************************************************************************
  * This struct is used for recycling of "node elements" which are derived of type
- * \alib{detail::SidiNodeBase}.
+ * \alib{lang::SidiNodeBase}.
  * This class provides the common base for \alib{monomem,detail::RecyclerPrivate} and
  * \alib{monomem,detail::RecyclerShared}.
  *
- * @tparam TSidiNode The type to recycle. Has to be derived of \alib{detail::SidiNodeBase}.
+ * @tparam TSidiNode The type to recycle. Has to be derived of \alib{lang::SidiNodeBase}.
  * @tparam TList     The type of the list of recyclables: Either the same as \p{TSidiNode}
  *                   or a reference to it.
  **************************************************************************************************/
@@ -103,11 +103,11 @@ struct RecyclerPSBase
         size_t size= sizeof(TChunk[1]) * count;
 
         // align beginning of buffer (if necessary)
-        if ALIB_CONSTEXPR17( alignof(TSidiNode) > alignof(TChunk[1])  )
+        if constexpr( alignof(TSidiNode) > alignof(TChunk[1])  )
             std::align( alignof(TSidiNode) ,    // alignment: the desired alignment
                         sizeof (TSidiNode) ,    // size     : the size of the storage to be aligned
-                        mem                   ,    // ptr      : pointer to contiguous storage of at least 'space' bytes
-                        size                    ); // space    : the size of the buffer in which to operate
+                        mem                ,    // ptr      : pointer to contiguous storage of at least 'space' bytes
+                        size                 ); // space    : the size of the buffer in which to operate
 
         // create recyclables
         ALIB_DBG( size_t cntRecycledObjects= 0; )
@@ -125,13 +125,13 @@ struct RecyclerPSBase
             if( cntRecycledObjects <= 0 )
             {
                 #if ALIB_STRINGS
-                    ALIB_WARNING( "MONOMEM/RECYCLER", NString1K() <<
+                    ALIB_WARNING( "MONOMEM/RECYCLER", NString4K() <<
                       "De-allocated chunk size is smaller than node size.\n"
-                      "  Chunk object:       Type: <" << DbgTypeDemangler( typeid(TChunk) ).Get() << ">\n"
+                      "  Chunk object:       Type: <" << lang::DbgTypeDemangler( typeid(TChunk) ).Get() << ">\n"
                       "    Size, Count, Alignment: "  <<  sizeof(TChunk[1]) << " * " << count << " = "
                                                       << (sizeof(TChunk[1]) * count) << " bytes, alignment: "
                                                       << alignof(TChunk[1]) << "\n"
-                      "           Recyclable Type: <" << DbgTypeDemangler( typeid(TSidiNode) ).Get() << ">\n"
+                      "           Recyclable Type: <" << lang::DbgTypeDemangler( typeid(TSidiNode) ).Get() << ">\n"
                       "           Size, Alignment: "  << sizeof(TSidiNode) << " bytes, alignment: " << alignof(TSidiNode) << "\n"
                       "Note: If this recycler is used with a <monomem::HashTable>, this message may be eliminated\n"
                       "      by reserving a reasonable initial bucket size."  )
@@ -173,26 +173,26 @@ struct RecyclerPSBase
  * use private recycling (when \b their template parameter \p{TRecycling} evaluates to
  * \alib{monomem,Recycling::Private}).
  *
- * @tparam TSidiNode The type to recycle. Has to be derived of \alib{detail::SidiNodeBase}.
+ * @tparam TSidiNode The type to recycle. Has to be derived of \alib{lang::SidiNodeBase}.
  **************************************************************************************************/
 template<typename TSidiNode>
-struct RecyclerPrivate  : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>>
+struct RecyclerPrivate  : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>>
 {
     /** Empty constructor, selected when \p{TRecycling} equals
      *  to \alib{monomem,Recycling::Private}.                      */
     RecyclerPrivate()
-    : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>>()
+    : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>>()
     {}
 
     /** Copy constructor. Does not copy the recycle node, but clears this one.              */
     RecyclerPrivate( const RecyclerPrivate&  )
-    : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>>()
+    : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>>()
     {}
 
     /** Move constructor. Grabs the recyclables from the moved one and sets moved to nulled.
      *  @param move The private recycler to move.                                           */
     RecyclerPrivate( RecyclerPrivate&& move )
-    : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>>( move.recyclables )
+    : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>>( move.recyclables )
     {
         move.recyclables.reset();
     }
@@ -202,7 +202,7 @@ struct RecyclerPrivate  : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<
      *  the monotonic memory is about to be reset likewise.                             */
     void            disposeRecyclablesIfPrivate()
     {
-         RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>>::recyclables.reset();
+         RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>>::recyclables.reset();
     }
 };
 
@@ -211,28 +211,28 @@ struct RecyclerPrivate  : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<
  * use shared recycling (when \b their template parameter \p{TRecycling} evaluates to
  * \alib{monomem,Recycling::Shared}).
  *
- * @tparam TSidiNode The type to recycle. Has to be derived of \alib{detail::SidiNodeBase}.
+ * @tparam TSidiNode The type to recycle. Has to be derived of \alib{lang::SidiNodeBase}.
  **************************************************************************************************/
 template<typename TSidiNode>
-struct RecyclerShared  : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>&>
+struct RecyclerShared  : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>&>
 {
     /** Constructor, selected when \p{TRecycling} equals
      *  to \alib{monomem,Recycling::Shared}.
      *  @param sharedRecyclables The external list of recyclables. */
-    RecyclerShared( lib::detail::SidiListHelper<TSidiNode>& sharedRecyclables)
-    :  RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>&>( sharedRecyclables )
+    RecyclerShared( lang::SidiListHelper<TSidiNode>& sharedRecyclables)
+    :  RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>&>( sharedRecyclables )
     {}
 
     /** Copy constructor. Copies the reference to the shared recycler.
      *  @param copy The private recycler to copy.                                           */
     RecyclerShared( const RecyclerShared& copy )
-    : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>&>( copy )
+    : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>&>( copy )
     {}
 
     /** Move constructor. Just copies the reference but leaves original intact. (We don't care)
      *  @param move The private recycler to move.                                           */
     RecyclerShared( RecyclerShared&& move )
-    : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<TSidiNode>&>( move )
+    : RecyclerPSBase<TSidiNode, lang::SidiListHelper<TSidiNode>&>( move )
     {}
 
     /** As the method name indicates, this implementation is empty.
@@ -255,16 +255,16 @@ struct RecyclerShared  : RecyclerPSBase<TSidiNode, lib::detail::SidiListHelper<T
  *   Non-empty 'implementations' of this template type are given with
  *   \alib{monomem,detail::RecyclerPrivate} and \alib{monomem,detail::RecyclerShared}.
  *
- * @tparam TSidiNode The type to recycle. Has to be derived of \alib{detail::SidiNodeBase}.
+ * @tparam TSidiNode The type to recycle. Has to be derived of \alib{lang::SidiNodeBase}.
  **************************************************************************************************/
 template<typename TSidiNode>
 struct RecyclerVoid
 {
 #if !defined(ALIB_DOX)
     constexpr               RecyclerVoid()                                                        {}
-              void          recycle( TSidiNode*  )                  const                      {}
-              void          recycle( TSidiNode* , TSidiNode*  )  const                      {}
-    constexpr TSidiNode* get()                                      const     { return nullptr; }
+              void          recycle( TSidiNode*  )                     const                      {}
+              void          recycle( TSidiNode* , TSidiNode* )         const                      {}
+    constexpr TSidiNode* get()                                         const     { return nullptr; }
     constexpr integer       count()                                    const           { return 0; }
               void          disposeRecyclablesIfPrivate()              const                      {}
     template<typename TChunk>
@@ -274,8 +274,8 @@ struct RecyclerVoid
 }; // struct RecyclerVoid
 
 
-}}}// namespace aworx[::lib::monomem::detail]
+}} // namespace alib[::monomem::detail]
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_MONOMEM_DETAIL_RECYCLER

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -16,7 +16,8 @@
 #define TESTCLASSNAME       CPP_ALib_BitBuffer
 #include "unittests/aworx_unittests.hpp"
 
-using namespace aworx;
+using namespace alib;
+using namespace alib::lang;
 
 
 namespace ut_aworx {
@@ -93,9 +94,9 @@ UT_METHOD(BitBuffer)
                             UT_EQ(bw.GetIndex(), BitBuffer::Index::Decode32(bw.GetIndex().Encode32()) )
                             UT_EQ(bw.GetIndex(), BitBuffer::Index::Decode64(bw.GetIndex().Encode64()) )
 
-        bw.Write<sizeof(BitBuffer::TStorage) * 8>(0ul );
-                            UT_EQ(       9u + sizeof(BitBuffer::TStorage) *8, bw.Usage()          )
-                            UT_EQ(  size- 9 - sizeof(BitBuffer::TStorage) *8, bw.RemainingSize()  )
+        bw.Write<bitsof(BitBuffer::TStorage)>(0ul );
+                            UT_EQ(       9u + bitsof(BitBuffer::TStorage), bw.Usage()          )
+                            UT_EQ(  size- 9 - bitsof(BitBuffer::TStorage), bw.RemainingSize()  )
                             UT_EQ(bw.GetIndex(), BitBuffer::Index::Decode32(bw.GetIndex().Encode32()) )
                             UT_EQ(bw.GetIndex(), BitBuffer::Index::Decode64(bw.GetIndex().Encode64()) )
         bw.Flush();
@@ -395,21 +396,21 @@ UT_METHOD(BitBuffer)
         BitWriter bw(bb);
         BitReader br(bb);
 
-        bw.Write<      4, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<    4 ALIB_COMMA uint32_t>(),  lib::LowerBits<    4>(         0xAAAAAAAAu))
-        bw.Write<      4, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<    4 ALIB_COMMA uint32_t>(),  lib::LowerBits<    4>(         0x55555555u))
-        bw.Write<     29, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<   29 ALIB_COMMA uint32_t>(),  lib::LowerBits<   29>(         0xAAAAAAAAu))
-        bw.Write<     29, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<   29 ALIB_COMMA uint32_t>(),  lib::LowerBits<   29>(         0x55555555u))
-        bw.Write<     31, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<   31 ALIB_COMMA uint32_t>(),  lib::LowerBits<   31>(         0xAAAAAAAAu))
-        bw.Write<     31, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<   31 ALIB_COMMA uint32_t>(),  lib::LowerBits<   31>(         0x55555555u))
+        bw.Write<      4, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<    4 ALIB_COMMA uint32_t>(),  LowerBits<    4>(         0xAAAAAAAAu))
+        bw.Write<      4, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<    4 ALIB_COMMA uint32_t>(),  LowerBits<    4>(         0x55555555u))
+        bw.Write<     29, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<   29 ALIB_COMMA uint32_t>(),  LowerBits<   29>(         0xAAAAAAAAu))
+        bw.Write<     29, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<   29 ALIB_COMMA uint32_t>(),  LowerBits<   29>(         0x55555555u))
+        bw.Write<     31, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<   31 ALIB_COMMA uint32_t>(),  LowerBits<   31>(         0xAAAAAAAAu))
+        bw.Write<     31, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<   31 ALIB_COMMA uint32_t>(),  LowerBits<   31>(         0x55555555u))
         bw.Write<     32, uint32_t, true>( uint32_t(         0xAAAAAAAAu) );   bw.Flush(); UT_EQ( br.Sync().Read<   32 ALIB_COMMA uint32_t>(),                                 0xAAAAAAAAu )
         bw.Write<     32, uint32_t, true>( uint32_t(         0x55555555u) );   bw.Flush(); UT_EQ( br.Sync().Read<   32 ALIB_COMMA uint32_t>(),                                 0x55555555u )
 
-        bw.Write< 4 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read< 4+32 ALIB_COMMA uint64_t>(),  lib::LowerBits< 4+32>(0xAAAAAAAAAAAAAAAAul))
-        bw.Write< 4 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read< 4+32 ALIB_COMMA uint64_t>(),  lib::LowerBits< 4+32>(0x5555555555555555ul))
-        bw.Write<29 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read<29+32 ALIB_COMMA uint64_t>(),  lib::LowerBits<29+32>(0xAAAAAAAAAAAAAAAAul))
-        bw.Write<29 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read<29+32 ALIB_COMMA uint64_t>(),  lib::LowerBits<29+32>(0x5555555555555555ul))
-        bw.Write<31 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read<31+32 ALIB_COMMA uint64_t>(),  lib::LowerBits<31+32>(0xAAAAAAAAAAAAAAAAul))
-        bw.Write<31 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read<31+32 ALIB_COMMA uint64_t>(),  lib::LowerBits<31+32>(0x5555555555555555ul))
+        bw.Write< 4 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read< 4+32 ALIB_COMMA uint64_t>(),  LowerBits< 4+32>(0xAAAAAAAAAAAAAAAAul))
+        bw.Write< 4 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read< 4+32 ALIB_COMMA uint64_t>(),  LowerBits< 4+32>(0x5555555555555555ul))
+        bw.Write<29 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read<29+32 ALIB_COMMA uint64_t>(),  LowerBits<29+32>(0xAAAAAAAAAAAAAAAAul))
+        bw.Write<29 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read<29+32 ALIB_COMMA uint64_t>(),  LowerBits<29+32>(0x5555555555555555ul))
+        bw.Write<31 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read<31+32 ALIB_COMMA uint64_t>(),  LowerBits<31+32>(0xAAAAAAAAAAAAAAAAul))
+        bw.Write<31 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read<31+32 ALIB_COMMA uint64_t>(),  LowerBits<31+32>(0x5555555555555555ul))
         bw.Write<32 + 32, uint64_t, true>( uint64_t(0xAAAAAAAAAAAAAAAAul) );   bw.Flush(); UT_EQ( br.Sync().Read<32+32 ALIB_COMMA uint64_t>(),                        0xAAAAAAAAAAAAAAAAul )
         bw.Write<32 + 32, uint64_t, true>( uint64_t(0x5555555555555555ul) );   bw.Flush(); UT_EQ( br.Sync().Read<32+32 ALIB_COMMA uint64_t>(),                        0x5555555555555555ul )
 
@@ -425,35 +426,37 @@ UT_METHOD(BitBuffer)
         UT_PRINT("Used buffer: {}", bw.Usage()  )
 
 
-        for(ShiftOpRHS width=0 ; width <= ShiftOpRHS(sizeof(unsigned int)*8); ++width )
+        for(ShiftOpRHS width=0 ; width <= bitsof(unsigned int) ; ++width )
             for(int i=0 ; i < loopsize; ++i )
             {
-                auto val= aworx::lib::LowerBits(width, i);
+                auto val= width == bitsof(int) ? i : LowerBits(width, i);
                 bw.Write( width, val ); bw.Flush(); UT_EQ( val, br.Sync().Read<int>(width) )
                 UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
                 UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
             }
 
         br.Reset();
-        for(ShiftOpRHS width=0 ; width <= ShiftOpRHS(sizeof(int)*8); ++width )
+        for(ShiftOpRHS width=0 ; width <= bitsof(int) ; ++width )
             for(int i=0 ; i < loopsize; ++i )
-                UT_EQ( aworx::lib::LowerBits(width, i), br.Sync().Read<int>(width) )
+                UT_EQ( width < bitsof(int) ? LowerBits(width, i) : i,
+                       br.Sync().Read<int>(width) )
 
         bw.Reset();
         br.Reset();
-        for(ShiftOpRHS width=ShiftOpRHS(sizeof(int)*8) +1 ; width <= ShiftOpRHS(sizeof(uinteger)*8); ++width )
+        for(ShiftOpRHS width= bitsof(int) +1 ; width <= bitsof(uinteger) ; ++width )
             for(uinteger i=0 ; i < uinteger(loopsize); ++i )
             {
-                uinteger val= aworx::lib::LowerBits(width, i);
+                uinteger val= width < bitsof(uinteger) ? LowerBits(width, i) : i;
                 bw.Write( width, val ); bw.Flush(); UT_EQ( val,br.Sync().Read<uinteger>(width) )
                 UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
                 UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
             }
 
         br.Reset();
-        for(ShiftOpRHS width=ShiftOpRHS(sizeof(int)*8) +1 ; width <= ShiftOpRHS(sizeof(uinteger)*8); ++width )
+        for(ShiftOpRHS width=bitsof(int) +1 ; width <= bitsof(uinteger); ++width )
             for(uinteger i=0 ; i < uinteger(loopsize); ++i )
-                UT_EQ( aworx::lib::LowerBits(width, i), br.Sync().Read<uinteger>(width) )
+                UT_EQ( width < bitsof(int) ? LowerBits(width, i) : i,
+                       br.Sync().Read<uinteger>(width) )
     }
 
 
@@ -467,145 +470,145 @@ UT_METHOD(BitBuffer)
 
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<3>(i);
+            int val= LowerBits<3>(i);
             bw.Write<3>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 3  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<3>(i) , br.Sync().Read< 3  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<3>(i) , br.Sync().Read< 3  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<4>(i);
+            int val= LowerBits<4>(i);
             bw.Write<4>( val ); bw.Flush();UT_EQ( val, br.Sync().Read< 4  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<4>(i) , br.Sync().Read< 4  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<4>(i) , br.Sync().Read< 4  ALIB_COMMA int>() )
 
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<7>(i);
+            int val= LowerBits<7>(i);
             bw.Write<7>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 7  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<7>(i) , br.Sync().Read< 7  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<7>(i) , br.Sync().Read< 7  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<8>(i);
+            int val= LowerBits<8>(i);
             bw.Write<8>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 8  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<8>(i) , br.Sync().Read< 8  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<8>(i) , br.Sync().Read< 8  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<15>(i);
+            int val= LowerBits<15>(i);
             bw.Write<15>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 15  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<15>(i) , br.Sync().Read< 15  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<15>(i) , br.Sync().Read< 15  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<16>(i);
+            int val= LowerBits<16>(i);
             bw.Write<16>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 16  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<16>(i) , br.Sync().Read< 16  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<16>(i) , br.Sync().Read< 16  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(unsigned int i=0 ; i < static_cast<unsigned int>(loopsize); ++i )
         {
-            unsigned int val= aworx::lib::LowerBits<31, unsigned int>(i);
+            unsigned int val= LowerBits<31, unsigned int>(i);
             bw.Write<31>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 31  ALIB_COMMA unsigned int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(unsigned int i=0 ; i < static_cast<unsigned int>(loopsize); ++i )
-            UT_EQ( aworx::lib::LowerBits<31>(i) , br.Sync().Read< 31  ALIB_COMMA unsigned int>() )
+            UT_EQ( LowerBits<31>(i) , br.Sync().Read< 31  ALIB_COMMA unsigned int>() )
 
         bw.Reset();
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
         {
-            int val= aworx::lib::LowerBits<32>(i);
+            int val= LowerBits<32>(i);
             bw.Write<32>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 32  ALIB_COMMA int>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(int i=0 ; i < loopsize; ++i )
-            UT_EQ( aworx::lib::LowerBits<32>(i) , br.Sync().Read< 32  ALIB_COMMA int>() )
+            UT_EQ( LowerBits<32>(i) , br.Sync().Read< 32  ALIB_COMMA int>() )
 
         bw.Reset();
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
         {
-            uint64_t val= aworx::lib::LowerBits<35>(i);
+            uint64_t val= LowerBits<35>(i);
             bw.Write<35>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 35  ALIB_COMMA uint64_t>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
-            UT_EQ( aworx::lib::LowerBits<35>(i) , br.Sync().Read< 35  ALIB_COMMA uint64_t>() )
+            UT_EQ( LowerBits<35>(i) , br.Sync().Read< 35  ALIB_COMMA uint64_t>() )
 
         bw.Reset();
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
         {
-            uint64_t val= aworx::lib::LowerBits<63>(i);
+            uint64_t val= LowerBits<63>(i);
             bw.Write<63>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 63  ALIB_COMMA uint64_t>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
-            UT_EQ( aworx::lib::LowerBits<63>(i) , br.Sync().Read< 63  ALIB_COMMA uint64_t>() )
+            UT_EQ( LowerBits<63>(i) , br.Sync().Read< 63  ALIB_COMMA uint64_t>() )
 
         bw.Reset();
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
         {
-            uint64_t val= aworx::lib::LowerBits<64>(i);
+            uint64_t val= LowerBits<64>(i);
             bw.Write<64>( val ); bw.Flush(); UT_EQ( val, br.Sync().Read< 64  ALIB_COMMA uint64_t>() )
             UT_EQ(  bw.GetIndex(), BitBuffer::Index::Decode32( bw.GetIndex().Encode32()) )
             UT_EQ(  br.GetIndex(), BitBuffer::Index::Decode64( br.GetIndex().Encode64()) )
         }
         br.Reset();
         for(uint64_t i=0 ; i < uint64_t(loopsize); ++i )
-            UT_EQ( aworx::lib::LowerBits<64>(i) , br.Sync().Read< 64  ALIB_COMMA uint64_t>() )
+            UT_EQ( LowerBits<64>(i) , br.Sync().Read< 64  ALIB_COMMA uint64_t>() )
 
 
         UT_PRINT( "Used buffer: {}", bw.Usage()  )

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_ENUM
@@ -20,7 +20,7 @@
 #   include <typeindex>
 #endif
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 /** ************************************************************************************************
  * This class is useful to pass and accept enum values of arbitrary C++ scoped enum types.
@@ -49,7 +49,7 @@ namespace aworx { namespace lib { namespace boxing {
  * ## Functors In Namespace std ##
  * Functors <c>std::hash</c>, <c>std::equal_to</c> and <c>std::less</c> are specialized for
  * this type with the inclusion of header file \alibheader{compatibility/std_boxing_functional.hpp}
- * as documented with namespace #aworx::lib::compatibility::std.
+ * as documented with namespace #alib::compatibility::std.
  *
  * ## Friends ##
  * class \alib{boxing,Box}
@@ -307,7 +307,7 @@ struct Enum : protected Box
             const void* result= enums::detail::getEnumRecord( TypeID(), Integral() );
             #if ALIB_STRINGS
                 ALIB_ASSERT_ERROR( result != nullptr, "BOXING",
-                                   NString128() << "Enum Record for type <" << DbgTypeDemangler(TypeID()).Get()
+                                   NString128() << "Enum Record for type <" << lang::DbgTypeDemangler(TypeID()).Get()
                                                 << ">(" << Integral()   << ") not found." )
             #else
                 ALIB_ASSERT_ERROR( result != nullptr,
@@ -347,12 +347,12 @@ struct Enum : protected Box
 
 }; // class Enum
 
-}} // namespace aworx[::lib::boxing]
+} // namespace alib[::boxing]
 
-/// Type alias in namespace #aworx.
-using     Enum=              lib::boxing::Enum;
+/// Type alias in namespace \b alib.
+using     Enum=              boxing::Enum;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 // #################################################################################################
 // T_Append<Enum>
@@ -364,7 +364,7 @@ using     Enum=              lib::boxing::Enum;
     #endif
 
 
-    namespace aworx { namespace lib { namespace strings {
+    namespace alib {  namespace strings {
     // Faking all template specializations of namespace strings for doxygen into namespace
     // strings::APPENDABLES to keep the documentation of namespace string clean!
     #if defined(ALIB_DOX)
@@ -391,9 +391,9 @@ using     Enum=              lib::boxing::Enum;
         };
 
     #if defined(ALIB_DOX)
-    }    // namespace aworx::lib::strings[::appendables]
+    }    // namespace alib::strings[::appendables]
     #endif
-    }}}  // namespace [aworx::lib::strings]
+    }}  // namespace [alib::strings]
 
 #endif // ALIB_STRINGS
 

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_enums of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_ENUMS_ITERABLE
@@ -18,10 +18,6 @@ ALIB_ASSERT_MODULE(ENUMS)
 #   include "alib/enums/underlyingintegral.hpp"
 #endif
 
-#if !defined(HPP_ALIB_BITS)
-#   include "alib/lib/bits.hpp"
-#endif
-
 #if !defined (_GLIBCXX_CSTDINT) && !defined (_CSTDINT_)
 #   include <cstdint>
 #endif
@@ -30,7 +26,7 @@ ALIB_ASSERT_MODULE(ENUMS)
 #   include <iterator>
 #endif
 
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 
 // #################################################################################################
 // struct T_EnumIsIterable
@@ -54,7 +50,7 @@ namespace aworx { namespace lib { namespace enums {
  * \attention
  *   Likewise with the operators introduced with other TMP structs of this module,
  *   this documentation "fakes" the operators into namespace
- *   <c>aworx::lib::enums::iterable</c>, while in fact they are defined in the global
+ *   <c>alib::enums::iterable</c>, while in fact they are defined in the global
  *   namespace!<br>
  *   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
  *   for details.
@@ -101,19 +97,19 @@ struct T_EnumIsIterable    : public std::false_type
 
 };
 
-}}} // namespace [aworx::lib::enums]
+}} // namespace [alib::enums]
 
 // #################################################################################################
 // Helper Macros
 // #################################################################################################
 
 #define  ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END(TEnum, StartElement, StopElement )                     \
-namespace aworx { namespace lib { namespace enums {                                                \
+namespace alib::enums {                                                                            \
 template<> struct T_EnumIsIterable<TEnum>   : std::true_type                                       \
 {                                                                                                  \
     static constexpr   TEnum    Begin    = StartElement;                                           \
     static constexpr   TEnum    End      = StopElement;                                            \
-};}}}
+};}
 
 #define  ALIB_ENUMS_MAKE_ITERABLE(TEnum, StopElement )                                             \
 ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END( TEnum, TEnum(0),  StopElement )
@@ -124,9 +120,9 @@ ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END( TEnum, TEnum(0),  StopElement )
 // #################################################################################################
 
 // For documentation, all operators and enum related template functions are faked into namespace
-// aworx::lib::enums
+// alib::enums
 #if defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace enums {
+namespace alib {  namespace enums {
 /**
  * Operators available to elements of enumerations if \alib{enums,T_EnumIsIterable} is
  * specialized.
@@ -156,10 +152,10 @@ TEnum    operator+  (TEnum element, int addend) noexcept(true);
 #else
 template<typename TEnum>
 constexpr
-ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(aworx::lib::enums::T_EnumIsIterable<TEnum>::Begin)) )
+ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin)) )
 operator+  (TEnum element, int addend) noexcept(true)
 {
-    return TEnum( aworx::UnderlyingIntegral(element) + addend );
+    return TEnum( alib::UnderlyingIntegral(element) + addend );
 }
 #endif
 
@@ -182,27 +178,25 @@ TEnum    operator-  (TEnum element, int subtrahend) noexcept(true);
 
 template<typename TEnum>
 constexpr
-ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(aworx::lib::enums::T_EnumIsIterable<TEnum>::Begin)) )
+ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin)) )
 operator-  (TEnum element, int subtrahend) noexcept(true)
 {
-    return TEnum( aworx::UnderlyingIntegral(element) - subtrahend );
+    return TEnum( alib::UnderlyingIntegral(element) - subtrahend );
 }
 #endif
 
 
-// Faking all operators and enum related template functions to namespace aworx::lib::enums
+// Faking all operators and enum related template functions to namespace alib::enums
 #if defined(ALIB_DOX)
 }
 #else
-    namespace aworx { namespace lib { namespace enums {
+    namespace alib {  namespace enums {
 #endif
 
 
 // #################################################################################################
-// Enum
+// EnumIterator
 // #################################################################################################
-
-
 #if defined(ALIB_DOX)
 /** ************************************************************************************************
  * Implements a \c std::iterator_traits class for scoped and non-scoped enum types.
@@ -220,7 +214,7 @@ template<typename TEnum, typename TEnableIf>
 struct EnumIterator
 #else
 template<typename TEnum, typename TEnableIf
-= ATMP_VOID_IF(ATMP_EQ(const TEnum, decltype(aworx::lib::enums::T_EnumIsIterable<TEnum>::Begin)) ) >
+= ATMP_VOID_IF(ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin)) ) >
 struct EnumIterator
 #endif
 {
@@ -393,8 +387,8 @@ struct EnumIterator
                 if( !T_EnumIsBitwise<TEnum>::value )
                     return static_cast<std::ptrdiff_t>(UnderlyingIntegral(p) - UnderlyingIntegral(other.p));
                 else
-                     return   static_cast<std::ptrdiff_t>(MSB(UnderlyingIntegral( p )       ))
-                            - static_cast<std::ptrdiff_t>(MSB(UnderlyingIntegral( other.p ) ));
+                     return   static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( p )       ))
+                            - static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( other.p ) ));
             }
 
             /** Subscript operator.
@@ -475,20 +469,27 @@ struct EnumIterator
     {
         return ConstIterator( TEnum(0) + UnderlyingIntegral( T_EnumIsIterable<TEnum>::End ) );
     }
+};  // struct EnumIterator
 
-};
-}} // namespace aworx[::lib::enums]
+
+
+
+} // namespace alib[::enums]
 
 #if defined(ALIB_DOX)
-/// Type alias in namespace #aworx.
+
+/// Type alias in namespace \b alib.
 template<typename TEnum, typename TEnableIf= void>
-using  EnumIterator=     lib::enums::EnumIterator<TEnum, TEnableIf>;
+using  EnumIterator=     enums::EnumIterator<TEnum, TEnableIf>;
+
 #else
+
 template<typename TEnum, typename TEnableIf
-= ATMP_VOID_IF(ATMP_EQ(const TEnum, decltype(lib::enums::T_EnumIsIterable<TEnum>::Begin)) ) >
-using  EnumIterator=     lib::enums::EnumIterator<TEnum, TEnableIf>;
+= ATMP_VOID_IF(ATMP_EQ(const TEnum, decltype(enums::T_EnumIsIterable<TEnum>::Begin)) ) >
+using  EnumIterator=     enums::EnumIterator<TEnum, TEnableIf>;
+
 #endif
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_ENUMS_ITERABLE

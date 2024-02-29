@@ -4,14 +4,14 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM
 #define HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(STRINGS)
@@ -29,7 +29,7 @@ ALIB_ASSERT_MODULE(STRINGS)
 #endif
 
 
-namespace aworx { namespace lib { namespace strings { namespace compatibility { namespace std {
+namespace alib {  namespace strings { namespace compatibility { namespace std {
 
 /** ************************************************************************************************
  * This template type may be specialized to suppress ambiguities for types \p{T} which
@@ -53,8 +53,8 @@ namespace aworx { namespace lib { namespace strings { namespace compatibility { 
 template<typename T>  struct T_SuppressStdOstreamOperator  :  ::std::false_type {};
 
 #define ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(TYPE)                                           \
-    namespace aworx { namespace lib { namespace strings { namespace compatibility { namespace std {\
-    template<> struct T_SuppressStdOstreamOperator<TYPE>  : ::std::true_type {};      }}}}}
+    namespace alib::strings::compatibility::std {                                                  \
+    template<> struct T_SuppressStdOstreamOperator<TYPE>  : ::std::true_type {};      }
 
 
 /** ************************************************************************************************
@@ -75,13 +75,13 @@ template<typename T>  struct T_SuppressStdOstreamOperator  :  ::std::false_type 
  * - \alib{strings,compatibility::std::operator>>(std::istream&,NAString& string)}  and
  *   \alib{strings,compatibility::std::operator<<(std::ostream&,const NString&)}.
  * - For a sample, refer to source code of \alib class \b %IniFile, method
- *   \ref aworx::lib::config::IniFile::ReadFile "IniFile::ReadFile".
+ *   \ref alib::config::IniFile::ReadFile "IniFile::ReadFile".
  *
  *
  * @tparam TChar  The character type of the input stream as well as the receiving string.<br>
  *                Specializations for character types \alib{characters,nchar},
  *                \alib{characters,wchar} exist. Those have corresponding alias type definition
- *                shortcuts \aworx{ISReadLineN} and \aworx{ISReadLineW} in namespace #aworx.
+ *                shortcuts \alib{ISReadLineN} and \alib{ISReadLineW} in namespace #alib.
  **************************************************************************************************/
 template<typename TChar>
 struct TISReadLine
@@ -90,7 +90,7 @@ struct TISReadLine
     ::std::basic_istream<TChar>*    IStream;
 
     /** If \c CurrentData::KEEP, the target \c %AString is not cleared before the read operation. */
-    CurrentData                     TargetData;
+    lang::CurrentData               TargetData;
 
     /** The amount of characters that the buffer is increased while reading parts of the line. */
     integer                         BufferSize;
@@ -118,7 +118,7 @@ struct TISReadLine
      *                      get truncated. Defaults to 4096 characters.
      **********************************************************************************************/
     TISReadLine( ::std::basic_istream<TChar>*   istream,
-                 CurrentData                    targetData   = CurrentData::Clear,
+                 lang::CurrentData              targetData   = lang::CurrentData::Clear,
                  integer                        bufferSize   = 256,
                  integer                        maxLineWidth = 4096                      )
     : IStream     (istream),
@@ -161,7 +161,7 @@ template<typename TChar>  struct T_Append<compatibility::std::TISReadLine<TChar>
 };
 
 #if defined(ALIB_DOX)
-} namespace aworx::lib::strings[::APPENDABLES]
+} namespace alib::strings[::APPENDABLES]
 #endif
 namespace compatibility { namespace std {
 
@@ -177,7 +177,7 @@ namespace compatibility { namespace std {
  *
  * 1. Create an output stream of (derived) type \c std::ostream.
  * 2. Create an object of this class and pass the output stream via #SetStream.
- * 3. Write string data stored in objects of platform dependent type alias \ref aworx::AString
+ * 3. Write string data stored in objects of platform dependent type alias \ref alib::AString
  *    by passing those to method #Write.
  *
  * Within step 3, the compiler chooses the right overloaded version of method #Write. Hence the
@@ -384,28 +384,28 @@ class StringReader
         }
 };
 
-}}}} // namespace aworx[::lib::strings::compatibility::std]
+}}} // namespace alib[::strings::compatibility::std]
 
-/// Type alias in namespace #aworx.
-using  ISReadLineN    =   lib::strings::compatibility::std::TISReadLine<char>;
+/// Type alias in namespace \b alib.
+using  ISReadLineN    =   strings::compatibility::std::TISReadLine<char>;
 
-/// Type alias in namespace #aworx.
-using  ISReadLineW    =   lib::strings::compatibility::std::TISReadLine<wchar_t>;
+/// Type alias in namespace \b alib.
+using  ISReadLineW    =   strings::compatibility::std::TISReadLine<wchar_t>;
 
-/// Type alias in namespace #aworx.
-using  StringWriter   =   lib::strings::compatibility::std::StringWriter;
+/// Type alias in namespace \b alib.
+using  StringWriter   =   strings::compatibility::std::StringWriter;
 
-/// Type alias in namespace #aworx.
-using  StringReader   =   lib::strings::compatibility::std::StringReader;
+/// Type alias in namespace \b alib.
+using  StringReader   =   strings::compatibility::std::StringReader;
 
 
 // #################################################################################################
 // ####################           std::ostream& operator<<           ###############################
 // #################################################################################################
 #if defined(ALIB_DOX)
-namespace lib { namespace strings { namespace compatibility { namespace std {
+ namespace strings { namespace compatibility { namespace std {
 #else
-} // namespace [aworx]
+} // namespace [alib]
 #endif
 
 /** ************************************************************************************************
@@ -416,7 +416,7 @@ namespace lib { namespace strings { namespace compatibility { namespace std {
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::ostream& operator<<( std::ostream& stream, const aworx::NString& string )
+inline std::ostream& operator<<( std::ostream& stream, const alib::NString& string )
 {
     if ( string.IsNotEmpty() )
         stream.write( string.Buffer(), string.Length() );
@@ -431,7 +431,7 @@ inline std::ostream& operator<<( std::ostream& stream, const aworx::NString& str
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::ostream* operator<<( std::ostream* stream, const aworx::NString& string )
+inline std::ostream* operator<<( std::ostream* stream, const alib::NString& string )
 {
     stream->write( string.Buffer(), string.Length() );
     return stream;
@@ -445,7 +445,7 @@ inline std::ostream* operator<<( std::ostream* stream, const aworx::NString& str
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-ALIB_API std::ostream& operator<<( std::ostream& stream, const aworx::WString& string );
+ALIB_API std::ostream& operator<<( std::ostream& stream, const alib::WString& string );
 
 /** ************************************************************************************************
  * Copies the contents of the given \b %WString to into the \c std::ostream given as pointer.
@@ -455,7 +455,7 @@ ALIB_API std::ostream& operator<<( std::ostream& stream, const aworx::WString& s
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline   std::ostream* operator<<( std::ostream* stream, const aworx::WString& string )
+inline   std::ostream* operator<<( std::ostream* stream, const alib::WString& string )
 {
     (*stream) << string;
     return  stream;
@@ -477,7 +477,7 @@ inline   std::ostream* operator<<( std::ostream* stream, const aworx::WString& s
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-ALIB_API std::wostream& operator<<( std::wostream& stream, const aworx::NString& string );
+ALIB_API std::wostream& operator<<( std::wostream& stream, const alib::NString& string );
 
 /** ************************************************************************************************
  * Copies the contents of the given \b %NString to into the \c std::wostream given as pointer.
@@ -490,7 +490,7 @@ ALIB_API std::wostream& operator<<( std::wostream& stream, const aworx::NString&
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline   std::wostream* operator<<( std::wostream* stream, const aworx::NString& string )
+inline   std::wostream* operator<<( std::wostream* stream, const alib::NString& string )
 {
     (*stream) << string;
     return  stream;
@@ -504,14 +504,14 @@ inline   std::wostream* operator<<( std::wostream* stream, const aworx::NString&
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::wostream& operator<<( std::wostream& stream, const aworx::WString& string )
+inline std::wostream& operator<<( std::wostream& stream, const alib::WString& string )
 {
     if ( string.IsNotEmpty() )
     {
         #if ALIB_CHARACTERS_NATIVE_WCHAR
             stream.write( string.Buffer(), string.Length() );
         #else
-            aworx::XLocalString<1024> converter( string );
+            alib::XLocalString<1024> converter( string );
             converter.DbgDisableBufferReplacementWarning();
             stream.write( converter.Buffer(), converter.Length() );
         #endif
@@ -527,7 +527,7 @@ inline std::wostream& operator<<( std::wostream& stream, const aworx::WString& s
  * @param  string The String to write into the given ostream.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::wostream* operator<<( std::wostream* stream, const aworx::WString& string )
+inline std::wostream* operator<<( std::wostream* stream, const alib::WString& string )
 {
     (*stream) << string;
     return stream;
@@ -542,10 +542,10 @@ inline std::wostream* operator<<( std::wostream* stream, const aworx::WString& s
  * @param  string The AString to receive data.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::istream& operator>>( std::istream& stream, aworx::NAString& string )
+inline std::istream& operator>>( std::istream& stream, alib::NAString& string )
 {
-    string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( &stream,
-                                                                   aworx::lib::CurrentData::Clear );
+    string << alib::strings::compatibility::std::TISReadLine<alib::nchar>( &stream,
+                                                                   alib::lang::CurrentData::Clear );
     return stream;
 }
 
@@ -558,13 +558,13 @@ inline std::istream& operator>>( std::istream& stream, aworx::NAString& string )
  * @param  string The AString to receive data.
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
-inline std::istream* operator>>( std::istream* stream, aworx::NAString& string )
+inline std::istream* operator>>( std::istream* stream, alib::NAString& string )
 {
     ALIB_ASSERT_WARNING ( stream != nullptr, "STRINGS", "Given std::IStream is nullptr" )
 
     if (stream != nullptr)
-        string << aworx::lib::strings::compatibility::std::TISReadLine<aworx::nchar>( stream,
-                                                                   aworx::lib::CurrentData::Clear );
+        string << alib::strings::compatibility::std::TISReadLine<alib::nchar>( stream,
+                                                                   alib::lang::CurrentData::Clear );
     return stream;
 }
 
@@ -587,16 +587,16 @@ inline std::istream* operator>>( std::istream* stream, aworx::NAString& string )
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& stream,
-                                                aworx::WAString&             string )
+                                                alib::WAString&              string )
 {
     #if ALIB_CHARACTERS_NATIVE_WCHAR
-        string << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
-                                                                   aworx::lib::CurrentData::Clear );
+        string << alib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+                                                                   alib::lang::CurrentData::Clear );
     #else
-        aworx::XLocalString<1024> converter;
+        alib::XLocalString<1024> converter;
         converter.DbgDisableBufferReplacementWarning();
-        converter << aworx::lib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
-                                                                   aworx::lib::CurrentData::Keep );
+        converter << alib::strings::compatibility::std::TISReadLine<wchar_t>( &stream,
+                                                                   alib::lang::CurrentData::Keep );
         string.Reset( converter );
     #endif
     return stream;
@@ -616,7 +616,7 @@ inline std::basic_istream<wchar_t>& operator>>( std::basic_istream<wchar_t>& str
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 inline std::basic_istream<wchar_t>* operator>>( std::basic_istream<wchar_t>* stream,
-                                                aworx::WAString& string )
+                                                alib::WAString& string )
 {
     ALIB_ASSERT_WARNING ( stream != nullptr, "STRINGS", "Given std::istream is nullptr" )
 
@@ -638,12 +638,12 @@ inline std::basic_istream<wchar_t>* operator>>( std::basic_istream<wchar_t>* str
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 template<typename TAppendable,
-         typename TEnableIf= typename  std::enable_if<    aworx::lib::strings::TT_IsAppendable<TAppendable,aworx::nchar>::value
-                                                      && !aworx::lib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
+         typename TEnableIf= typename  std::enable_if<    alib::strings::TT_IsAppendable<TAppendable,alib::nchar>::value
+                                                      && !alib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
                                                      >::type>
 std::ostream& operator<<( std::ostream& stream, const TAppendable& appendable )
 {
-    aworx::NString256 buf;
+    alib::NString256 buf;
     buf.DbgDisableBufferReplacementWarning();
 
     if ( buf._(appendable).IsNotEmpty() )
@@ -663,8 +663,8 @@ std::ostream& operator<<( std::ostream& stream, const TAppendable& appendable )
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 template<typename TAppendable,
-         typename TEnableIf=  typename  std::enable_if<    aworx::lib::strings::TT_IsAppendable<TAppendable,aworx::nchar>::value
-                                                       && !aworx::lib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
+         typename TEnableIf=  typename  std::enable_if<    alib::strings::TT_IsAppendable<TAppendable,alib::nchar>::value
+                                                       && !alib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
                                                       >::type>
 
 std::ostream* operator<<( std::ostream* stream, const TAppendable& appendable )
@@ -686,16 +686,16 @@ std::ostream* operator<<( std::ostream* stream, const TAppendable& appendable )
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 template<typename TAppendable,
-         typename TEnableIf=  typename  std::enable_if<    aworx::lib::strings::TT_IsAppendable<TAppendable,aworx::wchar>::value
-                                                       && !aworx::lib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
+         typename TEnableIf=  typename  std::enable_if<    alib::strings::TT_IsAppendable<TAppendable,alib::wchar>::value
+                                                       && !alib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
                                                       >::type>
 
 std::wostream& operator<<( std::wostream& stream, const TAppendable& appendable )
 {
     #if ALIB_CHARACTERS_NATIVE_WCHAR
-        aworx::WLocalString<256> buf;
+        alib::WLocalString<256> buf;
     #else
-        aworx::XLocalString<256> buf;
+        alib::XLocalString<256> buf;
     #endif
     buf.DbgDisableBufferReplacementWarning();
 
@@ -716,8 +716,8 @@ std::wostream& operator<<( std::wostream& stream, const TAppendable& appendable 
  * @returns The ostream to allow concatenated operations.
  **************************************************************************************************/
 template<typename TAppendable,
-         typename TEnableIf=  typename  std::enable_if<    aworx::lib::strings::TT_IsAppendable<TAppendable,aworx::wchar>::value
-                                                       && !aworx::lib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
+         typename TEnableIf=  typename  std::enable_if<    alib::strings::TT_IsAppendable<TAppendable,alib::wchar>::value
+                                                       && !alib::strings::compatibility::std::T_SuppressStdOstreamOperator<TAppendable>::value
                                                       >::type>
 std::wostream* operator<<( std::wostream* stream, const TAppendable& appendable )
 {
@@ -731,23 +731,23 @@ std::wostream* operator<<( std::wostream* stream, const TAppendable& appendable 
 #if defined(ALIB_DOX)
     }} namespace APPENDABLES {
 #else
-  namespace aworx { namespace lib { namespace strings { // the real namespace
+  namespace alib {  namespace strings { // the real namespace
 #endif
 
 
-extern template ALIB_API   void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<char   >, char   >
+extern template ALIB_API   void strings::T_Append<strings::compatibility::std::TISReadLine<char   >, char   >
         ::operator()( TAString<char   >& target, const strings::compatibility::std::TISReadLine<char   >&  reader );
 
-extern template ALIB_API   void lib::strings::T_Append<lib::strings::compatibility::std::TISReadLine<wchar_t>, wchar_t>
+extern template ALIB_API   void strings::T_Append<strings::compatibility::std::TISReadLine<wchar_t>, wchar_t>
         ::operator()( TAString<wchar_t>& target, const strings::compatibility::std::TISReadLine<wchar_t>&  reader );
 
 #if defined(ALIB_DOX)
-    }}} // namespace aworx[::lib::strings::APPENDABLES]
+    }} // namespace alib[::strings::APPENDABLES]
 #else
-    }}  // namespace aworx[::lib::strings]
+    }  // namespace alib[::strings]
 #endif
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::string)
@@ -755,12 +755,9 @@ ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::wstring)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u16string)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u32string)
 
-#if ALIB_CPPVER >= 17
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::string_view)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::wstring_view)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u16string_view)
 ALIB_STRINGS_SUPPRESS_STD_OSTREAM_OPERATOR(::std::u32string_view)
-#endif
-
 
 #endif // HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM

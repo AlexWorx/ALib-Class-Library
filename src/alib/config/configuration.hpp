@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_CONFIGURATION
@@ -28,8 +28,8 @@ ALIB_ASSERT_MODULE(CONFIGURATION)
 #if !defined(HPP_ALIB_CONFIG_PLUGINS)
     #include "alib/config/plugins.hpp"
 #endif
-#if !defined(HPP_ALIB_FS_PLUGINS_PLUGINS)
-    #include "alib/lib/fs_plugins/plugins.hpp"
+#if !defined(HPP_ALIB_LANG_PLUGINS)
+    #include "alib/lang/plugins.hpp"
 #endif
 #if !defined(HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
     #include "alib/config/inmemoryplugin.hpp"
@@ -37,7 +37,7 @@ ALIB_ASSERT_MODULE(CONFIGURATION)
 
 
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 // #################################################################################################
 // class Configuration
@@ -45,7 +45,7 @@ namespace aworx { namespace lib { namespace config {
 
 /** ************************************************************************************************
  * This class is a container for objects of type
- * \ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin",
+ * \ref alib::config::ConfigurationPlugin "ConfigurationPlugin",
  * and provides a single user interface to query configuration data
  * from those.
  *
@@ -56,10 +56,10 @@ namespace aworx { namespace lib { namespace config {
  * by this method. For more information about the (adjustable) syntax, see
  * \ref alib_config_substitution "Variable Substitution".
  *
- * See documentation of namespace #aworx::lib::config for more information on \alib
+ * See documentation of namespace #alib::config for more information on \alib
  * external configuration variables.
  **************************************************************************************************/
-class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, Priorities>
+class Configuration : public lang::PluginContainer<ConfigurationPlugin, Priorities>
 {
     // #############################################################################################
     // internal fields
@@ -81,14 +81,14 @@ class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, P
         std::vector<String>                 TrueValues;
 
         /** Number format definition used to read and write int and float values. */
-        aworx::NumberFormat                 NumberFormat;
+        alib::NumberFormat                 NumberFormat;
 
         /**
          * The start string to identify substitution variables.
          * Defaults to single character \c '$'. If a string is set, i.e. \c "${", then field
          * #SubstitutionVariableEnd may be set accordingly, i.e. \c "}"
          */
-        String                              SubstitutionVariableStart                  = A_CHAR("$");
+        String                              SubstitutionVariableStart                 = A_CHAR("$");
 
         /**
          * The end of a substitution variables.
@@ -104,7 +104,7 @@ class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, P
          * characters defined in this string are used to identify the end of a substitution
          * variable.
          */
-        CString          SubstitutionVariableDelimiters= A_CHAR(" $@,.;:\"\'+-*/\\§%&()[]{}<>=?'`~#");
+        CString        SubstitutionVariableDelimiters= A_CHAR(" $@,.;:\"\'+-*/\\§%&()[]{}<>=?'`~#");
 
         /** A temporary variable to be reused (allocate once pattern). */
         Variable                            tempVar;
@@ -126,18 +126,15 @@ class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, P
          *
          * @param addPlugins If \b Yes the default plugins are added.
          ******************************************************************************************/
-        ALIB_API        Configuration( CreateDefaults addPlugins );
+        ALIB_API        Configuration( lang::CreateDefaults addPlugins );
 
         /** ****************************************************************************************
          * Sets the command line arguments for default plug-in \alib{config,CLIArgs}.
          * This method should be called for instances of this class after construction.
          *
          * \note
-         *   For the standard configuration objects found in class \alib{Module},
-         *   this method is automatically invoked when CLI arguments are passed to one of the
-         *   overloaded methods \alib{Module::Bootstrap}.
-         *
-         * <p>
+         *   For the standard configuration objects found in class \alib{lang,Camp},
+         *   this method is automatically invoked by function \alib{Bootstrap}.
          *
          * \note On the Windows platform, the Microsoft compiler provides the global variables
          *       <em>__argc</em> and <em>__argv</em> (respectively <em>__wargv</em> for wide
@@ -404,7 +401,7 @@ class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, P
         /** ****************************************************************************************
          * Convenience method to set values in \p{variable} according to the provided string.
          * For the conversion of the "externalized" string, method
-         * \ref aworx::lib::config::XTernalizer::LoadFromString "XTernalizer::LoadFromString"
+         * \ref alib::config::XTernalizer::LoadFromString "XTernalizer::LoadFromString"
          * of field \alib{config,ConfigurationPlugin::StringConverter}
          * of a plug-in of priority \alib{config,Priorities::DefaultValues}, is used.
          *
@@ -480,13 +477,12 @@ class Configuration : public lib::detail::PluginContainer<ConfigurationPlugin, P
 
 }; // class Configuration
 
-}} // namespace aworx[::lib::config]
+} // namespace alib[::config]
 
+/// Type alias in namespace \b alib.
+using     Configuration=       config::Configuration;
 
-/// Type alias in namespace #aworx.
-using     Configuration=       lib::config::Configuration;
-
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -25,12 +25,12 @@
 #define TESTCLASSNAME       CPP_ALib_Strings_Custom
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 // #################################################################################################
 // ####### String/CString construction from Implicit/Explicit/Mutable
 // #################################################################################################
-using namespace aworx::lib::strings;
+using namespace alib::strings;
 
 template <typename TChar>
 class MyStringImplicit
@@ -39,7 +39,7 @@ class MyStringImplicit
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringImplicit"; }
+        constexpr MyStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringImplicit"; }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
                    integer          GetMyLength() const { return theString.Length(); }
 };
@@ -51,7 +51,7 @@ class MyStringExplicit
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringExplicit"; }
+        constexpr MyStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyStringExplicit"; }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
                    integer          GetMyLength() const { return theString.Length(); }
 };
@@ -63,8 +63,8 @@ class MyStringMutable
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyStringMutable"; }
-        ALIB_CPP14_CONSTEXPR  const TChar*     GetMyBuffer()       { return theString.Buffer();   }
+        constexpr MyStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyStringMutable"; }
+        constexpr  const TChar*     GetMyBuffer()       { return theString.Buffer();   }
                               integer          GetMyLength()       { return theString.Length(); }
 };
 
@@ -75,7 +75,7 @@ class MyCStringImplicit
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyCStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringImplicit"; theString.Terminate(); }
+        constexpr MyCStringImplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringImplicit"; theString.Terminate(); }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
                    integer          GetMyLength() const { return theString.Length(); }
 };
@@ -87,7 +87,7 @@ class MyCStringExplicit
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyCStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringExplicit"; theString.Terminate(); }
+        constexpr MyCStringExplicit(const char* modifier) { theString << "This is a " << modifier << " MyCStringExplicit"; theString.Terminate(); }
         constexpr  const TChar*     GetMyBuffer() const { return theString.Buffer();   }
                    integer          GetMyLength() const { return theString.Length(); }
 };
@@ -99,13 +99,13 @@ class MyCStringMutable
         TLocalString<TChar, 64> theString;
 
     public:
-        ALIB_CPP14_CONSTEXPR MyCStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyCStringMutable"; theString.Terminate(); }
-        ALIB_CPP14_CONSTEXPR const TChar*     GetMyBuffer()       { return theString.Buffer();   }
+        constexpr MyCStringMutable(const char* modifier) { theString << "This is a " << modifier << " MyCStringMutable"; theString.Terminate(); }
+        constexpr const TChar*     GetMyBuffer()       { return theString.Buffer();   }
                              integer          GetMyLength()       { return theString.Length(); }
 };
 
 
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 
     ALIB_CHARACTER_ARRAY( MyStringImplicit<nchar>, nchar, Implicit              , NONE)
     ALIB_CHARACTER_ARRAY_IMPL_BUFFER( MyStringImplicit<nchar>, nchar, return                       src.GetMyBuffer  ();   )
@@ -191,7 +191,7 @@ namespace aworx { namespace lib { namespace characters {
     ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER_MUTABLE( MyCStringMutable<xchar> , xchar, return                       src.GetMyBuffer  ();   )
     ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH_MUTABLE( MyCStringMutable<xchar> , xchar, return static_cast<integer>( src.GetMyLength() ); )
 
-}}} // namespace [aworx::lib::characters]
+}} // namespace [alib::characters]
 
 //### preps for String
 template<typename TChar>
@@ -199,7 +199,7 @@ void printString( const TString<TChar>& str, const NCString& comment= nullptr )
 {
     cout << " String<"                  <<
     #if ALIB_DEBUG
-        lib::DbgTypeDemangler( typeid(TChar) ).Get()
+        lang::DbgTypeDemangler( typeid(TChar) ).Get()
     #else
         ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
     #endif
@@ -222,8 +222,8 @@ typename std::enable_if<!t_accepts_S_implicit<TChar,T>::value>::type>   void acc
 {
     cout << " String<"                                   <<
     #if ALIB_DEBUG
-        lib::DbgTypeDemangler( typeid(TChar) ).Get()
-         << "> not accepted: Cant construct from type <" << lib::DbgTypeDemangler( typeid(T)     ).Get()
+        lang::DbgTypeDemangler( typeid(TChar) ).Get()
+         << "> not accepted: Cant construct from type <" << lang::DbgTypeDemangler( typeid(T)     ).Get()
          << "> implicitly "
     #else
         ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
@@ -243,8 +243,8 @@ typename std::enable_if<!t_accepts_S_explicit<TChar,T>::value>::type>   void acc
 {
     cout << " String<"               <<
     #if ALIB_DEBUG
-        lib::DbgTypeDemangler( typeid(TChar) ).Get()
-         << "> not accepted: Type <" << lib::DbgTypeDemangler( typeid(T)     ).Get()
+        lang::DbgTypeDemangler( typeid(TChar) ).Get()
+         << "> not accepted: Type <" << lang::DbgTypeDemangler( typeid(T)     ).Get()
          << "> is not allowed for explicit construction"
     #else
         ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
@@ -265,7 +265,7 @@ void printCString( const TCString<TChar>& str, const NCString& comment= nullptr 
 {
     cout << "CString<"                  <<
     #if ALIB_DEBUG
-        lib::DbgTypeDemangler( typeid(TChar) ).Get()
+        lang::DbgTypeDemangler( typeid(TChar) ).Get()
     #else
         ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
     #endif
@@ -285,14 +285,14 @@ template<typename TChar, typename T>                           struct t_accepts_
 template<typename TChar, typename T, typename EnableIf= void>  struct t_accepts_CS_explicit : public  std::false_type {};
 template<typename TChar, typename T>                           struct t_accepts_CS_explicit<TChar, T, typename std::enable_if<
 
-     lib::characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access != lib::characters::AccessType::ExplicitOnly
+     characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access != characters::AccessType::ExplicitOnly
   &&  std::is_same<TCString<TChar>, decltype(TCString<TChar>(*reinterpret_cast<T*>(&fakeObject)))  >::value
 
 >::type> : public  std::true_type {};
 
 template<typename TChar, typename T>                           struct t_accepts_CS_explicit<TChar, T, typename std::enable_if<
 
-     lib::characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access == lib::characters::AccessType::ExplicitOnly
+     characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access == characters::AccessType::ExplicitOnly
   && std::is_same<TCString<TChar>, decltype(TCString<TChar>(*reinterpret_cast<T*>(&fakeObject) ))>::value
 
 >::type> : public  std::true_type {};
@@ -305,8 +305,8 @@ void accept_CS_implicit( T&  )
 {
     cout << "CString<"                                   <<
          #if ALIB_DEBUG
-         lib::DbgTypeDemangler( typeid(TChar) ).Get()
-         << "> not accepted: Cant construct from type <" << lib::DbgTypeDemangler( typeid(T)     ).Get()
+         lang::DbgTypeDemangler( typeid(TChar) ).Get()
+         << "> not accepted: Cant construct from type <" << lang::DbgTypeDemangler( typeid(T)     ).Get()
          << "> implicitly "
          #else
          ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
@@ -330,8 +330,8 @@ void accept_CS_explicit( T&         )
 {
     cout << "CString<"               <<
          #if ALIB_DEBUG
-         lib::DbgTypeDemangler( typeid(TChar) ).Get()
-         << "> not accepted: Type <" << lib::DbgTypeDemangler( typeid(T)     ).Get()
+         lang::DbgTypeDemangler( typeid(TChar) ).Get()
+         << "> not accepted: Type <" << lang::DbgTypeDemangler( typeid(T)     ).Get()
          << "> is not allowed for explicit construction"
          #else
          ( std::is_same<TChar,nchar>:: value ? "nchar" : std::is_same<TChar,wchar>::value ? "wchar" : "xchar" )
@@ -341,7 +341,7 @@ void accept_CS_explicit( T&         )
 }
 template<typename TChar, typename T> typename std::enable_if<
     t_accepts_CS_explicit<TChar, T>::value
-&&  (lib::characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access == lib::characters::AccessType::ExplicitOnly)
+&&  (characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access == characters::AccessType::ExplicitOnly)
                                                                                 >::type
 accept_CS_explicit( T& object  )
 {
@@ -350,7 +350,7 @@ accept_CS_explicit( T& object  )
 
 template<typename TChar, typename T> typename std::enable_if<
     t_accepts_CS_explicit<TChar, T>::value
-&&  (lib::characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access != lib::characters::AccessType::ExplicitOnly)
+&&  (characters::T_ZTCharArray<ATMP_RCVP(T),TChar>::Access != characters::AccessType::ExplicitOnly)
                                                                                 >::type
 accept_CS_explicit( T& object  )
 {

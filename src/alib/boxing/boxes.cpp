@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,7 +17,7 @@
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 #if ALIB_DEBUG && !defined(ALIB_DOX)
     // This is used by boxing::Bootstrap to do runtime-check for compatibility of boxing
@@ -42,7 +42,7 @@ namespace aworx { namespace lib { namespace boxing {
 
 #if ALIB_MONOMEM
 ALIB_API
-ALIB_NODISCARD
+[[nodiscard]]
 char*  detail::monoAlloc( monomem::MonoAllocator& allocator, size_t size, size_t alignment)
 {
     return allocator.Alloc( size, alignment );
@@ -165,5 +165,5 @@ void  Boxes::AddArray( const Box* boxArray, integer length )
 
 #endif //  #if defined(ALIB_DOX)
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 ALIB_WARNINGS_RESTORE

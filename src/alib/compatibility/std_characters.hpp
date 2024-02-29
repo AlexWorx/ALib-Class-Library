@@ -4,14 +4,14 @@
  * With the inclusion of this header compatibility features between \alib and the C++ standard
  * library are provided.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_COMPATIBILITY_STD_CHARACTERS
 #define HPP_ALIB_COMPATIBILITY_STD_CHARACTERS 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 #if ALIB_CHARACTERS
@@ -24,7 +24,7 @@
 #   include <string>
 #endif
 
-#if (ALIB_CPPVER >= 17) && !defined (_GLIBCXX_STRING_VIEW) && !defined(_STRING_VIEW_)
+#if !defined (_GLIBCXX_STRING_VIEW) && !defined(_STRING_VIEW_)
 #   include <string_view>
 #endif
 
@@ -41,9 +41,9 @@
 
 
 #if !defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 #else
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 
 /**
  * This namespace contains sub-namespaces that provide compatibility of 3rd-party types and
@@ -63,8 +63,6 @@ namespace std {
 
 
 // ####################################   std::string_view    ######################################
-#if (ALIB_CPPVER >= 17) || defined(ALIB_DOX)
-
 /**
  * Specialization of TMP struct \alib{characters,T_CharArray} for type
  * <c>std::basic_string_view<TChar></c>:
@@ -110,9 +108,6 @@ struct     T_ZTCharArray<std::basic_string_view<TChar>, TChar, typename std::ena
     static std::basic_string_view<TChar> Construct(const TChar* array, integer length        ) { return std::basic_string_view<TChar>( array, static_cast<size_t>(length) ); }
   #endif
 };
-
-#endif //ALIB_CPPVER >= 17
-
 
 
 // ####################################   std::string         ######################################
@@ -255,9 +250,9 @@ struct     T_ZTCharArray<std::vector<TChar>, TChar, typename std::enable_if<
 };
 
 #if !defined(ALIB_DOX)
-}}} // namespace [aworx::lib::characters]
+}} // namespace [alib::characters]
 #else
-}}}}} // namespace [aworx::lib::characters::compatibility::std]
+}}}} // namespace [alib::characters::compatibility::std]
 #endif
 
 
@@ -265,10 +260,10 @@ struct     T_ZTCharArray<std::vector<TChar>, TChar, typename std::enable_if<
 // documented with T_ZTCharArray<std::basic_string> above.
 #if ALIB_STRINGS && !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
   template<typename TChar>  struct T_SuppressAutoCast<TCString<TChar>, characters::ConstructionType::ExplicitOnly, std::basic_string<TChar> > : public std::true_type {};
   template<typename TChar>  struct T_SuppressAutoCast<TAString<TChar>, characters::ConstructionType::ExplicitOnly, std::basic_string<TChar> > : public std::true_type {};
-}}}
+}}
 
 #endif
 

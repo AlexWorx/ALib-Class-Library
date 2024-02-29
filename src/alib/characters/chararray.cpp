@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,16 +10,12 @@
 #if !defined(HPP_ALIB_CHARACTERS_CHARARRAY)
 #   include "alib/characters/chararray.hpp"
 #endif
-
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
 #endif // !defined(ALIB_DOX)
 
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /**
  * This is the reference documentation of sub-namespace \c characters of the \aliblink, which
@@ -134,14 +130,14 @@ integer CharArray<TChar>::LastIndexOfAnyExclude( const TChar* haystack,  integer
 template<typename TChar>
 integer CharArray<TChar>::IndexOfFirstDifference( const TChar* haystack,  integer haystackLength,
                                                   const TChar* needle,    integer needleLength,
-                                                  Case  sensitivity                        )
+                                                  lang::Case  sensitivity                        )
 {
     if ( haystackLength == -1 )    haystackLength= static_cast<integer>( Length( haystack ) );
     if ( needleLength   == -1 )    needleLength=   static_cast<integer>( Length( needle   ) );
 
     integer idx= 0;
 
-    if ( sensitivity == Case::Sensitive )
+    if ( sensitivity == lang::Case::Sensitive )
     {
         while(    idx != haystackLength
                && idx != needleLength
@@ -168,7 +164,7 @@ template integer CharArray<nchar>::IndexOfAnyIncluded    (const nchar*,integer,c
 template integer CharArray<nchar>::IndexOfAnyExcluded    (const nchar*,integer,const nchar*,integer);
 template integer CharArray<nchar>::LastIndexOfAnyInclude (const nchar*,integer,const nchar*,integer);
 template integer CharArray<nchar>::LastIndexOfAnyExclude (const nchar*,integer,const nchar*,integer);
-template integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,Case);
+template integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,lang::Case);
 template void    CharArray<nchar>::Reverse               (      nchar*,integer );
 
 // #################################################################################################
@@ -234,7 +230,7 @@ template integer CharArray<wchar>::IndexOfAnyIncluded    (const wchar*,integer,c
 template integer CharArray<wchar>::IndexOfAnyExcluded    (const wchar*,integer,const wchar*,integer);
 template integer CharArray<wchar>::LastIndexOfAnyInclude (const wchar*,integer,const wchar*,integer);
 template integer CharArray<wchar>::LastIndexOfAnyExclude (const wchar*,integer,const wchar*,integer);
-template integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,Case);
+template integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,lang::Case);
 template void    CharArray<wchar>::Reverse               (      wchar*,integer );
 
 
@@ -245,7 +241,7 @@ template integer CharArray<xchar>::IndexOfAnyIncluded    (const xchar*,integer,c
 template integer CharArray<xchar>::IndexOfAnyExcluded    (const xchar*,integer,const xchar*,integer);
 template integer CharArray<xchar>::LastIndexOfAnyInclude (const xchar*,integer,const xchar*,integer);
 template integer CharArray<xchar>::LastIndexOfAnyExclude (const xchar*,integer,const xchar*,integer);
-template integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,Case);
+template integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,lang::Case);
 template void    CharArray<xchar>::Reverse               (      xchar*,integer );
 
 #if ALIB_CHARACTERS_NATIVE_WCHAR
@@ -308,7 +304,7 @@ template<> integer CharArray<xchar>::IndexOfAnyExcludedZT( const xchar* haystack
 //! @endcond
 
 
-}}} // namespace [aworx::lib::character]
+}} // namespace [alib::character]
 
 
 // #################################################################################################
@@ -342,4 +338,3 @@ template<> integer CharArray<xchar>::IndexOfAnyExcludedZT( const xchar* haystack
 #endif
 
 ALIB_WARNINGS_RESTORE // ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-

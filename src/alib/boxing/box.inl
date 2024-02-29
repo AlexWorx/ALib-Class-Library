@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_BOX
@@ -12,7 +12,11 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace boxing  {
+#if ALIB_DEBUG && !defined(HPP_ALIB_LANG_DBGTYPEDEMANGLER)
+#   include "alib/lang/dbgtypedemangler.hpp"
+#endif
+
+namespace alib {  namespace boxing  {
 
 /** ************************************************************************************************
  * This is the central class of \alib_boxing_nl . By using template meta programming, an object
@@ -28,7 +32,7 @@ namespace aworx { namespace lib { namespace boxing  {
  * ## Functors In Namespace std ##
  * Functors <c>std::hash</c>, <c>std::equal_to</c> and <c>std::less</c> are specialized for
  * this type with the inclusion of header file \alibheader{compatibility/std_boxing_functional.hpp}
- * as documented with namespace #aworx::lib::compatibility::std.
+ * as documented with namespace #alib::compatibility::std.
  **************************************************************************************************/
 class Box
 {
@@ -99,7 +103,7 @@ class Box
         constexpr bool isVolatile     = std::is_volatile<ATMP_RP(TUnboxable)>::value;              \
         constexpr bool isPointer      = std::is_pointer<TUnboxable>::value;                        \
         constexpr bool isValue        = !isPointer;                                                \
-        constexpr bool valuesFit      =     sizeof(ATMP_IF_T_F(ATMP_EQ(void,TVal), void*,TVal))\
+        constexpr bool valuesFit      =     sizeof(ATMP_IF_T_F(ATMP_EQ(void,TVal), void*,TVal))    \
                                         <=  sizeof(Placeholder);                                   \
         constexpr bool isConstructible= std::is_copy_constructible<TVal>::value;                   \
         constexpr bool isTriviallyDest= std::is_trivially_destructible<TVal>::value;               \
@@ -597,7 +601,7 @@ class Box
              * \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
              * simply returns <c>Unbox<integer>()</c>.<br>
              * Otherwise this method will not be inlined and tests for the five different
-             * integer sizes (1, 2, 4 and 8 bytes size and the #aworx::intGap_t) prior to
+             * integer sizes (1, 2, 4 and 8 bytes size and the #alib::intGap_t) prior to
              * unboxing.
              *
              * @return The boxed signed integral value.
@@ -614,7 +618,7 @@ class Box
              * \ref ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS, this method will be inlined and
              * simply returns <c>Unbox<uinteger>()</c>.<br>
              * Otherwise this method will not be inlined and tests for the five different
-             * integer sizes (1, 2, 4 and 8 bytes size and the #aworx::uintGap_t) prior to
+             * integer sizes (1, 2, 4 and 8 bytes size and the #alib::uintGap_t) prior to
              * unboxing.
              *
              * @return The boxed unsigned integral value.
@@ -793,8 +797,8 @@ class Box
 
             ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
             ALIB_ASSERT_ERROR( vtable == getVTable<TUnboxable>(),
-                               "Can not unbox type <" , DbgTypeDemangler(typeid(TUnboxable)).Get(),
-                               "> from mapped type <" , DbgTypeDemangler(vtable->Type    ).Get(),
+                               "Can not unbox type <" , lang::DbgTypeDemangler(typeid(TUnboxable)).Get(),
+                               "> from mapped type <" , lang::DbgTypeDemangler(vtable->Type    ).Get(),
                                ">." )
 
             detail::DbgCheckRegistration( vtable, true );
@@ -946,11 +950,11 @@ class Box
             ALIB_ASSERT_ERROR( vtable, "BOXING", "Box not initialized. Unboxing is undefined behavior." )
             ALIB_ASSERT_ERROR( IsArray(), "BOXING",
                                "Box::UnboxArray() invoked on box of non-array type <",
-                               DbgTypeDemangler(vtable->Type).Get(), ">." )
+                               lang::DbgTypeDemangler(vtable->Type).Get(), ">." )
 
             ALIB_ASSERT_ERROR( typeid(TElementType) == vtable->ElementType,
-                               "BOXING: Can not unbox array type<" , DbgTypeDemangler(typeid(TElementType*)).Get(),
-                               "[]> from mapped type<"     , DbgTypeDemangler(vtable->ElementType  ).Get(),
+                               "BOXING: Can not unbox array type<" , lang::DbgTypeDemangler(typeid(TElementType*)).Get(),
+                               "[]> from mapped type<"             , lang::DbgTypeDemangler(vtable->ElementType  ).Get(),
                                "[]>." )
 
             detail::DbgCheckRegistration( vtable, true );
@@ -997,15 +1001,15 @@ class Box
             ALIB_ASSERT_ERROR( vtable, "BOXING", "Box is void (no contents). Unboxing is undefined behavior." )
             ALIB_ASSERT_ERROR( IsArray(), "BOXING",
                                "Box::UnboxElement() invoked on box of non-array type <",
-                               DbgTypeDemangler(vtable->Type).Get(), ">." )
+                               lang::DbgTypeDemangler(vtable->Type).Get(), ">." )
 
             ALIB_ASSERT_ERROR( typeid(TElementType) == vtable->ElementType,
-                               "BOXING: Can not unbox array element type <" , DbgTypeDemangler(typeid(TElementType)).Get(),
-                               "> from mapped type <"               , DbgTypeDemangler(vtable->ElementType    ).Get(),
+                               "BOXING: Can not unbox array element type <" , lang::DbgTypeDemangler(typeid(TElementType)).Get(),
+                               "> from mapped type <"                       , lang::DbgTypeDemangler(vtable->ElementType    ).Get(),
                                "[]>." )
 
             ALIB_ASSERT_ERROR( idx >= 0 && idx < UnboxLength(), "BOXING",
-                               "Box::UnboxElement<", DbgTypeDemangler(typeid(TElementType)).Get(),
+                               "Box::UnboxElement<", lang::DbgTypeDemangler(typeid(TElementType)).Get(),
                                ">(): Index out of bounds.")
 
             detail::DbgCheckRegistration( vtable, true );
@@ -1027,13 +1031,13 @@ class Box
          * This approach avoids further searches that are otherwise to be performed with multiple
          * invocations of method #Call.
          *
-         * If parameter \p{defaults} equals \alib{Reach::Local}, functions specific to the mapped
+         * If parameter \p{defaults} equals \alib{lang,Reach::Local}, functions specific to the mapped
          * type of this box (registered using \alib{boxing,BootstrapRegister}) are searched.
-         * If \alib{Reach::Global} is given, then a defaulted function (registered using
+         * If \alib{lang,Reach::Global} is given, then a defaulted function (registered using
          * \alib{boxing,BootstrapRegisterDefault}) is searched, if no specific function was found.
          *
          * \note
-         *   \alib{Reach::Local} can be used to detect specific behavior and to avoid the use
+         *   \alib{lang,Reach::Local} can be used to detect specific behavior and to avoid the use
          *   of default functions. This can be useful if the default implementation of a function
          *   is just not applicable in a certain situation.
          *
@@ -1053,8 +1057,8 @@ class Box
          *
          * @tparam TFDecl       The \ref alib_boxing_functions_concepts_decl "function declaration"
          *                      to search for.
-         * @param  searchScope  \alib{Reach::Local} chooses type-specific functions only, while.
-         *                      \alib{Reach::Global} includes default functions in the search.
+         * @param  searchScope  \alib{lang,Reach::Local} chooses type-specific functions only, while.
+         *                      \alib{lang,Reach::Global} includes default functions in the search.
          * @param  isInvocation Available only in debug compilations. If \c true, a counter
          *                      associated with an implementation found is increaed to provide
          *                      statistics. Defaults to false and should not be given.
@@ -1067,7 +1071,7 @@ class Box
                                                  , bool isInvocation = false  )               const;
         #else
         template <typename TFDecl>
-        typename TFDecl::Signature    GetFunction( Reach searchScope
+        typename TFDecl::Signature    GetFunction( lang::Reach searchScope
                                        ALIB_DBG( , bool isInvocation = false)    )             const
         {
             if( !vtable )
@@ -1078,7 +1082,7 @@ class Box
             auto result= vtable->Functions.Get<TFDecl>( ALIB_DBG(isInvocation) );
             return    result
                     ? result
-                    : searchScope == Reach::Global
+                    : searchScope == lang::Reach::Global
                     ? detail::DEFAULT_FUNCTIONS.Get<TFDecl>( ALIB_DBG(isInvocation) )
                     : nullptr;
         }
@@ -1130,7 +1134,7 @@ class Box
         decltype( std::declval<typename TFDecl::Signature>()( std::declval<Box&>(), std::declval<TArgs>()... ) )
         Call(TArgs&&... args)                                                                  const
         {
-            auto* func= GetFunction<TFDecl>( Reach::Global    ALIB_DBG(, true) );
+            auto* func= GetFunction<TFDecl>( lang::Reach::Global    ALIB_DBG(, true) );
             if( func != nullptr )
                 return reinterpret_cast<typename TFDecl::Signature>(func)
                        ( *this, std::forward<TArgs>(args)... );
@@ -1186,7 +1190,7 @@ class Box
         {
             ALIB_ASSERT_ERROR( vtable, "BOXING",
                 "Box not initialized (does not contain value). Function call not allowed." )
-            auto* func= GetFunction<TFDecl>( Reach::Global ALIB_DBG(, true));
+            auto* func= GetFunction<TFDecl>( lang::Reach::Global ALIB_DBG(, true));
             if( func != nullptr )
                 return reinterpret_cast<typename TFDecl::Signature>(func)
                        ( *this, std::forward<TArgs>(args)... );
@@ -1330,18 +1334,17 @@ class Box
 
 }; // class Box
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 
-// For documentation, all operators are faked into namespace aworx::lib::boxing
+// For documentation, all operators are faked into namespace alib::boxing
 #if defined(ALIB_DOX)
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 #endif
 
 
 #if defined(ALIB_DOX)
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 #endif
 
 #endif // HPP_ALIB_BOXING_BOX
-

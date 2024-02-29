@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -17,7 +17,7 @@
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace lox {
+namespace alib {  namespace lox {
 
 ALoxReportWriter::ALoxReportWriter ( Lox* pLox )
 {
@@ -35,7 +35,7 @@ ALoxReportWriter::ALoxReportWriter ( Lox* pLox )
     #endif
 }
 
-void ALoxReportWriter::Report( lib::results::Message& msg )
+void ALoxReportWriter::Report( lang::Message& msg )
 {
     #if ALIB_DEBUG
         lox->Acquire( msg.File, msg.Line, msg.Function );
@@ -43,9 +43,9 @@ void ALoxReportWriter::Report( lib::results::Message& msg )
             auto& logables= lox->GetLogableContainer();
             logables.Add( msg );
 
-            auto verbosity= msg.Type == results::Report::Types::Error    ? Verbosity::Error   :
-                            msg.Type == results::Report::Types::Warning  ? Verbosity::Warning :
-                            msg.Type == results::Report::Types::Message  ? Verbosity::Info    :
+            auto verbosity= msg.Type == lang::Report::Types::Error    ? Verbosity::Error   :
+                            msg.Type == lang::Report::Types::Warning  ? Verbosity::Warning :
+                            msg.Type == lang::Report::Types::Message  ? Verbosity::Info    :
                                                                            Verbosity::Verbose ;
 
             NString256 domain= ALoxReportWriter::LogDomain();
@@ -101,4 +101,4 @@ NString& ALoxReportWriter::LogDomain()
 }
 
 
-}}} // namespace [aworx::lib::lox]
+}} // namespace [alib::lox]

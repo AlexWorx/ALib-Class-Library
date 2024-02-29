@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
  * This built-in compiler plug-in of \alib_expressions_nl, performs auto-casts only if two
@@ -63,6 +63,6 @@ struct AutoCast  : public CompilerPlugin
     virtual bool    TryCompilation( CIAutoCast& ciAutoCast )                               override;
 };
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST

@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
-//  aworx::lib::lox::detail - ALox Logging Library
+//  alib::lox::detail - ALox Logging Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,8 +10,8 @@
 #   if !defined(HPP_ALIB_ALOX)
 #      include "alib/alox/alox.hpp"
 #   endif
-#   if !defined(HPP_ALIB_RESULTS_REPORT)
-#      include "alib/results/report.hpp"
+#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#      include "alib/lang/message/report.hpp"
 #   endif
 #   define HPP_ALIB_LOX_PROPPERINCLUDE
 #      if !defined (HPP_ALOX_DETAIL_SCOPE)
@@ -23,9 +23,9 @@
 #   undef HPP_ALIB_LOX_PROPPERINCLUDE
 #endif // !defined(ALIB_DOX)
 
-using namespace aworx;
+using namespace alib;
 
-namespace aworx { namespace lib { namespace lox { namespace detail {
+namespace alib {  namespace lox { namespace detail {
 
 #define    CMD_INSERT 0
 #define    CMD_REMOVE 1
@@ -45,11 +45,15 @@ ScopeStore<T, TStackedThreadValues>::ScopeStore( ScopeInfo& pScopeInfo,
   , languageStore( monoAllocator , '/' )
   ALIB_IF_THREADS(, threadStore  ( monoAllocator ) )
   , scopeInfo    ( pScopeInfo     )
-{}
+{
+    languageStore.ConstructRootValue(ScopeStoreType<T>::NullValue());
+}
 
 template<typename T, bool TStackedThreadValues>
 ScopeStore<T, TStackedThreadValues>::~ScopeStore()
-{}
+{
+    languageStore.DeleteRootValue();
+}
 
 
 // #################################################################################################
@@ -123,7 +127,7 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
         case Scope::Path:
         {
             if( self.lazyLanguageNode )
-                self.initNodePtr( false );
+                self.initCursor( false );
 
             while( self.actStringTreeNode.IsValid() )
             {
@@ -244,18 +248,11 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
 
         if (    self.lazyLanguageNode
             ||  ( self.actStringTreeNode.IsInvalid() && cmd == CMD_INSERT ) )
-            self.initNodePtr( true ); // always create
+            self.initCursor( true ); // always create
 
-        if ( self.actStringTreeNode.IsValid() )
-        {
-            oldValue= self.actStringTreeNode.Value();
-
-            if ( cmd == CMD_INSERT )
-                self.actStringTreeNode.Value()= value;
-
-            else if ( cmd == CMD_REMOVE )
-                self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
-        }
+        oldValue= self.actStringTreeNode.Value();
+             if ( cmd == CMD_INSERT )  self.actStringTreeNode.Value()= value;
+        else if ( cmd == CMD_REMOVE )  self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
 
         return oldValue;
     }
@@ -305,7 +302,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
         case Scope::Path:
         {
             if( self.lazyLanguageNode )
-                self.initNodePtr( false );
+                self.initCursor( false );
 
             while( self.actStringTreeNode.IsValid() )
             {
@@ -370,10 +367,8 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
     if( self.actScope == Scope::Global )
     {
         oldValue= self.globalStore;
-        if ( cmd == CMD_INSERT )
-            self.globalStore= value;
-        else if ( cmd == CMD_REMOVE )
-            self.globalStore= ScopeStoreType<T>::NullValue();
+             if ( cmd == CMD_INSERT )    self.globalStore= value;
+        else if ( cmd == CMD_REMOVE )    self.globalStore= ScopeStoreType<T>::NullValue();
 
         return oldValue;
     }
@@ -449,18 +444,11 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
 
         if (    self.lazyLanguageNode
             ||  ( self.actStringTreeNode.IsInvalid() && cmd == CMD_INSERT ) )
-            self.initNodePtr( true ); // always create
+            self.initCursor( true ); // always create
 
-        if ( self.actStringTreeNode.IsValid() )
-        {
-            oldValue= self.actStringTreeNode.Value();
-
-            if ( cmd == CMD_INSERT )
-                self.actStringTreeNode.Value()= value;
-
-            else if ( cmd == CMD_REMOVE )
-                self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
-        }
+        oldValue= self.actStringTreeNode.Value();
+             if ( cmd == CMD_INSERT )   self.actStringTreeNode.Value()= value;
+        else if ( cmd == CMD_REMOVE )   self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
 
         return oldValue;
     }
@@ -472,7 +460,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
 // internals
 // #################################################################################################
 template<typename T, bool TStackedThreadValues>
-void ScopeStore<T,TStackedThreadValues>::initNodePtr( bool create )
+void ScopeStore<T,TStackedThreadValues>::initCursor( bool create )
 {
     lazyLanguageNode=   false;
     actStringTreeNode=  languageStore.Root();
@@ -554,7 +542,7 @@ template   void                          ScopeStore<NString                , tru
 template   void                          ScopeStore<NString                , true >::InitWalk   (Scope,NString);
 template   NString                 ScopeStoreHelper<NString                , true >::doWalk     (ScopeStore<NString, true>& );
 template   void                          ScopeStore<NString                , true >::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<NString                , true >::initNodePtr(bool);
+template   void                          ScopeStore<NString                , true >::initCursor (bool);
 template   NString                 ScopeStoreHelper<NString                , true >::doAccess   (ScopeStore<NString, true>&, int, NString  );
 
 // Logable*
@@ -564,7 +552,7 @@ template   void                          ScopeStore<PrefixLogable*         , tru
 template   void                          ScopeStore<PrefixLogable*         , true >::InitWalk   (Scope,PrefixLogable*);
 template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*         , true > ::doWalk    (ScopeStore<PrefixLogable*, true>& );
 template   void                          ScopeStore<PrefixLogable*         , true >::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<PrefixLogable*         , true >::initNodePtr(bool);
+template   void                          ScopeStore<PrefixLogable*         , true >::initCursor (bool);
 template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*         , true >::doAccess   (ScopeStore<PrefixLogable*, true>&, int, PrefixLogable*  );
 
 // std::map<AString, int>*
@@ -574,7 +562,7 @@ template   void                          ScopeStore<std::map<NString, int>*, fal
 template   void                          ScopeStore<std::map<NString, int>*, false>::InitWalk   (Scope,std::map<NString, int>*);
 template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*, false>::doWalk     (ScopeStore<std::map<NString, int>*, false>& );
 template   void                          ScopeStore<std::map<NString, int>*, false>::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<std::map<NString, int>*, false>::initNodePtr(bool);
+template   void                          ScopeStore<std::map<NString, int>*, false>::initCursor (bool);
 template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*, false>::doAccess   (ScopeStore<std::map<NString, int>*, false>&, int, std::map<NString, int>*  );
 
 // std::map<AString, Box>*
@@ -584,10 +572,10 @@ template   void                          ScopeStore<std::map<NString, Box>*, fal
 template   void                          ScopeStore<std::map<NString, Box>*, false>::InitWalk   (Scope,std::map<NString, Box>*);
 template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*, false>::doWalk     (ScopeStore<std::map<NString, Box>*, false>& );
 template   void                          ScopeStore<std::map<NString, Box>*, false>::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<std::map<NString, Box>*, false>::initNodePtr(bool);
+template   void                          ScopeStore<std::map<NString, Box>*, false>::initCursor (bool);
 template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*, false>::doAccess   (ScopeStore<std::map<NString, Box>*, false>&, int, std::map<NString, Box>*  );
 
 
 //! @endcond
 
-}}}}// namespace [aworx::lib::lox::detail]
+}}} // namespace [alib::lox::detail]

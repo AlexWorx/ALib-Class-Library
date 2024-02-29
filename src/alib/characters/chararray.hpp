@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_characters of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARARRAY
@@ -13,8 +13,8 @@
 #   include "alib/characters/characters.hpp"
 #endif
 
-#if !defined (HPP_ALIB_FS_COMMONENUMS_DEFS)
-#   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
+#if !defined (HPP_ALIB_LANG_COMMONENUMS_DEFS)
+#   include "alib/lang/commonenumdefs.hpp"
 #endif
 
 #if !defined (_GLIBCXX_NUMERIC_LIMITS) && !defined(_LIMITS_)
@@ -39,7 +39,7 @@
 #if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
 #   include <string>
 #endif
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 
 
 /** ************************************************************************************************
@@ -62,26 +62,24 @@ struct CharArray
      *                     type \p{TCharRhs} .
      * @return \c true if the given characters are equal, \c false otherwise.
      **********************************************************************************************/
-    template<Case sensitivity, typename TRhs >
+    template<lang::Case sensitivity, typename TRhs >
     static
     bool Equal( TChar lhs, TRhs rhs )
     {
-        ALIB_WARNINGS_IGNORE_IF_CONSTEXPR
         using TLhs= TChar;
-        bool sensitive=  (sensitivity == Case::Sensitive);
+        bool sensitive=  (sensitivity == lang::Case::Sensitive);
 
-             if ALIB_CONSTEXPR17 ( sizeof(TLhs) == sizeof(TRhs) )
+             if constexpr ( sizeof(TLhs) == sizeof(TRhs) )
             return  sensitive ?                             lhs  ==                            rhs
                               :  ToUpper(                   lhs) ==  ToUpper(                  rhs);
 
-        else if ALIB_CONSTEXPR17 ( sizeof(TLhs) < sizeof(TRhs) )
+        else if constexpr ( sizeof(TLhs) < sizeof(TRhs) )
             return  sensitive ?           static_cast<TRhs>(lhs)  ==                           rhs
                               :  ToUpper( static_cast<TRhs>(lhs)) == ToUpper(                  rhs);
 
-        else if ALIB_CONSTEXPR17 ( sizeof(TLhs) > sizeof(TRhs) )
+        else if constexpr ( sizeof(TLhs) > sizeof(TRhs) )
             return  sensitive ?                             lhs   ==         static_cast<TLhs>(rhs)
                               :  ToUpper(                   lhs ) == ToUpper(static_cast<TLhs>(rhs));
-        ALIB_WARNINGS_RESTORE
     }
 
     /** ********************************************************************************************
@@ -347,7 +345,7 @@ struct CharArray
     static
     integer IndexOfFirstDifference( const TChar*  haystack,   integer  haystackLength,
                                     const TChar*  needle,     integer  needleLength,
-                                    Case    sensitivity                         );
+                                    lang::Case    sensitivity                         );
     ALIB_WARNINGS_RESTORE
 
     /** ********************************************************************************************
@@ -471,7 +469,7 @@ extern template ALIB_API integer CharArray<nchar>::IndexOfAnyIncluded    (const 
 extern template ALIB_API integer CharArray<nchar>::IndexOfAnyExcluded    (const nchar*,integer,const nchar*,integer);
 extern template ALIB_API integer CharArray<nchar>::LastIndexOfAnyInclude (const nchar*,integer,const nchar*,integer);
 extern template ALIB_API integer CharArray<nchar>::LastIndexOfAnyExclude (const nchar*,integer,const nchar*,integer);
-extern template ALIB_API integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,Case);
+extern template ALIB_API integer CharArray<nchar>::IndexOfFirstDifference(const nchar*,integer,const nchar*,integer,lang::Case);
 extern template ALIB_API void    CharArray<nchar>::Reverse               (      nchar*,integer );
 
 
@@ -551,7 +549,7 @@ extern template ALIB_API integer CharArray<wchar>::IndexOfAnyIncluded    (const 
 extern template ALIB_API integer CharArray<wchar>::IndexOfAnyExcluded    (const wchar*,integer,const wchar*,integer);
 extern template ALIB_API integer CharArray<wchar>::LastIndexOfAnyInclude (const wchar*,integer,const wchar*,integer);
 extern template ALIB_API integer CharArray<wchar>::LastIndexOfAnyExclude (const wchar*,integer,const wchar*,integer);
-extern template ALIB_API integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,Case);
+extern template ALIB_API integer CharArray<wchar>::IndexOfFirstDifference(const wchar*,integer,const wchar*,integer,lang::Case);
 extern template ALIB_API void    CharArray<wchar>::Reverse               (      wchar*,integer );
 
 
@@ -631,7 +629,7 @@ extern template ALIB_API integer CharArray<xchar>::IndexOfAnyIncluded    (const 
 extern template ALIB_API integer CharArray<xchar>::IndexOfAnyExcluded    (const xchar*,integer,const xchar*,integer);
 extern template ALIB_API integer CharArray<xchar>::LastIndexOfAnyInclude (const xchar*,integer,const xchar*,integer);
 extern template ALIB_API integer CharArray<xchar>::LastIndexOfAnyExclude (const xchar*,integer,const xchar*,integer);
-extern template ALIB_API integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,Case);
+extern template ALIB_API integer CharArray<xchar>::IndexOfFirstDifference(const xchar*,integer,const xchar*,integer,lang::Case);
 extern template ALIB_API void    CharArray<xchar>::Reverse               (      xchar*,integer );
 
 
@@ -639,7 +637,7 @@ extern template ALIB_API void    CharArray<xchar>::Reverse               (      
 //! @endcond
 
 
-}}} // namespace [aworx::lib::character]
+}} // namespace [alib::character]
 
 
 #endif // HPP_ALIB_CHARACTERS_CHARARRAY

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE
@@ -18,7 +18,7 @@
 
 
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 struct CompilerPlugin;
 
@@ -208,7 +208,7 @@ class VirtualMachine
             : opcode(OpCodes::Constant)
             , Operation (value)
             , ResultType(value)
-            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (sizeof(integer)/2*8) )
+            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
                                   + static_cast<uinteger>(idxOriginal  )  )
             , DecompileType( isOptimization ? DecompileInfoType::OptimizationConstant
                                             : DecompileInfoType::LiteralConstant       )
@@ -235,7 +235,7 @@ class VirtualMachine
             , Operation            (callback         )
             , QtyFunctionArgs      (qtyFunctionArgs  )
             , ResultType           (resultType       )
-            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (sizeof(integer)/2*8) )
+            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
                                   + static_cast<uinteger>(idxOriginal  )  )
             , DecompileType        ( isOperator ? ( qtyFunctionArgs == 1 ? DecompileInfoType::UnaryOp
                                                                          : DecompileInfoType::BinaryOp )
@@ -266,7 +266,7 @@ class VirtualMachine
             : opcode(jumpType == JumpType::Conditional ? OpCodes::JumpIfFalse : OpCodes::Jump )
             , Operation(-1)
             , ResultType(nullptr)
-            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (sizeof(integer)/2*8) )
+            , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
                                   + static_cast<uinteger>(idxOriginal  )  )
             {}
 
@@ -317,7 +317,7 @@ class VirtualMachine
      * @return The result value of the expression program.
      **********************************************************************************************/
     ALIB_API static
-    aworx::Box  Run( Program& program, Scope& scope );
+    alib::Box  Run( Program& program, Scope& scope );
 
     /** ********************************************************************************************
      * Static method that decompiles a program into an abstract syntax tree.
@@ -354,12 +354,12 @@ class VirtualMachine
 
 };
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
-ALIB_BOXING_VTABLE_DECLARE(       aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
-ALIB_ENUMS_MAKE_BITWISE(             aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes)
+ALIB_BOXING_VTABLE_DECLARE(       alib::expressions::detail::VirtualMachine::Command::OpCodes, vt_expressions_vmopcodes )
+ALIB_ENUMS_MAKE_BITWISE(             alib::expressions::detail::VirtualMachine::Command::OpCodes)
 #if ALIB_DEBUG
-    ALIB_ENUMS_ASSIGN_RECORD(aworx::lib::expressions::detail::VirtualMachine::Command::OpCodes, ERSerializable )
+    ALIB_ENUMS_ASSIGN_RECORD(alib::expressions::detail::VirtualMachine::Command::OpCodes, ERSerializable )
 #endif
 
 #endif // HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE

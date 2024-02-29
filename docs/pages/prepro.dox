@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -16,11 +16,7 @@
 #define ALIB_API_IS_DLL
 #define ALIB_API_NO_DLL
 
-#define ALIB_CPPVER
-#define ALIB_CPP11
-#define ALIB_CPP14
-#define ALIB_CPP17
-#define ALIB_CPP20
+#define ALIB_CPP_STANDARD
 
 #define ALIB_DEBUG
 #define ALIB_GDB_PP_SUPPRESS_CHILDREN
@@ -125,8 +121,8 @@ Followed to this, module-specific symbols are documented:
 &nbsp;&nbsp;      \ref GrpALibPreproSymbols_alox        "Module ALox"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_boxing      "Module Boxing"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_characters  "Module Characters"
-<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_memory     "Module Memory"
-<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_resources   "Module Resources"
+<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_memory      "Module Memory"
+<br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_camp        "Module BaseCamp"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_singletons  "Module Singletons"
 <br> &nbsp;&nbsp; \ref GrpALibPreproSymbols_strings     "Module Strings"
 
@@ -220,28 +216,14 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
 
 @{
 
-\def  ALIB_CPPVER
-  Macro containing the C++ language standard used for compilation.
-  Possible values are \c 11, \c 14, \c 17 and \c 20.
-
-\def  ALIB_CPP11
-  Macro which is \c 1 defined when compiled using the <b>C++ 11</b> standard.
-  The macro is \c 0 if any other language standard is used.
-
-\def  ALIB_CPP14
-  Macro which is \c 1 defined when compiled using the <b>C++ 14</b> standard.
-  The macro is \c 0 if any other language standard is used.
-
-\def  ALIB_CPP17
-  Macro which is \c 1 defined when compiled using the <b>C++ 17</b> standard.
-  The macro is \c 0 if any other language standard is used.
-
-\def  ALIB_CPP20
-  Macro which is \c 1 defined when compiled using the <b>C++ 20</b> standard.
-  The macro is \c 0 if any other language standard is used.
+\def  ALIB_CPP_STANDARD
+  Symbol containing the C++ language standard used for compilation.
+  Possible values are \c 17, \c 20 and \c 23.<br>
+  For MSC and GNU GCC (and compatible compilers like Clang), this macro is automatically detected.
+  For unknown compilers/toolchains, this symbol may be passed to the compiler.<br>
 
 \def ALIB_GCC
-  Macro which is \c 1 defined when an unknown compiler is used and this compiler is
+  Symbol which is \c 1 defined when an unknown compiler is used and this compiler is
   specifying \c __GNUC__ (what most compilers do).
   This deduction to "the real gcc" can never be complete, but is the best guess available.
   A much more complete deduction is provided by boost libraries for example.
@@ -253,9 +235,9 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
   compatible/readable version of complex declarations and definitions.
 
 \def  ALIB_SIZEOF_INTEGER
-  Contains the size of \c std::size_t, \c std::ptrdiff_t, #aworx::integer and #aworx::uinteger,
+  Contains the size of \c std::size_t, \c std::ptrdiff_t, #alib::integer and #alib::uinteger,
   which all should be the same, depending on the compiler and platform (processor type).
-  Usually this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  Usually this symbol is deduced in \alibheader{lang/integers.hpp} depending on the compiler and
   platform. If this deduction fails, this may result in two possible outcomes:
   1. A dedicated compilation error hinting to this documentation.
   2. Less directly connected compilation errors.
@@ -272,14 +254,14 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
 
 \def ALIB_INTGAP_TYPE
   The type of \alib{intGap_t}.
-  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  Usually, this symbol is deduced in \alibheader{lang/integers.hpp} depending on the compiler and
   platform
   @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
        information about providing compiler symbols.
 
 \def  ALIB_SIZEOF_INTGAP
   Contains the size of integral types \alib{intGap_t} and \alib{uintGap_t}.<br>
-  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  Usually, this symbol is deduced in \alibheader{lang/integers.hpp} depending on the compiler and
   platform.
 
   @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
@@ -289,7 +271,7 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
   Contains the size of <c>long double</c>. This is the value that <c>sizeof(long double)</c>
   returns. This size might be higher to what a copy operation of a value of the type might
   write.
-  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  Usually, this symbol is deduced in \alibheader{lang/integers.hpp} depending on the compiler and
   platform.
 
   @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
@@ -301,7 +283,7 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
   Symbol which denotes how many bytes the hardware will write with a value of type <c>long double</c>.
   This size might be smaller than the amount of memory that an allocation of that type would consume,
   hence what is reported by <c>sizeof(long double)</c>.<br>
-  Usually, this symbol is deduced in \alibheader{lib/integers.hpp} depending on the compiler and
+  Usually, this symbol is deduced in \alibheader{lang/integers.hpp} depending on the compiler and
   platform.
 
   @see If platform dependent deduction fails, see documentation of \ref ALIB_SIZEOF_INTEGER for
@@ -321,10 +303,9 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
 
 @{
 
-
 This group of symbols determine the availability of different <b>%ALib Modules</b> of the
 \alibdist used.
-The symbols are defined in header \alibheader{lib/modules.hpp} which always is and has to
+The symbols are defined in header \alibheader{alib.hpp} which always is and has to
 be the first \alib header file included (directly or indirectly).
 If none of the symbols is passed to the compiler, this header file will define all to \c 1,
 hence will include all modules a distribution.
@@ -332,10 +313,6 @@ hence will include all modules a distribution.
 If a symbol is given as \c 1, all corresponding symbols of dependent modules are
 also defined to \c 1, even if one had explicitly given as \c 0, which is considered a
 contradicting input.
-
-In addition to the modules, symbols that determine the availability of \alib
-\ref alib_manual_modules_filesets "file sets" are available for code selection.
-
 
 \def  ALIB_ALOX
   Denotes if module \alib_alox is included in the \alibdist.
@@ -382,23 +359,18 @@ In addition to the modules, symbols that determine the availability of \alib
     Corresponding macros \ref ALIB_IF_EXPRESSIONS and \ref ALIB_IFN_EXPRESSIONS which are useful
     for pruning short code snippets.
 
+\def  ALIB_FILES
+  Denotes if module \alib_files is included in the \alibdist.
+  \see
+    Corresponding macros \ref ALIB_IF_FILES and \ref ALIB_IFN_FILES which are useful
+    for pruning short code snippets.
+
 \def  ALIB_MONOMEM
   Denotes if module \alib_monomem is included in the \alibdist.
   \see
     Corresponding macros \ref ALIB_IF_MONOMEM and \ref ALIB_IFN_MONOMEM which are useful
     for pruning short code snippets.
 
-\def  ALIB_RESOURCES
-  Denotes if module \alib_resources is included in the \alibdist.
-  \see
-    Corresponding macros \ref ALIB_IF_RESOURCES and \ref ALIB_IFN_RESOURCES which are useful
-    for pruning short code snippets.
-
-\def  ALIB_RESULTS
-  Denotes if module \alib_results is included in the \alibdist.
-  \see
-    Corresponding macros \ref ALIB_IF_RESULTS and \ref ALIB_IFN_RESULTS which are useful
-    for pruning short code snippets.
 
 \def  ALIB_SINGLETONS
   Denotes if module \alib_singletons is included in the \alibdist.
@@ -412,16 +384,10 @@ In addition to the modules, symbols that determine the availability of \alib
     Corresponding macros \ref ALIB_IF_STRINGS and \ref ALIB_IFN_STRINGS which are useful
     for pruning short code snippets.
 
-\def  ALIB_SYSTEM
-  Denotes if module \alib_system is included in the \alibdist.
+\def  ALIB_CAMP
+  Denotes if module \alib_basecamp is included in the \alibdist.
   \see
-    Corresponding macros \ref ALIB_IF_SYSTEM and \ref ALIB_IFN_SYSTEM which are useful
-    for pruning short code snippets.
-
-\def  ALIB_TEXT
-  Denotes if module \alib_text is included in the \alibdist.
-  \see
-    Corresponding macros \ref ALIB_IF_TEXT and \ref ALIB_IFN_TEXT which are useful
+    Corresponding macros \ref ALIB_IF_CAMP and \ref ALIB_IFN_CAMP which are useful
     for pruning short code snippets.
 
 \def  ALIB_THREADS
@@ -435,22 +401,6 @@ In addition to the modules, symbols that determine the availability of \alib
   \see
     Corresponding macros \ref ALIB_IF_TIME and \ref ALIB_IFN_TIME which are useful
     for pruning short code snippets.
-
-
-\def ALIB_FILESET_COMMON_ENUMS
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_LISTS
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_MODULES
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_OWNER
-  Denotes if the named file set is available in the \alibdist.
-
-\def ALIB_FILESET_PLUGINS
-  Denotes if the named file set is available in the \alibdist.
 
 @}
 
@@ -477,8 +427,9 @@ Instead, the macros used for the log statements themselves (see
 
 \def  ALOX_REL_LOG
   If defined, release <em>Log Statements</em> are enabled. Hence, users of \alox can conditionally
-  compile special debug logging code that normally belongs to corresponding
-  debug logging statements.
+  compile special release logging code that belong to corresponding release logging statements.
+  (Note that release logging still can be pruned as explained in
+  \ref alox_man_debug_and_release_logging_ft_1.)<br>
   This is useful for example, to conditionally compile code that calculates and gathers
   information to do some more complex log output.
 
@@ -678,46 +629,46 @@ Instead, the macros used for the log statements themselves (see
 \I{################################################################################################}
 \I{################################          Resources         ####################################}
 \I{################################################################################################}
-\name ALib Module Resources Feature Selection
-\anchor GrpALibPreproSymbols_resources
+\name ALib Module BaseCamp Feature Selection
+\anchor GrpALibPreproSymbols_camp
 @{
 
 \def  ALIB_RESOURCES_OMIT_DEFAULTS
   If set, code that defines static default resource strings is pruned and thus, all
   static resource string data is pruned from the library's executable's data segment.
 
-  The omission mostly occurs in the implementations of \alib{Module::bootstrap} of various \alibmods,
-  where methods \alib{resources,ResourcePool::Bootstrap} and \alib{resources,ResourcePool::BootstrapBulk}
+  The omission mostly occurs in the implementations of \alib{lang,Camp::bootstrap} of various \alibmods,
+  where methods \alib{lang::resources,ResourcePool::Bootstrap} and \alib{lang::resources,ResourcePool::BootstrapBulk}
   are used to define the default resources.
 
   If resources are omitted, the bootstrap process has to be customized to use an external
   resource provider. Otherwise the library has undefined behavior as resources are missing.
 
   \see
-    Chapter \ref alib_resources_details_export "6.2 Exporting Resources For Externalization" of the
-    Programmer's Manual of module \alib_resources for more information.
+    Chapter \ref alib_basecamp_resources_details_export "3.6.2 Exporting Resources For Externalization" of the
+    Programmer's Manual of module \alib_basecamp for more information.
 
 
 \def  ALIB_DEBUG_RESOURCES
-  Selects extended debug code in module \alib_resources.<br>
+  Selects extended debug code in module \alib_basecamp.<br>
   If given as \c true in release builds, the symbol is redefined to \c false and a compiler
   pragma warning is printed.
 
   In particular, the following features become enabled:
-  - Static field \alib{resources,LocalResourcePool::DbgResourceLoadObserver} becomes available
+  - Static field \alib{lang::resources,LocalResourcePool::DbgResourceLoadObserver} becomes available
     which supports finding resource definition errors. If set prior to bootstrapping,
-    methods \alib{resources,LocalResourcePool::BootstrapBulk} and
-    \alib{resources,LocalResourcePool::BootstrapAddOrReplace} will write information on
+    methods \alib{lang::resources,LocalResourcePool::BootstrapBulk} and
+    \alib{lang::resources,LocalResourcePool::BootstrapAddOrReplace} will write information on
     bulk and singular resource data definitions.
-  - Types \alib{resources,LocalResourcePool} and \alib{resources,ConfigResourcePool} collect
+  - Types \alib{lang::resources,LocalResourcePool} and \alib{lang::resources,ConfigResourcePool} collect
     statistics about the number of acquisitions of particular resources.
     With type \b LocalResourcePool, these statistics can be read by directly accessing the internal
-    hash table using method \alib{resources::LocalResourcePool,BootstrapGetInternalHashMap}
+    hash table using method \alib{lang::resources::LocalResourcePool,BootstrapGetInternalHashMap}
     or using one of the convenient functions below.
-  - Method \alib{resources,ResourcePool::DbgGetList}
-  - Method \alib{resources,ResourcePool::DbgGetCategories}
-  - Method \alib{resources,ResourcePool::DbgDump}
-  - Method \alib{resources,LocalResourcePool::DbgGetList}
+  - Method \alib{lang::resources,ResourcePool::DbgGetList}
+  - Method \alib{lang::resources,ResourcePool::DbgGetCategories}
+  - Method \alib{lang::resources,ResourcePool::DbgDump}
+  - Method \alib{lang::resources,LocalResourcePool::DbgGetList}
 
 @}
 
@@ -782,4 +733,3 @@ Instead, the macros used for the log statements themselves (see
 @}
 
 */
-

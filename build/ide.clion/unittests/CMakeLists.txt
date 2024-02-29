@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALox Unit Tests
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  This CMake file just includes the main CMake file found in build/cmake.cpp/unittests.
@@ -19,9 +19,14 @@ project("ALib_UnitTests")
 # Settings prior to including the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    # uncomment to force cotire on clean cmake built
-    #set( ALIB_CMAKE_COTIRE                 "On" )
-    #set( ALIB_PRECOMPILED_HEADER           "On" )
+    # Compile speed options. Uncomment during development ONLY!
+    # set( ALIB_CMAKE_COTIRE                 "On" )
+    # set( ALIB_PRECOMPILED_HEADER           "On" )
+    # set( ALIB_UT_LINKER_MOLD               "On" )
+    # set( ALIB_UT_REDUCED_COMPILE_TIME      "On" )
+    # set( ALIB_UT_MEASURE_COMPILE_TIME      "On" )
+    # set( CMAKE_VERBOSE_MAKEFILE            "On" )
+
 
     # Allow valgrind runs.
     #set( ALIB_AVOID_ANALYZER_WARNINGS      "On" )
@@ -39,10 +44,9 @@ project("ALib_UnitTests")
 
 
     # C++ Version selection
-    #set(CMAKE_CXX_STANDARD 11)
-    #set(CMAKE_CXX_STANDARD 14)
     #set(CMAKE_CXX_STANDARD 17)
     #set(CMAKE_CXX_STANDARD 20)
+    #set(CMAKE_CXX_STANDARD 23)
 
     # 32-bit compilation
     #list( APPEND ALIB_COMPILER_OPTIONS     "-m32"    )
@@ -51,8 +55,8 @@ project("ALib_UnitTests")
     # valgrind dwarf 4
     #list( APPEND ALIB_COMPILER_OPTIONS    "-gdwarf-4"    )
 
-    #### Module TEXT is mandatory to build the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "TEXT"  )
+    #### Module CAMP is mandatory to build the unit tests ####
+    #list( APPEND ALIB_DISTRIBUTION         "CAMP"  )
 
     #### These "micro modules" are optional: may be commented out. #####
     #list( APPEND ALIB_DISTRIBUTION         "TIME"    )
@@ -60,20 +64,19 @@ project("ALib_UnitTests")
 
     #### The "higher level" modules are optional to be included in the unit tests ####
     #list( APPEND ALIB_DISTRIBUTION         "ALL"           )
-    #list( APPEND ALIB_DISTRIBUTION         "SYSTEM"        )
+    #list( APPEND ALIB_DISTRIBUTION         "ALOX"          )
+    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"      )
     #list( APPEND ALIB_DISTRIBUTION         "CONFIGURATION" )
     #list( APPEND ALIB_DISTRIBUTION         "CLI"           )
     #list( APPEND ALIB_DISTRIBUTION         "EXPRESSIONS"   )
-    #list( APPEND ALIB_DISTRIBUTION         "ALOX"          )
-
+    #list( APPEND ALIB_DISTRIBUTION         "FILES"          )
 
     #### ALib Features ####
-
     #set( ALIB_FEAT_SINGLETON_MAPPED        "On" )
     #set( ALIB_CHARACTERS_WIDE              "On" )
     #set( ALIB_CHARACTERS_SIZEOF_WCHAR      "2"  )
 
-    # set( ALIB_FEAT_BOOST_REGEX            "On"  )
+    #set( ALIB_FEAT_BOOST_REGEX            "On"  )
 
     #set( ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS     "On" )
     #set( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS         "On" )

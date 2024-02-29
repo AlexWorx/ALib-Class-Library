@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL
@@ -31,7 +31,7 @@
 
 #include <bitset>
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 class Compiler;
 class Parser;
@@ -137,8 +137,8 @@ class ParserImpl  : public Parser
          * \alib{expressions,Compiler::UnaryOperators} and used for testing of existence.
          */
         HashSet< String,
-                 aworx::hash_string_ignore_case    <character>,
-                 aworx::equal_to_string_ignore_case<character>  >  unaryOperators;
+                 alib::hash_string_ignore_case    <character>,
+                 alib::equal_to_string_ignore_case<character>  >  unaryOperators;
 
         /**
          * Hash set of binary operators. The key of the table is the operator string, which usually
@@ -148,8 +148,8 @@ class ParserImpl  : public Parser
          * \alib{expressions,Compiler::BinaryOperators} and used for testing of existence.
          */
         HashSet< String,
-                 aworx::hash_string_ignore_case    <character>,
-                 aworx::equal_to_string_ignore_case<character>  >  binaryOperators;
+                 alib::hash_string_ignore_case    <character>,
+                 alib::equal_to_string_ignore_case<character>  >  binaryOperators;
 
         /** List of ASTs currently created in recursion.
          *  \note
@@ -293,7 +293,7 @@ class ParserImpl  : public Parser
 };  // class ParserImpl
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 
 

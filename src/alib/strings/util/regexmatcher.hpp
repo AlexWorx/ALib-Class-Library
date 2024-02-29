@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_REGEXMATCHER
@@ -15,7 +15,7 @@
 
 #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 /** ************************************************************************************************
  * This utility class wraps \https{boost::regex library,www.boost.org} and interfaces
@@ -89,12 +89,12 @@ class RegexMatcher
 
 }; // class RegexMatcher
 
-}}} // namespace aworx[::lib::strings::util]
+}} // namespace alib[::strings::util]
 
-/// Type alias in namespace #aworx.
-using     RegexMatcher=     lib::strings::util::RegexMatcher;
+/// Type alias in namespace \b alib.
+using     RegexMatcher=     strings::util::RegexMatcher;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
 #endif // HPP_ALIB_STRINGS_UTIL_REGEXMATCHER

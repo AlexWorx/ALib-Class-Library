@@ -2,19 +2,19 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_FWDS
 #define HPP_ALIB_BOXING_FWDS 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
 
-namespace aworx { namespace lib { namespace boxing {
+namespace alib {  namespace boxing {
 
 namespace detail {  struct  VTable;  }
 class  Box;
@@ -33,42 +33,41 @@ template<typename TChar>
 struct FAppend;             )
 
 
-}}// namespace [aworx::lib::boxing]
+} // namespace alib[::boxing]
 
 
-/// Type alias in namespace #aworx.
-using     Box           =   lib::boxing::Box;
+/// Type alias in namespace \b alib.
+using     Box           =   boxing::Box;
 
-/// Type alias in namespace #aworx.
-using     Boxes         =   lib::boxing::Boxes;
+/// Type alias in namespace \b alib.
+using     Boxes         =   boxing::Boxes;
 
-/// Type alias in namespace #aworx.
-using     Enum          =   lib::boxing::Enum;
+/// Type alias in namespace \b alib.
+using     Enum          =   boxing::Enum;
 
-/// Type alias in namespace #aworx.
-using     FHashcode     =   lib::boxing::FHashcode;
+/// Type alias in namespace \b alib.
+using     FHashcode     =   boxing::FHashcode;
 
-/// Type alias in namespace #aworx.
-using     FClone        =   lib::boxing::FClone;
+/// Type alias in namespace \b alib.
+using     FClone        =   boxing::FClone;
 
-/// Type alias in namespace #aworx.
-using     FEquals       =   lib::boxing::FEquals;
+/// Type alias in namespace \b alib.
+using     FEquals       =   boxing::FEquals;
 
-/// Type alias in namespace #aworx.
-using     FIsNotNull    =   lib::boxing::FIsNotNull;
+/// Type alias in namespace \b alib.
+using     FIsNotNull    =   boxing::FIsNotNull;
 
-/// Type alias in namespace #aworx.
-using     FIsLess       =   lib::boxing::FIsLess;
+/// Type alias in namespace \b alib.
+using     FIsLess       =   boxing::FIsLess;
 
-/// Type alias in namespace #aworx.
-using     FIsTrue       =   lib::boxing::FIsTrue;
+/// Type alias in namespace \b alib.
+using     FIsTrue       =   boxing::FIsTrue;
 
 #if ALIB_STRINGS
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename TChar>
-using     FAppend       =   lib::boxing::FAppend<TChar>;
+using     FAppend       =   boxing::FAppend<TChar>;
 #endif
-} // namespace aworx
+} // namespace [alib]
 
 #endif // HPP_ALIB_BOXING_FWDS
-

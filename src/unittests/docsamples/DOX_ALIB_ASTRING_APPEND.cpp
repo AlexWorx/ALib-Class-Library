@@ -1,34 +1,32 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_STRINGS && ALIB_TIME
+#if ALIB_UT_DOCS && ALIB_UT_STRINGS && ALIB_TIME
 
 
 //! [DOX_ALIB_APPEND_DEFINITION]
 #include "alib/strings/astring.hpp"
 #include "alib/strings/format.hpp"
 #include "alib/time/datetime.hpp"
-#include "alib/system/calendar.hpp"
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
+#include "alib/lang/system/calendar.hpp"
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib::strings {
 
-    template<> struct T_Append<aworx::lib::time::DateTime>
+    template<> struct T_Append<alib::time::DateTime>
     {
-        void operator()( AString& target, const aworx::lib::time::DateTime& appendable )
+        void operator()( AString& target, const alib::time::DateTime& appendable )
         {
-            aworx::lib::system::CalendarDateTime calendarTime;
-            calendarTime.Set( appendable, Timezone::UTC );
+            alib::CalendarDateTime calendarTime;
+            calendarTime.Set( appendable, lang::Timezone::UTC );
             calendarTime.Format( A_CHAR("yyyy-MM-dd HH:mm"), target );
         }
     };
-
-}}}
+}
 //! [DOX_ALIB_APPEND_DEFINITION]
 
 
@@ -53,7 +51,7 @@ namespace std
 #define cout sample_os
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 void AppendToSample();
 void AppendToSample()
@@ -101,7 +99,7 @@ void FormatFieldSample()
 {
 //! [DOX_ALIB_APPEND_FIELD]
 AString centered;
-centered << '*' << Format::Field( "Hello", 15, Alignment::Center ) << '*';
+centered << '*' << Format::Field( "Hello", 15, lang::Alignment::Center ) << '*';
 cout << centered << endl;
 //! [DOX_ALIB_APPEND_FIELD]
 }

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -18,13 +18,7 @@
 
 ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
-namespace aworx { namespace lib { namespace expressions {  namespace plugins {
-
-#if ALIB_CPPVER < 17
-constexpr Calculus::CTInvokable Calculus::CTI;
-constexpr Calculus::CTInvokable Calculus::ETI;
-#endif
-
+namespace alib {  namespace expressions {  namespace plugins {
 
 // #################################################################################################
 // Operator setup helpers (unary and binary)
@@ -60,7 +54,7 @@ void Calculus::AddOperator     ( const String&      op,
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddOperators( OperatorTableEntry* table, size_t length )
 {
-    Operators.Reserve( integer(length), ValueReference::Relative );
+    Operators.Reserve( integer(length), lang::ValueReference::Relative );
     ALIB_DBG( auto actBucketCount= Operators.BucketCount(); )
 
     #define OP         std::get<0>( *(table + i) )
@@ -126,7 +120,7 @@ void Calculus::AddOperatorAlias( const String& alias, Type lhs, Type rhs, const 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddOperatorAliases( OperatorAliasTableEntry* table, size_t length )
 {
-    OperatorAliases.Reserve( integer(length), ValueReference::Relative );
+    OperatorAliases.Reserve( integer(length), lang::ValueReference::Relative );
 
     #define ALIAS      std::get<0>( *(table + i) )
     #define LHS_TYPE   std::get<1>( *(table + i) ).TypeID()
@@ -213,7 +207,7 @@ ALIB_DBG(ciUnaryOp.DbgCallbackName= std::get<3>(op);)
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table, size_t length )
 {
-    BinaryOperatorOptimizations.Reserve(  integer(length), ValueReference::Relative );
+    BinaryOperatorOptimizations.Reserve(  integer(length), lang::ValueReference::Relative );
 
     #define OP         std::get<0>( *(table + i) )
     #define SIDE       std::get<1>( *(table + i) )
@@ -234,7 +228,8 @@ void Calculus::AddBinaryOpOptimizations( BinaryOpOptimizationsTableEntry* table,
                "constant value {!Q} of type {!Q<>} (aka {}) and with "
                "{!L}-hand type {!Q<>} (aka {}).",
                OP, SIDE, CONSTVAL,                            Cmplr.TypeName(CONSTVAL), CONSTTYPE,
-               SIDE == Side::Left ? Side::Right : Side::Left, Cmplr.TypeName(OTHERBOX), OTHERTYPE  )
+               SIDE == lang::Side::Left ? lang::Side::Right
+                                        : lang::Side::Left,   Cmplr.TypeName(OTHERBOX), OTHERTYPE  )
         #else
             BinaryOperatorOptimizations.EmplaceUnique( BinOpOptKey { OP, SIDE, CONSTVAL, OTHERTYPE },
                                                        RESULT );
@@ -317,7 +312,7 @@ ALIB_DBG(   ciBinaryOp.DbgCallbackName= DBG_CB_NAME;                            
                                                    :  *(ciBinaryOp.ArgsBegin + 1 );
 
         auto entryIt= BinaryOperatorOptimizations.Find( { ciBinaryOp.Operator,
-                                                          ciBinaryOp.RhsIsConst ? Side::Right : Side::Left,
+                                                          ciBinaryOp.RhsIsConst ? lang::Side::Right : lang::Side::Left,
                                                           constValue,
                                                           nonConstType
                                                          } );
@@ -503,7 +498,7 @@ namespace {
             {
                 operatorIsIn= false;
                 for( auto& op : *entry.OperatorsAccepted )
-                    if( op.Equals( ciAutoCast.Operator ) )
+                    if( op.Equals<false>( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= true;
                         break;
@@ -516,7 +511,7 @@ namespace {
                 && entry.OperatorsDeclined->size() > 0    )
             {
                 for( auto& op : *entry.OperatorsDeclined )
-                    if( op.Equals( ciAutoCast.Operator ) )
+                    if( op.Equals<false>( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= false;
                         break;
@@ -611,7 +606,6 @@ ALIB_DBG(  ciAutoCast.DbgCallbackNameRhs=  entry->DbgCallbackName; )
     return result;
 }
 
-}}}} // namespace [aworx::lib::expressions::plugin]
+}}} // namespace [alib::expressions::plugin]
 
 ALIB_WARNINGS_RESTORE
-

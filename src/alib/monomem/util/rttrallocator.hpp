@@ -2,22 +2,22 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
 #define HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
 
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
+#if ALIB_DEBUG && !defined(HPP_ALIB_LANG_DBGTYPEDEMANGLER)
+#   include "alib/lang/dbgtypedemangler.hpp"
 #endif
 
 #if !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #   include "alib/monomem/monoallocator.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FS_LISTS_SIDILIST)
-#   include "alib/lib/fs_lists/sidilist.hpp"
+#if !defined(HPP_ALIB_LANG_SIDILIST)
+#   include "alib/lang/sidilist.hpp"
 #endif
 
 #if ALIB_DEBUG
@@ -30,7 +30,7 @@
 #   include "alib/monomem/monomem.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /**
  * Utility types of module \alib_monomem.
@@ -63,14 +63,14 @@ struct RTTRAllocator
 {
     /** The node type of the internal node type used for stacking  recyclables. Besides inheriting
      *  the single-list pointer, this type is empty.                                              */
-    struct Node : lib::detail::SidiNodeBase<Node>
+    struct Node : lang::SidiNodeBase<Node>
     {};
 
     /** The monotonic allocator */
     MonoAllocator*                   allocator;
 
     /** List of destructed objects available for recycling. */
-    lib::detail::SidiListHelper<Node> stack;
+    lang::SidiListHelper<Node> stack;
 
     /** The object size of recylables. Will be detected with the first invocation of #Get. */
     size_t                           detectedObjectSize                                         = 0;
@@ -170,8 +170,8 @@ struct RTTRAllocator
             #if ALIB_STRINGS
                 ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeAlloc, "MONOMEM/RTTRA", NString1K() <<
                   "A different object was requested for allocation!\n"
-                  "  Previous type : <" << DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
-                  "  Requested type: <" << DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
+                  "  Previous type : <" << lang::DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
+                  "  Requested type: <" << lang::DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
                   "Note: This allocator may not be efficient when used.\n"
                   "      If this is a use case using a 'std' library container, this message indicates\n"
                   "      that a RTTRAllocator was shared between different container instantiations.\n"
@@ -261,7 +261,7 @@ struct RTTRAllocator
                     #if ALIB_STRINGS
                         ALIB_ASSERT_WARNING( !dbgWarnDeallocationPriorToAllocation,  "MONOMEM/RTTRA", NString1K() <<
                             "De-allocation prior to a first object allocation needed to detect recyclable type!\n"
-                            "  De-allocated object type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n" <<
+                            "  De-allocated object type: <" << lang::DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n" <<
                             "Note: This allocator may not be efficient when used.\n"
                             "      If this is a use case using a 'std' library container, this message indicates\n"
                             "      an 'unusual' implementation of such C++ standard library."                   )
@@ -277,8 +277,8 @@ struct RTTRAllocator
                     #if ALIB_STRINGS
                         ALIB_ASSERT_WARNING( !dbgWarnDifferentObjectTypeDealloc, "MONOMEM/RTTRA", NString1K() <<
                              "A different object for was requested for de-allocoation!\n"
-                             "  Previous type : <" << DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
-                             "  Requested type: <" << DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
+                             "  Previous type : <" << lang::DbgTypeDemangler(*dbgDetectedObjectTypeInfo).Get() << ">\n"
+                             "  Requested type: <" << lang::DbgTypeDemangler( dbgTypeInfo              ).Get() << ">\n" <<
                              "Note: This allocator may not be efficient when used.\n"
                              "      If this is a use case using a 'std' library container, this message indicates\n"
                              "      that a RTTRAllocator was shared between different container instantiations.\n"
@@ -330,7 +330,7 @@ struct RTTRAllocator
             #if ALIB_STRINGS
                 ALIB_ASSERT_WARNING( !dbgWarnRecycleChunkPriorToAllocation, "MONOMEM/RTTRA",  NString1K() <<
                   "De-allocation prior to a first object allocation needed to detect recyclable type!\n"
-                  "  De-allocated object type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
+                  "  De-allocated object type: <" << lang::DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
                   "Note: If this recycler is used with a 'std' library container, this either\n"
                   "      indicates an 'unusual' implementation of such C++ standard library,\n"
                   "      or a manual shrink of the capacity without any prior object insertion."    )
@@ -365,9 +365,9 @@ struct RTTRAllocator
         #if ALIB_STRINGS
             ALIB_ASSERT_WARNING( cntStackedObjects > 0, "MONOMEM/RTTRA", NString1K() <<
               "De-allocated chunk's size is smaller than detected object size.\n"
-              "  Deallocated object: Type: <" << DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
+              "  Deallocated object: Type: <" << lang::DbgTypeDemangler( dbgTypeInfo ).Get() << ">\n"
               "                      Size: "  << origSize     << " bytes, alignment: " << alignment << "\n"
-              "  Detected object:    Type: <" << DbgTypeDemangler( *dbgDetectedObjectTypeInfo ).Get() << ">\n"
+              "  Detected object:    Type: <" << lang::DbgTypeDemangler( *dbgDetectedObjectTypeInfo ).Get() << ">\n"
               "                      Size: "  << detectedObjectSize << " bytes, alignment: " << detectedObjectAlignment << "\n"
               "Note: If this recycler is used with a <std::unordered_map> or <std::unordered_set>,\n"
               "      this message may be eliminated by reserving a reasonable initial bucket size."  )
@@ -387,15 +387,14 @@ struct RTTRAllocator
 
 }; // RTTRAllocator
 
-}}}// namespace aworx[::lib::monomem::util]
+}} // namespace alib[::monomem::util]
 
 
-/// Type alias in namespace #aworx.
-using     RTTRAllocator  =   lib::monomem::util::RTTRAllocator;
+/// Type alias in namespace \b alib.
+using     RTTRAllocator  =   monomem::util::RTTRAllocator;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 
 #endif // HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
-

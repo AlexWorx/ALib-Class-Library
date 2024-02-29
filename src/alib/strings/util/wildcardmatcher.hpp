@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER
@@ -16,7 +16,7 @@
     #include <vector>
 #endif
 
-namespace aworx { namespace lib { namespace strings { namespace util  {
+namespace alib {  namespace strings { namespace util  {
 
 
 /** ************************************************************************************************
@@ -30,8 +30,8 @@ namespace aworx { namespace lib { namespace strings { namespace util  {
  * subsequent invocations of #Match do not need to parse the pattern string.
  *
  * @tparam TChar    The character type. Implementations for \c nchar and \c wchar are provided
- *                  with type definitions \ref aworx::WildcardMatcherN and
- *                  \ref aworx::WildcardMatcherW.
+ *                  with type definitions \ref alib::WildcardMatcherN and
+ *                  \ref alib::WildcardMatcherW.
  **************************************************************************************************/
 template<typename TChar>
 class TWildcardMatcher
@@ -72,27 +72,27 @@ class TWildcardMatcher
          * @return \c true if given \p{haystack} matches the actual pattern, \c false otherwise.
          ******************************************************************************************/
         ALIB_API
-        bool   Match( const TString<TChar>& haystack, Case sensitivity = Case::Sensitive  );
+        bool   Match( const TString<TChar>& haystack, lang::Case sensitivity = lang::Case::Sensitive  );
 
 }; // class WildcardMatcher
 
 
 extern template ALIB_API void TWildcardMatcher<nchar>::Compile( const TString<nchar>& );
-extern template ALIB_API bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>&, Case );
+extern template ALIB_API bool TWildcardMatcher<nchar>::Match  ( const TString<nchar>&, lang::Case );
 extern template ALIB_API void TWildcardMatcher<wchar>::Compile( const TString<wchar>& );
-extern template ALIB_API bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>&, Case );
+extern template ALIB_API bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>&, lang::Case );
 
-}}} // namespace aworx[::lib::strings::util]
+}} // namespace alib[::strings::util]
 
-/// Type alias in namespace #aworx.
-using     WildcardMatcher=     lib::strings::util::TWildcardMatcher<character>;
+/// Type alias in namespace \b alib.
+using     WildcardMatcher=     strings::util::TWildcardMatcher<character>;
 
-/// Type alias in namespace #aworx.
-using     WildcardMatcherN=    lib::strings::util::TWildcardMatcher<nchar>;
+/// Type alias in namespace \b alib.
+using     WildcardMatcherN=    strings::util::TWildcardMatcher<nchar>;
 
-/// Type alias in namespace #aworx.
-using     WildcardMatcherW=    lib::strings::util::TWildcardMatcher<wchar>;
+/// Type alias in namespace \b alib.
+using     WildcardMatcherW=    strings::util::TWildcardMatcher<wchar>;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_DETAIL_THREADMAP
@@ -28,7 +28,7 @@
 
 
 
-namespace aworx { namespace lib { namespace threads { namespace detail {
+namespace alib {  namespace threads { namespace detail {
 
 #if ALIB_MONOMEM
 
@@ -65,7 +65,7 @@ extern ALIB_API std::mutex                                      moduleLock;
 
 
 /**
- * Retrieves the \alib object associated with the given C++ 11 thread id.
+ * Retrieves the \alib object associated with the given C++ <c>std::thread::id</c>.
  * In case the threadID is not found in the hash table, the given id is considered a system
  * thread and is entered into the hash table.
  *
@@ -80,6 +80,6 @@ ALIB_API Thread* getThread(std::thread::id c11ID );
  */
 void threadStart( Thread* thread );
 
-}}}} // namespace [aworx::lib::threads::detail]
+}}} // namespace [alib::threads::detail]
 
 #endif // HPP_ALIB_THREADS_DETAIL_THREADMAP

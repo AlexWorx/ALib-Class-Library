@@ -2,12 +2,12 @@
 //  AWorx ALib Unit Tests
 //  Documentation sample for ALib Expressions: Calculator
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_EXPRESSIONS
+#if ALIB_UT_DOCS && ALIB_UT_EXPRESSIONS
 
 
 // Preparations to fake std::cout, main(), etc.
@@ -48,23 +48,24 @@ namespace std { namespace {   basic_stringstream<char> testOutputStreamEC;    } 
 #include "alib/compatibility/std_strings_iostream.hpp"
 
 // ALib Exception class
-#include "alib/results/exception.hpp"
+#include "alib/lang/message/exception.hpp"
 
 // ALib module initialization (has to be done in main())
-#include "alib/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
 
 // std::cout
 #include <iostream>
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 //----- The Command Line Calculator Program -----
 int main( int argc, const char **argv )
 {
     // 0. Initialize ALib (this has to be done once at bootstrap with any software using ALib)
-    aworx::ALIB.Bootstrap(argc, argv);
-    aworx::ALIB.CheckDistribution();
+    alib::ArgC=  argc;
+    alib::ArgVN= argv;
+    alib::Bootstrap();
 
     // 1. Create a defaulted expression compiler. This adds all built-in stuff, like number
     //    arithmetics, strings, time/date, etc.
@@ -89,7 +90,7 @@ int main( int argc, const char **argv )
     // 3. We need an evaluation "scope"
     //    (later we will use a custom type here, that allows custom identifiers, functions and
     //    operators to access application data)
-    lib::expressions::Scope scope(compiler.CfgFormatter);
+    expressions::Scope scope(compiler.CfgFormatter);
 
     // 4. Evaluate the expression
     //    (We must not fear exceptions here, as the compiler did all type checking, and resolved
@@ -102,7 +103,7 @@ int main( int argc, const char **argv )
     cout << "Result:     " << result                            << endl;
 
     // 6. Terminate library
-    aworx::ALIB.Shutdown();
+    alib::Shutdown();
 
     return 0;
 }
@@ -126,7 +127,7 @@ int dox_calculator_sample( int argc, const char **argv )
              << e << endl;
         return static_cast<int>( e.Type().Integral() );
     }
-    lib::expressions::Scope scope(compiler.CfgFormatter);
+    expressions::Scope scope(compiler.CfgFormatter);
     Box result= expression->Evaluate( scope );
     cout << "Input:      " << expression->GetOriginalString()   << endl;
     cout << "Normalized: " << expression->GetNormalizedString() << endl;

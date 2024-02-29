@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -15,13 +15,13 @@
 #endif // !defined(ALIB_DOX)
 
 #if !defined(M_PI)
-#   define M_PI		    3.14159265358979323846
+#   define M_PI         3.14159265358979323846
 #endif
 #if !defined(M_E)
-#   define M_E		    2.7182818284590452354
+#   define M_E          2.7182818284590452354
 #endif
 #if !defined(M_LN10)
-#   define M_LN10		2.30258509299404568402
+#   define M_LN10       2.30258509299404568402
 #endif
 
 
@@ -34,7 +34,7 @@
                                   ArgIterator  end    )                                           \
                                   { (void) scope; (void) args; (void) end; __VA_ARGS__ }
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 namespace {
 
@@ -179,7 +179,7 @@ Math::Math( Compiler& compiler )
 }
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #undef INT
 #undef FLT

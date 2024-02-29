@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_PLUGINS
@@ -20,7 +20,7 @@
 #   include <vector>
 #endif
 
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 
 
 // #################################################################################################
@@ -29,7 +29,7 @@ namespace aworx { namespace lib { namespace config {
 
 /** ************************************************************************************************
  * This virtual class is used by classes derived from
- * \ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin"
+ * \ref alib::config::ConfigurationPlugin "ConfigurationPlugin"
  * to convert external string to internal values and vice versa, and for parsing lists of values
  * from an external string.
  *
@@ -106,10 +106,10 @@ class XTernalizer
 
 /** ************************************************************************************************
  * Abstract class that represents a plug in for class
- * \ref aworx::lib::config::Configuration "Configuration"
+ * \ref alib::config::Configuration "Configuration"
  * to provide configuration data from specific configuration data source.
  *
- * See documentation of namespace #aworx::lib::config for more information on \alib
+ * See documentation of namespace #alib::config for more information on \alib
  * external configuration variables.
  *
  * The plug-in also may have the ability to write data. The default implementation for writing
@@ -270,7 +270,7 @@ class ConfigurationPlugin
 class CLIArgs;
 
 /**
- * Internal details of namespace #aworx::lib::config.
+ * Internal details of namespace #alib::config.
  */
 namespace detail
 {
@@ -382,8 +382,7 @@ class CLIArgs : public ConfigurationPlugin
          *
          *\note
          *   In standard application scenarios, this method is invoked with corresponding
-         *   \aworx{lib,Module::Bootstrap,module initialization} during
-         *   \ref alib_manual_bootstrapping "library bootstrap".
+         *   module initialization during \ref alib_manual_bootstrapping "library bootstrap".
          *
          * <p>
          *\note On the Windows platform, the Microsoft compiler provides the global variables
@@ -483,7 +482,6 @@ class Environment : public ConfigurationPlugin
         ALIB_API virtual bool  Load( Variable& variable, bool searchOnly= false  )         override;
 };
 
-
-}}}// namespace [aworx::lib::config]
+}} // namespace [alib::config]
 
 #endif // HPP_ALIB_CONFIG_PLUGINS

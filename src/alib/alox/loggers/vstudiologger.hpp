@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_alox of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 
@@ -16,22 +16,22 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace lox { namespace loggers {
+namespace alib {  namespace lox { namespace loggers {
 /** ************************************************************************************************
  *  A logger that logs to the Visual Studio output pane using <em>OutputDebugString()</em>.
  *  The name of the \e Logger defaults to "VSTUDIO_CONSOLE".
  *
- *  \alox text logger escape sequences (see class \ref aworx::lib::lox::ESC "ESC")
+ *  \alox text logger escape sequences (see class \ref alib::lox::ESC "ESC")
  *  are removed and ignored.
  *
  *  \note For the ease of use, class
- *  \ref aworx::lib::lox::Log "Log" implements a method
- *  \ref aworx::lib::lox::Log::AddDebugLogger "Log::AddDebugLogger"
+ *  \ref alib::lox::Log "Log" implements a method
+ *  \ref alib::lox::Log::AddDebugLogger "Log::AddDebugLogger"
  *  that tries to create the right Logger type for standard debug logging.
  *  If a Visual Studio debug session is detected, this logger is added. If in addition, a windows
  *  console application is detected, then a second logger of type WindowsConsoleLogger is added.
  **************************************************************************************************/
-class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogger
+class VStudioLogger : public alib::lox::detail::textlogger::PlainTextLogger
 {
     // #############################################################################################
     // Internal members
@@ -74,7 +74,7 @@ class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogge
          * @return Always returns true.
          ******************************************************************************************/
         ALIB_API
-        virtual bool notifyLogOp(lib::Phase phase);
+        virtual bool notifyLogOp(lang::Phase phase);
 
         /** ****************************************************************************************
          * Write the given region of the given AString to the destination buffer.
@@ -92,21 +92,20 @@ class VStudioLogger : public aworx::lib::lox::detail::textlogger::PlainTextLogge
          *  Empty implementation, not needed for this class
          ******************************************************************************************/
         ALIB_API
-        virtual void notifyMultiLineOp ( lib::Phase )    {  }
+        virtual void notifyMultiLineOp (lang::Phase )    {  }
 
 
 }; // class VStudioLogger
 
 
-}}}// namespace aworx[::lib::lox::loggers]
+}} // namespace alib[::lox::loggers]
 
-/// Type alias in namespace #aworx.
-using     VStudioLogger=           lib::lox::loggers::VStudioLogger;
+/// Type alias in namespace \b alib.
+using     VStudioLogger=           lox::loggers::VStudioLogger;
 
-}  // namespace [aworx]
+}  // namespace [alib]
 
 
 #endif // defined(_MSC_VER) && ALIB_DEBUG
 
 #endif // HPP_ALOX_VSTUDIO_LOGGER
-

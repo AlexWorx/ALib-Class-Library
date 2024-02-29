@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -51,9 +51,9 @@ In short, the features are:
 ## 1.1 Central Classes ## {#alib_config_intro_classes}
 
 The plug-ins, derived from abstract class
-\ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin"
+\ref alib::config::ConfigurationPlugin "ConfigurationPlugin"
 are plugged into an object of type
-\ref aworx::lib::config::Configuration "Configuration" and are responsible for reading (and
+\ref alib::config::Configuration "Configuration" and are responsible for reading (and
 optionally writing) variables from dedicated sources.
 
 Class \b %Configuration offers an interface to retrieve and store configuration variables using
@@ -62,7 +62,7 @@ Values are retrieved and stored by looping through the plug-ins sorted by priori
 As soon as one plug-in confirms to have found (or stored) the variable, the loop ends.
 This way, plug-ins may "overrule" each other in respect to retrieving configuration data.
 
-Class \alib{Module} holds a pointer to an instance of this class, which is created during
+Class \alib{lang,Camp} holds a pointer to an instance of this class, which is created during
 \ref alib_manual_bootstrapping "library bootstrap". This instance by default is shared among all
 library modules and the application itself, and is usually all that is needed!
 
@@ -72,8 +72,8 @@ library modules and the application itself, and is usually all that is needed!
 %Configuration variables are addressed by two strings: The \b category and the \b name. In the case of
 INI files, the category is translated to the section and the name to variables within the
 section. Other plug-ins, for example
-\ref aworx::lib::config::CLIArgs "CLIArgs" or
-\ref aworx::lib::config::Environment  "Environment", are prepending the category
+\ref alib::config::CLIArgs "CLIArgs" or
+\ref alib::config::Environment  "Environment", are prepending the category
 name to the variable name separated by an underscore character \c '_'.
 For example, a variable in category \c "ALIB" named \c "WAIT_FOR_KEY_PRESS", in an
 INI file would be stated like this:
@@ -108,12 +108,12 @@ or, in section \c MY:
 
 Three different standard plug-ins that collect external configuration variables are provided
 with \alib already:
-- Class \ref aworx::lib::config::CLIArgs "CLIArgs":<br>
+- Class \ref alib::config::CLIArgs "CLIArgs":<br>
   Reads parameter values of the form <c>-[-]CategoryName_VariableName=value</c> from the command line.
-- Class \ref aworx::lib::config::Environment "Environment":<br>
+- Class \ref alib::config::Environment "Environment":<br>
   Reads system defined \https{environment variables,en.wikipedia.org/wiki/Environment_variable}
   of the form <c>CategoryName_VariableName=value</c>.
-- Class \ref aworx::lib::config::IniFile "IniFile":<br>
+- Class \ref alib::config::IniFile "IniFile":<br>
   Reads and writes quite standard \https{INI files,en.wikipedia.org/wiki/INI_file}.
 <p>
 
@@ -129,12 +129,12 @@ overwritten by specifying a corresponding command line parameter when launching 
 # 3. Default Variables # {#alib_config_defaultvars}
 
 In addition to the three plug-ins described above, \alib implements a fourth one,
-class \ref aworx::lib::config::InMemoryPlugin "InMemoryPlugin". As the name indicates, this
+class \ref alib::config::InMemoryPlugin "InMemoryPlugin". As the name indicates, this
 class keeps configuration variables in memory. The special thing about it is that it does not
 read any external data source! The reason for having it, is twofold. The first use case
 are <em>Default variables</em>:
 An instance is plugged into class \b %Configuration with a (low) priority of
-\ref aworx::lib::config::Priorities "Priorities::DefaultValues".
+\ref alib::config::Priorities "Priorities::DefaultValues".
 This plug-in serves as a storage for default values.
 The only way to set these default values is \e programatically, which means "with program code".
 
@@ -149,7 +149,7 @@ The advantages of having such default variables are:
 # 4. Protecting Variables # {#alib_config_protecting}
 
 
-Class \ref aworx::lib::config::InMemoryPlugin "InMemoryPlugin" is by default used a second
+Class \ref alib::config::InMemoryPlugin "InMemoryPlugin" is by default used a second
 time by plugging an instance into class \b %Configuration with the highest possible priority
 \alib{config,Priorities,Priorities::ProtectedValues}.
 
@@ -166,10 +166,11 @@ This way, it is possible to protect values against external modification.
 # 5. Using Class Configuration # {#alib_config_using}
 
 In normal use cases, there is no need to create an instance of class Configuration, as a singleton
-is provided with \alib{Module::GetConfig} for every module.
-The command line parameters (optionally) provided with
-\alib{Module::Bootstrap} are passed to the command-line plug-in of this singleton. Dependent
-libraries will receive the same singleton instance, unless they are explicitly initialized
+is provided with \alib{lang,Camp::GetConfig} for every module.
+The command line parameters found with global \alib variables \alib{ArgC}, \alib{ArgVN} and
+\alib{ArgVW} (if set by the user's <c>main()</c>-function properly), are passed to the command-line
+plug-in of this singleton by function \alib{Bootstrap}.
+Dependent libraries will receive the same singleton instance, unless they are explicitly initialized
 prior to initializing the library that builds upon them.
 (For details on this, see chapter \ref alib_manual_bootstrapping "Bootstrapping ALib" of the
 library's Programmer's Manual.)
@@ -180,7 +181,7 @@ Class %Configuration in the constructor by default sets up four plug-ins automat
 \alib{config,InMemoryPlugin} used for default and protected values.
 
 If an application wants to suppress the use of one of the plug-ins, the plug-ins can be removed
-using method \ref aworx::lib::config::Configuration::RemovePlugin "RemovePlugin".<br>
+using method \ref alib::config::Configuration::RemovePlugin "RemovePlugin".<br>
 On the other hand, a plug-in of type \alib{config,IniFile} may be attached on bootstrap of a
 process (or later) using \alib{config,Priorities::Standard}.
 
@@ -207,7 +208,7 @@ By consequently using optional struct \alib{config,VariableDecl} for declaring a
 application or library, all attributes of variables can be maintained in one place.
 This includes categories, names, comments, value delimiters and default values of variables.
 Class \b %Variable accepts instances of \b %VariableDecl in the constructor as well as in overloaded
-method \ref aworx::lib::config::Variable::Declare "Variable::Declare".
+method \ref alib::config::Variable::Declare "Variable::Declare".
 
 Moreover, variable declaration values can be defined using "externalized" resource strings.
 For more information on this topic see
@@ -240,9 +241,9 @@ in other variable's values. For example, the syntax can be adjusted to
         MYCAT_MYVARIABLE= The result is %{MYCAT_RESULT}
 
 See documentation of fields
-\ref aworx::lib::config::Configuration::SubstitutionVariableStart        "SubstitutionVariableStart",
-\ref aworx::lib::config::Configuration::SubstitutionVariableEnd          "SubstitutionVariableEnd" and
-\ref aworx::lib::config::Configuration::SubstitutionVariableDelimiters   "SubstitutionVariableDelimiters"
+\ref alib::config::Configuration::SubstitutionVariableStart        "SubstitutionVariableStart",
+\ref alib::config::Configuration::SubstitutionVariableEnd          "SubstitutionVariableEnd" and
+\ref alib::config::Configuration::SubstitutionVariableDelimiters   "SubstitutionVariableDelimiters"
 for more information.
 
 When parsing a variable's category and name, method \alib{config,Configuration::Load} searches for
@@ -271,8 +272,8 @@ files need to be converted when loading and storing them. This has two reasons:
   a variable.
 
 For this task, class
-\ref aworx::lib::config::XTernalizer "XTernalizer" is used. Each
-\ref aworx::lib::config::ConfigurationPlugin "ConfigurationPlugin" owns an instance of this
+\ref alib::config::XTernalizer "XTernalizer" is used. Each
+\ref alib::config::ConfigurationPlugin "ConfigurationPlugin" owns an instance of this
 class (which is exchangeable). Conversion is done internally and there is no need to interface
 with this class directly when using variables.
 A huge benefit of this API design is that variable values look the same in an INI-file as
@@ -287,6 +288,4 @@ Normal, internal string values need to be added to the variable in code prior to
 a store method. If an externalized string is provided with the store methods, then previously
 added variable values are cleared!
 
-*/
-
-
+<br><br><br><br><br><br> */

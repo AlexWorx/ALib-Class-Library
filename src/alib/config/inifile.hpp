@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_config of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CONFIG_INI_FILE
@@ -11,16 +11,13 @@
 #if !defined (HPP_ALIB_CONFIG_INMEMORY_PLUGIN)
 #   include "alib/config/inmemoryplugin.hpp"
 #endif
-#if !defined(HPP_ALIB_RESULTS_REPORT)
-#   include "alib/results/report.hpp"
+#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#   include "alib/lang/message/report.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace strings { namespace compatibility { namespace std {
-class StringWriter;
-}}}}}
+namespace alib::strings::compatibility::std { class StringWriter; }
 
-
-namespace aworx { namespace lib { namespace config {
+namespace alib {  namespace config {
 /** ************************************************************************************************
  * Specialization of class #InMemoryPlugin, which reads and writes a simple configuration file
  * consisting of sections containing key/value pairs.
@@ -97,7 +94,7 @@ namespace aworx { namespace lib { namespace config {
  *
 \I{################################################################################################}
  * # Reference Documentation #
- * @throws aworx::lib::config::Exceptions
+ * @throws alib::config::Exceptions
  *   - \alib{config::Exceptions::ErrorOpeningFile}
  *   - \alib{config::Exceptions::ErrorWritingFile}
  **************************************************************************************************/
@@ -163,7 +160,7 @@ namespace aworx { namespace lib { namespace config {
          * to \c false.
          *
          * If the given name does not start with either a path separation character or a
-         * dot character <c>.</c>, then  \alib{system,Directory::SpecialFolder::HomeConfig} is
+         * dot character <c>.</c>, then  \alib{lang::basecamp,Directory::SpecialFolder::HomeConfig} is
          * prepended to the given name.
          *
          * @param filePathAndName  The name (and path) of the file to read and write.
@@ -209,7 +206,7 @@ namespace aworx { namespace lib { namespace config {
 
         /** ****************************************************************************************
          * This is a static utility function that reads section comments from
-         * \ref alib_mod_resources "externalized string resources".
+         * \ref alib_basecamp_resources "externalized string resources".
          *
          * All sections of all INI-files of given \p{config} are processed, but resourced comments
          * are only added in the case that a section's comment string is \c nulled. This is not the
@@ -221,11 +218,11 @@ namespace aworx { namespace lib { namespace config {
          * The resource names are assembled from given \p{resourceNamePrefix} and the section
          * name.
          * The resource strings found are processed using method
-         * \alib{text,Paragraphs.AddMarked}. This allows to use text macros like <b>'\@HL'</b>
+         * \alib{lang::format,Paragraphs.AddMarked}. This allows to use text macros like <b>'\@HL'</b>
          * to format the text.
          *
-         * This method is best be invoked in phase \alib{Module,ShutdownPhases::Announce} of
-         * method \alib{Module::shutdown}.
+         * This method is best be invoked in phase \alib{ShutdownPhases::Announce} of
+         * method \alib{lang,Camp::shutdown}.
          *
          * \see
          *  Field #LineWidth, which is respected when formatting comment lines.
@@ -316,11 +313,11 @@ namespace aworx { namespace lib { namespace config {
 };
 
 
-}} // namespace lib::config
+} // namespace alib[::onfig]
 
-/// Type alias in namespace #aworx.
-using     IniFile=       lib::config::IniFile;
+/// Type alias in namespace \b alib.
+using     IniFile=       config::IniFile;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_CONFIG_INI_FILE

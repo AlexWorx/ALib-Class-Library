@@ -2,15 +2,11 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_UTIL_FIXED_CAPACITY_VECTOR
 #define HPP_ALIB_MONOMEM_UTIL_FIXED_CAPACITY_VECTOR
-
-#if !defined (HPP_ALIB_TOOLS)
-#   include "alib/lib/tools.hpp"
-#endif
 
 #if !defined (HPP_ALIB_MONOMEM_MONOMEM)
 #   include "alib/monomem/monomem.hpp"
@@ -24,7 +20,7 @@
 #   include <queue>
 #endif
 
-namespace aworx { namespace lib { namespace monomem { namespace util {
+namespace alib {  namespace monomem { namespace util {
 
 /** ************************************************************************************************
  * This class fills the gap between standard types <c>std::array</c> and <c>std::vector</c> by
@@ -80,26 +76,26 @@ class FixedCapacityVector : public std::array<T, TSize>
 
 #if !defined(ALIB_DOX)
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-        ALIB_NODISCARD
+        [[nodiscard]]
         typename std::array<T, TSize>::size_type
         size() const
         { return fillSize; }
 
-        ALIB_NODISCARD
-        ALIB_CONSTEXPR17 typename std::array<T, TSize>::iterator            end()           noexcept
+        [[nodiscard]]
+        constexpr typename std::array<T, TSize>::iterator            end()           noexcept
         { return std::array<T, TSize>::begin() + fillSize; }
 
-        ALIB_NODISCARD
-        ALIB_CONSTEXPR17 typename std::array<T, TSize>::const_iterator      end()   const   noexcept
+        [[nodiscard]]
+        constexpr typename std::array<T, TSize>::const_iterator      end()   const   noexcept
         { return std::array<T, TSize>::begin() + fillSize; }
 
-        ALIB_NODISCARD
-        ALIB_CONSTEXPR17
+        [[nodiscard]]
+        constexpr
         typename std::array<T, TSize>::const_iterator                       cend()          noexcept
         { return std::array<T, TSize>::cbegin() + fillSize; }
 
-        ALIB_NODISCARD
-        ALIB_CONSTEXPR17
+        [[nodiscard]]
+        constexpr
         typename std::array<T, TSize>::const_iterator                       cend()  const   noexcept
         { return std::array<T, TSize>::cbegin() + fillSize; }
     ALIB_WARNINGS_RESTORE
@@ -107,22 +103,21 @@ class FixedCapacityVector : public std::array<T, TSize>
 
 }; // FixedCapacityVector
 
-}}}// namespace aworx[::lib::monomem::util]
+}} // namespace alib[::monomem::util]
 
 
-/// Type alias in namespace #aworx.
+/// Type alias in namespace \b alib.
 template<typename T, std::size_t TSize>
-using     FixedCapacityVector  =   lib::monomem::util::FixedCapacityVector<T, TSize>;
+using     FixedCapacityVector  =   monomem::util::FixedCapacityVector<T, TSize>;
 
 
-/// Type alias in namespace #aworx which denotes a <c>std::priority_queue</c> using
+/// Type alias in namespace \b alib. which denotes a <c>std::priority_queue</c> using
 /// a \alib{monomem::util,FixedCapacityVector} as its underlying container type.
 template<typename T, std::size_t TSize, typename TCompare= std::less<T>>
 using FixedSizePriorityQueue = std::priority_queue< T, FixedCapacityVector<T, TSize>, TCompare>;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 
 #endif // HPP_ALIB_MONOMEM_UTIL_RTTRALLOCATOR
-

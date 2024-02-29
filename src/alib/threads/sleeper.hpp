@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_SLEEPER
 #define HPP_ALIB_THREADS_SLEEPER 1
 
-#if !defined (HPP_ALIB_FS_OWNER_OWNER)
-    #include "alib/lib/fs_owner/owner.hpp"
+#if !defined (HPP_ALIB_LANG_OWNER)
+    #include "alib/lang/owner.hpp"
 #endif
 
 #if !defined(HPP_ALIB_THREADS_THREAD)
@@ -28,7 +28,7 @@
     #include <condition_variable>
 #endif
 
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 
 /** ************************************************************************************************
  * This class is a simple wrapper around C++ standard library types \c std::mutex and
@@ -305,11 +305,11 @@ class Sleeper
 };
 
 
-}} // namespace aworx[::lib::threads]
+} // namespace alib[::threads]
 
-/// Type alias in namespace #aworx.
-using     Sleeper=   lib::threads::Sleeper;
+/// Type alias in namespace \b alib.
+using     Sleeper=   threads::Sleeper;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_THREADS_SLEEPER

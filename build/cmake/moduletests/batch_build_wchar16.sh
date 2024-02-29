@@ -64,29 +64,14 @@ rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  RESOURCES    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=RESOURCES"  ../../cmake/moduletests
-make -j
-
 echo "\n\n############################  THREADS    ############################"
 rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=THREADS"  ../../cmake/moduletests
 make -j
 
-echo "\n\n############################  TEXT    ############################"
+echo "\n\n############################  CAMP    ############################"
 rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=TEXT"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  RESULTS    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=RESULTS"  ../../cmake/moduletests
-make -j
-
-echo "\n\n############################  SYSTEM    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SYSTEM"  ../../cmake/moduletests
+cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=CAMP"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  CONFIGURATION    ############################"
@@ -223,9 +208,3 @@ echo "\n\n############################  SINGLETONS;TIME    #####################
 rm -r -f *
 cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=SINGLETONS;TIME"  ../../cmake/moduletests
 make -j
-
-echo "\n\n############################  RESOURCES;BOXING    ############################"
-rm -r -f *
-cmake "-DALIB_CHARACTERS_WIDE=1" "-DALIB_CHARACTERS_SIZEOF_WCHAR=2"  "-DALIB_DISTRIBUTION=RESOURCES;BOXING"  ../../cmake/moduletests
-make -j
-

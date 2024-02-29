@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  Note:
@@ -9,10 +9,10 @@
 #   that includes the corresponding header.
 #   Furthermore, ALib CMake feature ALIB_SOURCE_COPY_TARGET_DIR is used, to copy the library
 #   source files to a temporary directory.
-#   Finally, several batch files exists that invoke this script with various module combinatins,
-#   debug and release compilations, 32-bit compilations and C++ 11 and 14 versions.
+#   Finally, several batch files exists that invoke this script with various module combinations,
+#   debug and release compilations, 32-bit compilations and C++ 17 and 20 versions.
 #
-#   This alltogether ensures that
+#   This altogether ensures that
 #   1. The CMake module dependencies are set right
 #   2. The CMake source selections is correct.
 #   3. The C++ module dependencies are set right
@@ -97,17 +97,20 @@ foreach( fileName IN LISTS   ALIB_INCLUDE_FILES )
 
     string(FIND ${fileName} ".inl" position REVERSE)
     IF( ${position} EQUAL -1 )
-        string(REPLACE "${ALIB_SOURCE_DIR}/" "" fileName ${fileName})
+        string(FIND ${fileName} "lang/plugins.hpp" position REVERSE) # depends on enums
+        IF( ${position} EQUAL -1 )
+            string(REPLACE "${ALIB_SOURCE_DIR}/" "" fileName ${fileName})
 
-        string(REPLACE "/" "__"  name  ${fileName}  )
+            string(REPLACE "/" "__"  name  ${fileName}  )
 
-        SET( destPath  "${ALIB_TEST_HEADERS_DIR}/${name}.cpp" )
+            SET( destPath  "${ALIB_TEST_HEADERS_DIR}/${name}.cpp" )
 
-        # message( " filename   : ${fileName}" )
-        # message( "    name    : ${name}" )
-        # message( "    destPath: ${destPath}" )
-        # message( "    contents: #include \"${fileName}\"\n" )
-        file( WRITE ${destPath} "#include \"${fileName}\"\n" )
+            # message( " filename   : ${fileName}" )
+            # message( "    name    : ${name}" )
+            # message( "    destPath: ${destPath}" )
+            # message( "    contents: #include \"${fileName}\"\n" )
+            file( WRITE ${destPath} "#include \"${fileName}\"\n" )
+        ENDIF()
     ENDIF()
 endforeach()
 

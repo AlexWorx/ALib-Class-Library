@@ -1,21 +1,24 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
-//  Private, not published in git ( I hope! )
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_DOCS && ALIB_ENUMS
+#if ALIB_UT_DOCS && ALIB_UT_ENUMS
 
 #include "alib/alox.hpp"
 #include <iostream>
 #include <sstream>
+#include <assert.h>
 #include "alib/compatibility/std_characters.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_COMPAT_IOSTREAM]
 #include "alib/compatibility/std_strings_iostream.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_COMPAT_IOSTREAM]
 #include "alib/enums/iterable.hpp"
+//! [DOX_ALIB_ENUMS_BITSET_HEADER]
+#include "alib/enums/iterablebitset.hpp"
+//! [DOX_ALIB_ENUMS_BITSET_HEADER]
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_MAIN]
 #include "alib/enums/records.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_MAIN]
@@ -25,17 +28,13 @@
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_SERIALIZATION]
 #include "alib/enums/serialization.hpp"
 //! [DOX_ALIB_ENUMS_RECORDS_HEADER_SERIALIZATION]
-#include "alib/resources/resources.hpp"
-#if !defined (HPP_ALIB_FS_COMMONENUMS)
-#   include "alib/lib/fs_commonenums/commonenums.hpp"
+#include "alib/lang/resources/resources.hpp"
+#if !defined (HPP_ALIB_LANG_COMMONENUMS)
+#   include "alib/lang/commonenums.hpp"
 #endif
-
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
-
 
 #define TESTCLASSNAME       CPP_ALib_Dox_Enums
 #include "unittests/aworx_unittests.hpp"
-
 
 #if defined(__clang__)
     #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -61,7 +60,7 @@ namespace std
 }
 #define cout testOutputStream
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 extern bool compiledButNotInvoked;
        bool compiledButNotInvoked= true;
@@ -123,8 +122,8 @@ namespace dox_lang_complete_specialization2 {
 template <typename TInteger> const char* MyFunc(TInteger val) { return "NOT IMPLEMENTED"; }
 
 //! [DOX_ALIB_INTXX_DECLARATION2]
-template<> const char* MyFunc( aworx:: intGap_t ) { return "Type=  intGap_t"; }
-template<> const char* MyFunc( aworx::uintGap_t ) { return "Type= uintGap_t"; }
+template<> const char* MyFunc( alib:: intGap_t ) { return "Type=  intGap_t"; }
+template<> const char* MyFunc( alib::uintGap_t ) { return "Type= uintGap_t"; }
 //! [DOX_ALIB_INTXX_DECLARATION2]
 }//namespace dox_lang_complete_specialization2
 
@@ -181,7 +180,7 @@ enum class ArithmeticEnum
     element4,
     element5,
 };
-ALIB_ENUMS_ASSIGN_RECORD( ArithmeticEnum, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( ArithmeticEnum, alib::enums::ERSerializable )
 
 ALIB_ENUMS_MAKE_ARITHMETICAL(ArithmeticEnum)
 
@@ -238,7 +237,7 @@ enum class Bits
     END_OF_ENUM     =  1 << 4,
 };
 
-ALIB_ENUMS_ASSIGN_RECORD( Bits, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( Bits, alib::enums::ERSerializable )
 ALIB_ENUMS_MAKE_BITWISE(    Bits )
 ALIB_ENUMS_MAKE_ITERABLE( Bits, Bits::END_OF_ENUM )
 
@@ -253,7 +252,7 @@ enum class BitsParsable
 };
 
 
-ALIB_ENUMS_ASSIGN_RECORD( BitsParsable, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( BitsParsable, alib::enums::ERSerializable )
 ALIB_ENUMS_MAKE_BITWISE( BitsParsable )
 
 
@@ -276,9 +275,36 @@ ALIB_ENUMS_MAKE_ITERABLE(Pets, Pets::Snake + 1 )
 
 
 //! [DOX_ALIB_ENUMS_ER_STATES]
-ALIB_ENUMS_ASSIGN_RECORD( WindowManager::States, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( WindowManager::States, alib::enums::ERSerializable )
 //! [DOX_ALIB_ENUMS_ER_STATES]
 
+namespace iter_bitset {
+
+void sample()
+{
+//! [DOX_ALIB_ENUMS_BITSET_DEF]
+EnumBitSet<Pets> pets;
+//! [DOX_ALIB_ENUMS_BITSET_DEF]
+
+//! [DOX_ALIB_ENUMS_BITSET_FILL]
+pets.Set( Pets::Cat, Pets::Dog, Pets::Bird );
+//! [DOX_ALIB_ENUMS_BITSET_FILL]
+
+//! [DOX_ALIB_ENUMS_BITSET_USE1]
+cout << "Allowed pets: " << endl;
+for(auto& it : pets )
+    cout << "  " << static_cast<int>( it.Bit() ) << endl;
+//! [DOX_ALIB_ENUMS_BITSET_USE1]
+
+//! [DOX_ALIB_ENUMS_BITSET_USE2]
+pets.Flip();
+
+cout << endl << "Forbidden pets: " << endl;
+for(auto& it : pets )
+    cout << "  " << static_cast<int>( it.Bit() ) << endl;
+//! [DOX_ALIB_ENUMS_BITSET_USE2]
+}
+} //namespace iter {
 
 // #################################################################################################
 // ### Enum Records
@@ -307,24 +333,24 @@ struct ERFruits
 
 // -To remove clash of namespaces, quickly re-def module's macro to use namespace "simple" ;-}
 #undef ALIB_ENUMS_ASSIGN_RECORD
-#define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                       \
-namespace aworx { namespace lib { namespace enums {                            \
+#define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                            \
+namespace alib::enums {                                                        \
 template<> struct T_EnumRecords<simple::TEnum>  :  public std::true_type       \
 {                                                                              \
     using  Type=  simple::TRecord;                                             \
-};}}}
+};}
 
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_ASSIGN]
 ALIB_ENUMS_ASSIGN_RECORD( Fruits, ERFruits )
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_ASSIGN]
 
 #undef ALIB_ENUMS_ASSIGN_RECORD
-#define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                       \
-namespace aworx { namespace lib { namespace enums {                            \
+#define  ALIB_ENUMS_ASSIGN_RECORD( TEnum, TRecord )                            \
+namespace alib::enums {                                                        \
 template<> struct T_EnumRecords<TEnum>  :  public std::true_type               \
 {                                                                              \
     using  Type=  TRecord;                                                     \
-};}}}
+};}
 
 
 // ### Chapter 4.2.1  ##############################
@@ -333,7 +359,7 @@ namespace version1 {
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_GETRECORD]
 void printFruit(Fruits fruit)
 {
-    cout << aworx::lib::enums::GetRecord(fruit).Name << endl;
+    cout << alib::enums::GetRecord(fruit).Name << endl;
 }
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_GETRECORD]
 void invoke()
@@ -347,7 +373,7 @@ printFruit( Fruits::Apple );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_TRYRECORD]
 void printFruit(Fruits fruit)
 {
-    const ERFruits* record= aworx::lib::enums::TryRecord(fruit);
+    const ERFruits* record= alib::enums::TryRecord(fruit);
 
     if( record != nullptr )
         cout << record->Name << endl;
@@ -377,7 +403,7 @@ for( auto& fruitRecord : EnumRecords<Fruits>() )
 Fruits readFruit(const String& input)
 {
     for( auto it= EnumRecords<Fruits>::begin(); it != EnumRecords<Fruits>::end() ; ++it)
-        if( input.Equals<Case::Ignore>( it->Name ) )
+        if( input.Equals<true, lang::Case::Ignore>( it->Name ) )
             return it.Enum();
 
     return Fruits(-1);
@@ -395,7 +421,7 @@ assert( someFruit == Fruits::Banana );
 
 // ### Chapter 4.3.1  ##############################
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_ASSIGN_ERSERIALZEABLE]
-ALIB_ENUMS_ASSIGN_RECORD( Fruits, aworx::lib::enums::ERSerializable )
+ALIB_ENUMS_ASSIGN_RECORD( Fruits, alib::enums::ERSerializable )
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_ASSIGN_ERSERIALZEABLE]
 
 void append()
@@ -409,7 +435,7 @@ assert( buffer.Equals( A_CHAR("Banana") ) );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_PARSE]
 Fruits     parsedFruit;
 Substring  input  = A_CHAR("Banana");
-bool       success= aworx::lib::enums::Parse( input, parsedFruit );
+bool       success= alib::enums::Parse( input, parsedFruit );
 
 assert(    success && parsedFruit == Fruits::Banana   );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_PARSE]
@@ -440,7 +466,7 @@ template<typename TEnum>                             typename std::enable_if<
   EnumRecords<TEnum>::template AreOfType<ERBase>()   >::type
 acceptBaseOrDerived(TEnum element)
 {
-    const ERBase* record= aworx::lib::enums::TryRecord( element );
+    const ERBase* record= alib::enums::TryRecord( element );
     (void) record; // do something...
 }
 //! [DOX_ALIB_ENUMS_INHERITANCE]
@@ -518,12 +544,25 @@ for( auto element : { Pets::Cat, Pets::Dog, Pets::Bird, Pets::Snake } )
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP]
 
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP_NEW]
-for( auto element : aworx::lib::enums::EnumIterator<Pets>() )
+for( auto element : alib::enums::EnumIterator<Pets>() )
 {
     // do something...
     cout << UnderlyingIntegral(element) << endl;
 }
 //! [DOX_ALIB_ENUMS_ITER_SAMPLE_LOOP_NEW]
+
+
+
+// #################################################################################################
+// ### EnumBitSet
+// #################################################################################################
+// ### Chapter 3.5  ##############################
+
+testOutputStream.str("");
+iter_bitset::sample();
+ut.WriteResultFile( "DOX_ALIB_ENUMS_BITSET.txt", testOutputStream.str() );
+testOutputStream.str("");
+
 
 
 // #################################################################################################
@@ -538,14 +577,14 @@ for( auto element : aworx::lib::enums::EnumIterator<Pets>() )
 
 #define   Fruits simple::Fruits
 
-ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
 
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_3CALLS]
-aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Apple , A_CHAR("Apple" ) );
-aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Orange, A_CHAR("Orange") );
-aworx::EnumRecords<Fruits>::Bootstrap( Fruits::Banana, A_CHAR("Banana") );
+alib::EnumRecords<Fruits>::Bootstrap( Fruits::Apple , A_CHAR("Apple" ) );
+alib::EnumRecords<Fruits>::Bootstrap( Fruits::Orange, A_CHAR("Orange") );
+alib::EnumRecords<Fruits>::Bootstrap( Fruits::Banana, A_CHAR("Banana") );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_3CALLS]
-ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
+ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Release(); )
 #undef   Fruits
 #if defined(__clang__)
     #pragma clang diagnostic pop
@@ -553,7 +592,7 @@ ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
 
 if( !compiledButNotInvoked)
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_1CALL]
-aworx::EnumRecords<Fruits>::Bootstrap(
+alib::EnumRecords<Fruits>::Bootstrap(
 {
     { Fruits::Apple , A_CHAR("Apple" )  },
     { Fruits::Orange, A_CHAR("Orange")  },
@@ -563,7 +602,7 @@ aworx::EnumRecords<Fruits>::Bootstrap(
 
 if( !compiledButNotInvoked)
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_ERSERIALZEABLE]
-aworx::EnumRecords<Fruits>::Bootstrap(
+alib::EnumRecords<Fruits>::Bootstrap(
 {
     { Fruits::Apple , A_CHAR("Apple" ), 1 },
     { Fruits::Orange, A_CHAR("Orange"), 1 },
@@ -573,15 +612,15 @@ aworx::EnumRecords<Fruits>::Bootstrap(
 
 if( compiledButNotInvoked)
 {
-    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+    ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
 
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_STRING]
-aworx::EnumRecords<Fruits>::Bootstrap(
+alib::EnumRecords<Fruits>::Bootstrap(
     A_CHAR(  "0"    ","    "Apple"   ","   "1"      ","
              "1"    ","    "Orange"  ","   "1"      ","
              "2"    ","    "Banana"  ","   "1"       )  );
 //! [DOX_ALIB_ENUMS_RECORDS_FRUITS_INIT_STRING]
-    ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
+    ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Release(); )
 }
 // ### Chapter 4.2  ##############################
 
@@ -619,9 +658,9 @@ acceptBaseOrDerived( Anything::element );
 
 // ### Chapter 4.?  ##############################
 
- ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+ ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
 //! [DOX_ALIB_ENUMS_BITWISE_DEFINITION]
-aworx::EnumRecords<WindowManager::States>::Bootstrap(
+alib::EnumRecords<WindowManager::States>::Bootstrap(
 
 A_CHAR(
     // No state set
@@ -639,7 +678,7 @@ A_CHAR(
 //! [DOX_ALIB_ENUMS_BITWISE_DEFINITION]
 
 
-aworx::EnumRecords<BitsParsable>::Bootstrap(
+alib::EnumRecords<BitsParsable>::Bootstrap(
 {
     { BitsParsable::One  ,   A_CHAR("One")     , 1  },
     { BitsParsable::Two  ,   A_CHAR("Two")     , 2  },
@@ -647,7 +686,7 @@ aworx::EnumRecords<BitsParsable>::Bootstrap(
     { BitsParsable::Four ,   A_CHAR("Four")    , 1  },
 } );
 
-aworx::EnumRecords<Bits>::Bootstrap(
+alib::EnumRecords<Bits>::Bootstrap(
 {
     { Bits::One  ,   A_CHAR("One")    },
     { Bits::Two  ,   A_CHAR("Two")    },
@@ -655,7 +694,7 @@ aworx::EnumRecords<Bits>::Bootstrap(
     { Bits::Four ,   A_CHAR("Four")   },
 } );
 
-ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
+ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Release(); )
 
 
 
@@ -674,11 +713,11 @@ cout << "VM+HM:     " <<  stateHMVM       << endl;
 cout << "HM+Hidden: " <<  stateHMHidden   << endl;
 //! [DOX_ALIB_ENUMS_BITWISE_SAMPLE]
 
-    UT_EQ( A_CHAR("Normal")      , aworx::String64() << stateNull     )
-    UT_EQ( A_CHAR("HMax")        , aworx::String64() << stateHM       )
-    UT_EQ( A_CHAR("VMax")        , aworx::String64() << stateVM       )
-    UT_EQ( A_CHAR("Maximized")   , aworx::String64() << stateHMVM     )
-    UT_EQ( A_CHAR("HMax,Hidden") , aworx::String64() << stateHMHidden )
+    UT_EQ( A_CHAR("Normal")      , alib::String64() << stateNull     )
+    UT_EQ( A_CHAR("HMax")        , alib::String64() << stateHM       )
+    UT_EQ( A_CHAR("VMax")        , alib::String64() << stateVM       )
+    UT_EQ( A_CHAR("Maximized")   , alib::String64() << stateHMVM     )
+    UT_EQ( A_CHAR("HMax,Hidden") , alib::String64() << stateHMHidden )
 }
     ut.WriteResultFile( "DOX_ALIB_ENUMS_BITWISE_OUTPUT.txt", testOutputStream.str() );
     testOutputStream.str("");
@@ -694,9 +733,9 @@ cout << "Fruit 1: " << fruit1  << endl;
 cout << "Fruit 2: " << fruit2  << endl;
 cout << "Fruit 3: " << fruit3  << endl;
 //! [DOX_ALIB_ENUMS_NORMAL_SAMPLE]
-    UT_EQ( A_CHAR("Apple")  , aworx::String64() << fruit1)
-    UT_EQ( A_CHAR("Orange") , aworx::String64() << fruit2)
-    UT_EQ( A_CHAR("Banana") , aworx::String64() << fruit3)
+    UT_EQ( A_CHAR("Apple")  , alib::String64() << fruit1)
+    UT_EQ( A_CHAR("Orange") , alib::String64() << fruit2)
+    UT_EQ( A_CHAR("Banana") , alib::String64() << fruit3)
 
 
 }
@@ -723,15 +762,15 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
         UT_INIT()
         UT_PRINT("*** Documentation Sample +**")
 
-        aworx::lib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
-        aworx::EnumRecords<Bits>::Bootstrap(
+        alib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
+        alib::EnumRecords<Bits>::Bootstrap(
         {
             { Bits::One   ,   A_CHAR("One"  ) },
             { Bits::Two   ,   A_CHAR("Two"  ) },
             { Bits::Three ,   A_CHAR("Three") },
             { Bits::Four  ,   A_CHAR("Four" ) },
         } );
-        aworx::lib::monomem::ReleaseGlobalAllocator();
+        alib::monomem::ReleaseGlobalAllocator();
 
 
         AString buf;
@@ -782,41 +821,41 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
         UT_INIT()
         UT_PRINT("*** Documentation Sample +**")
 
-        aworx::lib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
-        aworx::EnumRecords<BitsParsable>::Bootstrap(
+        alib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
+        alib::EnumRecords<BitsParsable>::Bootstrap(
         {
             { BitsParsable::One  , A_CHAR("One")     , 1 },
             { BitsParsable::Two  , A_CHAR("Two")     , 2 },
             { BitsParsable::Three, A_CHAR("Three")   , 2 },
             { BitsParsable::Four , A_CHAR("Four")    , 1 },
         } );
-        aworx::lib::monomem::ReleaseGlobalAllocator();
+        alib::monomem::ReleaseGlobalAllocator();
 
 
         Substring s;
 
-        Case caseRead= Case(-1);
-        caseRead= Case(-1);        s= A_CHAR("senitive")   ; UT_TRUE ( lib::enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== Case::Sensitive        )  UT_EQ( A_CHAR("itive")   , s)
-        caseRead= Case(-1);        s= A_CHAR("ignore")     ; UT_TRUE ( lib::enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== Case::Ignore           )  UT_EQ( A_CHAR("")        , s)
-        caseRead= Case(-1);        s= A_CHAR("abc")        ; UT_FALSE( lib::enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== Case(-1)               )  UT_EQ( A_CHAR("abc")     , s)
+        lang::Case caseRead= lang::Case(-1);
+        caseRead= lang::Case(-1);       s= A_CHAR("senitive")   ; UT_TRUE ( enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== lang::Case::Sensitive)  UT_EQ( A_CHAR("itive")   , s)
+        caseRead= lang::Case(-1);       s= A_CHAR("ignore")     ; UT_TRUE ( enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== lang::Case::Ignore   )  UT_EQ( A_CHAR("")        , s)
+        caseRead= lang::Case(-1);       s= A_CHAR("abc")        ; UT_FALSE( enums::Parse(s, caseRead ) )    UT_TRUE( caseRead== lang::Case(-1)       )  UT_EQ( A_CHAR("abc")     , s)
 
-        ContainerOp copRead;
-        copRead= ContainerOp(-1);  s= A_CHAR("G")          ; UT_TRUE ( lib::enums::Parse(s, copRead  ) )    UT_TRUE( copRead == ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
-        copRead= ContainerOp(-1);  s= A_CHAR("Ge")         ; UT_TRUE ( lib::enums::Parse(s, copRead  ) )    UT_TRUE( copRead == ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
-        copRead= ContainerOp(-1);  s= A_CHAR("GET")        ; UT_TRUE ( lib::enums::Parse(s, copRead  ) )    UT_TRUE( copRead == ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
-        copRead= ContainerOp(-1);  s= A_CHAR("GETC")       ; UT_TRUE ( lib::enums::Parse(s, copRead  ) )    UT_TRUE( copRead == ContainerOp::GetCreate )  UT_EQ( A_CHAR("")        , s)
-        copRead= ContainerOp(-1);  s= A_CHAR("GETX")       ; UT_TRUE ( lib::enums::Parse(s, copRead  ) )    UT_TRUE( copRead == ContainerOp::Get       )  UT_EQ( A_CHAR("X")       , s)
+        lang::ContainerOp copRead;
+        copRead= lang::ContainerOp(-1); s= A_CHAR("G")          ; UT_TRUE ( enums::Parse(s, copRead  ) )    UT_TRUE( copRead == lang::ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
+        copRead= lang::ContainerOp(-1); s= A_CHAR("Ge")         ; UT_TRUE ( enums::Parse(s, copRead  ) )    UT_TRUE( copRead == lang::ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
+        copRead= lang::ContainerOp(-1); s= A_CHAR("GET")        ; UT_TRUE ( enums::Parse(s, copRead  ) )    UT_TRUE( copRead == lang::ContainerOp::Get       )  UT_EQ( A_CHAR("")        , s)
+        copRead= lang::ContainerOp(-1); s= A_CHAR("GETC")       ; UT_TRUE ( enums::Parse(s, copRead  ) )    UT_TRUE( copRead == lang::ContainerOp::GetCreate )  UT_EQ( A_CHAR("")        , s)
+        copRead= lang::ContainerOp(-1); s= A_CHAR("GETX")       ; UT_TRUE ( enums::Parse(s, copRead  ) )    UT_TRUE( copRead == lang::ContainerOp::Get       )  UT_EQ( A_CHAR("X")       , s)
 
         BitsParsable bits;
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise( s= A_CHAR("onex")     , bits) )       UT_TRUE( bits== BitsParsable::One   )         UT_EQ( A_CHAR("x")      , s)
-        bits= BitsParsable(0);  UT_FALSE( lib::enums::ParseBitwise( s= A_CHAR("murx")     , bits) )       UT_TRUE( bits== BitsParsable(0)     )         UT_EQ( A_CHAR("murx")   , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise( s= A_CHAR("one,twox") , bits) )       UT_TRUE( bits== BitsParsable::One
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise( s= A_CHAR("onex")     , bits) )       UT_TRUE( bits== BitsParsable::One   )         UT_EQ( A_CHAR("x")      , s)
+        bits= BitsParsable(0);  UT_FALSE( enums::ParseBitwise( s= A_CHAR("murx")     , bits) )       UT_TRUE( bits== BitsParsable(0)     )         UT_EQ( A_CHAR("murx")   , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise( s= A_CHAR("one,twox") , bits) )       UT_TRUE( bits== BitsParsable::One
                                                                                                             + BitsParsable::Two           )             UT_EQ( A_CHAR("x")      , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise( s= A_CHAR("f")        , bits) )       UT_TRUE( bits== BitsParsable::Four  )         UT_EQ( A_CHAR("")       , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise( s= A_CHAR("f , murx") , bits)                                              )        UT_TRUE( bits== BitsParsable::Four   )  UT_EQ( A_CHAR(", murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA Case::Ignore ALIB_COMMA Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA true >( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" , murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA Case::Ignore ALIB_COMMA Whitespaces::Trim ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR("murx") , s)
-        bits= BitsParsable(0);  UT_TRUE ( lib::enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA Case::Ignore ALIB_COMMA Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f, murx" ), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" murx") , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise( s= A_CHAR("f")        , bits) )       UT_TRUE( bits== BitsParsable::Four  )         UT_EQ( A_CHAR("")       , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise( s= A_CHAR("f , murx") , bits)                                              )        UT_TRUE( bits== BitsParsable::Four   )  UT_EQ( A_CHAR(", murx") , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA true >( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" , murx") , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Trim ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f , murx"), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR("murx") , s)
+        bits= BitsParsable(0);  UT_TRUE ( enums::ParseBitwise<BitsParsable ALIB_COMMA character ALIB_COMMA lang::Case::Ignore ALIB_COMMA lang::Whitespaces::Keep ALIB_COMMA ',' ALIB_COMMA false>( s= A_CHAR("f, murx" ), bits ))   UT_TRUE( bits== BitsParsable::Four   ) UT_EQ(A_CHAR(" murx") , s)
     }
 
     UT_METHOD( lang_enums_Arithmetic )
@@ -824,8 +863,8 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
         UT_INIT()
         UT_PRINT("*** Documentation Sample +**")
 
-        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
-            aworx::EnumRecords<ArithmeticEnum>::Bootstrap(
+        ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
+            alib::EnumRecords<ArithmeticEnum>::Bootstrap(
             {
                 { ArithmeticEnum(0),  A_CHAR("E0") },
                 { ArithmeticEnum(1),  A_CHAR("E1") },
@@ -834,7 +873,7 @@ States maximized= States::HorizontallyMaximized | States::VerticallyMaximized;
                 { ArithmeticEnum(4),  A_CHAR("E4") },
                 { ArithmeticEnum(5),  A_CHAR("E5") },
             } );
-        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release(); )
+        ALIB_IF_THREADS( alib::monomem::GlobalAllocatorLock.Release(); )
 
 
         UT_EQ   ( ArithmeticEnum::element3  , ArithmeticEnum::element1 + ArithmeticEnum::element2 )

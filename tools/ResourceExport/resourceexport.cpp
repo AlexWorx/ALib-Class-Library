@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 //  Notes:
@@ -14,25 +14,29 @@
 // #################################################################################################
 
 // DOX_MARKER([DOX_ALIB_RESOURCES_EXPORT])
-#include "alib/distribution.hpp"
-#include "alib/resources/configresourcepool.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
+#include "alib/lang/basecamp/bootstrap.hpp"
+#include "alib/lang/resources/configresourcepool.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 
-using namespace aworx;
+using namespace alib;
 using namespace std;
 int main( int argc, const char *argv[] )
 {
     // create and set resource pool that uses a configuration file
-    lib::resources::ConfigResourcePool pool;
-    ALIB.BootstrapSetResourcePool( &pool );
+    lang::resources::ConfigResourcePool pool;
+    alib::BootstrapAddDefaultCamps();
+    alib::Camps.Back()->BootstrapSetResourcePool( &pool );
 
     // bootstrap alib
-    ALIB.Bootstrap( argc, argv );
+    alib::ArgC = argc;
+    alib::ArgVN= argv;
+    alib::Bootstrap();
 
     // we externalize the string value, e.g. replacing "\" by "\\" and this way "\n" by "\\n"
     // This might not be wanted for custom exports, but works well for ALib INI-files.
-    lib::config::XTernalizer  externalizer;
-    AString                   externalizedValue;
+    config::XTernalizer  externalizer;
+    AString              externalizedValue;
 
     // loop over sections of the plugin
     auto& sections= pool.Config.GetPluginTypeSafe<InMemoryPlugin>(
@@ -58,7 +62,7 @@ int main( int argc, const char *argv[] )
     }
 
     // shutdown alib
-    ALIB.Shutdown();
+    alib::Shutdown();
     return 0;
 }
 // DOX_MARKER([DOX_ALIB_RESOURCES_EXPORT])

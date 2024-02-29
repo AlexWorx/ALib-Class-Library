@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -98,7 +98,7 @@ The pros should be given as a feature list:
 - Well tested under GNU/Linux, Windows OS and MacOs.
 
 <p>
-- Very fast, handwritten C++ 11 code, <b>no generation tools or 3rd party libraries</b> needed for the built.
+- Very fast, handwritten code, <b>no generation tools or 3rd party libraries</b> needed for the built.
 
 <p>
 - <b>Complete coverage of %expression syntax</b> along the lines of C++ expressions<br>
@@ -124,6 +124,7 @@ The pros should be given as a feature list:
   - Math functions.
   - String manipulation, including <b>wildcard</b> and <b>regex matching</b>.
   - Date and time functions.
+  - File and directory filtering and inspection. (Brought with sibling \alib module \alib_files.)
 
   As a sample, the following expression:
    \snippet "docsamples/DOX_ALIB_EXPR_TUTORIAL.cpp"  DOX_ALIB_EXPR_PROS_NASTY
@@ -898,9 +899,9 @@ the operations. The result of the evaluation would be the result of the root nod
 
 \alib_expressions_nl goes one step further, performing a <b>second phase</b> of compilation.
 In this phase, the recursive walk over the \e AST is done. The result of the walk is an expression
-\alib{expressions::detail,Program}. Such program is a flat (non-recursive) list of "commands" which are later, when
-the expression is evaluated, executed on a virtual stack machine.
-(This stack machine is implemented with \alib{expressions,detail::VirtualMachine}).
+\alib{expressions::detail,Program}. Such program is a list of "commands" which are later, when
+the expression is evaluated, executed by a virtual stack machine.
+(This stack machine is implemented with class \alib{expressions,detail::VirtualMachine}).
 
 This second phase is where the customization takes place. When a node of the \e AST is translated
 into a program command for the virtual machine, the compiler iterates through an ordered list of
@@ -936,7 +937,7 @@ To finalize this section, a quick hint to the benefits of taking this approach s
 - Compile-time type safety allows to identify almost all errors in user-defined expression strings
   at compile-time. On the one hand, this allows to reject malformed expressions right at the
   moment they are given. If such detection was deferred to evaluation-time, then usually a software
-  has quite some effort "undo" certain actions that the software did to prepare the evaluation.
+  has quite some effort to "undo" certain actions that the software did to prepare the evaluation.
 - Both compile-time type safety and the fact that the \e AST is translated into a linear program
   of-course increase compile time, but this is done in favour to evaluation time. In many use-case
   scenarios, there is an overwhelmingly high ratio of evaluations per expression. Therefore,
@@ -1339,7 +1340,7 @@ Let's see what happens if we try to compile the previous expression:
   \snippet "DOX_ALIB_EXPR_TUT_FF_Operators-1.txt"     OUTPUT
 
 The compiler throws a run-time exception, noting that operator \c '&' is not defined. The first
-thing we want to fix is the output information of this \alib{results,Exception} itself.
+thing we want to fix is the output information of this \alib{lang,Exception} itself.
 While in general it is not necessary to announce custom types explicitly, the exclamation is
 is that the human-readable information collected in exceptions thrown by the library
 benefits from it. For just this purpose, method \alib{expressions,Compiler::AddType} is available.
@@ -1563,7 +1564,7 @@ type of such callback to the compiler during the compilation process.
 
 Therefore, the set of built-in types is resulting from the set of built-in compiler plug-ins.
 Nevertheless, the library design opted to collect sample boxes for the set in struct
-\alib{expressions,Types}, which is defined right in namespace \ref aworx::lib::expressions.
+\alib{expressions,Types}, which is defined right in namespace \ref alib::expressions.
 
 It is notable that no built-in support for unsigned integral values is provided. In the unlikely
 event that this is needed for any reason, such support can quite easily by implemented by a
@@ -1608,7 +1609,7 @@ For example, operator \alib{expressions::DefaultBinaryOperators,Add} (<c>'+'</c>
 two strings, but also a string with "any" other built-in or custom type.
 The latter - namely that there is no need to define an overloaded expression operator for strings
 and custom types - is achieved by leveraging box-function \alib{boxing,FAppend}.
-Consult the \ref aworx::lib::boxing "user manual of ALib Boxing" for details on how to implement this interface
+Consult the \ref alib::boxing "user manual of ALib Boxing" for details on how to implement this interface
 for your custom types, to allow end-users to concatenate your types to strings within expressions.
 
 All built-in string features, including:
@@ -1624,7 +1625,7 @@ is given with \alib{expressions,plugins::Strings,the plug-in's documentation}.
 The built-in types \alib{expressions,Types::DateTime} and \alib{expressions,Types::Duration}
 represent \alib classes \alib{time,DateTime} and \alib{time,TimePointBase::Duration} of the same
 name.
-The corresponding %Expression functionality is implemented with plug-in
+The corresponding %Expression functionality is implemented and documented with plug-in
 \alib{expressions::plugins,DateAndTime}.
 
 If a user of \alib_expressions_nl prefers to use different, own or 3rd-party types, then
@@ -2034,7 +2035,7 @@ With what was described in the previous chapter, the following options of custom
 parsed and compiled by module \alib_expressions_nl can be taken:
 - Built-in operators can be completely disabled by just clearing the flags in field
   <b>%Compiler::CfgCompilation</b>.
-- \alib{resources,ResourcePool} of library class \alib{expressions,Expressions}
+- \alib{lang::resources,ResourcePool} of library class \alib{expressions,Expressions}
   can be altered to change operator symbols or precedences.
 - Methods \alib{expressions,Compiler::AddUnaryOperator}, respectively
   \alib{expressions,Compiler::AddBinaryOperator} may be called prior or after
@@ -2608,11 +2609,11 @@ using the abstract virtual method \alib{expressions,ExpressionRepository::Get}.
 
 A built-in implementation of this interface class is provided with class \alib{expressions,StandardRepository}.
 This implementation retrieves expression strings from
-1. Static resource strings as provided my module \alib_resources.
+1. Static resource strings as provided with module \alib_basecamp_nl and \ref alib_basecamp_resources "documented here".
 2. External configuration data, like command line parameters, environment variables, INI-files or any
    other custom resource that is attached to the configuration object.
 
-\note The second option is available only if module \alib_expressions_nl is included in the
+\note The second option is available only if module \alib_config_nl is included in the
       \alibdist.
 
 For the details of using the built-in implementation, consult the
@@ -2789,7 +2790,7 @@ with a list of bullet points.
   to do some side-implementations along the lines of underlying \alib features. For example,
   to allow nicely formatted string output of custom data using built-in expression function
   \alib{expressions,plugins::Strings,Format(formatString\,...)}, box-function
-  \alib{boxing,FAppend} and/or \alib{text,FFormat} have to be implemented for the custom type.
+  \alib{boxing,FAppend} and/or \alib{lang::format,FFormat} have to be implemented for the custom type.
   <p>
 
 
@@ -2812,7 +2813,7 @@ here.
 \I{#####################################################################################  }
 ### 11.2.1 Numerical Literals ### {#alib_expressions_details_literals_1}
 The parsing of numerical constants found in expression strings is done with the help of
-member \alib{text,Formatter::DefaultNumberFormat} which in turn is found in
+member \alib{lang::format,Formatter::DefaultNumberFormat} which in turn is found in
 member \alib{expressions,Compiler::CfgFormatter}.
 
 The use of this helper type, allows to influence how numerical literals are parsed. For example,
@@ -2899,8 +2900,8 @@ expression strings and their output as a normalized expression, was already give
 
 A second area, where localization may become an obvious requirement is the naming of built-in and
 custom expression functions.
-The built-in compiler plug-in use mechanics provided by \alib classes \alib{resources,ResourcePool}
-and \alib{Module} to externalize the names, letter case sensitivity and optional
+The built-in compiler plug-in use mechanics provided by \alib classes \alib{lang::resources,ResourcePool}
+and \alib{lang,Camp} to externalize the names, letter case sensitivity and optional
 minimum abbreviation length of identifiers and functions. The matching of identifier and
 function names found in expression strings is performed using class
  \alib{strings::util,Token}, which allows not only simple abbreviations, but also
@@ -2920,7 +2921,7 @@ from the built-in plug-ins of this library.
 
 A third area where localization might become a need are callback functions
 processing expression data. Again, for formatting and parsing, an instance of \alib class
-\alib{text,Formatter}, which has (as was explained above) an instance of
+\alib{lang::format,Formatter}, which has (as was explained above) an instance of
 \alib{strings,TNumberFormat,NumberFormat} attached.<br>
 A compile-time scope (used with optimizations) is created with virtual method
 \alib{expressions::Compiler,getCompileTimeScope} which in its default implementation attaches
@@ -3209,7 +3210,7 @@ in chapter \ref alib_expressions_prereq_bauhaus.
 
 \attention
   While class \alib{expressions,Compiler} indirectly inherits class \alib{threads,ThreadLock}
-  (by inheriting \alib{detail::PluginContainer}), the destructor disables its semaphore
+  (by inheriting \alib{lang::PluginContainer}), the destructor disables its semaphore
   (by invoking \alib{threads,ThreadLock::SetSafeness,SetSafeness(Safeness::Unsafe)}) and furthermore
   its interface methods do not acquire the lock. The latter fact implies that reverting the
   locking mode to \b Safeness::Safe does not enable thread-safeness with this class!
@@ -3260,12 +3261,12 @@ For this, the following general approach should be taken:
 As evaluation-time exceptions anyhow can occur, in simple cases step 2 might be left and
 step 1-4 be wrapped in one \c try statement.
 
-The exception object thrown by any \alibmod is of type \ref aworx::lib::results::Exception.
+The exception object thrown by any \alibmod is of type \ref alib::lang::Exception.
 \note
   This class combines the advantages of two paradigms frequently discussed as alternative
   approaches to exception handling.
   For more information and to fully leverage its use with this \alibmod, please consult the
-  class's \alib{results,Exception,documentation}.
+  class's \alib{lang,Exception,documentation}.
 
 
 \I{################################################################################################}
@@ -3277,14 +3278,14 @@ A compiler plug-in may throw an exception during compilation. Helper struct
 Furthermore, a callback function may throw an exception during the compile-time evaluation of a
 constant expression term.
 
-Exceptions of type \c std::exception as well as those of type \b %aworx::Exception that are not
+Exceptions of type \c std::exception as well as those of type \b %alib::Exception that are not
 exposed by this \alibmod itself (hence using values of enum types different than
-\ref aworx::lib::expressions::Exceptions "expressions::Exceptions"),
+\ref alib::expressions::Exceptions "expressions::Exceptions"),
 by default are "wrapped" by the compiler into an exception of enum type
 \alib{expressions,Exceptions::ExceptionInPlugin}. Such wrapping can be disabled by setting flag
 \alib{expressions,Compilation::PluginExceptionFallThrough}.
 
-In addition, plug-in exceptions of type \b %aworx::Exception are extended by an informational entry
+In addition, plug-in exceptions of type \b %alib::Exception are extended by an informational entry
 of type \alib{expressions::Exceptions,ExpressionInfo}.
 
 Exception objects of other types are never caught and wrapped and therefore have to be caught
@@ -3322,6 +3323,10 @@ each plug-in's class documentation. Those are:
 - \alib{expressions::plugins,Strings}
 - \alib{expressions::plugins,DateAndTime}
 
+\note Sibling \alib module \alib_files, provides a compiler plug-in dedicated to file and
+      directory trees.
+
+
 
 \I{################################################################################################}
 ## A.2 Expression Based String Formatting {#alib_expressions_appendix_formatting}
@@ -3341,7 +3346,7 @@ can be created quite easily. For example:
 could be such an output expression.
 
 However, there is a more comfortable and powerful way to do this! The key to that is the use
-of format strings as processed by \ref #aworx::lib::text "ALib Formatters" in a
+of format strings as processed by \ref #alib::lang::format "ALib Formatters" in a
 combination with expression strings that comprise the placeholder values found in the format
 strings.
 
@@ -3494,4 +3499,4 @@ needed, this current code design may fail and need some refactoring. But as we d
 it, its a compromise strongly towards simplicity of the API as well of internal code.
 
 
-*/
+<br><br><br><br><br><br> */

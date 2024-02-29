@@ -1,7 +1,7 @@
 // #################################################################################################
 //  Documentation - ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 
@@ -80,8 +80,8 @@ The design goals of module \alib_strings_nl are:
    Of-course, \alib strings should be "complete" in the sense that they offer all features
    that a modern character string API usually offers.
    This final goal was reached with the evolution of the library. Furthermore, in addition to what is
-   provided here, other modules of \aliblong even extend such functionality, for example
-   modules \alib_text or \alib_resources.
+   provided here, other modules of \aliblong even extend such functionality, especially
+   module \alib_basecamp.
 
 
 \I{################################################################################################}
@@ -177,7 +177,7 @@ On GNU/Linux, such settings are made with function \c setlocale.
 
 This should not be seen to be a huge restriction, because there are no good reasons for any modern
 software to use any other character encoding than UTF.
-However, environment variables (or \alib variable \aworx{lib,Variables,LOCALE} in a configuration
+However, environment variables (or \alib variable \alib{lang::basecamp::Variables,LOCALE} in a configuration
 source) has to be set to a UTF-8 encoding.
 
 
@@ -192,24 +192,24 @@ This module provides five different string classes:
 - \b LocalString<TCapacity>
 
 A string object's underlying character type is defined using a template parameter named \p{TChar}.
-The different string classes are located in namespace #aworx::lib::strings and their type names
+The different string classes are located in namespace #alib::strings and their type names
 include a prefix letter <b>'T'</b>.
 As a result, the list of base classes is:
 
-- \ref aworx::lib::strings::TString<TChar>
-- \ref aworx::lib::strings::TCString<TChar>
-- \ref aworx::lib::strings::TAString<TChar>
-- \ref aworx::lib::strings::TSubstring<TChar>
-- \ref aworx::lib::strings::TLocalString<TChar,TCapacity>
+- \ref alib::strings::TString<TChar>
+- \ref alib::strings::TCString<TChar>
+- \ref alib::strings::TAString<TChar>
+- \ref alib::strings::TSubstring<TChar>
+- \ref alib::strings::TLocalString<TChar,TCapacity>
 
-As it is described in the documentation of outer namespace #aworx, it is common practice for
+As it is described in the documentation of outer namespace #alib, it is common practice for
 any \alibmod to define "alias types" of all important classes in that namespace. For each of the string
 classes, \b four alias types are defined which are using character types
 \alib{characters,character}, \alib{characters,nchar}, \alib{characters,wchar} and \alib{characters,xchar}.
 With the latter three \ref alib_characters_chars_by_width "explicit character types", the alias
 names replace the prefix letter <b>'T'</b> by letters <b>'N'</b>, <b>'W'</b> and <b>'X'</b>.
 
-As a result, the following table lists all alias names in namespace #aworx:
+As a result, the following table lists all alias names in namespace #alib:
 
 String Type/Character Type | character | nchar | wchar | xchar
 ---------------------------|-----------|-------|-------|------
@@ -426,7 +426,7 @@ from 3rd-party string types.
 Especially the case of implicit construction is interesting: If a method argument is declared as
 a constant reference type, the C++ compiler will perform one "implicit conversion", if a different
 type is passed for such argument.<br>
-As a sample, see  \alib{system,Directory::Directory(const String&),constructor of class Directory}.
+As a sample, see  \alib{lang::system,Directory::Directory(const String&),constructor of class \b Directory}.
 It is declared as:
 \code{.cpp}
 Directory( const String& path );
@@ -488,7 +488,7 @@ All details about this template struct are given with chapter
 ### 3.1.4 Substring Construction ### {#alib_strings_cc_construction_substring}
 Class \b Substring simply inherits all constructors of its base class \b String and therefore,
 all that had been written in previous chapter \ref alib_strings_cc_construction_string, is
-true for this class. This includes that the type <c>const aworx::Substring&</c> may be used as
+true for this class. This includes that the type <c>const alib::Substring&</c> may be used as
 method arguments to accept any type of string of fitting character size, without explicit
 conversion.
 
@@ -761,7 +761,7 @@ The following bullets summarize and refine what was sampled in this chapter:
   indicates the existence of an overloaded alternative using \b CString.
 
 Finally it should be mentioned that the use of zero-terminated strings is not recommended. \alib itself
-does that only in very specific situations. An example is class \alib{system,Directory}. The class
+does that only in very specific situations. An example is class \alib{lang::system,Directory}. The class
 interfaces with the operating system that expects zero-terminated strings, like it was sampled in
 the previous section.
 
@@ -872,7 +872,16 @@ The code above which produces the following output:
 Class \b Format is included implicitly with the inclusion of header file \alibheader{strings/astring.hpp}.
 
 <b>3. Other ALib Types:</b><br>
-For various types found in other \alibmods, specializations of \b T_Append are provided.
+For various types found in other \alibmods, specializations of \b T_Append are provided.<br>
+All elements of important enum types are appendable, as soon as
+
+        #include "alib/enums/serialization.hpp"
+
+is stated in the compilation unit. For more information,
+see section \ref alib_enums_records_details_serialization "4.3.1 Serialization/Deserialization"
+of the Programmer's Manual of module \alib_enums.
+
+
 
 <b>4. 3rd-Party Types:</b><br>
 In source folder <c>alib/compatibility</c> some special header files are provided that
@@ -882,10 +891,10 @@ well of types of 3rd-party libraries.
 \note
   While the C++ language demands to implement specializations of templated structs within the
   namespace that the original struct was defined in, the reference documentation "fakes" these
-  specializations into the (otherwise non-existent!) sub-namespace \ref aworx::lib::strings::APPENDABLES.
+  specializations into the (otherwise non-existent!) sub-namespace \ref alib::strings::APPENDABLES.
   Other \alib modules do the same documentation trick, and hence all specializations of \b T_Append
   (of all four areas described above) can be found with the
-  \ref aworx::lib::strings::APPENDABLES "reference documentation" of that namespace (and sub-namespaces).
+  \ref alib::strings::APPENDABLES "reference documentation" of that namespace (and sub-namespaces).
 
 
 \I{################################################################################################}
@@ -924,17 +933,17 @@ Class \b %AString hides all parent constructors and offers re-implementations th
 operation - all constructors are explicit.
 On the same token, the assignment operator is not applicable with initializations as well.<br>
 The following code will not compile:
-\verbatim
+\code{.cpp}
 AString as=  "This will not compile";
-\endverbatim
+\endcode
  * Instead, explicit construction has to be chosen, as shown here:
-\verbatim
+\code{.cpp}
 AString as("This will compile");
 
 // or alternatively
 AString as;
 as= "This will compile";
-\endverbatim
+\endcode
 
 
 As already noticed in chapter \ref alib_strings_assembly_ttostring, with templated constructor
@@ -962,14 +971,14 @@ size than currently allocated.
 
 Besides this internal, automatic memory allocation, the class can also work on <b>external buffers</b>.
 For this, overloaded method
-\alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,Responsibility)}
+\alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,lang::Responsibility)}
 allows to provide such external memory.
 The life-cycle of an external buffer is not bound to the life-cycle of the \b %AString object itself.
 In the moment that the size of an external buffer is not sufficient to allow a requested extension
 of the managed string, the class replaces the external buffer by a larger, self-managed one.
 
 For details on using external buffers, see the reference documentation of overloaded method
-\alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,Responsibility)}.
+\alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,lang::Responsibility)}.
 Class \alib{strings,TLocalString,LocalString}, which is discussed in the next section, makes use
 of this feature and provides the possibility to have local (stack based) allocations of strings.
 
@@ -979,7 +988,7 @@ of this feature and provides the possibility to have local (stack based) allocat
 Template class \alib{strings,TLocalString,LocalString<TChar\, TCapacity>}, derived from class \b %AString
 uses an internal character array of a length specified by template parameter \p{TCapacity}
 to store the string data. During construction, the memory address of this character array member is
-passed to method \alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,Responsibility),SetBuffer}.
+passed to method \alib{strings::TAString,SetBuffer(TChar*\,integer\,integer\,lang::Responsibility),SetBuffer}.
 
 The huge benefit of using the class lies in performance: The performance impact of <em>heap allocations</em> is often
 underestimated by software developers. Therefore, for local string operations with foreseeable
@@ -1043,11 +1052,11 @@ very determined and it should not be subject to copy and move operations.
 
 \I{################################################################################################}
 ### 5.4.4 Aliases For Frequently Used Sizes ### {#alib_strings_assembly_localstring_aliases}
-Within namespace \ref aworx, some convenient alias type definitions are available that define
+Within namespace \ref alib, some convenient alias type definitions are available that define
 local strings of frequently uses sizes:
-- \aworx{String8}, \aworx{String16},  \aworx{String32} ,\aworx{String64}  ,\aworx{String128}  ,\aworx{String256}  ,\aworx{String512} , \aworx{String1K},  \aworx{String2K},  \aworx{String4K},
-- \aworx{NString8},\aworx{NString16}, \aworx{NString32},\aworx{NString64} ,\aworx{NString128} ,\aworx{NString256} ,\aworx{NString512}, \aworx{NString1K}, \aworx{NString2K}, \aworx{NString4K}, and
-- \aworx{WString8},\aworx{WString16}, \aworx{WString32},\aworx{WString64} ,\aworx{WString128} ,\aworx{WString256} ,\aworx{WString512}, \aworx{WString1K}, \aworx{WString2K}, \aworx{WString4K}.
+- \alib{String8}, \alib{String16},  \alib{String32} ,\alib{String64}  ,\alib{String128}  ,\alib{String256}  ,\alib{String512} , \alib{String1K},  \alib{String2K},  \alib{String4K},
+- \alib{NString8},\alib{NString16}, \alib{NString32},\alib{NString64} ,\alib{NString128} ,\alib{NString256} ,\alib{NString512}, \alib{NString1K}, \alib{NString2K}, \alib{NString4K}, and
+- \alib{WString8},\alib{WString16}, \alib{WString32},\alib{WString64} ,\alib{WString128} ,\alib{WString256} ,\alib{WString512}, \alib{WString1K}, \alib{WString2K}, \alib{WString4K}.
 
 
 
@@ -1255,13 +1264,13 @@ In release compilations, invoking non-checking method versions with a breach of 
 \I{################################################################################################}
 ### 6.3.1 NullString() ### {#alib_strings_details_constants_nullstring}
 With the inclusion of header file \alibheader{strings/string.hpp}, the following <c>inline constexpr</c>
-methods are defined in namespace #aworx:
-- \aworx{NullString},
-- \aworx{NullComplementString},
-- \aworx{NullStrangeString},
-- \aworx{NullNString},
-- \aworx{NullWString} and
-- \aworx{NullXString}:
+methods are defined in namespace #alib:
+- \alib{NullString},
+- \alib{NullComplementString},
+- \alib{NullStrangeString},
+- \alib{NullNString},
+- \alib{NullWString} and
+- \alib{NullXString}:
 
 Each simply returns a \e nulled string. The existence and use of the methods are purely for increasing
 the readability of source code. Especially the following lines of code are equivalent in all
@@ -1278,19 +1287,19 @@ string constants, including an empty zero-terminated string.
 
 While the methods can be explicitly accessed by providing the templated character type, in
 addition for each six character types a corresponding \c inline alias function is given
-in namespace #aworx.<br>
+in namespace #alib.<br>
 For example, for member method \alib{strings,TT_StringConstants<TChar>::EmptyString}, corresponding
 functions
-- \aworx{EmptyString},
-- \aworx{EmptyComplementString},
-- \aworx{EmptyStrangeString},
-- \aworx{EmptyNString},
-- \aworx{EmptyWString} and
-- \aworx{EmptyXString}
+- \alib{EmptyString},
+- \alib{EmptyComplementString},
+- \alib{EmptyStrangeString},
+- \alib{EmptyNString},
+- \alib{EmptyWString} and
+- \alib{EmptyXString}
 
 are defined.
 
-In contrast to method \aworx{NullString} and its siblings introduced in the previous chapter,
+In contrast to method \alib{NullString} and its siblings introduced in the previous chapter,
 which exists purely for readability, the use of \alib{strings,TT_StringConstants} provides
 a real benefit in respect to a compilation units code size and probably performance.
 Only in some situations the methods (and namespace functions) are effectively \c constexpr and
@@ -1374,10 +1383,10 @@ character type definitions and character array traits, this module completely re
 on module \alib_characters_nl. While all string classes are templated, the character types
 that are used by the template instantiations are all defined in this underlying module.
 
-The alias types for each string class (defined in namespace #aworx) enumerate all possible types
-by adding a prefix character or word, for example \aworx{NString}, \aworx{WString} or
-\aworx{ComplementString}. The aliases without any prefix, like \aworx{String}, \aworx{Substring}
-or \aworx{AString} use the width of the generic and "agnostic" type \alib{characters,character}.
+The alias types for each string class (defined in namespace #alib) enumerate all possible types
+by adding a prefix character or word, for example \alib{NString}, \alib{WString} or
+\alib{ComplementString}. The aliases without any prefix, like \alib{String}, \alib{Substring}
+or \alib{AString} use the width of the generic and "agnostic" type \alib{characters,character}.
 
 Now, when using string literals, the following code is not platform agnostic::
 
@@ -1450,7 +1459,7 @@ To separate the fundamental string types from the utility classes, a dedicated s
 
 To investigate into the functionality and tools offered in the area of string handling, please
 consult to the class list provided in the reference documentation of sub-namespace
-\ref aworx::lib::strings::util.
+\ref alib::strings::util.
 
 \I{################################################################################################}
 # 9. String Formatting # {#alib_strings_format}
@@ -1462,11 +1471,9 @@ to format a list of variadic arguments along the lines of a format string that f
 \alib offers mechanics to define and process variadic argument lists in a type-safe fashion
 with its module \alib_boxing. Now, to keep module \alib_strings_nl independent from module
 \alib_boxing_nl, formatting features as described above have been placed in a separated
-module, namely \alib_text. With that, a powerful implementation of formatting tools,
+module, namely \alib_basecamp. With that, a powerful implementation of formatting tools,
 is provided. These are even supporting different standards of a format string's placeholder syntax,
-namely \alib{text,FormatterJavaStyle,printf and Java style} as well as
-\alib{text,FormatterPythonStyle,Python style}.
+namely \alib{lang::format,FormatterJavaStyle,printf and Java style} as well as
+\alib{lang::format,FormatterPythonStyle,Python style}.
 
-*/
-
-
+<br><br><br><br><br><br> */

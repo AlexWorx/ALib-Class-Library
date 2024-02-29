@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_COMPILER
@@ -12,8 +12,8 @@
 #   include "alib/expressions/expression.hpp"
 #endif
 
-#ifndef HPP_ALIB_FS_PLUGINS_PLUGINS
-#   include "alib/lib/fs_plugins/plugins.hpp"
+#ifndef HPP_ALIB_LANG_PLUGINS
+#   include "alib/lang/plugins.hpp"
 #endif
 
 #if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
@@ -24,12 +24,12 @@
 #   include "alib/strings/util/token.hpp"
 #endif
 
-#if !defined(HPP_ALIB_TEXT_FWDS)
-#   include "alib/text/fwds.hpp"
+#if !defined(HPP_ALIB_LANG_FORMAT_FWDS)
+#   include "alib/lang/format/fwds.hpp"
 #endif
 
-#if !defined(HPP_ALIB_RESULTS_REPORT)
-#   include "alib/results/report.hpp"
+#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#   include "alib/lang/message/report.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_HASHMAP)
@@ -40,7 +40,7 @@
 #   include "alib/monomem/list.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 // forwards
 namespace detail { struct Parser; }
@@ -81,12 +81,12 @@ class ExpressionRepository
  * expression strings.
  *
  * For information about general use and features of this class consult the
- * \ref aworx::lib::expressions "ALib Expressions User Manual".
+ * \ref alib::expressions "ALib Expressions User Manual".
  *
  * ## Friends ##
  * class \alib{expressions,Expression}
  **************************************************************************************************/
-class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePriorities>
+class Compiler  : public lang::PluginContainer<CompilerPlugin, CompilePriorities>
 {
     #if !defined(ALIB_DOX)
         friend class  Expression;
@@ -96,7 +96,7 @@ class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePri
 
     public:
        /** Alias shortcut to the type of the plug-in vector inherited from \b %PluginContainer. */
-       using Plugins= std::vector<lib::detail::PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
+       using Plugins= std::vector<lang::PluginContainer<CompilerPlugin, CompilePriorities>::Slot>;
 
     // #############################################################################################
     // internal fields
@@ -150,8 +150,8 @@ class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePri
          * \alib{expressions,DefaultAlphabeticUnaryOperatorAliases} to this map.
          */
         HashMap<String, String,
-                aworx::hash_string_ignore_case<character>,
-                aworx::equal_to_string_ignore_case<character> > AlphabeticUnaryOperatorAliases;
+                alib::hash_string_ignore_case<character>,
+                alib::equal_to_string_ignore_case<character> > AlphabeticUnaryOperatorAliases;
 
         /**
          * This public map allows to define alias names for binary operators. Such names
@@ -162,8 +162,8 @@ class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePri
          * \alib{expressions,DefaultAlphabeticBinaryOperatorAliases} to this map.
          */
         HashMap<String, String,
-                aworx::hash_string_ignore_case<character>,
-                aworx::equal_to_string_ignore_case<character> > AlphabeticBinaryOperatorAliases;
+                alib::hash_string_ignore_case<character>,
+                alib::equal_to_string_ignore_case<character> > AlphabeticBinaryOperatorAliases;
 
         /**
          * Adds an unary operator to this expression compiler.
@@ -177,7 +177,7 @@ class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePri
         {
             #if ALIB_DEBUG
                 for( auto& op : UnaryOperators )
-                    if( op.Equals( symbol ) )
+                    if( op.Equals<false>( symbol ) )
                         ALIB_ASSERT_ERROR( false, "EXPR", "Unary operator {!Q'} already defined.", symbol )
             #endif
             UnaryOperators.EmplaceBack(symbol);
@@ -253,7 +253,7 @@ class Compiler  : public lib::detail::PluginContainer<CompilerPlugin, CompilePri
             Arithmetics        = (1 << 3),   ///< Installs \alib{expressions,plugins::Arithmetics}.
             Math               = (1 << 4),   ///< Installs \alib{expressions,plugins::Math}.
             Strings            = (1 << 5),   ///< Installs \alib{expressions,plugins::Strings}.
-ALIB_IF_SYSTEM(
+ALIB_IF_CAMP(
             DateAndTime        = (1 << 6), ) ///< Installs \alib{expressions,plugins::DateAndTime}. )
         };
 
@@ -268,7 +268,7 @@ ALIB_IF_SYSTEM(
          *   The built-in plug-ins are allowed to be shared by different compiler instances.
          *   To reach that, they must not be disabled here (or method #SetupDefaults must be
          *   omitted) and instead created once and registered with the compiler using
-         *   inherited method \alib{detail::PluginContainer::InsertPlugin}. In that case, parameter
+         *   inherited method \alib{lang::PluginContainer::InsertPlugin}. In that case, parameter
          *   \p{responsibility} of that method has to be provided as
          *   \c Responsibility::KeepWithSender.
          */
@@ -360,8 +360,8 @@ ALIB_IF_SYSTEM(
          * compile-time scope and the creation of the evaluation-time scope. If done,
          * the expression results could differ when optimizations during compilation are performed.
          *
-         * In the constructor of this class, a \alib{text,Formatter::Clone,clone} of the
-         * \alib \alib{text::Formatter,GetDefault,default formatter} is set here.
+         * In the constructor of this class, a \alib{lang::format,Formatter::Clone,clone} of the
+         * \alib \alib{lang::format::Formatter,GetDefault,default formatter} is set here.
          */
         SPFormatter                 CfgFormatter;
 
@@ -397,7 +397,7 @@ ALIB_IF_SYSTEM(
          * exception.
          *
          * The built-in types get registered in the constructor of the compiler, where the
-         * type names are read from the \alib{resources,ResourcePool} of static library object
+         * type names are read from the \alib{lang::resources,ResourcePool} of static library object
          * \alib{EXPRESSIONS}.
          *
          * It is recommended that custom plug-ins invoke this method in their constructor.
@@ -590,15 +590,14 @@ ALIB_IF_SYSTEM(
 };
 
 
-}} // namespace aworx[::lib::expressions]
+} // namespace alib[::expressions]
 
-/// Type alias in namespace #aworx.
-using     Compiler=           lib::expressions::Compiler;
+/// Type alias in namespace \b alib.
+using     Compiler=           expressions::Compiler;
 
+} // namespace [alib]
 
-}// namespace [aworx]
-
-ALIB_ENUMS_MAKE_BITWISE(aworx::lib::expressions::Compiler::BuiltInPlugins)
+ALIB_ENUMS_MAKE_BITWISE(alib::expressions::Compiler::BuiltInPlugins)
 
 
 #endif // HPP_ALIB_EXPRESSIONS_COMPILER

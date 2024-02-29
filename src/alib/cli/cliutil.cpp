@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -25,7 +25,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace cli {
+namespace alib::cli {
 
 
 OptionDecl*  CLIUtil::GetOptionDecl( CommandLine& cmdLine, const String& identString )
@@ -34,7 +34,7 @@ OptionDecl*  CLIUtil::GetOptionDecl( CommandLine& cmdLine, const String& identSt
         if (    (    identString.Length()              == 1
                   && identString.CharAtStart<false>()  == decl->IdentifierChar() )
              || (    identString.Length()              >= decl->MinimumRecognitionLength()
-                 &&  decl->Identifier().StartsWith<true,Case::Ignore>( identString ) )  )
+                 &&  decl->Identifier().StartsWith<true,lang::Case::Ignore>( identString ) )  )
             return decl;
     return nullptr;
 }
@@ -44,7 +44,7 @@ CommandDecl*  CLIUtil::GetCommandDecl( CommandLine& cmdLine, const String& ident
 {
     for( auto* decl : cmdLine.CommandDecls )
         if (     identString.Length() >=  decl->MinimumRecognitionLength()
-             &&  decl->Identifier().StartsWith<true,Case::Ignore>( identString ) )
+             &&  decl->Identifier().StartsWith<true,lang::Case::Ignore>( identString ) )
             return decl;
     return nullptr;
 }
@@ -52,7 +52,7 @@ CommandDecl*  CLIUtil::GetCommandDecl( CommandLine& cmdLine, const String& ident
 ParameterDecl*  CLIUtil::GetParameterDecl(CommandLine &cmdLine, const String &identString)
 {
     for( auto* decl : cmdLine.ParameterDecls )
-        if ( decl->Name().StartsWith<true,Case::Ignore>( identString ) )
+        if ( decl->Name().StartsWith<true,lang::Case::Ignore>( identString ) )
             return decl;
     return nullptr;
 }
@@ -204,7 +204,7 @@ bool CLIUtil::GetHelp( CommandLine& cmdLine, Command* helpCmd, Option* helpOpt, 
                     Tokenizer topics(additionalHelpTopics, ',');
                     while(topics.Next().IsNotEmpty())
                     {
-                        if(topics.Actual.StartsWith<true,Case::Ignore>( arg ) )
+                        if(topics.Actual.StartsWith<true,lang::Case::Ignore>( arg ) )
                         {
                             ++cntArgsRecognized;
                             if( cmdLine.DryRun == DryRunModes::Off )
@@ -528,4 +528,4 @@ AString&  CLIUtil::DumpParseResults( CommandLine& cmdLine, Paragraphs& dump )
     return dump.Buffer;
 }
 
-}}}// namespace aworx::lib::system
+} // namespace alib::cli

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions {
+namespace alib {  namespace expressions {
 
 /**
  * This inner namespace of module \alib_expressions_nl contains the implementations
@@ -24,6 +24,9 @@ namespace aworx { namespace lib { namespace expressions {
  *
  * It is strongly recommended to use this helper class for the creation of custom compiler plug-ins
  * instead of deriving such from class \alib{expressions,CompilerPlugin} directly.
+ *
+ * \note Sibling \alib module \alib_files, provides a compiler plug-in dedicated to file and
+ *       directory trees.
  */
 namespace plugins {
 
@@ -633,7 +636,7 @@ struct Calculus   : public CompilerPlugin
         struct BinOpOptKey
         {
             const String           op;        ///< The operator to optimize.
-            Side                   constSide; ///< Denotes a left- or right-hand side optimization.
+            lang::Side             constSide; ///< Denotes a left- or right-hand side optimization.
             const Box              constVal;  ///< The type and value of the constant argument.
             const std::type_info&  other;     ///< The type of the non-constant argument.
 
@@ -648,8 +651,8 @@ struct Calculus   : public CompilerPlugin
                     return  (   std::hash<String>()(src.op)
                               +  6949ul * std::hash<Box>()(src.constVal)
                               + 14033ul * src.other.hash_code()
-                            ) ^ ( src.constSide == Side::Left ? static_cast<size_t>( 0)
-                                                              : static_cast<size_t>(-1) );
+                            ) ^ ( src.constSide == lang::Side::Left ? static_cast<size_t>( 0)
+                                                                    : static_cast<size_t>(-1) );
                 }
             };
 
@@ -698,7 +701,7 @@ struct Calculus   : public CompilerPlugin
      *   (as in <c> x || true</c>) or a \e nulled box, which indicates that the result equals the
      *   non-constant argument (as in <c>x && true</c>).
      */
-    using BinaryOpOptimizationsTableEntry= const std::tuple<String, Side, Type, const Box&, const Box&>;
+    using BinaryOpOptimizationsTableEntry= const std::tuple<String, lang::Side, Type, const Box&, const Box&>;
 
 
     /** ********************************************************************************************
@@ -792,7 +795,7 @@ struct Calculus   : public CompilerPlugin
 
         /**
          * List of operators that the auto-cast does not accept. An operator should not appear
-         * in this both lists, this one and list #OperatorsAccepted. However, it is does, then the
+         * in both lists, this one and list #OperatorsAccepted. However, it is does, then the
          * operator is not accepted.
          *
          * A value of \c nullptr is allowed to indicate no declined operators.
@@ -889,14 +892,12 @@ struct Calculus   : public CompilerPlugin
     virtual bool    TryCompilation( CIAutoCast& autoCast)                                  override;
 };
 
+}} // namespace alib[::expressions::plugin]
 
+/// Type alias in namespace \b alib.
+using     Calculus=    expressions::plugins::Calculus;
 
-}}} // namespace aworx[::lib::expressions::plugin]
-
-/// Type alias in namespace #aworx.
-using     Calculus=    lib::expressions::plugins::Calculus;
-
-} // namespace [aworx]
+} // namespace [alib]
 
 
 

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -24,7 +24,6 @@
 #if !defined(HPP_ALIB_STRINGS_NUMBERFORMAT)
     #include "alib/strings/numberformat.hpp"
 #endif
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -39,7 +38,7 @@
 #endif
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 
 
 
@@ -274,8 +273,8 @@ UT_METHOD( Consume )
         Substring r(A_CHAR("oldval"));
         s= A_CHAR("a"); UT_EQ ( 'a',   s. ConsumeChar          (         ) )           UT_EQ ( 0,        s. Length ( ) )
         s= A_CHAR("a"); UT_EQ ( 1,     s. ConsumeChars         ( 0       ) )           UT_EQ ( 1,        s. Length ( ) )
-        s= A_CHAR("a"); UT_EQ ( 0,     s. ConsumeChars         ( 1  , &r ) )           UT_EQ ( 0,        s. Length ( ) )  UT_TRUE ( r.Equals ( A_CHAR("a") ) )
-        s= A_CHAR("a"); UT_EQ ( 0,     s. ConsumeChars         ( 5  , &r ) )           UT_EQ ( 0,        s. Length ( ) )  UT_TRUE ( r.Equals ( A_CHAR("a") ) )
+        s= A_CHAR("a"); UT_EQ ( 0,     s. ConsumeChars         ( 1  , &r ) )           UT_EQ ( 0,        s. Length ( ) )  UT_TRUE ( r.Equals( A_CHAR("a") ) )
+        s= A_CHAR("a"); UT_EQ ( 0,     s. ConsumeChars         ( 5  , &r ) )           UT_EQ ( 0,        s. Length ( ) )  UT_TRUE ( r.Equals( A_CHAR("a") ) )
         s= A_CHAR("a"); UT_EQ ( true,  s. ConsumeChar          ( 'a'     ) )           UT_EQ ( 0,        s. Length ( ) )
         s= A_CHAR("a"); UT_EQ ( false, s. ConsumeChar          ( 'b'     ) )           UT_EQ ( 1,        s. Length ( ) )
         s= A_CHAR("a"); UT_EQ ( false, s. ConsumeString        ( A_CHAR("word")  ) )   UT_EQ ( 1,        s. Length ( ) )
@@ -337,13 +336,13 @@ UT_METHOD( Consume )
         UT_EQ(  '1',       s.ConsumeChar   ( )         )
 
         UT_EQ(  false    , s.ConsumeChar                                       ('w'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>   ('w'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>   ('o'  ) )
-        UT_EQ(  false    , s.ConsumeChar  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>   ('o'  ) )
-        UT_EQ(  true     , s.ConsumeChar  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>   ('r'  ) )
-        UT_EQ(  false    , s.ConsumeString<Case::Sensitive ALIB_COMMA Whitespaces::Trim>   (A_CHAR("D2") ) )
-        UT_EQ(  false    , s.ConsumeString                                                 (A_CHAR("D2") ) )
-        UT_EQ(  true     , s.ConsumeString                                                 (A_CHAR("d2") ) )
+        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('w'  ) )
+        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  ) )
+        UT_EQ(  false    , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('o'  ) )
+        UT_EQ(  true     , s.ConsumeChar  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   ('r'  ) )
+        UT_EQ(  false    , s.ConsumeString<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>   (A_CHAR("D2") ) )
+        UT_EQ(  false    , s.ConsumeString                                                             (A_CHAR("D2") ) )
+        UT_EQ(  true     , s.ConsumeString                                                             (A_CHAR("d2") ) )
 
         UT_EQ(  2   , s.ConsumeChars  ( 4 )   )
         UT_EQ(  A_CHAR("d3")     , s )
@@ -357,13 +356,13 @@ UT_METHOD( Consume )
         UT_EQ(  'w',       s.ConsumeCharFromEnd( )         )
 
         UT_EQ(  false    , s.ConsumeCharFromEnd                                    ('2')   )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>('2')  )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>('d')  )
-        UT_EQ(  false    , s.ConsumeCharFromEnd  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>('d')  )
-        UT_EQ(  true     , s.ConsumeCharFromEnd  <Case::Sensitive ALIB_COMMA Whitespaces::Trim>('r')  )
-        UT_EQ(  false    , s.ConsumeStringFromEnd<Case::Sensitive ALIB_COMMA Whitespaces::Trim>(A_CHAR("WO")) )
-        UT_EQ(  false    , s.ConsumeStringFromEnd<Case::Sensitive ALIB_COMMA Whitespaces::Trim>(A_CHAR("WO")) )
-        UT_EQ(  true     , s.ConsumeStringFromEnd<Case::Sensitive ALIB_COMMA Whitespaces::Trim>(A_CHAR("wo")) )
+        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('2')  )
+        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')  )
+        UT_EQ(  false    , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('d')  )
+        UT_EQ(  true     , s.ConsumeCharFromEnd  <lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>('r')  )
+        UT_EQ(  false    , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO")) )
+        UT_EQ(  false    , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("WO")) )
+        UT_EQ(  true     , s.ConsumeStringFromEnd<lang::Case::Sensitive ALIB_COMMA lang::Whitespaces::Trim>(A_CHAR("wo")) )
 
         UT_EQ(  2   , s.ConsumeCharsFromEnd( 4 )   )
         UT_EQ(  A_CHAR("wo")     , s )
@@ -400,18 +399,18 @@ UT_METHOD( Consume )
 
     {
         Substring subs(A_CHAR("abcdef"));
-        UT_EQ( 0, subs.ConsumePartOf<Case::Sensitive>(A_CHAR("ABC"), 1)  )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Sensitive>(A_CHAR("aBC"), 2)  )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("aBC"), 5)  )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("aBX"), 3)  )   UT_EQ( A_CHAR("abcdef"), subs )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Sensitive>(A_CHAR("aBX"), 2)  )   UT_EQ( A_CHAR("abcdef"), subs )
-        UT_EQ( 2, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("aBX"), 2)  )   UT_EQ(   A_CHAR("cdef"), subs )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("CXX"), 2)  )   UT_EQ(   A_CHAR("cdef"), subs )
-        UT_EQ( 1, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("CXX"), 1)  )   UT_EQ(    A_CHAR("def"), subs )
-        UT_EQ( 3, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("def"), 2)  )   UT_EQ(       A_CHAR(""), subs )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR("def"), 2)  )   UT_EQ(       A_CHAR(""), subs )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR(""),    2)  )   UT_EQ(       A_CHAR(""), subs )
-        UT_EQ( 0, subs.ConsumePartOf<Case::Ignore   >(A_CHAR(""),    0)  )   UT_EQ(       A_CHAR(""), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Sensitive>(A_CHAR("ABC"), 1)  )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Sensitive>(A_CHAR("aBC"), 2)  )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("aBC"), 5)  )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("aBX"), 3)  )   UT_EQ( A_CHAR("abcdef"), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Sensitive>(A_CHAR("aBX"), 2)  )   UT_EQ( A_CHAR("abcdef"), subs )
+        UT_EQ( 2, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("aBX"), 2)  )   UT_EQ(   A_CHAR("cdef"), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("CXX"), 2)  )   UT_EQ(   A_CHAR("cdef"), subs )
+        UT_EQ( 1, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("CXX"), 1)  )   UT_EQ(    A_CHAR("def"), subs )
+        UT_EQ( 3, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("def"), 2)  )   UT_EQ(       A_CHAR(""), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR("def"), 2)  )   UT_EQ(       A_CHAR(""), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR(""),    2)  )   UT_EQ(       A_CHAR(""), subs )
+        UT_EQ( 0, subs.ConsumePartOf<lang::Case::Ignore   >(A_CHAR(""),    0)  )   UT_EQ(       A_CHAR(""), subs )
     }
 }
 
@@ -419,8 +418,8 @@ UT_METHOD( Consume )
 //--------------------------------------------------------------------------------------------------
 //--- Tokenizer
 //--------------------------------------------------------------------------------------------------
-void tokenizerTest( const aworx::character* inputString, AString& res, aworx::character delim, aworx::character newDelim,
-                    Whitespaces trim, int inpStart= -1, int inpEnd= -1  )
+void tokenizerTest( const alib::character* inputString, AString& res, alib::character delim, alib::character newDelim,
+                    lang::Whitespaces trim, int inpStart= -1, int inpEnd= -1  )
 {
     Substring inp( inputString );
     if ( inpStart < 0 )  inpStart= 0;
@@ -464,20 +463,20 @@ UT_METHOD( Tokenize )
 
     // tokenizing
     {
-        tokenizerTest( A_CHAR("abc"),                   res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@")                , res )
-        tokenizerTest( A_CHAR("a,bc"),                  res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@bc@")               , res )
-        tokenizerTest( A_CHAR("a,bc"),                  res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@bc@")               , res )
-        tokenizerTest( A_CHAR(","),                     res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@@")                  , res )
-        tokenizerTest( A_CHAR(",,"),                    res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@@@")                 , res )
-        tokenizerTest( A_CHAR("a,b,c,,"),               res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@b@c@@@")            , res )
-        tokenizerTest( A_CHAR("a,b,c"),                 res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@b@c@")              , res )
-        tokenizerTest( A_CHAR(",a,b,c"),                res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@a@b@c@")             , res )
-        tokenizerTest( A_CHAR("123567"),                res, ',', '@',   Whitespaces::Trim,   2,   2 );   UT_EQ( A_CHAR("3@")                  , res )
-        tokenizerTest( A_CHAR("123567"),                res, ',', '@',   Whitespaces::Trim,   2,   1 );   UT_EQ( A_CHAR("@")                   , res )
-        tokenizerTest( A_CHAR("  abc , def , ghe "),    res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@def@ghe@")        , res )
-        tokenizerTest( A_CHAR("abc , def,ghe,"),        res, ',', '@',   Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@def@ghe@@")       , res )
-        tokenizerTest( A_CHAR("  abc , def , ghe "),    res, ',', '@',   Whitespaces::Keep,  -1,  -1 );   UT_EQ( A_CHAR("  abc @ def @ ghe @") , res )
-        tokenizerTest( A_CHAR("abc , def,ghe,"),        res, ',', '@',   Whitespaces::Keep,  -1,  -1 );   UT_EQ( A_CHAR("abc @ def@ghe@@")     , res )
+        tokenizerTest( A_CHAR("abc"),                   res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@")                , res )
+        tokenizerTest( A_CHAR("a,bc"),                  res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@bc@")               , res )
+        tokenizerTest( A_CHAR("a,bc"),                  res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@bc@")               , res )
+        tokenizerTest( A_CHAR(","),                     res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@@")                  , res )
+        tokenizerTest( A_CHAR(",,"),                    res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@@@")                 , res )
+        tokenizerTest( A_CHAR("a,b,c,,"),               res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@b@c@@@")            , res )
+        tokenizerTest( A_CHAR("a,b,c"),                 res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("a@b@c@")              , res )
+        tokenizerTest( A_CHAR(",a,b,c"),                res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("@a@b@c@")             , res )
+        tokenizerTest( A_CHAR("123567"),                res, ',', '@',   lang::Whitespaces::Trim,   2,   2 );   UT_EQ( A_CHAR("3@")                  , res )
+        tokenizerTest( A_CHAR("123567"),                res, ',', '@',   lang::Whitespaces::Trim,   2,   1 );   UT_EQ( A_CHAR("@")                   , res )
+        tokenizerTest( A_CHAR("  abc , def , ghe "),    res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@def@ghe@")        , res )
+        tokenizerTest( A_CHAR("abc , def,ghe,"),        res, ',', '@',   lang::Whitespaces::Trim,  -1,  -1 );   UT_EQ( A_CHAR("abc@def@ghe@@")       , res )
+        tokenizerTest( A_CHAR("  abc , def , ghe "),    res, ',', '@',   lang::Whitespaces::Keep,  -1,  -1 );   UT_EQ( A_CHAR("  abc @ def @ ghe @") , res )
+        tokenizerTest( A_CHAR("abc , def,ghe,"),        res, ',', '@',   lang::Whitespaces::Keep,  -1,  -1 );   UT_EQ( A_CHAR("abc @ def@ghe@@")     , res )
     }
 
     // tokenizing with different delimiters
@@ -485,20 +484,20 @@ UT_METHOD( Tokenize )
         as.Reset( A_CHAR("1,5;3@4") );
         Tokenizer tknzr(as, ',');
         res.Reset( tknzr.Next(                        ) );  UT_EQ( A_CHAR("1"),   res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next( Whitespaces::Trim, ';' ) );  UT_EQ( A_CHAR("5"),   res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next( Whitespaces::Trim, '@' ) );  UT_EQ( A_CHAR("3"),   res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next( Whitespaces::Trim, '-' ) );  UT_EQ( A_CHAR("4"),   res )  UT_EQ( false, tknzr.HasNext() )
+        res.Reset( tknzr.Next( lang::Whitespaces::Trim, ';' ) );  UT_EQ( A_CHAR("5"),   res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.Next( lang::Whitespaces::Trim, '@' ) );  UT_EQ( A_CHAR("3"),   res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.Next( lang::Whitespaces::Trim, '-' ) );  UT_EQ( A_CHAR("4"),   res )  UT_EQ( false, tknzr.HasNext() )
     }
 
     // tokenizing with different delimiters
     {
         as.Reset( A_CHAR("abc, 5;\t3;;; 4  ") );
         Tokenizer tknzr(as,',');
-        res.Reset( tknzr.Next()                         );  UT_EQ( A_CHAR("abc"), res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next( Whitespaces::Trim, ';' ) );  UT_EQ( A_CHAR("5"),   res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next()                         );  UT_EQ( A_CHAR("3"),   res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.Next()                         );  UT_EQ( A_CHAR(""),    res )  UT_EQ( true,  tknzr.HasNext() )
-        res.Reset( tknzr.GetRest()                      );  UT_EQ( A_CHAR("; 4"), res )  UT_EQ( false, tknzr.HasNext() )
+        res.Reset( tknzr.Next()                               );  UT_EQ( A_CHAR("abc"), res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.Next( lang::Whitespaces::Trim, ';' ) );  UT_EQ( A_CHAR("5"),   res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.Next()                               );  UT_EQ( A_CHAR("3"),   res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.Next()                               );  UT_EQ( A_CHAR(""),    res )  UT_EQ( true,  tknzr.HasNext() )
+        res.Reset( tknzr.GetRest()                            );  UT_EQ( A_CHAR("; 4"), res )  UT_EQ( false, tknzr.HasNext() )
     }
 
     // sub-tokens

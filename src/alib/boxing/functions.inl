@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_boxing of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_BOXING_FUNCTIONS
@@ -12,7 +12,7 @@
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace aworx { namespace lib { namespace boxing  {
+namespace alib {  namespace boxing  {
 
 /** ************************************************************************************************
  * This built-in \ref alib_boxing_functions "box function" constitutes the concept of
@@ -173,8 +173,8 @@ struct FEquals
 };
 
 #define ALIB_BOXING_DEFINE_FEQUALS_FOR_COMPARABLE_TYPE( TComparable )                              \
-aworx::lib::boxing::BootstrapRegister< FEquals,                                                    \
-   aworx::lib::boxing::TMappedTo<TComparable >>(FEquals::ComparableTypes<TComparable>);            \
+alib::boxing::BootstrapRegister< FEquals,                                                    \
+   alib::boxing::TMappedTo<TComparable >>(FEquals::ComparableTypes<TComparable>);            \
 
 
 /** ************************************************************************************************
@@ -291,8 +291,8 @@ struct FIsLess
 };
 
 #define ALIB_BOXING_DEFINE_FISLESS_FOR_COMPARABLE_TYPE( TComparable )                              \
-aworx::lib::boxing::BootstrapRegister< FIsLess,                                                             \
-   aworx::lib::boxing::TMappedTo<TComparable >>(FIsLess::ComparableTypes<TComparable>);            \
+alib::boxing::BootstrapRegister< FIsLess,                                                             \
+   alib::boxing::TMappedTo<TComparable >>(FIsLess::ComparableTypes<TComparable>);            \
 
 
 #if ALIB_MONOMEM
@@ -414,11 +414,11 @@ struct FIsTrue
  * This box-function is available only if module \alib_strings is included in the \alibdist.
  *
  * \see
- *    - Manual chapter \ref alib_boxing_strings_fappend
- *    - Chapter \ref alib_text_custom_types "3. Formatting Custom Types" of
- *      the Programmer's Manual of \alib_text, which gives
- *      a sample implementation of this function, as well as introduces a more powerful
- *      box-function \alib{text,FFormat}.
+ *    - Manual chapter \ref alib_boxing_strings_fappend "10.3 Box-Function FAppend"
+ *    - Chapter \ref alib_basecamp_format_custom_types "4.3. Formatting Custom Types" of
+ *      the Programmer's Manual of \alib_basecamp, which gives
+ *      a sample implementation of this function, and introduces a more powerful
+ *      box-function \alib{lang::format,FFormat}.
  *
  * @tparam TChar  The character type of the destination \alib{strings,TAString,AString} given with
  *                parameter \p{target}.
@@ -500,23 +500,23 @@ struct FAppend
 
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(TAppendable)                      \
-aworx::lib::boxing::BootstrapRegister<FAppend<character>, aworx::lib::boxing::TMappedTo<TAppendable>>\
-                 (aworx::lib::boxing::FAppend<character>::Appendable<TAppendable>);                  \
+alib::boxing::BootstrapRegister<FAppend<character>, alib::boxing::TMappedTo<TAppendable>>\
+                 (alib::boxing::FAppend<character>::Appendable<TAppendable>);                  \
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N(TAppendable)                    \
-aworx::lib::boxing::BootstrapRegister<FAppend<nchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
-                 (aworx::lib::boxing::FAppend<nchar    >::Appendable<TAppendable>);                  \
+alib::boxing::BootstrapRegister<FAppend<nchar    >, alib::boxing::TMappedTo<TAppendable>>\
+                 (alib::boxing::FAppend<nchar    >::Appendable<TAppendable>);                  \
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W(TAppendable)                    \
-aworx::lib::boxing::BootstrapRegister<FAppend<wchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
-                 (aworx::lib::boxing::FAppend<wchar    >::Appendable<TAppendable>);                  \
+alib::boxing::BootstrapRegister<FAppend<wchar    >, alib::boxing::TMappedTo<TAppendable>>\
+                 (alib::boxing::FAppend<wchar    >::Appendable<TAppendable>);                  \
 
 #define ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X(TAppendable)                    \
-aworx::lib::boxing::BootstrapRegister<FAppend<xchar    >, aworx::lib::boxing::TMappedTo<TAppendable>>\
-                 (aworx::lib::boxing::FAppend<xchar    >::Appendable<TAppendable>);                  \
+alib::boxing::BootstrapRegister<FAppend<xchar    >, alib::boxing::TMappedTo<TAppendable>>\
+                 (alib::boxing::FAppend<xchar    >::Appendable<TAppendable>);                  \
 
 #endif //ALIB_STRINGS
 
-}}} // namespace [aworx::lib::boxing]
+}} // namespace [alib::boxing]
 
 #endif // HPP_ALIB_BOXING_FUNCTIONS

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -21,10 +21,14 @@
 #   if !defined (HPP_ALIB_STRINGS_FORMAT)
 #       include "alib/strings/format.hpp"
 #   endif
+#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
+#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   endif
+
 #endif // !defined(ALIB_DOX)
 
 
-namespace aworx { namespace lib { namespace expressions { namespace detail {
+namespace alib {  namespace expressions { namespace detail {
 
 // #################################################################################################
 // Parser
@@ -178,7 +182,7 @@ void ParserImpl::NextToken()
             decltype(unaryOperators)::Iterator it;
             if(    (it= unaryOperators .Find( tokString, hashCode )) != unaryOperators.end()
                 && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                     || tokString.Equals( it.Value() ) ) )
+                     || tokString.Equals<false>( it.Value() ) ) )
             {
                 scanner.ConsumeChars<false>( tokString.Length() );
                 token= Tokens::AlphaUnOp;
@@ -191,7 +195,7 @@ void ParserImpl::NextToken()
             decltype(binaryOperators)::Iterator it;
             if(    (it= binaryOperators .Find( tokString, hashCode )) != binaryOperators.end()
                 && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                     || tokString.Equals( it.Value() ) ) )
+                     || tokString.Equals<false>( it.Value() ) ) )
             {
                 scanner.ConsumeChars<false>( tokString.Length() );
                 token= Tokens::AlphaBinOp;
@@ -225,7 +229,7 @@ void ParserImpl::NextToken()
         character next= 0;
         while(      ++endOfDecPart < scanner.Length()
                 && (   isdigit( next= scanner[endOfDecPart] )
-                     || ( numberFormat->ReadGroupChars && next== numberFormat->ThousandsGroupChar ) )
+                     || ( HasBits(numberFormat->Flags, NumberFormatFlags::ReadGroupChars) && next== numberFormat->ThousandsGroupChar ) )
              );
 
 
@@ -299,7 +303,7 @@ void ParserImpl::NextToken()
 
 
         MAString internalizer( *compileTimeAllocator, quoted.Length() + 1 );
-        internalizer << quoted << Format::Escape( Switch::Off );
+        internalizer << quoted << Format::Escape( lang::Switch::Off );
         token    = Tokens::LitString;
         tokString= internalizer;
         return;
@@ -663,5 +667,4 @@ String ParserImpl::getBinaryOp()
 
 #undef Start
 
-}}}} // namespace [aworx::lib::expressions::detail]
-
+}}} // namespace [alib::expressions::detail]

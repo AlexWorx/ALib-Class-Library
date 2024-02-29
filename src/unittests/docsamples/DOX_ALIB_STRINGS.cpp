@@ -1,7 +1,7 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,11 +10,7 @@
 #   include "alib/threads/smartlock.hpp"
 #endif
 
-#if ALIB_UT_DOCS && ALIB_STRINGS
-
-#if !defined(HPP_ALIB_COMPILERS)
-#   include "alib/lib/compilers.hpp"
-#endif
+#if ALIB_UT_DOCS && ALIB_UT_STRINGS
 
 // Fix the method name of logging (needed for unity builds)
 ALIB_WARNINGS_MACRO_NOT_USED_OFF
@@ -26,23 +22,24 @@ ALIB_WARNINGS_MACRO_NOT_USED_OFF
 #endif
 ALIB_WARNINGS_RESTORE
 
-#include "alib/lib/fs_modules/distribution.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
 
 #include "alib/alox.hpp"
 
 #include <iostream>
 #include <sstream>
+#include <assert.h>
 
 #include "alib/compatibility/std_characters.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/strings/substring.hpp"
-#include "alib/text/propertyformatter.hpp"
-#include "alib/text/propertyformatters.hpp"
-#include "alib/text/text.hpp"
+#include "alib/lang/format/propertyformatter.hpp"
+#include "alib/lang/format/propertyformatters.hpp"
+#include "alib/lang/format/fmtexceptions.hpp"
 #include "alib/enums/recordbootstrap.hpp"
 
-#if !defined (HPP_ALIB_RESOURCES_RESOURCES)
-#   include "alib/resources/resources.hpp"
+#if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#   include "alib/lang/resources/resources.hpp"
 #endif
 
 namespace std
@@ -52,8 +49,8 @@ namespace std
 #define cout testOutputStream
 
 using namespace std;
-using namespace aworx;
-using namespace aworx::lib::strings;
+using namespace alib;
+using namespace alib::strings;
 
 #define TESTCLASSNAME       CPP_ALib_Dox_Strings
 #include "unittests/aworx_unittests.hpp"
@@ -263,10 +260,10 @@ enum class PersonFormats
     All
 };
 
-ALIB_ENUMS_ASSIGN_RECORD( PersonFormats,  aworx::lib::config::VariableDecl )
+ALIB_ENUMS_ASSIGN_RECORD( PersonFormats,  alib::config::VariableDecl )
 
-ALIB_RESOURCED(                PersonFormats, &aworx::ALIB.GetResourcePool(),
-                                               aworx::ALIB.ResourceCategory,    "PersonFormats" )
+ALIB_RESOURCED(                PersonFormats, &alib::BASECAMP.GetResourcePool(),
+                                               alib::BASECAMP.ResourceCategory,    "PersonFormats" )
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_1]
 
 
@@ -356,7 +353,7 @@ ALIB_WARNINGS_RESTORE
 
 }
 
-#if ALIB_SYSTEM
+#if ALIB_CAMP
 UT_METHOD( Construction )
 {
     UT_INIT()
@@ -370,11 +367,11 @@ std::basic_string<character> stdString( A_CHAR("/usr/bin") );
 Directory dir2( stdString );
 
 // Creating Directory object from an AString
-aworx::AString aString( A_CHAR("/usr/bin") );
+alib::AString aString( A_CHAR("/usr/bin") );
 Directory dir3( aString );
 
 // Creating Directory object from a Substring
-aworx::Substring subString= aString.Substring(0, 4);
+alib::Substring subString= aString.Substring(0, 4);
 Directory dir4( subString );
 //! [DOX_ALIB_CONSTRUCTION]
 }
@@ -395,7 +392,7 @@ Person p2= { A_CHAR("John"), 35, Hobbies::Hacking };
 String format= A_CHAR("{@name} is aged {@age} and his/her hobby is {@hobby}");
 
 // create a formatter
-aworx::PropertyFormatter  propertyFormatter( format, PersonCallbacks  );
+alib::PropertyFormatter  propertyFormatter( format, PersonCallbacks  );
 
 // format the two data objects
 AString target;
@@ -417,7 +414,7 @@ std::cout << target;
         bool caught= false;
         try
         {
-            aworx::PropertyFormatter  propertyFormatter( A_CHAR("Test {@Unknown}"), PersonCallbacks  );
+            alib::PropertyFormatter  propertyFormatter( A_CHAR("Test {@Unknown}"), PersonCallbacks  );
         }
         catch( Exception& e )
         {
@@ -425,11 +422,11 @@ std::cout << target;
 ALIB_IF_ALOX(
             LogTools::Exception( ut.lox, e, Verbosity::Info, ut.Domain, A_CHAR("  ") );  )
 
-            if( e.Type() != lib::text::Exceptions::UnknownPropertyInFormatString  )
+            if( e.Type() !=  lang::format::FMTExceptions::UnknownPropertyInFormatString  )
             {
               UT_PRINT( "But wrong type: caught: {}, expected: {}",
                         e.Type(),
-                        lib::text::Exceptions::UnknownPropertyInFormatString )
+                         lang::format::FMTExceptions::UnknownPropertyInFormatString )
               UT_TRUE( false )
             }
 
@@ -437,7 +434,7 @@ ALIB_IF_ALOX(
         }
         if( !caught )
         {
-            UT_PRINT( "No Exception caught. Expected: ", lib::text::Exceptions::UnknownPropertyInFormatString )
+            UT_PRINT( "No Exception caught. Expected: ",  lang::format::FMTExceptions::UnknownPropertyInFormatString )
             UT_TRUE( caught )
         }
 
@@ -453,9 +450,9 @@ UT_METHOD( PropertyFormatters )
 
 // we need to acquire the gloabl allocator before calling BootstrapBulk here in unit tests
 // In principle, this is completely foridden...
-lib::monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
+monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2]
-aworx::ALIB.GetResourcePool().BootstrapBulk( aworx::ALIB.ResourceCategory,
+alib::BASECAMP.GetResourcePool().BootstrapBulk( alib::BASECAMP.ResourceCategory,
 
     // Enum records for enum class "PersonFormats"
     "PersonFormats",    A_CHAR( "0,FORMATS,"   "SHORT"     ",,,"  ","
@@ -479,17 +476,17 @@ aworx::ALIB.GetResourcePool().BootstrapBulk( aworx::ALIB.ResourceCategory,
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_2]
 
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_22]
-aworx::EnumRecords<PersonFormats>::Bootstrap();
+alib::EnumRecords<PersonFormats>::Bootstrap();
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_22]
-lib::monomem::ReleaseGlobalAllocator();
+monomem::ReleaseGlobalAllocator();
 
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_31]
-aworx::PropertyFormatters<Person, PersonFormats> PersonFormatterMap( PersonCallbacks,
-                                                                     aworx::ALIB.GetConfig() );
+alib::PropertyFormatters<Person, PersonFormats> PersonFormatterMap( PersonCallbacks,
+                                                                    alib::BASECAMP.GetConfig() );
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_31]
 
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_32]
-using  FMTPerson= aworx::lib::text::PropertyFormatterMapAppendable<Person, PersonFormats>;
+using  FMTPerson= alib::lang::format::PropertyFormatterMapAppendable<Person, PersonFormats>;
 //! [DOX_ALIB_STRINGS_PROPERTY_FORMATTER_MAP_32]
 
 

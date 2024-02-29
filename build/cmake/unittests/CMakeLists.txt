@@ -1,7 +1,7 @@
 # #################################################################################################
 #  CMakeLists.txt - ALib Unit Tests
 #
-#  Copyright 2015-2023 A-Worx GmbH, Germany
+#  Copyright 2015-2024 A-Worx GmbH, Germany
 #  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 #
 #  How to use:
@@ -22,7 +22,12 @@
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
-    project("ALib_UnitTests")
+    if( NOT APPLE )
+        project("ALib_UnitTests")
+    else()
+        project("ALib_UnitTests" LANGUAGES CXX OBJCXX)
+    endif()
+
 
     # enable modules in project path
     set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.")
@@ -31,10 +36,9 @@
 ## include ALib base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    #set(CMAKE_CXX_STANDARD 11)
-    #set(CMAKE_CXX_STANDARD 14)
     #set(CMAKE_CXX_STANDARD 17)
     #set(CMAKE_CXX_STANDARD 20)
+    #set(CMAKE_CXX_STANDARD 23)
 
     #set( ALIB_CMAKE_VERBOSE  "On" ) # uncomment for more information
 
@@ -158,13 +162,16 @@
              "If 'On' compiles and links to static library, otherwise uses a shared (dynamic) one." )
     endif()
 
+    if( ${ALIB_UT_LINKER_MOLD} )
+        list( APPEND  ALIB_LINKER_OPTIONS    "-fuse-ld=mold"     )
+    endif()
+
     if( ${ALIB_UT_USE_STATIC_LIB} )
         ALibAddStaticLibrary()
     else()
         ALibAddSharedLibrary()
     endif()
 
-#list( APPEND  ALIB_LINKER_OPTIONS    "-fuse-ld=gold"     )
 
     add_executable             ( ALib_UT    ${ALIB_INCLUDE_FILES}
                                             ${ALIB_UTESTS_INCS}
@@ -174,6 +181,27 @@
     ALibSetCompilerAndLinker   ( ALib_UT )
 
     target_compile_definitions(ALib_UT PRIVATE ALIB_BASE_DIR="${ALIB_BASE_DIR}")
+
+    if( ${ALIB_UT_REDUCED_COMPILE_TIME} )
+        target_compile_definitions(ALib_UT PRIVATE ALIB_UT_REDUCED_COMPILE_TIME)
+    endif()
+
+    if( ${ALIB_UT_MEASURE_COMPILE_TIME} )
+        if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"     )
+            target_compile_options( ALib_UT PRIVATE   "-ftime-trace"    )
+
+            add_custom_command( TARGET ALib_UT  POST_BUILD
+                                COMMAND "/home/dev/tools/ClangBuildAnalyzer-1.5.0/build/ClangBuildAnalyzer"
+                                ARGS --all ${CMAKE_BINARY_DIR} builttime.json )
+            add_custom_command( TARGET ALib_UT  POST_BUILD
+                                COMMAND "/home/dev/tools/ClangBuildAnalyzer-1.5.0/build/ClangBuildAnalyzer"
+                                ARGS --analyze ${CMAKE_BINARY_DIR}/builttime.json )
+        endif()
+    endif()
+
+
+    target_precompile_headers(ALib_SharedLib  PRIVATE   "${ALIB_BASE_DIR}/src/alib/alib_precompile.hpp" )
+    target_precompile_headers(ALib_UT         PRIVATE   "${ALIB_BASE_DIR}/src/alib/alib_precompile.hpp" )
 
 
     # for GTEST, option available only up to gcc 7.2
@@ -237,7 +265,10 @@ if ( ${ALIB_CMAKE_COTIRE} )
     set_target_properties( ALib_UT    PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alib/alib_precompile.hpp" )
 
     #set some other cotire specific settings
-    set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/alox/ut_alox_log_scopes.cpp   PROPERTIES COTIRE_EXCLUDED "1"  )
+    set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/alox/ut_alox_log_scopes.cpp      PROPERTIES COTIRE_EXCLUDED "1"  )
+    set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/ut_alib_monomem_monomem.cpp      PROPERTIES COTIRE_EXCLUDED "1"  )
+    set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/ut_alib_monomem_stringtree.cpp   PROPERTIES COTIRE_EXCLUDED "1"  )
+    set_source_files_properties( ${ALIB_SOURCE_DIR}/unittests/ut_alib_strings.cpp              PROPERTIES COTIRE_EXCLUDED "1"  )
 
     set_target_properties      ( ALib_UT PROPERTIES   COTIRE_UNITY_SOURCE_POST_UNDEFS "LOX_LOX;TESTCLASSNAME;cout" )
 

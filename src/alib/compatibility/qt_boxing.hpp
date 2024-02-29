@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * <b>Legal Notice:</b>
@@ -15,8 +15,8 @@
 #ifndef HPP_ALIB_COMPATIBILITY_BOXING_QT
 #define HPP_ALIB_COMPATIBILITY_BOXING_QT 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(BOXING)
@@ -55,7 +55,7 @@ ALIB_ASSERT_MODULE(BOXING)
 #endif
 
 
-namespace aworx { namespace lib { namespace boxing { namespace compatibility {
+namespace alib {  namespace boxing { namespace compatibility {
 /**
  * This namespace documents compatibility features of \alib_boxing_nl and the
  * \https{QT Class Library,www.qt.io}.
@@ -68,7 +68,7 @@ void BootstrapQTStringBoxing();
 /**
  * Initializes \alib_boxing_nl in respect to boxing QT string types.
  *
- * This method is \b not automatically invoked with \alib{ALibDistribution::Bootstrap}, because support
+ * This method is \b not automatically invoked with function \alib{Bootstrap}, because support
  * for boxing QT string types is optional and provided with the inclusion of header
  * \alibheader{compatibility/qt_boxing.hpp}.
  *
@@ -88,15 +88,15 @@ void BootstrapQTStringBoxing();
 inline void BootstrapQTStringBoxing()
 {
     #if ALIB_STRINGS
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<nchar>::WrappedAppendable<QByteArray>    );
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<wchar>::WrappedAppendable<QByteArray>    );
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<nchar>::WrappedAppendable<QLatin1String> );
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<wchar>::WrappedAppendable<QLatin1String> );
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<nchar>::WrappedAppendable<QString>       );
-        aworx::lib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<wchar>::WrappedAppendable<QString>       );
+        alib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<nchar>::WrappedAppendable<QByteArray>    );
+        alib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QByteArray>   >>( boxing::FAppend<wchar>::WrappedAppendable<QByteArray>    );
+        alib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<nchar>::WrappedAppendable<QLatin1String> );
+        alib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QLatin1String>>>( boxing::FAppend<wchar>::WrappedAppendable<QLatin1String> );
+        alib::boxing::BootstrapRegister<boxing::FAppend<nchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<nchar>::WrappedAppendable<QString>       );
+        alib::boxing::BootstrapRegister<boxing::FAppend<wchar>, boxing::TMappedTo<::std::reference_wrapper<QString>      >>( boxing::FAppend<wchar>::WrappedAppendable<QString>       );
     #endif
 }
-}}}}}
+}}}}
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
 

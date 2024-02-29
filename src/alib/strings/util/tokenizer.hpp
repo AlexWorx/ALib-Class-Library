@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_strings of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_STRINGS_UTIL_TOKENIZER
@@ -16,11 +16,11 @@
     #include "alib/strings/localstring.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /**
  * This sub-namespace  provides some utility classes which are related
- * to string classes found in namespace \ref aworx::lib::strings.
+ * to string classes found in namespace \ref alib::strings.
  */
 namespace util  {
 
@@ -59,8 +59,8 @@ namespace util  {
  * \verbinclude "DOX_ALIB_TOKENIZER.txt"
  *
  * @tparam TChar    The character type. Implementations for \c nchar and \c wchar are provided
- *                  with type definitions \ref aworx::TokenizerN and
- *                  \ref aworx::TokenizerW.
+ *                  with type definitions \ref alib::TokenizerN and
+ *                  \ref alib::TokenizerW.
  **************************************************************************************************/
 template<typename TChar>
 class TTokenizer
@@ -85,7 +85,7 @@ class TTokenizer
 
         /**
          * The white spaces characters used to trim the tokens.
-         * Defaults to  \ref aworx::DefaultWhitespaces
+         * Defaults to  \ref alib::DefaultWhitespaces
          */
         TLocalString<TChar, 8>          TrimChars;
 
@@ -160,7 +160,7 @@ class TTokenizer
          * For clarification, see the explanation and sample code in this classes documentation.
          *
          *  @param trimming  Determines if the token is trimmed in respect to the white space
-         *                   characters defined in field #Whitespaces.
+         *                   characters defined in field #TrimChars.
          *                   Defaults to \b Whitespaces.Trim.
          *  @param newDelim  The delimiter separates the tokens. Defaults to 0, which keeps the
          *                   current delimiter intact.
@@ -168,8 +168,8 @@ class TTokenizer
          * @return \c true if a next token was available, \c false if not.
          ******************************************************************************************/
         ALIB_API
-        TSubstring<TChar>&  Next( Whitespaces trimming= Whitespaces::Trim,
-                                  TChar       newDelim= '\0' );
+        TSubstring<TChar>&  Next( lang::Whitespaces trimming= lang::Whitespaces::Trim,
+                                  TChar             newDelim= '\0' );
 
         /** ****************************************************************************************
          * Returns the currently remaining string (without searching for further delimiter
@@ -177,16 +177,16 @@ class TTokenizer
          * After this call #HasNext will return \c false and #Next will return a \e nulled
          * Substring.
          *  @param trimming  Determines if the token is trimmed in respect to the white space
-         *                   characters defined in field #Whitespaces.
+         *                   characters defined in field #TrimChars.
          *                   Defaults to \b Whitespaces.Trim.
          * @return The rest of the original source string, which was not returned by #Next(), yet.
          ******************************************************************************************/
-        TSubstring<TChar>&  GetRest( Whitespaces trimming= Whitespaces::Trim )
+        TSubstring<TChar>&  GetRest( lang::Whitespaces trimming= lang::Whitespaces::Trim )
         {
             // set start, end and end of tokenizer
             Actual=  Rest;
             Rest  =  nullptr;
-            if ( trimming == Whitespaces::Trim )
+            if ( trimming == lang::Whitespaces::Trim )
                 Actual.Trim( TrimChars );
             return Actual;
         }
@@ -204,22 +204,22 @@ class TTokenizer
 }; // class Tokenizer
 
 
-extern template ALIB_API TSubstring<nchar>& TTokenizer<nchar>::Next( Whitespaces, nchar );
-extern template ALIB_API TSubstring<wchar>& TTokenizer<wchar>::Next( Whitespaces, wchar );
+extern template ALIB_API TSubstring<nchar>& TTokenizer<nchar>::Next( lang::Whitespaces, nchar );
+extern template ALIB_API TSubstring<wchar>& TTokenizer<wchar>::Next( lang::Whitespaces, wchar );
 
-}}} // namespace aworx[::lib::strings::util]
+}} // namespace alib[::strings::util]
 
-/// Type alias in namespace #aworx.
-using     Tokenizer=     lib::strings::util::TTokenizer<character>;
+/// Type alias in namespace \b alib.
+using     Tokenizer=     strings::util::TTokenizer<character>;
 
-/// Type alias in namespace #aworx.
-using     TokenizerN=    lib::strings::util::TTokenizer<nchar>;
+/// Type alias in namespace \b alib.
+using     TokenizerN=    strings::util::TTokenizer<nchar>;
 
-/// Type alias in namespace #aworx.
-using     TokenizerW=    lib::strings::util::TTokenizer<wchar>;
+/// Type alias in namespace \b alib.
+using     TokenizerW=    strings::util::TTokenizer<wchar>;
 
 
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_STRINGS_UTIL_TOKENIZER

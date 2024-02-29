@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 //
 // Notes:
@@ -21,15 +21,14 @@
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/strings/format.hpp"
 #include "alib/config/inifile.hpp"
-#include "alib/distribution.hpp"
-#include "alib/results/report.hpp"
-#include "alib/system/directory.hpp"
+#include "alib/lang/message/report.hpp"
+#include "alib/lang/system/directory.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <list>
 
-using namespace aworx;
+using namespace alib;
 using namespace std;
 
 
@@ -108,7 +107,7 @@ bool ParseLine( Line& fileLine )
     Substring line(fileLine.original);
 
     // Ignore lines not starting with "Node"
-    if ( !line.ConsumeString<lib::Case::Sensitive, lib::Whitespaces::Trim >( "Node") )
+    if ( !line.ConsumeString<lang::Case::Sensitive, lang::Whitespaces::Trim >( "Node") )
         return true;
 
     // From now on, unknown means error (stop processing file)
@@ -120,7 +119,7 @@ bool ParseLine( Line& fileLine )
     }
 
     //------------- read node definition lines -------------
-    if( line.ConsumeString<lib::Case::Sensitive, lib::Whitespaces::Trim>( "[label=\""  ) )
+    if( line.ConsumeString<lang::Case::Sensitive, lang::Whitespaces::Trim>( "[label=\""  ) )
     {
         integer idx= line.IndexOf( '\"' );
         if (idx < 0 )
@@ -159,7 +158,7 @@ bool ParseLine( Line& fileLine )
         // save if original name
         if ( !node->IsIntInstance )
         {
-            if ( line.Trim().IndexOfAny<lib::Inclusion::Include>(", &") < 0  && isupper( node->TClassName.CharAtStart() ) )
+            if ( line.Trim().IndexOfAny<lang::Inclusion::Include>(", &") < 0  && isupper( node->TClassName.CharAtStart() ) )
             {
                 node->TParamName= line;
                 dotFile.TClasses.emplace_back( node );
@@ -186,7 +185,7 @@ bool ParseLine( Line& fileLine )
     }
 
     //------------- read link lines -------------
-    if( line.ConsumeString<lib::Case::Sensitive, lib::Whitespaces::Trim>( "-> Node" ) )
+    if( line.ConsumeString<lang::Case::Sensitive, lang::Whitespaces::Trim>( "-> Node" ) )
     {
         Link* link= new Link();
         fileLine.content=   link;
@@ -217,7 +216,7 @@ int ReadFile()
         return -1;
     }
 
-    aworx::ISReadLineN readOp= aworx::ISReadLineN( &file );
+    alib::ISReadLineN readOp= alib::ISReadLineN( &file );
     while( !readOp.IsEOF )
     {
         dotFile.Lines.emplace_back( Line() );
@@ -227,31 +226,32 @@ int ReadFile()
         Line* line= &dotFile.Lines.back();
         {
             line->original.SearchAndReplace("\\l", "" ); // new line characters
-            line->original.SearchAndReplace("aworx::lib::boxing::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::bitbuffer::"              , "" );
-            line->original.SearchAndReplace("aworx::lib::characters::"             , "" );
-            line->original.SearchAndReplace("aworx::lib::cli::"                    , "" );
-            line->original.SearchAndReplace("aworx::lib::compatibility::"          , "" );
-            line->original.SearchAndReplace("aworx::lib::config::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::enums::"                  , "" );
-            line->original.SearchAndReplace("aworx::lib::expressions::"            , "" );
-            line->original.SearchAndReplace("aworx::lib::system::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::lox::detail::textlogger::", "" );
-            line->original.SearchAndReplace("aworx::lib::lox::detail::"            , "" );
-            line->original.SearchAndReplace("aworx::lib::lox::"                    , "" );
-            line->original.SearchAndReplace("aworx::lib::monomem::"                , "" );
-            line->original.SearchAndReplace("aworx::lib::resources::"              , "" );
-            line->original.SearchAndReplace("aworx::lib::results::"                , "" );
-            line->original.SearchAndReplace("aworx::lib::singletons::"             , "" );
-            line->original.SearchAndReplace("aworx::lib::text::"                   , "" );
-            line->original.SearchAndReplace("aworx::lib::strings::"                , "" );
-            line->original.SearchAndReplace("aworx::lib::system::"                 , "" );
-            line->original.SearchAndReplace("aworx::lib::threads"                  , "" );
-            line->original.SearchAndReplace("aworx::lib::time"                     , "" );
-            line->original.SearchAndReplace("aworx::lib::"                         , "" );
+            line->original.SearchAndReplace("alib::bitbuffer::"              , "" );
+            line->original.SearchAndReplace("alib::boxing::"                 , "" );
+            line->original.SearchAndReplace("alib::characters::"             , "" );
+            line->original.SearchAndReplace("alib::cli::"                    , "" );
+            line->original.SearchAndReplace("alib::compatibility::"          , "" );
+            line->original.SearchAndReplace("alib::config::"                 , "" );
+            line->original.SearchAndReplace("alib::enums::"                  , "" );
+            line->original.SearchAndReplace("alib::expressions::"            , "" );
+            line->original.SearchAndReplace("alib::files::"                  , "" );
+            line->original.SearchAndReplace("alib::lang::"                   , "" );
+            line->original.SearchAndReplace("alib::lang::basecamp::"         , "" );
+            line->original.SearchAndReplace("alib::lang::format::"           , "" );
+            line->original.SearchAndReplace("alib::lang::resources::"        , "" );
+            line->original.SearchAndReplace("alib::lang::system::"           , "" );
+            line->original.SearchAndReplace("alib::lox::"                    , "" );
+            line->original.SearchAndReplace("alib::lox::detail::"            , "" );
+            line->original.SearchAndReplace("alib::lox::detail::textlogger::", "" );
+            line->original.SearchAndReplace("alib::monomem::"                , "" );
+            line->original.SearchAndReplace("alib::singletons::"             , "" );
+            line->original.SearchAndReplace("alib::strings::"                , "" );
+            line->original.SearchAndReplace("alib::threads"                  , "" );
+            line->original.SearchAndReplace("alib::time"                     , "" );
+            line->original.SearchAndReplace("alib::"                         , "" );
 
 
-            line->original.SearchAndReplace("std::",                                "" );
+            line->original.SearchAndReplace("std::",      "" );
             line->original.SearchAndReplace("< ",        "<" );
             line->original.SearchAndReplace("< ",        "<" );
             line->original.SearchAndReplace("\\< ",     "\\<" );
@@ -575,10 +575,12 @@ int main(int argc, char *argv[])
     DebugMode= argc==1;
 
     // init ALib
-    ALIB.Bootstrap( argc, argv);
+    alib::ArgC = argc;
+    alib::ArgVN= const_cast<const char**>(argv);
+    alib::Bootstrap();
     Log_AddDebugLogger()
     Log_SetDomain( "DOXGRAPH", Scope::Filename  )
-    Log_SetVerbosity( "DEBUG_LOGGER", DebugMode || ALIB.IsDebuggerPresent()
+    Log_SetVerbosity( "DEBUG_LOGGER", DebugMode || BASECAMP.IsDebuggerPresent()
                                       ?  Verbosity::Verbose :  Verbosity::Warning,
                                       "/DOXGRAPH" )
 
@@ -586,7 +588,7 @@ int main(int argc, char *argv[])
     if (!DebugMode )
     {
       //Log_SetVerbosity( "DEBUG_LOGGER",  Verbosity::Info , "/DOXGRAPH" );
-        lib::results::Report::GetDefault().PushHaltFlags( false, false );
+        lang::Report::GetDefault().PushHaltFlags( false, false );
         FileName.Reset( NCString(argv[1]) );
     }
     else
@@ -621,7 +623,7 @@ int main(int argc, char *argv[])
     Inifile->FileComments.Reset(
      "======================================================================================" "\n"
      "ALib C++ Library"                                                          "\n"
-     "Copyright 2013-2023 A-Worx GmbH, Germany"                                               "\n"
+     "Copyright 2013-2024 A-Worx GmbH, Germany"                                               "\n"
      "Published under 'Boost Software License' (a free software license, see LICENSE.txt)"    "\n"
      "======================================================================================" "\n"
      "This tool replaces simple, pure 'integer' template instantiation nodes in doxygen"      "\n"
@@ -661,8 +663,7 @@ int main(int argc, char *argv[])
 
     delete Inifile;
     FileName.SetNull();
-    ALIB.Shutdown();
+    alib::Shutdown();
 
     return result;
 }
-

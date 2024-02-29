@@ -2,7 +2,7 @@
  * \file
  * This header file is part of the unit tests of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  *
  * Defines some preprocessor macros and classes so that GTest and MSVC Unit Tests can live in
@@ -28,21 +28,21 @@
 #       include "alib/alox/detail/textlogger/textlogger.hpp"
 #   endif
 #else
-    namespace aworx{  enum class Verbosity { Verbose, Info, Warning, Error, Off }; }
+    namespace alib{  enum class Verbosity { Verbose, Info, Warning, Error, Off }; }
     #include "alib/strings/util/tokenizer.hpp"
     #include "alib/strings/util/spaces.hpp"
 #endif
 
-#if ALIB_SYSTEM
-#   if !defined(HPP_ALIB_SYSTEM_DIRECTORY)
-#       include "alib/system/directory.hpp"
+#if ALIB_CAMP
+#   if !defined(HPP_ALIB_CAMP_DIRECTORY)
+#       include "alib/lang/system/directory.hpp"
 #   endif
 #else
-    namespace aworx{  constexpr character DirectorySeparator = '/'; }
+    namespace alib{  constexpr character DirectorySeparator = '/'; }
 #endif
 
 #include "alib/strings/localstring.hpp"
-#include "alib/results/report.hpp"
+#include "alib/lang/message/report.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -106,9 +106,9 @@
     #define  UT_METHOD_Z(m, sm, sc)       GTEST_TEST(TESTCLASSNAME, m)
 
 
-    #define UT_INIT(...)        aworx::NAString utSC (__FILE__);                                       \
+    #define UT_INIT(...)        alib::NAString utSC (__FILE__);                                       \
                                 {                                                                      \
-                                    aworx::integer idx= utSC.LastIndexOf( aworx::DirectorySeparator ); \
+                                    alib::integer idx= utSC.LastIndexOf( alib::DirectorySeparator ); \
                                     utSC.DeleteStart( idx + 1 );                                       \
                                     idx= utSC.LastIndexOf( '.' );                                      \
                                     if( idx > 0 )                                                      \
@@ -136,9 +136,10 @@
                                           END_TEST_METHOD_ATTRIBUTE()                        \
                                           TEST_METHOD(m)
 
-    #define UT_INIT(...)        aworx::NAString utSC (__FILE__);                                       \
+    #define UT_INIT(...)        alib::NAString utSC (__FILE__);                                        \
                                 {                                                                      \
-                                    aworx::integer idx= utSC.LastIndexOf( aworx::DirectorySeparator ); \
+                                    alib::Bootstrap();                                                 \
+                                    alib::integer idx= utSC.LastIndexOf( alib::DirectorySeparator );   \
                                     utSC.DeleteStart( idx + 1 );                                       \
                                     idx= utSC.LastIndexOf( '.' );                                      \
                                     if( idx > 0 )                                                      \
@@ -155,8 +156,8 @@
 
 #define  UT_GET_TEST_NAME  ut.ActTestName
 
-#define  UT_PRINT(...   )  { ut.Print (__FILE__, __LINE__, aworx::Verbosity::Info   , __VA_ARGS__ ); }
-#define  UT_WARN(...    )  { ut.Print (__FILE__, __LINE__, aworx::Verbosity::Warning, __VA_ARGS__ ); }
+#define  UT_PRINT(...   )  { ut.Print (__FILE__, __LINE__, alib::Verbosity::Info   , __VA_ARGS__ ); }
+#define  UT_WARN(...    )  { ut.Print (__FILE__, __LINE__, alib::Verbosity::Warning, __VA_ARGS__ ); }
 #define  UT_EQ(    a,b  )  ut.EQ      (__FILE__, __LINE__,  a,b    );
 #define  UT_NEAR( a,b,d )  ut.Near    (__FILE__, __LINE__,  a,b, d );
 #define  UT_TRUE(  cond )  ut.IsTrue  (__FILE__, __LINE__,  cond   );
@@ -175,9 +176,9 @@ namespace ut_aworx {
 // Class UTVStudioLogger
 // *************************************************************************************************
 #if !ALIB_GTEST
-    class UTVStudioLogger : public aworx::lib::lox::loggers::MemoryLogger
+    class UTVStudioLogger : public alib::lox::loggers::MemoryLogger
     {
-        aworx::WAString          outputString;
+        alib::WAString          outputString;
 
         public:
 
@@ -187,11 +188,11 @@ namespace ut_aworx {
             virtual int   AddAcquirer( ThreadLock* newAcquirer );
             virtual int   RemoveAcquirer( ThreadLock* acquirer );
 
-            virtual void logText( aworx::lib::lox::detail::Domain&     domain,     aworx::lib::lox::Verbosity verbosity,
-                                  aworx::AString&               msg,
-                                  aworx::lib::lox::detail::ScopeInfo&  scope,      int                     lineNumber);
+            virtual void logText( alib::lox::detail::Domain&     domain,     alib::lox::Verbosity verbosity,
+                                  alib::AString&               msg,
+                                  alib::lox::detail::ScopeInfo&  scope,      int                     lineNumber);
 
-            virtual void notifyMultiLineOp (aworx::lib::Phase )    {  }
+            virtual void notifyMultiLineOp (alib::lang::Phase )    {  }
 
     };
 #endif
@@ -200,69 +201,69 @@ namespace ut_aworx {
 // *************************************************************************************************
 // Class AWorxUnitTesting
 // *************************************************************************************************
-class AWorxUnitTesting : public aworx::lib::results::ReportWriter
+class AWorxUnitTesting : public alib::lang::ReportWriter
 {
     public:
         #if defined(_WIN32)
-            bool                                          initializerCout;
+            bool              initializerCout;
+            static bool       fullyBootstrapped;
         #endif
-        aworx::NAString         Domain;
-        aworx::NCString         ActTestName;
+        alib::NAString         Domain;
+        alib::NCString         ActTestName;
         bool                    AssertOnFailure= true;
 
-        static aworx::String128 LastAutoSizes;
-        static aworx::NAString  GeneratedSamplesDir;
-        static aworx::AString   CustomMetaInfoFormat; // used if set from outside
+        static alib::String128 LastAutoSizes;
+        static alib::NAString  GeneratedSamplesDir;
+        static alib::AString   CustomMetaInfoFormat; // used if set from outside
 
         // defaults to "docs/ALox.CPP/".
         // Set this to a suitable value in your bootstrap code, before using this class with
         // other projects!
-        static aworx::String    GeneratedSamplesSearchDir;
+        static alib::String    GeneratedSamplesSearchDir;
 
     public:
-        bool                                              initializer;
 #if ALIB_ALOX
-        aworx::lib::lox::Lox                              lox;
-        aworx::lib::lox::detail::textlogger::TextLogger*  utl;
+        alib::lox::Lox                              lox;
+        alib::lox::detail::textlogger::TextLogger*  utl;
 #else
-        aworx::Boxes      logablesFileAndLine;
-        aworx::Boxes      logables;
-        aworx::AString    outputBuffer;
-        aworx::Tokenizer  lines;
+        alib::Boxes      logablesFileAndLine;
+        alib::Boxes      logables;
+        alib::AString    outputBuffer;
+        alib::Tokenizer  lines;
 #endif
 
-                 AWorxUnitTesting( const aworx::NCString& testName);
+                 AWorxUnitTesting( const alib::NCString& testName);
         virtual ~AWorxUnitTesting() override;
 
         template <typename... T>
-        void Print (  const aworx::NCString& file, int line, aworx::Verbosity verbosity,  T&&... args  )
+        void Print (  const alib::NCString& file, int line, alib::Verbosity verbosity,  T&&... args  )
         {
-            aworx::Boxes& argsBoxed= printPrepare( file, line );
+            alib::Boxes& argsBoxed= printPrepare( file, line );
             argsBoxed.Add(std::forward<T>( args )...);
             printDo( verbosity, argsBoxed );
         }
 
-        void Failed(  const aworx::NCString& file, int line, const aworx::Box& exp, const aworx::Box& given );
+        void Failed(  const alib::NCString& file, int line, const alib::Box& exp, const alib::Box& given );
 
 
         template<typename T>
-        void WriteResultFile(const aworx::NString& name, const T& output, const aworx::NString& doxyTag= "//! [OUTPUT]" )
+        void WriteResultFile(const alib::NString& name, const T& output, const alib::NString& doxyTag= "//! [OUTPUT]" )
         {
             ALIB_DBG(AWorxUnitTesting& ut= *this;) //needed for the assertion, as macro ALIB_CALLER is changed here
-            aworx::String4K buf; buf.DbgDisableBufferReplacementWarning();
+            alib::String4K buf; buf.DbgDisableBufferReplacementWarning();
             buf << output;
             ALIB_ASSERT_ERROR( buf.IsNotEmpty(), "UT", "Empty Doxygen sample output file." )
             writeResultFile( name, buf, doxyTag );
         }
 
-        virtual void NotifyActivation  ( aworx::lib::Phase ) override { }
-        virtual void Report  (  aworx::lib::results::Message& msg )                       override;
+        virtual void NotifyActivation  ( alib::lang::Phase ) override { }
+        virtual void Report  (  alib::lang::Message& msg )                       override;
 
         template<typename TComp1, typename TComp2>
-        ATMP_VOID_IF(     ( aworx::lib::characters::T_CharArray<TComp1 ALIB_COMMA aworx::character>::Access
-                                                                !=aworx::lib::characters::AccessType::Implicit)
-                      && !std::is_base_of<aworx::NString ALIB_COMMA TComp1>::value )
-        EQ( const aworx::NCString& file, int line,  TComp1      exp , TComp2  v )
+        ATMP_VOID_IF(     ( alib::characters::T_CharArray<TComp1 ALIB_COMMA alib::character>::Access
+                                                                !=alib::characters::AccessType::Implicit)
+                      && !std::is_base_of<alib::NString ALIB_COMMA TComp1>::value )
+        EQ( const alib::NCString& file, int line,  TComp1      exp , TComp2  v )
         {
             if ( v != exp)
                 Failed(file,line, exp, v);
@@ -277,15 +278,15 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
         }
 
 
-        void EQ( const aworx::NCString& file, int line,  const aworx::NString& exp , const aworx::NString& v );
-        void EQ( const aworx::NCString& file, int line,  const aworx::WString& exp , const aworx::WString& v );
-        void EQ( const aworx::NCString& file, int line,  wchar_t*              exp , wchar_t*              v );
-        void EQ( const aworx::NCString& file, int line,       float            exp ,      float            v );
-        void EQ( const aworx::NCString& file, int line,       double           exp ,      double           v );
-        void EQ( const aworx::NCString& file, int line,  long double           exp , long double           v );
+        void EQ( const alib::NCString& file, int line,  const alib::NString& exp , const alib::NString& v );
+        void EQ( const alib::NCString& file, int line,  const alib::WString& exp , const alib::WString& v );
+        void EQ( const alib::NCString& file, int line,  wchar_t*              exp , wchar_t*              v );
+        void EQ( const alib::NCString& file, int line,       float            exp ,      float            v );
+        void EQ( const alib::NCString& file, int line,       double           exp ,      double           v );
+        void EQ( const alib::NCString& file, int line,  long double           exp , long double           v );
 
         template<typename TComp1, typename TComp2, typename TCompDiff>
-        void Near   ( const aworx::NCString& file, int line,  TComp1  exp , TComp2 v, TCompDiff prec )
+        void Near   ( const alib::NCString& file, int line,  TComp1  exp , TComp2 v, TCompDiff prec )
         {
             bool c= (v < exp ? exp-v : v-exp) <= prec;
             if (!c)
@@ -300,13 +301,13 @@ class AWorxUnitTesting : public aworx::lib::results::ReportWriter
         }
 
 
-        void IsTrue ( const aworx::NCString& file, int line,  bool cond );
-        void IsFalse( const aworx::NCString& file, int line,  bool cond );
+        void IsTrue ( const alib::NCString& file, int line,  bool cond );
+        void IsFalse( const alib::NCString& file, int line,  bool cond );
 
     protected:
-        void            writeResultFile(const aworx::NString& name, aworx::AString& output, const aworx::NString& doxyTag );
-        aworx::Boxes&   printPrepare   (const aworx::NCString& file, int line  );
-        void            printDo        (aworx::Verbosity verbosity, aworx::Boxes& args );
+        void            writeResultFile(const alib::NString& name, alib::AString& output, const alib::NString& doxyTag );
+        alib::Boxes&   printPrepare   (const alib::NCString& file, int line  );
+        void            printDo        (alib::Verbosity verbosity, alib::Boxes& args );
 };
 
 } // namespace ut_aworx

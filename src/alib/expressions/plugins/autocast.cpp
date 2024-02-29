@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -34,7 +34,7 @@
                                   { (void) scope; (void) args; (void) end; __VA_ARGS__ }
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 AutoCast::AutoCast( Compiler& compiler )
 : CompilerPlugin( "ALib Auto Cast", compiler )
@@ -175,7 +175,7 @@ ALIB_DBG(ciAutoCast.DbgCallbackNameRhs         = upgradeCastDBG; )
 
 
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #undef ARG0
 #undef BOL

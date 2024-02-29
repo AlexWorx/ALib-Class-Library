@@ -1,13 +1,12 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #if !defined(ALIB_DOX)
-#   include "alib/lib/tools.hpp"
 #   if !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
 #      include "alib/monomem/monoallocator.hpp"
 #   endif
@@ -21,19 +20,21 @@
 #      include "alib/strings/astring.hpp"
 #   endif
 
-#   if ALIB_THREADS && ALIB_FILESET_MODULES
+#   if ALIB_THREADS && ALIB_CAMP
 #      include "alib/threads/thread.hpp"
-#      include "alib/lib/fs_modules/distribution.hpp"
+#      include "alib/lang/basecamp/basecamp.hpp"
 #   endif
 #   if ALIB_DEBUG_MONOMEM
 #      if ALIB_ALOX
 #         include "alib/alox/aloxmodule.hpp"
 #      endif
+#      include "alib/strings/format.hpp"
 #      include <atomic>
 #   endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib {
+
+namespace alib {
 
 /** ************************************************************************************************
  * This \alibmod implements the concept of <em>"monotonic allocation"</em> by providing central class
@@ -52,13 +53,13 @@ namespace monomem {
 ALIB_IF_THREADS( ThreadLock      GlobalAllocatorLock;              )
 
 
-#if ALIB_THREADS && ALIB_FILESET_MODULES && !defined(ALIB_DOX)
+#if ALIB_THREADS && ALIB_CAMP && !defined(ALIB_DOX)
 
     void MonoAllocator::dbgCheckGlobalAllocatorLock()
     {
         ALIB_ASSERT_ERROR(     this != &GlobalAllocator
-                           ||  !aworx::ALIB.IsBootstrapped()
-                           ||  GlobalAllocatorLock.GetSafeness() == Safeness::Unsafe
+                           ||  !alib::BASECAMP.IsBootstrapped()
+                           ||  GlobalAllocatorLock.GetSafeness() == lang::Safeness::Unsafe
                            ||  GlobalAllocatorLock.IsOwnedByCurrentThread()
             ,"MONOMEM", "Global MonoAllocator not acquired."  )
     }
@@ -72,8 +73,8 @@ ALIB_IF_THREADS( ThreadLock      GlobalAllocatorLock;              )
         if (lock)
         {
             if(     locker++
-                ||  !aworx::lib::DbgIsBootstrapped
-                ||  aworx::lib::lox::Log::DebugLogger == nullptr )
+                ||  !alib::ALOX.IsBootstrapped()
+                ||  alib::lox::Log::DebugLogger == nullptr )
                 return false;
             return true;
         }
@@ -84,6 +85,12 @@ ALIB_IF_THREADS( ThreadLock      GlobalAllocatorLock;              )
     }
 #endif
 
+#if ALIB_DEBUG
+ALIB_API extern uinteger  DbgStatsStringTreeNames;
+ALIB_API extern uinteger  DbgStatsStringTreeNameOverflows;
+uinteger  DbgStatsStringTreeNames        = 0;
+uinteger  DbgStatsStringTreeNameOverflows= 0;
+#endif
 
 
 // #################################################################################################
@@ -343,25 +350,43 @@ char*  MonoAllocator::getCreateChunk(size_t size, size_t alignment)
 NAString MonoAllocator::DbgDumpStats()
 {
     NAString result;
+    NumberFormat nf(NumberFormat::Global);
+    nf.FractionalPartWidth=2;
     result << "MonoAllocator Usage Statistics:"  << NNewLine();
 
-    result << "    Allocations:         "   << DbgStats.QtyAllocations          << NNewLine();
-    result << "    Trivial Allocations: "   << DbgStats.QtyTrivialAllocations   << NNewLine();
-    result << "    Chunks:              "   << (DbgStats.QtyChunks )            << NNewLine();
-    result << "    Resets:              "   << DbgStats.QtyResets               << NNewLine();
+    result << "    Allocations:         "   << Format( DbgStats.QtyAllocations                                , &nf )   << NNewLine();
+    result << "    Allocation Size:     "   << Format( DbgStats.AllocSize                                     , &nf )   << NNewLine();
+    result << "    Non-trivial:         "   << Format( DbgStats.QtyAllocations- DbgStats.QtyTrivialAllocations, &nf )   << NNewLine();
+    result << "    Chunks:              "   << Format( DbgStats.QtyChunks                                     , &nf )   << NNewLine();
+    result << "    Resets:              "   << Format( DbgStats.QtyResets                                     , &nf )   << NNewLine();
 
     result << "    Avg. alloc./chunk:   ";
     if( DbgStats.QtyChunks == 0 ) { result << "N/A"; ALIB_ASSERT( DbgStats.QtyAllocations == 0) }
-    else                            result << (DbgStats.QtyAllocations / DbgStats.QtyChunks );
+    else                            result << Format( (DbgStats.QtyAllocations / DbgStats.QtyChunks ), &nf );
     result << NNewLine();
 
-    result << "    Allocated Heap Mem.: "   << (DbgStats.HeapSize)              << NNewLine();
-    result << "    Wasted bytes:         "   << DbgStats.ChunkWaste;
-          if( DbgStats.QtyChunks )  result  << "  (per chunk: " << (DbgStats.ChunkWaste / DbgStats.QtyChunks ) << ')';
+    result << "    Allocated Heap Mem.: "   << Format( DbgStats.HeapSize  , &nf )             << NNewLine();
+    result << "    Unused chunk bytes:  "   << Format( DbgStats.ChunkWaste, &nf );
+          if( DbgStats.QtyChunks )  result  << "  (per chunk: " << Format( (DbgStats.ChunkWaste / DbgStats.QtyChunks ), &nf ) << ')';
     result                                  << NNewLine();
 
-    result << "    Alignment waste:     "   << DbgStats.AlignmentWaste      << NNewLine();
-    result << "    Chunk size exceeds:  "   << DbgStats.QtyChunkSizeExceeds << NNewLine();
+    result << "    Alignment waste:     "   << Format( DbgStats.AlignmentWaste      , &nf )
+                                            << " ("   << Format( double(DbgStats.AlignmentWaste)/double(DbgStats.AllocSize) , &nf ) << "%)"<< NNewLine();
+    result << "    Chunk size exceeds:  "   << Format( DbgStats.QtyChunkSizeExceeds , &nf ) << NNewLine();
+
+    int     qtyRecyclables= 0;
+    size_t  qtyFree       = 0;
+    auto* rchunks= recyclables;
+    while( rchunks != nullptr )
+    {
+        ++qtyRecyclables;
+        qtyFree+= size_t(rchunks->end - rchunks->act);
+        rchunks= rchunks->previous;
+    }
+    result << "    Free in actual:      "   << Format( chunk->end - chunk->act , &nf ) << NNewLine();
+    result << "    Free in recyclables: "   << Format( qtyFree                 , &nf );
+    result << " (" << qtyRecyclables << " recyclables)" << NNewLine();
+
 
     return result;
 }
@@ -381,5 +406,4 @@ namespace detail {
 
 
 
-}}}// namespace [aworx::lib::monomem]
-
+}} // namespace [alib::monomem]

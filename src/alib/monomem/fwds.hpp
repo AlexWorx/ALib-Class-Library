@@ -2,28 +2,19 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_FWDS
 #define HPP_ALIB_MONOMEM_FWDS 1
 
-#if !defined (HPP_ALIB_FS_COMMONENUMS_DEFS)
-#   include "alib/lib/fs_commonenums/commonenumdefs.hpp"
+#if !defined (HPP_ALIB_LANG_COMMONENUMS_DEFS)
+#   include "alib/lang/commonenumdefs.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(MONOMEM)
 
-#if !defined(ALIB_DEBUG_MONOMEM)
-#   define   ALIB_DEBUG_MONOMEM           0
-#elif !ALIB_DEBUG && ALIB_DEBUG_MONOMEM
-#   undef    ALIB_DEBUG_MONOMEM
-#   define   ALIB_DEBUG_MONOMEM           0
-#   pragma message "Symbol ALIB_DEBUG_MONOMEM set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
-#endif
-
-
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 /** ************************************************************************************************
  * This struct contains three tag-types which denote the type of node-recycling that a container
@@ -53,28 +44,26 @@ struct Recycling
 
 //####################################   Forward declarations   ####################################
                                                  class MonoAllocator;
-template<typename T,
-         typename TRecycling = Recycling::Private >   class List;
+template<typename       T,
+         typename       TRecycling = Recycling::Private >   class List;
 
-template<typename T,
-         typename TStored,
-         typename TKey,
-         typename TIfMapped,
-         typename THash,
-         typename TEqual,
-         typename TAccess,
-         Caching  THashCaching,
-         typename TRecycling                 >   class HashTable;
+template<typename       T,
+         typename       TStored,
+         typename       TKey,
+         typename       TIfMapped,
+         typename       THash,
+         typename       TEqual,
+         typename       TAccess,
+         lang::Caching  THashCaching,
+         typename       TRecycling       >   class HashTable;
 
 
-}} // namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx.
-using Recycling= lib::monomem::Recycling;
+/// Type alias in namespace \b alib.
+using Recycling= monomem::Recycling;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 #endif // HPP_ALIB_MONOMEM_FWDS
-
-

@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_time of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_TIME_DATETIME
@@ -12,7 +12,7 @@
 #   include "alib/time/timepointbase.hpp"
 #endif
 
-namespace aworx { namespace lib { namespace time {
+namespace alib {  namespace time {
 
 /** ************************************************************************************************
  * This class provides an interface into the system's clock values. In contrast to values of sibling
@@ -28,9 +28,9 @@ namespace aworx { namespace lib { namespace time {
  * the methods and operators inherited from base \alib{time,TimePointBase}.
  *
  * To construct an object of this type using calendrical date an time values, helper class
- * \alib{system,CalendarDateTime} with its constructor
- * \alib{system::CalendarDateTime,CalendarDateTime(int\,int\,int\,int\,int\,int\,int)} is available
- * if module \alib_system is included in the \alibdist.
+ * \alib{lang::system,CalendarDateTime} with its constructor
+ * \alib{lang::system::CalendarDateTime,CalendarDateTime(int\,int\,int\,int\,int\,int\,int)} is
+ * available if module \alib_basecamp is included in the \alibdist.
  * A typical construction with this helper could look like this:
  *
  *      DateTime myDate= CalendarDateTime(2023,1,31,14,5).Get( Timezone::UTC );
@@ -139,7 +139,7 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
              *                 Defaults to \c TimeZone::Local.
              * @return The time point as \b %SYSTEMTIME.
              **************************************************************************************/
-            ALIB_API  SYSTEMTIME ToSystemTime( Timezone timezone =Timezone::Local ) const;
+            ALIB_API  SYSTEMTIME ToSystemTime( lang::Timezone timezone = lang::Timezone::Local ) const;
 
             /** ************************************************************************************
              * Static method that creates a \b %DateTime object representing the given as windows
@@ -154,7 +154,7 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
              * @return Seconds in the epoch.
              **************************************************************************************/
             ALIB_API static DateTime FromSystemTime( const SYSTEMTIME& systemTime,
-                                                   Timezone timezone= Timezone::Local );
+                                                     lang::Timezone timezone= lang::Timezone::Local );
         #endif
 
 
@@ -220,22 +220,20 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
         }
 };
 
+} // namespace time
 
+/// Type alias in namespace \b alib.
+using     DateTime=                time::DateTime;
 
-}} // namespace lib::time
-
-/// Type alias in namespace #aworx.
-using     DateTime=                lib::time::DateTime;
-
-}  // namespace [aworx]
+} // namespace [alib]
 
 #if ALIB_BOXING
     #if !defined(HPP_ALIB_BOXING_BOXING)
     #   include "alib/boxing/boxing.hpp"
     #endif
 
-    ALIB_BOXING_VTABLE_DECLARE( aworx::DateTime           , vt_time_datetime          )
-    ALIB_BOXING_VTABLE_DECLARE( aworx::DateTime::Duration , vt_time_datetime_duration )
+    ALIB_BOXING_VTABLE_DECLARE( alib::DateTime           , vt_time_datetime          )
+    ALIB_BOXING_VTABLE_DECLARE( alib::DateTime::Duration , vt_time_datetime_duration )
 #endif
 
 #endif // HPP_ALIB_TIME_DATETIME

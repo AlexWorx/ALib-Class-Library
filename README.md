@@ -14,22 +14,38 @@ at the [ALib Homepage](https://alib.dev).
 **ALib** is a general purpose, use-case agnostic, platform independent, low-level C++ class library.
 
 Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
-As of today, **ALib** consists of **17 modules**, each addressing
+As of today, **ALib** consists of **15 modules**, each addressing
 different topics.
-A subset of the available modules can be selectively included in a custom library build.
+A subset of the available modules can be selectively included in a custom library build. 
+This means, you just get what you choose from the menu.
+
+Some highlights of the functionality:
+- ALib Strings: String types with interfaces similar to Java/C#, compatible with anything that "smells" like a string
+  (due to some template meta programming magic).
+- ALibBoxing: Consider this "std::any on steroids".
+- ALib Enums: Finally, we get what we expected from C++ enums.
+- ALib Monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
+- ALib ALox: Logging for adults.
+- ALib Bitbuffer: Write bit-streams instead of human readable text.
+- ALib CLI: Command line parser with support of environment variables and configuration files.
+- ALib Expressions: Type-safe run-time expression compiler. Easily extensible to support your 
+  custom expression functions. 130+ (optional) predefined functions (math, string compare, date/time, etc.)
+- ALib Files: A directory and file scanner (with run-time expression support)
+- And last but not least: Many more tools like managing bootstrapping of C++ software, externalized resources,
+  resources, configuration data, singletons with Windows DLLs, ...  
 
 ## Main Characteristics And Design Goals ##
 
 - **ALib** is <b>free software**.
-- Compiles and tested with **C++ 11, 14, 17 and  20**.
+- Compiles and tested with **C++ 17 and  20**.
 - **Modularization**: Possible selective use of only parts of the library.
 - Extensive **documentation**.
 - **Least intrusive**: Designed to keep user code as independent from **ALib** types and idioms as possible.
 - Developed and steadily tested under
   - **GNU/Linux**,
   - **Windows OS**,
-  - **Mac OS (Intel/ARM)**, and
-  - **Raspberry (V3 and V4, 32/64-bit)**
+  - **Mac OS**, and
+  - **Raspberry**
  
 
 ## Library Dependencies ##
@@ -50,7 +66,7 @@ The following documentation is provided.
 
 2. [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are 
    available for each module of the library.<br>
-   Together more than **450 pages** of well structured in-depth discussion of library
+   Together more than **500 pages** of well structured in-depth discussion of library
    features as well as **step by step tutorials** are available.
 
 3. Page [Changelog](https://alib.dev/alib_changelog.html) provides a detailed version history.
@@ -58,34 +74,26 @@ The following documentation is provided.
 4. A separated [General Manual](https://alib.dev/alib_manual.html) is available describing the 
    library structure, project setup, bootstrapping, etc.
 
-5. [Reference documentation](https://alib.dev/alib_ref_prepro.html) for C++ compiler symbols and macros.
+5. 100% complete [Reference documentation](https://alib.dev/alib_ref_prepro.html) for C++ compiler symbols and macros.
+   (Probably another 500 pages, next to the Programmer's Manuals.)
 
 6. Tutorial and reference documentation's ** code samples** are implemented as unit tests and
    are integrated as source and output text snippets into the documentation.<br>
    (As for example [done here](https://alib.dev/alib_mod_enums.html#alib_enums_records)).
    
-7. For module **ALox**, a separated website exists. This includes plenty of **ALox**-specific
-   documentation, a lengthy
-   [tutorial](http://alexworx.github.io/ALox-Logging-Library/cpp_ref/alox_cpp_tutorial.html), definitions of
-   [configuration/environment variables](http://alexworx.github.io/ALox-Logging-Library/group__GrpALoxConfigVars.html)
-   and more.
-
 
 ## IDE / Build System Setup ##
-The C++ Version got tested on the following platform combinations:
-- GNU/Linux Arch 6.6.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 11 - 20, 32-Bit / 64-Bit<br>
+The current Version got tested on the following platform combinations:
+- GNU/Linux Arch 6.7.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 17/20, 32-Bit / 64-Bit<br>
   (This is the main development platform.)
-- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), , C++ 11 - 20, 32-Bit / 64-Bit
-- Windows 10/11, MinGW 11.0,  C++ 11 - 17, 64-Bit ( <c>C++ 20 does  not compile! with current MinGW!</c>)
-- MacOS 13, Intel i9, AppleClang 14.0.3, C++ 11 - 20 C++, 64-Bit
-- MacOS 13, Apple M1/ARM64, C++ 11-20, 64-Bit
-- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 11 - 20, 64-Bit
-- Raspberry 4, ARM, 32-bit OS, GNU C++ 12.2.0, C++11-20
-- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++11-20
+- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
+- Windows 10/11, MinGW,  C++ 17/20, 64-Bit
+- MacOS Sonoma 14.3.1, Apple M2 / ARM64, Apple Clang Version 15.0.0, C++ 17/20, 64-Bit
+- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 17/20, 64-Bit
+- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20
 
 The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
 C++ environment.
-
 
 ## C# and Java Versions Of ALib ##
 

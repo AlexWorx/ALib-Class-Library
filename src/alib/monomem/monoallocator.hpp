@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_MONOALLOCATOR
 #define HPP_ALIB_MONOMEM_MONOALLOCATOR 1
 
-#if !defined (HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
+#if !defined (HPP_ALIB_LANG_TMP) && !defined(ALIB_DOX)
+#   include "alib/lang/tmp.hpp"
 #endif
 
 #if !defined (HPP_ALIB_MONOMEM_FWDS)
@@ -20,20 +20,12 @@
 #   if  !defined(HPP_ALIB_THREADS_THREADLOCK)
 #      include "alib/threads/threadlock.hpp"
 #   endif
-#else
-#   if  !defined(HPP_ALIB_FEATURES)
-#      include "alib/lib/features.hpp"
-#   endif
 #endif
 
 #if ALIB_STRINGS
 #   if !defined(HPP_ALIB_STRINGS_STRING)
 #       include "alib/strings/string.hpp"
 #   endif
-#else
-#    if !defined(HPP_ALIB_COMPILERS)
-#       include "alib/lib/compilers.hpp"
-#    endif
 #endif
 
 
@@ -51,7 +43,7 @@
 
 
 
-namespace aworx { namespace lib { namespace monomem {
+namespace alib {  namespace monomem {
 
 
 /** ************************************************************************************************
@@ -404,7 +396,7 @@ class MonoAllocator
                                                unsigned int chunkGrowthInPercent= 200 );
 
 
-        #if ALIB_THREADS && ALIB_FILESET_MODULES && !defined(ALIB_DOX)
+        #if ALIB_THREADS && ALIB_CAMP && !defined(ALIB_DOX)
             ALIB_API void dbgCheckGlobalAllocatorLock();
         #endif
 
@@ -423,13 +415,13 @@ class MonoAllocator
         ALIB_FORCE_INLINE
         char*           Alloc( size_t size, size_t alignment)
         {
-            #if ALIB_THREADS && ALIB_FILESET_MODULES
+            #if ALIB_THREADS && ALIB_CAMP
                 dbgCheckGlobalAllocatorLock();
             #endif
 
             #if ALIB_DEBUG_MONOMEM
                 ++DbgStats.QtyAllocations;
-                DbgStats.AllocSize    += size;
+                DbgStats.AllocSize += size;
                 size_t qtyLeftBeforeAlloc= chunk ? static_cast<size_t>(chunk->end - chunk->act)
                                                  : 0;
             #endif
@@ -723,7 +715,6 @@ ThreadLock              GlobalAllocatorLock;
 
 #else // !defined(ALIB_DOX)
 
-
 extern ALIB_API
 MonoAllocator           GlobalAllocator;
 
@@ -757,11 +748,11 @@ MonoAllocator           GlobalAllocator;
 
 #endif // !defined(ALIB_DOX)
 
-}}// namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx.
-using     MonoAllocator =   lib::monomem::MonoAllocator;
+/// Type alias in namespace \b alib.
+using     MonoAllocator =   monomem::MonoAllocator;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_MONOMEM_MONOALLOCATOR

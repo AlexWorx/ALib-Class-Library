@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_monomem of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_MONOMEM_HASHSET
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace monomem { namespace detail {
+namespace alib {  namespace monomem { namespace detail {
 
 /**
  * Helper struct used for implementing \alib{monomem,HashSet}.
@@ -37,7 +37,7 @@ struct HashSetAccess
     {}
 };
 
-}// namespace aworx::lib::monomem[::detail]
+} // namespace alib::monomem[::detail]
 
 /** ************************************************************************************************
  * This type definition is a shortcut to \alib{monomem,HashTable}, usable if the full portion of
@@ -68,32 +68,32 @@ struct HashSetAccess
  *                      \alib{monomem,Recycling::Private} (the default),
  *                      \alib{monomem,Recycling::Shared} or \alib{monomem,Recycling::None}.
  **************************************************************************************************/
-template< typename T,
-          typename THash        = std::hash    <T>,
-          typename TEqual       = std::equal_to<T>,
-          Caching  THashCaching = Caching::Auto,
+template< typename      T,
+          typename      THash        = std::hash    <T>,
+          typename      TEqual       = std::equal_to<T>,
+          lang::Caching THashCaching = lang::Caching::Auto,
           typename TRecycling   = Recycling::Private >
-using HashSet= lib::monomem::HashTable< T, T,
+using HashSet= monomem::HashTable< T, T,
                                        T, void,
                                        THash,
                                        TEqual,
-                                       lib::monomem::detail::HashSetAccess<T>,
+                                       monomem::detail::HashSetAccess<T>,
                                        THashCaching,
                                        TRecycling                                      >;
 
 
 
-}}// namespace aworx[::lib::monomem]
+} // namespace alib[::monomem]
 
-/// Type alias in namespace #aworx. See type definition \ref aworx::lib::monomem::HashSet.
-template< typename T,
-          typename THash             = std::hash    <T>,
-          typename TEqual            = std::equal_to<T>,
-          lib::Caching  THashCaching = lib::Caching::Auto,
-          typename TRecycling        = lib::monomem::Recycling::Private >
-using HashSet= lib::monomem::HashSet<T, THash, TEqual, THashCaching, TRecycling >;
+/// Type alias in namespace \b alib. See type definition \ref alib::monomem::HashSet.
+template< typename      T,
+          typename      THash        = std::hash    <T>,
+          typename      TEqual       = std::equal_to<T>,
+          lang::Caching THashCaching = lang::Caching::Auto,
+          typename TRecycling        = monomem::Recycling::Private >
+using HashSet= monomem::HashSet<T, THash, TEqual, THashCaching, TRecycling >;
 
 
-} // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_MONOMEM_HASHSET

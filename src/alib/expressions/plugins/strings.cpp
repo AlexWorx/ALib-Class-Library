@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -57,7 +57,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 // #################################################################################################
 // ### ToString (not in anonymous namespace)
@@ -122,12 +122,12 @@ Box constNL;
 
 FUNC(toUpper    ,   return CPY(ARG0, 0).ToUpper(); )
 FUNC(toLower    ,   return CPY(ARG0, 0).ToLower(); )
-FUNC(startsWith ,   return             STR(ARG0).StartsWith<true,Case::Sensitive>( STR(ARG1) ); )
-FUNC(startsWithC,   return BOL(ARG2) ? STR(ARG0).StartsWith<true,Case::Ignore   >( STR(ARG1) )
-                                     : STR(ARG0).StartsWith<true,Case::Sensitive>( STR(ARG1) ); )
-FUNC(endsWith   ,   return             STR(ARG0).  EndsWith<true,Case::Sensitive>( STR(ARG1) ); )
-FUNC(endsWithC  ,   return BOL(ARG2) ? STR(ARG0).  EndsWith<true,Case::Ignore   >( STR(ARG1) )
-                                     : STR(ARG0).  EndsWith<true,Case::Sensitive>( STR(ARG1) ); )
+FUNC(startsWith ,   return             STR(ARG0).StartsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(startsWithC,   return BOL(ARG2) ? STR(ARG0).StartsWith<true,lang::Case::Ignore   >( STR(ARG1) )
+                                     : STR(ARG0).StartsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(endsWith   ,   return             STR(ARG0).  EndsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(endsWithC  ,   return BOL(ARG2) ? STR(ARG0).  EndsWith<true,lang::Case::Ignore   >( STR(ARG1) )
+                                     : STR(ARG0).  EndsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
 FUNC(substr     ,   return STR(ARG0).Substring( INT(ARG1)             ); )
 FUNC(substr2    ,   return STR(ARG0).Substring( INT(ARG1), INT(ARG2)  ); )
 FUNC(idxof      ,   String needle= STR(ARG1); return needle.Length() == 1 ? STR(ARG0).IndexOf         ( needle[0], 0 )
@@ -147,7 +147,7 @@ FUNC(parsef     ,   double  result; Substring(STR(ARG0)).ConsumeFloat(result, &s
 
 FUNC(token      ,   Tokenizer tknzr( STR(ARG0), STR(ARG1).CharAtStart() );
                     for( auto i= INT(ARG2) ; i >= 0  ; --i )
-                        tknzr.Next( Whitespaces::Keep );
+                        tknzr.Next( lang::Whitespaces::Keep );
                     return tknzr.Actual;  )
 
 FUNC(hex        ,   String128 buf;
@@ -235,9 +235,9 @@ FUNC(    neq, return !STR(ARG0).Equals( STR(ARG1) ); )
 
 FUNC(    arr, return  STR(ARG0).Substring( INT(ARG1), 1); )
 
-FUNC( compSS, return TOINT(             STR(ARG0).CompareTo<true ALIB_COMMA Case::Sensitive>( STR(ARG1) ) ); )
-FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<true ALIB_COMMA Case::Ignore   >( STR(ARG1) )
-                                      : STR(ARG0).CompareTo<true ALIB_COMMA Case::Sensitive>( STR(ARG1) ) ); )
+FUNC( compSS, return TOINT(             STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
+FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Ignore   >( STR(ARG1) )
+                                      : STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
 
 // #################################################################################################
 // ### Strings - Wildcard matching
@@ -258,8 +258,8 @@ Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
 {
     String haystack= STR(ARG0);
     String pattern = STR(ARG1);
-    Case   sensitivity= ( end-args > 2 && BOL(ARG2) ) ? Case::Ignore
-                                                      : Case::Sensitive;
+    lang::Case   sensitivity= ( end-args > 2 && BOL(ARG2) ) ? lang::Case::Ignore
+                                                            : lang::Case::Sensitive;
 
     if( !scope.IsCompileTime() )
     {
@@ -326,7 +326,7 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
 // #################################################################################################
 // ### Strings - Tables
 // #################################################################################################
-ALIB_CPP14_CONSTEXPR Calculus::OperatorTableEntry  operatorTableStrings[] =
+constexpr Calculus::OperatorTableEntry  operatorTableStrings[] =
 {
     // unary operators
     { A_CHAR("!") , Types::String , Types::Void   , CALCULUS_CALLBACK(boolNot), Types::Boolean, Calculus::CTI },
@@ -593,7 +593,7 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
     return true;
 }
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 
 #undef BOL

@@ -1,7 +1,7 @@
 // #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -10,7 +10,7 @@
 #   include "alib/bitbuffer/bitbuffer.hpp"
 #endif
 
-namespace aworx { namespace lib {
+namespace alib {
 
 /** ************************************************************************************************
  * This \alibmod implements a buffer that is write- and readable bit by bit.
@@ -53,7 +53,7 @@ BitBufferBase::Index BitBufferBase::Unterminate(Index terminationIndex )
     TStorage word= GetWord(terminationIndex);
 
     //...search and delete MSB
-    terminationIndex.bit= MSB(word );
+    terminationIndex.bit= lang::MSB(word );
     terminationIndex.bit--;
     word^= BitBuffer::TStorage(1) << terminationIndex.bit;
 
@@ -73,13 +73,13 @@ namespace
     {
         if( isLittleEndianEncoding == 0 )
         {
-            static_assert(   sizeof(BitBufferBase::TStorage) == 2
-                          || sizeof(BitBufferBase::TStorage) == 4
-                          || sizeof(BitBufferBase::TStorage) == 8,
+            static_assert(   bitsof(BitBufferBase::TStorage) == 16
+                          || bitsof(BitBufferBase::TStorage) == 32
+                          || bitsof(BitBufferBase::TStorage) == 64,
                           "Platform not supported");
 
             isLittleEndianEncoding= 2;
-            if ALIB_CONSTEXPR17 ( sizeof(BitBufferBase::TStorage) == 2 )
+            if constexpr ( bitsof(BitBufferBase::TStorage) == 16 )
             {
                 testWord= 0x2211;
                 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
@@ -89,7 +89,7 @@ namespace
                     isLittleEndianEncoding= 1;
             }
 
-            else if ALIB_CONSTEXPR17 ( sizeof(BitBufferBase::TStorage) == 4 )
+            else if constexpr ( bitsof(BitBufferBase::TStorage) == 32 )
             {
                 testWord= 0x44332211;
                 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
@@ -100,9 +100,10 @@ namespace
                     isLittleEndianEncoding= 1;
             }
 
-            else if ALIB_CONSTEXPR17 ( sizeof(BitBufferBase::TStorage) == 8 )
+            else if constexpr ( bitsof(BitBufferBase::TStorage) == 64 )
             {
-                testWord= 0x8877665544332211;
+                ALIB_WARNINGS_IGNORE_INTEGRAL_CONSTANT_OVERFLOW
+                testWord= 0x8877665544332211u;
                 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
                 uint8_t* bytes= reinterpret_cast<uint8_t*>( &testWord );
                 ALIB_WARNINGS_RESTORE
@@ -111,6 +112,8 @@ namespace
                     && *(bytes+4) == 0x55 && *(bytes+5) == 0x66
                     && *(bytes+6) == 0x77 && *(bytes+7) == 0x88 )
                     isLittleEndianEncoding= 1;
+                ALIB_WARNINGS_RESTORE
+
             }
         }
 
@@ -138,13 +141,13 @@ void  BitBufferBase::ToLittleEndianEncoding( const Index& startIndex, const Inde
                    bytes[0]= word & 0xFF;
         word>>= 8; bytes[1]= word & 0xFF;
 
-        if ALIB_CONSTEXPR17 ( sizeof(TStorage) > 2 )
+        if constexpr ( bitsof(TStorage) > 16 )
         {
             word>>= 8; bytes[2]= word & 0xFF;
             word>>= 8; bytes[3]= word & 0xFF;
         }
 
-        if ALIB_CONSTEXPR17 ( sizeof(TStorage) > 4 )
+        if constexpr ( bitsof(TStorage) > 32 )
         {
             word>>= 8; bytes[4]= word & 0xFF;
             word>>= 8; bytes[5]= word & 0xFF;
@@ -168,13 +171,13 @@ void  BitBufferBase::FromLittleEndianEncoding( const Index& startIndex, const In
         word|=  TStorage(bytes[0]);
         word|=  TStorage(bytes[1]) << 8;
 
-        if ALIB_CONSTEXPR17 ( sizeof(TStorage) > 2 )
+        if constexpr ( bitsof(TStorage) > 16 )
         {
             word|=  TStorage(bytes[2]) << 16;
             word|=  TStorage(bytes[3]) << 24;
         }
 
-        if ALIB_CONSTEXPR17 ( sizeof(TStorage) > 4 )
+        if constexpr ( bitsof(TStorage) > 32 )
         {
             ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW
             word|=  TStorage(bytes[4]) << 32;
@@ -291,5 +294,4 @@ uint64_t BitReader::readUIntegral64()
 
 
 
-}}} // namespace [aworx::lib::bitbuffer]
-
+}} // namespace [alib::bitbuffer]

@@ -1,7 +1,7 @@
 ﻿// #################################################################################################
 //  ALib C++ Library
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
@@ -11,8 +11,8 @@
 #   include "alib/strings/detail/numberconversion.hpp"
 #endif
 
-#if !defined(HPP_ALIB_BITS)
-#   include "alib/lib/bits.hpp"
+#if !defined(HPP_ALIB_LANG_BITS)
+#   include "alib/lang/bits.hpp"
 #endif
 
 
@@ -33,7 +33,7 @@
 #endif
 #endif // !defined(ALIB_DOX)
 
-namespace aworx { namespace lib { namespace strings {
+namespace alib {  namespace strings {
 
 /**
  * This is a detail namespace of module \alib_strings_nl.
@@ -75,6 +75,9 @@ constexpr const uint8_t binSizeToDecSize[]
     10, 10, 10,  9,  9,  9,  8,  8,  8,  7,  7,  7,  7,  6,  6,  6,
     05,  5,  5,  4,  4,  4,  4,  3,  3,  3,  2,  2,  2,  1,  1,  1
 };
+
+constexpr inline bool hasBits(NumberFormatFlags lhs, NumberFormatFlags rhs)
+{ return ((int(lhs) & int(rhs)) != 0); }
 
 }// anonymous namespace
 
@@ -127,7 +130,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     const TChar* buffer= src.Buffer();
     ALIB_WARNINGS_RESTORE
 
-    integer idx= src. template IndexOfAny<Inclusion::Exclude, false>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -135,7 +138,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     bool negative;
     if ( (negative= (buffer[idx] == '-')) == true || buffer[idx] == '+' )
     {
-        if( (idx= src. template IndexOfAny<Inclusion::Exclude, false>( nf.Whitespaces, idx + 1 ) ) == -1 )
+        if( (idx= src. template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces, idx + 1 ) ) == -1 )
             return 0;
     }
 
@@ -203,7 +206,7 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
     uint64_t result=    0;
 
     // read whitespaces
-    integer idx= src. template IndexOfAny<Inclusion::Exclude>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -216,7 +219,10 @@ uint64_t ParseDec( const TString<TChar>& src, integer& startIdx, const TNumberFo
     while ( idx < length )
     {
         const TChar c= buf[idx];
-        if ( charFound && nf.ReadGroupChars && c!= '\0' && c == nf.ThousandsGroupChar  )
+        if (    charFound
+             && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
+             && c != '\0'
+             && c == nf.ThousandsGroupChar  )
         {
             ++idx;
             continue;
@@ -243,7 +249,7 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
     uint64_t result=    0;
 
     // read whitespaces
-    integer idx= src. template IndexOfAny<Inclusion::Exclude>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -257,7 +263,7 @@ uint64_t ParseBin( const TString<TChar>& src, integer& startIdx, const TNumberFo
     {
         TChar c= buf[idx];
         if (    charFound
-             && nf.ReadGroupChars
+             && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
              && c != '\0'
              && (    c == nf.BinNibbleGroupChar
                   || c == nf.BinByteGroupChar
@@ -299,7 +305,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
     uint64_t result=    0;
 
     // read whitespaces
-    integer idx= src. template IndexOfAny<Inclusion::Exclude>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -313,7 +319,7 @@ uint64_t ParseHex( const TString<TChar>& src, integer& startIdx, const TNumberFo
     {
         TChar c= buf[idx];
         if (    charFound
-             && nf.ReadGroupChars
+             && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
              && c != '\0'
              && (    c == nf.HexByteGroupChar
                   || c == nf.HexWordGroupChar
@@ -365,7 +371,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
     uint64_t result=    0;
 
     // read whitespaces
-    integer idx= src. template IndexOfAny<Inclusion::Exclude>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -379,7 +385,7 @@ uint64_t ParseOct( const TString<TChar>& src, integer& startIdx, const TNumberFo
     {
         TChar c= buf[idx];
         if (     charFound
-             && nf.ReadGroupChars
+             && hasBits(nf.Flags, NumberFormatFlags::ReadGroupChars)
              && c != 0
              && c == nf.OctGroupChar )
         {
@@ -419,7 +425,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // read whitespaces
     {
-        integer skip= src. template IndexOfAny<Inclusion::Exclude>( nf.Whitespaces, startIdx );
+        integer skip= src. template IndexOfAny<lang::Inclusion::Exclude>( nf.Whitespaces, startIdx );
         if ( skip < 0 )
             return 0.0;
         buf+= skip - startIdx;
@@ -432,7 +438,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if( ++buf == bufEnd )
             return 0.0;
 
-        integer skip= TString<TChar>(buf, bufEnd-buf ). template IndexOfAny<Inclusion::Exclude, false>( nf.Whitespaces );
+        integer skip= TString<TChar>(buf, bufEnd-buf ). template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces );
         if( skip < 0 )
             return 0.0;
         buf+= skip;
@@ -440,14 +446,14 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // NaN, Infinite
     if(     buf + nf.NANLiteral.Length() - 1 <= bufEnd
-        &&  nf.NANLiteral. template CompareTo<true, Case::Ignore>( TString<TChar>( buf, nf.NANLiteral.Length() ) ) == 0    )
+        &&  nf.NANLiteral. template CompareTo<true, lang::Case::Ignore>( TString<TChar>( buf, nf.NANLiteral.Length() ) ) == 0    )
     {
         startIdx= buf - src.Buffer()  + nf.NANLiteral.Length();
         return std::numeric_limits<double>::quiet_NaN();
     }
 
     if(     buf + nf.INFLiteral.Length() - 1 <= bufEnd
-        &&  nf.INFLiteral. template CompareTo<true, Case::Ignore>( TString<TChar>( buf, nf.INFLiteral.Length() ) ) == 0    )
+        &&  nf.INFLiteral. template CompareTo<true, lang::Case::Ignore>( TString<TChar>( buf, nf.INFLiteral.Length() ) ) == 0    )
     {
         startIdx= buf -  src.Buffer() + nf.INFLiteral.Length();
         return negative ? -std::numeric_limits<double>::infinity()
@@ -566,7 +572,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
             digitsInValue = 1;
         else
         {
-            int leadingBinaryZeros= CLZ(value);
+            int leadingBinaryZeros= lang::CLZ(value);
             digitsInValue= binSizeToDecSize[leadingBinaryZeros];
 
             // could be one lower due to the rest after the most significant bit
@@ -584,7 +590,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
     int printDigits;
     {
         int requestedDigits;
-        if ( nf.WriteGroupChars && nf.ThousandsGroupChar != '\0' )
+        if ( hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.ThousandsGroupChar != '\0' )
         {
             if ( width > 26 )
                 width= 26;
@@ -616,7 +622,7 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
         ALIB_ASSERT( digitValue <= 9 )
 
         // write group character
-        if(     nf.WriteGroupChars && nf.ThousandsGroupChar != '\0'
+        if(     hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.ThousandsGroupChar != '\0'
             &&  actDigit != printDigits
             &&  actDigit % 3 == 0
           )
@@ -668,7 +674,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
                   const TNumberFormat<TChar>& nf )
 {
     // how many digits in a grouping block?
-    int groupWidth=   !nf.WriteGroupChars             ? 0
+    int groupWidth=   !hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars)             ? 0
                      : nf.BinNibbleGroupChar  != '\0' ? 4
                      : nf.BinByteGroupChar    != '\0' ? 8
                      : nf.BinWordGroupChar    != '\0' ? 16
@@ -698,7 +704,7 @@ integer WriteBin( uint64_t value, TChar* buffer, integer idx, int  overrideWidth
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-        digits=  value != 0 ? MSB(value)
+        digits=  value != 0 ? lang::MSB(value)
                             : 1;
 
     uint64_t testValue= static_cast<uint64_t>(1) << (digits - 1);
@@ -731,7 +737,7 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
                   const TNumberFormat<TChar>& nf )
 {
     // how many digits in a grouping block?
-    int groupWidth=  !nf.WriteGroupChars             ? 0
+    int groupWidth=  !hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars)             ? 0
                     : nf.HexByteGroupChar    != '\0' ? 2
                     : nf.HexWordGroupChar    != '\0' ? 4
                     : nf.HexWord32GroupChar  != '\0' ? 8    :    0;
@@ -757,14 +763,14 @@ integer WriteHex( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-        digits=  value != 0 ? (MSB(value)-1) / 4 + 1
+        digits=  value != 0 ? (lang::MSB(value)-1) / 4 + 1
                             : 1;
 
     // check now for oversize
     if ( digits > 16 )
            digits= 16;
 
-    unsigned int characterA= static_cast<unsigned int>( nf.HexLowerCase ? 'a' : 'A' );
+    unsigned int characterA= static_cast<unsigned int>( hasBits(nf.Flags, NumberFormatFlags::HexLowerCase) ? 'a' : 'A' );
     int          shiftBits= (digits -1 ) * 4;
     uint64_t testMask=  static_cast<uint64_t>( 15 ) << shiftBits;
     while ( digits > 0)
@@ -798,7 +804,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
                   const TNumberFormat<TChar>& nf )
 {
     // how many digits in a grouping block?
-    const int groupWidth=  nf.WriteGroupChars && nf.OctGroupChar != '\0' ? 3 : 0;
+    const int groupWidth=  hasBits(nf.Flags, NumberFormatFlags::WriteGroupChars) && nf.OctGroupChar != '\0' ? 3 : 0;
 
     // if the first "digit" is a separator, we will write a space instead.
     // (we do the best to keep the width of the output intact if given)
@@ -820,7 +826,7 @@ integer WriteOct( uint64_t value, TChar* buffer, integer idx, int overrideWidth,
 
     // if negative value given, we calculate the needed digits
     if ( digits < 0  )
-        digits=  value != 0 ? (MSB(value)-1) / 3 + 1
+        digits=  value != 0 ? (lang::MSB(value)-1) / 3 + 1
                             : 1;
 
     // check now for oversize
@@ -891,7 +897,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                                    : 0;
 
     // decide if we are using scientific format (with e) or not
-    bool scientific=  (     nf.ForceScientific
+    bool scientific=  (     hasBits(nf.Flags, NumberFormatFlags::ForceScientific)
                         || (  integralWidth < 0 && nf.FractionalPartWidth < 0  &&  ( exp10 > 6 || exp10 <= -5 )  )
                         || (  integralWidth          > 0 && exp10 != 0 && exp10 >= (MaxFloatSignificantDigits - integralWidth          - 1 ) )
                         || (  nf.FractionalPartWidth > 0 && exp10 != 0 && exp10 >= (MaxFloatSignificantDigits - nf.FractionalPartWidth - 1 ) )
@@ -954,7 +960,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
                                                  :  1;
      }
 
-    // normal output, number  < 0
+    // normal output, number  < 1
     else
     {
         // just zeros? -> write them and return
@@ -1017,7 +1023,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         idx= WriteDecUnsigned( intPart, buffer, idx, integralWidth, nf );
 
     // write dot
-    if ( fractionalDigits != 0 || nf.ForceDecimalPoint )
+    if ( fractionalDigits != 0 || hasBits(nf.Flags, NumberFormatFlags::ForceDecimalPoint) )
         buffer[idx++]=  nf.DecimalPointChar;
 
     // write fract part
@@ -1073,7 +1079,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
         // write omitted zeros
         if ( cntDigits < qtyDigits )
         {
-            if ( nf.OmitTrailingFractionalZeros )
+            if ( hasBits(nf.Flags, NumberFormatFlags::OmitTrailingFractionalZeros) )
             {
                 if( cntDigits == 0 )
                     buffer[idx++]= '0';
@@ -1100,7 +1106,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
 
         if ( exp10 < 0 )
             buffer[idx++]= '-';
-        else if ( nf.WriteExponentPlusSign )
+        else if ( hasBits(nf.Flags, NumberFormatFlags::WriteExponentPlusSign) )
             buffer[idx++]= '+';
 
         idx= WriteDecUnsigned( static_cast<uint64_t>(exp10 >= 0 ? exp10 : -exp10), buffer, idx, 2, nf );
@@ -1154,4 +1160,4 @@ template integer  WriteFloat      <xchar>( double  , xchar*, integer, int , cons
 
 
 #endif // !defined(ALIB_DOX)
-}}}}// namespace [aworx::lib::strings::detail]
+}}} // namespace [alib::strings::detail]

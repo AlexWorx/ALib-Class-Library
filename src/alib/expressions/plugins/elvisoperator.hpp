@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_expressions of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS
@@ -13,7 +13,7 @@
 #endif
 
 
-namespace aworx { namespace lib { namespace expressions { namespace plugins {
+namespace alib {  namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
  * The binary variant of ternary operator <c>"Q ? T : F"</c> is created by leaving out
@@ -67,6 +67,6 @@ struct ElvisOperator   :  public CompilerPlugin
 
 };
 
-}}}} // namespace [aworx::lib::expressions::detail]
+}}} // namespace [alib::expressions::detail]
 
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS

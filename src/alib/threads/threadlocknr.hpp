@@ -2,14 +2,14 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_THREADLOCKNR
 #define HPP_ALIB_THREADS_THREADLOCKNR 1
 
-#if !defined (HPP_ALIB_FS_OWNER_OWNER)
-    #include "alib/lib/fs_owner/owner.hpp"
+#if !defined (HPP_ALIB_LANG_OWNER)
+    #include "alib/lang/owner.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(THREADS)
@@ -34,7 +34,7 @@ ALIB_ASSERT_MODULE(THREADS)
 #define   ALIB_LOCK_WITH(lock)          ALIB_OWN(lock)
 
 
-namespace aworx { namespace lib { namespace threads {
+namespace alib {  namespace threads {
 /** ************************************************************************************************
  * This class is a simple wrapper around C++ standard library type \c std::mutex and hence allows
  * <em>mutual exclusive access</em> to resources, by protecting data from concurrent thread access.
@@ -67,7 +67,7 @@ class ThreadLockNR
         typename std::mutex         mutex;
 
         /** The safeness mode. */
-        Safeness                    safeness;
+        lang::Safeness              safeness;
 
         #if ALIB_DEBUG
             /** Source location of acquirement. (Available only in debug-builds.). */
@@ -92,7 +92,7 @@ class ThreadLockNR
          * @param pSafeness  The safeness mode. See #SetSafeness for more information.
          ******************************************************************************************/
         explicit
-        ThreadLockNR( Safeness pSafeness= Safeness::Safe )
+        ThreadLockNR( lang::Safeness pSafeness= lang::Safeness::Safe )
         : safeness( pSafeness )
         {}
 
@@ -127,7 +127,7 @@ class ThreadLockNR
                 ALIB_ASSERT_ERROR( dbgIsAcquiredBy != std::this_thread::get_id(), "THREADS",
                                    "Multiple acquirements of ThreadLockNR are forbidden." )
 
-                if ( safeness == Safeness::Safe )
+                if ( safeness == lang::Safeness::Safe )
                     mutex.lock();
 
                 ALIB_DBG( dbgIsAcquiredBy= std::this_thread::get_id(); )
@@ -151,7 +151,7 @@ class ThreadLockNR
                                                   << detail::getThread(dbgIsAcquiredBy)->GetId()   << ")"
                                )
             ALIB_DBG( dbgIsAcquiredBy= std::thread::id(); )
-            if ( safeness == Safeness::Safe )
+            if ( safeness == lang::Safeness::Safe )
                 mutex.unlock();
         }
 
@@ -168,7 +168,7 @@ class ThreadLockNR
          *
          * @param pSafeness    Denotes the new safeness mode.
          ******************************************************************************************/
-        void SetSafeness( Safeness pSafeness )
+        void SetSafeness( lang::Safeness pSafeness )
         {
             ALIB_ASSERT_ERROR(    dbgIsAcquiredBy != std::thread::id()
                                && dbgIsAcquiredBy != std::this_thread::get_id(), "THREADS",
@@ -189,18 +189,18 @@ class ThreadLockNR
          * Query the safeness mode of this object.
          * @return   The safeness mode of this object.
          ******************************************************************************************/
-        Safeness GetSafeness()    const
+        lang::Safeness GetSafeness()    const
         {
             return  safeness;
         }
 };
 
 
-}} // namespace aworx[::lib::threads]
+} // namespace alib[::threads]
 
-/// Type alias in namespace #aworx.
-using     ThreadLockNR= lib::threads::ThreadLockNR;
+/// Type alias in namespace \b alib.
+using     ThreadLockNR= threads::ThreadLockNR;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_THREADS_THREADLOCKNR

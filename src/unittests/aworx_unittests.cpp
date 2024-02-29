@@ -1,14 +1,14 @@
 // #################################################################################################
 //  AWorx ALib Unit Tests
 //
-//  Copyright 2013-2023 A-Worx GmbH, Germany
+//  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#include "alib/distribution.hpp"
 #include "alib/alox.hpp"
-#include "alib/lib/fs_commonenums/commonenumdefs_aliased.hpp"
+#include "alib/lang/basecamp/basecamp.hpp"
+#include "alib/lang/basecamp/bootstrap.hpp"
 
 #if ALIB_ALOX
 #   if !defined (HPP_ALIB_ALOXMODULE)
@@ -31,8 +31,8 @@
 #      include "alib/alox/loggers/windowsconsolelogger.hpp"
 #   endif
 #else
-#   if !defined (HPP_ALIB_TEXT_FORMATTER)
-#       include "alib/text/formatter.hpp"
+#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER)
+#       include "alib/lang/format/formatter.hpp"
 #   endif
 #   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
@@ -42,13 +42,14 @@
 
 #include "alib/strings/substring.hpp"
 
-#if ALIB_SYSTEM
-#   include "alib/system/environment.hpp"
+#if ALIB_CAMP
+#   include "alib/lang/system/environment.hpp"
 #endif
 #include "alib/compatibility/std_boxing.hpp"
 
 #include "unittests/aworx_unittests.hpp"
 #include <limits>
+#include <assert.h>
 
 #if defined(__clang__)
     #pragma message "Clang Compiler (not a warning, just for information)"
@@ -59,9 +60,9 @@
 #endif
 
 using namespace std;
-using namespace aworx;
+using namespace alib;
 ALIB_IF_ALOX(
-using namespace aworx::lib::lox::detail; )
+using namespace alib::lox::detail; )
 
 namespace ut_aworx {
 
@@ -90,6 +91,10 @@ String    AWorxUnitTesting::GeneratedSamplesSearchDir= A_CHAR("docs/pages");
 AString   AWorxUnitTesting::CustomMetaInfoFormat;
 
 
+#if defined(_WIN32)
+bool       AWorxUnitTesting::fullyBootstrapped= false;
+#endif
+
 // #################################################################################################
 // Constructors/destructor
 // #################################################################################################
@@ -102,32 +107,28 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
 #else
 :
 #endif
-  initializer(ALIB.IsBootstrapped() ?  false : ALIB.Bootstrap())
 #if ALIB_ALOX
-, lox( "UTLox", false )
+lox( "UTLox", false )
 #endif
 {
-    if( initializer
-#if defined(_WIN32)
-                      && initializerCout
-#endif
-        )
-    {
-        initializer= false;
-        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Acquire(ALIB_DBG(__FILE__, __LINE__, "")) );
-            aworx::lib::boxing::compatibility::std::BootstrapStdStringBoxing();
-        ALIB_IF_THREADS( aworx::lib::monomem::GlobalAllocatorLock.Release() );
-        aworx::ALIB.CheckDistribution();
-    }
-
     this->Domain.Reset("UT/") << testName;
     this->Domain.ToUpper();
     this->ActTestName=  testName;
 
+    #if defined(_WIN32) && !ALIB_GTEST
+	if( !fullyBootstrapped )
+	{ 
+		fullyBootstrapped= true;
+		ALIB_IF_THREADS(monomem::GlobalAllocatorLock.Acquire(ALIB_DBG(nullptr, 113, "AWorxUnitTesting")); )
+		alib::boxing::compatibility::std::BootstrapStdStringBoxing();
+		ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
+	}
+    #endif
+
     //needed for the assertion, as macro ALIB_CALLER is changed here
     ALIB_IF_ALOX( AWorxUnitTesting& ut= *this; )
 
-    Log_SetSourcePathTrimRule( "*/src/", Inclusion::Include )
+    Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 
 #if ALIB_ALOX
     #if !ALIB_GTEST
@@ -143,7 +144,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
             utl->MetaInfo->VerbosityInfo=    "     ";
             utl->MetaInfo->VerbosityVerbose= "{***}";
 
-            Directory moduleName( Directory::SpecialFolder::Module );
+            Directory moduleName( Directory::SpecialFolder::Camp );
             integer idx= moduleName.Path.IndexOf( "/ALox/" );
             if ( idx > 0 )
             {
@@ -162,7 +163,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
         // check if we are in CLion. Here it is important to switch off the use of dark/light colors
         if( utl->GetTypeName().Equals("ANSI_CONSOLE") )
         {
-            if ( NString(*ALIB.ArgVN).IndexOf<true, Case::Ignore>( "CLion", 0) >= 0 )
+            if ( NString(*ArgVN).IndexOf<true, lang::Case::Ignore>( "CLion", 0) >= 0 )
                 dynamic_cast<AnsiConsoleLogger*>(utl)->UseLightColors= AnsiLogger::LightColorUsage::Never;
         }
     #endif
@@ -171,7 +172,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
         utl->MetaInfo->Format= CustomMetaInfoFormat;
 
     if ( LastAutoSizes.IsNotEmpty() )
-        utl->AutoSizes.Import( LastAutoSizes, CurrentData::Keep );
+        utl->AutoSizes.Import( LastAutoSizes, lang::CurrentData::Keep );
 
     lox.Acquire(ALIB_CALLER);
         lox.SetVerbosity( utl, Verbosity::Info, "/" );
@@ -181,7 +182,7 @@ AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
 
     lox.Release();
 
-    lib::results::Report::GetDefault().PushWriter( this );
+    lang::Report::GetDefault().PushWriter( this );
 #endif
 }
 
@@ -197,7 +198,7 @@ AWorxUnitTesting::~AWorxUnitTesting()
     utl->AutoSizes.Export( LastAutoSizes );
 
     // clean debug lox and ALox
-    Log_Prune( lib::ALOX.Reset() );
+    Log_Prune( ALOX.Reset() );
 #endif
 
     // check if ALib SmartLock for std I/O was released properly
@@ -213,10 +214,10 @@ AWorxUnitTesting::~AWorxUnitTesting()
     #endif
 
 ALIB_IF_ALOX(
-    lib::results::Report::GetDefault().PopWriter( this ); )
+    lang::Report::GetDefault().PopWriter( this ); )
 
     // check if ALib default formatter was released properly
-    ALIB_IF_TEXT(
+    ALIB_IF_CAMP(
         this->EQ (__FILE__, __LINE__, 0, Formatter::GetDefault().get()->CountAcquirements() ); )
 
 ALIB_IF_ALOX(
@@ -227,7 +228,7 @@ ALIB_IF_ALOX(
 // #################################################################################################
 // Print
 // #################################################################################################
-Boxes& AWorxUnitTesting::printPrepare (  const aworx::NCString& file, int line )
+Boxes& AWorxUnitTesting::printPrepare (  const alib::NCString& file, int line )
 {
     #if ALIB_ALOX
         lox.Acquire(file, line, ActTestName);
@@ -240,7 +241,7 @@ Boxes& AWorxUnitTesting::printPrepare (  const aworx::NCString& file, int line )
     #endif
 }
 
-void AWorxUnitTesting::printDo (  aworx::Verbosity verbosity, aworx::Boxes& args )
+void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::Boxes& args )
 {
     #if ALIB_AVOID_ANALYZER_WARNINGS  && defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
         (void) verbosity;
@@ -251,10 +252,10 @@ void AWorxUnitTesting::printDo (  aworx::Verbosity verbosity, aworx::Boxes& args
     #else
 
     #if ALIB_ALOX
-        if( args.Size() == 1 && args.back().IsType<aworx::Exception*>() )
+        if( args.Size() == 1 && args.back().IsType<alib::Exception*>() )
         {
             lox.Release();
-            aworx::LogTools::Exception( lox, *args.back().Unbox<aworx::Exception*>()  );
+            alib::LogTools::Exception( lox, *args.back().Unbox<alib::Exception*>()  );
             return;
         }
 
@@ -274,7 +275,7 @@ void AWorxUnitTesting::printDo (  aworx::Verbosity verbosity, aworx::Boxes& args
             lines.Set(outputBuffer, '\n' );
             std::cout << lines.Next() << std::endl;
             while( lines.HasNext() )
-                std::cout << aworx::Spaces::GetN().Substring(0, indent ) << lines.Next() << std::endl;
+                std::cout << alib::Spaces::GetN().Substring(0, indent ) << lines.Next() << std::endl;
 
         formatter->Release();
     #endif
@@ -283,12 +284,12 @@ void AWorxUnitTesting::printDo (  aworx::Verbosity verbosity, aworx::Boxes& args
 
 void AWorxUnitTesting::Failed( const NCString& file, int line, const Box& exp, const Box& given )
 {
-    Print( file, line, aworx::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
+    Print( file, line, alib::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
                                                 "               given: \"{!ESC}\"", exp, given );
     assert(!AssertOnFailure);
 }
 
-void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& output, const NString& doxyTag )
+void AWorxUnitTesting::writeResultFile(const NString& name, alib::AString& output, const NString& doxyTag )
 {
 #if !ALIB_ALOX
     (void) name;
@@ -304,8 +305,8 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
     // if invoked the first time, search the right directory
     if ( GeneratedSamplesDir.IsNull() )
     {
-        GeneratedSamplesDir.Reset( "" ) << ALIB_BASE_DIR
-                                        << A_CHAR("/docs/pages/generated/");
+        GeneratedSamplesDir.Reset() << ALIB_BASE_DIR
+                                    << A_CHAR("/docs/pages/generated/");
     }
 
     if ( GeneratedSamplesDir.IsNotNull() && GeneratedSamplesDir.IsEmpty() )
@@ -328,7 +329,7 @@ void AWorxUnitTesting::writeResultFile(const NString& name, aworx::AString& outp
 // #################################################################################################
 // Error/Warning
 // #################################################################################################
-void AWorxUnitTesting::Report  ( lib::results::Message& msg )
+void AWorxUnitTesting::Report  ( lang::Message& msg )
 {
     #if !ALIB_ALOX
         (void) msg;
@@ -368,9 +369,9 @@ void AWorxUnitTesting::Report  ( lib::results::Message& msg )
             }
             lox.GetLogableContainer().Add( msg );
             lox.Entry( domain,
-                       msg.Type == aworx::lib::results::Report::Types::Error   ? Verbosity::Error    :
-                       msg.Type == aworx::lib::results::Report::Types::Warning ? Verbosity::Warning  :
-                       msg.Type == aworx::lib::results::Report::Types::Message ? Verbosity::Info     :
+                       msg.Type == alib::lang::Report::Types::Error   ? Verbosity::Error    :
+                       msg.Type == alib::lang::Report::Types::Warning ? Verbosity::Warning  :
+                       msg.Type == alib::lang::Report::Types::Message ? Verbosity::Info     :
                                                                                  Verbosity::Verbose    );
 
         lox.Release();
@@ -463,7 +464,7 @@ void AWorxUnitTesting::Report  ( lib::results::Message& msg )
 }//namespace
 
 
-// 231201 11:23: had to remove this "suddenly". Is it ok, to keep this out?
+// Had to remove this "suddenly". Is it ok, to keep this out?
 // #if !ALIB_GTEST
 // #if defined(_MSC_VER)
 // #pragma warning( push )

@@ -2,59 +2,29 @@
  * \file
  * This header file is part of module \alib_characters of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_CHARACTERS_CHARACTERS
 #define HPP_ALIB_CHARACTERS_CHARACTERS 1
 
-#if !defined(HPP_ALIB_MODULES) && !defined(ALIB_DOX)
-#   include "alib/lib/modules.hpp"
+#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#   include "alib/alib.hpp"
 #endif
 
 ALIB_ASSERT_MODULE(CHARACTERS)
 
-#if !defined(HPP_ALIB_TOOLS) && !defined(ALIB_DOX)
-#   include "alib/lib/tools.hpp"
+#if !defined(HPP_ALIB_LANG_INTEGERS)
+#   include "alib/lang/integers.hpp"
 #endif
 
-#if !defined(HPP_ALIB_FEATURES) && !defined(ALIB_DOX)
-#   include "alib/lib/features.hpp"
-#endif
-
-#if !defined(HPP_ALIB_TMP) && !defined(ALIB_DOX)
-#   include "alib/lib/tmp.hpp"
-#endif
-
-#if !defined(HPP_ALIB_INTEGERS)
-#   include "alib/lib/integers.hpp"
-#endif
 
 #if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
 #   include <string>
 #endif
 
 
-//##################################################################################################
-// Compiler Symbols
-//##################################################################################################
-
-#if !defined(ALIB_CHARACTERS_WIDE)
-#   if defined(_MSC_VER)
-#      define ALIB_CHARACTERS_WIDE 1
-#   else
-#      define ALIB_CHARACTERS_WIDE 0
-#   endif
-#endif
-
-#if !defined(ALIB_CHARACTERS_SIZEOF_WCHAR)
-#   define ALIB_CHARACTERS_SIZEOF_WCHAR   ALIB_SIZEOF_WCHAR_T
-#elif  (ALIB_CHARACTERS_SIZEOF_WCHAR != 2) && (ALIB_CHARACTERS_SIZEOF_WCHAR != 4 )
-#   error "Illegal value for symbol ALIB_CHARACTERS_SIZEOF_WCHAR given. Allowed is 2 or 4."
-#endif
-
-
-namespace aworx { namespace lib { namespace characters {
+namespace alib {  namespace characters {
 
 
 // #################################################################################################
@@ -100,9 +70,9 @@ using wchar=    PLATFORM_SPECIFIC;
  * that of type \alib{characters,wchar}: If \b %wchar is 2 bytes wide, then this type aliases
  * \c char32_t and if its width is 4 bytes, this type aliases \c char16_t.
  *
- * While together with types \ref aworx::nchar and \ref aworx::wchar it forms
+ * While together with types \ref alib::nchar and \ref alib::wchar it forms
  * the group of "explicit character types", it is always identical to logical type
- * \ref aworx::strangeChar.
+ * \ref alib::strangeChar.
  *
  * \see
  *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
@@ -177,7 +147,7 @@ using character= PLATFORM_SPECIFIC;
 
 /**
  * This type represents a non-standard \alib character.
- * If \ref aworx::character is defined to implement a narrow character type, then this type
+ * If \ref alib::character is defined to implement a narrow character type, then this type
  * implements a wide character and vice versa.
  * Note, that the width of a wide character is not defined as well. It might be \c 2 or \c 4
  * bytes wide.
@@ -192,7 +162,7 @@ using character= PLATFORM_SPECIFIC;
 using complementChar= PLATFORM_SPECIFIC;
 
 /**
- * Besides types \ref aworx::character and \ref aworx::complementChar, this is the third
+ * Besides types \ref alib::character and \ref alib::complementChar, this is the third
  * logical character type defined by \alib.<br>
  * Independent from compiler defaults and optional compiler symbols provided, this type always
  * is equivalent to type \alib{characters,xchar}
@@ -607,7 +577,7 @@ template<typename TChar> struct T_ZTCharArray<TChar*, TChar>
 
 /**
  * This simple template struct provides inner type definition <c>type</c>, which in the two
- * specializations for types \ref aworx::nchar and \ref aworx::wchar aliases the respective other
+ * specializations for types \ref alib::nchar and \ref alib::wchar aliases the respective other
  * type.
  *
  * The struct may be used to generalize code that is templated in respect to the character type to
@@ -679,32 +649,31 @@ template<>   struct TT_IsChar<wchar> : public std::true_type {};
 template<>   struct TT_IsChar<xchar> : public std::true_type {};
 #endif
 
-}} // namespace aworx[::lib::character]
+} // namespace alib[::character]
 
 
-/// Type alias in namespace #aworx.
-using  nchar         = lib::characters::nchar;
+/// Type alias in namespace \b alib.
+using  nchar         = characters::nchar;
 
-/// Type alias in namespace #aworx.
-using  wchar         = lib::characters::wchar;
+/// Type alias in namespace \b alib.
+using  wchar         = characters::wchar;
 
-/// Type alias in namespace #aworx.
-using  xchar         = lib::characters::xchar;
+/// Type alias in namespace \b alib.
+using  xchar         = characters::xchar;
 
-/// Type alias in namespace #aworx.
-using  character     = lib::characters::character;
+/// Type alias in namespace \b alib.
+using  character     = characters::character;
 
-/// Type alias in namespace #aworx.
-using  complementChar= lib::characters::complementChar;
+/// Type alias in namespace \b alib.
+using  complementChar= characters::complementChar;
 
-/// Type alias in namespace #aworx.
-using  strangeChar   = lib::characters::strangeChar;
+/// Type alias in namespace \b alib.
+using  strangeChar   = characters::strangeChar;
 
-} // namespace [aworx]
+} // namespace [alib]
 
 
 
 
 
 #endif // HPP_ALIB_CHARACTERS_CHARACTERS
-

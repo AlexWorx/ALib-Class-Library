@@ -2,7 +2,7 @@
  * \file
  * This header file is part of module \alib_threads of the \aliblong.
  *
- * \emoji :copyright: 2013-2023 A-Worx GmbH, Germany.
+ * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
  * Published under \ref mainpage_license "Boost Software License".
  **************************************************************************************************/
 #ifndef HPP_ALIB_THREADS_SMARTLOCK
@@ -16,7 +16,7 @@
     #include <vector>
 #endif
 
-namespace aworx { namespace lib {  namespace threads {
+namespace alib {   namespace threads {
 
 /** ************************************************************************************************
  * This class extends class ThreadLock, adding functionality to register 'acquirers' of type
@@ -65,7 +65,7 @@ class SmartLock : public ThreadLock
         /** ****************************************************************************************
          * Constructs a SmartLock. Parent ThreadLock is initialized to Unsafe mode.
          ******************************************************************************************/
-        SmartLock() : ThreadLock( Safeness::Unsafe )
+        SmartLock() : ThreadLock( lang::Safeness::Unsafe )
         {}
 
         /** ****************************************************************************************
@@ -176,11 +176,11 @@ class SmartLock : public ThreadLock
 
 
 
-}} // namespace aworx[::lib::threads]
+} // namespace alib[::threads]
 
-/// Type alias in namespace #aworx.
-using       SmartLock=  lib::threads::SmartLock;
+/// Type alias in namespace \b alib.
+using       SmartLock=  threads::SmartLock;
 
-}  // namespace [aworx]
+} // namespace [alib]
 
 #endif // HPP_ALIB_THREADS_SMARTLOCK
