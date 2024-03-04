@@ -129,7 +129,7 @@ struct TISReadLine
 };
 
 
-}}
+}}  // namespace alib::strings[::compatibility::std]
 
 #if defined(ALIB_DOX)
    namespace APPENDABLES {
@@ -183,7 +183,7 @@ namespace compatibility { namespace std {
  * Within step 3, the compiler chooses the right overloaded version of method #Write. Hence the
  * potentially needed conversion of the string data done transparently and only if needed.
  *
- * \see Class #StringReader.
+ * \see Class \alib{strings::compatibility::std,StringReader}.
  **************************************************************************************************/
 class StringWriter
 {
@@ -315,7 +315,8 @@ class StringWriter
  * This class is a helper class that converts narrow string data read from an object of
  * type \c std::istream to the \alib{characters,character,default character type}.
  *
- * \see Further explanations are given with sibling class #StringWriter.
+ * \see Further explanations are given with sibling class
+ *      \alib{strings::compatibility::std,StringWriter}.
  **************************************************************************************************/
 class StringReader
 {

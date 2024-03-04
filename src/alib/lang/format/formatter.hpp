@@ -239,7 +239,7 @@ class Formatter
         template <typename... TArgs>
         Formatter&          Format( AString& target, TArgs&&... args )
         {
-            // assert that this method is not used with with Boxes containers.
+            // assert that this method is not used with Boxes containers.
             // Those are to be processed with FormatArgs
             constexpr  bool Argument_has_type_Boxes=
                   (sizeof...(TArgs) == 1)

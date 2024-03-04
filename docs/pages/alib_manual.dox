@@ -98,7 +98,7 @@ Name <br>(Programmer's Manual)             |Namespace <br>(Reference Documentati
 \ref alib_mod_boxing        "Boxing"       | \ref alib::boxing       |Implements <b>"auto-boxing"</b> for C++, known from higher level programming languages. Transparently wraps C++ values of arbitrary type together with run-time type information into very lightweight objects. In other words, this library provides <em>"type-safe void pointers which support virtual function calls"</em>, provides type-safe a variadic argument paradigm and much more.
 \ref alib_mod_characters    "Characters"   | \ref alib::characters   |Mitigates C++ character type, character pointer and character array hell.
 \ref alib_mod_enums         "Enums"        | \ref alib::enums        |Extensions for otherwise limited C++ enum types.
-\ref alib_mod_monomem       "Monomem"      | \ref alib::monomem      |Today, this module only consists of one simple class that features monotonic allocation of objects. In combination with \alib_strings (optional dependency), monotonic allocation of string data is supported as well.
+\ref alib_mod_monomem       "Monomem"      | \ref alib::monomem      |Monotonic allocation utilities to avoid heap-memory usage. Introduces the concept of "recycling memory", which allows to extend the use cases of monotonic allocation tremendously. Tools to enable the standard containers for monotonic allocations are included. Besdides this, "better" versions of important containers are provided. The cost of heap allocation is largely underestimated!
 \ref alib_mod_singletons    "Singletons"   | \ref alib::singletons   |Implements the singleton paradigm that overcomes the Windows OS DLL boundaries (caused by Window DLL's local data segments), while under other operating systems chooses a faster, straight-forward implementation.
 \ref alib_mod_strings       "Strings"      | \ref alib::strings      |With a least intrusive design offers compatible, lightweight, secure, efficient, complete and convenient C++ string classes.
 \ref alib_mod_threads       "Threads"      | \ref alib::threads      |Thread locking, threads and runables.
@@ -719,7 +719,7 @@ The three phases are defined as follows:
    \ref alib_boxing_functions "box-functions" is to be done in this phase.
 
    The phase received its name from the fact that the  \alib{lang::resources,ResourcePool} is already
-   available and a camp is supposed to to feed its static default resource strings to the instance
+   available and a camp is supposed to feed its static default resource strings to the instance
    retrieved with \alib{lang,Camp::GetResourcePool}.
 
    More on this topic will be explained in a later chapter.<br>
@@ -1511,7 +1511,7 @@ in the previous section.
 If not provided, the name will be assembled according to the following set of rules:
 
 - The name starts with \c "alib_".
-- The library version is appended, for example \c "2312R0".
+- The library version is appended, for example \c "2402R0".
 - In the case of debug builds, term \c "_DBG" is appended.
 - In the case that all modules are selected in the \alibdist, no further rule is applied.
 

@@ -315,6 +315,9 @@ found in the reference documentation of the following classes:
 - %Compiler plug-in \alib{expressions::plugins,Math}
 - %Compiler plug-in \alib{expressions::plugins,DateAndTime}
 
+\note Camp module \alib_files introduces a further "plug-in", dedicated to expression functions
+      working on mass-storage files. The functions are
+      \alib{files,FileExpressions,documented here}.
 
 \I{################################################################################################}
 # 3. Prerequisites # {#alib_expressions_prerequisites}

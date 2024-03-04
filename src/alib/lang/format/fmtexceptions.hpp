@@ -87,7 +87,7 @@ enum class FMTExceptions
     NoPrecisionWithConversion           =205,
 
     /** Thrown by \alib{lang::format,FormatterJavaStyle,FormatterJavaStyle}:
-     *  Unknown conversion suffix with with data/time conversion.             */
+     *  Unknown conversion suffix with data/time conversion.             */
     UnknownDateTimeConversionSuffix     =206,
 
     /** Thrown by \alib{lang::format,FormatterJavaStyle,FormatterJavaStyle}:

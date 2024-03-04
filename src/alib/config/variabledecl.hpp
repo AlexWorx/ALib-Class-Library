@@ -140,7 +140,7 @@ struct VariableDecl : public enums::ERSerializable
      * using enumeration types associated with \ref alib_enums_records "ALib Enum Records" of this
      * type).
      *
-     * If used however to to define an enum record during bootstrap of a software (by user code
+     * If used however to define an enum record during bootstrap of a software (by user code
      * that omits the preferred option of parsing resourced strings to create such records), then
      * each parameter of type \b String passed, has to be of "static nature".
      * This means, that string buffers and their contents are deemed to survive the life-cycle of

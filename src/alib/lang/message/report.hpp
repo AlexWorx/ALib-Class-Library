@@ -52,18 +52,14 @@ enum class ReportExceptions
  * Software built on \alib should do the same with internal warnings and errors. An own
  * instance might be created to collect other types of reports.
  *
- * This class uses a member of type
- * \alib{lang,ReportWriter} to actually write the reports. By default, an
- * object of type
- * \ref alib::lang::ReportWriterStdIO "ReportWriterStdIO" is attached.
+ * This class uses a member of type  * \alib{lang,ReportWriter} to actually write the reports.
+ * By default, an object of type \alib{lang,ReportWriterStdIO} is attached.
  *
- * The reporting method,
- * \ref alib::lang::Report::DoReport "DoReport" will check the flags provided with
- * \ref alib::lang::Report::PushHaltFlags "PushHaltFlags" for message types \c 0 (errors)
- * and \c 1 (warnings), and may invoke \e assert(). Such assertions are effective
- * only in the debug builds of the library/executable. Custom \e 'ReportWriters' might
- * take action (e.g. for security reasons) and e.g. terminate the application also in
- * release compilations.
+ * The reporting method, \alib{lang::Report,DoReport} will check the flags provided with
+ * \alib{lang::Report,PushHaltFlags} for message types \c 0 (errors) and \c 1 (warnings), and may
+ * invoke \e assert(). Such assertions are effective only in the debug builds of the
+ * library/executable. Custom \e 'ReportWriters' might take action (e.g. for security reasons)
+ * and e.g. terminate the application also in release compilations.
  *
  * To simplify things, a set of macros is defined which are pruned in release
  * versions of the compilation unit. These are:
@@ -75,7 +71,7 @@ enum class ReportExceptions
  * - #ALIB_ASSERT_ERROR
  * - #ALIB_ASSERT_WARNING
  *
- * In fact, these macros exist in <b>%ALib Modules</b> as well, but with the inclusion of
+ * In fact, these macros exist in  \alibheader{alib.hpp} already, but with the inclusion of
  * header \alibheader{lang/message/report.hpp}, these macros become redefined to use
  * this class.
  *
@@ -143,7 +139,10 @@ class Report
     // constructor/destructor
     // #############################################################################################
     public:
+        /** Constructor. */
         ALIB_API     Report();
+
+        /** Destructor. */
         ALIB_API    ~Report();
 
     // #############################################################################################
@@ -163,10 +162,9 @@ class Report
         }
 
         /** ****************************************************************************************
-         * Reports the given message to the current
-         * \alib{lang,ReportWriter} in place. The default \b ReportWriter
-         * will print the message on the process console. Furthermore, in debug
-         * execution the flags provided with #PushHaltFlags is checked.
+         * Reports the given message to the current \alib{lang,ReportWriter} in place.
+         * The default \b ReportWriter will print the message on the process console.
+         * Furthermore, in debug execution the flags provided with #PushHaltFlags is checked.
          * If this is set in respect to type of message (field \alib{lang,Message::Type}),
          * the program halts or suspends into the debugger (platform and language specific).
          *
@@ -291,13 +289,15 @@ class ReportWriterStdIO : public ReportWriter, public Singleton<ReportWriterStdI
         friend class basecamp::BaseCamp;
     #endif
 
-    /**
-     * Private constructor, while parent class \b %Singleton is friend. Therefore, only one
-     * instance may exist.
-     */
     private:
-        ALIB_API            ReportWriterStdIO()             {}
-        ALIB_API virtual   ~ReportWriterStdIO() override    {}
+        /**
+         * Private constructor, while parent class \b %Singleton is friend. Therefore, only one
+         * instance may exist.
+         */
+        ReportWriterStdIO()                                                               = default;
+
+        /** Private destructor. */
+        virtual   ~ReportWriterStdIO()                                          override  = default;
 
     public:
         /** ****************************************************************************************

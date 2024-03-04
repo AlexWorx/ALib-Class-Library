@@ -85,7 +85,7 @@ struct VariableFields
      * The only occasion that this value is used is with method
      * \alib{config,Configuration::Load}.
      * If no plug-in has this variable defined and this field is not \e nulled, then the value
-     * is written into plug-in of priority \alib{config,Priorities::DefaultValues},
+     * is written into plug-in of priority \alib{config,Priorities,Priorities::DefaultValues},
      * respectively - if this default plug-in was replaced by the user - into a plug-in found at
      * or below this priority.
      *
@@ -104,7 +104,7 @@ struct VariableFields
     /**
      * A value related to the priority of a configuration plug-in.
      * The following values apply:
-     * - \alib{config,Priorities::NONE} after creation or declaration (reuse).
+     * - \alib{config,Priorities,Priorities::NONE} after creation or declaration (reuse).
      * - The priority of the plug-in that loaded the value (after calling
      *   \alib{config,Configuration::Load}).
      * - The priority of the plug-in that stored the value (after calling
@@ -578,7 +578,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
          * The only occasion that this value is used is with method
          * \alib{config,Configuration::Load}.
          * If no plug-in has this variable defined and this field is not \e nulled, then the value
-         * is written into plug-in of priority \alib{config,Priorities::DefaultValues},
+         * is written into plug-in of priority \alib{config,Priorities,Priorities::DefaultValues},
          * respectively - if this default plug-in was replaced by the user - into a plug-in found at
          * or below this priority.
          *
@@ -602,7 +602,7 @@ class Variable : protected monomem::SelfContained<detail::VariableFields>
         /**
          * A value related to the priority of a configuration plug-in.
          * The following values apply:
-         * - \alib{config,Priorities::NONE} after creation or declaration (reuse).
+         * - \alib{config,Priorities,Priorities::NONE} after creation or declaration (reuse).
          * - The priority of the plug-in that loaded the value (after calling
          *   \alib{config,Configuration::Load}).
          * - The priority of the plug-in that stored the value (after calling

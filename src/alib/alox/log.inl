@@ -97,7 +97,7 @@ class Log
          * - If under windows, a Visual Studio debug session is running, adds a
          *   \ref alib::lox::loggers::VStudioLogger "VStudioLogger"
          *   in addition to the standard console logger. This can be suppressed using
-         *   configuration variable \ref ALOX_NO_IDE_LOGGER.
+         *   configuration variable \ref alxcvALOX_NO_IDE_LOGGER.
          *
          * The name of the \e Logger created is \c "DEBUG_LOGGER". It will be registered with
          * the standard \b %Lox used for debug-logging, by setting \e Verbosities

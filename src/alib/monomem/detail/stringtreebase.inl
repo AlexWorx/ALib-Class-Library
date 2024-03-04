@@ -391,7 +391,7 @@ struct StringTreeBase
         }
 
         /**
-         * Implementation of \alib{monomem,StringTree::Cursor::AssemblePath}.
+         * Implementation of \alib{monomem,StringTree<T,TNodeMaintainer,TRecycling>,TCursor::AssemblePath}.
          *
          * @param target        The target to append the path to.
          * @param childNode     The (current) child node.

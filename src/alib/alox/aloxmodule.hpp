@@ -43,56 +43,56 @@ namespace alib {  namespace lox {
  **************************************************************************************************/
 enum class Variables
 {
-    /** Denotes configuration variable \ref ALOX_NO_IDE_LOGGER used by \alox{Log::AddDebugLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_NO_IDE_LOGGER used by \alox{Log::AddDebugLogger}. */
     NO_IDE_LOGGER        = 1,
 
-    /** Denotes configuration variable \ref ALOX_CONSOLE_TYPE used by \alox{Lox::CreateConsoleLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_CONSOLE_TYPE used by \alox{Lox::CreateConsoleLogger}. */
     CONSOLE_TYPE         = 2,
 
-    /** Denotes configuration variable \ref ALOX_LOXNAME_LOGGERNAME_VERBOSITY. */
+    /** Denotes configuration variable \ref alxcvALOX_LOXNAME_LOGGERNAME_VERBOSITY. */
     VERBOSITY            = 3,
 
-    /** Denotes configuration variable \ref ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES. */
+    /** Denotes configuration variable \ref alxcvALOX_GLOBAL_SOURCE_PATH_TRIM_RULES. */
     SPTR_GLOBAL          = 4,
 
-    /** Denotes configuration variable \ref ALOX_LOXNAME_SOURCE_PATH_TRIM_RULES used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOXNAME_SOURCE_PATH_TRIM_RULES used by class \alox{Lox}. */
     SPTR_LOX             = 5,
 
-    /** Denotes configuration variable \ref ALOX_LOXNAME_DOMAIN_SUBSTITUTION used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOXNAME_DOMAIN_SUBSTITUTION used by class \alox{Lox}. */
     DOMAIN_SUBSTITUTION  = 6,
 
-    /** Denotes configuration variable \ref ALOX_LOXNAME_PREFIXES used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOXNAME_PREFIXES used by class \alox{Lox}. */
     PREFIXES             = 7,
 
-    /** Denotes configuration variable \ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT used by class \alox{Lox}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOXNAME_DUMP_STATE_ON_EXIT used by class \alox{Lox}. */
     DUMP_STATE_ON_EXIT   = 8,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_AUTO_SIZES used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_AUTO_SIZES used by class \alox{detail::textlogger,TextLogger}. */
     AUTO_SIZES           = 20,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_FORMAT used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT               = 21,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_DATE_TIME used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_FORMAT_DATE_TIME used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_DATE_TIME     = 22,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_MULTILINE used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_FORMAT_MULTILINE used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_MULTILINE     = 23,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_FORMAT_TIME_DIFF used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_FORMAT_TIME_DIFF used by class \alox{detail::textlogger,TextLogger}. */
     FORMAT_TIME_DIFF     = 24,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_MAX_ELAPSED_TIME used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_MAX_ELAPSED_TIME used by class \alox{detail::textlogger,TextLogger}. */
     MAX_ELAPSED_TIME     = 25,
 
-    /** Denotes configuration variable \ref ALOX_LOGGERNAME_REPLACEMENTS used by class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_LOGGERNAME_REPLACEMENTS used by class \alox{detail::textlogger,TextLogger}. */
     REPLACEMENTS         = 26,
 
-    /** Denotes configuration variable \ref ALOX_CONSOLE_LIGHT_COLORS used by colorful specializations of class \alox{detail::textlogger,TextLogger}. */
+    /** Denotes configuration variable \ref alxcvALOX_CONSOLE_LIGHT_COLORS used by colorful specializations of class \alox{detail::textlogger,TextLogger}. */
     CONSOLE_LIGHT_COLORS = 27,
 
     #if defined(_WIN32)
-        /** Denotes configuration variable \ref ALOX_CODE_PAGE used by class \alox{loggers,WindowsConsoleLogger}. */
+        /** Denotes configuration variable \ref alxcvALOX_CODE_PAGE used by class \alox{loggers,WindowsConsoleLogger}. */
         CODEPAGE           = 28,
     #endif
 };
@@ -119,7 +119,7 @@ class ALox : public lang::Camp
     public:
 
         #if defined(_WIN32)
-            /** Attributes of corresponding configuration variable \ref ALOX_CODE_PAGE
+            /** Attributes of corresponding configuration variable \ref alxcvALOX_CODE_PAGE
              *  used by class \alox{loggers,WindowsConsoleLogger}.              */
             ALIB_API static  config::VariableDecl CODEPAGE;
         #endif

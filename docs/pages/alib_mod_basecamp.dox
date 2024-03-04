@@ -230,9 +230,9 @@ The recommended use of the class is that the type itself is the exclusive throwa
 when catching \alib exceptions, only one \c catch block is needed (possible) and within this catch block
 code might to perform different actions depending on the exception entries.
 
-Of-course, user programmer might break this rule and derive own exception types, but while this
-is not recommended, no \alibmod uses derived types and only this type needs to be "caught" when
-invoking \alib code that throws.
+Of-course, a user of the library might break this rule and derive own exception types, but it is
+really not recommended. Think about it first! No \alibmod uses derived types and only this type
+needs to be "caught" when invoking \alib code that throws.
 
 
 \I{################################################################################################}
@@ -633,7 +633,7 @@ of the library, is given with class \alib{lang::resources,ConfigResourcePool}.
 
 The type externalizes resources by using entities found with module \alib_config.
 For this, it disposes about a public member of type \alib{config,Configuration} and installs one
-\alib{config,InMemoryPlugin} with \alib{config,Priorities::DefaultValues,default priority}.
+\alib{config,InMemoryPlugin} with \alib{config,Priorities,default priority}.
 This plug-in fetches all resources fed with methods \alib{lang::resources::ResourcePool,Bootstrap} and
 \alib{lang::resources::ResourcePool,BootstrapBulk}.
 
@@ -643,7 +643,7 @@ increased memory overhead).
 
 Externalization is achieved when a custom plug-in is attached to the configuration object found
 with field \alib{lang::resources,ConfigResourcePool::Config}. For example, this could be of type
-\alib{config,IniFile} and be attached with priority \alib{config,Priorities::Standard}.
+\alib{config,IniFile} and be attached with priority \alib{config,Priorities,Priorities::Standard}.
 
 With that, any entries made in that \b INI-file, would simply overwrite the corresponding
 resource values which use the lower default priority.

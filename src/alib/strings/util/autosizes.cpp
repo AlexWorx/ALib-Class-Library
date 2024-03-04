@@ -144,7 +144,7 @@ void    AutoSizes::Consolidate()
         {
             // reset tab difference if (for some strange application specific reason) this
             // tab stop is smaller than the previous one. Obviously some multi-line tab stop
-            // is used (does not happen for example with with ALox)
+            // is used (does not happen for example with ALox)
             if( entry.actual > lastTabStop )
             {
                 lastTabStop= entry.actual;

@@ -4,49 +4,22 @@
 //  Copyright 2015-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
-
-/** @file */ //<- needed for Doxygen include
-
-
-// the variable 'declarations' to be read by doxygen (doxygen is sometimes funny)
-Configuration Variable ALOX_CODE_PAGE;
-Configuration Variable ALOX_CONSOLE_TYPE;
-Configuration Variable ALOX_CONSOLE_LIGHT_COLORS;
-Configuration Variable ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES;
-Configuration Variable ALOX_LOGGERNAME_AUTO_SIZES;
-Configuration Variable ALOX_LOGGERNAME_FORMAT;
-Configuration Variable ALOX_LOGGERNAME_FORMAT_DATE_TIME;
-Configuration Variable ALOX_LOGGERNAME_FORMAT_TIME_DIFF;
-Configuration Variable ALOX_LOGGERNAME_FORMAT_MULTILINE;
-Configuration Variable ALOX_LOGGERNAME_MAX_ELAPSED_TIME;
-Configuration Variable ALOX_LOGGERNAME_REPLACEMENTS;
-Configuration Variable ALOX_LOXNAME_DOMAIN_SUBSTITUTION;
-Configuration Variable ALOX_LOXNAME_LOGGERNAME_VERBOSITY;
-Configuration Variable ALOX_LOXNAME_DUMP_STATE_ON_EXIT;
-Configuration Variable ALOX_LOXNAME_PREFIXES;
-Configuration Variable ALOX_LOXNAME_SOURCE_PATH_TRIM_RULES;
-Configuration Variable ALOX_NO_IDE_LOGGER;
-
-
-//##################################################################################################
-// GrpALoxConfigVars
-//##################################################################################################
 /**
-@defgroup GrpALoxConfigVars   ALox Configuration Variables
-\details
+\page alib_alox_cfgvars    ALox Configuration Variables
+
+## Description ##
 Trough the use of class \alib{config,Configuration} defined in module \alib_config of the
 \aliblong, external configuration variables can be comfortably defined and accessed.
 
 While this is a reference appendix chapter, for general information, please refer to:
 - The \ref alib_mod_config "Programmer's Manual" of module \alib_config_nl.
-- The \ref alib::config "Reference Documentatiohn" of module \alib_config_nl.
+- The \ref alib::config "Reference Documentation" of module \alib_config_nl.
 - A quick sample how to attach an INI-file with minimum effort to an \alib enabled application
-  is provided in chapter \ref alox_man_external_verbosity_configuration of the
+  is provided in chapter \ref alib_mod_external_verbosity_configuration of the
   Programmer's Manual of module \alib_alox.
 
 A few further configuration variables that \alib internally uses are defined by module \alib_basecamp.
-The variables defined with this module are \ref GrpALibConfigVars "documented here".
+The variables defined with this module are \ref alib_cfgvars "documented here".
 
 <b>Default Behavior:</b><p>
 \alox and the \aliblong are designed to run fine without setting configuration variables.
@@ -64,11 +37,30 @@ class \alib{lox::Variables}.
 \note Setting environment variables is platform specific and is not part of this documentation. To
 get an overview, refer to [Wikipedia](https://en.wikipedia.org/wiki/Environment_variable).<p>
 
-@{
-*/
+## Variable Index ##
+- \ref alxcvALOX_CODE_PAGE
+- \ref alxcvALOX_CONSOLE_TYPE
+- \ref alxcvALOX_CONSOLE_LIGHT_COLORS
+- \ref alxcvALOX_GLOBAL_SOURCE_PATH_TRIM_RULES
+- \ref alxcvALOX_LOGGERNAME_AUTO_SIZES
+- \ref alxcvALOX_LOGGERNAME_FORMAT
+- \ref alxcvALOX_LOGGERNAME_FORMAT_DATE_TIME
+- \ref alxcvALOX_LOGGERNAME_FORMAT_TIME_DIFF
+- \ref alxcvALOX_LOGGERNAME_FORMAT_MULTILINE
+- \ref alxcvALOX_LOGGERNAME_MAX_ELAPSED_TIME
+- \ref alxcvALOX_LOGGERNAME_REPLACEMENTS
+- \ref alxcvALOX_LOXNAME_DOMAIN_SUBSTITUTION
+- \ref alxcvALOX_LOXNAME_LOGGERNAME_VERBOSITY
+- \ref alxcvALOX_LOXNAME_DUMP_STATE_ON_EXIT
+- \ref alxcvALOX_LOXNAME_PREFIXES
+- \ref alxcvALOX_LOXNAME_SOURCE_PATH_TRIM_RULES
+- \ref alxcvALOX_NO_IDE_LOGGER
 
-/**
-\var  ALOX_CONSOLE_TYPE
+\I{################################################################################################}
+# Reference Documentation #
+
+\I{################################################################################################}
+## ALOX_CONSOLE_TYPE ## {#alxcvALOX_CONSOLE_TYPE}
 <em>Default Value</em>: \c "default"<br>
 
 Influences the type of console logger that will be created by method
@@ -81,11 +73,11 @@ Possible values are:
    Plain      | Plain text \e Logger of type \alib{lox::loggers,ConsoleLogger} is created.
    Ansi       | A \e Logger of type \alib{lox::loggers,AnsiLogger} is created.
    Windows    | A \e Logger of type \alib{lox::loggers,WindowsConsoleLogger} is created.
-*/
 
 
-/**
-\var  ALOX_CONSOLE_LIGHT_COLORS
+\I{################################################################################################}
+## ALOX_CONSOLE_LIGHT_COLORS ## {#alxcvALOX_CONSOLE_LIGHT_COLORS}
+
 <em>Default Value</em>: \c "" (empty string)<br>
 
 Evaluated by colorful loggers that dispose about light and dark colors to adjust their foreground
@@ -105,11 +97,9 @@ Value options are:
 - \b "Never": Sets foreground and background color to the same "brightness". This is recommended
   solely for systems that do not support light colors.
 
-*/
 
-
-/**
-\var  ALOX_NO_IDE_LOGGER
+\I{################################################################################################}
+## ALOX_NO_IDE_LOGGER ## {#alxcvALOX_NO_IDE_LOGGER}
 <em>Default Value</em>: \c "false"<br>
 
 Boolean variable that is evaluated in method \alib{lox,Log::AddDebugLogger}.
@@ -118,10 +108,10 @@ The only logger currently available (needed) is with WindowsOS / VisualStudio, c
 \alib{lox::loggers,VStudioLogger}.
 
 This variable can be used to suppress this.
-*/
 
-/**
-\var  ALOX_CODE_PAGE
+
+\I{################################################################################################}
+## ALOX_CODE_PAGE ## {#alxcvALOX_CODE_PAGE}
 <em>Default Value</em>: \c 65001<br>
 \e Availability: On target platform WindowsOS only.<br>
 
@@ -129,11 +119,10 @@ Evaluated once in the constructor of class \alib{lox::loggers,WindowsConsoleLogg
 Overwrites the default value of field \alib{lox::loggers::WindowsConsoleLogger,CodePage}.
 For possible values refer to
 [Microsoft documentation] (https://msdn.microsoft.com/EN-US/library/windows/desktop/dd317756%28v=vs.85%29.aspx).
-*/
 
 
-/**
-\var  ALOX_LOGGERNAME_AUTO_SIZES
+\I{################################################################################################}
+## ALOX_LOGGERNAME_AUTO_SIZES ## {#alxcvALOX_LOGGERNAME_AUTO_SIZES}
 <em>Default Value</em>: none.<br>
 
 This variable is used by \e Loggers derived from abstract type \alib{lox::detail::textlogger,TextLogger}.
@@ -151,11 +140,11 @@ across sessions. The information is only stored (and successfully read back with
 the next run of a process) when a write-enabled configuration plug-in (e.g. an INI file)
 is available.
 
-@see Chapter \ref alox_man_apdx_auto_config_list_logables_textlogger.
-*/
+@see Chapter \ref alib_mod_apdx_auto_config_list_logables_textlogger.
 
-/**
-\var  ALOX_LOGGERNAME_MAX_ELAPSED_TIME
+
+\I{################################################################################################}
+## ALOX_LOGGERNAME_MAX_ELAPSED_TIME ## {#alxcvALOX_LOGGERNAME_MAX_ELAPSED_TIME}
 <em>Default Value</em>: \c "0, limit=59"<br>
 
 Format: <c> ALOX_\<LOGGERNAME\>_MAX_ELAPSED_TIME = maximum [, limit= limitValue] </c>
@@ -178,11 +167,9 @@ when a new session starts.
 Note that the portion <c>'LOGGERNAME'</c> in the variable name is replaced by \alox with the value
 of \alib{lox::detail,Logger::GetName}. This allows to have different values for different \e %Loggers.
 
-*/
 
-
-/**
-\var  ALOX_LOGGERNAME_FORMAT
+\I{################################################################################################}
+## ALOX_LOGGERNAME_FORMAT ## {#alxcvALOX_LOGGERNAME_FORMAT}
 <em>Default Value</em>: Set to the default values of the class members (fields).<br>
 
 This variable is used by \e Loggers of type \alib{lox::detail,textlogger::TextLogger}.<br>
@@ -218,29 +205,26 @@ attached to the debug \b %Lox singleton, is named \c "DEBUG_LOGGER". Therefore, 
 \c ALOX_DEBUG_LOGGER_FORMAT, this \e Logger is affected.
 Furthermore, whith debugging, a second debug-\e Logger for the IDE might be created.
  Its' name is \c "IDE_LOGGER".
-*/
 
 
-/**
-\var  ALOX_LOGGERNAME_FORMAT_DATE_TIME
+\I{################################################################################################}
+## ALOX_LOGGERNAME_FORMAT_DATE_TIME ## {#alxcvALOX_LOGGERNAME_FORMAT_DATE_TIME}
 <em>Default Value</em>: Set to the default values of the class members (fields).<br>
 
-This variable is used and applied in the same way as \ref ALOX_LOGGERNAME_FORMAT, but
+This variable is used and applied in the same way as \ref alxcvALOX_LOGGERNAME_FORMAT, but
 defines the following fields:
 
 - \alib{lox::detail::textlogger,MetaInfo::DateFormat},
 - \alib{lox::detail::textlogger,MetaInfo::TimeOfDayFormat} and
 - \alib{lox::detail::textlogger,MetaInfo::TimeElapsedDays}.
 
-*/
 
-
-/**
-\var ALOX_LOGGERNAME_REPLACEMENTS
+\I{################################################################################################}
+## ALOX_LOGGERNAME_REPLACEMENTS ## {#alxcvALOX_LOGGERNAME_REPLACEMENTS}
 Format: <c> ALOX_\<LOGGERNAME\>_REPLACEMENTSFORMAT = ["]search["] , ["]replace["] [,...] </c>
 
 Note that the portion <c>'LOGGERNAME'</c> in the variable name is replaced as documented in
-\ref ALOX_LOGGERNAME_FORMAT.
+\ref alxcvALOX_LOGGERNAME_FORMAT.
 
 The variable allows to set pairs of search and replace strings for a text logger. Pairs found here,
 are set using method \alib{lox::detail::textlogger,TextLogger::SetReplacement}.
@@ -248,13 +232,12 @@ are set using method \alib{lox::detail::textlogger,TextLogger::SetReplacement}.
 Values that start or end with whitespace characters or which contain comma characters (<c>,</c>) ,
 need to be enclosed by quotation marks (<c>\"</c>).
 
-*/
 
-/**
-\var  ALOX_LOGGERNAME_FORMAT_TIME_DIFF
+\I{################################################################################################}
+## ALOX_LOGGERNAME_FORMAT_TIME_DIFF ## {#alxcvALOX_LOGGERNAME_FORMAT_TIME_DIFF}
 <em>Default Value</em>: Set to the default values of the class members (fields).<br>
 
-This variable is used and applied in the same way as \ref ALOX_LOGGERNAME_FORMAT, but
+This variable is used and applied in the same way as \ref alxcvALOX_LOGGERNAME_FORMAT, but
 defines the following fields:
 
 - \alib{lox::detail::textlogger,MetaInfo::TimeDiffMinimum},
@@ -266,13 +249,13 @@ defines the following fields:
 - \alib{lox::detail::textlogger,MetaInfo::TimeDiffMins},
 - \alib{lox::detail::textlogger,MetaInfo::TimeDiffHours} and
 - \alib{lox::detail::textlogger,MetaInfo::TimeDiffDays}.
-*/
 
-/**
-\var  ALOX_LOGGERNAME_FORMAT_MULTILINE
+
+\I{################################################################################################}
+## ALOX_LOGGERNAME_FORMAT_MULTILINE ## {#alxcvALOX_LOGGERNAME_FORMAT_MULTILINE}
 <em>Default Value</em>: Set to the default values of the class members (fields).<br>
 
-This variable is used and applied in the same way as \ref ALOX_LOGGERNAME_FORMAT, but
+This variable is used and applied in the same way as \ref alxcvALOX_LOGGERNAME_FORMAT, but
 defines the following fields:
 
 - \alib{lox::detail::textlogger,TextLogger::MultiLineMsgMode},
@@ -281,10 +264,9 @@ defines the following fields:
 - \alib{lox::detail::textlogger,TextLogger::FmtMultiLineSuffix} and
 - \alib{lox::detail::textlogger,TextLogger::MultiLineDelimiter}.
 
-*/
 
-/**
-\var  ALOX_LOXNAME_DOMAIN_SUBSTITUTION
+\I{################################################################################################}
+## ALOX_LOXNAME_DOMAIN_SUBSTITUTION ## {#alxcvALOX_LOXNAME_DOMAIN_SUBSTITUTION}
 <em>Default Value</em>: none.<br>
 This variable is used to define <em>Domain Substitution Rules</em> for a \b %Lox.
 The portion <c>'LOXNAME'</c> of the variable name has to be replaced by the name of the instance
@@ -292,23 +274,22 @@ of class \b %Lox in question.
 
 Format: <c> ALOX_\<LOXNAME\>_DOMAIN_SUBSTITUTION = [*]domainpath[*] -> replacement [ ; &hellip; ] </c>
 
-Details are described in \ref alox_man_domain_substitution_config "Substitution Rules and External Configuration".
+Details are described in \ref alib_mod_domain_substitution_config "Substitution Rules and External Configuration".
 
-*/
 
-/**
-\var  ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES
+\I{################################################################################################}
+## ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES ## {#alxcvALOX_GLOBAL_SOURCE_PATH_TRIM_RULES}
 <em>Default Value</em>: \c "" (empty string).<br>
 
 This variable is used to define global <em>Source Path Trim Rules</em>.
 
 Format: <c> ALOX_GLOBAL_SOURCE_PATH_TRIM_RULES = [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; &hellip; ] </c>
 
-Details are described in \ref alox_man_trim_source_path_set_config "External Configuration of Trim Rules".
-*/
+Details are described in \ref alib_mod_trim_source_path_set_config "External Configuration of Trim Rules".
 
-/**
-\var  ALOX_LOXNAME_SOURCE_PATH_TRIM_RULES
+
+\I{################################################################################################}
+## ALOX_LOXNAME_SOURCE_PATH_TRIM_RULES ## {#alxcvALOX_LOXNAME_SOURCE_PATH_TRIM_RULES}
 <em>Default Value</em>: \c "" (empty string).<br>
 
 This variable is used to define <b>%Lox</b>-specific <em>Source Path Trim Rules</em>.
@@ -317,11 +298,11 @@ class \b %Lox in question.
 
 Format: <c> ALOX_\<LOXNAME\>_SOURCE_PATH_TRIM_RULES = [*]sourcepath [, inclusion, trimoffset, sensitivity, replacement] [ ; &hellip; ] </c>
 
-Details are described in \ref alox_man_trim_source_path_set_config "External Configuration of Trim Rules".
-*/
+Details are described in \ref alib_mod_trim_source_path_set_config "External Configuration of Trim Rules".
 
-/**
-\var  ALOX_LOXNAME_LOGGERNAME_VERBOSITY
+
+\I{################################################################################################}
+## ALOX_LOXNAME_LOGGERNAME_VERBOSITY ## {#alxcvALOX_LOXNAME_LOGGERNAME_VERBOSITY}
 <em>Default Value</em>: \c "writeback" (empty string).<br>
 
 This variable is used to set \e Verbosities for a \e %Logger attached to an instance of class <b>%Lox</b>.
@@ -330,11 +311,11 @@ the names of the instances of \b %Lox and \b %Logger in question.
 
 Format: <c> ALOX_\<LOXNAME\>_\<LOGGERNAME\>_VERBOSITY = [ writeback [ VAR_NAME ] ; ]   [*]domainpath[*] = verbosity [ ; &hellip; ] </c>
 
-Details are described in \ref alox_man_external_verbosity_configuration "External Verbosity Configuration".
-*/
+Details are described in \ref alib_mod_external_verbosity_configuration "External Verbosity Configuration".
 
-/**
-\var  ALOX_LOXNAME_PREFIXES
+
+\I{################################################################################################}
+## ALOX_LOXNAME_PREFIXES ## {#alxcvALOX_LOXNAME_PREFIXES}
 <em>Default Value</em>: \c "" (empty string).<br>
 
 This variable is used to define <b>%Lox</b> and <em>Log Domain</em> specific <em>Prefix Logables</em>
@@ -356,11 +337,10 @@ Each definition contains of the following parameters:
   Can evaluate to the terms <em>Include</em> or <em>Exclude</em>. Can be arbitrarily abbreviated
   (i.e. \b "E" is enough) and is read in case insensitive way. The meaning is the same as parameter
   \p{otherPLs} of method\alib{lox,Lox::SetPrefix(const Box&\,const NString&\,lang::Inclusion)}.
-*/
 
 
-/**
-\var  ALOX_LOXNAME_DUMP_STATE_ON_EXIT
+\I{################################################################################################}
+## ALOX_LOXNAME_DUMP_STATE_ON_EXIT ## {#alxcvALOX_LOXNAME_DUMP_STATE_ON_EXIT}
 <em>Default Value</em>: \c "none, verbosity=info, domain=/ALOX" (empty string).<br>
 
 Used for debugging or for investigation into ALox enabled 3rd party libraries or applications.
@@ -427,8 +407,3 @@ When the process terminates (precisely the first \e Logger is removed from the s
 
 */
 
-
-
-
-
-/**  @}  */

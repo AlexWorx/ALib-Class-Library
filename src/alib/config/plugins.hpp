@@ -289,7 +289,7 @@ namespace detail
 /** ************************************************************************************************
  * Specialization of abstract interface class #ConfigurationPlugin, which takes all command line
  * parameters in the constructor and reads variable values from those parameters on request.
- * Its priority value usually is \alib{config,Priorities::CLI}, which is higher
+ * Its priority value usually is \alib{config,Priorities,Priorities::CLI}, which is higher
  * than all other default plug-ins provided.
  *
  * Variable categories are used as a prefix together with an underscore \c '_'.
@@ -440,8 +440,8 @@ class CLIArgs : public ConfigurationPlugin
  * Specialization of abstract interface class #ConfigurationPlugin, retrieves configuration
  * data from the system environment.
  *
- * Its priority value usually is \alib{config,Priorities::Environment}, which is higher
- * than \alib{config,Priorities::Standard} but lower than \alib{config,Priorities::CLI}.
+ * Its priority value usually is \alib{config,Priorities,Priorities::Environment}, which is higher
+ * than \alib{config,Priorities,Priorities::Standard} but lower than \alib{config,Priorities,Priorities::CLI}.
  *
  * Variable categories are used as a prefix together with an underscore '_'.
  * This means, if variable <em>LOCALE</em> in category <em>ALIB</em> is accessed, the environment

@@ -183,7 +183,7 @@ Class %Configuration in the constructor by default sets up four plug-ins automat
 If an application wants to suppress the use of one of the plug-ins, the plug-ins can be removed
 using method \ref alib::config::Configuration::RemovePlugin "RemovePlugin".<br>
 On the other hand, a plug-in of type \alib{config,IniFile} may be attached on bootstrap of a
-process (or later) using \alib{config,Priorities::Standard}.
+process (or later) using \alib{config,Priorities,Priorities::Standard}.
 
 In addition (or alternatively), custom plug-ins may be written and installed using arbitrary
 priorities.

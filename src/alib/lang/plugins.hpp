@@ -38,7 +38,7 @@ namespace alib::lang {
  * This class usually is used as a base class for types that need to manage simple plug-ins.
  * Within \alib itself, for example classes \alib{config,Configuration} and
  * \alib{expressions,Compiler} inherit from this class.
- *
+ * 
  * Plug-ins are organized with a prioritization. This means, that plug-ins which are inserted with
  * a higher priority are 'asked' first, and those with a lower value become 'asked' only if higher
  * prioritized plug-ins did not answer.<br>

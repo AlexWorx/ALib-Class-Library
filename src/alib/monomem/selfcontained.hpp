@@ -172,7 +172,7 @@ class SelfContained
          * or not.
          *
          * It is furthermore allowed to use methods \alib{monomem,MonoAllocator::TakeSnapshot}
-         * and \alib{monomem,MonoAllocator::Reset(const Snapshot&)} directly, to allow more flexible,
+         * and \alib{monomem,MonoAllocator::Reset} directly, to allow more flexible,
          * nested snapshots.
          *
          * @tparam  TArgs    The argument types used for re-constructing \p{TContained}.

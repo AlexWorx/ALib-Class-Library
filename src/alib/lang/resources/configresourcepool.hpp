@@ -80,7 +80,7 @@ class ConfigResourcePool  : public ResourcePool
     /**
      * Constructor. Creates a configuration object without one plug-in of type
      * \alib{config,InMemoryPlugin} with
-     * \alib{config,Priorities::DefaultValues,default priority}.
+     * \alib{config,Priorities,Priorities::DefaultValues,default priority}.
      * After construction, one or more custom plug-ins have to be added. Those may be emplaced
      * in this object's \alib{monomem,MonoAllocator}
      */

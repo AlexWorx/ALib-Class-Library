@@ -420,7 +420,7 @@ struct StringTreeNamesMonoAlloc
  * With this, child names and composite "paths" can be used to move the pointer along existing nodes
  * of the tree or to create new child nodes or even a whole path of such child nodes at once.
  *
- * Class \b %Cursor is very lightweight as it contains just two pointers, one to to the
+ * Class \b %Cursor is very lightweight as it contains just two pointers, one to the
  * \b %StringTree it originates from and one to the tree node currently represented.
  * Hence, objects of this type can be copied, assigned and passed around very efficiently.<br>
  * The currently represented node's templated custom data can be accessed with method
@@ -659,7 +659,7 @@ class StringTree : protected detail::StringTreeBase<T, TNodeMaintainer, TRecycli
          * This public, inner class provides the main interface into outer class \b StringTree.
          * The class should be considered being similar to a simple pointer or to a lightweight
          * iterator type, which refers to a tree and a current node.<br>
-         * The class's interface allows the access to a node's name and value and to to insert and
+         * The class's interface allows the access to a node's name and value and to insert and
          * remove child nodes.
          *
          * Instances of this class can be received with methods

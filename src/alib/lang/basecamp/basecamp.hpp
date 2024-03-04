@@ -80,9 +80,9 @@ namespace basecamp {
      */
     enum class Variables
     {
-        LOCALE               = 1   , ///< See \ref ALIB_LOCALE.
-        WAIT_FOR_KEY_PRESS   = 2   , ///< See \ref ALIB_WAIT_FOR_KEY_PRESS.
-        HAS_CONSOLE_WINDOW   = 3   , ///< See \ref ALIB_HAS_CONSOLE_WINDOW.
+        LOCALE               = 1   , ///< See \ref alibcvALIB_LOCALE.
+        WAIT_FOR_KEY_PRESS   = 2   , ///< See \ref alibcvALIB_WAIT_FOR_KEY_PRESS.
+        HAS_CONSOLE_WINDOW   = 3   , ///< See \ref alibcvALIB_HAS_CONSOLE_WINDOW.
     };
 #endif // ALIB_CONFIGURATION
 
@@ -113,7 +113,7 @@ class BaseCamp : public lang::Camp
          * By default, this flag is enabled when debugging a console application under Visual
          * Studio.<br>
          * This default behavior can be overruled by setting configuration variable
-         * \ref ALIB_WAIT_FOR_KEY_PRESS.<br>
+         * \ref alibcvALIB_WAIT_FOR_KEY_PRESS.<br>
          * In addition, this public flag may be modified at run-time (after method #Bootstrap was
          * invoked).
          */
@@ -162,7 +162,7 @@ class BaseCamp : public lang::Camp
          * - In glibc versions of \alib (GNU/unix) probably invoke glibc method
          *   <em>setlocale()</em>, depending on the setting of the environment variables
          *   <em>LANG</em> and <em>LANGUAGE</em> and depending on \alib configuration variable
-         *   \ref ALIB_LOCALE.
+         *   \ref alibcvALIB_LOCALE.
          *
          *   In addition, invokes
          *   \alib{strings,TNumberFormat::SetFromLocale,NumberFormat::SetFromLocale} on static singleton

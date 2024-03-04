@@ -75,7 +75,7 @@ void Cli::bootstrap( BootstrapPhases phase )
 
             // messages of general exceptions
             "ED1",   A_CHAR( "No command given."                                       ),
-            "ED2",   A_CHAR( "Unknown command found with with CLI argument{!Q[]}={!Q}" ),
+            "ED2",   A_CHAR( "Unknown command found with CLI argument{!Q[]}={!Q}" ),
             "ED10",  A_CHAR( "Error parsing option. Usage:\n"
                              "{}"                                                      ),
             "ED20",  A_CHAR( "Error parsing command.\n"

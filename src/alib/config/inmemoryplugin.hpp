@@ -84,7 +84,7 @@ class InMemoryPlugin : public ConfigurationPlugin
                 /** The comments of the section. */
                 AString         Comments;
 
-                /** The delimiter (for splitting output into to multiple lines). */
+                /** The delimiter (for splitting output into multiple lines). */
                 character       Delim                                                        = '\0';
 
                 /** The format hints of the variable */

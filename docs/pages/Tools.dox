@@ -53,7 +53,7 @@ no leaks.
 
 \I{################################################################################################}
 # 3. Doxygen Dot-File Fixer # {#alibtools_DoxygenGraphTemplateInstanceRemover}
-A small tool for patching the diagrams of the \https{Doxygen,www.stack.nl/~dimitri/doxygen}
+A small tool for patching the diagrams of the \https{Doxygen,https://www.doxygen.nl}
 documentation of \alib.
 The cmake project is found in the ALox source folder under:
 

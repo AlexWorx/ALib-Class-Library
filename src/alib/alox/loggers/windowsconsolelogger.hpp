@@ -32,7 +32,7 @@ namespace alib {  namespace lox { namespace loggers {
  * the readability of log output a lot and even allows to read if foreground and background colors
  * are the same (they then still differ). However, the right setting for this is dependent on
  * the color scheme of the final output device (window). To manipulate the right setting, see field
- * #UseLightColors and also configuration variable \ref ALOX_CONSOLE_LIGHT_COLORS.
+ * #UseLightColors and also configuration variable \ref alxcvALOX_CONSOLE_LIGHT_COLORS.
  *
  * In the constructor, a default format string and some other definitions in member
  * \ref MetaInfo get set to include ESC sequences. Of-course, these publicly accessible
@@ -72,7 +72,7 @@ class WindowsConsoleLogger : public alib::lox::detail::textlogger::TextLogger
          * - If \ref LightColorUsage "LightColorUsage::ForegroundDark", background colors will be
          *   light colors and foreground colors dark ones.
          *
-         * The configuration variable \ref ALOX_CONSOLE_LIGHT_COLORS allows to externally modify
+         * The configuration variable \ref alxcvALOX_CONSOLE_LIGHT_COLORS allows to externally modify
          * this flag. It is read once within the constructor.
          */
         LightColorUsage    UseLightColors;
@@ -86,7 +86,7 @@ class WindowsConsoleLogger : public alib::lox::detail::textlogger::TextLogger
          * This flag can be modified from outside any time. If the value is not equal to 0,
          * the code page of the output console is set prior to each log output.
          *
-         * The configuration variable \ref ALOX_CODE_PAGE is evaluated within the constructor of
+         * The configuration variable \ref alxcvALOX_CODE_PAGE is evaluated within the constructor of
          * this class, to allow to modifying the codepage at run-time.
          */
 

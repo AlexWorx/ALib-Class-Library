@@ -39,53 +39,39 @@ Some highlights of the functionality:
 - \b Modularization: Possible selective use of only parts of the library.
 - Extensive \b documentation.
 - <b>Least intrusive</b>: Designed to keep user code as independent from \alib types and idioms as possible.
-- Developed and steadily tested under
-  - <b>GNU/Linux</b>,
-  - <b>Windows OS</b>,
-  - <b>Mac OS</b>, and
-  - <b>Raspberry</b>
-
-  with compilers
-  - <b>GNU GCC</b>,
-  - <b>Clang</b>,
-  - <b>Microsoft C++ (MSC)</b>, and
-  - <b>MinGW (GNU/Windows)</b>.
-  - <b>Apple Clang</b>
-
-## Library Dependencies ##
-
-\alib compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
-Optional dependencies exist. For example if \https{boost,www.boost.org} is available,
-\alib_strings_nl are using its regex search.<br>
-In contrast, \alib provides optional compatibility headers for 3rd-party libraries
-(e.g. \https{QT Class Library,www.qt.io}), which for example provide adoptions of \alib type-traits
-for QT-types.
+- <b>Ease of use</b> by design.<br>
+  When things become complex, features are hidden behind default
+  behaviour and are only available to users who read the detail chapters of the various Programmer's Manuals.  \emoji :sweat_smile:
+- Developed and steadily tested under <b>GNU/Linux</b>, <b>Windows OS</b>, <b>Mac OS</b>, and
+  <b>Raspberry</b>. For details in respect to the current release, see section below.
 
 ## Documentation ##
 
 The following documentation is provided.
 
-1. \ref alib "Reference Documentation"  <b>covering100% of</b> the provided types, members,
-   functions, namespaces, macros and all other C++ entities.
+1. A \ref alib_manual "General Library Manual" is available describing the library structure,
+   its setup and compilation, bootstrapping, etc.
 
-2. \ref alib_manual_modules_overview "Programmer's Manuals" are available for (almost)
-   each \alibmod_nl.<br>
-   Together more than <b>500 pages</b> of well structured in-depth discussion of library
-   features as well as <b>step by step tutorials</b> are available.
+2. \b Fifteen separated \ref alib_manual_modules_overview "Programmer's Manuals" are published
+   on this website! (One for each \alibmod_nl).<br>
+   The manuals are well structured, provide <b>step by step source-code
+   tutorials</b> and sometimes go into in-depth discussion in respect to design decisions and overall
+   rationals behind important features of the \alibmods.
 
-3. Page \ref alib_changelog provides a detailed version history.
+3. \ref alib "Reference Documentation" which is covering100% of the provided types, members,
+   functions, namespaces, macros, etc. In short, <b>each and every C++ entity is documented</b>.
 
-4. A separated \ref alib_manual "General Manual" is available describing the library structure,
-   project setup, bootstrapping, etc.
+4. A detailed version history, documenting every interface change is found in the \ref alib_changelog.
 
-5. Reference documentation of C++ \ref alib_ref_prepro "compiler symbols and macros".
-   (We do not know how many pages those are, but probably another 500 next to the Programmer's
-   Manuals.)
+5. All documentation provided leverages the full power of \https{Doxygen,doxygen.nl} (the industry standard).
+   Therefore, changes in the library's interfaces are always detected and corrected.
+   The many <b>code samples</b> are implemented as unit tests and thus are "live"-integrated
+   to the documentation, often together with the output text snippets of the recent unit test run.
+   (See \ref alib_expressions_calculator "an example here").
 
-6. Tutorial and reference documentation's <b>code samples</b> are implemented as unit tests and
-   are integrated as source and output text snippets into the documentation.
-   (As for example \ref alib_enums_records "done here").
-
+\note
+   Summary: \alib comes with a <b>complete book of documentation</b>, which has more than
+   <b>1000 pages</b> if printed. Its all explained, for beginners and experts!
 
 ## IDE / Build System Setup ##
 The current release got tested on the following platform combinations:
@@ -119,6 +105,15 @@ with \alox, the logging library is now an \alibmod.
 and sources are published under Boost Software License:
 
 \verbinclude "../../LICENSE.txt"
+
+## Library Dependencies ##
+
+\alib compiles as is, hence it is <b>not dependent on any 3rd-party library</b>.
+Optional dependencies exist. For example if \https{boost,www.boost.org} is available,
+\alib_strings_nl are using its regex search.<br>
+In contrast, \alib provides optional compatibility headers for 3rd-party libraries
+(e.g. \https{QT Class Library,www.qt.io}), which for example provide adoptions of \alib type-traits
+for QT-types.
 
 ##  Contributions ##
 We would be happy, if the community started to support this library and are willing to receive

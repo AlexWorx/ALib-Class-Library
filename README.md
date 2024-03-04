@@ -36,55 +36,53 @@ Some highlights of the functionality:
 
 ## Main Characteristics And Design Goals ##
 
-- **ALib** is <b>free software**.
+- **ALib** is **free software**.
 - Compiles and tested with **C++ 17 and  20**.
 - **Modularization**: Possible selective use of only parts of the library.
 - Extensive **documentation**.
 - **Least intrusive**: Designed to keep user code as independent from **ALib** types and idioms as possible.
-- Developed and steadily tested under
-  - **GNU/Linux**,
-  - **Windows OS**,
-  - **Mac OS**, and
-  - **Raspberry**
- 
-
-## Library Dependencies ##
-
-**ALib** compiles as is, hence it is **not dependent on any 3rd-party library**.
-Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
-**ALib Strings** are using its regex search.<br>
-In contrast, **ALib** provides optional compatibility headers for 3rd-party libraries
-(e.g. [QT Class Library](https://www.qt.io)), which for example provide adoptions of **ALib** type-traits
-for QT-types.
+- **Ease of use** by design.
+  When things become complex, features are hidden behind default
+  behaviour and are only available to users who read the detail chapters of the various Programmer's Manuals. 
+- Developed and steadily tested under **GNU/Linux**, **Windows OS**, **Mac OS**, and
+  **Raspberry**. For details in respect to the current release, see section below. 
 
 ## Documentation ##
 
 The following documentation is provided.
+The following documentation is provided.
 
-1. [Reference Documentation](https://alib.dev/annotated.html), ** covering 100% of the types, 
-   members, functions, namespaces, macros  and other C++ entities.
+1. A \ref alib_manual [General Library Manual](https://alib.dev/alib_manual.html) is available describing the library structure,
+   its setup and compilation, bootstrapping, etc.
 
-2. [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are 
-   available for each module of the library.<br>
-   Together more than **500 pages** of well structured in-depth discussion of library
-   features as well as **step by step tutorials** are available.
+2. **Fifteen** separated [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are published
+   with the [ALib Homepage](https://alib.dev)! (One for each ALib Module).
+ 
+   The manuals are well structured, provide **step by step source-code tutorials** and sometimes go 
+   into in-depth discussion in respect to design decisions and overall rationals behind important features
+   of the ALib Modules.
 
-3. Page [Changelog](https://alib.dev/alib_changelog.html) provides a detailed version history.
+3. [Reference Documentation](https://alib.dev/annotated.html) which is covering100% of the provided types, members,
+   functions, namespaces, macros, etc. In short, **each and every C++ entity is documented**.
 
-4. A separated [General Manual](https://alib.dev/alib_manual.html) is available describing the 
-   library structure, project setup, bootstrapping, etc.
+4. A detailed version history, documenting every interface change is found in the [Changelog](https://alib.dev/alib_changelog.html).
 
-5. 100% complete [Reference documentation](https://alib.dev/alib_ref_prepro.html) for C++ compiler symbols and macros.
-   (Probably another 500 pages, next to the Programmer's Manuals.)
+5. All documentation provided leverages the full power of [Doxygen](https://doxygen.nl)
+   (the industry standard).
 
-6. Tutorial and reference documentation's ** code samples** are implemented as unit tests and
-   are integrated as source and output text snippets into the documentation.<br>
-   (As for example [done here](https://alib.dev/alib_mod_enums.html#alib_enums_records)).
+   Therefore, changes in the library's interfaces are always detected and corrected.
+   The many **code samples** are implemented as unit tests and thus are "live"-integrated
+   to the documentation, often together with the output text snippets of the recent unit test run.
+   (See  [an example here](https://alib.dev/alib_expressions_calculator.html)).
+
+Summary: **ALib** comes with a **complete book of documentation**, which has more than
+**1000 pages** if printed. Its all explained, for beginners and experts!
+
    
 
 ## IDE / Build System Setup ##
 The current Version got tested on the following platform combinations:
-- GNU/Linux Arch 6.7.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 17/20, 32-Bit / 64-Bit<br>
+- GNU/Linux Arch 6.7.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 17/20, 32-Bit / 64-Bit
   (This is the main development platform.)
 - Windows 10/11, MSC 17.8.3 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
 - Windows 10/11, MinGW,  C++ 17/20, 64-Bit
@@ -110,9 +108,19 @@ cross platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Li
 **ALib** is free software, can be [downloaded at Github](https://github.com/AlexWorx/ALib-Class-Library)
 and sources are published under [Boost Software License](LICENSE.txt)
 
+## Library Dependencies ##
+
+**ALib** compiles as is, hence it is **not dependent on any 3rd-party library**.
+Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
+**ALib Strings** are using its regex search.
+In contrast, **ALib** provides optional compatibility headers for 3rd-party libraries
+(e.g. [QT Class Library](https://www.qt.io)), which for example provide adoptions of **ALib** type-traits
+for QT-types.
+
 ##  Contributions ##
 We would be happy, if the community started to support this library and are willing to receive
-contributions and, if accepted, to update the code accordingly.<br>
+contributions and, if accepted, to update the code accordingly.
+
 Note that for legal reasons, we hereby explicitly refuse and reject code (or ideas for code)
 that are not explicitly provided under the Boost Software License.
 Please do not even contact us with your ideas/code in that case.

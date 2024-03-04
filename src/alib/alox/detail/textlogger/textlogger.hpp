@@ -308,7 +308,7 @@ class MetaInfo
          * the elapsed time.
          *
          * This field will be read from the configuration variable
-         * \ref ALOX_LOGGERNAME_MAX_ELAPSED_TIME when the \b %TextLogger that this object belongs
+         * \ref alxcvALOX_LOGGERNAME_MAX_ELAPSED_TIME when the \b %TextLogger that this object belongs
          * to is attached to a \b %Lox and written back on removal.
          */
         Ticks::Duration MaxElapsedTime;
@@ -517,7 +517,7 @@ class TextLogger : public Logger
          * The other way round, it is also possible to preset set minimum values for tabs and field
          * sizes and hence avoid the columns growing during the lifetime of the Logger.
          *
-         * This field will be read from configuration variable \ref ALOX_LOGGERNAME_AUTO_SIZES
+         * This field will be read from configuration variable \ref alxcvALOX_LOGGERNAME_AUTO_SIZES
          * when this \b %TextLogger is attached to a \b %Lox and written back on removal.
          */
         strings::util::AutoSizes   AutoSizes;
@@ -620,7 +620,7 @@ class TextLogger : public Logger
          * - \b ALox::MAX_ELAPSED_TIME
          * - \b ALox::REPLACEMENTS
          *
-         * Configuration variables are \ref GrpALoxConfigVars "documented here".
+         * Configuration variables are \ref alib_alox_cfgvars "documented here".
          *
          * Furthermore, invokes grand-parent's method \alib{threads,SmartLock::AddAcquirer},
          * respectively \alib{threads,SmartLock::RemoveAcquirer} and in addition,

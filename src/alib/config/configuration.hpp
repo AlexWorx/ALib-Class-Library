@@ -117,12 +117,12 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
          * Constructs a Configuration. If \p{addDefaultPlugins} is \c true, registers the initial
          * plug-ins as follows
          *
-         *  Priority         | Plug-in Type
-         * ------------------|----------------------------------------------------------
-         *  \alib{config,Priorities::ProtectedValues}   | \alib{config,InMemoryPlugin}
-         *  \alib{config,Priorities::Environment}       | \alib{config,Environment}
-         *  \alib{config,Priorities::CLI}               | \alib{config,CLIArgs}
-         *  \alib{config,Priorities::DefaultValues}     | \alib{config,InMemoryPlugin}
+         *  Priority                                               | Plug-in Type
+         * --------------------------------------------------------|------------------------------
+         *  \alib{config,Priorities,Priorities::ProtectedValues}   | \alib{config,InMemoryPlugin}
+         *  \alib{config,Priorities,Priorities::Environment}       | \alib{config,Environment}
+         *  \alib{config,Priorities,Priorities::CLI}               | \alib{config,CLIArgs}
+         *  \alib{config,Priorities,Priorities::DefaultValues}     | \alib{config,InMemoryPlugin}
          *
          * @param addPlugins If \b Yes the default plugins are added.
          ******************************************************************************************/
@@ -228,7 +228,7 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
 
         /** ****************************************************************************************
          * This method fetches all values from a plug-in of priority
-         * \alib{config,Priorities::DefaultValues}, which are not present in the given plug-in
+         * \alib{config,Priorities,Priorities::DefaultValues}, which are not present in the given plug-in
          * \p{dest} and stores them in that.
          * This is useful to collect all generated default values and store them in a user's
          * configuration file. This way, the user can identify configurable options easily.
@@ -265,7 +265,7 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
          *
          * If the variable was not found and \alib{config,Variable::DefaultValue}
          * in \p{variable} is set, the method adds the value to a plug-in of priority
-         * \alib{config,Priorities::DefaultValues},
+         * \alib{config,Priorities,Priorities::DefaultValues},
          * (respectively to the plug-in found at or below \b DefaultValues).
          * For the conversion of the value, field
          * \alib{config,ConfigurationPlugin::StringConverter} of field a plug-in of priority
@@ -291,31 +291,31 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
          * The first (most highly prioritized) plug-in to start the loop with, is defined by
          * field \alib{config,Variable::Priority} of the given \p{variable}.
          *
-         * If this is unset (\alib{config,Priorities::NONE}), which is the default value of the field
+         * If this is unset (\alib{config,Priorities,Priorities::NONE}), which is the default value of the field
          * for freshly declared variable objects, the starting priority value  of the loop is
          * \b detected.
          *
          * Detection is made by searching the variable in the plug-ins prior to storing it.
          * The search order is likewise by priority, starting with the highest.
-         * If the variable was not found, \alib{config,Priorities::DefaultValues}
+         * If the variable was not found, \alib{config,Priorities,Priorities::DefaultValues}
          * is chosen. Usually the writing loop then will also already end there,
          * because standard configuration sets have a write-enabled in-memory plug-in at
          * that priority.
          *
          * If the variable was found in the plug-in of priority
-         * \alib{config,Priorities::ProtectedValues}, the method stops without storing anything.
+         * \alib{config,Priorities,Priorities::ProtectedValues}, the method stops without storing anything.
          *
          *
          * This approach of storing variables, supports various use cases very nicely.
          * Some of the frequent ones shall be named here:
-         * - By setting the field to \alib{config,Priorities::DefaultValues}, the value
+         * - By setting the field to \alib{config,Priorities,Priorities::DefaultValues}, the value
          *   becomes just a default and does not overwrite externally specified values.
-         * - Leaving the field to its uninitialized state \alib{config,Priorities::NONE},
+         * - Leaving the field to its uninitialized state \alib{config,Priorities,Priorities::NONE},
          *   allows to store the variable in the plug-in that it was originally read from,
          *   or - if not stored already - in default values.
-         * - Setting the field to \alib{config,Priorities::ProtectedValues} allows to protect the
+         * - Setting the field to \alib{config,Priorities,Priorities::ProtectedValues} allows to protect the
          *   variable value in respect to external manipulation.
-         * - Setting the field to \alib{config,Priorities::ProtectedValues}<c> - 1</c>,
+         * - Setting the field to \alib{config,Priorities,Priorities::ProtectedValues}<c> - 1</c>,
          *   allows to store the variable just in the plug-in with highest possible priority.
          * - Finally, an application specific reason might motivate a caller of this method to
          *   preset a distinct priority value prior to invoking this method. For example, a variable
@@ -327,13 +327,13 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
          * to. This value is as well stored in field \alib{config,Variable::Priority} of the given
          * object.
          *
-         * A result of \alib{config,Priorities::NONE} indicates that the variable was not written.
+         * A result of \alib{config,Priorities,Priorities::NONE} indicates that the variable was not written.
          * This might only happen if
          * - the default plug-in of this configuration is not configured or does not support
          *   writing variables,
-         * - field \p{Priority} of the variable was set below \alib{config,Priorities::DefaultValues}
-         *   (but greater than \alib{config,Priorities::NONE}),
-         * - the \b detected priority was \alib{config,Priorities::ProtectedValues}.
+         * - field \p{Priority} of the variable was set below \alib{config,Priorities,Priorities::DefaultValues}
+         *   (but greater than \alib{config,Priorities,Priorities::NONE}),
+         * - the \b detected priority was \alib{config,Priorities,Priorities::ProtectedValues}.
          *   (In this case, obviously the application does not want to allow changes and writing the
          *   variable into a different plug-in has no effect.
          *   This way, such variables also do not appear in a user's configuration
@@ -403,7 +403,7 @@ class Configuration : public lang::PluginContainer<ConfigurationPlugin, Prioriti
          * For the conversion of the "externalized" string, method
          * \ref alib::config::XTernalizer::LoadFromString "XTernalizer::LoadFromString"
          * of field \alib{config,ConfigurationPlugin::StringConverter}
-         * of a plug-in of priority \alib{config,Priorities::DefaultValues}, is used.
+         * of a plug-in of priority \alib{config,Priorities,Priorities::DefaultValues}, is used.
          *
          * @param variable              The variable object.
          * @param externalizedValue     The new value to write.

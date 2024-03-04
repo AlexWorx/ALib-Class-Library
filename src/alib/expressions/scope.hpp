@@ -39,8 +39,8 @@ class Expression;
  **************************************************************************************************/
 struct ScopeResource
 {
-    virtual ~ScopeResource()
-    {}
+    /** The virtual destructor needed for virtual types. */
+    virtual ~ScopeResource()                                                                      {}
 };
 
 /** ************************************************************************************************

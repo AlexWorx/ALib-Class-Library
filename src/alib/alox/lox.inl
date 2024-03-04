@@ -314,7 +314,7 @@ class Lox
          * Setting parameter \p{allowAutoRule} to \c false, allows to suppress the creation of an
          * automatic rule based on the executables path.
          *
-         * \see Chapter \ref alox_man_trim_source_path for more information.
+         * \see Chapter \ref alib_mod_trim_source_path for more information.
          *
          * @param reach         Denotes whether only local rules are cleared or also global ones.
          *                      Defaults to \b %Reach::Global.
@@ -332,7 +332,7 @@ class Lox
 
         /** ****************************************************************************************
          * This static method creates a console logger. To decide which logger type to choose,
-         * configuration variable \ref ALOX_CONSOLE_TYPE is checked. If this variable is not set,
+         * configuration variable \ref alxcvALOX_CONSOLE_TYPE is checked. If this variable is not set,
          * then the decision is made as follows:
          * - On GNU/Linux OS, a
          *   \ref alib::lox::loggers::AnsiConsoleLogger "AnsiConsoleLogger" is chosen.
@@ -587,7 +587,7 @@ class Lox
          * be \e overwritten using further configuration variables.
          * Any prioritized \e 'internal' setting of \e Verbosities this way could be circumvented!
          *
-         * For more information consult the chapter \ref alox_man_domain_substitution of the
+         * For more information consult the chapter \ref alib_mod_domain_substitution of the
          * Programmer's Manual.
          *
          * @param domainPath  The path to search. Has to start with either  <c> '/'</c> or <c> '*'</c>.
@@ -654,7 +654,7 @@ class Lox
          *   To implement a "variable" <em>Prefix Logable</em> of string-type, an object of type
          *   \b %AString might be passed wrapped in class \c std::reference_wrapper<AString>.<br>
          *   For more information consult manual chapter
-         *   \ref alox_man_prefix_logables_lifecycle
+         *   \ref alib_mod_prefix_logables_lifecycle
          *   as well as chapter \ref alib_boxing_customizing_identity of the Programmer's Manual
          *   of module \alib_boxing.
          *<p>
@@ -730,7 +730,7 @@ class Lox
          *   This means, different to <em>Prefix Logables</em> of type \b %AString or custom types,
          *   the life-cycle of the object passed in parameter \p{prefix} is allowed to end
          *   right after the invocation of this method. For more information consult manual chapter
-         *   \ref alox_man_prefix_logables_lifecycle as well as chapter
+         *   \ref alib_mod_prefix_logables_lifecycle as well as chapter
          *   \ref alib_boxing_customizing_identity of the Programmer's Manual of module
          *   \alib_boxing.
          *
@@ -843,7 +843,7 @@ class Lox
          * \attention
          *  When data objects are 'overwritten', previous objects will be deleted internally.
          *  Hence, only pointers to heap-allocated objects (created with \c new) may be passed!<br>
-         *  For more information, consult chapter \ref alox_man_log_data of the
+         *  For more information, consult chapter \ref alib_mod_log_data of the
          *  Programmer's Manual.
          *
          * \note <em>Log Data</em> is a feature provided by \alox to support debug-logging.
@@ -924,7 +924,7 @@ class Lox
          *
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
-         *   your code, \alox provides configuration variable\ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT.
+         *   your code, \alox provides configuration variable\ref alxcvALOX_LOXNAME_DUMP_STATE_ON_EXIT.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.
@@ -949,7 +949,7 @@ class Lox
          *
          * \note
          *   As an alternative to (temporarily) adding an invocation of <b>%Lox.State</b> to
-         *   your code, \alox provides configuration variable \ref ALOX_LOXNAME_DUMP_STATE_ON_EXIT.
+         *   your code, \alox provides configuration variable \ref alxcvALOX_LOXNAME_DUMP_STATE_ON_EXIT.
          *   This allows to enable an automatic invocation of this method using external
          *   configuration data like command line parameters, environment variables or
          *   INI files.

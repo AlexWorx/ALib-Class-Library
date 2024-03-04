@@ -162,7 +162,7 @@ compiler:
   If true (1), plausibility checks and \alib assertions are enabled.
 
 \def  ALIB_DOX
-  Defined by \https{Doxygen,www.stack.nl/~dimitri/doxygen} when parsing source code.
+  Defined by \https{Doxygen,https://www.doxygen.nl} when parsing source code.
   Not defined with parsers of a C++ compiler. Primarily used to provide a doxygen
   compatible/readable version of complex declarations and definitions.
 
@@ -230,7 +230,7 @@ The following general symbols (aka symbols not related to distinct \alibmods) ar
   \alib is tested only on a limited set of platforms/compilers.
 
 \def  ALIB_DOX
-  Defined by \https{Doxygen,www.stack.nl/~dimitri/doxygen} when parsing source code.
+  Defined by \https{Doxygen,https://www.doxygen.nl} when parsing source code.
   Not defined with parsers of a C++ compiler. Primarily used to provide a doxygen
   compatible/readable version of complex declarations and definitions.
 
@@ -429,7 +429,7 @@ Instead, the macros used for the log statements themselves (see
   If defined, release <em>Log Statements</em> are enabled. Hence, users of \alox can conditionally
   compile special release logging code that belong to corresponding release logging statements.
   (Note that release logging still can be pruned as explained in
-  \ref alox_man_debug_and_release_logging_ft_1.)<br>
+  \ref alib_mod_debug_and_release_logging_ft_1.)<br>
   This is useful for example, to conditionally compile code that calculates and gathers
   information to do some more complex log output.
 

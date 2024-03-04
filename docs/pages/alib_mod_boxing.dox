@@ -2181,7 +2181,7 @@ It is registered with \alib{boxing,BootstrapRegisterDefault}
 \snippet "DOX_ALIB_BOXING.cpp"     DOX_ALIB_BOXING_FUNCTIONS_REGISTER3
 
 We repeat the "failed" invocation we had with type \b uinteger and also test a call on a
-boxed array with with an unknown element type. A third type repeats the call on a character array,
+boxed array with an unknown element type. A third type repeats the call on a character array,
 that got a specialized implementation:
 
 \snippet "DOX_ALIB_BOXING.cpp"     DOX_ALIB_BOXING_FUNCTIONS_INVOKE3
@@ -3551,7 +3551,7 @@ is implemented and therefore is to be used.
 # Appendix A Quick Reference # {#alib_boxing_appendix_quickref}
 
 While the \ref alib::boxing "namespace documentation" provides an extensive reference index
-(generated with marvelous \https{Doxygen,www.stack.nl/~dimitri/doxygen/}),
+(generated with marvelous \https{Doxygen,https://www.doxygen.nl}),
 the following quick lists should help finding the information you need:
 
 ## A.1 Type Guessing ## {#alib_boxing_appendix_quickref_1}

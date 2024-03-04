@@ -20,8 +20,8 @@
 #ifndef HPP_ALIB
 #define HPP_ALIB 1
 
-#define ALIB_VERSION              2312
-#define ALIB_REVISION             0
+#define ALIB_VERSION              2402
+#define ALIB_REVISION             1
 
 #if !defined(ALIB_DOX)
 
@@ -1196,7 +1196,7 @@ TCompilationFlags               CompilationFlags;
  * preprocessor symbols \ref ALIB_VERSION, \ref ALIB_REVISION and \ref ALIB_COMPILATION_FLAGS
  * has to be performed \e prior to calling \b Bootstrap.
  *
- * \attention A mismatch in in \alib library version and compilation flags, may lead to very
+ * \attention A mismatch in \alib library version and compilation flags, may lead to very
  *            dubious misbehavior which is almost impossible to debug. This is true for any
  *            C/C++ software/library mismatch.
  *

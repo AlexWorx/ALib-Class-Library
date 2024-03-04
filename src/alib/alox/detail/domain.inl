@@ -58,11 +58,13 @@ class PrefixLogable : public Box
         }
     }
 
+    /** Destructor. Deletes field #copy if set.  */
     ~PrefixLogable()
     {
         if(copy)
             delete copy;
     }
+
     /**
      * Move assignment operator.
      * Default implementation of compiler is used.

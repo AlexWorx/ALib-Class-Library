@@ -31,7 +31,7 @@ namespace alib {  namespace strings {
 /**
  * \attention
  *   This is a non-existing namespace! It is exclusively defined for the
- *   \https{documentation parser,www.stack.nl/~dimitri/doxygen}.
+ *   \https{documentation parser,https://www.doxygen.nl}.
  *
  * In this <b>"documentation namespace"</b>, you will find specializations of functor
  * \alib{strings,T_Append} which in reality are implemented in parent

@@ -81,7 +81,7 @@ And we think that a maximum of compatibility (e.g. with other tools or within in
 is guaranteed this way.<br>
 If you absolutely want localized meta information, like logging the name of months in Finnish,
 you can extend \alox for that.
-Here is \ref alox_man_loggers_textlogger "how you do that"!
+Here is \ref alib_mod_loggers_textlogger "how you do that"!
 
 <br>
 # Why is ALox introducing a huge set of own "utility classes"? # {#alib_alox_faq_aworx_util}

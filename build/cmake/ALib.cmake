@@ -59,11 +59,11 @@
 # The variables are only set, if not already predefined prior to invoking this script.
 # --------------------------------------------------------------------------------------------------
 
-set( ALIB_VERSION                   "2312R0"                                            CACHE STRING
+set( ALIB_VERSION                   "2402R1"                                            CACHE STRING
      "The ALib version. Not modifiable (will be overwritten on generation!)"        FORCE )
 
-set( ALIB_VERSION_NO                "2312" )
-set( ALIB_VERSION_REV               "0" )
+set( ALIB_VERSION_NO                "2402" )
+set( ALIB_VERSION_REV               "1" )
 
 if( NOT DEFINED  ALIB_DEBUG )
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )

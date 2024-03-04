@@ -4,22 +4,9 @@
 //  Copyright 2015-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
-
-
-/** @file */ //<- needed for Doxygen include
-
-
-// the variable 'declarations' to be read by doxygen (doxygen is sometimes funny)
-Configuration Variable ALIB_LOCALE;
-Configuration Variable ALIB_HAS_CONSOLE_WINDOW;
-Configuration Variable ALIB_WAIT_FOR_KEY_PRESS;
-
-//##################################################################################################
-// GrpALibConfigVars
-//##################################################################################################
 /**
-@defgroup GrpALibConfigVars   ALib Configuration Variables
-\details
+\page alib_cfgvars    ALib Configuration Variables
+## Description ##
 Trough the use of class \alib{config,Configuration} defined in module \alib_config of the
 \aliblong, external  configuration variables can be comfortably defined and accessed.
 
@@ -33,26 +20,32 @@ While this is a reference appendix chapter, for general information, please refe
 - The \ref alib_mod_config "Programmer's Manual" of module \alib_config_nl.
 - The \ref alib::config "Reference Documentation" of module \alib_config_nl.
 - A quick sample how to attach an INI-file with minimum effort to an \alib enabled application
-  is provided in chapter \ref alox_man_external_verbosity_configuration of the
+  is provided in chapter \ref alib_mod_external_verbosity_configuration of the
   Programmer's Manual of module \alib_alox.
-
 
 \note Setting environment variables is platform specific and is not part of this documentation. To
       get an overview, refer to [Wikipedia](https://en.wikipedia.org/wiki/Environment_variable).<p>
-
-\note The most internal use of configuration variables is made by module \alib_alox.<br>
-      <b>The variables defined with ALox </b> \ref GrpALoxConfigVars "are documented here"<b>!</b><br>
-
 
 This page lists the few variables defined with module \alib_basecamp.
 The variables are resourced with this module and declared with enum class \alib{lang,basecamp::Variables}.
 
 
-@{
-*/
+\I{################################################################################################}
+## Variable Index ##
 
-/**
-\var  ALIB_LOCALE
+- \ref alibcvALIB_LOCALE
+- \ref alibcvALIB_HAS_CONSOLE_WINDOW
+- \ref alibcvALIB_WAIT_FOR_KEY_PRESS
+
+\note The most internal use of configuration variables is made by module \alib_alox.<br>
+      <b>The variables defined with ALox </b> \ref alib_alox_cfgvars "are documented here"<b>!</b><br>
+
+
+\I{################################################################################################}
+# Reference Documentation #
+
+\I{################################################################################################}
+## ALIB_LOCALE ## {#alibcvALIB_LOCALE}
 <em>Default Value</em>: \c "" (empty string)<br>
 
 This boolean variable is evaluated within \ref alib_manual_bootstrapping "bootstrapping" \alibcamp_nl \alib_basecamp.
@@ -65,26 +58,22 @@ The behavior is as follows:
 The right definition of the locale is important, when using methods of module \alib_strings for
 converting multi-byte character strings to wide character strings. Furthermore, default values
 for \ref alib_basecamp_format "formatting numbers" and other types are influenced by this variable.
-*/
 
 
-/**
-\var  ALIB_HAS_CONSOLE_WINDOW
+\I{################################################################################################}
+## ALIB_HAS_CONSOLE_WINDOW ## {#alibcvALIB_HAS_CONSOLE_WINDOW}
 <em>Default Value</em>: \c "" (empty string)<br>
 
 This boolean configuration variable overwrites the value determined in method
 \alib{lang::basecamp,BaseCamp::HasConsoleWindow}.
-*/
 
-/**
-\var  ALIB_WAIT_FOR_KEY_PRESS
+
+\I{################################################################################################}
+## ALIB_WAIT_FOR_KEY_PRESS ## {#alibcvALIB_WAIT_FOR_KEY_PRESS}
 <em>Default Value</em>: \c "" (empty string)<br>
 This boolean variable is evaluated within \ref alib_manual_bootstrapping "bootstrapping" \alibcamp_nl \alib_basecamp.
 
 If set, it overrules the default behavior of detecting an appropriate value for field
 \alib{lang::basecamp,BaseCamp::WaitForKeyPressOnTermination}.
+
 */
-
-
-
-/**  @}  */

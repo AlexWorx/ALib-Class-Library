@@ -16,6 +16,12 @@ echo "      Thus, we have to choose the doxygen version carefully."
 #/opt/doxygen/1.9.1.build/bin/doxygen doxygen/doxyfile.ini
 #/opt/doxygen/1.9.3.build/bin/doxygen doxygen/doxyfile.ini
 #/opt/doxygen/1.9.5.build/bin/doxygen doxygen/doxyfile.ini
+#/opt/doxygen/1.9.6.build/bin/doxygen doxygen/doxyfile.ini
+#/opt/doxygen/1.9.8.build/bin/doxygen doxygen/doxyfile.ini
+#/opt/doxygen/1.10.0.240303.git.build/bin/doxygen doxygen/doxyfile.ini
+
+
+#doxygen doxygen/doxyfile.ini
 
 # echo '*** Copying other additional resources ***'
 cp resources/* ../html

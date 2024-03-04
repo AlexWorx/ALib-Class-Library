@@ -126,7 +126,7 @@ struct EnumRecordParser
 
     /**
      * Raises an error.
-     * @param what     Textual description about what has bien tried to to.
+     * @param what     Textual description about what has bien tried to do.
      */
     ALIB_API static void    error[[noreturn]] (const NCString& what);
 

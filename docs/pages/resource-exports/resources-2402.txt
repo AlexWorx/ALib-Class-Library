@@ -162,7 +162,7 @@ E4=12,IllegalOptionNameContinuation,ED12
 E5=20,ParsingCommand,ED20
 E6=21,MissingParameterValue,ED21
 ED1=No command given.
-ED2=Unknown command found with with CLI argument{!Q[]}={!Q}
+ED2=Unknown command found with CLI argument{!Q[]}={!Q}
 ED10=Error parsing option. Usage:\n{}
 ED20=Error parsing command.\nUsage: {}\n{}
 ED11=Missing argument(s) of option {!Q<>} found with CLI argument{!Q[]}={!Q}.\nExpected {}, given {}.
