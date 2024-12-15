@@ -28,9 +28,6 @@
 #
 #    with the first parameter being an arbitrary name for the resource target to create.
 #
-# 3. In case of using "cotire", the unity projects need to receive the information of the added
-#    project, because cotire today can't detect inter-project dependencies:
-#
 #       add_dependencies   ( my_target_unity          my_resources_target            )
 # -------------------------------------------------------------------------------------------------
 FUNCTION( AddResourceTarget  resourceProjectName  targetName resourceFileFilters)
@@ -124,8 +121,8 @@ FUNCTION( CollectAndRemoveDuplicates  sourceListVariableName  duplicateListVaria
     SET( duplicates  ${sourceList} )
 
     # not empty?
-    LIST( LENGTH  sourceList  qtySource )
-    IF( ${qtySource} GREATER  0  )
+    LIST( LENGTH  sourceList  cntSource )
+    IF( ${cntSource} GREATER  0  )
 
         # remove duplicates from source
         LIST( REMOVE_DUPLICATES  sourceList )
@@ -160,37 +157,6 @@ FUNCTION( DumpList listVariableName  )
     ENDFOREACH()
 
 ENDFUNCTION( DumpList )
-
-
-# -------------------------------------------------------------------------------------------------
-# Precompiled headers and unity build with 'cotire' CMake script.
-#    More Info at: https://github.com/sakra/cotire/
-#
-# Note:
-#   To enable/disable change CMake cache variable ALIB_CMAKE_COTIRE.
-#   To change the variable permanently (on clean cmake builds), set the variable prior
-#   to invoking this script.
-# -------------------------------------------------------------------------------------------------
-
-# download cotire (once)
-FUNCTION (CheckDownloadCotire)
-    set( _cotireFileName ${CMAKE_CURRENT_LIST_DIR}/cotire.cmake )
-    set( _cotireFileUrl  "http://raw.githubusercontent.com/sakra/cotire/master/CMake/cotire.cmake" )
-
-    if( NOT EXISTS  ${_cotireFileName} )
-        message( STATUS "Cotire not found. Trying to download ${_cotireFileName} from ${_cotireFileUrl}..." )
-        file( DOWNLOAD  ${_cotireFileUrl}  ${_cotireFileName} STATUS _status)
-        message( STATUS "Download status: ${_status}" )
-
-        if( NOT EXISTS  ${_cotireFileName} )
-            message( "...Error: Download of 'cotire' failed. Continuing without cotire." )
-            set( ALIB_CMAKE_COTIRE "Off" )
-        else()
-            message( STATUS "... cotire downloaded successfully." )
-        endif()
-    endif()
-
-ENDFUNCTION()
 
 
 # --------------------------------------------------------------------------------------------------

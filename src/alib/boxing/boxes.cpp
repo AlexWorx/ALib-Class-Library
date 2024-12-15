@@ -6,20 +6,18 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_BOXING_BOXING)
-#      include "alib/boxing/boxing.hpp"
-#   endif
-#   if ALIB_MONOMEM && !defined(HPP_ALIB_MONOMEM_MONOALLOCATOR)
+#if !DOXYGEN
+#   include "alib/boxing/boxing.hpp"
+#   if ALIB_MONOMEM
 #       include "alib/monomem/monoallocator.hpp"
 #   endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
 namespace alib {  namespace boxing {
 
-#if ALIB_DEBUG && !defined(ALIB_DOX)
+#if ALIB_DEBUG && !DOXYGEN
     // This is used by boxing::Bootstrap to do runtime-check for compatibility of boxing
     // and long double values.
     // It was put here to prevent the compiler to optimize and remove the code.
@@ -40,60 +38,80 @@ namespace alib {  namespace boxing {
 #endif
 
 
-#if ALIB_MONOMEM
-ALIB_API
-[[nodiscard]]
-char*  detail::monoAlloc( monomem::MonoAllocator& allocator, size_t size, size_t alignment)
-{
-    return allocator.Alloc( size, alignment );
-}
-#endif
-
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 namespace {
 integer flattenCount(const Box* boxArray, integer length)
 {
-    integer qtyFlattened= 0;
+    integer ctdFlattened= 0;
     for( integer i= 0; i < length ; ++i )
     {
         const Box& box= boxArray[i];
 
-        if( box.IsType<Boxes*>() )
+        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() )
         {
-            const Boxes* boxes= box.Unbox<Boxes*>();
-            qtyFlattened+= flattenCount( boxes->data(), static_cast<integer>(boxes->size()) );
+            const auto* boxes= box.Unbox<boxing::TBoxes<lang::HeapAllocator>*>();
+            ctdFlattened+= flattenCount( boxes->data(), static_cast<integer>(boxes->size()) );
             continue;
         }
+    #if ALIB_MONOMEM
+        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() )
+        {
+            const auto* boxes= box.Unbox<boxing::TBoxes<MonoAllocator>*>();
+            ctdFlattened+= flattenCount( boxes->data(), static_cast<integer>(boxes->size()) );
+            continue;
+        }
+        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() )
+        {
+            const auto* boxes= box.Unbox<boxing::TBoxes<PoolAllocator>*>();
+            ctdFlattened+= flattenCount( boxes->data(), static_cast<integer>(boxes->size()) );
+            continue;
+        }
+    #endif
 
         if( box.IsArrayOf<Box>() )
         {
-            qtyFlattened+= flattenCount( box.UnboxArray<Box>(), box.UnboxLength() );
+            ctdFlattened+= flattenCount( box.UnboxArray<Box>(), box.UnboxLength() );
             continue;
         }
 
-        ++qtyFlattened;
+        ++ctdFlattened;
     }
 
-    return qtyFlattened;
+    return ctdFlattened;
 }
 
-void flattenInsert(Boxes::iterator& it, const Box* boxArray, integer length)
+template<typename TAllocator>
+void flattenInsert(typename TBoxes<TAllocator>::iterator& it, const Box* boxArray, integer length)
 {
     for( integer i= 0; i < length ; ++i )
     {
         const Box& box= boxArray[i];
 
-        if( box.IsType<Boxes*>() )
+        if( box.IsType<boxing::TBoxes<lang::HeapAllocator>*>() )
         {
-            const Boxes* boxes      = box.Unbox<Boxes*>();
-            flattenInsert( it, boxes->data(), static_cast<integer>(boxes->size()) );
+            const auto* boxes= box.Unbox<boxing::TBoxes<lang::HeapAllocator>*>();
+            flattenInsert<TAllocator>( it, boxes->data(), static_cast<integer>(boxes->size()) );
             continue;
         }
+    #if ALIB_MONOMEM
+        if( box.IsType<boxing::TBoxes<MonoAllocator>*>() )
+        {
+            const auto* boxes= box.Unbox<boxing::TBoxes<MonoAllocator>*>();
+            flattenInsert<TAllocator>( it, boxes->data(), static_cast<integer>(boxes->size()) );
+            continue;
+        }
+        if( box.IsType<boxing::TBoxes<PoolAllocator>*>() )
+        {
+            const auto* boxes= box.Unbox<boxing::TBoxes<PoolAllocator>*>();
+            flattenInsert<TAllocator>( it, boxes->data(), static_cast<integer>(boxes->size()) );
+            continue;
+        }
+    #endif
 
         if( box.IsArrayOf<Box>() )
         {
-            flattenInsert( it, box.UnboxArray<Box>(), box.UnboxLength() );
+            flattenInsert<TAllocator>( it, box.UnboxArray<Box>(), box.UnboxLength() );
             continue;
         }
 
@@ -105,65 +123,28 @@ void flattenInsert(Boxes::iterator& it, const Box* boxArray, integer length)
 } // anonymous namespace
 
 
-
-void  Boxes::AddArray( const Box* boxArray, integer length )
+template<typename TAllocator>
+void  TBoxes<TAllocator>::AddArray( const Box* boxArray, integer length )
 {
     // 1. Count the number of boxes if "recursively flattened"
-    // (We copy the anonymous method flattenCount() from above, to avoid JSR, which is unlikely
-    // anyhow)
-    integer qtyFlattened= 0;
-    for( integer i= 0; i < length ; ++i )
-    {
-        const Box& box= boxArray[i];
-
-        if( box.IsType<Boxes*>() )
-        {
-            const Boxes* boxes= box.Unbox<Boxes*>();
-            qtyFlattened+= flattenCount( boxes->data(), static_cast<integer>(boxes->size()) );
-            continue;
-        }
-
-        if( box.IsArrayOf<Box>() )
-        {
-            qtyFlattened+= flattenCount( box.UnboxArray<Box>(), box.UnboxLength() );
-            continue;
-        }
-
-        ++qtyFlattened;
-    }
+    integer ctdFlattened= flattenCount( boxArray, length );
 
     // 2. create space in vector
-    auto it= insert(end(), static_cast<size_t>(qtyFlattened), Box() );
+    auto it= vectorBase::insert(vectorBase::end(), size_t(ctdFlattened), Box() );
 
     // 3. insert recursively all boxes found (flatten)
-    // (We copy the anonymous method flattenInsert() from above, to avoid JSR, which is unlikely
-    // anyhow)
-    for( integer i= 0; i < length ; ++i )
-    {
-        const Box& box= boxArray[i];
+    flattenInsert<TAllocator>( it, boxArray, length);
 
-        if( box.IsType<Boxes*>() )
-        {
-            const Boxes* boxes      = box.Unbox<Boxes*>();
-            flattenInsert( it, boxes->data(), static_cast<integer>(boxes->size()) );
-            continue;
-        }
-
-        if( box.IsArrayOf<Box>() )
-        {
-            flattenInsert( it, box.UnboxArray<Box>(), box.UnboxLength() );
-            continue;
-        }
-
-        new( &*it ) Box( box );
-        ++it;
-    }
-
-    ALIB_ASSERT( it == end() )
+    ALIB_ASSERT( it == vectorBase::end() )
 }
 
+template ALIB_API  void TBoxes<   lang::HeapAllocator>::AddArray( const Box* boxArray, integer length );
+#if ALIB_MONOMEM
+template ALIB_API  void TBoxes<MonoAllocator>::AddArray( const Box* boxArray, integer length );
+#endif
 
-#endif //  #if defined(ALIB_DOX)
+
+#endif //  #if DOXYGEN
 
 }} // namespace [alib::boxing]
 ALIB_WARNINGS_RESTORE

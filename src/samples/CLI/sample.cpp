@@ -5,9 +5,10 @@
 //  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#if !defined(ALIB_DOX) // otherwise this sample would be seen in the ALib dox
+#include "alib/alib.hpp"
+#if !DOXYGEN // otherwise this sample would be seen in the ALib dox
 
-//! [DOX_ALIB_EXPR_TUT_CLI_INCLUDES]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_INCLUDES])
 // Include necessary ALib CLI headers
 #include "alib/cli/commandline.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"   // Support to write ALib strings and boxes to cout
@@ -23,9 +24,9 @@
 // namespaces to use locally
 using namespace alib;
 using namespace alib::cli;
-//! [DOX_ALIB_EXPR_TUT_CLI_INCLUDES]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_INCLUDES])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS])
 // #################################################################################################
 // Enumerations of Commands, Parameters, Options and ExitCodes of the CLI application
 // #################################################################################################
@@ -51,24 +52,24 @@ enum class Parameters
 enum class ExitCodes
 {
     OK                  =   0, ///< Success.
-    ErrUnknownCommand   = 100, ///< Unkown command given
-    ErrUnknownOption    = 101, ///< Unkown option given
-    ErrMissingFilename  = 102, ///< Command "file" given without a filename
-    ErrUnknownHelpTopic = 103, ///< Command or option "help" given without an unknown sub-topic
-    ErrInternalError    = 255, ///< Unspecified internal error
+    ErrUnknownCommand   = 100, ///< Unkown command given.
+    ErrUnknownOption    = 101, ///< Unkown option given.
+    ErrMissingFilename  = 102, ///< Command "file" given without a filename.
+    ErrUnknownHelpTopic = 103, ///< Command or option "help" given without an unknown subtopic.
+    ErrInternalError    = 255, ///< Unspecified internal error.
                                ///  (this demo might be incomplete :-)
 };
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_ASSIGN])
 // assigning ALib enum records
 ALIB_ENUMS_ASSIGN_RECORD( Commands        , alib::cli::ERCommandDecl        )
 ALIB_ENUMS_ASSIGN_RECORD( Options         , alib::cli::EROptionDecl         )
 ALIB_ENUMS_ASSIGN_RECORD( Parameters      , alib::cli::ERParameterDecl      )
 ALIB_ENUMS_ASSIGN_RECORD( ExitCodes       , alib::cli::ERExitCodeDecl       )
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_ASSIGN])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_CUSTOM_CAMP])
 // #################################################################################################
 // The custom ALib module, needed to define externalized resources.
 // #################################################################################################
@@ -166,7 +167,7 @@ class SampleCamp  : public lang::Camp
             ,"TExit100" ,  A_CHAR("An unknown command was given. Valid commands are 'now' and 'file'")
             ,"TExit101" ,  A_CHAR("An unknown option was given. The only valid option is '--format='FORMATSPEC'.")
             ,"TExit102" ,  A_CHAR("Command 'file' given without a filename argument.")
-            ,"TExit103" ,  A_CHAR("Command or option 'help' given without an unknown sub-topic.")
+            ,"TExit103" ,  A_CHAR("Command or option 'help' given without an unknown subtopic.")
             ,"TExit255" ,  A_CHAR("Unspecified internal error.")
             EOS
 
@@ -207,39 +208,39 @@ class SampleCamp  : public lang::Camp
     { (void) phase;  }
 
 }; // class SampleCamp
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_CUSTOM_CAMP])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON])
 // The module singleton object
 extern SampleCamp SAMPLE_CAMP;
 SampleCamp SAMPLE_CAMP;
-//! [DOX_ALIB_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_CUSTOM_CAMP_SINGLETON])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_ASSIGN2])
 // Specifying our custom module to hold resources of our enum records
 ALIB_RESOURCED_IN_MODULE( Commands  , SAMPLE_CAMP, "Commands"   )
 ALIB_RESOURCED_IN_MODULE( Parameters, SAMPLE_CAMP, "Parameters" )
 ALIB_RESOURCED_IN_MODULE( Options   , SAMPLE_CAMP, "Options"    )
 ALIB_RESOURCED_IN_MODULE( ExitCodes , SAMPLE_CAMP, "ExitCodes"  )
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_ASSIGN2]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_ASSIGN2])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_FWDDECL]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_FWDDECL])
 // forward declaration
 ExitCodes processCLI( CommandLine& cli );
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_FWDDECL]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_FWDDECL])
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_MAIN]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_MAIN])
 // #################################################################################################
 // The main() function of the CLI application
 // #################################################################################################
 int main( int argc, const char **argv )
 {
-    alib::ArgC  = argc;
-    alib::ArgVN = argv;
+    alib::ARG_C  = argc;
+    alib::ARG_VN = argv;
 
     // 1. Add our custom module to the list of modules
     alib::BootstrapAddDefaultCamps();
-    alib::Camps.PushBack( &SAMPLE_CAMP );
+    alib::CAMPS.PushBack( &SAMPLE_CAMP );
 
     // 2. Initialize all modules
     alib::Bootstrap();
@@ -256,10 +257,10 @@ int main( int argc, const char **argv )
             Paragraphs buffer;
             buffer.LineWidth= 70;
             buffer.AddMarked( SAMPLE_CAMP.GetResource( "AppInfo" ),
-                              alib::Version,
-                              alib::Revision,
+                              alib::VERSION,
+                              alib::REVISION,
                               CalendarDateTime(DateTime()).Year      );
-            cli.AppInfo= cli.GetAllocator().EmplaceString( buffer.Buffer );
+            cli.AppInfo.Allocate(cli.GetAllocator(), buffer.Buffer);
 
             // Initialize the CLI with the module to fetch the resources from.
             cli.Init( &SAMPLE_CAMP );
@@ -277,7 +278,7 @@ int main( int argc, const char **argv )
         // 5. check for unprocess options (not allowed with this demo. Other application might pass
         //    those to other libraries or parts of the software, which provide their own option
         //    processing.
-        if( cli.OptionArgsIgnored.Size() )
+        if( cli.OptionArgsIgnored.Count() )
         {
             result= ExitCodes::ErrUnknownOption;
             std::cerr << "Error: Unknown option given \""
@@ -286,14 +287,14 @@ int main( int argc, const char **argv )
             goto END;
         }
 
-        // 6. Now, the truely custom part: Process commands and options
+        // 6. Now, the truly custom part: Process commands and options
         result= processCLI( cli );
     }
 
     // fetch exceptions and assign a corresponding exit code (error code)
     catch( Exception& e)
     {
-        std::cerr << e.Format() << std::endl; // print out human readable exception information
+        std::cerr << e.Format() << std::endl; // print out human-readable exception information
         result= e.Back().Type;                // For this demo, just return the internal exception
                                               // number as "exit code".
     }
@@ -308,10 +309,10 @@ int main( int argc, const char **argv )
     alib::Shutdown();
     return int(result.Integral());
 }
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_MAIN]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_MAIN])
 
 
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_PROCESS]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_PROCESS])
 // #################################################################################################
 // The custom function to process CLI params
 // #################################################################################################
@@ -337,7 +338,7 @@ ExitCodes processCLI( CommandLine& cli )
         if( !CLIUtil::GetHelp( cli, nullptr, option, helpText ) )
         {
             std::cerr << "Error: Unknown help Topic \""
-                      << (option->Args.Size() > 0 ? option->Args.Front() : String() )
+                      << (option->Args.Count() > 0 ? option->Args.Front() : String() )
                       << "\"" << std::endl
                       << "Usage Information follows: " << std::endl << std::endl;
             option->Args.Clear();
@@ -350,7 +351,7 @@ ExitCodes processCLI( CommandLine& cli )
 
     //------- No command recognized? This is allowed, assuming now -------
     cli.ReadNextCommands();
-    if( cli.CommandsParsed.Size() == 0 )
+    if( cli.CommandsParsed.Count() == 0 )
     {
         // Still a command was given? This is not allowed
         if( cli.ArgsLeft.size() > 0 )
@@ -386,7 +387,7 @@ ExitCodes processCLI( CommandLine& cli )
         else if ( actCmdCode == Commands::File     )
         {
             // check if filename was given as paraemter
-            if(actCmd->ParametersMandatory.Size() < 1)
+            if(actCmd->ParametersMandatory.Count() < 1)
             {
                 std::cerr << "Error: no filename given with command 'file'" << std::endl;
                 std::cerr << "Usage: " << CLIUtil::GetCommandUsageFormat(cli, *actCmd->Declaration )
@@ -423,6 +424,6 @@ ExitCodes processCLI( CommandLine& cli )
     }
     return ExitCodes::OK;
 }
-//! [DOX_ALIB_EXPR_TUT_CLI_ENUMS_PROCESS]
+DOX_MARKER( [DOX_EXPR_TUT_CLI_ENUMS_PROCESS])
 
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN

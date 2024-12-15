@@ -6,291 +6,362 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_CONFIG_VARIABLE)
-    #include "alib/config/variable.hpp"
-#endif
-
-#if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-    #include "alib/config/configuration.hpp"
-#endif
-
-#if !defined (HPP_ALIB_ENUMS_RECORDPARSER)
+#if !DOXYGEN
+#   include "alib/config/vmeta.hpp"
+#   include "alib/config/configuration.hpp"
+#   include "alib/config/plugins.hpp"
 #   include "alib/enums/recordparser.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
-namespace alib {  namespace config {
+namespace alib::config {
 
-Variable&    Variable::Reset( lang::CurrentData nameAndCategory )
+const String&    Variable::substitute( const String& orig, AString& buf, const StringEscaper* escaper )
 {
-    auto& self= Self();
-    String128 oldName;
-    String128 oldCategory;
-    if( nameAndCategory == lang::CurrentData::Keep )
+    Configuration& cfg= GetConfiguration();
+    String substitutionVariableStart= cfg.SubstitutionVariableStart;
+    if( substitutionVariableStart.IsEmpty() )
+        return orig;
+
+    String substitutionVariableEnd       = cfg.SubstitutionVariableEnd;
+    String substitutionVariableDelimiters= cfg.SubstitutionVariableDelimiters;
+
+    integer searchStartIdx  =  0;
+    int     maxReplacements = 50;
+    do
     {
-        oldName     << self.Name;
-        oldCategory << self.Category;
-    }
+        // search start
+        integer repStart= orig.IndexOf( substitutionVariableStart, searchStartIdx );
+        if ( repStart < 0 )
+            break;
+        buf << orig.Substring( searchStartIdx, repStart - searchStartIdx );
+        searchStartIdx  = repStart;
+        integer varStart= repStart + substitutionVariableStart.Length();
 
-    SelfContained::Reset( &fields );
-    self.Config       =  nullptr;
-    self.Priority     =  Priorities::NONE;
-    self.Delim        =  '\0';
-    self.FmtHints     =  FormatHints::None;
+        integer varLen;
 
-    self.Category     =
-    self.Name         =
-    self.Comments     =
-    self.Fullname     = EmptyString();
-    self.DefaultValue = NullString();
-
-    // our vector needs to be constructed in place! This is needed to make it "forget"
-    // its internal data field.
-    new (&self.values) std::vector<String,StdContMA<String>>( StdContMA<String>(Allocator()) );
-
-    if( nameAndCategory == lang::CurrentData::Keep )
-    {
-        self.Name       = Allocator().EmplaceString( oldName     );
-        self.Category   = Allocator().EmplaceString( oldCategory );
-    }
-
-    return *this;
-}
-
-Variable& Variable::Declare ( const Variable& variable )
-{
-    auto& self     = Self();
-    auto& allocator= Allocator();
-
-    Reset();
-
-    self.Category= allocator.EmplaceString( variable.Category() );
-    self.Name    = allocator.EmplaceString( variable.Name    () );
-    self.Comments= allocator.EmplaceString( variable.Comments() );
-    self.Delim   =                   variable.Delim   ()  ;
-    self.Fullname= EmptyString();
-    return *this;
-}
-
-
-Variable&    Variable::Declare( const VariableDecl&  declaration,  const Box& replacements )
-{
-    auto& self     = Self();
-    auto& allocator= Allocator();
-    Reset();
-
-    self.Delim=                                 declaration.Delim;
-    self.FmtHints=                              declaration.FmtHints;
-    self.FormatAttrAlignment= allocator.EmplaceString(  declaration.FormatAttrAlignment );
-
-    // set Category, Name, Comment
-    String128 bufCategory;       ALIB_DBG( bufCategory    .DbgDisableBufferReplacementWarning() );
-    String128 bufName;           ALIB_DBG( bufName        .DbgDisableBufferReplacementWarning() );
-    String1K  bufComments;       ALIB_DBG( bufComments    .DbgDisableBufferReplacementWarning() );
-    String128 bufDefaultValue;   ALIB_DBG( bufDefaultValue.DbgDisableBufferReplacementWarning() );
-
-    bufCategory         << declaration.Category;
-    bufName             << declaration.EnumElementName;
-    bufComments         << declaration.Comments;
-    if ( declaration.DefaultValue.IsNotNull() )
-        bufDefaultValue << declaration.DefaultValue;
-
-    // replace strings
-    if( !replacements.IsType<void>() )
-    {
-        String128 replace;
-
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-        const Box*  replacementPtr;
-        integer     qtyReplacements;
-        if ( replacements.IsType<Boxes*>() )
+        // search end in two different ways depending on setting of public field "SubstitutionVariableEnd"
+        if ( substitutionVariableEnd.IsEmpty() )
         {
-            const Boxes* boxes= replacements.Unbox<Boxes*>();
-            replacementPtr = boxes->data();
-            qtyReplacements= boxes->Size();
-        }
-        else if ( replacements.IsArrayOf<Box>() )
-        {
-            replacementPtr = replacements.UnboxArray<Box>();
-            qtyReplacements= replacements.UnboxLength();
+            integer idx=   orig.IndexOfAny<lang::Inclusion::Include>( substitutionVariableDelimiters, varStart );
+            if ( idx < 0 )
+                idx= orig.Length();
+
+            varLen= idx - varStart;
+            searchStartIdx= idx;
         }
         else
         {
-            replacementPtr = &replacements;
-            qtyReplacements= 1;
-        }
-
-        for ( integer  replCnt= 0; replCnt< qtyReplacements ; ++replCnt )
-            if ( !replacementPtr->IsType<void>() )
+            integer idx=   orig.IndexOf( substitutionVariableEnd, varStart );
+            if (idx < 0 )
             {
-                String64  search("%"); search._( replCnt + 1 );
-                replace.Reset( *( replacementPtr + replCnt) );
-                bufCategory    .SearchAndReplace( search, replace );
-                bufName        .SearchAndReplace( search, replace );
-                bufComments    .SearchAndReplace( search, replace );
-                bufDefaultValue.SearchAndReplace( search, replace );
+                ALIB_DBG( String256 namebuf; )
+                ALIB_WARNING( "CONFIG", "End of substitution variable not found (while start was found). "
+                              "Variable name: ", Name(namebuf)  )
+                break;
             }
-        ALIB_WARNINGS_RESTORE
-    }
 
-    ALIB_ASSERT_WARNING(  bufName.IsNotEmpty(), "CONFIG", "Empty variable name given" )
+            varLen= idx - varStart;
+            searchStartIdx= idx + substitutionVariableEnd.Length();
+        }
 
-    self.Category           = allocator.EmplaceString( bufCategory     );
-    self.Name               = allocator.EmplaceString( bufName         );
-    self.Comments           = allocator.EmplaceString( bufComments     );
-
-    if ( declaration.DefaultValue.IsNotNull() )
-        self.DefaultValue   = allocator.EmplaceString( bufDefaultValue );
-    else
-        self.DefaultValue   = NullString();
-
-    return *this;
-}
-
-Variable&   Variable::Declare( const String& category,  const String& name,  character  delim ,
-                               const String& comments     )
-{
-    auto& self     = Self();
-    auto& allocator= Allocator();
-
-    Reset();
-
-    self.Category         = allocator.EmplaceString( category );
-    self.Name             = allocator.EmplaceString( name     );
-    self.Comments         = allocator.EmplaceString( comments );
-    self.Delim            = delim;
-
-    return *this;
-}
-
-Variable&   Variable::Declare( const ComplementString& category,
-                               const ComplementString& name,
-                               complementChar          delim ,
-                               const ComplementString& comments     )
-{
-    auto& self     = Self();
-    auto& allocator= Allocator();
-
-    String2K charWidthConverter;
-    charWidthConverter.DbgDisableBufferReplacementWarning();
-
-    Reset();
-
-    self.Category         = allocator.EmplaceString( charWidthConverter.Reset(category)  );
-    self.Name             = allocator.EmplaceString( charWidthConverter.Reset(name    )  );
-    self.Comments         = allocator.EmplaceString( charWidthConverter.Reset(comments)  );
-    self.Delim            = static_cast<character>( delim );
-
-    return *this;
-}
-
-void Variable::ReplaceValue( int idx, const String& replacement )
-{
-    auto& self= Self();
-    if( idx < 0 || idx >= Size() )
-    {
-        ALIB_WARNING( "CONFIG", "Index out of range: ", idx  )
-        return;
-    }
-
-    self.values[static_cast<size_t>(idx)]= Allocator().EmplaceString( replacement );
-}
-
-void Variable::ReplaceValue( int idx, Variable& replVariable )
-{
-    auto& self     = Self();
-    auto& allocator= Allocator();
-    if( idx < 0 || idx >= Size() )
-    {
-        ALIB_WARNING( "CONFIG", "Index out of range: ", idx  )
-        return;
-    }
-
-    integer replSize= replVariable.Size();
-    if( replSize == 0 )
-    {
-        self.values.erase( self.values.begin() + idx );
-        return;
-    }
-    self.values.reserve( static_cast<size_t>( Size() + replSize - 1 ) );
-    self.values[static_cast<size_t>(idx)]= allocator.EmplaceString( replVariable.GetString() );
-    for( int i= 1 ; i < replSize; ++i )
-        self.values.insert( self.values.begin() + idx + i, allocator.EmplaceString( replVariable.GetString(i) ) );
-
-}
-
-void Variable::Add( const String& value )
-{
-    Self().values.push_back(Allocator().EmplaceString( value ) );
-}
-
-
-void Variable::Add( int64_t value )
-{
-    String128 converter(value);
-    Self().values.push_back( Allocator().EmplaceString( converter ) );
-}
-
-void Variable::Add( double value )
-{
-    String128 converter(value);
-    Self().values.push_back(  Allocator().EmplaceString( converter ) );
-}
-
-
-bool        Variable::IsTrue    (int idx) { return idx < Size() ? Self().Config->IsTrue( GetString (idx) )
-                                                                : false; }
-integer     Variable::GetInteger(int idx) { return idx < Size() ? static_cast<integer>( GetString(idx).ParseInt())
-                                                                : 0;     }
-double      Variable::GetFloat  (int idx) { return idx < Size() ? GetString(idx).ParseFloat( Self().Config ? &Self().Config->NumberFormat : &NumberFormat::Global )
-                                                                : 0.0;   }
-
-
-bool Variable::GetAttribute( const String& attrName, Substring& result, character attrDelim )
-{
-    for ( int i= 0; i< Size(); ++i )
-    {
-        result= GetString( i );
-        if (    result.ConsumeString<lang::Case::Ignore, lang::Whitespaces::Trim>( attrName  )
-             && result.ConsumeChar  <lang::Case::Ignore, lang::Whitespaces::Trim>( attrDelim ) )
+        // get variable name string
+        Substring    replVarName= orig.Substring( varStart, varLen );
+        if ( replVarName.IsEmpty() )
         {
-            result.Trim();
-            return true;
+            buf << substitutionVariableStart;
+            continue;
+        }
+
+        // load replacement variable:
+        // - First we do a try. If this succeeds (the variable is already declared), then we're happy
+        // - If not, we declare it as string. This might read it from a plug-in or from a Preset string!
+        //   While we are not sure about the type, we declare it as "S" and then delete it, for the case that
+        //   it is not a string! This is the best we can do! For example, the escaper given with the preset
+        //   is used.
+        Variable replVar(cfg);
+        if( replVar.Try(replVarName) )
+            replVar.Export( buf, escaper );
+        else
+        {
+            replVar.Declare(replVarName, A_CHAR("S") );
+            if( !replVar.IsDefined() )
+            {
+                replVar.Delete();
+                continue;
+            }
+            replVar.Export( buf, escaper );
+            replVar.Delete();
+        }
+
+
+    }
+    while( --maxReplacements );
+
+    if( maxReplacements < 50)
+    {
+        buf << orig.Substring( searchStartIdx );
+        return buf;
+
+    }
+    return orig;
+}
+
+
+void           Variable::create( const String& typeName, const String& defaultValue )
+{
+    auto it= Tree<Configuration>().types.Find(typeName);
+        ALIB_ASSERT_ERROR( it != Tree<Configuration>().types.end(), "CONFIG",
+          "No Meta-Handler found for given variable type . Probably the type was not registered\n"
+          "during bootstrap. Use macro ALIB_CONFIG_VARIABLE_REGISTER_TYPE in bootstrap phase \n"
+          "'PrepareConfig' to register your custom types.\n"
+          "Type name in question: ", typeName)
+    auto*  meta= Cursor::Value().meta= *it;
+
+    // -------- declare ----
+    Cursor::Value().data    =  reinterpret_cast<detail::VDATA*>(Tree<Configuration>().Pool().Alloc( meta->size(), alignof(detail::VDATA)));
+    meta->construct(Cursor::Value().data, Tree<Configuration>().Pool );
+    Cursor::Value().priority= Priority::NONE;
+
+    String256 varName(*this);
+
+    // invoke listeners
+    Tree<Configuration>().notifyListeners( int(ConfigurationListener::Event::Creation),
+                                           *this,
+                                           varName,
+                                           Priority::NONE    );
+
+
+    // ------------------ check for definitions (plugins, preset or default values) ----------------
+    // Plugins?
+    {
+        String256 buf;
+        for (int i = 0; i < Tree<Configuration>().CountPlugins(); ++i)
+        {
+            auto& plugin= *Tree<Configuration>().GetPlugin(i);
+            auto  plPrio= plugin.GetPriority();
+            if( Cursor::Value().priority <= plPrio  && plugin.Get(varName, buf) )
+            {
+                String512 substBuf;
+                Cursor::Value().priority= plPrio;
+                Cursor::Value().meta->imPort( Cursor::Value().data, GetConfiguration(), plugin.GetEscaper(),
+                                              substitute(buf, substBuf, &plugin.GetEscaper())  );
+            }
         }
     }
-    result= NullString();
+
+    // Preset value?
+    auto cursor= Tree<Configuration>().Root();
+    if(     cursor.GoToChild(A_CHAR("$PRESETS"))
+        &&  cursor.GoTo(varName).IsEmpty()
+        &&  cursor->meta != nullptr              )
+    {
+        ALIB_ASSERT_ERROR( Variable(cursor).GetString().IsNotNull(), "CONFIG",
+                   "Internal error. This must never happen. ")
+        ALIB_ASSERT_ERROR( Cursor::Value().priority == Priority::NONE, "CONFIG",
+                   "Internal error. This must never happen. ")
+        StringEscaper voidEscaper;
+        auto* escaper= cursor->declaration ? reinterpret_cast<const StringEscaper*>( cursor->declaration )
+                                                  : &voidEscaper;
+        Cursor::Value().priority= cursor->priority;
+        String512 substBuf;
+        Cursor::Value().meta->imPort( Cursor::Value().data,
+                                      GetConfiguration(),
+                                      *escaper,
+                                      substitute(Variable(cursor), substBuf, escaper) );
+
+    }
+
+    // default value?
+    if( Cursor::Value().priority <= Priority::DefaultValues  &&  defaultValue.IsNotEmpty() )
+    {
+        StringEscaper escaper;
+        String512 substBuf;
+        Cursor::Value().priority= Priority::DefaultValues;
+        Cursor::Value().meta->imPort( Cursor::Value().data,GetConfiguration(), escaper,
+                                      substitute( defaultValue, substBuf, &escaper)  );
+    }
+
+    // invoke listeners
+    if( IsDefined() )
+        Tree<Configuration>().notifyListeners( int(ConfigurationListener::Event::Definition),
+                                               *this,
+                                               varName,
+                                               Priority::NONE    );
+
+} // Variable::initialize()
+
+Variable&      Variable::Declare( const String& name, const String& typeName, const String& defaultValue )
+{
+    ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "MONOMEM/STRINGTREE",
+      "Invalid Variable. Not associated with a Configuration. Probably a default constructed instance.\n"
+      "Copy or move a valid Variable object before usage.")
+
+    ALIB_ASSERT_ERROR( name.IndexOf('%') <0, "CONFIG",
+                      "Variable name with placeholder(s) given: ", name )
+
+    // Variable existed?
+    GoToRoot();
+    if(    GoToCreatedPathIfNotExistent(name) == 0
+        && Cursor::Value().meta != nullptr              )
+    {
+        #if ALIB_DEBUG
+            auto it=  Tree<Configuration>().types.Find(typeName);
+            if( it == Tree<Configuration>().types.end() )
+            {
+              ALIB_ERROR( "CONFIG",
+              "\n  No Meta-Handler found for given variable type . Probably the type was not registered\n"
+                "  during bootstrap. Use macro ALIB_CONFIG_VARIABLE_REGISTER_TYPE in bootstrap phase \n"
+                "  'PrepareConfig' to register your custom types.\n"
+                "  Type name in question: ", typeName)
+            }
+            if( *it != Cursor::Value().meta )
+            {
+              ALIB_ERROR( "CONFIG",
+                 "\n  Variable {} redeclared with a different typename.\n"
+                   "  Previous typename: ", Cursor::Value().meta->typeName() )
+            }
+        #endif
+        return *this;
+    }
+
+    // new variable
+    Cursor::Value().declaration= nullptr;
+    create( typeName, defaultValue );
+    return *this;
+}
+
+Variable&      Variable::Declare( const Declaration* decl )
+{
+    ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "MONOMEM/STRINGTREE",
+      "Invalid Variable. Not associated with a Configuration. Probably a default constructed instance.\n"
+      "Copy or move a valid Variable object before usage.")
+
+    ALIB_ASSERT_ERROR(decl->Name().IndexOf('%') <0, "CONFIG",
+                      "Variable descriptor with unset placeholders given: ", decl->Name() )
+
+    // Variable existed?
+    GoToRoot();
+    if( 0 == GoToCreatedPathIfNotExistent( decl->Name() ))
+    {
+        #if ALIB_DEBUG
+            ALIB_ASSERT_WARNING( GetDeclaration() == nullptr || GetDeclaration() == decl, "CONFIG/VARDECL",
+             "\n  Variable redeclared with different declaration record pointer.\n"
+               "  Declaration records should be singletons and their life-time needs to survive\n"
+               "  that of the variable. New record will be ignored. Variable: ", decl->Name() )
+
+
+            auto it= Tree<Configuration>().types.Find(decl->typeName);
+            if( it == Tree<Configuration>().types.end() )
+            {
+              ALIB_ERROR( "CONFIG",
+              "\n  No Meta-Handler found for given variable type . Probably the type was not registered\n"
+                "  during bootstrap. Use macro ALIB_CONFIG_VARIABLE_REGISTER_TYPE in bootstrap phase \n"
+                "  'PrepareConfig' to register your custom types.\n"
+                "  Type name in question: ", GetDeclaration()->typeName)
+            }
+        #endif
+        return *this;
+    }
+
+    // new variable
+    Cursor::Value().declaration= decl;
+    create(decl->typeName, decl->DefaultValue() );
+    return *this;
+}
+
+bool Variable::Define(Priority requestedPriority)
+{
+    if( Cursor::Value().priority > requestedPriority )
+        return false;
+    auto prevPriority= Cursor::Value().priority;
+    Cursor::Value().priority= requestedPriority ;
+    Tree<Configuration>().notifyListeners( int(ConfigurationListener::Event::Definition),
+                                           *this,
+                                           nullptr,
+                                           prevPriority  );
+    return true;
+}
+
+void      Variable::Delete()
+{
+    Tree<Configuration>().notifyListeners( int(ConfigurationListener::Event::Deletion),
+                                           *this,
+                                           nullptr,
+                                           GetPriority()  );
+    Cursor::Delete();
+    Cursor::node= nullptr;
+}
+
+bool Variable::Try(const String& name, const String& typeName)
+{
+    ALIB_ASSERT_ERROR(cmCursor::tree != nullptr, "MONOMEM/STRINGTREE",
+      "Invalid Variable. Not associated with a Configuration. Probably a default constructed instance.\n"
+      "Copy or move a valid Variable object before usage.")
+
+    // check if this variable is already declared
+    if(    Cursor::GoToRoot().GoTo( name ).IsEmpty()
+           && IsDeclared() )
+        return true;
+
+    // check if a preset exists
+    auto cursor= Tree<Configuration>().Root();
+    if( cursor.GoToChild(A_CHAR("$PRESETS")) && cursor.GoTo(name).IsEmpty() )
+    {
+        ALIB_ASSERT_ERROR( Variable(cursor).GetString().IsNotNull(), "CONFIG",
+                   "Internal error. This must never happen.")
+        Declare( name, typeName );
+        if( Cursor::Value().priority < cursor->priority)
+        {
+            StringEscaper voidEscaper;
+            auto* escaper=  cursor->declaration ? reinterpret_cast<const StringEscaper*>( cursor->declaration )
+                                                : &voidEscaper;
+            String512 substBuf;
+            Cursor::Value().priority= cursor->priority;
+            Cursor::Value().meta->imPort( Cursor::Value().data,
+                                          GetConfiguration(),
+                                          *escaper,
+                                          substitute(Variable(cursor), substBuf, escaper) );
+        }
+        return true;
+    }
     return false;
 }
 
-const String&  Variable::Fullname()
+bool Variable::Try(const Declaration* decl)
 {
-    auto& self     = Self();
-    auto& allocator= Allocator();
-    if( self.Fullname.IsEmpty() )
+    if( Try(decl->Name(), decl->TypeName()) )
     {
-        String256 bufFullname;   ALIB_DBG( bufFullname.DbgDisableBufferReplacementWarning() );
-        if( self.Category.IsNotEmpty() )
-            bufFullname <<  self.Category  << '_';
-        bufFullname <<  self.Name;
+        // already declared, add the declaration struct, if not set, yet.
+        ALIB_ASSERT_WARNING( Cursor::Value().declaration== nullptr || Cursor::Value().declaration == decl,
+             "CONFIG/VARDECL",
+             "\n  Variable redeclared with different declaration record pointer.\n"
+               "  Declaration records should be singletons and their life-time needs to survive\n"
+               "  that of the variable. New record will be ignored. Variable: ", decl->Name() )
 
-        self.Fullname= allocator.EmplaceString( bufFullname );
+        if( Cursor::Value().declaration== nullptr)
+            Cursor::Value().declaration= decl;
+        return true;
     }
 
-    return  self.Fullname;
+    return false;
 }
 
-
-DOX_MARKER([DOX_ALIB_ENUMS_RECORD_PARSER])
-void VariableDecl::Parse()
+void Variable::Import( const String& src, Priority priority, const StringEscaper* escaper )
 {
-    enums::EnumRecordParser::Get( Category                         );
-    enums::EnumRecordParser::Get( ERSerializable::EnumElementName  );           // field from parent class
-                                  ERSerializable::MinimumRecognitionLength= 0;  // omit reading, but fix to zero
-    enums::EnumRecordParser::Get( Delim                     );
-    enums::EnumRecordParser::Get( FormatAttrAlignment       );
-    enums::EnumRecordParser::Get( FmtHints                  , true ); // last field!
-}
-DOX_MARKER([DOX_ALIB_ENUMS_RECORD_PARSER])
+    ALIB_ASSERT_ERROR( src.IsNotNull(), "CONFIG",
+       "Tried to import nulled string for variable {!Q}", *this )
 
-}} // namespace [alib::config]
+     StringEscaper exVoid;
+     if( !escaper )
+         escaper= &exVoid;
+     if(Define(priority))
+     {
+        String512 substBuf;
+        getMeta()->imPort( Cursor::Value().data, GetConfiguration(), *escaper,
+                           substitute(src, substBuf, escaper) );
+    }
+}
+
+
+} // namespace [alib::config]
+

@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::loggers - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,42 +6,22 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if  !defined (HPP_ALOX_WINDOWS_CONSOLE_LOGGER)
-#   include "alib/alox/loggers/windowsconsolelogger.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
-
-
 #if defined( _WIN32 )
+#include "alib/alox/loggers/windowsconsolelogger.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-#   if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
-#      include "alib/strings/util/spaces.hpp"
-#   endif
+#if !DOXYGEN
+#   include "alib/alox/aloxcamp.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   include "alib/lang/message/report.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
-#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#      include "alib/enums/serialization.hpp"
-#   endif
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-#   if !defined (_GLIBCXX_IOSTREAM) && !defined(_IOSTREAM_)
-#      include <iostream>
-#   endif
-#   if !defined (_STRING_H) && !defined(_INC_STRING)
-#      include <string.h>
-#   endif
-#endif // !defined(ALIB_DOX)
+#include <iostream>
+#include <string.h>
 
+using namespace alib::lox::textlogger;
 
-namespace alib {  namespace lox {
+namespace alib::lox::loggers {
 
 using namespace detail;
 
@@ -78,6 +58,7 @@ using namespace detail;
 // #################################################################################################
 // Constructor/Destructor
 // #################################################################################################
+
 WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
 :    TextLogger( name, "WINDOWS_CONSOLE",  true)
 {
@@ -90,46 +71,43 @@ WindowsConsoleLogger::WindowsConsoleLogger( const NString&  name )
         actualAttributes= info.wAttributes;
         originalConsoleAttributes= actualAttributes;
     }
+}
+
+void WindowsConsoleLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )
+{
+    textlogger::TextLogger::AcknowledgeLox( lox, op );
+    if( op != lang::ContainerOp::Insert )
+        return;
+
 
     // evaluate environment variable "ALOX_CONSOLE_LIGHT_COLORS"
-    UseLightColors= LightColorUsage::Auto;
-    Variable variable( Variables::CONSOLE_LIGHT_COLORS );
-    if ( ALOX.GetConfig().Load( variable ) != Priorities::NONE && variable.Size() > 0)
-    {
-        Substring p= variable.GetString();
-        if(p.Trim().IsNotEmpty())
-        {
-            if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
-            {
-                ALIB_WARNING( "ALOX", "Unknown value specified in variable: {} = {!Q'}.",
-                              variable.Fullname(), variable.GetString() )
-            }
-        }
-    }
+    // If default, we assume dark background, hence use light color on foreground
+    ALIB_LOCK_WITH(ALOX.GetConfigLock())
+    Variable useLightColors(ALOX, Variables::CONSOLE_LIGHT_COLORS );
+    (void) useLightColors.Define();
+    CFP= useLightColors.Get<ColorfulLoggerParameters>();
 
-    if( UseLightColors == LightColorUsage::Auto )
+    if( CFP.LCU == ColorfulLoggerParameters::LightColorUsage::Auto )
     {
         // default: dark background, hence use light color on foreground
-        UseLightColors=   ( originalConsoleAttributes & ~W32C_FOREGROUND_MASK )  < 7 ?  LightColorUsage::Background
-                                                                                     :  LightColorUsage::Foreground;
+        CFP.LCU=   ( originalConsoleAttributes & ~W32C_FOREGROUND_MASK )  < 7
+                ?  ColorfulLoggerParameters::LightColorUsage::Background
+                :  ColorfulLoggerParameters::LightColorUsage::Foreground;
     }
 
     // move verbosity information to the end to colorize the whole line
-    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( A_CHAR("]%V["), A_CHAR("][")), 0);
-    MetaInfo->Format._(A_CHAR("%V"));
-    MetaInfo->VerbosityError           = ESC::RED;
-    MetaInfo->VerbosityWarning         = ESC::BLUE;
-    MetaInfo->VerbosityInfo            = A_CHAR("");
-    MetaInfo->VerbosityVerbose         = ESC::GRAY;
+    auto& fmt= varFormatMetaInfo.Get<FormatMetaInfo>();
+    fmt.VerbosityError  .Reset(ESC::RED);
+    fmt.VerbosityWarning.Reset(ESC::BLUE);
+    fmt.VerbosityInfo   .Reset(A_CHAR(""));
+    fmt.VerbosityVerbose.Reset(ESC::GRAY);
 
-    // evaluate config variable CODE_PAGE
-    if ( ALOX.GetConfig().Load( variable.Declare( Variables::CODEPAGE ) ) > 0 )
-        CodePage= (UINT) variable.GetInteger();
+    // evaluate config variable CODEPAGE
+    Variable codePage(ALOX, Variables::CODEPAGE );
+    if( codePage.IsDefined() )
+        CodePage= UINT(codePage.GetInt());
 }
 
-WindowsConsoleLogger::~WindowsConsoleLogger()
-{
-}
 
 // #################################################################################################
 // logText
@@ -176,7 +154,7 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
             break;
 
         // found a delimiter: process ESC sequence
-        character c= rest.ConsumeChar<false>();
+        character c= rest.ConsumeChar<NC>();
 
         // Colors
         bool isForeGround=  true;
@@ -189,7 +167,11 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
             ALIB_ASSERT_WARNING( colNo >=0 && colNo <=9, "ALOX", "ConsoleLogger: Unknown ESC-c code" )
 
             WORD attr= 0;
-            WORD light=  UseLightColors != LightColorUsage::Never && ((UseLightColors== LightColorUsage::Foreground) == isForeGround )  ? FOREGROUND_INTENSITY : 0;
+            WORD light=      CFP.LCU!= ColorfulLoggerParameters::LightColorUsage::Never
+                        && ((CFP.LCU== ColorfulLoggerParameters::LightColorUsage::Foreground)
+                              == isForeGround )
+                        ? FOREGROUND_INTENSITY
+                        : 0;
 
             // 0..5 (red, green, yellow, blue, magenta, cyan)
             if ( colNo >= 0 && colNo < 6)  attr= (win32Cols[colNo] | light);
@@ -226,24 +208,19 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
                                                   : (int) ( c - 'A' ) + 10;
 
             // tab stop (write spaces using a growing buffer)
-            integer tabStop= AutoSizes.Next( AutoSizes::Types::Tabstop, column, extraSpace );
+            integer tabStop= varFormatAutoSizes.Get<FormatAutoSizes>().Main.Next(
+                                                    AutoSizes::Types::Tabstop, column, extraSpace );
             integer qtySpaces= tabStop - column;
             if( qtySpaces > 0 )
             {
                 column+= qtySpaces;
-                String& spaces= strings::util::Spaces::Get();
-                while ( qtySpaces > 0 )
-                {
-                    integer nextQty= qtySpaces < spaces.Length() ? qtySpaces
-                                                                 : spaces.Length();
-                    #if !ALIB_CHARACTERS_WIDE
-                        WriteConsoleA( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );
-                    #else
-                        WriteConsoleW( H, spaces.Buffer(), (DWORD) nextQty, &ignore, NULL );
-                    #endif
-
-                    qtySpaces-= nextQty;
+                characters::AlignedCharArray<nchar, 8*sizeof(void*)> spaces( ' ' );
+                while (qtySpaces >= spaces.Length() ) {
+                    WriteConsoleA( H, spaces.Buffer(), (DWORD) spaces.Length(), &ignore, NULL );
+                    qtySpaces-= spaces.Length();
                 }
+                if (qtySpaces > 0)
+                    WriteConsoleA( H, spaces.Buffer(), (DWORD) qtySpaces, &ignore, NULL );
             }
         }
 
@@ -252,7 +229,11 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
         else if ( c == 'l' )
         {
             if ( rest.ConsumeChar() == 'S' )
-                actualAttributes=  ( actualAttributes & W32C_FOREGROUND_MASK ) |  W32C_BLUE | ( UseLightColors == LightColorUsage::Foreground ? FOREGROUND_INTENSITY : 0 );
+                actualAttributes=      ( actualAttributes & W32C_FOREGROUND_MASK )
+                                    |  W32C_BLUE
+                                    |  ( CFP.LCU == ColorfulLoggerParameters::LightColorUsage::Foreground
+                                          ? FOREGROUND_INTENSITY
+                                          : 0  );
             else
                 actualAttributes=  ( actualAttributes & W32C_FOREGROUND_MASK ) |  ( originalConsoleAttributes & ~W32C_FOREGROUND_MASK );
         }
@@ -272,10 +253,9 @@ void WindowsConsoleLogger::logText( Domain&        ,    Verbosity  ,
     ALIB_ASSERT_RESULT_NOT_EQUALS( SetConsoleTextAttribute( H, previousAttributes ), 0 );
 
     std::cout << std::endl;
-
-
 }
 
-}}  // namespace [alib::lox]
+}  // namespace [alib::lox::loggers]
 
 #endif // Win32
+

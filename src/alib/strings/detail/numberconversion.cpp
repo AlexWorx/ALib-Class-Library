@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,40 +6,26 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
+#if !DOXYGEN
 #   include "alib/strings/detail/numberconversion.hpp"
-#endif
-
-#if !defined(HPP_ALIB_LANG_BITS)
 #   include "alib/lang/bits.hpp"
-#endif
-
-
-#if defined( _WIN32 ) || defined(__APPLE__)
-#   include <clocale>
-#endif
-
-#if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
+#   if defined( _WIN32 ) || defined(__APPLE__)
+#      include <clocale>
+#   endif
 #   include <cmath>
-#endif
-
-#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
 #   include <algorithm>
-#endif
+#   if defined(_WIN32)
+#       include <intrin.h>
+#   endif
+#endif // !DOXYGEN
 
-#if defined(_WIN32) && !defined (__INTRIN_H_)
-    #include <intrin.h>
-#endif
-#endif // !defined(ALIB_DOX)
+#include "alib/lang/callerinfo_functions.hpp"
 
 namespace alib {  namespace strings {
 
-/**
- * This is a detail namespace of module \alib_strings_nl.
- */
+/// This is a detail namespace of module \alib_strings_nl.
 namespace detail {
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 
 namespace {
@@ -130,7 +116,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     const TChar* buffer= src.Buffer();
     ALIB_WARNINGS_RESTORE
 
-    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces, startIdx );
+    integer idx= src. template IndexOfAny<lang::Inclusion::Exclude, NC>( nf.Whitespaces, startIdx );
     if ( idx < 0 )
         return 0;
 
@@ -138,7 +124,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     bool negative;
     if ( (negative= (buffer[idx] == '-')) == true || buffer[idx] == '+' )
     {
-        if( (idx= src. template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces, idx + 1 ) ) == -1 )
+        if( (idx= src. template IndexOfAny<lang::Inclusion::Exclude, NC>( nf.Whitespaces, idx + 1 ) ) == -1 )
             return 0;
     }
 
@@ -150,7 +136,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     // try parsing hexadecimal
     if(     ( prefixLen= nf.HexLiteralPrefix.Length())  != 0
         &&  ( idx + prefixLen  < srcLength )
-        &&  characters::CharArray<TChar>::Equal(buffer + idx, nf.HexLiteralPrefix.Buffer(), prefixLen )
+        &&  characters::Equal(buffer + idx, nf.HexLiteralPrefix.Buffer(), prefixLen )
         &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
@@ -162,7 +148,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     // try parsing binary
     else if(     (prefixLen= nf.BinLiteralPrefix.Length())  != 0
              &&  ( idx + prefixLen < srcLength )
-             &&  characters::CharArray<TChar>::Equal(buffer + idx, nf.BinLiteralPrefix.Buffer(), prefixLen )
+             &&  characters::Equal(buffer + idx, nf.BinLiteralPrefix.Buffer(), prefixLen )
              &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
@@ -174,7 +160,7 @@ int64_t   ParseInt( const TString<TChar>& src, integer& startIdx, const TNumberF
     // try parsing octal
     else if(     (prefixLen= nf.OctLiteralPrefix.Length()) != 0
              &&  ( idx + prefixLen  < srcLength )
-             &&  characters::CharArray<TChar>::Equal(buffer + idx, nf.OctLiteralPrefix.Buffer(), prefixLen )
+             &&  characters::Equal(buffer + idx, nf.OctLiteralPrefix.Buffer(), prefixLen )
              &&  nf.Whitespaces.IndexOf( buffer[ idx + prefixLen ] ) == -1     )
     {
         idx+= prefixLen;
@@ -438,7 +424,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         if( ++buf == bufEnd )
             return 0.0;
 
-        integer skip= TString<TChar>(buf, bufEnd-buf ). template IndexOfAny<lang::Inclusion::Exclude, false>( nf.Whitespaces );
+        integer skip= TString<TChar>(buf, bufEnd-buf ). template IndexOfAny<lang::Inclusion::Exclude, NC>( nf.Whitespaces );
         if( skip < 0 )
             return 0.0;
         buf+= skip;
@@ -446,14 +432,14 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
 
     // NaN, Infinite
     if(     buf + nf.NANLiteral.Length() - 1 <= bufEnd
-        &&  nf.NANLiteral. template CompareTo<true, lang::Case::Ignore>( TString<TChar>( buf, nf.NANLiteral.Length() ) ) == 0    )
+        &&  nf.NANLiteral. template CompareTo<CHK, lang::Case::Ignore>( TString<TChar>( buf, nf.NANLiteral.Length() ) ) == 0    )
     {
         startIdx= buf - src.Buffer()  + nf.NANLiteral.Length();
         return std::numeric_limits<double>::quiet_NaN();
     }
 
     if(     buf + nf.INFLiteral.Length() - 1 <= bufEnd
-        &&  nf.INFLiteral. template CompareTo<true, lang::Case::Ignore>( TString<TChar>( buf, nf.INFLiteral.Length() ) ) == 0    )
+        &&  nf.INFLiteral. template CompareTo<CHK, lang::Case::Ignore>( TString<TChar>( buf, nf.INFLiteral.Length() ) ) == 0    )
     {
         startIdx= buf -  src.Buffer() + nf.INFLiteral.Length();
         return negative ? -std::numeric_limits<double>::infinity()
@@ -513,7 +499,7 @@ double ParseFloat( const TString<TChar>& src, integer& startIdx, const TNumberFo
         {
             integer pos= 0;
             while (     pos < sepLen
-                    &&  nf.ExponentSeparator. template CharAt<false>(pos) == *(buf + pos) )
+                    &&  nf.ExponentSeparator. template CharAt<NC>(pos) == *(buf + pos) )
                 ++pos;
             if ( (eSepFound= ( pos == sepLen ) ) == true )
                 buf += pos;
@@ -579,8 +565,8 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
             if( value < pow10_0to19[digitsInValue-1] )
                 --digitsInValue;
 
-            ALIB_ASSERT_ERROR(                            value >= pow10_0to19[ digitsInValue - 1 ]
-                              && ( digitsInValue == 20 || value <  pow10_0to19[ digitsInValue     ] ),
+            ALIB_ASSERT_ERROR(                            value >= pow10_0to19[digitsInValue-1]
+                                  && (digitsInValue == 20 || value <  pow10_0to19[digitsInValue  ]),
                               "STRINGS", "Error in digitsInValue calculation"   )
         }
     }
@@ -608,12 +594,13 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
 
         // starts with group character? -> write space instead
         ALIB_ASSERT_ERROR( width - 1 <= printDigits + (printDigits - 1) / 3 ,
-                           "STRINGS", "Internal error, false assumption" )
+                             "STRINGS", "Internal error, false assumption" )
         if( printDigits >1  && width > printDigits + (printDigits - 1) / 3 )
             buffer[idx++]= nf.LeadingGroupCharReplacement;
     }
 
     // main loop
+    bool printSpace= hasBits(nf.Flags, NumberFormatFlags::ReplaceLeadingZerosWithSpaces);
     int  actDigit=      printDigits;
     while ( actDigit > 0 )
     {
@@ -626,10 +613,11 @@ integer WriteDecUnsigned( uint64_t value, TChar* buffer, integer idx, int overri
             &&  actDigit != printDigits
             &&  actDigit % 3 == 0
           )
-            buffer[idx++]= nf.ThousandsGroupChar;
+            buffer[idx++]= printSpace ? TChar(' ') : nf.ThousandsGroupChar;
 
         // write character
-        buffer[idx++]=  static_cast<TChar>( 48 + digitValue ); // 48= '0'
+        printSpace&= (digitValue == 0 && actDigit > 1);
+        buffer[idx++]=  printSpace ? TChar(' ') : TChar( 48 + digitValue ); // 48= '0'
 
         // next
         value=    value % pow10_0to19[actDigit-1];
@@ -1072,7 +1060,7 @@ integer WriteFloat( double value, TChar* buffer, integer idx, int overrideWidth,
             fractPart=    fractPart % pow10_0to19[actDigit];
         }
 
-        // assure that if -1 for fractDigits if given,at least 1 digit is printed
+        // ensure that if -1 for fractDigits if given,at least 1 digit is printed
         if (fractionalDigits < 0 )
             qtyDigits= 1;
 
@@ -1158,6 +1146,9 @@ template integer  WriteHex        <xchar>( uint64_t, xchar*, integer, int , cons
 template integer  WriteOct        <xchar>( uint64_t, xchar*, integer, int , const TNumberFormat<xchar>& );
 template integer  WriteFloat      <xchar>( double  , xchar*, integer, int , const TNumberFormat<xchar>& );
 
+#include "alib/lang/callerinfo_methods.hpp"
 
-#endif // !defined(ALIB_DOX)
+
+#endif // !DOXYGEN
 }}} // namespace [alib::strings::detail]
+

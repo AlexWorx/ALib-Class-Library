@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,22 +6,14 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_ALOX)
-#      include "alib/alox/alox.hpp"
-#   endif
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
+#if !DOXYGEN
+#   include "alib/alox/alox.hpp"
+#   include "alib/lang/message/report.hpp"
 #   define HPP_ALIB_LOX_PROPPERINCLUDE
-#      if !defined (HPP_ALOX_DETAIL_SCOPE)
-#          include "alib/alox/detail/scopestore.inl"
-#      endif
-#      if !defined (HPP_ALOX_DETAIL_SCOPEINFO)
-#          include "alib/alox/detail/scopeinfo.inl"
-#      endif
+#       include "alib/alox/detail/scopestore.inl"
+#       include "alib/alox/detail/scopeinfo.inl"
 #   undef HPP_ALIB_LOX_PROPPERINCLUDE
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 using namespace alib;
 
@@ -39,36 +31,29 @@ namespace alib {  namespace lox { namespace detail {
 // #################################################################################################
 
 template<typename T, bool TStackedThreadValues>
-ScopeStore<T, TStackedThreadValues>::ScopeStore( ScopeInfo& pScopeInfo,
-                                                 monomem::MonoAllocator* monoAllocator  )
-  : globalStore  ( ScopeStoreType<T>::NullValue() )
-  , languageStore( monoAllocator , '/' )
-  ALIB_IF_THREADS(, threadStore  ( monoAllocator ) )
-  , scopeInfo    ( pScopeInfo     )
+ScopeStore<T, TStackedThreadValues>::ScopeStore( ScopeInfo&      pScopeInfo,
+                                                 MonoAllocator&  monoAllocator  )
+  : globalStore  ( nullptr   )
+  , languageStore( monoAllocator , '/'              )
+  IF_ALIB_THREADS(, threadStore  ( monoAllocator )  )
+  , scopeInfo    ( pScopeInfo                       )
 {
-    languageStore.ConstructRootValue(ScopeStoreType<T>::NullValue());
+    #if ALIB_DEBUG_CRITICAL_SECTIONS
+        languageStore.DbgSetDCSName("ScopeStore");
+    #endif
+    languageStore.ConstructRootValue(nullptr);
 }
 
 template<typename T, bool TStackedThreadValues>
 ScopeStore<T, TStackedThreadValues>::~ScopeStore()
 {
-    languageStore.DeleteRootValue();
+    languageStore.DestructRootValue();
 }
 
 
 // #################################################################################################
 // Methods
 // #################################################################################################
-
-template<typename T, bool TStackedThreadValues>
-void ScopeStore<T,TStackedThreadValues>::Reset()
-{
-    globalStore= ScopeStoreType<T>::NullValue();
-    ALIB_IF_THREADS( threadStore  .Reset(); )
-    languageStore.Reset();
-}
-
-
 template<typename T, bool TStackedThreadValues>
 void ScopeStore<T,TStackedThreadValues>::InitWalk( Scope startScope, T localObject  )
 {
@@ -80,7 +65,7 @@ void ScopeStore<T,TStackedThreadValues>::InitWalk( Scope startScope, T localObje
     walking=             true;
 }
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 template<typename T>
 T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
@@ -117,7 +102,7 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
             self.actScope= Scope::Method;
 
             // if we have a valid 'local object' return this first
-            if ( self.walkLocalObject != ScopeStoreType<T>::NullValue() )
+            if ( self.walkLocalObject != nullptr )
                 return self.walkLocalObject;
         }
         break;
@@ -131,9 +116,9 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
 
             while( self.actStringTreeNode.IsValid() )
             {
-                T actValue= self.actStringTreeNode.Value();
+                T actValue= *self.actStringTreeNode;
                 self.actStringTreeNode.GoToParent();
-                if( actValue != ScopeStoreType<T>::NullValue() )
+                if( actValue != nullptr )
                     return actValue;
             }
 
@@ -179,15 +164,17 @@ T ScopeStoreHelper<T, false>:: doWalk( ScopeStore<T, false>& self )
             return self.globalStore;
         }
         break;
+
+        default: ALIB_ERROR("Illegal switch state.") break;
     }
 
-    return ScopeStoreType<T>::NullValue();
+    return nullptr;
 }
 
 template<typename T>
 T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T value )
 {
-    T oldValue= ScopeStoreType<T>::NullValue();
+    T oldValue= nullptr;
 
     // --------- global scope ---------
     if( self.actScope == Scope::Global )
@@ -196,7 +183,7 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
         if ( cmd == CMD_INSERT )
             self.globalStore= value;
         else if ( cmd == CMD_REMOVE )
-            self.globalStore= ScopeStoreType<T>::NullValue();
+            self.globalStore= nullptr;
 
         return oldValue;
     }
@@ -217,7 +204,7 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
         if ( self.actThreadID == threads::UNDEFINED )
              self.actThreadID=   self.scopeInfo.GetThreadID();
 
-        // --- implementation for non-stacked values (values stored in a maü) ---
+        // --- implementation for non-stacked values (values stored in a ma) ---
         ALIB_ASSERT( cmd != CMD_REMOVE ) // no remove implemented (needed)
 
         // 'get'
@@ -243,16 +230,16 @@ T ScopeStoreHelper<T, false>::doAccess( ScopeStore<T, false>& self, int cmd, T v
 
     // --------- language-related scopes ---------
     {
-        if ( cmd == CMD_INSERT && value == ScopeStoreType<T>::NullValue() )
+        if ( cmd == CMD_INSERT && value == nullptr )
             cmd= CMD_REMOVE;
 
         if (    self.lazyLanguageNode
             ||  ( self.actStringTreeNode.IsInvalid() && cmd == CMD_INSERT ) )
             self.initCursor( true ); // always create
 
-        oldValue= self.actStringTreeNode.Value();
-             if ( cmd == CMD_INSERT )  self.actStringTreeNode.Value()= value;
-        else if ( cmd == CMD_REMOVE )  self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
+        oldValue= *self.actStringTreeNode;
+             if ( cmd == CMD_INSERT )  *self.actStringTreeNode= value;
+        else if ( cmd == CMD_REMOVE )  *self.actStringTreeNode= nullptr;
 
         return oldValue;
     }
@@ -285,14 +272,14 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
             if ( self.walkNextThreadIdx > 0 )
             {
                 --self.walkNextThreadIdx;
-                return (*self.walkThreadValues)[static_cast<size_t>(self.walkNextThreadIdx)];
+                return (*self.walkThreadValues)[size_t(self.walkNextThreadIdx)];
             }
 
             // next scope is Method
             self.actScope= Scope::Method;
 
             // if we have a valid 'local object' return this first
-            if ( self.walkLocalObject != ScopeStoreType<T>::NullValue() )
+            if ( self.walkLocalObject != nullptr )
                 return self.walkLocalObject;
         }
         break;
@@ -306,9 +293,9 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
 
             while( self.actStringTreeNode.IsValid() )
             {
-                T actValue= self.actStringTreeNode.Value();
+                T actValue= *self.actStringTreeNode;
                 self.actStringTreeNode.GoToParent();
-                if( actValue != ScopeStoreType<T>::NullValue() )
+                if( actValue != nullptr )
                     return actValue;
             }
 
@@ -339,7 +326,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
             if ( self.walkNextThreadIdx > 0 )
             {
                 --self.walkNextThreadIdx;
-                return (*self.walkThreadValues)[static_cast<size_t>(self.walkNextThreadIdx)];
+                return (*self.walkThreadValues)[size_t(self.walkNextThreadIdx)];
             }
 
             // next scope is Global
@@ -353,22 +340,24 @@ template<typename T> T ScopeStoreHelper<T, true>::doWalk( ScopeStore<T, true>& s
             return self.globalStore;
         }
         break;
+
+        default: ALIB_ERROR("Illegal switch state.") break;
     }
 
-    return ScopeStoreType<T>::NullValue();
+    return nullptr;
 }
 
 
 template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>& self, int cmd, T value )
 {
-    T oldValue= ScopeStoreType<T>::NullValue();
+    T oldValue= nullptr;
 
     // --------- global scope ---------
     if( self.actScope == Scope::Global )
     {
         oldValue= self.globalStore;
              if ( cmd == CMD_INSERT )    self.globalStore= value;
-        else if ( cmd == CMD_REMOVE )    self.globalStore= ScopeStoreType<T>::NullValue();
+        else if ( cmd == CMD_REMOVE )    self.globalStore= nullptr;
 
         return oldValue;
     }
@@ -391,16 +380,16 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
 
         // --- implementation for stacked values ---
         // find (create) the vector of values
-        std::vector<T,StdContMA<T>>* values;
+        StdVectorMono<T>* values;
         {
             values= &self.threadStore.EmplaceIfNotExistent(
-                    typename ScopeStore<T, true>::ThreadMapKey(isInner, self.actThreadID),
-                    *self.threadStore.GetAllocator()       ).first.Mapped();
+                        typename ScopeStore<T, true>::ThreadMapKey(isInner, self.actThreadID),
+                              self.threadStore.GetAllocator()  ).first.Mapped();
         }
 
         // 'get'
         if ( cmd == CMD_GET )
-            return ( values->size() > 0) ? (*values)[ values->size() -1 ] : ScopeStoreType<T>::NullValue();
+            return ( values->size() > 0) ? (*values)[ values->size() -1 ] : nullptr;
 
         // insert is simple, we do not even return an 'oldValue'
         if ( cmd == CMD_INSERT )
@@ -413,7 +402,7 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
         if ( cmd == CMD_REMOVE  && values->size() > 0)
         {
             // remove the last
-            if ( value == ScopeStoreType<T>::NullValue() )
+            if ( value == nullptr )
             {
                 oldValue= values->back();
                 values->pop_back();
@@ -422,15 +411,13 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
             // remove a specific one.
             else
                 for ( auto rem= values->begin() ; rem != values->end(); ++rem )
-                {
-                    //We return the found value, if found, otherwise we don't do anything
-                    if ( ScopeStoreType<T>::AreEqual( (*rem), value ) )
+                    if ( (*rem) == value )
                     {
+                        // If found, we return the value, otherwise we don't do anything
                         oldValue= *rem;
                         values->erase( rem );
                         break;
                     }
-                }
         }
 
         return oldValue;
@@ -439,16 +426,16 @@ template<typename T> T ScopeStoreHelper<T, true>::doAccess( ScopeStore<T, true>&
 
     // --------- language-related scopes ---------
     {
-        if ( cmd == CMD_INSERT && value == ScopeStoreType<T>::NullValue() )
+        if ( cmd == CMD_INSERT && value == nullptr )
             cmd= CMD_REMOVE;
 
         if (    self.lazyLanguageNode
             ||  ( self.actStringTreeNode.IsInvalid() && cmd == CMD_INSERT ) )
             self.initCursor( true ); // always create
 
-        oldValue= self.actStringTreeNode.Value();
-             if ( cmd == CMD_INSERT )   self.actStringTreeNode.Value()= value;
-        else if ( cmd == CMD_REMOVE )   self.actStringTreeNode.Value()= ScopeStoreType<T>::NullValue();
+        oldValue= *self.actStringTreeNode;
+             if ( cmd == CMD_INSERT )   *self.actStringTreeNode= value;
+        else if ( cmd == CMD_REMOVE )   *self.actStringTreeNode= nullptr;
 
         return oldValue;
     }
@@ -479,16 +466,16 @@ void ScopeStore<T,TStackedThreadValues>::initCursor( bool create )
         ALIB_ASSERT( actScope == Scope::Method )
 
         // in read only mode, we can leave as soon as a portion was not read
-        auto remainingPath= actStringTreeNode.GoToTraversedPath( path );
+        auto remainingPath= actStringTreeNode.GoTo( path );
         if ( remainingPath.IsNotEmpty() )
             return;
 
         // filename: append '#' to distinguish from directories
-        if ( !actStringTreeNode.GoToChild( path.Reset<false>( scopeInfo.GetFileNameWithoutExtension() )._( '#' ) ) )
+        if ( !actStringTreeNode.GoToChild( path.Reset<NC>( scopeInfo.GetFileNameWithoutExtension() )._( '#' ) ) )
             return;
 
         // method: prepend '#' to distinguish from filenames
-        actStringTreeNode.GoToChild( path.Reset<false>( '#' )._<false>( scopeInfo.GetMethod() ) );
+        actStringTreeNode.GoToChild( path.Reset<NC>( '#' )._<NC>( scopeInfo.GetMethod() ) );
 
         return;
     }
@@ -535,47 +522,19 @@ void ScopeStore<T,TStackedThreadValues>::InitAccess( Scope scope, int pathLevel,
 
 //! @cond NO_DOX
 
-// AString*
-template                                 ScopeStore<NString                , true >::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
-template                                 ScopeStore<NString                , true >::~ScopeStore();
-template   void                          ScopeStore<NString                , true >::Reset      ();
-template   void                          ScopeStore<NString                , true >::InitWalk   (Scope,NString);
-template   NString                 ScopeStoreHelper<NString                , true >::doWalk     (ScopeStore<NString, true>& );
-template   void                          ScopeStore<NString                , true >::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<NString                , true >::initCursor (bool);
-template   NString                 ScopeStoreHelper<NString                , true >::doAccess   (ScopeStore<NString, true>&, int, NString  );
+template struct ScopeStoreHelper<NString                , true>;
+template class  ScopeStore      <NString                , true>;
 
-// Logable*
-template                                 ScopeStore<PrefixLogable*         , true >::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
-template                                 ScopeStore<PrefixLogable*         , true >::~ScopeStore();
-template   void                          ScopeStore<PrefixLogable*         , true >::Reset      ();
-template   void                          ScopeStore<PrefixLogable*         , true >::InitWalk   (Scope,PrefixLogable*);
-template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*         , true > ::doWalk    (ScopeStore<PrefixLogable*, true>& );
-template   void                          ScopeStore<PrefixLogable*         , true >::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<PrefixLogable*         , true >::initCursor (bool);
-template   PrefixLogable*          ScopeStoreHelper<PrefixLogable*         , true >::doAccess   (ScopeStore<PrefixLogable*, true>&, int, PrefixLogable*  );
+template struct ScopeStoreHelper<PrefixLogable*         , true>;
+template class  ScopeStore      <PrefixLogable*         , true>;
 
-// std::map<AString, int>*
-template                                 ScopeStore<std::map<NString, int>*, false>::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
-template                                 ScopeStore<std::map<NString, int>*, false>::~ScopeStore();
-template   void                          ScopeStore<std::map<NString, int>*, false>::Reset      ();
-template   void                          ScopeStore<std::map<NString, int>*, false>::InitWalk   (Scope,std::map<NString, int>*);
-template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*, false>::doWalk     (ScopeStore<std::map<NString, int>*, false>& );
-template   void                          ScopeStore<std::map<NString, int>*, false>::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<std::map<NString, int>*, false>::initCursor (bool);
-template   std::map<NString, int>* ScopeStoreHelper<std::map<NString, int>*, false>::doAccess   (ScopeStore<std::map<NString, int>*, false>&, int, std::map<NString, int>*  );
+template struct ScopeStoreHelper<SSMap<int>*, false>;
+template class  ScopeStore      <SSMap<int>*, false>;
 
-// std::map<AString, Box>*
-template                                 ScopeStore<std::map<NString, Box>*, false>::ScopeStore (ScopeInfo&, monomem::MonoAllocator*);
-template                                 ScopeStore<std::map<NString, Box>*, false>::~ScopeStore();
-template   void                          ScopeStore<std::map<NString, Box>*, false>::Reset      ();
-template   void                          ScopeStore<std::map<NString, Box>*, false>::InitWalk   (Scope,std::map<NString, Box>*);
-template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*, false>::doWalk     (ScopeStore<std::map<NString, Box>*, false>& );
-template   void                          ScopeStore<std::map<NString, Box>*, false>::InitAccess (Scope,int,threads::ThreadID);
-template   void                          ScopeStore<std::map<NString, Box>*, false>::initCursor (bool);
-template   std::map<NString, Box>* ScopeStoreHelper<std::map<NString, Box>*, false>::doAccess   (ScopeStore<std::map<NString, Box>*, false>&, int, std::map<NString, Box>*  );
-
+template struct ScopeStoreHelper<SSMap<Box>*, false>;
+template class  ScopeStore      <SSMap<Box>*, false>;
 
 //! @endcond
 
 }}} // namespace [alib::lox::detail]
+

@@ -2,7 +2,7 @@ cd ../../
 
 if [ ! -d _builds_ ]
 then
-    echo "can not find _builds_ directory "
+    echo "cannot find _builds_ directory "
     exit -1
 fi
 

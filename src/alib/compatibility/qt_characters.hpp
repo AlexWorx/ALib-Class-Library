@@ -1,21 +1,21 @@
-﻿/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- *
- * <b>Legal Notice:</b>
- * This is an optional extension header to provide compatibility between ALib and
- * the QT class library.
- * All information about QT is found at https://www.qt.io
- * ALib otherwise does not use or rely on QT.
- * The use of QT is bound to the QT license restrictions.
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+///
+/// <b>Legal Notice:</b>
+/// This is an optional extension header to provide compatibility between ALib and
+/// the QT class library.
+/// All information about QT is found at https://www.qt.io
+/// ALib otherwise does not use or rely on QT.
+/// The use of QT is bound to the QT license restrictions.
+//==================================================================================================
 #ifndef HPP_ALIB_COMPATIBILITY_QT_CHARACTERS
 #define HPP_ALIB_COMPATIBILITY_QT_CHARACTERS 1
-
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#pragma once
+#if !defined(DOXYGEN)
 #   include "alib/alib.hpp"
 #endif
 
@@ -46,21 +46,17 @@ ALIB_ASSERT_MODULE(CHARACTERS)
 #   error "Wrong inclusion order. Header 'alib/compatibility/qt_characters.hpp' has to be included before headers of module ALib Boxing."
 #endif
 
-#if !defined(HPP_ALIB_CHARACTERS_CHARACTERS)
-#   include "alib/characters/characters.hpp"
-#endif
+#   include "alib/characters/chartraits.hpp"
 
-namespace alib {  namespace characters {
+namespace alib::characters {
 
 // Faking all template specializations of namespace strings for doxygen into namespace
 // strings::custom to keep the documentation of namespace string clean!
-#if defined(ALIB_DOX)
+#if DOXYGEN
 namespace compatibility {
-/**
- * Specializations of type traits structs \alib{characters,T_CharArray} and
- * \alib{characters,T_ZTCharArray} for types found in the
- * \https{QT Class Library,www.qt.io}.
- */
+/// Specializations of type traits structs \alib{characters;T_CharArray} and
+/// \alib{characters;T_ZTCharArray} for types found in the
+/// \https{QT Class Library,www.qt.io}.
 namespace qt {} }
 
 #else
@@ -184,8 +180,9 @@ ALIB_WARNINGS_RESTORE
 
 #endif  //ALIB_DOX
 
-}}  // namespace [alib::characters]
+}  // namespace [alib::characters]
 
 
 #endif // !defined(ALIB_QT_LIB_NOT_FOUND) // this is only set in an automated test project
 #endif // HPP_ALIB_COMPATIBILITY_QT_CHARACTERS
+

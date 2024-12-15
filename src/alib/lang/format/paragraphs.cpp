@@ -6,22 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
+#if !DOXYGEN
 #   include "alib/lang/format/paragraphs.hpp"
-#endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
-
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#   include "alib/lang/format/fmtexceptions.hpp"
 #   include "alib/strings/util/tokenizer.hpp"
-#endif
-
-#if !defined (HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
 #   include "alib/lang/message/exception.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/monomem/aliases/stddeque.hpp"
+#endif // !DOXYGEN
 
 using namespace alib::strings;
 namespace alib::lang::format {
@@ -31,16 +22,37 @@ namespace alib::lang::format {
 // Non-static methods (if used with instance).
 // #################################################################################################
 Paragraphs::Paragraphs()
-: Buffer(text)
-, Formatter( Formatter::GetDefault()  )
+: allocator             (ALIB_DBG("Paragraphs",) 4)
+, Buffer                (text)
+, Formatter             ( Formatter::Default  )
+, MarkerBullets         (allocator)
+, IndentFirstLine       (allocator)
+, IndentOtherLines      (allocator)
+, IndentSizesFirstLine  (StdDequeMono<integer>(allocator))
+, IndentSizesOtherLines (StdDequeMono<integer>(allocator))
+, boxes                 (allocator)
 {
     text.SetBuffer(2048);
+    MarkerBullets= {'*', '-', '*', '-', '*', '-' };
+    IndentFirstLine .SetBuffer(20);
+    IndentOtherLines.SetBuffer(20);
 }
 
 Paragraphs::Paragraphs(AString& externalBuffer)
-: Buffer(externalBuffer)
-, Formatter( Formatter::GetDefault()  )
-{}
+: allocator(ALIB_DBG("Paragraphs",) 2)
+, Buffer(externalBuffer)
+, Formatter( Formatter::Default  )
+, MarkerBullets (allocator)
+, IndentFirstLine       (allocator)
+, IndentOtherLines      (allocator)
+, IndentSizesFirstLine  (StdDequeMono<integer>(allocator))
+, IndentSizesOtherLines (StdDequeMono<integer>(allocator))
+, boxes(allocator)
+{
+    MarkerBullets= {'*', '-', '*', '-', '*', '-' };
+    IndentFirstLine .SetBuffer(20);
+    IndentOtherLines.SetBuffer(20);
+}
 
 
 
@@ -94,39 +106,30 @@ Paragraphs&     Paragraphs::Clear()
 }
 
 
+//! @cond NO_DOX
 
-void   Paragraphs::Add( Boxes&  args )
+template<>
+void   Paragraphs::Add( boxing::TBoxes<MonoAllocator>&  args )
 {
     integer startIdx= Buffer.Length();
-    Formatter->Acquire(ALIB_CALLER_PRUNED);
-    try
-    {
-        Formatter->FormatArgs( Buffer, args );
-    }
-    catch(Exception& )
-    {
-        Formatter->Release();
-        throw;
-    }
-    Formatter->Release();
+    Formatter->FormatArgs( Buffer, args ); // may throw!
 
     integer maxLineWidth;
     Paragraphs::Format( Buffer, startIdx, LineWidth, JustifyChar, maxLineWidth, IndentFirstLine, IndentOtherLines );
     DetectedMaxLineWidth= (std::max)(DetectedMaxLineWidth, maxLineWidth );
 
-    if ( Buffer.IsNotEmpty() && !Buffer.EndsWith( NewLine() ) )
+    if ( Buffer.IsNotEmpty() && !Buffer.EndsWith( NEW_LINE ) )
     {
         #if defined( _WIN32 )
             if( Buffer.CharAtEnd() == '\n' )
                 Buffer.DeleteEnd(1);
         #endif
-        Buffer << NewLine();
+        Buffer.NewLine();
     }
 }
 
-//! @cond NO_DOX
-namespace
-{
+#include "alib/lang/callerinfo_functions.hpp"
+namespace {
     ALIB_NO_RETURN
     void throwMarkerException( FMTExceptions eType, String& markedBuffer, integer errPos )
     {
@@ -155,11 +158,10 @@ namespace
 
         throw Exception( ALIB_CALLER_NULLED, eType, errPos, actText, exceptPos );
     }
-
 }
-//! @endcond
-
-void   Paragraphs::AddMarked( Boxes&  args )
+#include "alib/lang/callerinfo_methods.hpp"
+    
+template<> void   Paragraphs::AddMarked( boxing::TBoxes<MonoAllocator>&  args )
 {
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     character searchCharBuf[2];
@@ -168,26 +170,14 @@ void   Paragraphs::AddMarked( Boxes&  args )
     ALIB_WARNINGS_RESTORE
     String searchChars(searchCharBuf, 2);
 
-    Formatter->Acquire(ALIB_CALLER_PRUNED);
-    try
-    {
-        Formatter->FormatArgs( markedBuffer.Reset(), args );
-    }
-    catch(Exception& )
-    {
-        Formatter->Release();
-        throw;
-    }
-    Formatter->Release();
-
-
+    Formatter->FormatArgs( markedBuffer.Reset(), args ); // may throw
 
     Substring parser       =  markedBuffer;
     integer   lastTextStart=  Buffer.Length();
 
     while( parser.IsNotEmpty() )
     {
-        integer pos= parser.template IndexOfAny<lang::Inclusion::Include, false>( searchChars );
+        integer pos= parser.template IndexOfAny<lang::Inclusion::Include, NC>( searchChars );
 
         // not found
         if( pos < 0 )
@@ -199,9 +189,10 @@ void   Paragraphs::AddMarked( Boxes&  args )
         // new line
         if( parser.CharAt( pos ) == '\n' )
         {
-            parser.template ConsumeChars<false, lang::CurrentData::Keep>( pos, Buffer, 1 );
-            parser.ConsumeChar( '\r' );
-            Buffer << NewLine();
+            parser.template ConsumeChars<NC, lang::CurrentData::Keep>( pos, Buffer, 1 );
+            if (Buffer.CharAtEnd<NC>() == '\r')
+                Buffer.DeleteEnd<NC>(1);
+            Buffer.NewLine();
             integer maxLineWidth;
             Paragraphs::Format( Buffer, lastTextStart, LineWidth, JustifyChar,
                                                     maxLineWidth, IndentFirstLine, IndentOtherLines );
@@ -210,7 +201,7 @@ void   Paragraphs::AddMarked( Boxes&  args )
             continue;
         }
 
-        parser.template ConsumeChars<false, lang::CurrentData::Keep>( pos, Buffer, 1 );
+        parser.template ConsumeChars<NC, lang::CurrentData::Keep>( pos, Buffer, 1 );
 
         // double marker: insert one symbol
         if( parser.ConsumeChar( MarkerChar ) )
@@ -260,14 +251,14 @@ void   Paragraphs::AddMarked( Boxes&  args )
         }
 
         else if( parser.ConsumeChar('p' ) || parser.ConsumeChar('P') )
-            Buffer << NewLine();
+            Buffer.NewLine();
 
 
         // horizontal line
         else if( parser.ConsumeString(A_CHAR( "HL" )) )
         {
             Buffer.InsertChars( parser.ConsumeChar() , LineWidth - IndentFirstLine.Length() )
-                ._( NewLine() );
+                  .NewLine();
         }
 
         // not recognized
@@ -286,10 +277,11 @@ void   Paragraphs::AddMarked( Boxes&  args )
         DetectedMaxLineWidth= (std::max)(DetectedMaxLineWidth, maxLineWidth );
     }
 
-    if ( Buffer.IsNotEmpty() && !Buffer.EndsWith( NewLine() ) )
-        Buffer << NewLine();
+    if ( Buffer.IsNotEmpty() && !Buffer.EndsWith( NEW_LINE ) )
+        Buffer.NewLine();
 }
 
+//! @endcond
 
 // #################################################################################################
 // The static formatter method
@@ -301,7 +293,7 @@ void  Paragraphs::Format( AString&      text,
                           const String& pIndentOtherLines                         )
 {
     maxLineWidth= 0;
-    String indentFirstLines= pIndentFirstLine .IsNotNull()  ? pIndentFirstLine  : EmptyString();
+    String indentFirstLines= pIndentFirstLine .IsNotNull()  ? pIndentFirstLine  : EMPTY_STRING;
     String indentOtherLines= pIndentOtherLines.IsNotNull()  ? pIndentOtherLines : pIndentFirstLine;
 
     bool isFirstLine= true;
@@ -353,13 +345,13 @@ void  Paragraphs::Format( AString&      text,
             #if defined( _WIN32 )
                 if( !isWinNL )
                 {
-                    text.template InsertChars<false>('\r', 1, startIdx );
+                    text.template InsertChars<NC>('\r', 1, startIdx );
                     isWinNL= true;
                 }
             #else
                 if( isWinNL )
                 {
-                    text.template Delete<false>(startIdx, 1);
+                    text.template Delete<NC>(startIdx, 1);
                     isWinNL= false;
                 }
             #endif
@@ -383,18 +375,18 @@ void  Paragraphs::Format( AString&      text,
         }
         text.InsertAt( indent, startIdx );
 
+        integer idx = startIdx + indent.Length() - 1;
+
         if( isFirstLine )
         {
             isFirstLine= false;
             indent=      nullptr;
         }
 
-
         // find next end of line. Remember last space in line
         integer lastSpaceInLine = 0;
         bool    isLastLine      = true;
         bool    exceeds         = false;
-        integer idx             = startIdx + indent.Length() - 1;
         while (++idx < text.Length() )
         {
             character c= text[idx];
@@ -423,13 +415,13 @@ void  Paragraphs::Format( AString&      text,
         #if defined( _WIN32 )
             if( text[idx-1] == '\n' && text[idx-2] != '\r' )
             {
-                text.template InsertChars<false>('\r', 1, idx-1 );
+                text.template InsertChars<NC>('\r', 1, idx-1 );
                 ++idx;
             }
         #else
             if( text[idx-1] == '\n' && text[idx-2] == '\r' )
             {
-                text.template Delete<false>((idx-2), 1);
+                text.template Delete<NC>((idx-2), 1);
                 --idx;
             }
         #endif
@@ -438,8 +430,8 @@ void  Paragraphs::Format( AString&      text,
         if( exceeds && ( lastSpaceInLine || !isLastLine ) )
         {
             integer wrapPos= lastSpaceInLine > 0 ? lastSpaceInLine : idx;
-            text.template ReplaceSubstring<false>( NewLine(), wrapPos, 1 );
-            idx= wrapPos + NewLine().Length();
+            text.template ReplaceSubstring<NC>( NEW_LINE, wrapPos, 1 );
+            idx= wrapPos + NEW_LINE.Length();
             hasNL= true;
 
             // block justification
@@ -483,5 +475,36 @@ void  Paragraphs::Format( AString&      text,
         startIdx= idx;
     }
 }
+
+
+#if !DOXYGEN
+template<> void   Paragraphs::Add( boxing::TBoxes<lang::HeapAllocator>&  args )
+{
+    boxes.clear();
+    boxes.Add(args);
+    Add(boxes);
+}
+
+template<> void   Paragraphs::Add( boxing::TBoxes<PoolAllocator>&  args )
+{
+    boxes.clear();
+    boxes.Add(args);
+    Add(boxes);
+}
+template<> void   Paragraphs::AddMarked( boxing::TBoxes<lang::HeapAllocator>&  args )
+{
+    boxes.clear();
+    boxes.Add(args);
+    AddMarked(boxes);
+}
+
+template<> void   Paragraphs::AddMarked( boxing::TBoxes<PoolAllocator>&  args )
+{
+    boxes.clear();
+    boxes.Add(args);
+    AddMarked(boxes);
+}
+#endif // !DOXYGEN
+
 
 } // namespace [alib::lang::format]

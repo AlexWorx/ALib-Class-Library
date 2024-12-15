@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,26 +6,20 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
+#if !DOXYGEN
 #   include "alib/strings/util/regexmatcher.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 #if ALIB_FEAT_BOOST_REGEX && ALIB_CHARACTERS_WIDE && !ALIB_CHARACTERS_NATIVE_WCHAR
 #   pragma message ( "Warning: Class RegexMatcher will not be available, because ALIB_CHARACTERS_NATIVE_WCHAR is false." )
 #endif
 
-
 #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
 
-#if !defined(ALIB_DOX)
-#include <boost/regex.hpp>
-
-#if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
+#if !DOXYGEN
+#   include <boost/regex.hpp>
 #   include <string>
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 namespace alib {  namespace strings { namespace util  {
 
@@ -48,7 +42,7 @@ void RegexMatcher::Compile( const String& pattern )
     else
         regEx= reinterpret_cast<boost::basic_regex<character>*>( boostRegex );
 
-    regEx->assign( std::basic_string<character>(pattern.Buffer(), static_cast<size_t>( pattern.Length() ) ) );
+    regEx->assign( std::basic_string<character>(pattern.Buffer(), size_t( pattern.Length() ) ) );
 }
 
 bool RegexMatcher::Match( const String& haystack )
@@ -56,7 +50,7 @@ bool RegexMatcher::Match( const String& haystack )
     if( !boostRegex )
         return true;
 
-    return boost::regex_match(std::basic_string<character>(haystack.Buffer(), static_cast<size_t>( haystack.Length() )),
+    return boost::regex_match(std::basic_string<character>(haystack.Buffer(), size_t( haystack.Length() )),
                               *reinterpret_cast<boost::basic_regex<character>*>( boostRegex )      );
 
 }
@@ -64,3 +58,4 @@ bool RegexMatcher::Match( const String& haystack )
 }}} // namespace [alib::strings::util]
 
 #endif  // ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
+

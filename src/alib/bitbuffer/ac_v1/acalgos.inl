@@ -1,30 +1,26 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_bitbuffer of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_bitbuffer of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_BITBUFFER_AC_V1_ALGOS
 #define HPP_ALIB_BITBUFFER_AC_V1_ALGOS 1
-
+#pragma once
 #if !defined(HPP_ALIB_MONOMEM_DETAIL_ARRAY_COMPRESSION_ALLOW)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-#if !defined(HPP_ALIB_BITBUFFER_AC_V1_HUFFMAN)
-#   include "alib/bitbuffer/ac_v1/huffman.hpp"
-#endif
+#include "alib/bitbuffer/ac_v1/huffman.hpp"
 
 namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
 
-/**
- * Writes data compressed using class \alib{bitbuffer::ac_v1,HuffmanEncoder}.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes data compressed using class \alib{bitbuffer::ac_v1;HuffmanEncoder}.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
 {
@@ -71,12 +67,10 @@ void writeHuffman( BitWriter& bw, ArrayCompressor::Array<TI>& data )
     }
 }
 
-/**
- * Reads data compressed using class \alib{bitbuffer::ac_v1,HuffmanDecoder}.
- * @tparam TI   The integral type of the array to read back.
- * @param  br   The bit reader to use.
- * @param  data The array to read the data to.
- */
+/// Reads data compressed using class \alib{bitbuffer::ac_v1;HuffmanDecoder}.
+/// @tparam TI   The integral type of the array to read back.
+/// @param  br   The bit reader to use.
+/// @param  data The array to read the data to.
 template<typename TI>
 void readHuffman( BitReader& br, ArrayCompressor::Array<TI>& data )
 {
@@ -103,13 +97,11 @@ void readHuffman( BitReader& br, ArrayCompressor::Array<TI>& data )
 }
 
 
-/**
- * Writes array data by simply using the mechanics provided with class \alib{bitbuffer,BitWriter},
- * which tries to shorten integrals on writing.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes array data by simply using the mechanics provided with class \alib{bitbuffer;BitWriter},
+/// which tries to shorten integrals on writing.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeUncompressed( BitWriter& bw, ArrayCompressor::Array<TI>& data )
 {
@@ -119,13 +111,11 @@ void writeUncompressed( BitWriter& bw, ArrayCompressor::Array<TI>& data )
     }
 }
 
-/**
- * Reads data compressed using simply the mechanics provided with class \alib{bitbuffer,BitWriter}
- * which tries to shorten integrals on writing.
- * @tparam TI   The integral type of the array to read back.
- * @param br    The bit reader to use.
- * @param data  The array to read the data to.
- */
+/// Reads data compressed using simply the mechanics provided with class \alib{bitbuffer;BitWriter}
+/// which tries to shorten integrals on writing.
+/// @tparam TI   The integral type of the array to read back.
+/// @param br    The bit reader to use.
+/// @param data  The array to read the data to.
 template<typename TI>
 void readUncompressed( BitReader& br, ArrayCompressor::Array<TI>& data )
 {
@@ -134,12 +124,10 @@ void readUncompressed( BitReader& br, ArrayCompressor::Array<TI>& data )
         data.set(i, br.Read<TUI>() );
 }
 
-/**
- * Writes array data by writing only the difference to the minimum found value.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes array data by writing only the difference to the minimum found value.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 {
@@ -161,12 +149,10 @@ void writeMinMax(BitWriter& bw, ArrayCompressor::Array<TI>& data )
         bw.Write( bitCnt, TUI( data.get(i) - data.min ) );
 }
 
-/**
- * Reads data compressed with method \alib{bitbuffer::ac_v1,writeMinMax}.
- * @tparam TI   The integral type of the array to read back.
- * @param br    The bit reader to use.
- * @param data  The array to read the data to.
- */
+/// Reads data compressed with method \alib{bitbuffer::ac_v1;writeMinMax}.
+/// @tparam TI   The integral type of the array to read back.
+/// @param br    The bit reader to use.
+/// @param data  The array to read the data to.
 template<typename TI>
 void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data )
 {
@@ -184,12 +170,10 @@ void readMinMax( BitReader& br, ArrayCompressor::Array<TI>& data )
         data.set(i, br.Read<TUI>( bitCnt ) + min );
 }
 
-/**
- * Writes array data assuming it is sparsely set.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes array data assuming it is sparsely set.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeSparse(BitWriter& bw, ArrayCompressor::Array<TI>& data)
 {
@@ -212,12 +196,10 @@ void writeSparse(BitWriter& bw, ArrayCompressor::Array<TI>& data)
     }
 }
 
-/**
- * Reads data compressed with method \alib{bitbuffer::ac_v1,writeSparse}.
- * @tparam TI   The integral type of the array to read back.
- * @param br    The bit reader to use.
- * @param data  The array to read the data to.
- */
+/// Reads data compressed with method \alib{bitbuffer::ac_v1;writeSparse}.
+/// @tparam TI   The integral type of the array to read back.
+/// @param br    The bit reader to use.
+/// @param data  The array to read the data to.
 template<typename TI>
 void readSparse( BitReader& br, ArrayCompressor::Array<TI>& data  )
 {
@@ -231,12 +213,10 @@ void readSparse( BitReader& br, ArrayCompressor::Array<TI>& data  )
                                           : br.Read<TUI>()  );
 }
 
-/**
- * Writes array data assuming it is very sparsely set.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes array data assuming it is very sparsely set.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 {
@@ -326,12 +306,10 @@ void writeVerySparse(BitWriter& bw, ArrayCompressor::Array<TI>& data )
     } // 2 pass loop
 }
 
-/**
- * Reads data compressed with method \alib{bitbuffer::ac_v1,writeVerySparse}.
- * @tparam TI   The integral type of the array to read back.
- * @param br    The bit reader to use.
- * @param data  The array to read the data to.
- */
+/// Reads data compressed with method \alib{bitbuffer::ac_v1;writeVerySparse}.
+/// @tparam TI   The integral type of the array to read back.
+/// @param br    The bit reader to use.
+/// @param data  The array to read the data to.
 template<typename TI>
 void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data )
 {
@@ -364,12 +342,10 @@ void readVerySparse( BitReader& br, ArrayCompressor::Array<TI>& data )
     }
 }
 
-/**
- * Writes array data incrementally.
- * @tparam TI    The integral type of the array to write.
- * @param  bw    The bit writer to use.
- * @param  data  The array to read the data from.
- */
+/// Writes array data incrementally.
+/// @tparam TI    The integral type of the array to write.
+/// @param  bw    The bit writer to use.
+/// @param  data  The array to read the data from.
 template<typename TI>
 void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
 {
@@ -417,12 +393,10 @@ void writeIncremental(BitWriter& bw, ArrayCompressor::Array<TI>& data )
     }
 }
 
-/**
- * Reads data compressed with \alib{bitbuffer::ac_v1,writeIncremental}.
- * @tparam TI   The integral type of the array to read back.
- * @param  br   The bit reader to use.
- * @param  data The array to read the data to.
- */
+/// Reads data compressed with \alib{bitbuffer::ac_v1;writeIncremental}.
+/// @tparam TI   The integral type of the array to read back.
+/// @param  br   The bit reader to use.
+/// @param  data The array to read the data to.
 template<typename TI>
 void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
 {
@@ -464,3 +438,4 @@ void readIncremental( BitReader& br, ArrayCompressor::Array<TI>& data)
 }}} // namespace [alib::bitbuffer::ac_v1]
 
 #endif // HPP_ALIB_BITBUFFER_AC_V1_ALGOS
+

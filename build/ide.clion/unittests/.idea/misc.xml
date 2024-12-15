@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="CMakePythonSetting">
+    <option name="pythonIntegrationState" value="YES" />
+  </component>
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$">
     <contentRoot DIR="$PROJECT_DIR$/../../.." />
   </component>
   <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/../../../html" />
+    </sourceRoots>
     <excludeRoots>
       <file path="$PROJECT_DIR$/../../../.private/build/_builds_" />
       <file path="$PROJECT_DIR$/../../_builds_" />
       <file path="$PROJECT_DIR$/../../_builds_/ide.cpp.clion/ALox_Unit_Tests/CMakeFiles" />
       <file path="$PROJECT_DIR$/cmake-build-debug/CMakeFiles" />
       <file path="$PROJECT_DIR$/../../ide.cs.monodevelop/Solution/packages" />
-      <file path="$PROJECT_DIR$/../../../html" />
     </excludeRoots>
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.5.2 (/usr/bin/python3.5)" project-jdk-type="Python SDK" />

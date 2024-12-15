@@ -5,13 +5,9 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
-
-#if !defined(HPP_ALIB_FILES_FILEEXPRESSIONS)
-#   include "alib/files/fileexpressions.hpp"
-#endif
-
+#include "alib/files/fileexpressions.hpp"
 #include "alib/lang/basecamp/camp_inlines.hpp"
-
+#include "alib/lang/system/path.hpp"
 
 #if   (     defined(__GLIBCXX__)       \
          || defined(__APPLE__)         \
@@ -20,11 +16,12 @@
 #endif
 
 using namespace alib::expressions;
+using namespace alib::lang::system;
 
 /////////////////////////////////////  Expressions ///////////////////////////////////////////////////
 namespace alib::files {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 //==================================================================================================
 //=== Anonymous expression functions and constant objects
@@ -32,22 +29,22 @@ namespace alib::files {
 namespace
 {
     #define ES      ExpressionScope
-    #define FS      dynamic_cast<FileExpressions::Scope&>(scope)
+    #define FS      dynamic_cast<FileExpressions::FexScope&>(scope)
     #define AI      ArgIterator
     #define NODE    FS.Node
-    #define VAL     FS.Node.Value()
+    #define VAL     FS.Node
     #define INTARG0 args->Unbox<integer>()
-    Box getName    (ES& scope, AI     , AI) { return MAString(scope.Allocator, NODE.Name(), 0); }
-    Box getType    (ES& scope, AI     , AI) { return VAL.Type();              }
-    Box isDirectory(ES& scope, AI     , AI) { return VAL.IsDirectory();       }
-    Box isSymLink  (ES& scope, AI     , AI) { return VAL.IsSymbolicLink();    }
-    Box getSize    (ES& scope, AI     , AI) { return integer(VAL.Size());     }
-    Box getTime    (ES& scope, AI     , AI) { return VAL.MTime();             }
-    Box getCTime   (ES& scope, AI     , AI) { return VAL.CTime();             }
-    Box getATime   (ES& scope, AI     , AI) { return VAL.ATime();             }
-    Box getPerms   (ES& scope, AI     , AI) { return VAL.Perms();             }
-    Box getOwner   (ES& scope, AI     , AI) { return VAL.Owner();             }
-    Box getGroup   (ES& scope, AI     , AI) { return VAL.Group();             }
+    Box getType    (ES& scope, AI     , AI) { return VAL->Type();           }
+    Box isDirectory(ES& scope, AI     , AI) { return VAL->IsDirectory();    }
+    Box isSymLink  (ES& scope, AI     , AI) { return VAL->IsSymbolicLink(); }
+    Box getSize    (ES& scope, AI     , AI) { return integer(VAL->Size());  }
+    Box getTime    (ES& scope, AI     , AI) { return VAL->MDate();          }
+    Box getBTime   (ES& scope, AI     , AI) { return VAL->BDate();          }
+    Box getCTime   (ES& scope, AI     , AI) { return VAL->CDate();          }
+    Box getATime   (ES& scope, AI     , AI) { return VAL->ADate();          }
+    Box getPerms   (ES& scope, AI     , AI) { return VAL->Perms();          }
+    Box getOwner   (ES& scope, AI     , AI) { return VAL->Owner();          }
+    Box getGroup   (ES& scope, AI     , AI) { return VAL->Group();          }
 #if   (    (defined(__GLIBCXX__) && !defined(__MINGW32__))  \
          || defined(__APPLE__)                              \
          || defined(__ANDROID_NDK__) )        && !defined(ALIB_TESTSTDFS)
@@ -63,7 +60,17 @@ namespace
     Box teraBytes  (ES&      , AI args, AI) { return INTARG0 * integer(1024) * integer(1024) * integer(1024) * integer(1024); }
     Box petaBytes  (ES&      , AI args, AI) { return INTARG0 * integer(1024) * integer(1024) * integer(1024) * integer(1024) * integer(1024); }
     Box exaBytes   (ES&      , AI args, AI) { return INTARG0 * integer(1024) * integer(1024) * integer(1024) * integer(1024) * integer(1024) * integer(1024); }
-    Box getPath    (ES& scope, AI     , AI) { return MAString(scope.Allocator, FS.ParentPath, 0); }
+
+
+#if ALIB_PATH_CHARACTERS_WIDE == ALIB_CHARACTERS_WIDE
+    Box getName    (ES& scope, AI     , AI) { return NODE.Name();           }
+    Box getPath    (ES& scope, AI     , AI) { return FS.ParentPath; }
+#else
+    // allocate converted name in the scope
+    Box getName    (ES& scope, AI     , AI) {  return String(scope.Allocator, String256(NODE.Name()  )); }
+    Box getPath    (ES& scope, AI     , AI) {  return String(scope.Allocator, String256(FS.ParentPath)); }
+#endif
+
     #undef ES
     #undef FS
     #undef AI
@@ -92,17 +99,20 @@ namespace
 
     extern Box TypeUsrGrpID          ; Box TypeUsrGrpID         ;
 
+#if ALIB_CHARACTERS_WIDE
     NString32 TypeNameConverterTFP;
     NString32 TypeNameConverterTID;
     NString32 TypeNameConverterTTY;
+    NString32 TypeNameConverterTPT;
+#endif
 } // anonymous namespace
-#endif //!defined(ALIB_DOX)
+#endif //!DOXYGEN
 
 //==================================================================================================
 //=== FileExpressions::Plugin
 //==================================================================================================
 FileExpressions::Plugin::Plugin( Compiler& pCompiler )
-: Calculus( "Files Plug-in", pCompiler )
+: Calculus( "Files Plug-in", pCompiler, expressions::CompilePriorities::Custom )
 {
     // Initialize constant static boxes. This must not be done in the C++ bootstrap code.
     constOwnRead         = FInfo::Permissions::OWNER_READ  ;
@@ -124,33 +134,32 @@ FileExpressions::Plugin::Plugin( Compiler& pCompiler )
     constTFifo           = FInfo::Types::FIFO              ;
     constTSocket         = FInfo::Types::SOCKET            ;
 
-
-
-    TypeUsrGrpID= FInfo::UnknownID;
+    TypeUsrGrpID         = FInfo::UnknownID;
 
     // load identifier/function names from resources
-    constexpr int tableSize= 38;
+    constexpr int tableSize= 39;
     Token functionNames[tableSize];
     Token::LoadResourcedTokens( FILES, "CPF", functionNames  ALIB_DBG(,tableSize)  );
 
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     Token* descriptor= functionNames;
 
-#if defined(_WIN32)
+#if ALIB_CHARACTERS_WIDE
     TypeNameConverterTFP= FILES.GetResource("TFP"); pCompiler.AddType(constOwnRead   , TypeNameConverterTFP);
     TypeNameConverterTID= FILES.GetResource("TID"); pCompiler.AddType(TypeUsrGrpID   , TypeNameConverterTID);
     TypeNameConverterTTY= FILES.GetResource("TTY"); pCompiler.AddType(constTDirectory, TypeNameConverterTTY);
 #else
-    pCompiler.AddType(constOwnRead, FILES.GetResource("TFP"));
-    pCompiler.AddType(TypeUsrGrpID, FILES.GetResource("TID"));
+    pCompiler.AddType(constOwnRead   , FILES.GetResource("TFP"));
+    pCompiler.AddType(TypeUsrGrpID   , FILES.GetResource("TID"));
     pCompiler.AddType(constTDirectory, FILES.GetResource("TTY"));
 #endif
+
     // Constant identifiers
     ConstantIdentifiers=
     {
         { *descriptor++, constOwnRead   },
         { *descriptor++, constOwnWrite  },
-        { *descriptor++, constOwnExec   },
+        { *descriptor++, constOwnExec   },                              
         { *descriptor++, constGrpRead   },
         { *descriptor++, constGrpWrite  },
         { *descriptor++, constGrpExec   },
@@ -171,36 +180,38 @@ FileExpressions::Plugin::Plugin( Compiler& pCompiler )
 
     Functions=
     {
-      { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName    ), &Types::String  , ETI },
+      { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getName    ), &Types::String , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getType    ), &constTDirectory, ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isDirectory), &Types::Boolean , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(isSymLink  ), &Types::Boolean , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getSize    ), &Types::Integer , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getTime    ), &Types::DateTime, ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getTime    ), &Types::DateTime, ETI },
+      { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getBTime   ), &Types::DateTime, ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getCTime   ), &Types::DateTime, ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getATime   ), &Types::DateTime, ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPerms   ), &constOwnRead   , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes  ), &Types::Integer , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes  ), &Types::Integer , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes  ), &Types::Integer , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(teraBytes  ), &Types::Integer , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(petaBytes  ), &Types::Integer , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(exaBytes   ), &Types::Integer , ETI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(kiloBytes  ), &Types::Integer , CTI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(megaBytes  ), &Types::Integer , CTI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(gigaBytes  ), &Types::Integer , CTI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(teraBytes  ), &Types::Integer , CTI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(petaBytes  ), &Types::Integer , CTI },
+      { *descriptor++, CALCULUS_SIGNATURE(Signatures::I), CALCULUS_CALLBACK(exaBytes   ), &Types::Integer , CTI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getOwner   ), &TypeUsrGrpID   , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getGroup   ), &TypeUsrGrpID   , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(userID     ), &TypeUsrGrpID   , ETI },
       { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(groupID    ), &TypeUsrGrpID   , ETI },
-      { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPath    ), &Types::String  , ETI },
+      { *descriptor++, CALCULUS_SIGNATURE(nullptr      ), CALCULUS_CALLBACK(getPath    ), &Types::String , ETI },
 
     };
 
     AutoCasts=
     {
-        { constOwnRead   , nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST, nullptr, nullptr },
-        { constTDirectory, nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST, nullptr, nullptr },
-        { TypeUsrGrpID   , nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST, nullptr, nullptr },
+        { constOwnRead   , nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST   , nullptr       , nullptr },
+        { constTDirectory, nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST   , nullptr       , nullptr },
+        { TypeUsrGrpID   , nullptr, nullptr, CALCULUS_DEFAULT_AUTOCAST   , nullptr       , nullptr },
     };
+    
 } // FileExpressions::Plugin constructor
 
 //==================================================================================================
@@ -211,7 +222,7 @@ FileExpressions::FileExpressions()
 , plugin( compiler )
 {
     compiler.SetupDefaults();
-    compiler.InsertPlugin( &plugin, expressions::CompilePriorities::Custom );
+    compiler.InsertPlugin( &plugin );
 }
 
 SPFileFilter  FileExpressions::CreateFilter( const String& expressionString )

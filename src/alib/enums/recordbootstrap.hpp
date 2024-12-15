@@ -1,48 +1,35 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_enums of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_enums of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_ENUMS_RECORDBOOTSTRAP
 #define HPP_ALIB_ENUMS_RECORDBOOTSTRAP 1
-
-#if !defined(HPP_ALIB_SINGLETONS_SINGLETON)
-#   include "alib/singletons/singleton.hpp"
-#endif
+#pragma once
+#include "alib/singletons/singleton.hpp"
 
 ALIB_ASSERT_MODULE(ENUMS)
 
-#if !defined (HPP_ALIB_ENUMS_RECORDS)
-#   include "alib/enums/records.hpp"
-#endif
-#if ALIB_STRINGS && !defined (HPP_ALIB_ENUMS_RECORDPARSER)
-#   include "alib/enums/recordparser.hpp"
-#endif
-
-#if ALIB_STRINGS && !defined(HPP_ALIB_STRINGS_SUBSTRING)
-#   include "alib/strings/substring.hpp"
-#endif
-
-#if ALIB_CAMP && !defined(HPP_ALIB_LANG_RESOURCES_RESOURCES)
+#include "alib/enums/records.hpp"
+#include "alib/enums/recordparser.hpp"
+#include "alib/strings/substring.hpp"
+#if ALIB_CAMP
 #   include "alib/lang/resources/resources.hpp"
-#endif
-
-#if ALIB_CAMP && !defined(HPP_ALIB_LANG_CAMP)
 #   include "alib/lang/basecamp/camp.hpp"
 #endif
-
-#if ALIB_MONOMEM && !defined (HPP_ALIB_MONOMEM_MONOALLOCATOR)
-#   include "alib/monomem/monoallocator.hpp"
+#if ALIB_MONOMEM
+#   include "alib/monomem/globalallocator.hpp"
 #endif
 
 #include <initializer_list>
 
+#include "alib/lang/callerinfo_functions.hpp"
 
 namespace alib {  namespace enums {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 template<typename TEnum, typename TEnableIf>
 template <typename... TArgs>
@@ -52,15 +39,13 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( TEnum element, TArgs&&... args)  
     auto&  records= detail::EnumRecordHook<TEnum>::GetSingleton();
     auto** lastP  = records.getPointerToLast();
     #if ALIB_MONOMEM
-        *lastP= monomem::GlobalAllocator.Emplace<typename detail::EnumRecordHook<TEnum>::Node>(
+        *lastP= monomem::GLOBAL_ALLOCATOR()
     #else
-        *lastP= new typename detail::EnumRecordHook<TEnum>::Node(
+        *lastP= HeapAllocator()()
     #endif
-                     element,  std::forward<TArgs>(args)... );
+            .New<typename detail::EnumRecordHook<TEnum>::Node>(element,  std::forward<TArgs>(args)... );
 
-    detail::setEnumRecord( typeid(TEnum),
-                           UnderlyingIntegral(element),
-                           &(*lastP)->record  );
+    detail::setEnumRecord( typeid(TEnum), integer(element), &(*lastP)->record  );
     (*lastP)->next= nullptr;
 }
 
@@ -75,14 +60,13 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     for( size_t i= 0; i!= definitions.size(); ++i)
     {
         #if ALIB_MONOMEM
-            *lastP= monomem::GlobalAllocator.Emplace<typename detail::EnumRecordHook<TEnum>::Node>(
+            *lastP= monomem::GLOBAL_ALLOCATOR()
         #else
-            *lastP= new typename detail::EnumRecordHook<TEnum>::Node(
+            *lastP= HeapAllocator()()
         #endif
-                                table[i].element, table[i].record );
-        detail::setEnumRecord( typeid(TEnum),
-                               UnderlyingIntegral(table[i].element),
-                               &(*lastP)->record  );
+            .New<typename detail::EnumRecordHook<TEnum>::Node>(table[i].element, table[i].record );
+
+        detail::setEnumRecord( typeid(TEnum), integer(table[i].element),  &(*lastP)->record  );
         lastP= &(*lastP)->next;
     }
 
@@ -90,15 +74,13 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     ALIB_WARNINGS_RESTORE
 }
 
-#if ALIB_STRINGS
-
     template<typename TEnum, typename TEnableIf>
     inline
     void EnumRecords<TEnum, TEnableIf>::Bootstrap( const String& input,
                                                    character     innerDelim,
                                                    character     outerDelim    )
     {
-        EnumRecordParser::Initialize(input, innerDelim, outerDelim, NullNString(), NullNString() );
+        EnumRecordParser::Initialize(input, innerDelim, outerDelim, NULL_NSTRING, NULL_NSTRING );
 
         auto& records= detail::EnumRecordHook<TEnum>::GetSingleton();
         auto** lastP = records.getPointerToLast();
@@ -106,16 +88,15 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
         for(;;)
         {
             #if ALIB_MONOMEM
-                auto* element=  (*lastP= monomem::GlobalAllocator.Emplace<typename detail::EnumRecordHook<TEnum>::Node>() );
+                auto* element=  (*lastP= monomem::GLOBAL_ALLOCATOR()
             #else
-                auto* element=  (*lastP= new typename detail::EnumRecordHook<TEnum>::Node() );
+                auto* element=  (*lastP= HeapAllocator()()
             #endif
-
+                .New<typename detail::EnumRecordHook<TEnum>::Node>() );
             EnumRecordParser::Get( element->integral );
             element->record.Parse();
 
-            detail::setEnumRecord( typeid(TEnum),  element->integral,
-                                                  &element->record     );
+            detail::setEnumRecord( typeid(TEnum),  integer(element->integral), &element->record );
 
             // next?
             lastP= &element->next;
@@ -126,16 +107,15 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
         EnumRecordParser::assertEndOfInput();
         (*lastP)= nullptr;
     }
-#endif
 
 #if ALIB_CAMP
     template<typename TEnum, typename TEnableIf>
     inline
     void EnumRecords<TEnum, TEnableIf>::Bootstrap( lang::resources::ResourcePool& pool,
-                                                   const NString&                   category,
-                                                   const NString&                   name,
-                                                   character                        innerDelim,
-                                                   character                        outerDelim     )
+                                                   const NString&                 category,
+                                                   const NString&                 name,
+                                                   character                      innerDelim,
+                                                   character                      outerDelim     )
     {
         // resources given in the standard, non-indexed way?
         String input= pool.Get( category, name  ALIB_DBG(, false) );
@@ -161,13 +141,12 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
         {
             EnumRecordParser::Initialize(input, innerDelim, outerDelim, category, nameNr );
 
-            auto* element=  (*lastP= monomem::GlobalAllocator.Emplace<typename detail::EnumRecordHook<TEnum>::Node>() );
+            auto* element=  (*lastP=  monomem::GLOBAL_ALLOCATOR().New<typename detail::EnumRecordHook<TEnum>::Node>());
 
             EnumRecordParser::Get( element->integral );
             element->record.Parse();
 
-            detail::setEnumRecord( typeid(TEnum),  element->integral,
-                                                  &element->record     );
+            detail::setEnumRecord( typeid(TEnum), integer(element->integral), &element->record );
 
             EnumRecordParser::assertEndOfInput();
             // next
@@ -218,9 +197,11 @@ void EnumRecords<TEnum, TEnableIf>::Bootstrap( std::initializer_list<EnumRecords
     }
 #endif // ALIB_CAMP
 
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 }} // namespace [alib::enums]
 
+#include "alib/lang/callerinfo_methods.hpp"
 
 #endif // HPP_ALIB_ENUMS_RECORDBOOTSTRAP
+

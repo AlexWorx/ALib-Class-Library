@@ -1,76 +1,75 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong. It does not belong to an \alibmod and is
- * included in any \alibdist.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong. It does not belong to an \alibmod and is
+/// included in any \alibdist.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_LANG_BITSET
 #define HPP_ALIB_LANG_BITSET 1
+#pragma once
+#include "alib/lang/bits.hpp"
 
-#if !defined(HPP_ALIB_LANG_BITS)
-#   include "alib/lang/bits.hpp"
-#endif
-
+#include "alib/lang/callerinfo_functions.hpp"
 namespace alib { namespace lang {
 
-/** ************************************************************************************************
- * This class is an improved replica of <c>std::bitset</c> and hence stores and exposes a set of
- * bits. The differences (advantages) of this class to the standard type are:
- * - The class provides an efficient bidirectional iterator, which uses intrinsics
- *   (on supported platforms, via functions \alib{lang,CLZ} and \alib{lang,CTZ}) to search the next bit
- *   set without looping over unset bits.
- * - The size of instances of this type is adjusted to the next fitting integral size, namely
- *   <c>char</c>, <c>short</c>, <c>int</c>, <c>long</c> and <c>long long</c>.
- *   If even larger bitsets are requested, the size becomes a multiple of the size of
- *   <c>long long</c>.
- * - The type denoting a bit-index used in the interface methods can optionally be altered from
- *   <c>int</c> to a custom type which is statically castable to <c>int</c>, by providing
- *   specifying template parameter \p{TInterface} accordingly. This avoids the need for
- *   statically casting the index type with every invocation of an interface method.<br>
- *   The main motivation for providing this was to allow to
- *   \ref alib_enums_iter_bitset "address bits with enumeration elements".
- * - Instead of one template parameter defining the fixed size of the bitset, two parameters
- *   \p{TBegin} and \p{TEnd} are provided. This allows to define bitsets of a range
- *   of indices that do not start with <c>0</c> and in this case avoids the need for subtraction of
- *   the (fixed) start value of a range with every invocation of an interface method.
- * - Methods #Set and #Reset allow to pass several bit indices at once using a comma-separated list.
- * - With methods <c>std::bitset<N>::to_ulong() / to_ullong()</c>, the standard type allows
- *   the export of the internal value only to 64-bit values (on common platforms).
- *   If the higher bits are to be exported, the bitset has to be shifted, which is inefficient
- *   and destructive (a copy has to be taken).<br>
- *   This implementation provides method #Export, which - dependent on the size of the bitset -
- *   offers an additional index to address any higher word. Furthermore, for smaller bitsets
- *   the export method returns a fitting smaller integral.
- * - Explicit uninitialized construction is possíble with
- *   \alib{lang,TBitSet::TBitSet(const TOmitInitialization&),TBitSet(TOmitInitialization)}, which
- *   avoids code and run-time penalty, in cases where the bits are to be initialized at a later
- *   stage.
- *
- * In respect to performance, this type equals a typical implementation <c>std::bitset</c>.
- *
- * @see
- *  - Type definition \alib{enums,EnumBitSet}, which defines a bitset over
- *    \ref alib_enums_iter "ALib Iterable Enums" based on this type.<br>
- *  - For a quick tutorial on the use of this type (in nice combination with C++ enumerations),
- *    see chapter \ref alib_enums_iter_bitset "3.5 Using Class TBitSet with Iterable Enums" of the
- *    Programmer's Manual of module \alib_enums_nl.
- *  - Type definition \ref alib::BitSet "BitSet" in namespace \ref alib, which defines a set with
- *    interface-type <c>int</c>.
- *  - Class \alib{bitbuffer,BitBuffer}, which implements a sort of stream buffer to store
- *    bits in dynamic memory.
- *
- * @tparam TInterface   The interface type to denote bit position values. This type has to be
- *                      statically castable to and constructible from <c>int</c>.
- * @tparam TEnd         The last index of the interface type plus <c>1</c>.
- * @tparam TBegin       The first index of the interface type. (Defaults to <c>0</c>.)
- **************************************************************************************************/
+//==================================================================================================
+/// This class is an improved replica of <c>std::bitset</c> and hence stores and exposes a set of
+/// bits. The differences (advantages) of this class to the standard type are:
+/// - The class provides an efficient bidirectional iterator, which uses intrinsics
+///   (on supported platforms, via functions \alib{lang;CLZ} and \alib{lang;CTZ}) to search the
+///   next bit set without looping over unset bits.
+/// - The size of this type's instances is adjusted to the next fitting integral size, namely
+///   <c>char</c>, <c>short</c>, <c>int</c>, <c>long</c> and <c>long long</c>.
+///   If even larger bitsets are requested, the size becomes a multiple of the size of
+///   <c>long long</c>.
+/// - The type denoting a bit-index used in the interface methods can optionally be altered from
+///   <c>int</c> to a custom type which is statically castable to <c>int</c>, by providing
+///   specifying template parameter \p{TInterface} accordingly. This avoids the need for
+///   statically casting the index type with every invocation of an interface method.<br>
+///   The main motivation for providing this was to allow to
+///   \ref alib_enums_iter_bitset "address bits with enumeration elements".
+/// - Instead of one template parameter defining the fixed size of the bitset, two parameters
+///   \p{TBegin} and \p{TEnd} are provided. This allows defining bitsets of a range
+///   of indices that do not start with <c>0</c> and in this case avoids the need for subtraction of
+///   the (fixed) start value of a range with every invocation of an interface method.
+/// - Methods #Set and #Reset allow to pass several bit indices at once using a comma-separated list.
+/// - With methods <c>std::bitset<N>::to_ulong() / to_ullong()</c>, the standard type allows
+///   the export of the internal value only to 64-bit values (on common platforms).
+///   If the higher bits are to be exported, the bitset has to be shifted, which is inefficient
+///   and destructive (a copy has to be taken).<br>
+///   This implementation provides method #Export, which - dependent on the size of the bitset -
+///   offers an additional index to address any higher word. Furthermore, for smaller bitsets
+///   the export method returns a fitting smaller integral.
+/// - Explicit uninitialized construction is possíble with
+///   \alib{lang;TBitSet::TBitSet(const std::nullptr_t&)}, which
+///   avoids code and run-time penalty, in cases where the bits are to be initialized at a later
+///   stage.
+///
+/// In respect to performance, this type equals a typical implementation <c>std::bitset</c>.
+///
+/// @see
+///  - Type definition \alib{enums;EnumBitSet}, which defines a bitset over
+///    \ref alib_enums_iter "ALib Iterable Enums" based on this type.<br>
+///  - For a quick tutorial on the use of this type (in nice combination with C++ enumerations),
+///    see chapter \ref alib_enums_iter_bitset "3.5 Using Class TBitSet with Iterable Enums" of the
+///    Programmer's Manual of module \alib_enums_nl.
+///  - Type definition \ref alib::BitSet "BitSet" in namespace \ref alib, which defines a set with
+///    interface-type <c>int</c>.
+///  - Class \alib{bitbuffer;BitBuffer}, which implements a sort of stream buffer to store
+///    bits in dynamic memory.
+///
+/// @tparam TInterface   The interface type to denote bit position values. This type has to be
+///                      statically castable to and constructible from <c>int</c>.
+/// @tparam TEnd         The last index of the interface type plus <c>1</c>.
+/// @tparam TBegin       The first index of the interface type. (Defaults to <c>0</c>.)
+//==================================================================================================
 template< typename TInterface, TInterface TEnd, TInterface TBegin= 0>
 class TBitSet
 {
   protected:
-    #if !defined(ALIB_DOX)
+    #if !DOXYGEN
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     static_assert( !(TBegin > TEnd), "First Idx greater or equal than last index + 1" );
     #endif
@@ -80,14 +79,14 @@ class TBitSet
     // --------------------------------------   members   ------------------------------------------
 
   public:
-    /** The number of bits in the range resulting from template parameters \p{TBegin}
-     *  and \p{TEnd}. */
+    /// The number of bits in the range resulting from template parameters \p{TBegin}
+    /// and \p{TEnd}.
     static constexpr int   Capacity=    static_cast<int>( TEnd )
                                       - static_cast<int>( TBegin );
 
-    /** The type that is used to store the bits in. TMP code chooses the smallest fitting integral.
-     *  If #Capacity exceeds type <c>long long</c>, an array of <c>long long</c>, field #QtyWords
-     *  will become greater than \c 1.                                                           */
+    /// The type that is used to store the bits in. TMP code chooses the smallest fitting integral.
+    /// If #Capacity exceeds type <c>long long</c>, an array of <c>long long</c>, field #QtyWords
+    /// will become greater than \c 1.
     using TWord= ATMP_IF_T_F( (Capacity >  bitsof(long)    ),  unsigned long long,
                  ATMP_IF_T_F( (Capacity >  bitsof(int)     ),  unsigned long     ,
                  ATMP_IF_T_F( (Capacity >  bitsof(short)   ),  unsigned int      ,
@@ -95,13 +94,13 @@ class TBitSet
                                                                unsigned char      ))));
 
   public:
-    /** The size of the #TWord array containing the bits */
+    /// The size of the #TWord array containing the bits
     static constexpr int   QtyWords=      Capacity / bitsof(TWord)
                                      + ( (Capacity % bitsof(TWord))  != 0 ? 1 : 0  );
 
   protected:
-    /** The array of integrals containing the bits needed. The unused upper bits in the last word
-     *  are always kept <c>0</c>.*/
+    /// The array of integrals containing the bits needed. The unused upper bits in the last word
+    /// are always kept <c>0</c>.
     TWord                  words[QtyWords ? QtyWords : 1];
 
     // --------------------------------------   helpers   ------------------------------------------
@@ -113,7 +112,7 @@ class TBitSet
 
     /// Helper to determine the bit index in the actual word.
     /// @param b The absolute index.
-    /// @return The relative index.*/
+    /// @return The relative index.
     constexpr static int          bitIdx (TInterface b)                                     noexcept
     {
         ALIB_ASSERT_ERROR(    static_cast<int>(b) >= static_cast<int>(TBegin)
@@ -155,16 +154,16 @@ class TBitSet
 
   public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    /// A publicly-accessible nested class, used as a proxy object to allow users to interact with
+    /// A publicly accessible nested class, used as a proxy object to allow users to interact with
     /// individual bits of a bitset.
-    /// The primary use of this type is to provide an \e lvalue that can be returned from operator[].
+    /// The primary use of this type is to provide a \e lvalue that can be returned from operator[].
     /// @tparam TBitSetCM A constant or mutable \b TBitSet.
     ////////////////////////////////////////////////////////////////////////////////////////////////
     template<typename TBitSetCM>
     class Reference
     {
       protected:
-        #if !defined(ALIB_DOX)
+        #if !DOXYGEN
         template<typename T, bool isReverse>       friend class TBidiIterator;
         #endif
 
@@ -229,9 +228,9 @@ class TBitSet
         constexpr Reference& Flip()                                                         noexcept
         { bitSet->Flip(bit); return *this; }
 
-        #if ALIB_CPP_STANDARD >= 20 || defined(ALIB_DOX)
+        #if ALIB_CPP_STANDARD >= 20 || DOXYGEN
         /// Compares this object to another.
-        /// @param rhs The right hand side of the comparisson.
+        /// @param rhs The right hand side of the comparison.
         /// @return \c true if the objects reference the same bit in the same bitset, \c false
         ///         otherwise
         constexpr bool operator== (const Reference& rhs)                 const noexcept = default;
@@ -245,22 +244,21 @@ class TBitSet
     }; // inner class Reference
 
     // ------------------------------------   constructors   ---------------------------------------
-    /** Default constructor initializing all bits to not set. */
+    /// Default constructor initializing all bits to not set.
     constexpr TBitSet()                                                                     noexcept
     {
         Reset();
     }
 
     // ------------------------------------   constructors   ---------------------------------------
-    /** Constructor taking a dummy object. This constructor omits
-     *  any value initialization and <b>has to be called by providing
-     *  <c>TOmitInitialization()</c></b> as the argument.                                         */
-    constexpr TBitSet(const TOmitInitialization&)                                        noexcept {}
+    /// Constructor taking a tag-type. This constructor omits any value initialization and
+    /// <b>has to be called by providing <c>nullptr</c></b> as the argument.
+    constexpr TBitSet(const std::nullptr_t&)                                             noexcept {}
 
-    /** Constructor which takes an external #TWord which initializes the first word. If \c constexpr
-     * field #QtyWords is greater than \c 1, the other bits are set to \c 0 and can be set using
-     * method #Import or of-course using other interface methods.
-     * @param preset The preset value for the bits.                                      */
+    /// Constructor which takes an external #TWord which initializes the first word. If \c constexpr
+    /// field #QtyWords is greater than \c 1, the other bits are set to \c 0 and can be set using
+    /// method #Import or of course using other interface methods.
+    /// @param preset The preset value for the bits.
     constexpr TBitSet( TWord preset )                                                       noexcept
     {
         words[0]= preset & mask(0);
@@ -268,10 +266,10 @@ class TBitSet
             words[w]= 0;
     }
 
-    /** Constructor which takes an external #TWord which initializes the first word. If \c constexpr
-     * field #QtyWords is greater than \c 1, the other bits are set to \c 0 and can be set using
-     * method #Import or of-course using other interface methods.
-     * @param preset The preset value for the bits.                                      */
+    /// Constructor which takes an external #TWord which initializes the first word. If \c constexpr
+    /// field #QtyWords is greater than \c 1, the other bits are set to \c 0 and can be set using
+    /// method #Import or of course using other interface methods.
+    /// @param preset The preset value for the bits.
     constexpr TBitSet( bool preset )                                                       noexcept
     {
         for (int w = 0; w < QtyWords; ++w)
@@ -281,10 +279,10 @@ class TBitSet
 
 
     // -----------------------------------   set / reset   -----------------------------------------
-    /** Sets the \p{bit} to <c>1</c>.
-     * @param bit  The index of the bit to set.
-     * @param val  \c true or \c false to set or clear bit \p{bit}.
-     * @return A reference to \c this object.                            */
+    /// Sets the \p{bit} to <c>1</c>.
+    /// @param bit  The index of the bit to set.
+    /// @param val  \c true or \c false to set or clear bit \p{bit}.
+    /// @return A reference to \c this object.
     template <typename... T>
     constexpr
     TBitSet& Set( TInterface bit, bool val )                                                noexcept
@@ -294,60 +292,60 @@ class TBitSet
         return *this;
     }
 
-    /** Sets one or more bits to <c>1</c>.
-     * @param bit  The index of the bit to set.
-     * @param args An optional continued list of indices of bits to set.
-     * @return A reference to \c this object.                            */
+    /// Sets one or more bits to <c>1</c>.
+    /// @param firstBit     The index of the first bit to set.
+    /// @param furtherBits  An optional continued list of bit-indices.
+    /// @return A reference to \c this object.
     template <typename... T>
     constexpr
-    TBitSet& Set( TInterface bit, T&&... args )                                             noexcept
+    TBitSet& Set( TInterface firstBit, T&&... furtherBits )                                             noexcept
     {
-        word(bit)|= mask0010(bit);
-        if constexpr (sizeof...(args) > 0)
-            Set(args...);
+        word(firstBit)|= mask0010(firstBit);
+        if constexpr (sizeof...(furtherBits) > 0)
+            Set(furtherBits...);
         return *this;
     }
 
-    /** Sets one or more bits to <c>0</c>.
-     * @param bit  The index of the bit to clear.
-     * @param args An optional continued list of indices of bits to clear.
-     * @return A reference to \c this object.                            */
+    /// Sets one or more bits to <c>0</c>.
+    /// @param firstBit  The index of the first bit to clear.
+    /// @param furtherBits      An optional continued list of bit-indices.
+    /// @return A reference to \c this object.
     template <typename... T>
     constexpr
-    TBitSet& Reset( TInterface bit, T&&... args )                                           noexcept
+    TBitSet& Reset( TInterface firstBit, T&&... furtherBits )                                           noexcept
     {
-        word(bit)&=  mask1101(bit);
-        if constexpr (sizeof...(args) > 0)
-            Reset(args...);
+        word(firstBit)&=  mask1101(firstBit);
+        if constexpr (sizeof...(furtherBits) > 0)
+            Reset(furtherBits...);
         return *this;
     }
 
-    /** Flips one or more bits from <c>0</c> to <c>1</c> and vice versa.
-     * @param bit  The index of the bit to flip.
-     * @param args An optional continued list of indices of bits to flip.
-     * @return A reference to \c this object.                            */
+    /// Flips one or more bits from <c>0</c> to <c>1</c> and vice versa.
+    /// @param firstBit  The index of the bit to flip.
+    /// @param furtherBits An optional continued list of indices of bits to flip.
+    /// @return A reference to \c this object.
     template <typename... T>
     constexpr
-    TBitSet& Flip( TInterface bit, T&&... args )                                            noexcept
+    TBitSet& Flip( TInterface firstBit, T&&... furtherBits )                                            noexcept
     {
-        word(bit)^=  mask0010(bit);
-        if constexpr (sizeof...(args) > 0)
-            Flip(args...);
+        word(firstBit)^=  mask0010(firstBit);
+        if constexpr (sizeof...(furtherBits) > 0)
+            Flip(furtherBits...);
         return *this;
     }
 
 
-    /** Sets all bits to <c>1</c>. @return A reference to this object.*/
+    /// Sets all bits to <c>1</c>. @return A reference to this object.
     constexpr TBitSet& Set()    noexcept { for (int w = 0; w < QtyWords; ++w) words[w]=  mask(w); return *this; }
-    /** Sets all bits to <c>0</c>. @return A reference to this object.*/
+    /// Sets all bits to <c>0</c>. @return A reference to this object.
     constexpr TBitSet& Reset()  noexcept { for (int w = 0; w < QtyWords; ++w) words[w]=  0;       return *this; }
-    /** Flips all bits from <c>0</c> to <c>1</c> and vice versa. @return A reference to this object.*/
+    /// Flips all bits from <c>0</c> to <c>1</c> and vice versa. @return A reference to this object.
     constexpr TBitSet& Flip()   noexcept { for (int w = 0; w < QtyWords; ++w) words[w]^= mask(w); return *this; }
 
     // --------------------------------------   test   ---------------------------------------------
-    /** Returns \c true if the \p{bit} is set, \c false otherwise.
-     * @param bit Denotes the bit to test.
-     * @return The state of the \p{bit}.                                   */
+    /// Returns \c true if the \p{bit} is set, \c false otherwise.
+    /// @param bit Denotes the bit to test.
+    /// @return The state of the \p{bit}.
     constexpr
     bool Test( TInterface bit )                                                             noexcept
     {
@@ -355,8 +353,8 @@ class TBitSet
     }
 
     // ----------------------------------   count/all/any/none   -----------------------------------
-    /** Returns the number of bits set to \c true in this set.
-     * @return The number of bits counted.                            */
+    /// Returns the number of bits set to \c true in this set.
+    /// @return The number of bits counted.
     constexpr
     int Count()                                                                       const noexcept
     {
@@ -366,8 +364,8 @@ class TBitSet
         return result;
     }
 
-    /** Tests if any bit is set.
-     * @return \c true if all bits are set, \c false otherwise.  */
+    /// Tests if any bit is set.
+    /// @return \c true if all bits are set, \c false otherwise.
     constexpr
     bool All()                                                                        const noexcept
     {
@@ -377,8 +375,8 @@ class TBitSet
         return true;
     }
 
-    /** Tests if any bit is set.
-     * @return \c true if at least one bit is set, \c false otherwise.  */
+    /// Tests if any bit is set.
+    /// @return \c true if at least one bit is set, \c false otherwise.
     constexpr
     bool Any()                                                                        const noexcept
     {
@@ -388,8 +386,8 @@ class TBitSet
         return false;
     }
 
-    /** Tests if not any bit is set.
-     * @return \c false if at least one bit is set, \c true otherwise.  */
+    /// Tests if not any bit is set.
+    /// @return \c false if at least one bit is set, \c true otherwise.
     constexpr
     bool None()                                                                       const noexcept
     {
@@ -397,30 +395,28 @@ class TBitSet
     }
 
     // ---------------------------------   import/export   -----------------------------------------
-#if defined(ALIB_DOX)
-    /** Exports the internal integral(s) holding the bits.
-     *
-     *  \attention
-     *    Other than this documentation suggests, parameter \p{wordIdx} is only available if
-     *    the bitset size (defined by template parameters \p{TBegin} and \p{TEnd})
-     *    exceeds the number of bits in the widest possible #TWord-type, hence the size
-     *    of <c>sizeof(long long) * 8</c>.  In that case, field #QtyWords provides the number of
-     *    words that are exportable.<br>
-     *    This maxiumum word size is 64-bit on common platforms. Here, \c 0 adresses bits 0..63,
-     *    \c 1 bits 64..127 and so forth.
-     *
-     *  @param wordIdx The subset of bits to receive.
-     *  @return A reference to the inner word.
-     */
+#if DOXYGEN
+    /// Exports the internal integral(s) holding the bits.
+    ///
+    /// \attention
+    ///   Other than this documentation suggests, parameter \p{wordIdx} is only available if
+    ///   the bitset size (defined by template parameters \p{TBegin} and \p{TEnd})
+    ///   exceeds the number of bits in the widest possible #TWord-type, hence the size
+    ///   of <c>sizeof(long long) * 8</c>.  In that case, field #QtyWords provides the number of
+    ///   words that are exportable.<br>
+    ///   This maxiumum word size is 64-bit on common platforms. Here, \c 0 adresses bits 0..63,
+    ///   \c 1 bits 64..127 and so forth.
+    ///
+    /// @param wordIdx The subset of bits to receive.
+    /// @return A reference to the inner word.
     constexpr
     TWord& Export(int wordIdx)                                                              noexcept
     {}
 
-    /** Const version of #Export.
-     *  @param wordIdx The subset of bits to receive.<br>
-     *                 \b ATTENTION: See non-constant variant #Export on this parameter!
-     *  @return A reference to the inner word.
-     */
+    /// Const version of #Export.
+    /// @param wordIdx The subset of bits to receive.<br>
+    ///                \b ATTENTION: See non-constant variant #Export on this parameter!
+    /// @return A reference to the inner word.
     constexpr
     const TWord& Export(int wordIdx)                                                 const  noexcept
     {}
@@ -433,22 +429,21 @@ class TBitSet
         ALIB_ASSERT_ERROR( wordIdx >= 0 && wordIdx < QtyWords, "ALIB/BITS", "Index out of bounds.")                                                           return words[wordIdx]; }
 #endif
 
-#if defined(ALIB_DOX)
-    /** Imports the data from (a) given integral(s).
-     *
-     *  \attention
-     *    Other than this documentation suggests, parameter \p{wordIdx} is only available if
-     *    the bitset size (defined by template parameters \p{TBegin} and \p{TEnd})
-     *    exceeds the number of bits in the widest possible #TWord-type, hence the size
-     *    of <c>sizeof(long long) * 8</c>.  In that case, field #QtyWords provides the number of
-     *    words that are importable.<br>
-     *    This maxiumum word size is 64-bit on common platforms. Here, \c 0 adresses bits 0..63,
-     *    \c 1 bits 64..127 and so forth.
-     *
-     *  @param val     The value to import.
-     *  @param wordIdx The subset of bits to overwrite.
-     *  @return A reference to the inner word.
-     */
+#if DOXYGEN
+    /// Imports the data from (a) given integral(s).
+    ///
+    /// \attention
+    ///   Other than this documentation suggests, parameter \p{wordIdx} is only available if
+    ///   the bitset size (defined by template parameters \p{TBegin} and \p{TEnd})
+    ///   exceeds the number of bits in the widest possible #TWord-type, hence the size
+    ///   of <c>sizeof(long long) * 8</c>.  In that case, field #QtyWords provides the number of
+    ///   words that are importable.<br>
+    ///   This maxiumum word size is 64-bit on common platforms. Here, \c 0 adresses bits 0..63,
+    ///   \c 1 bits 64..127 and so forth.
+    ///
+    /// @param val     The value to import.
+    /// @param wordIdx The subset of bits to overwrite.
+    /// @return A reference to the inner word.
     constexpr
     TWord& Import(TWord val, int wordIdx)                                                   noexcept
     {}
@@ -470,9 +465,9 @@ class TBitSet
 #endif
 
     // ----------------------------------    operators    ------------------------------------------
-    /** Compares this bitset with another bitset of equal size.
-     *  @param rhs The other \b TBitSet to compare this with.
-     * @return \c true if all bits are equal, \c false otherwise.       */
+    /// Compares this bitset with another bitset of equal size.
+    /// @param rhs The other \b TBitSet to compare this with.
+    /// @return \c true if all bits are equal, \c false otherwise.
     constexpr bool operator==( const TBitSet& rhs ) const noexcept
     {
         for (int w = 0; w < QtyWords; ++w)
@@ -481,31 +476,31 @@ class TBitSet
         return true;
     }
 
-    #if ALIB_CPP_STANDARD < 20 || defined(ALIB_DOX)
-    /** Compares this bitset with another bitset of equal size.<br>
-     *  (Available with C++ versions below 20. Afterwards synthesized.
-     *  @param rhs The other \b TBitSet to compare this with.
-     * @return \c false if all bits are equal, \c true otherwise.       */
+    #if ALIB_CPP_STANDARD < 20 || DOXYGEN
+    /// Compares this bitset with another bitset of equal size.<br>
+    /// (Available with C++ versions below 20. Afterwards synthesized.
+    /// @param rhs The other \b TBitSet to compare this with.
+    /// @return \c false if all bits are equal, \c true otherwise.
     constexpr bool operator!=( const TBitSet& rhs ) const noexcept { return !this->operator==(rhs); }
     #endif
 
-    /** Sets the bits to the result of binary AND on corresponding pairs of bits of \c this and other.
-     *  @param rhs The other \b TBitSet to compare this with.
-     *  @return A reference to \c this object.       */
+    /// Sets the bits to the result of binary AND on corresponding pairs of bits of \c this and other.
+    /// @param rhs The other \b TBitSet to compare this with.
+    /// @return A reference to \c this object.
     constexpr TBitSet& operator&=(const TBitSet& rhs) noexcept { for(int w=0;w<QtyWords;++w) words[w]&= rhs.words[w]; return *this; }
 
-    /** Sets the bits to the result of binary OR on corresponding pairs of bits of \c this and other.
-     *  @param rhs The other \b TBitSet to compare this with.
-     *  @return A reference to \c this object.       */
+    /// Sets the bits to the result of binary OR on corresponding pairs of bits of \c this and other.
+    /// @param rhs The other \b TBitSet to compare this with.
+    /// @return A reference to \c this object.
     constexpr TBitSet& operator|=(const TBitSet& rhs) noexcept { for(int w=0;w<QtyWords;++w) words[w]|= rhs.words[w]; return *this; }
 
-    /** Sets the bits to the result of binary XOR on corresponding pairs of bits of \c this and other.
-     *  @param rhs The other \b TBitSet to compare this with.
-     *  @return A reference to \c this object.       */
+    /// Sets the bits to the result of binary XOR on corresponding pairs of bits of \c this and other.
+    /// @param rhs The other \b TBitSet to compare this with.
+    /// @return A reference to \c this object.
     constexpr TBitSet& operator^=(const TBitSet& rhs) noexcept { for(int w=0;w<QtyWords;++w) words[w]^= rhs.words[w]; return *this; }
 
-    /** Returns a temporary copy of \c this with all bits flipped (binary NOT)..
-     *  @return A copy of this with flipped bits.       */
+    /// Returns a temporary copy of \c this with all bits flipped (binary NOT)..
+    /// @return A copy of this with flipped bits.
     constexpr TBitSet operator~() const noexcept
     {
         auto result= *this;
@@ -515,11 +510,11 @@ class TBitSet
     }
 
   protected:
-    /** Stores a shifted result in \p{target}. This protected method is accessible via
-     *  <c>operator<<()</c> (which creates and returns a temporary target) and <c>operator<<=()</c>,
-     *  which passes \c this to parameter \p{target}.
-     *  @param cnt      The number of positions to shift.
-     *  @param target   The target object.                                         */
+    /// Stores a shifted result in \p{target}. This protected method is accessible via
+    /// <c>operator<<()</c> (which creates and returns a temporary target) and <c>operator<<=()</c>,
+    /// which passes \c this to parameter \p{target}.
+    /// @param cnt      The number of positions to shift.
+    /// @param target   The target object.
     constexpr void shiftLeft(int cnt, TBitSet& target)                                 const noexcept
     {
         ALIB_ASSERT_ERROR( cnt >= 0, "ALIB/BITS", "Negative value for TBitSet shift operation given." )
@@ -547,11 +542,11 @@ class TBitSet
         target.words[QtyWords - 1]&= LowerMask<Capacity % bitsof(TWord), TWord>();
     }
 
-    /** Stores a shifted result in \p{target}. This protected method is accessible via
-     *  <c>operator>>()</c> (which creates and returns a temporary target) and <c>operator>>=()</c>,
-     *  which passes \c this to parameter \p{target}.
-     *  @param cnt      The number of positions to shift.
-     *  @param target   The target object.                                         */
+    /// Stores a shifted result in \p{target}. This protected method is accessible via
+    /// <c>operator>>()</c> (which creates and returns a temporary target) and <c>operator>>=()</c>,
+    /// which passes \c this to parameter \p{target}.
+    /// @param cnt      The number of positions to shift.
+    /// @param target   The target object.
     constexpr void shiftRight(int cnt, TBitSet& target)                                 const noexcept
     {
         ALIB_ASSERT_ERROR( cnt >= 0, "ALIB/BITS", "Negative value for TBitSet shift operation given." )
@@ -580,40 +575,40 @@ class TBitSet
     }
 
   public:
-    /** Returns a temporary copy of this with a shift to the left (towards higher index positions).
-     *  @param cnt The number of positions to shift.
-     *  @return A copy of this with shifted bits.                                           */
+    /// Returns a temporary copy of this with a shift to the left (towards higher index positions).
+    /// @param cnt The number of positions to shift.
+    /// @return A copy of this with shifted bits.
     constexpr TBitSet operator<<(int cnt)                                              const noexcept
-    {   TBitSet result= TBitSet(TOmitInitialization()); shiftLeft(cnt, result); return result; }
+    { TBitSet result= TBitSet(nullptr); shiftLeft(cnt, result); return result; }
 
-    /** Shifts the bits of this object to the left left (towards higher index positions).
-     *  @param cnt The number of positions to shift.
-     *  @return A reference to this object.                                                 */
+    /// Shifts the bits of this object to the left left (towards higher index positions).
+    /// @param cnt The number of positions to shift.
+    /// @return A reference to this object.
     constexpr TBitSet& operator<<=(int cnt)                                                  noexcept
-    {   shiftLeft(cnt, *this);  return *this; }
+    { shiftLeft(cnt, *this);  return *this; }
 
-    /** Returns a temporary copy of this with a shift to the right (towards lower index positions).
-     *  @param cnt The number of positions to shift.
-     *  @return A copy of this with shifted bits.                                           */
+    /// Returns a temporary copy of this with a shift to the right (towards lower index positions).
+    /// @param cnt The number of positions to shift.
+    /// @return A copy of this with shifted bits.
     constexpr TBitSet operator>>(int cnt)                                              const noexcept
-    {   TBitSet result= TBitSet(TOmitInitialization()); shiftRight(cnt, result); return result; }
+    { TBitSet result= TBitSet(nullptr); shiftRight(cnt, result); return result; }
 
-    /** Shifts the bits of this object to the left right (towards lower index positions).
-     *  @param cnt The number of positions to shift.
-     *  @return A reference to this object.                                                 */
+    /// Shifts the bits of this object to the left right (towards lower index positions).
+    /// @param cnt The number of positions to shift.
+    /// @return A reference to this object.
     constexpr TBitSet& operator>>=(int cnt)                                                  noexcept
-    {   shiftRight(cnt, *this);  return *this; }
+    { shiftRight(cnt, *this);  return *this; }
 
-    /** Returns a reference to a specific bit.
-     *  @param bit The bit to create a reference for.
-     *  @return A reference to the bit in this object.                                            */
+    /// Returns a reference to a specific bit.
+    /// @param bit The bit to create a reference for.
+    /// @return A reference to the bit in this object.
     constexpr
     Reference<TBitSet> operator[](TInterface bit)                                            noexcept
     { return Reference<TBitSet>(*this, bit); }
 
-    /** Returns a \c const reference to a specific bit.
-     *  @param bit The bit to create a reference for.
-     *  @return A reference to the bit in this object.                                            */
+    /// Returns a \c const reference to a specific bit.
+    /// @param bit The bit to create a reference for.
+    /// @return A reference to the bit in this object.
     constexpr
     const Reference<const TBitSet> operator[](int bit)                                 const noexcept
     { return Reference<const TBitSet>(*this, bit); }
@@ -628,10 +623,10 @@ class TBitSet
     /// type to act as a <c>const</c> or mutable as well as a forward or backward iterator.<br>
     /// The public available type definitions which specify the template parameters and are
     /// returned from the various \c begin() and \c end() variants of the outer class are:
-    /// - \alib{lang::TBitSet,Iterator},
-    /// - \alib{lang::TBitSet,ReverseIterator},
-    /// - \alib{lang::TBitSet,ConstIterator}, and
-    /// - \alib{lang::TBitSet,ConstReverseIterator}.
+    /// - \alib{lang::TBitSet;Iterator},
+    /// - \alib{lang::TBitSet;ReverseIterator},
+    /// - \alib{lang::TBitSet;ConstIterator}, and
+    /// - \alib{lang::TBitSet;ConstReverseIterator}.
     ///
     /// @tparam TBitSetCM A constant or mutable TBitSet.
     /// @tparam isReverse If set, this iterator is a swaps ++ and -- operators.
@@ -649,7 +644,7 @@ class TBitSet
       protected:
         /// The bit this iterator currently addresses. This is true for forward and reverse
         /// iterators. (Because this is not using the <c>std::reverse_iterator<</c> which would
-        /// implement an reverse iterator that points 'before' the current element.            */
+        /// implement an reverse iterator that points 'before' the current element.
         Reference<TBitSetCM> ref;
 
         /// Searches and moves this iterator to the next higher bit is. In case no further bit is
@@ -687,7 +682,7 @@ class TBitSet
 
         /// Searches and moves this iterator to the next lower bit is. In case no lower bit is
         /// found, the iterator will points to illegal bit number <c>-1</c>.
-        /// @return A reference to this object. */
+        /// @return A reference to this object.
         TBidiIterator& down()
         {
             // next bit
@@ -740,7 +735,7 @@ class TBitSet
         }
 
         /// Postfix increment operator.
-        /// @return An iterator value that is not increased, yet. */
+        /// @return An iterator value that is not increased, yet.
         TBidiIterator operator++(int)
         {
             auto  result= *this;
@@ -765,7 +760,7 @@ class TBitSet
             return !(*this == other);
         }
 
-        /// Retrieves a reference to the internal \alib{lang::TBitSet,Reference} member that this
+        /// Retrieves a reference to the internal \alib{lang::TBitSet;Reference} member that this
         /// iterator uses.
         /// @return The reference to the bit this iterator is currently addressing.
         reference operator*()
@@ -775,7 +770,7 @@ class TBitSet
 
     //##################   To satisfy concept of  BidirectionalIterator   ##################
         /// Prefix decrement operator.
-        /// @return A reference to this object. */
+        /// @return A reference to this object.
         TBidiIterator& operator--()
         {
             if constexpr (isReverse)    return up();
@@ -783,7 +778,7 @@ class TBitSet
         }
 
         /// Postfix decrement operator.
-        /// @return The iterator value prior the decrement operation. */
+        /// @return The iterator value prior the decrement operation.
         TBidiIterator operator--(int)
         {
             auto  result= *this;
@@ -802,7 +797,7 @@ class TBitSet
         /// Compares this iterator with the given one.
         /// @param other  The iterator to compare
         /// @return \c true if this iterator is \e smaller than or equal to \p{other},
-        ///         \c false otherwise. */
+        ///         \c false otherwise.
         bool operator<=(TBidiIterator other)                                                   const
         { return ref.bit <= other.ref.bit;  }
 
@@ -822,114 +817,114 @@ class TBitSet
     }; // class TBidiIterator
 
   public:
-    /** Iterator type, implementing the standard library concept of
-     *  \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.  */
+    /// Iterator type, implementing the standard library concept of
+    /// \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
     using Iterator              = TBidiIterator<TBitSet, false>;
 
-    /** Same as #Iterator, but working from the end to the start of the \b TBitSet. */
+    /// Same as #Iterator, but working from the end to the start of the \b TBitSet.
     using ReverseIterator       = TBidiIterator<TBitSet, true>;
 
-    /** The constant iterator type.  */
+    /// The constant iterator type.
     using ConstIterator         = TBidiIterator<const TBitSet, false>;
 
-    /** Same as #ConstIterator, but working from the end to the start of the \b TBitSet. */
+    /// Same as #ConstIterator, but working from the end to the start of the \b TBitSet.
     using ConstReverseIterator  = TBidiIterator<const TBitSet, true>;
 
-    /** Returns an iterator pointing to the first (lowest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The start iterator. In case no bit is set, the same as #end.        */
-    Iterator                begin(int skip= 0)       { return ++Iterator(*this, TInterface(TBegin -1) + skip); }
+    /// Returns an iterator pointing to the first (lowest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The start iterator. In case no bit is set, the same as #end.
+    Iterator                begin(int skip= 0)       { return ++Iterator(*this, TInterface(TBegin - 1) + skip); }
 
-    /** Returns an iterator pointing to the non-existing bit behind the highest one.
-     *  @return The end iterator.                                                     */
+    /// Returns an iterator pointing to the non-existing bit behind the highest one.
+    /// @return The end iterator.
     Iterator                end()                    { return Iterator(*this, TInterface(TEnd)   ); }
 
-    /** Returns a reverse iterator pointing to the last (highest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The reverse iteration start.                                         */
+    /// Returns a reverse iterator pointing to the last (highest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The reverse iteration start.
     ReverseIterator         rbegin(int skip= 0)       { return ++ReverseIterator(*this, TInterface(TEnd) - skip   ); }
 
-    /** Returns an iterator pointing to the non-existing bit before the lowest one.
-     *  @return The reverse iteratation end.                                          */
+    /// Returns an iterator pointing to the non-existing bit before the lowest one.
+    /// @return The reverse iteratation end.
     ReverseIterator         rend()                  { return ReverseIterator(*this, TInterface(TBegin-1) ); }
 
-    /** Returns a const iterator pointing to the first (lowest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The start iterator. In case no bit is set, the same as #end.        */
+    /// Returns a const iterator pointing to the first (lowest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The start iterator. In case no bit is set, the same as #end.
     ConstIterator           begin(int skip= 0) const { return ++ConstIterator(*this, TInterface(TBegin-1) + skip ); }
 
-    /** Returns a const iterator pointing to the first (lowest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The start iterator. In case no bit is set, the same as #end.        */
+    /// Returns a const iterator pointing to the first (lowest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The start iterator. In case no bit is set, the same as #end.
     ConstIterator          cbegin(int skip= 0) const { return ++ConstIterator(*this, TInterface(TBegin-1) + skip ); }
 
-    /** Returns a const iterator pointing to the non-existing bit behind the highest one.
-     *  @return The end iterator.                                                     */
+    /// Returns a const iterator pointing to the non-existing bit behind the highest one.
+    /// @return The end iterator.
     ConstIterator            end()             const { return ConstIterator(*this, TInterface(TEnd) ); }
 
-    /** Returns a const iterator pointing to the non-existing bit behind the highest one.
-     *  @return The end iterator.                                                     */
+    /// Returns a const iterator pointing to the non-existing bit behind the highest one.
+    /// @return The end iterator.
     ConstIterator           cend()             const { return ConstIterator(*this, TInterface(TEnd) ); }
 
-    /** Returns a const reverse iterator pointing to the last (highest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The reverse iteration start.                                         */
+    /// Returns a const reverse iterator pointing to the last (highest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The reverse iteration start.
     ConstReverseIterator    rbegin(int skip= 0)const { return ++ConstReverseIterator(*this, TInterface(TEnd - skip) ); }
 
-    /** Returns a const iterator pointing to the non-existing bit before the lowest one.
-     *  @return The reverse iteratation end.                                          */
+    /// Returns a const iterator pointing to the non-existing bit before the lowest one.
+    /// @return The reverse iteratation end.
     ConstReverseIterator    rend()             const { return ConstReverseIterator(*this, TInterface(TBegin-1) ); }
 
-    /** Returns a const reverse iterator pointing to the last (highest) bit set.
-     *  @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
-     *               at the beginning of the iteration. Must not be negative.
-     *  @return The reverse iteration start.                                         */
+    /// Returns a const reverse iterator pointing to the last (highest) bit set.
+    /// @param  skip Defaults to \c 0. If set, denotes the amount of bits which are not examined
+    ///              at the beginning of the iteration. Must not be negative.
+    /// @return The reverse iteration start.
     ConstReverseIterator    crbegin(int skip=0)const { return ++ConstReverseIterator(*this, TInterface(TEnd - skip) ); }
 
-    /** Returns a const iterator pointing to the non-existing bit before the lowest one.
-     *  @return The reverse iteratation end.                                          */
+    /// Returns a const iterator pointing to the non-existing bit before the lowest one.
+    /// @return The reverse iteratation end.
     ConstReverseIterator    crend()            const { return ConstReverseIterator(*this, TInterface(TBegin-1) ); }
 
 }; // class TBitSet
 
 } // namespace alib[::lang]
 
+DOX_MARKER([DOX_MANUAL_ALIASES_BITSET])
 /// Type alias in namespace \b alib.
 template<int TEnd, int TBegin= 0, typename TInterface= int>
 using BitSet = lang::TBitSet<int, TEnd, TBegin>;
+DOX_MARKER([DOX_MANUAL_ALIASES_BITSET])
 
 } // namespace [alib]
 
 // ------------------------   global operators on class TBitSet    ---------------------------------
 // For documentation, these global operators are faked into namespace alib
-#if defined(ALIB_DOX)
+#if DOXYGEN
 namespace alib {
 #endif
 
-/**
- * Performs binary AND operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
- * \note This operator function is located in the global namespace. The documentation shows
- *       namespace <em>alib</em>, which is done for the purposes of organizing the manual
- *       index better.
- * @param lhs               The left hand side operand.
- * @param rhs               The right hand side operand.
- * @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
- * @return A temporary \b TBitSet containing the result of the operation.
- */
+/// Performs binary AND operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
+/// \note This operator function is located in the global namespace. The documentation shows
+///       namespace <em>alib</em>, which is done for the purposes of organizing the manual
+///       index better.
+/// @param lhs               The left hand side operand.
+/// @param rhs               The right hand side operand.
+/// @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @return A temporary \b TBitSet containing the result of the operation.
 template<typename TInterface, TInterface TEnd, TInterface TBegin>
 constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator&(
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& lhs,
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& rhs   )                 noexcept
 {
     alib::lang::TBitSet<TInterface,TEnd,TBegin> result
-                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(alib::lang::TOmitInitialization());
+                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(nullptr);
     if constexpr (alib::lang::TBitSet<TInterface,TEnd,TBegin>::QtyWords == 1 )
         result.Import( lhs.Export() & rhs.Export() );
     else
@@ -938,25 +933,23 @@ constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator&(
     return result;
 }
 
-/**
- * Performs binary OR operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
- * \note This operator function is located in the global namespace. The documentation shows
- *       namespace <em>alib</em>, which is done for the purposes of organizing the manual
- *       index better.
- * @param lhs               The left hand side operand.
- * @param rhs               The right hand side operand.
- * @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
- * @return A temporary \b TBitSet containing the result of the operation.
- */
+/// Performs binary OR operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
+/// \note This operator function is located in the global namespace. The documentation shows
+///       namespace <em>alib</em>, which is done for the purposes of organizing the manual
+///       index better.
+/// @param lhs               The left hand side operand.
+/// @param rhs               The right hand side operand.
+/// @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @return A temporary \b TBitSet containing the result of the operation.
 template<typename TInterface, TInterface TEnd, TInterface TBegin>
 constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator|(
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& lhs,
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& rhs   )                 noexcept
 {
     alib::lang::TBitSet<TInterface,TEnd,TBegin> result
-                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(alib::lang::TOmitInitialization());
+                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(nullptr);
     if constexpr (alib::lang::TBitSet<TInterface,TEnd,TBegin>::QtyWords == 1 )
         result.Import( lhs.Export() | rhs.Export() );
     else
@@ -965,25 +958,23 @@ constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator|(
     return result;
 }
 
-/**
- * Performs binary XOR operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
- * \note This operator function is located in the global namespace. The documentation shows
- *       namespace <em>alib</em>, which is done for the purposes of organizing the manual
- *       index better.
- * @param lhs               The left hand side operand.
- * @param rhs               The right hand side operand.
- * @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
- * @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
- * @return A temporary \b TBitSet containing the result of the operation.
- */
+/// Performs binary XOR operation two \b TBitSet objects (of equal size), \p{lhs} and \p{rhs}.
+/// \note This operator function is located in the global namespace. The documentation shows
+///       namespace <em>alib</em>, which is done for the purposes of organizing the manual
+///       index better.
+/// @param lhs               The left hand side operand.
+/// @param rhs               The right hand side operand.
+/// @tparam TEnd  Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TBegin        Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @tparam TInterface       Template parameter of class \b TBitSet. Deduced by the compiler.
+/// @return A temporary \b TBitSet containing the result of the operation.
 template<typename TInterface, TInterface TEnd, TInterface TBegin>
 constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator^(
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& lhs,
     const alib::lang::TBitSet<TInterface,TEnd,TBegin>& rhs   )                 noexcept
 {
     alib::lang::TBitSet<TInterface,TEnd,TBegin> result
-                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(alib::lang::TOmitInitialization());
+                   = alib::lang::TBitSet<TInterface,TEnd,TBegin>(nullptr);
     if constexpr (alib::lang::TBitSet<TInterface,TEnd,TBegin>::QtyWords == 1 )
         result.Import( lhs.Export() ^ rhs.Export() );
     else
@@ -991,8 +982,10 @@ constexpr alib::lang::TBitSet<TInterface,TEnd,TBegin> operator^(
             result.Import( lhs.Export(w) ^ rhs.Export(w), w );
     return result;
 }
-#if defined(ALIB_DOX)
+#if DOXYGEN
 } // namespace [alib]
 #endif
+#include "alib/lang/callerinfo_methods.hpp"
 
 #endif // HPP_ALIB_LANG_BITSET
+

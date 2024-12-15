@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,15 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_SUBSTRING)
+#if !DOXYGEN
 #   include "alib/strings/substring.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 // Windows.h might bring in max/min macros
 #if defined( max )
@@ -31,7 +26,7 @@ bool   TSubstring<TChar>::consumeDecDigitsImpl( uint64_t& result )
     result=  detail::ParseDecDigits( *this, idx );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -47,7 +42,7 @@ bool   TSubstring<TChar>::consumeIntImpl( int64_t& result, TNumberFormat<TChar>*
     result=  detail::ParseInt( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -63,7 +58,7 @@ bool   TSubstring<TChar>::consumeDecImpl( uint64_t& result, TNumberFormat<TChar>
     result=  detail::ParseDec( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -79,7 +74,7 @@ bool   TSubstring<TChar>::consumeBinImpl( uint64_t& result, TNumberFormat<TChar>
     result=  detail::ParseBin( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -95,7 +90,7 @@ bool   TSubstring<TChar>::consumeHexImpl( uint64_t& result, TNumberFormat<TChar>
     result=  detail::ParseHex( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -111,7 +106,7 @@ bool   TSubstring<TChar>::consumeOctImpl( uint64_t& result, TNumberFormat<TChar>
     result=  detail::ParseOct( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -128,7 +123,7 @@ bool   TSubstring<TChar>::ConsumeFloat( double&                result,
     result=  detail::ParseFloat( *this, idx, *numberFormat );
     if( idx > 0 )
     {
-        ConsumeChars<false>( idx );
+        ConsumeChars<NC>( idx );
         return true;
     }
     return false;
@@ -160,3 +155,4 @@ template bool  TSubstring<xchar>::consumeHexImpl      ( uint64_t& , TNumberForma
 template bool  TSubstring<xchar>::consumeOctImpl      ( uint64_t& , TNumberFormat<xchar>* );
 
 }} // namespace [alib::strings]
+

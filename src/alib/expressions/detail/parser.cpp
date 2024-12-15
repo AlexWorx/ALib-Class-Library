@@ -6,17 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER)
-#      include "alib/expressions/detail/parser.hpp"
-#   endif
-#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-#      include "alib/expressions/compiler.hpp"
-#   endif
-#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
-#      include "alib/expressions/detail/parser_impl.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/expressions/detail/parser.hpp"
+#   include "alib/expressions/compiler.hpp"
+#   include "alib/expressions/detail/parser_impl.hpp"
+#endif // !DOXYGEN
 
 
 namespace alib {  namespace expressions { namespace detail {
@@ -24,7 +18,7 @@ namespace alib {  namespace expressions { namespace detail {
 // static creation method
 Parser* Parser::Create( Compiler& compiler )
 {
-    return compiler.allocator.Emplace<detail::ParserImpl>( compiler, &compiler.allocator );
+    return compiler.allocator().New<detail::ParserImpl>(compiler, compiler.allocator );
 }
 
 

@@ -6,19 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ELVIS)
+#if !DOXYGEN
 #   include "alib/expressions/plugins/elvisoperator.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
-
+#endif // !DOXYGEN
 
 //! @cond NO_DOX
 
 namespace alib {  namespace expressions { namespace plugins {
 
 ElvisOperator::ElvisOperator( Compiler& compiler )
-: CompilerPlugin("ALib Elvis", compiler )
+: CompilerPlugin("ALib Elvis", compiler, CompilePriorities::ElvisOperator )
 {}
 
 namespace {

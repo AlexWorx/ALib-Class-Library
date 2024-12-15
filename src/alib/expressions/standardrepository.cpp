@@ -6,31 +6,22 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_STANDARD_REPOSITORY)
-#      include "alib/expressions/standardrepository.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#      include "alib/config/configuration.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CONFIG_VARIABLE)
-#      include "alib/config/variable.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/expressions/standardrepository.hpp"
+#   include "alib/config/configuration.hpp"
+#endif // !DOXYGEN
 
 namespace alib {  namespace expressions {
 
-int StandardRepository::StoreLoadedExpressions( Compiler*  compiler, Priorities slot )
+int StandardRepository::StoreLoadedExpressions( Compiler*  compiler, Priority slot )
 {
     int count= 0;
     for( auto& entry : VariablesLoaded )
         if( std::get<0>( entry ) == slot )
         {
             ++count;
-            var.Declare( std::get<1>( entry ), std::get<2>( entry ) );
-            var.SetPriority( slot );
-            var.Add( compiler->GetNamed( std::get<3>( entry ))->GetNormalizedString() );
-            config->Store( var );
+            Variable var(*config, std::get<1>( entry ), A_CHAR("S") );
+            var= compiler->GetNamed( std::get<2>( entry ))->GetNormalizedString();
         }
 
     return count;
@@ -40,31 +31,20 @@ bool StandardRepository::Get( const String& identifier, AString& target )
 {
     if( config != nullptr )
     {
-        // search in given default categories first.
-        for( auto& category : DefaultCategories )
-        {
-            if(  config->Load( var.Declare( category, identifier ) ) != Priorities::NONE )
-            {
-                target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority(), category, identifier, identifier );
-                return true;
-            }
-        }
+        if( ConfigPaths.empty() )
+            ConfigPaths.emplace_back( "" );
 
-        // try to split identifier in "category_name"
-        integer underscorePos=  identifier.IndexOf( '_', 1 );
-        while( underscorePos > 0 )
+        // search in given default categories first.
+        Variable var(*config);
+        for( auto& path : ConfigPaths )
         {
-            Substring name;
-            Substring category(identifier);
-            category.Split( underscorePos, name, 1 );
-            if(  config->Load( var.Declare( category, name ) ) != Priorities::NONE )
+            String256 name(path); name << '/' <<  identifier;
+            if( var.Try(name, A_CHAR("S") ) && var.IsDefined() )
             {
                 target << var.GetString();
-                VariablesLoaded.emplace_back( var.Priority(), category, name, identifier );
+                VariablesLoaded.emplace_back( var.GetPriority(), name, identifier );
                 return true;
             }
-            underscorePos=  identifier.IndexOf( '_', underscorePos + 1 );
         }
     }
 
@@ -78,9 +58,9 @@ bool StandardRepository::Get( const String& identifier, AString& target )
         }
     }
 
-
     // failed
     return false;
+
 }
 
 }} // namespace [alib::expressions]

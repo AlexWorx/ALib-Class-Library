@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,25 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_ALOX)
-#      include "alib/alox/alox.hpp"
-#   endif
-
+#if !DOXYGEN
+#   include "alib/alox/alox.hpp"
 #   define HPP_ALIB_LOX_PROPPERINCLUDE
-#      if !defined (HPP_ALOX_DETAIL_DOMAIN)
-#          include "alib/alox/detail/domain.inl"
-#      endif
+#       include "alib/alox/detail/domain.inl"
 #   undef HPP_ALIB_LOX_PROPPERINCLUDE
-
-#   if !defined (HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/alox/aloxcamp.hpp"
+#endif // !DOXYGEN
 
 
 namespace alib {  namespace lox { namespace detail {
@@ -37,20 +25,18 @@ namespace alib {  namespace lox { namespace detail {
 // Constructor/Destructor
 // #################################################################################################
 
-Domain::Domain( MonoAllocator* allocator, const NString& name )
-: SubDomains    ( allocator )
-, Data          (*allocator )
-, PrefixLogables( allocator )
+Domain::Domain( MonoAllocator& allocator, PoolAllocator& pool, const NString& name )
+: Name          (allocator, name)
+, Parent        (nullptr)
+, SubDomains    (allocator)
+, Data          (allocator)
+, PrefixLogables(pool)
 {
-    // store parameters
-    Parent=   nullptr;
-    Name  =   allocator->EmplaceString( name );
-
-    Data      .reserve( static_cast<size_t>( 2 ) );
+    Data      .reserve( size_t( 2 ) );
 
     // The full of the root domain equals the name
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    nchar* fullPath= allocator->AllocArray<nchar>( name.Length() + 1 );
+    nchar* fullPath= allocator().AllocArray<nchar>( name.Length() + 1 );
     name.CopyTo( fullPath );
     fullPath[name.Length()]= '/';
     FullPath= NString( fullPath, name.Length() + 1 );
@@ -59,14 +45,12 @@ Domain::Domain( MonoAllocator* allocator, const NString& name )
 
 
 Domain::Domain( Domain* parent, const NString& name )
-: SubDomains    ( &parent->Data.get_allocator().allocator )
-, Data          (  parent->Data.get_allocator().allocator )
-, PrefixLogables( &parent->Data.get_allocator().allocator )
+: Name( parent->Data.get_allocator().GetAllocator(), name )
+, Parent        ( parent )
+, SubDomains    ( parent->Data.get_allocator().GetAllocator() )
+, Data          ( parent->Data.get_allocator().GetAllocator() )
+, PrefixLogables( parent->PrefixLogables.GetAllocator() )
 {
-    // store parameters
-    Parent=   parent;
-    Name=     Data.get_allocator().allocator.EmplaceString( name );
-
     // if we have a parent, we inherit all logger's verbosities
     if( parent != nullptr )
         Data= parent->Data;
@@ -82,13 +66,7 @@ Domain::Domain( Domain* parent, const NString& name )
         dom= dom->Parent;
     }
     while( dom != nullptr );
-    FullPath= Data.get_allocator().allocator.EmplaceString( fullPath );
-}
-
-Domain::~Domain()
-{
-    for ( auto& it : PrefixLogables )
-        delete  it.first;
+    FullPath.Allocate( Data.get_allocator().GetAllocator(), fullPath );
 }
 
 // #################################################################################################
@@ -130,35 +108,35 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
     domainPath.ConsumeChar( Domain::Separator() );
     integer endSubName= domainPath.IndexOf( Domain::Separator() );
 
-    ALIB_ASSERT_ERROR( endSubName != 0, "ALOX","Internal Error" )
+    ALIB_ASSERT_ERROR( endSubName != 0, "ALOX", "Internal error. This must never happen." )
 
     // find end of actual domain name and save rest
     NSubstring restOfDomainPath= nullptr;
     if ( endSubName > 0 )
-        domainPath.Split<false>( endSubName, restOfDomainPath, 1 );
+        domainPath.Split<NC>( endSubName, restOfDomainPath, 1 );
 
-    // search sub-domain
+    // search subdomain
     Domain* subDomain= nullptr;
 
     // "."
-    if( domainPath.Equals<false>( "." ) )
+    if( domainPath.Equals<NC>( "." ) )
         subDomain= this;
 
     // ".."
-    else if( domainPath.Equals<false>( ".." ) )
+    else if( domainPath.Equals<NC>( ".." ) )
         subDomain= Parent != nullptr ? Parent : this;
 
-    // search in sub-domain
+    // search in subdomain
     else
     {
-        List<Domain>::Iterator subDomainIt;
+        decltype(SubDomains)::Iterator subDomainIt;
         bool fixedOnce= false;
         for(;;)
         {
             subDomainIt=  SubDomains.begin();
             while ( subDomainIt != SubDomains.end() )
             {
-                int comparison= (*subDomainIt).Name.CompareTo<false, lang::Case::Sensitive>( domainPath );
+                int comparison= (*subDomainIt).Name.CompareTo<NC, lang::Case::Sensitive>( domainPath );
 
                 if( comparison >= 0 )
                 {
@@ -217,9 +195,9 @@ Domain* Domain::findRecursive( NSubstring& domainPath, int maxCreate, bool* wasC
             : subDomain;
 }
 
-Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priorities priority )
+Verbosity Domain::SetVerbosity( int loggerNo, Verbosity verbosity, Priority priority )
 {
-    LoggerData& ld= Data[static_cast<size_t>(loggerNo)];
+    LoggerData& ld= Data[size_t(loggerNo)];
     if( priority >= ld.Priority )
     {
         ld.Priority=        priority;
@@ -266,3 +244,4 @@ void Domain::ToString( NAString& tAString )
 
 
 }}}// namespace [alib::lox::detail]
+

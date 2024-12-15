@@ -14,11 +14,7 @@
 # -------------------------------------------------------------------------------------------------
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
-
-    ### uncomment to force cotire on clean cmake built
-    # set( ALIB_CMAKE_COTIRE  "On" )
-
-
+    
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
@@ -49,7 +45,6 @@
 
     add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Strings/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
-    ALibSetCotire             ( Sample )
     target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 
 

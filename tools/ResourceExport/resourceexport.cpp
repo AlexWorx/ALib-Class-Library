@@ -13,10 +13,9 @@
 //   <b>./docs/pages/resource-exports/</b> of the ALib base directory.
 // #################################################################################################
 
-// DOX_MARKER([DOX_ALIB_RESOURCES_EXPORT])
-#include "alib/lang/basecamp/basecamp.hpp"
+// DOX_MARKER([DOX_RESOURCES_EXPORT])
 #include "alib/lang/basecamp/bootstrap.hpp"
-#include "alib/lang/resources/configresourcepool.hpp"
+#include "alib/config/configresourcepool.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 
 using namespace alib;
@@ -24,45 +23,46 @@ using namespace std;
 int main( int argc, const char *argv[] )
 {
     // create and set resource pool that uses a configuration file
-    lang::resources::ConfigResourcePool pool;
+    ConfigResourcePool pool;
     alib::BootstrapAddDefaultCamps();
-    alib::Camps.Back()->BootstrapSetResourcePool( &pool );
+    alib::CAMPS.Back()->BootstrapSetResourcePool( &pool );
 
     // bootstrap alib
-    alib::ArgC = argc;
-    alib::ArgVN= argv;
+    alib::ARG_C = argc;
+    alib::ARG_VN= argv;
     alib::Bootstrap();
 
-    // we externalize the string value, e.g. replacing "\" by "\\" and this way "\n" by "\\n"
-    // This might not be wanted for custom exports, but works well for ALib INI-files.
-    config::XTernalizer  externalizer;
-    AString              externalizedValue;
+    // we externalize the string value, e.g., replacing "\" by "\\" and this way "\n" by "\\n"
+    // This might not be wanted for custom exports but works well for ALib INI-files.
+    StringEscaperStandard externalizer;
+    AString               externalizedValue;
 
-    // loop over sections of the plugin
-    auto& sections= pool.Config.GetPluginTypeSafe<InMemoryPlugin>(
-                                           Priorities::DefaultValues )
-                    ->Sections();
-
-    for( auto& section : sections )
+    // loop over "sections", which is the first level of nodes
+    auto section= pool->Root();
+    section.GoToFirstChild();
+    while( section.IsValid() )
     {
-        // no entries in section? (happens only for first, empty category)
-        if( section.Entries().IsEmpty() )
+        // no entries in section? (happens only for the first, empty category)
+        if( section.CountChildren() == 0 )
             continue;
 
         // write category
         cout << endl << '[' << section.Name() << ']' << endl;
 
         // loop over resources in actual category
-        for( auto& entry : section.Entries() )
+        auto entry= section.FirstChild();
+        while( entry.IsValid() )
         {
             // externalize and write
-            externalizer.ExternalizeValue( entry.Value, externalizedValue.Reset()  , 0 );
+            externalizer.Escape( Variable(entry).GetString(), externalizedValue.Reset(), A_CHAR("") );
             cout << entry.Name() << '=' << externalizedValue  << endl;
+            entry.GoToNextSibling();
         }
+        section.GoToNextSibling();
     }
 
     // shutdown alib
     alib::Shutdown();
     return 0;
 }
-// DOX_MARKER([DOX_ALIB_RESOURCES_EXPORT])
+// DOX_MARKER([DOX_RESOURCES_EXPORT])

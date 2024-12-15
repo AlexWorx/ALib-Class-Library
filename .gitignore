@@ -1,4 +1,5 @@
 html/
+latex/
 build/_builds_
 build/cmake/moduletests/compilation_output.txt
 docs/pages/generated/
@@ -9,7 +10,6 @@ docs/doxygen/doxyfile.ini
 .private
 *.zip
 *.userprefs
-cotire.cmake
 .directory
 CMakeLists.txt.user
 
@@ -21,9 +21,11 @@ build/ide.clion_win
 
 
 #vvvvvvvvvvvvvvvvvvvvvvvv Jetbrains IDEs vvvvvvvvvvvvvvvvvvvvvvvv
-.idea/deployment.xml
-.idea/vcs.xml
-.idea/GrepConsole.xml
+**/.idea/vcs.xml
+**/.idea/GrepConsole.xml
+**/.idea/sonarlint/
+**/.idea/material_theme_project.xml
+**/.idea/material_theme_project_new.xml
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij

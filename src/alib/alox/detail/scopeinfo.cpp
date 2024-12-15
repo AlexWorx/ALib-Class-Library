@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::detail - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,32 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_ALOX)
-#      include "alib/alox/alox.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
-
-#   if !defined(HPP_ALOX_DETAIL_SCOPEINFO)
-#      define HPP_ALIB_LOX_PROPPERINCLUDE
-#          include "alib/alox/detail/scopeinfo.inl"
-#      undef HPP_ALIB_LOX_PROPPERINCLUDE
-#   endif
-
-#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
-#       include "alib/lang/commonenums.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#      include "alib/enums/serialization.hpp"
-#   endif
-#   if !defined(HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/alox/alox.hpp"
+#   include "alib/alox/aloxcamp.hpp"
+#   define HPP_ALIB_LOX_PROPPERINCLUDE
+#       include "alib/alox/detail/scopeinfo.inl"
+#   undef HPP_ALIB_LOX_PROPPERINCLUDE
+#   include "alib/compatibility/std_strings_functional.hpp"
+#   include "alib/enums/serialization.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#endif // !DOXYGEN
 
 
 // conditional expression is constant (which is a great thing for the compiler by the way ;-)
@@ -40,6 +24,8 @@
     #pragma warning( disable : 4127 )
 #endif
 
+using namespace alib::lang::system;
+
 namespace alib {  namespace lox { namespace detail {
 
 // #################################################################################################
@@ -47,39 +33,38 @@ namespace alib {  namespace lox { namespace detail {
 // #################################################################################################
 
 std::vector<ScopeInfo::SourcePathTrimRule>  ScopeInfo::GlobalSPTRs;
-int                                         ScopeInfo::DefaultCacheSize                         = 5;
-
 bool                                        ScopeInfo::GlobalSPTRsReadFromConfig       = false;
 
-ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& tempVar )
+ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator& allocator )
 #if ALIB_THREADS
-: threadDictionary( allocator )
+: threadDictionary   (allocator)
 ,
 #else
 :
 #endif
- scopes          ( *allocator )
+  parsedFileNameCache(allocator, 4, 6)
+, callStack         (allocator)
+, loxName            (allocator, pName)
 {
-    loxName= allocator->EmplaceString( pName );
-    characters::CharArray<nchar>::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
-    ALIB_ASSERT_ERROR( !loxName.Equals<false>( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
-    cache= allocator->EmplaceArray<SourceFile>( cacheSize= DefaultCacheSize );
+    callStack.reserve(2);
+    characters::ToUpper( const_cast<char*>( loxName.Buffer() ), loxName.Length() );
+    ALIB_ASSERT_ERROR( !loxName.Equals<NC>( "GLOBAL" ), "ALOX", "Name \"GLOBAL\" not allowed for Lox instances" )
 
-    lastSourceFile= &cache[0];
-
-    ALIB_IF_THREADS( threadDictionary.EmplaceUnique(Thread::GetMain()->GetId(), "PROCESS" ); )
+    IF_ALIB_THREADS( threadDictionary.EmplaceUnique(Thread::GetMain()->GetID(), "PROCESS" ); )
 
     // read trim rules from config
     // do 2 times, 0== local list, 1== global list
     std::vector<SourcePathTrimRule>* trimInfoList;
     for( int trimInfoNo= 0; trimInfoNo < 2 ; ++trimInfoNo )
-    {
+    { ALIB_LOCK_WITH(ALOX.GetConfigLock())
+        Variable variable(ALOX);
+        
         // check if done... or set list
         if ( trimInfoNo == 0 )
         {
             trimInfoList= &LocalSPTRs;
             ALIB_STRINGS_FROM_NARROW(loxName,sLoxName, 1024)
-            tempVar.Declare( Variables::SPTR_LOX, sLoxName );
+            variable.Declare( Variables::SPTR_LOX,  sLoxName );
         }
         else
         {
@@ -88,18 +73,19 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
             GlobalSPTRsReadFromConfig= true;
 
             trimInfoList= &GlobalSPTRs;
-            tempVar.Declare( Variables::SPTR_GLOBAL );
+            variable.Declare( Variables::SPTR_GLOBAL );
         }
-        ALOX.GetConfig().Load( tempVar );
 
-        if( tempVar.Priority() != Priorities::NONE  )
+        if( variable.IsDefined()  )
         {
-            for( int ruleNo= 0; ruleNo < tempVar.Size(); ++ruleNo )
+            Tokenizer tokOuter;
+            tokOuter.Set(variable, ';', true);
+            while(tokOuter.HasNext())
             {
-                Tokenizer ruleTknzr( tempVar.GetString( ruleNo ), ',' );
+                Tokenizer ruleTknzr( tokOuter.Next(), ',' );
                 trimInfoList->emplace_back();
                 SourcePathTrimRule& rule=trimInfoList->back();
-                rule.Priority=  tempVar.Priority();
+                rule.Priority=  variable.GetPriority();
 
                 ruleTknzr.Next();
                 if( ( rule.IsPrefix= !ruleTknzr.Actual.StartsWith( A_CHAR("*") ) ) == false )
@@ -114,7 +100,7 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
                     continue;
                 }
 
-                if( DirectorySeparator == '/' )
+                if( DIRECTORY_SEPARATOR == '/' )
                     rule.Path.SearchAndReplace( '\\', '/'  );
                 else
                     rule.Path.SearchAndReplace( '/' , '\\' );
@@ -129,60 +115,28 @@ ScopeInfo::ScopeInfo( const NString& pName, MonoAllocator* allocator, Variable& 
     }
 }
 
-void ScopeInfo::Set ( const NCString& sourceFileName, int lineNumber, const NCString& methodName
-                      ALIB_IF_THREADS(, Thread* pThread ) )
+void ScopeInfo::Set ( const lang::CallerInfo& ci )
 {
-    ++actScopeDepth;
-    ALIB_ASSERT( actScopeDepth < 8)
-    if( scopes.size() == static_cast<size_t>(actScopeDepth) )
-        scopes.emplace_back();
-    Scope& s= scopes[static_cast<size_t>(actScopeDepth)];
+    ++callStackSize;
+    ALIB_ASSERT( callStackSize < 8)
+    if( callStack.size() == size_t(callStackSize) )
+        callStack.emplace_back();
 
+    FrameRecord& scope= callStack[size_t(callStackSize)];
 
-    s.timeStamp=    Ticks::Now();
-    s.origLine=     lineNumber;
-    s.origMethod=   methodName;
-    s.sourceFile=   lastSourceFile;
+    scope.timeStamp =  Ticks::Now();
+    scope.origLine  =  ci.Line;
+    scope.origMethod=  ci.Func;
+    auto resultPair =   parsedFileNameCache.Try( ci.File ); // search file in cache
+    if( resultPair.first == false )
+        resultPair.second.Construct(ci.File);
+    scope.Parsed    =  &*resultPair.second;
 
-    ALIB_IF_THREADS(
-    this->thread=   pThread;
-    threadName=     nullptr; )
-
-    // if different file than before, search file in cache
-    if ( s.sourceFile->origFile.Buffer() != sourceFileName.Buffer() )
-    {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-        int           oldestIdx= -1;
-        uint64_t  oldestTime= ++cacheRun;
-
-        s.sourceFile= nullptr;
-        for( int i= 0; i< cacheSize; ++i )
-        {
-            if ( cache[i].origFile.Buffer() == sourceFileName.Buffer() )
-            {
-                s.sourceFile= &cache[i];
-                break;
-            }
-
-            if( oldestTime > cache[i].timeStamp )
-            {
-                oldestTime= cache[i].timeStamp;
-                oldestIdx= i;
-            }
-        }
-
-        // not found? Use the oldest
-        if ( s.sourceFile == nullptr )
-        {
-            s.sourceFile= &cache[oldestIdx];
-            s.sourceFile->Clear();
-            s.sourceFile->origFile= sourceFileName;
-        }
-
-        // mark as used
-        s.sourceFile->timeStamp= cacheRun;
-        ALIB_WARNINGS_RESTORE
-    }
+   // we must not use ci.ThreadID, because this might be nulled with release logging
+    IF_ALIB_THREADS(  threadNativeIDx= std::this_thread::get_id();
+                      thread        = nullptr;
+                      threadName    = nullptr;
+                      )
 }
 
 void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
@@ -191,13 +145,10 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
                                         lang::Case          sensitivity,
                                         const NString&      trimReplacement,
                                         lang::Reach         reach,
-                                        Priorities          priority )
+                                        Priority            priority )
 {
     // clear cache to have lazy variables reset with the next invocation
-    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    for ( int i= 0; i< cacheSize; ++i )
-        cache[i].Clear();
-    ALIB_WARNINGS_RESTORE
+    parsedFileNameCache.Clear();
 
     // clear command
     if ( trimOffset == 999999 )
@@ -236,7 +187,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
         return;
     }
 
-    if( DirectorySeparator == '/' )
+    if( DIRECTORY_SEPARATOR == '/' )
         rule.Path.SearchAndReplace( '\\', '/'  );
     else
         rule.Path.SearchAndReplace( '/' , '\\' );
@@ -245,7 +196,7 @@ void  ScopeInfo::SetSourcePathTrimRule( const NCString&     path,
     rule.TrimOffset=      trimOffset;
     rule.Sensitivity=     sensitivity;
     rule.TrimReplacement.Reset( trimReplacement );
-    if( DirectorySeparator == '/' )
+    if( DIRECTORY_SEPARATOR == '/' )
         rule.TrimReplacement.SearchAndReplace( '\\', '/'  );
     else
         rule.TrimReplacement.SearchAndReplace( '/' , '\\' );
@@ -256,7 +207,7 @@ void ScopeInfo::trimPath()
 {
     bool trimmed= false;
 
-    SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
+    ParsedFileName* actual= callStack[size_t(callStackSize)].Parsed;
     integer idx= getPathLength();
     if( idx < 0 )
     {
@@ -278,14 +229,14 @@ void ScopeInfo::trimPath()
         for ( auto& ti : *trimInfoList )
         {
             if( ti.IsPrefix )
-                idx= ( ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.StartsWith<true,lang::Case::Sensitive>( ti.Path )
-                                                                : actual->trimmedPath.StartsWith<true,lang::Case::Ignore   >( ti.Path )
+                idx= ( ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.StartsWith<CHK,lang::Case::Sensitive>( ti.Path )
+                                                                : actual->trimmedPath.StartsWith<CHK,lang::Case::Ignore   >( ti.Path )
                      )
 
                      ? 0 : -1;
             else
-                idx= ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.IndexOf<true, lang::Case::Sensitive>( ti.Path )
-                                                              : actual->trimmedPath.IndexOf<true, lang::Case::Ignore   >( ti.Path );
+                idx= ti.Sensitivity == lang::Case::Sensitive  ? actual->trimmedPath.IndexOf<CHK, lang::Case::Sensitive>( ti.Path )
+                                                              : actual->trimmedPath.IndexOf<CHK, lang::Case::Ignore   >( ti.Path );
             if ( idx >= 0 )
             {
                 integer startIdx= idx + ( ti.IncludeString == lang::Inclusion::Include ? ti.Path.Length() : 0 ) + ti.TrimOffset;
@@ -308,10 +259,7 @@ void ScopeInfo::trimPath()
         AutoDetectTrimableSourcePath= false; // do this only once
 
         // get system execution path and compare to file path
-        String256 currentDir;
-        currentDir.DbgDisableBufferReplacementWarning();
-
-        Directory::CurrentDirectory( currentDir );
+        Path currentDir(SystemFolders::Current);
 
         // Get the prefix that is the same in both paths
         integer i= 0;
@@ -319,17 +267,17 @@ void ScopeInfo::trimPath()
         if ( maxIdx > actual->trimmedPath.Length() )
              maxIdx=  actual->trimmedPath.Length();
 
-        while (  i < maxIdx &&    characters::CharArray<character>::ToUpper( currentDir[i] )
-                               == characters::CharArray<character>::ToUpper( static_cast<character>(actual->trimmedPath[i]) )  )
+        while (  i < maxIdx &&    characters::ToUpper( currentDir[i] )
+                               == characters::ToUpper( static_cast<character>(actual->trimmedPath[i]) )  )
             ++i;
 
         if ( i > 1 )
         {
             currentDir.ShortenTo( i );
             NCString origFile= actual->origFile;
-            ALIB_STRINGS_TO_NARROW(currentDir,nCurrentDir,1024)
-            SetSourcePathTrimRule( nCurrentDir, lang::Inclusion::Include, 0, lang::Case::Ignore, NullNString(),
-                                   lang::Reach::Local, Priorities::AutoDetected );
+            ALIB_PATH_TO_NARROW(currentDir,nCurrentDir,1024)
+            SetSourcePathTrimRule( nCurrentDir, lang::Inclusion::Include, 0, lang::Case::Ignore, NULL_NSTRING,
+                                   lang::Reach::Local, Priority::AutoDetected );
             actual->origFile= origFile;
             trimPath(); // one recursive call
         }
@@ -342,3 +290,4 @@ void ScopeInfo::trimPath()
 #if defined(_MSC_VER)
     #pragma warning( pop )
 #endif
+

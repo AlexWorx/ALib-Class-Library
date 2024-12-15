@@ -1,35 +1,48 @@
 @font-face {
-  font-family: "Open Sans";
+  font-family: "ALibSerif";
   font-style: normal;
   font-weight: 400;
-  src: local("Open Sans"), local("OpenSans"), url("OpenSans-Regular.woff2") format("woff2"), url("OpenSans-Regular.woff") format("woff");
+  src: local("Merriweather"), local("Merriweather-Regular"), url("Merriweather-Regular.ttf");
 }
 
 @font-face {
-  font-family: "Bitter";
+  font-family: "ALibSans";
   font-style: normal;
   font-weight: 400;
-  src: local("Bitter-Regular"), url("Bitter-Regular.woff2") format("woff2"), url("Bitter-Regular.woff") format("woff");
+  src: local("Lato"), url("Lato-Regular.ttf")
 }
 
 @font-face {
-  font-family: "Fira Mono";
+  font-family: "ALibSansBold";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Lato-Bold"), url("Lato-Bold.ttf")
+}
+
+@font-face {
+  font-family: "ALibCode";
   font-style: monospace;
   font-weight: 400;
-  src: local("Fira Mono"), url("FiraMono-Regular.ttf");
+  src: local("FiraMono"), url("FiraMono-Regular.ttf");
 }
 
+@font-face {
+  font-family: "ALibProject";
+  font-style: monospace;
+  font-weight: 400;
+  src: src: local("Merriweather-Bold"), local("Merriweather-Bold"), url("Merriweather-Bold.ttf");
+}
 
 ul {
     list-style: square;
 }
 
 div.toc a {
-     font-family: "Open Sans";
+     font-family: "ALibSerif";
 }
 
 div.toc h3 {
-     font-family: "Bitter";
+     font-family: "ALibSansBold";
 }
 
 
@@ -41,7 +54,7 @@ div.toc h3 {
 }
 
 .sm-dox a, .sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
-     font-family: "Open Sans";
+     font-family: "ALibSerif";
      font-size: 13px;
      font-weight: bold;
      line-height: 36px;
@@ -128,7 +141,7 @@ div.toc h3 {
 }
 
 .sm-dox a, .sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     font-size: 13px;
     font-weight: bold;
     line-height: 30px;
@@ -232,6 +245,22 @@ div.toc h3 {
     border-left: 40px solid transparent
 }
 
+.classindex dl.even {
+	background-color: var(--index-even-item-bg-color);
+}
+
+.classindex dl.odd {
+	background-color: var(--index-even-item-bg-color);
+}
+.directory tr.odd {
+	padding-left: 6px;
+	background-color: var(--index-even-item-bg-color);
+}
+
+.directory tr.even {
+	padding-left: 6px;
+	background-color: var(--index-even-item-bg-color);
+}
 @media (min-width: 768px) {
     .sm-dox ul {
         position: absolute;
@@ -517,7 +546,7 @@ div.toc h3 {
 }
 
 .alib-menu {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     font-size: 15px;
     font-weight: bold;
     text-shadow: rgba(0, 0, 0, 0.6) 0px 2px 2px;
@@ -528,7 +557,7 @@ div.toc h3 {
 }
 
 .alib-menu_hl {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     font-size: 15px;
     font-weight: bold;
     text-shadow: rgba(255, 255, 255, 0.6) 0px 2px 2px;
@@ -540,13 +569,17 @@ div.toc h3 {
     color: #9E2544;
 }
 
+/* Make the hamburger-menu button white */
+.main-menu-btn-icon{ background: white;}
+.main-menu-btn-icon::before{  background: white; }
+.main-menu-btn-icon::after{  background: white; }
 
 
 /*####################### General Doxygen ########################*/
 /* The standard CSS for doxygen 1.8.4 */
 
 body, table, div, p, dl {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
 }
 
 /* @group Heading Levels */
@@ -556,7 +589,7 @@ h1.groupheader {
 }
 
 .title {
-    font-family: "Bitter";
+    font-family: "ALibSansBold";
     font-size: 160%;
     font-weight: bold;
     margin: 0px 8px;
@@ -577,7 +610,7 @@ h3.groupheader {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Bitter";
+    font-family: "ALibSansBold";
     color: black;
     font-weight: 500;
 
@@ -618,6 +651,7 @@ h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
 
 dt {
     font-weight: bold;
+    font-size: ;
 }
 
 div.multicol {
@@ -677,7 +711,7 @@ div.navtab {
 /* @group Link Styling */
 
 a {
-    font-weight: inherit;
+    font-family: "ALibSerif";
     font-size: 100%;
     text-decoration: none;
     color: #7e0015;
@@ -707,7 +741,7 @@ a.qindexHL {
 }
 
 a.el {
-    font-family: Open Sans;
+    font-family: "ALibSerif";
     font-weight: normal;
 }
 
@@ -726,7 +760,7 @@ a.codeRef, a.codeRef:visited {
 
 a.code
 {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size: 100%;
     white-space: nowrap;
 }
@@ -754,7 +788,7 @@ pre.fragment {
     overflow: auto;
     word-wrap: break-word;
 
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size:  80%;
     line-height: 110%;
     color: #000030;
@@ -768,13 +802,13 @@ div.fragment {
 
     background-color: rgb(248, 248, 248);
     color: #000030;
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size:  90%;
     line-height: 110%;
 }
 
 div.line {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size:  90%;
     line-height: 110%;
     color: #000030;
@@ -861,16 +895,6 @@ body
 
 }
 
-
-div.contents
-{
-    position: absolute;
-    top:   136px;
-    left:   -5px;
-    right:   -8px;
-    bottom:  0px;
-    z-index: -10;
-}
 
 div.textblock
 {
@@ -967,7 +991,7 @@ div.center img {
 
 /* AWorx dox uses <span></span> to mark parameter names in texts.*/
 span {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-weight: bold;
     font-style: italic;
     font-size: 100%;
@@ -1110,7 +1134,7 @@ table.memberdecls {
     border: none;
     margin: 4px;
     padding: 1px 0 0 8px;
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
 }
 
 .mdescLeft, .mdescRight {
@@ -1119,7 +1143,7 @@ table.memberdecls {
     //color: #555;
     color: black;
 
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     font-style: normal;
 }
 
@@ -1191,7 +1215,7 @@ table.memberdecls {
 /* end:  new with doxygen 1.8.13 */
 
 .memtemplate {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size: 100%;
     color: black;
     font-weight: normal;
@@ -1229,7 +1253,7 @@ table.memberdecls {
 }
 
 .memname {
-       font-family: "Fira Mono", monospace;
+       font-family: "ALibCode", monospace;
        font-weight: bold;
        font-size: 110%;
        color: #2f3a70;
@@ -1321,7 +1345,7 @@ dl.reflist dd {
 }
 
 .paramname {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-size: 100%;
     font-weight: bold;
     font-style: italic;
@@ -1330,7 +1354,7 @@ dl.reflist dd {
     color: #bc8a0d
 }
 .paramname em {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     font-weight: bold;
     vertical-align: middle;
     color: #bc8a0d;
@@ -1345,7 +1369,7 @@ dl.reflist dd {
 }
 
 .params .paramname, .retval .paramname {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     color: #bc8a0d;
     font-size: 100%;
 }
@@ -1357,7 +1381,7 @@ dl.reflist dd {
 }
 
 .params .paramdir {
-    font-family: "Fira Mono", monospace;
+    font-family: "ALibCode", monospace;
     vertical-align: middle;
 }
 
@@ -1614,7 +1638,7 @@ table.fieldtable {
     display:block;
     text-decoration: none;
     outline: none;
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     background-image: none;
     color: white;
     text-shadow: none;
@@ -1626,7 +1650,7 @@ table.fieldtable {
     display:block;
     text-decoration: none;
     outline: none;
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);
     background-image: none;
     color: #9E2544;
@@ -1710,21 +1734,43 @@ dl
 /* dl.note, dl.warning, dl.attention, dl.pre, dl.post, dl.invariant, dl.deprecated, dl.to-do, dl.test, dl.bug */
 dl.section
 {
+    font-family: "ALibSans";
+    font-weight: normal;
     margin-left: 0px;
     padding-left: 0px;
 }
 
 dl.note
 {
+    font-family: "ALibSansBold";
        margin-left: 0px;
        padding: 6px 0px 3px 8px;
        border-left:  10px solid;
        border-color: #D0C000;
-//     background-color: #fff799
+}
+
+div.alib-key-takeaways
+{
+       font-family: "ALibSansBold";
+       font-size: 120%;
+       border-radius: 4px;
+       margin-left: 0px;
+       padding: 6px 0px 3px 8px;
+       border-left:  10px solid;
+       border-color: #506eff;
+       background-color: #a0d2ff
+}
+div.alib-key-takeaways-inner
+{
+       font-family: "ALibSans";
+       margin-left: 18px;
+       margin-bottom: 6px;
+       margin-left: 18px;
 }
 
 dl.warning, dl.attention
 {
+    font-family: "ALibSansBold";
     margin-left: 0px;
     padding: 6px 0px 3px 8px;
 
@@ -1735,6 +1781,7 @@ dl.warning, dl.attention
 
 dl.pre, dl.post, dl.invariant
 {
+    font-family: "ALibSansBold";
     margin-left:-7px;
     padding-left: 3px;
     border-left:4px solid;
@@ -1743,6 +1790,7 @@ dl.pre, dl.post, dl.invariant
 
 dl.deprecated
 {
+    font-family: "ALibSansBold";
     margin-left: 0px;
     padding: 6px 0px 3px 8px;
     border-left: 6px solid;
@@ -1751,7 +1799,7 @@ dl.deprecated
 
 dl.deprecated dt a.el
 {
-    font-family: "Open Sans";
+    font-family: "ALibSansBold";
 }
 
 dl.todo
@@ -1779,6 +1827,8 @@ dl.bug
 }
 
 dl.section dd {
+    font-family: "ALibSans";
+
     margin-bottom: 6px;
     margin-left: 18px;
 }
@@ -1799,7 +1849,7 @@ dl.section dd {
 
 #projectname
 {
-    font-family: "Open Sans";
+    font-family: "ALibProject";
     font-weight: bold;
     margin: 0px;
     padding-top:   0px;
@@ -1810,14 +1860,14 @@ dl.section dd {
 
 #projectbrief
 {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     margin: 0px;
     padding: 50px;
 }
 
 #projectnumber
 {
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     margin: 0px;
     padding: 0px;
     padding-bottom: 5px;
@@ -1900,7 +1950,7 @@ div.toc li {
 
 div.toc h3 {
     font: bold 12px/1.2
-    font-family: "Open Sans";
+    font-family: "ALibSerif";
     font-size: 150%;
     text-align: center;
     color: #4665A2;

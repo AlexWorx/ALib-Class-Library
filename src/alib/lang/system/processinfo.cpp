@@ -6,39 +6,26 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined(HPP_ALIB_CAMP_PROCESSINFO)
-    #include "alib/lang/system/processinfo.hpp"
-#endif
-
-#if !defined(HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-    #include "alib/strings/util/tokenizer.hpp"
-#endif
-
-#if ALIB_THREADS && !defined(HPP_ALIB_THREADS_THREADLOCKNR)
-    #include "alib/threads/threadlocknr.hpp"
-#endif
-#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#if !DOXYGEN
+#   include "alib/lang/system/processinfo.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   if ALIB_THREADS
+#      include "alib/threads/lock.hpp"
+#   endif
 #   include "alib/lang/message/report.hpp"
-#endif
-
-#if defined(__GLIBCXX__) || defined(__ANDROID_NDK__)
-    #include <unistd.h>
-#elif defined(__APPLE__)
-    #include <unistd.h>
-    #include <sys/sysctl.h>
-    #include <libproc.h>
-
-#elif   defined( _WIN32 )
-    #include <direct.h>
-#else
-    #pragma message ("Unknown Platform in file: " __FILE__ )
-#endif
-
-#if !defined(_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
-    #include <fstream>
-#endif
-#endif // !defined(ALIB_DOX)
+#   if defined(__GLIBCXX__) || defined(__ANDROID_NDK__)
+#       include <unistd.h>
+#   elif defined(__APPLE__)
+#       include <unistd.h>
+#       include <sys/sysctl.h>
+#       include <libproc.h>
+#   elif   defined( _WIN32 )
+#      include <direct.h>
+#   else
+#      pragma message ("Unknown Platform in file: " __FILE__ )
+#   endif
+#   include <fstream>
+#endif // !DOXYGEN
 
 
 
@@ -47,20 +34,21 @@ namespace alib {  namespace lang::system {
 // static instance representing current process
 ProcessInfo    ProcessInfo::current;
 
-
+#include "alib/lang/callerinfo_functions.hpp"
 const ProcessInfo&    ProcessInfo::Current()
 {
-    ALIB_IF_THREADS( static ThreadLockNR   lock; )
+    IF_ALIB_THREADS( static Lock   lock; ALIB_DBG(lock.Dbg.Name= "ProcessInfo";) )
     if( current.PID == 0 )
     {
         // Own global lock and check if still nulled.
-        // (If not, this is a very unlikely parallel access )
+        // (If not, this was a very unlikely parallel access )
         ALIB_LOCK_WITH( lock )
         if ( ProcessInfo::current.PID == 0 )
              ProcessInfo::current.get( 0 );
     }
     return current;
 }
+#include "alib/lang/callerinfo_methods.hpp"
 
 
 #if defined(__GLIBC__) && defined(__unix__) || defined(__ANDROID_NDK__)
@@ -114,7 +102,7 @@ const ProcessInfo&    ProcessInfo::Current()
         PID= newPID;
 
         // cmdline, stat from proc
-        NString64 procDir("/proc/");  procDir._<false>( PID )._( '/' );
+        NString64 procDir("/proc/");  procDir._<NC>( PID )._( '/' );
         integer    procPathLen= procDir.Length();
         {
             // read things
@@ -127,12 +115,12 @@ const ProcessInfo&    ProcessInfo::Current()
         getStatField( 1, Name );
         ALIB_ASSERT_ERROR(                 Name.IsEmpty()
                                 ||   (     Name.Length() >= 2
-                                        && Name.CharAtStart<false>()=='('
-                                        && Name.CharAtEnd  <false>()==')' ),
+                                        && Name.CharAtStart<NC>()=='('
+                                        && Name.CharAtEnd  <NC>()==')' ),
                                 "CAMP", "Error reading process Info"         )
 
-        if ( Name.CharAtEnd  () == ')' ) Name.DeleteEnd  <false>( 1 );
-        if ( Name.CharAtStart() == '(' ) Name.DeleteStart<false>( 1 );
+        if ( Name.CharAtEnd  () == ')' ) Name.DeleteEnd  <NC>( 1 );
+        if ( Name.CharAtStart() == '(' ) Name.DeleteStart<NC>( 1 );
         getStatField( 2, StatState );
         getStatField( 4, StatPGRP );
 
@@ -221,7 +209,6 @@ const ProcessInfo&    ProcessInfo::Current()
         ExecFileName.Reset();
         ExecFilePath.Reset();
         Name.Reset();
-
 
         char buf[MAX_PATH];
         GetModuleFileNameA( NULL, buf, MAX_PATH );

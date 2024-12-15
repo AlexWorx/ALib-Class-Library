@@ -6,23 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_CLI_CLI)
-#      include "alib/cli/arguments.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CLI_COMMANDLINE)
-#      include "alib/cli/commandline.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-#   if !defined (HPP_ALIB_ENUMS_RECORDPARSER)
-#      include "alib/enums/recordparser.hpp"
-#   endif
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/cli/arguments.hpp"
+#   include "alib/cli/commandline.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   include "alib/enums/recordparser.hpp"
+#   include "alib/lang/message/report.hpp"
+#endif // !DOXYGEN
 
 
 // ##########################################################################################
@@ -43,7 +33,7 @@ void CommandDecl::addParamDecls()
 ALIB_DBG( bool found= false; )
 
         for( auto* paramDecl : CmdLine.ParameterDecls )
-            if( paramDecl->Name().StartsWith<true, lang::Case::Ignore>( tknzr.Actual ) )
+            if( paramDecl->Name().StartsWith<CHK, lang::Case::Ignore>( tknzr.Actual ) )
             {
                 Parameters.PushBack( paramDecl );
        ALIB_DBG(found= true; )
@@ -59,7 +49,7 @@ ALIB_DBG( bool found= false; )
 ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
 {
     for( auto* param : Parameters )
-        if( param->Name().Equals<false>( name ) )
+        if( param->Name().Equals<NC>( name ) )
             return param;
 
     return nullptr;
@@ -68,24 +58,24 @@ ParameterDecl* CommandDecl::GetParameterDecl(const String& name )
 
 bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer argNo )
 {
-    String     identifier     = decl.Identifier();
-    character  identifierC    = decl.IdentifierChar();
-    auto       qtyArgsExpected= decl.QtyExpectedArgsFollowing();
-    auto       qtyArgsLeft    = CmdLine->ArgsLeft.size() -1;
+    String     identifier  = decl.Identifier();
+    character  identifierC = decl.IdentifierChar();
+    auto       argsExpected= decl.QtyExpectedArgsFollowing();
+    auto       argsLeft    = CmdLine->ArgsLeft.size() -1;
 
     // read single/double hyphen options once
     Substring arg= argProbablyReplaced;
     Substring inArgArgument;
-    auto      valueSeparator= arg.IndexOf<false, lang::Case::Sensitive>( decl.ValueSeparator() );
+    auto      valueSeparator= arg.IndexOf<CHK, lang::Case::Sensitive>( decl.ValueSeparator() );
     if( valueSeparator > 0 )
-        arg.Split<false>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
+        arg.Split<NC>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
 
     bool potentialIllegalContinuation= false;
     if ( !(   (     identifier.IsNotEmpty()
                &&  arg.ConsumeString(A_CHAR("--"))
                &&  arg.Length() >=  decl.MinimumRecognitionLength()
-               && (    identifier.StartsWith<true, lang::Case::Ignore>( arg )
-                    || true == (potentialIllegalContinuation= arg.StartsWith<true,lang::Case::Ignore>( identifier )) )
+               && (    identifier.StartsWith<CHK, lang::Case::Ignore>( arg )
+                    || true == (potentialIllegalContinuation= arg.StartsWith<CHK,lang::Case::Ignore>( identifier )) )
 
              )
 
@@ -101,7 +91,7 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     // never match, because of the code above...)
     if( potentialIllegalContinuation )
     {
-        auto nextChar= arg.CharAt<false>( identifier.Length() );
+        auto nextChar= arg.CharAt<NC>( identifier.Length() );
         if( !isalnum( nextChar ) )
             throw Exception( ALIB_CALLER_NULLED, cli::Exceptions::IllegalOptionNameContinuation,
                              identifier, argNo, CmdLine->GetArg(argNo) );
@@ -111,28 +101,28 @@ bool Option::Read( OptionDecl& decl, String& argProbablyReplaced, const integer 
     Declaration= &decl;
     Position=    argNo;
 
-    QtyArgsConsumed= 1;
+    ConsumedArguments= 1;
 
 
     // store in-arg argument
     if( valueSeparator > 0)
     {
         Args.PushBack( inArgArgument );
-        if(qtyArgsExpected > 0 )
-            --qtyArgsExpected;
+        if(argsExpected > 0 )
+            --argsExpected;
     }
 
 
     // error: not enough params
-    if (  qtyArgsExpected > integer(qtyArgsLeft) )
+    if (  argsExpected > integer(argsLeft) )
         throw Exception( ALIB_CALLER_NULLED, cli::Exceptions::MissingOptionValue,
                          decl.Identifier(), argNo, CmdLine->GetArg(argNo),
-                         qtyArgsExpected, qtyArgsLeft                              );
+                         argsExpected, argsLeft                              );
 
     // store arg strings
-    for( integer i= 0; i < qtyArgsExpected; ++i )
+    for( integer i= 0; i < argsExpected; ++i )
         Args.PushBack( CmdLine->GetArg(argNo + 1 + i) );
-    QtyArgsConsumed+= qtyArgsExpected;
+    ConsumedArguments+= argsExpected;
 
     return true;
 }
@@ -143,15 +133,15 @@ bool Command::Read( CommandDecl& decl )
     String arg       =  CmdLine->PeekArg();
 
     if (     arg.Length() <  decl.MinimumRecognitionLength()
-         ||  !identifier.StartsWith<true,lang::Case::Ignore>( arg )  )
+         ||  !identifier.StartsWith<CHK,lang::Case::Ignore>( arg )  )
         return false;
 
     Declaration= &decl;
     Position=    CmdLine->ArgsLeft[0];
     CmdLine->PopArg();
-    QtyArgsConsumed= 1;
+    ConsumedArguments= 1;
 
-    if( decl.Parameters.Size() == 0 )
+    if( decl.Parameters.Count() == 0 )
         return true;
 
     auto paramDeclIt= decl.Parameters.begin();
@@ -159,10 +149,10 @@ bool Command::Read( CommandDecl& decl )
     {
         Parameter param( CmdLine );
         bool continueReading= param.Read( **paramDeclIt );
-        if( param.QtyArgsConsumed )
+        if( param.ConsumedArguments )
         {
-            QtyArgsConsumed+= param.QtyArgsConsumed;
-            Parameter* paramFound= CmdLine->allocator.Emplace<Parameter>( param );
+            ConsumedArguments+= param.ConsumedArguments;
+            Parameter* paramFound= CmdLine->allocator().New<Parameter>(param);
             if ( (*paramDeclIt)->IsOptional() )
                 ParametersOptional.PushBack( paramFound );
             else
@@ -187,7 +177,7 @@ Parameter* Command::GetParsedParameter(const String& name )
     #if ALIB_DEBUG
         bool found= false;
         for( auto* paramDecl : Declaration->Parameters )
-            if( paramDecl->Name().Equals<false>(name) )
+            if( paramDecl->Name().Equals<NC>(name) )
             {
                 found = true;
                 break;
@@ -196,11 +186,11 @@ Parameter* Command::GetParsedParameter(const String& name )
     #endif
 
     for( auto* param : ParametersMandatory )
-        if( param->Declaration->Name().Equals<false>( name ) )
+        if( param->Declaration->Name().Equals<NC>( name ) )
             return param;
 
     for( auto* param : ParametersOptional )
-        if( param->Declaration->Name().Equals<false>( name ) )
+        if( param->Declaration->Name().Equals<NC>( name ) )
             return param;
 
     return nullptr;
@@ -210,7 +200,7 @@ String Command::GetParsedParameterArg( const String& name )
 {
     Parameter* param= GetParsedParameter( name );
     return param && param->Args.IsNotEmpty() ? param->Args.Front()
-                                             : NullString();
+                                             : NULL_STRING;
 }
 
 
@@ -224,20 +214,20 @@ bool Parameter::Read( ParameterDecl& decl )
     if ( identifier.IsEmpty() && decl.IsOptional() )
         return false;
 
-    auto      valueSeparator= arg.IndexOf<false, lang::Case::Sensitive>( decl.ValueSeparator() );
+    auto      valueSeparator= arg.IndexOf<CHK, lang::Case::Sensitive>( decl.ValueSeparator() );
     Substring inArgArgument;
     if( valueSeparator > 0 )
-        arg.Split<false>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
+        arg.Split<NC>( valueSeparator, inArgArgument, decl.ValueSeparator().Length() );
 
     if (         identifier.IsEmpty()
          || (    arg.Length() >=  decl.MinimumRecognitionLength()
-              && identifier.StartsWith<true,lang::Case::Ignore>( arg ) )  )
+              && identifier.StartsWith<CHK,lang::Case::Ignore>( arg ) )  )
     {
-        QtyArgsConsumed= 1;
+        ConsumedArguments= 1;
         Declaration=     &decl;
         Position=        CmdLine->ArgsLeft[0];
         CmdLine->PopArg();
-        int qtyArgsExpected= decl.QtyExpectedArgsFollowing();
+        int argsExpected= decl.QtyExpectedArgsFollowing();
 
         if( decl.Identifier().IsEmpty() )
         {
@@ -248,27 +238,27 @@ bool Parameter::Read( ParameterDecl& decl )
             if( inArgArgument.IsNotEmpty() )
             {
                 Args.PushBack( inArgArgument );
-                --qtyArgsExpected;
+                --argsExpected;
             }
         }
 
         // stop command?
-        if( qtyArgsExpected < 0 )
+        if( argsExpected < 0 )
             return false;
 
         // error: not enough params
-        if ( qtyArgsExpected > static_cast<integer>(CmdLine->ArgsLeft.size()) )
+        if ( argsExpected > static_cast<integer>(CmdLine->ArgsLeft.size()) )
             throw Exception( ALIB_CALLER_NULLED, cli::Exceptions::MissingParameterValue,
                              decl.Name(), Position, CmdLine->GetArg(Position),
-                             qtyArgsExpected, CmdLine->ArgsLeft.size() );
+                             argsExpected, CmdLine->ArgsLeft.size() );
 
         // store arg strings
-        for( size_t i= 0; i < static_cast<size_t>( qtyArgsExpected ); ++i )
+        for( size_t i= 0; i < size_t( argsExpected ); ++i )
         {
             Args.PushBack( CmdLine->GetArg(*CmdLine->ArgsLeft.begin()) );
             CmdLine->ArgsLeft.erase( CmdLine->ArgsLeft.begin() );
         }
-        QtyArgsConsumed+= static_cast<size_t>( qtyArgsExpected );
+        ConsumedArguments+= size_t( argsExpected );
     }
 
 
@@ -288,7 +278,7 @@ void EROptionDecl   ::Parse()
     enums::EnumRecordParser::Get( ERSerializable::MinimumRecognitionLength );
     enums::EnumRecordParser::Get( identifierChar                           );
     enums::EnumRecordParser::Get( valueSeparator                           );
-    enums::EnumRecordParser::Get( qtyExpectedArgsFollowing                 );
+    enums::EnumRecordParser::Get( RequiredArguments                 );
     enums::EnumRecordParser::Get( shortcutReplacementString                , true );
 }
 
@@ -299,7 +289,7 @@ void ERParameterDecl::Parse()
     enums::EnumRecordParser::Get( identifier                               );
     enums::EnumRecordParser::Get( valueSeparator                           );
     enums::EnumRecordParser::Get( valueListSeparator                       );
-    enums::EnumRecordParser::Get( qtyExpectedArgsFollowing                 );
+    enums::EnumRecordParser::Get( RequiredArguments                 );
     enums::EnumRecordParser::Get( isOptional                               , true );
 }
 

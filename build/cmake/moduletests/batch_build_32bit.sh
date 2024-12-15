@@ -2,7 +2,7 @@ cd ../../
 
 if [ ! -d _builds_ ]
 then
-    echo "can not find _builds_ directory "
+    echo "cannot find _builds_ directory "
     exit -1
 fi
 
@@ -14,7 +14,7 @@ cd    moduletests_batch
 
 echo "n#############################################################################"
 echo "n#############################################################################"
-echo "##########################         32-Bit          ###########################"
+echo "##########################        32-Bit           ###########################"
 echo "n#############################################################################"
 echo "n#############################################################################"
 echo ""
@@ -29,9 +29,14 @@ rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  CONTAINERS    ############################"
+rm -r -f *
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=CONTAINERS"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  BITBUFFER    ############################"
 rm -r -f *
-cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=BITBUFFER"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  SINGLETONS    ############################"
@@ -61,7 +66,12 @@ make -j
 
 echo "\n\n############################  STRINGS    ############################"
 rm -r -f *
-"-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  THREADMODEL    ############################"
+rm -r -f *
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=THREADMODEL"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  THREADS    ############################"
@@ -117,16 +127,15 @@ rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  MONOMEM;CONTAINERS    ############################"
+rm -r -f *
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=MONOMEM;CONTAINERS"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  BITBUFFER;BOXING    ############################"
 rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=BITBUFFER;BOXING"  ../../cmake/moduletests
 make -j
-
-echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
-rm -r -f *
-cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
-make -j
-
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=THREADS;STRINGS"  ../../cmake/moduletests
@@ -137,9 +146,19 @@ rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=THREADS;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  THREADS;THREADMODEL    ############################"
+rm -r -f *
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=THREADS;THREADMODEL"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  MONOMEM;STRINGS    ############################"
 rm -r -f *
 cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=BOXING;STRINGS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  BITBUFFER;SINGLETONS    ############################"
+rm -r -f *
+cmake "-DCMAKE_CXX_FLAGS=-m32"  "-DALIB_DISTRIBUTION=BITBUFFER;SINGLETONS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BOXING;STRINGS    ############################"

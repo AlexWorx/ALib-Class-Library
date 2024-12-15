@@ -15,11 +15,8 @@
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
 
-    ### uncomment to force cotire on clean cmake built
-    # set( ALIB_CMAKE_COTIRE  "On" )
-
     # C++ 17 needed for sampled std::string_view
-    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_20" )
+    list( APPEND  ALIB_COMPILER_FEATURES   "cxx_std_17" )
 
 # -------------------------------------------------------------------------------------------------
 # General
@@ -47,7 +44,6 @@
 
     add_executable            ( Sample   ${ALIB_BASE_DIR}/src/samples/Boxing/sample.cpp  )
     ALibSetCompilerAndLinker  ( Sample )
-    ALibSetCotire             ( Sample )
     target_link_libraries     ( Sample   PRIVATE ALib_SharedLib  )
 
 

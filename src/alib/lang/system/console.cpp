@@ -6,15 +6,9 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_LANG_CONSOLE)
-       #include "alib/lang/system/console.hpp"
-#   endif
-
-#   if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB_)
-#      include <cstdlib>
-#   endif
-
+#if !DOXYGEN
+#   include "alib/lang/system/console.hpp"
+#   include <cstdlib>
 #   if   defined( _WIN32 )
 #   elif defined(__GLIBCXX__)  || defined(__ANDROID_NDK__)
 #      include <sys/ioctl.h>
@@ -25,7 +19,7 @@
 #   else
 #      pragma message ("Unknown Platform in file: " __FILE__ )
 #   endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 
 namespace   alib::lang::system {

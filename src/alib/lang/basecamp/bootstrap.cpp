@@ -6,71 +6,44 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB)
-#      include "alib/alib.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_BASECAMP)
-#      include "alib/lang/basecamp/basecamp.hpp"
-#   endif
-
-#   if ALIB_BOXING && !defined (HPP_ALIB_BOXING_BOXING)
+#if !DOXYGEN
+#   include "alib/alib.hpp"
+#   include "alib/lang/basecamp/basecamp.hpp"
+#   include "alib/lang/system/path.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#   if ALIB_BOXING
 #      include "alib/boxing/boxing.hpp"
 #   endif
-
 #   if ALIB_CONFIGURATION
-#      if !defined (HPP_ALIB_CONFIG_CONFI)
-#          include "alib/config/config.hpp"
-#      endif
-#      if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#          include "alib/config/configuration.hpp"
-#      endif
+#       include "alib/config/configcamp.hpp"
+#       include "alib/config/configuration.hpp"
+#       include "alib/config/plugins.hpp"
 #   endif
-
-#   if !defined (HPP_ALIB_LANG_RESOURCES_LOCALRESOURCEPOOL)
-#      include "alib/lang/resources/localresourcepool.hpp"
-#   endif
-
+#   include "alib/lang/resources/localresourcepool.hpp"
 #   if  ALIB_TIME
-#      if !defined (HPP_ALIB_TIME_TIME)
-#         include "alib/time/time.hpp"
-#      endif
+#       include "alib/time/time.hpp"
 #   endif
-
-#   if ALIB_THREADS && !defined (HPP_ALIB_THREADS_THREAD)
+#   if ALIB_THREADMODEL
+#      include "alib/threadmodel/dedicatedworker.hpp"
+#   endif
+#   if ALIB_THREADS
 #      include "alib/threads/thread.hpp"
 #   endif
-
-
 #   if ALIB_ALOX
-#      if !defined (HPP_ALIB_ALOXMODULE)
-#         include "alib/alox/aloxmodule.hpp"
-#      endif
+#       include "alib/alox/aloxcamp.hpp"
 #   endif
 #   if ALIB_CLI
-#      if !defined (HPP_ALIB_CLI_CLI)
-#         include "alib/cli/cli.hpp"
-#      endif
+#       include "alib/cli/clicamp.hpp"
 #   endif
 #   if ALIB_EXPRESSIONS
-#      if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSIONS)
-#         include "alib/expressions/expressions.hpp"
-#      endif
+#       include "alib/expressions/expressionscamp.hpp"
 #   endif
 #   if ALIB_FILES
-#      if !defined (HPP_ALIB_FILES_CAMP)
-#         include "alib/files/filescamp.hpp"
-#      endif
+#       include "alib/files/filescamp.hpp"
 #   endif
-#   if !defined (HPP_ALIB_LANG_CAMP_BOOTSTRAP)
-#      include "alib/lang/basecamp/bootstrap.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/lang/basecamp/bootstrap.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
 //#include <iostream>
 
@@ -78,18 +51,25 @@ using namespace alib::lang;
 
 namespace alib {
 
-List<lang::Camp*>   Camps(&monomem::GlobalAllocator);
+#if !DOXYGEN
+List<MonoAllocator, Camp*>   CAMPS(monomem::GLOBAL_ALLOCATOR);
+#include "alib/lang/callerinfo_functions.hpp"
+#endif
 
 void BootstrapAddDefaultCamps()
 {
-    ALIB_ASSERT_ERROR( Camps.IsEmpty(), "CAMPS", "List Camps already set." )
+    // if the global allocator was not initialized from outside, then we have to do it.
+    if (!monomem::GLOBAL_ALLOCATOR.IsInitialized())
+        new (&monomem::GLOBAL_ALLOCATOR) MonoAllocator(ALIB_DBG("Global",) 128);
 
-    ALIB_IF_CAMP(          Camps.PushBack( &BASECAMP    );  )
-    ALIB_IF_CONFIGURATION( Camps.PushBack( &CONFIG      );  )
-    ALIB_IF_ALOX(          Camps.PushBack( &ALOX        );  )
-    ALIB_IF_CLI(           Camps.PushBack( &CLI         );  )
-    ALIB_IF_EXPRESSIONS(   Camps.PushBack( &EXPRESSIONS );  )
-    ALIB_IF_FILES(         Camps.PushBack( &FILES       );  )
+    ALIB_ASSERT_ERROR( CAMPS.IsEmpty(), "CAMPS", "List CAMPS already set." )
+
+    IF_ALIB_CAMP(          CAMPS.PushBack( &BASECAMP    );  )
+    IF_ALIB_CONFIGURATION( CAMPS.PushBack( &CONFIG      );  )
+    IF_ALIB_ALOX(          CAMPS.PushBack( &ALOX        );  )
+    IF_ALIB_CLI(           CAMPS.PushBack( &CLI         );  )
+    IF_ALIB_EXPRESSIONS(   CAMPS.PushBack( &EXPRESSIONS );  )
+    IF_ALIB_FILES(         CAMPS.PushBack( &FILES       );  )
 }
 
 void Bootstrap( BootstrapPhases     targetPhase,
@@ -99,33 +79,50 @@ void Bootstrap( BootstrapPhases     targetPhase,
     // verify ALib
     AssertALibVersionAndFlags( alibVersion, alibRevision, compilationFlags );
 
+    #if ALIB_MONOMEM
+        // if the global allocator was not initialized from outside, then we have to do it.
+        if (!monomem::GLOBAL_ALLOCATOR.IsInitialized())
+            new (&monomem::GLOBAL_ALLOCATOR) MonoAllocator(ALIB_DBG("Global",) 128);
+    #endif
+
     // if not customized, create default module list
-    if( Camps.IsEmpty() )
+    if( CAMPS.IsEmpty() )
         BootstrapAddDefaultCamps();
 
     if( targetCamp == nullptr )
-        targetCamp= Camps.Back();
+        targetCamp= CAMPS.Back();
 
     //std::cout << "Camp::Bootstrap called on: '" << this->ResourceCategory << "', target phase: " << int(targetPhase) << std::endl;
 
     // Initialize non-camp modules once
     if( !NonCampModulesInitialized )
     {
-        ALIB_IF_TIME(       time::Bootstrap(); )
-        ALIB_IF_BOXING(   boxing::Bootstrap(); )
-        ALIB_IF_THREADS( threads::Bootstrap(); )
-        ALIB_IF_ENUMS(     enums::Bootstrap(); )
+        IF_ALIB_TIME       (time  ::Bootstrap     ( );)
+        IF_ALIB_BOXING     (boxing::Bootstrap     ( );)
+
+        // now we add the base-camps' boxing vtables already. This is primarily needed
+        // for assertions in debug-compilation ( vt_alib_report_types )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_exceptions   )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_systemerrors )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_path         )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_fmtexceptions)
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_exception      )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_report_types   )
+
+        IF_ALIB_THREADS    (threads    ::Bootstrap    ( );)
+        IF_ALIB_ENUMS      (enums      ::Bootstrap      ( );)
+        IF_ALIB_THREADMODEL(threadmodel::Bootstrap      ( );)
         NonCampModulesInitialized= true;
     }
 
     // find target camp in the list of camps
-    auto targetCampIt= Camps.rbegin();
-    while(targetCampIt != Camps.rend() &&
+    auto targetCampIt= CAMPS.rbegin();
+    while(targetCampIt != CAMPS.rend() &&
           *targetCampIt != targetCamp )
         ++targetCampIt;
 
-    ALIB_ASSERT_ERROR(targetCampIt != Camps.rend(), "CAMPS",
-      "Target camp given to function alib::Bootstrap() is not included in list alib::Camps.\n"
+    ALIB_ASSERT_ERROR(targetCampIt != CAMPS.rend(), "CAMPS",
+      "Target camp given to function alib::Bootstrap() is not included in list alib::CAMPS.\n"
       "Resource category of the target camp: ", targetCamp->ResourceCategory )
 
 
@@ -144,16 +141,17 @@ void Bootstrap( BootstrapPhases     targetPhase,
             {
                 targetCamp->isResourceOwner = true;
                 resources::LocalResourcePool* pool=
-                      monomem::GlobalAllocator.Emplace<resources::LocalResourcePool>();
+                               monomem::GLOBAL_ALLOCATOR().New<resources::LocalResourcePool>();
+
                 targetCamp->resourcePool= pool;
 
                 // \releasetask{update resource numbers numbers}
                 integer                  expectedSize=   97  // ALIB distribution resources
-                ALIB_IF_ALOX           (               + 42   )
-                ALIB_IF_CONFIGURATION  (               + 9    )
-                ALIB_IF_CLI            (               + 17   )
-                ALIB_IF_EXPRESSIONS    (               + 256  )
-                ALIB_IF_FILES          (               + 43    ) ;
+                IF_ALIB_ALOX           (               + 42   )
+                IF_ALIB_CONFIGURATION  (               + 9    )
+                IF_ALIB_CLI            (               + 17   )
+                IF_ALIB_EXPRESSIONS    (               + 256  )
+                IF_ALIB_FILES          (               + 43    ) ;
 
                 auto& hashMap= pool->BootstrapGetInternalHashMap();
                 hashMap.BaseLoadFactor( 2.0 );
@@ -163,8 +161,8 @@ void Bootstrap( BootstrapPhases     targetPhase,
 
 
             // loop in reverse order over modules, start with this module
-            auto* actPool     = targetCamp->resourcePool;
-            for(auto campIt=   targetCampIt ; campIt != Camps.rend() ; ++campIt )
+            auto* actPool  =  targetCamp->resourcePool;
+            for(auto campIt=  targetCampIt ; campIt != CAMPS.rend() ; ++campIt )
             {
 
                 // if a different resources object is set, then use that one from now on
@@ -187,42 +185,32 @@ void Bootstrap( BootstrapPhases     targetPhase,
             if ( targetCamp->config == nullptr )
             {
                 targetCamp->isConfigOwner= true;
-                auto & alloc = monomem::AcquireGlobalAllocator( ALIB_CALLER_PRUNED );
-
-                targetCamp->config = alloc.Emplace<Configuration>( CreateDefaults::No );
-
-                targetCamp->config->InsertPlugin( alloc.Emplace<InMemoryPlugin>( CONFIG.GetResource( "CfgPlgDef" ) ),
-                                                  Priorities::DefaultValues,    Responsibility::KeepWithSender );
-
-                targetCamp->config->InsertPlugin( alloc.Emplace<config::Environment>(),
-                                                  Priorities::Environment,      Responsibility::KeepWithSender );
-
-                targetCamp->config->InsertPlugin( alloc.Emplace<config::CLIArgs>(),
-                                                  Priorities::CLI,              Responsibility::KeepWithSender );
-
-                targetCamp->config->InsertPlugin( alloc.Emplace<InMemoryPlugin>( CONFIG.GetResource( "CfgPlgPro" ) ),
-                                                  Priorities::ProtectedValues,  Responsibility::KeepWithSender );
-
-                monomem::ReleaseGlobalAllocator();
-
-                if ( ArgC > 0 )
-                {
-                    if ( ArgVN != nullptr )
-                        targetCamp->config->SetCommandLineArgs( ArgC, ArgVN );
-                    else
-                        targetCamp->config->SetCommandLineArgs( ArgC, ArgVW );
-                }
+                auto* monoAllocator = monomem::GLOBAL_ALLOCATOR().New<MonoAllocator>(
+                                                                   ALIB_DBG("Configuration",) 16u);
+IF_ALIB_THREADS(targetCamp->configLock= (*monoAllocator)().New<SharedLock>();)
+                targetCamp->config    = (*monoAllocator)().New<Configuration>(*monoAllocator);
+                #if ALIB_DEBUG_CRITICAL_SECTIONS
+                targetCamp->config->NodeTable().dcs.DCSName= "ALib-Camp-Configuration";
+                #endif
             }
 
             // loop in reverse order over modules, start with this module
-            auto* actConfig = targetCamp->config;
-            for(auto module=   targetCampIt ; module != Camps.rend() ; ++module )
+            auto* actConfig         = targetCamp->config;
+IF_ALIB_THREADS(auto* actConfigLock = targetCamp->configLock; )
+            for(auto module=   targetCampIt ; module != CAMPS.rend() ; ++module )
             {
                 // if a different resources object is set, then use that one from now on
                 if( (*module)->config != nullptr && (*module)->config != actConfig)
-                    actConfig= (*module)->config;
+                {
+                    actConfig    = (*module)->config;
+IF_ALIB_THREADS(    actConfigLock= (*module)->configLock;
+           ALIB_DBG( (*module)->configLock->Dbg.Name= "CampConfig";)          )
+                }
                 else
-                    (*module)->config= actConfig;
+                {
+                    (*module)->config    = actConfig;
+IF_ALIB_THREADS(    (*module)->configLock= actConfigLock;  )
+                }
 
             } // resources distribution loop
         }
@@ -230,30 +218,16 @@ void Bootstrap( BootstrapPhases     targetPhase,
 
         // initialize modules on this phase
         ALIB_DBG( bool foundThisModuleInList = false; )
-        for ( auto* camp : Camps )
+        for ( auto* camp : CAMPS )
         {
+            // bootstrap camp
             if(camp->bootstrapState >= UnderlyingIntegral(actualPhase ) )
                  continue;
 
             //std::cout << "Camp::Bootstrap  '" << module->ResourceCategory << "', phase: " << int(actualPhase) << std::endl;
 
-            // propagate resource pool and config, if sub-module does not provide an own instance
-            if ( actualPhase == BootstrapPhases::PrepareResources &&
-                 camp->resourcePool == nullptr )
-            {
-                camp->resourcePool = targetCamp->resourcePool;
-            }
-            #if ALIB_CONFIGURATION
-            else if ( actualPhase == BootstrapPhases::PrepareConfig &&
-                      camp->config == nullptr )
-            {
-                camp->config = targetCamp->config;
-            }
-            #endif
-
-            // bootstrap module
             ALIB_ASSERT_ERROR( camp->bootstrapState == phaseIntegral - 1,
-              "With this invocation of Bootstrap() a camp skips a bootstrap phase \n"
+              "With this invocation of Bootstrap() a camp skips a bootstrap phase.\n"
               "Resource category of the target camp: ", camp->ResourceCategory         )
             camp->bootstrap(actualPhase );
 
@@ -267,28 +241,49 @@ void Bootstrap( BootstrapPhases     targetPhase,
             }
         }
         ALIB_ASSERT_ERROR( foundThisModuleInList, "CAMPS",
-          "The target camp of function Bootstrap is not included in list alib::Camps "
+          "The target camp of function Bootstrap is not included in list alib::CAMPS "
           "or was already bootstrapped for this phase!\n"
           "Resource category of the target camp: ", targetCamp->ResourceCategory )
+    }
+
+    // Are all camps finalized?
+    if ( targetPhase == BootstrapPhases::Final && targetCamp == CAMPS.Back() )
+    {
+        #if ALIB_DEBUG_CRITICAL_SECTIONS
+        #   if ALIB_MONOMEM
+            monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= &monomem::GLOBAL_ALLOCATOR_LOCK;
+            monomem::GLOBAL_ALLOCATOR_LOCK.Dbg.Name= "GlobalAllocator";
+        #   endif
+        #   if ALIB_CONFIGURATION
+            targetCamp->config->NodeTable().dcs.DCSLock= targetCamp->configLock;
+        #   endif
+        #endif
+
 
     }
 }
 
 void Shutdown( ShutdownPhases targetPhase,
-               Camp*                targetCamp   )
+               Camp*          targetCamp   )
 {
+    #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
+        monomem::GLOBAL_ALLOCATOR.DbgCriticalSectionsPH.Get()->DCSLock= nullptr;
+    #endif
+
+
+    ALIB_ASSERT_ERROR( CAMPS.IsNotEmpty(), "CAMPS", "Empty camp list on shutdown. Shutdown invoked twice?"  )
     if( targetCamp == nullptr )
-        targetCamp= Camps.Front();
+        targetCamp= CAMPS.Front();
 
     //std::cout << "Camp::Shutdown called on'" << targetCamp->ResourceCategory << "', target phase: " << int(targetPhase) << std::endl;
 
     // find target camp in the list of camps
-    auto targetCampIt= Camps.begin();
-    while(    targetCampIt != Camps.end()
+    auto targetCampIt= CAMPS.begin();
+    while(    targetCampIt != CAMPS.end()
           && *targetCampIt != targetCamp )
         ++targetCampIt;
-    ALIB_ASSERT_ERROR(targetCampIt != Camps.end(), "CAMPS",
-      "Target camp given to function alib::Shutdown() is not included in list alib::Camps.\n"
+    ALIB_ASSERT_ERROR(targetCampIt != CAMPS.end(), "CAMPS",
+      "Target camp given to function alib::Shutdown() is not included in list alib::CAMPS.\n"
       "Resource category of the target camp: ", targetCamp->ResourceCategory )
 
 
@@ -301,7 +296,7 @@ void Shutdown( ShutdownPhases targetPhase,
         ShutdownPhases actualPhase = ShutdownPhases( phaseIntegral );
 
         // shutdown in reverse order
-        for(auto campIt= Camps.rbegin() ; campIt != Camps.rend() ; ++campIt )
+        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt )
         {
             ALIB_ASSERT_ERROR(    ( *campIt )->bootstrapState < 0
                                || ( *campIt )->bootstrapState == UnderlyingIntegral(BootstrapPhases::Final ),
@@ -331,50 +326,53 @@ void Shutdown( ShutdownPhases targetPhase,
         }
     }
     ALIB_ASSERT_ERROR( foundThisModuleInList, "CAMPS",
-      "The target camp of function Shutdown is not included in list alib::Camps "
+      "The target camp of function Shutdown is not included in list alib::CAMPS "
       "or was already shutdown for this phase!\n"
       "Resource category of the target camp: ", targetCamp->ResourceCategory         )
 
 
+    #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_CONFIGURATION
+        // deactivate assertions for non-locked access to configuration
+        if( targetPhase == ShutdownPhases::Announce)
+            for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt )
+                if ( ( *campIt )->isConfigOwner )
+                    (*campIt)->config->NodeTable().dcs.DCSLock= nullptr;
+    #endif
+
     // delete resources/config
     if( targetPhase == ShutdownPhases::Destruct)
-    for(auto campIt= Camps.rbegin() ; campIt != Camps.rend() ; ++campIt )
-    {
-        if ( ( *campIt )->isResourceOwner )  monomem::Destruct(( *campIt )->resourcePool );
-        #if ALIB_CONFIGURATION
+        for(auto campIt= CAMPS.rbegin() ; campIt != CAMPS.rend() ; ++campIt )
+        {
+            if ( ( *campIt )->isResourceOwner )  lang::Destruct( *(*campIt)->resourcePool );
+          #if ALIB_CONFIGURATION
             if ( ( *campIt )->isConfigOwner )
             {
-                Configuration* config= (*campIt)->config;
-                auto *im = config->GetPluginTypeSafe<InMemoryPlugin>( Priorities::DefaultValues );
-                if ( im ) { config->RemovePlugin( Priorities::DefaultValues );
-                            monomem::Destruct( im );                                     }
+                auto& cfgAllocator= (*campIt)->config->GetAllocator();
 
-                auto *e = config->GetPluginTypeSafe<config::Environment>( Priorities::Environment );
-                if ( e )  { config->RemovePlugin( Priorities::Environment );
-                            monomem::Destruct( e );                                      }
-
-                auto *cli = config->GetPluginTypeSafe<config::CLIArgs>( Priorities::CLI );
-                if ( cli ){ config->RemovePlugin( Priorities::CLI );
-                            monomem::Destruct( cli );                                    }
-
-                im = config->GetPluginTypeSafe<InMemoryPlugin>( Priorities::ProtectedValues );
-                if ( im ) { config->RemovePlugin( Priorities::ProtectedValues );
-                            monomem::Destruct( im );                                    }
-
-              monomem::Destruct( config );
+                #if ALIB_DEBUG_CRITICAL_SECTIONS
+                (*campIt)->config->NodeTable().dcs.DCSLock= nullptr;
+                #endif
+                lang::Destruct( *(*campIt)->config );
+IF_ALIB_THREADS(lang::Destruct( *(*campIt)->configLock ); )
+                lang::Destruct( cfgAllocator );
             }
-        #endif
+          #endif
+            if(( *campIt ) == targetCamp )
+                break;
+        }
 
-        if(( *campIt ) == targetCamp )
-            break;
-    }
-
-    if( targetPhase == ShutdownPhases::Destruct )
+    if(     targetPhase == ShutdownPhases::Destruct
+        &&  targetCamp  == CAMPS.Front()              )
     {
-        ALIB_IF_THREADS(       threads::Shutdown(); )
-        ALIB_IF_TIME(             time::Shutdown(); )
-        ALIB_IF_SINGLETONS( singletons::Shutdown(); )
+        IF_ALIB_THREADS(    threads    ::Shutdown(); )
+        IF_ALIB_TIME(       time       ::Shutdown(); )
+        IF_ALIB_ENUMS(      enums      ::Shutdown(); )
+        IF_ALIB_BOXING(     boxing     ::Shutdown(); )
+        IF_ALIB_SINGLETONS( singletons ::Shutdown(); )
+        CAMPS.Reset();
     }
-}
 
+}
+#include "alib/lang/callerinfo_methods.hpp"
+    
 } // namespace [alib]

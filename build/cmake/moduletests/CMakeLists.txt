@@ -30,21 +30,14 @@
 # -------------------------------------------------------------------------------------------------
     cmake_minimum_required( VERSION 3.18.0 )
 
-    ### uncomment to force cotire on clean cmake built
-#    set( ALIB_CMAKE_COTIRE   "On" )
-
-# -------------------------------------------------------------------------------------------------
-# General                    “
-# -------------------------------------------------------------------------------------------------
-
     project("ALib_ModuleDepsAndHeaderTest")
 
+# -------------------------------------------------------------------------------------------------
+# Clean former runs
+# -------------------------------------------------------------------------------------------------
     # enable modules in project path
     set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.")
 
-## -------------------------------------------------------------------------------------------------
-## include ALib base cmake file
-## -------------------------------------------------------------------------------------------------
 
     #------------------- Temp directory settings (delete and re-create) ------------------------
 
@@ -99,9 +92,9 @@ foreach( fileName IN LISTS   ALIB_INCLUDE_FILES )
     IF( ${position} EQUAL -1 )
         string(FIND ${fileName} "lang/plugins.hpp" position REVERSE) # depends on enums
         IF( ${position} EQUAL -1 )
-            string(REPLACE "${ALIB_SOURCE_DIR}/" "" fileName ${fileName})
+            STRING(REPLACE "${ALIB_SOURCE_DIR}/" "" fileName ${fileName})
 
-            string(REPLACE "/" "__"  name  ${fileName}  )
+            STRING(REPLACE "/" "__"  name  ${fileName}  )
 
             SET( destPath  "${ALIB_TEST_HEADERS_DIR}/${name}.cpp" )
 

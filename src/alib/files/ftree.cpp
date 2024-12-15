@@ -5,294 +5,264 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
-
 #include "alib/files/ftree.hpp"
-#include "alib/files/ftools.hpp"
+#include "alib/alox.hpp"
 
 #if ALIB_DEBUG
-#   if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
 #      include "alib/lang/format/formatter.hpp"
-#   endif
 #endif
 
 #if !defined ( _WIN32 )                          
 #   include <pwd.h>
 #   include <grp.h>
 #endif
+
+using namespace alib::lang::system;
 namespace alib::files {
 
-
 //==================================================================================================
-//=== FTree
+//=== FTreeNodeHandler
 //==================================================================================================
-FTree::FTree(monomem::MonoAllocator* allocator)
-: StringTree(allocator, DirectorySeparator)
+namespace detail {
+
+#include "alib/lang/callerinfo_functions.hpp"
+void FTreeNodeHandler::AllocateExtendedInfo( FTree::Cursor&      node,
+                                             const PathString&   symLinkDest,
+                                             const PathString&   symLinkRealPath )
 {
-    ConstructRootValue();
-}
+    ALIB_ASSERT_ERROR(    node->Type() == FInfo::Types::DIRECTORY
+                       || node->Type() == FInfo::Types::SYMBOLIC_LINK
+                       || node->Type() == FInfo::Types::SYMBOLIC_LINK_DIR,
+                       "FILES", "Given node is not a directory or symbolic link.")
 
-void FTree::FixSums( Cursor node)
-{
-    ALIB_ASSERT_ERROR( node.Value().Type() == FInfo::Types::DIRECTORY,
-                       "CAMP/FILES", "Given node is not a directory.")
-
-    FInfo::DirectorySums& sums= node.Value().Sums();
-    sums= FInfo::DirectorySums();
-    node.GoToFirstChild();
-    while( node.IsValid())
-    {
-        FInfo& v= node.Value();
-        sums.TypeCounters[int(v.Type())]++;
-        if( v.IsDirectory() )
-            sums+= v.Sums();
-
-        node.GoToNextSibling();
-    }
-}
-
-void FTree::AllocateExtendedInfo(Cursor& node, String& symLinkDest, String& symLinkRealPath)
-{
-    ALIB_ASSERT_ERROR(    node.Value().Type() == FInfo::Types::DIRECTORY
-                       || node.Value().Type() == FInfo::Types::SYMBOLIC_LINK
-                       || node.Value().Type() == FInfo::Types::SYMBOLIC_LINK_DIR,
-                       "CAMP/FILES", "Given node is not a directory or symbolic link.")
-
-    ALIB_ASSERT_ERROR(     (node.Value().Type() == FInfo::Types::DIRECTORY)
+    ALIB_ASSERT_ERROR(     (node->Type() == FInfo::Types::DIRECTORY)
                        ==  symLinkDest.IsEmpty(),
-                       "CAMP/FILES", "Error in symbolic link parameter" )
+                       "FILES", "Error in symbolic link parameter" )
 
 
-    auto& v = node.Value();
-    auto* ma= GetAllocator();
-    ALIB_ASSERT_ERROR( v.GetExtendedInfo() == nullptr, "CAMP/FILES", "Already set")
+    auto& v = *node;
+    ALIB_ASSERT_ERROR( v.GetExtendedInfo() == nullptr, "FILES", "Already set")
 
+    auto pool= node.Tree<FTree>().Pool();
     ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
     switch (v.Type())
     {
         case FInfo::Types::DIRECTORY:
         {
-            if( recyclerEIDir != nullptr )
-            {
-                auto* recycled= recyclerEIDir;
-                recyclerEIDir= recycled->next;
-                recycled->data= FInfo::EIDirectory();
-                v.SetExtendedInfo(&recycled->data);
-                return;
-            }
-
-            v.SetExtendedInfo( &ma->Emplace<LinkedEIDir>()->data );
+            v.SetExtendedInfo( pool.New<FInfo::EIDirectory>() );
         }
         return;
 
         case FInfo::Types::SYMBOLIC_LINK:
         {
-            if( recyclerEISL != nullptr )
-            {
-                auto* recycled= recyclerEISL;
-                recyclerEISL= recycled->next;
-                recycled->data= FInfo::EISymLinkFile();
-                v.SetExtendedInfo(&recycled->data);
-            }
-            else
-                v.SetExtendedInfo( &ma->Emplace<LinkedEISL>()->data );
-            v.SetLinkTarget(symLinkDest, symLinkRealPath);
+            v.SetExtendedInfo( pool.New<FInfo::EISymLinkFile>() );
+            v.SetLinkTarget( node.Tree<FTree>(), symLinkDest, symLinkRealPath);
         }
         return;
 
         case FInfo::Types::SYMBOLIC_LINK_DIR:
         {
-            if( recyclerEISlDir != nullptr )
-            {
-                auto* recycled= recyclerEISlDir;
-                recyclerEISlDir= recycled->next;
-                recycled->data= FInfo::EISymLinkDir();
-                v.SetExtendedInfo(&recycled->data);
-            }
-            else
-                v.SetExtendedInfo( &ma->Emplace<LinkedEISLDir>()->data );
-            v.SetLinkTarget(symLinkDest, symLinkRealPath);
+            v.SetExtendedInfo( pool.New<FInfo::EISymLinkDir>() );
+            v.SetLinkTarget( node.Tree<FTree>(), symLinkDest, symLinkRealPath);
         }
         return;
+
         default:
         return;
     }
     ALIB_WARNINGS_RESTORE
 }
+#include "alib/lang/callerinfo_methods.hpp"
 
-integer FTree::CountRecyclables( FInfo::Types type )
+} // namespace alib::files[::detail]
+
+//==================================================================================================
+//=== FTree
+//==================================================================================================
+FTree::FTree( MonoAllocator& allocator )
+: StringTree( allocator, DIRECTORY_SEPARATOR )
+, Pool      ( allocator )
+, ogResolver( Pool )
+, listeners ( allocator )
 {
-    int result= 0;
-    if( type == FInfo::Types::DIRECTORY )
-    {
-        auto* act= recyclerEIDir;
-        while( act )
-        {
-            ++result;
-            act= act->next;
-        }
-        return result;
-    }
+    ConstructRootValue();
+    numberFormat.FractionalPartWidth= 1;
 
-    if( type == FInfo::Types::SYMBOLIC_LINK )
-    {
-        auto* act= recyclerEISL;
-        while( act )
-        {
-            ++result;
-            act= act->next;
-        }
-        return result;
-    }
+                   DbgSetDCSName("FTree");
 
-    if( type == FInfo::Types::SYMBOLIC_LINK_DIR )
+    ALIB_DBG(   if( alib::FILES.IsBootstrapped())
     {
-        auto* act= recyclerEISlDir;
-        while( act )
-        {
-            ++result;
-            act= act->next;
-        }
-        return result;
-    }
-
-    ALIB_ERROR( "CAMP/FILES", "No extended information for type {!Q}", type )
-    return 0;
+        Log_SetDomain( "ALIB/FILES", Scope::Path)
+        Log_SetDomain( "FTREE"     , Scope::Filename)
+    }                                                   )
 }
 
+FTree::~FTree()
+{
+    #if ALIB_DEBUG
+    for( auto& node : nodeTable )
+        if( node.data.custom )
+        {
+            Path path;
+            createCursor(node).AssemblePath(path);
+            ALIB_ERROR( "FILES",
+            "CustomData not deleted before destruction of class FTree.\n"
+            "    First node found: {}.\n"
+            "  Attached data type: {}"  , path, node.data.dbgCustomType )
+        }
+    #endif
+
+    // we have to delete all nodes before the invocation of the base destructor, because
+    // this would use our pool allocator on existing nodes (which is then destructed already).
+    Clear();
+
+    // delete root value
+    auto* extendedInfo= Root()->GetExtendedInfo();
+    if( extendedInfo )
+        Pool().Delete( reinterpret_cast<FInfo::EIDirectory*>(extendedInfo) );
+    
+    DestructRootValue();
+}
+
+void FTree::registerListener( FTreeListener*             listener,
+                              lang::ContainerOp          insertOrRemove,
+                              FTreeListener::Event       event,
+                              const File*                file,
+                              const StringTree::Cursor*  subTree,
+                              const PathString&          fileName,
+                              const PathString&          pathPrefix,
+                              const PathString&          pathSubstring  )
+{
+    // checks
+    ALIB_ASSERT_ERROR( file    ==nullptr || &file->AsCursor().Tree() == this, "FILES", "Given file does not belong to this FTree.")
+    ALIB_ASSERT_ERROR( subTree ==nullptr ||  subTree->IsValid()             , "FILES", "Invalid cursor given."       )
+    ALIB_ASSERT_ERROR( subTree ==nullptr || &subTree       ->Tree() == this , "FILES", "Given cursor does not belong to this FTree.")
+
+    // ---------------- registration ---------------------
+    if( insertOrRemove == lang::ContainerOp::Insert)
+    {
+        listeners.EmplaceBack( ListenerRecord{ listener,
+                                               event,
+                                               (file     ? file->AsCursor().Export() : ConstCursorHandle()),
+                                               (subTree  ? subTree->        Export() : ConstCursorHandle()),
+                                               PathStringPA(Pool),
+                                               PathStringPA(Pool),
+                                               PathStringPA(Pool)   } );
+        listeners.Back().fileName     << fileName;
+        listeners.Back().pathPrefix   << pathPrefix;
+        listeners.Back().pathSubstring<< pathSubstring;
+
+        return;
+    }
+
+    // ---------------- de-registration ---------------------
+    for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
+        if(     it->listener == listener
+            &&  it->event    == event
+            &&  it->file     == ( file    ? file->AsCursor().Export() : ConstCursorHandle() )
+            &&  it->subTree  == ( subTree ? subTree        ->Export() : ConstCursorHandle() )
+            &&  it->fileName     .Equals( fileName )
+            &&  it->pathPrefix   .Equals( pathPrefix )
+            &&  it->pathSubstring.Equals( pathSubstring )    )
+        {
+            (void) listeners.Erase( it );
+            return;
+        }
+
+    ALIB_WARNING( "FILES", "Listener with matching set of parameters not found with deregistration." )
+
+}  // FTree::registerListener
+
+
+int FTree::MonitorStop( FTreeListener*  listener )
+{
+    // checks
+    ALIB_ASSERT_ERROR( listener!=nullptr, "FILES", "Given listener is nullptr.")
+
+    // ---------------- de-registration ---------------------
+    int cnt= 0;
+    for (auto it= listeners.begin() ; it != listeners.end() ; )
+        if( it->listener == listener )
+        {
+            Log_Verbose("Removing listener")
+            it= listeners.Erase( it );
+            ++cnt;
+        }
+        else
+             ++it;
+
+    Log_If(cnt==0, Verbosity::Warning, "No listener found to be removed.")
+    
+    return cnt;
+}  // FTree::registerListener
+
+void FTree::notifyListeners(  FTreeListener::Event event,
+                              File&                file
+           IF_ALIB_THREADS( , SharedLock*          lock) ,
+                              const PathString&    filePathGiven  )
+{
+    Path                filePathBuffer;
+    const PathString*   filePath= &filePathGiven;
+    for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
+        if( event == it->event )
+        {
+            // if needed generate file path
+            if(     filePath->IsEmpty()
+                &&  (   it->fileName     .IsNotEmpty()
+                     || it->pathPrefix   .IsNotEmpty()
+                     || it->pathSubstring.IsNotEmpty() )     )
+            {
+IF_ALIB_THREADS( if (lock) lock->AcquireShared(ALIB_CALLER_PRUNED); )
+                   (file.AsCursor().IsRoot() ? file.AsCursor()
+                                             : file.AsCursor().Parent() )
+                       .AssemblePath(filePathBuffer);
+IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
+                filePath= &filePathBuffer;
+            }
+
+            if(    ( it->file         .IsValid()    && ( it->file ==  file.AsCursor().Export() ) )
+                || ( it->subTree      .IsValid()    && ( file.AsCursor().Distance( ImportCursor(it->subTree) ) >= 0 ) )
+                || ( it->fileName     .IsNotEmpty() && it->fileName.Equals(file.AsCursor().Name()) )
+                || ( it->pathPrefix   .IsNotEmpty() && filePath->StartsWith(it->pathPrefix) )
+                || ( it->pathSubstring.IsNotEmpty() && filePath->IndexOf(it->pathSubstring) >= 0 )
+               )
+            {
+                Log_Verbose("Notifying listener. Event=", event == FTreeListener::Event::CreateNode
+                                                          ? "CreateNode" : "DeleteNode" )
+                it->listener->Notify( file, event );
+            }
+     }
+} // FTree::notifyListeners
+
+
+#include "alib/lang/callerinfo_functions.hpp"
+void FTree::FixSums( Cursor directory)
+{
+    ALIB_ASSERT_ERROR( directory->Type() == FInfo::Types::DIRECTORY,
+                       "FILES", "Given node is not a directory.")
+
+    FInfo::DirectorySums& sums= directory->Sums();
+    sums= FInfo::DirectorySums();
+    directory.GoToFirstChild();
+    while( directory.IsValid())
+    {
+        FInfo& v= *directory;
+        sums.TypeCounters[int(v.Type())]++;
+        if( v.IsDirectory() )
+            sums+= v.Sums();
+
+        directory.GoToNextSibling();
+    }
+}
 
 //==================================================================================================
 //=== Debug Dump
 //==================================================================================================
 
-#if ALIB_DEBUG && !defined(ALIB_DOX)
-namespace {
-void dbgDumpEntry( AString&                 buf      ,
-                   OwnerAndGroupResolver&   ogResolver,
-                   SPFormatter              fmt      ,
-                   const int*               nameWidth,
-                   const FTree::Cursor&    node       )
-{
-    String32 bufPerms;
+#if ALIB_DEBUG && !DOXYGEN
 
-    auto& entry= node.Value();
-    std::pair<String,String> ownerAndGroup= ogResolver.Get( entry );
-
-    auto type= entry.Type();
-
-    String128 bufSize;
-    uinteger size= entry.Size();
-    if( size <1000 )
-        fmt->Format( bufSize, "{:5}"  , size );
-    else
-    {
-        uinteger ks= 1024;
-        for( const char* entity : {"K", "M", "G", "T" , "P", "E" } )
-        {
-            if( size < ks*1000 )
-            {
-                fmt->Format( bufSize, "{:5.1}{}", double(size) / double(ks), entity );
-                break;
-            }
-            ks*= 1024;
-        }
-    }
-
-
-    auto quality= entry.Quality();
-
-    String128 bufSizes;
-    if(    (     type == FInfo::Types::DIRECTORY
-             ||  type == FInfo::Types::SYMBOLIC_LINK_DIR )
-        && quality == FInfo::Qualities::RECURSIVE   )
-    {
-        FInfo::DirectorySums& dirInfo= entry.Sums();
-        fmt->Format( bufSizes, "({}d, {}f, {}ea, {}bl)",
-                               dirInfo.CountDirectories(),
-                               dirInfo.CountNonDirectories(),
-                               dirInfo.QtyErrsAccess,
-                               dirInfo.QtyErrsBrokenLink           );
-    }
-    String scanResultText;
-    switch (quality)
-    {
-        case FInfo::Qualities::NONE:                  scanResultText= A_CHAR("---"); break;
-        case FInfo::Qualities::STATS:                 entry.IsDirectory() ? scanResultText= A_CHAR("sta")
-                                                                          : scanResultText= A_CHAR("OK ");  break;
-        case FInfo::Qualities::RESOLVED:              scanResultText= A_CHAR("res"); break;
-        case FInfo::Qualities::RECURSIVE:             scanResultText= A_CHAR("OK "); break;
-
-        case FInfo::Qualities::MAX_DEPTH_REACHED:     scanResultText= A_CHAR("MXD"); break;
-        case FInfo::Qualities::NOT_FOLLOWED:          scanResultText= A_CHAR("NOF"); break;
-        case FInfo::Qualities::NOT_CROSSING_FS:       scanResultText= A_CHAR("NOX"); break;
-        case FInfo::Qualities::NO_AFS:                scanResultText= A_CHAR("AFS"); break;
-
-        case FInfo::Qualities::NO_ACCESS:             scanResultText= A_CHAR("NA "); break;
-        case FInfo::Qualities::NO_ACCESS_SL:          scanResultText= A_CHAR("NAL"); break;
-        case FInfo::Qualities::NO_ACCESS_SL_TARGET:   scanResultText= A_CHAR("NAT"); break;
-        case FInfo::Qualities::NO_ACCESS_DIR:         scanResultText= A_CHAR("NAD"); break;
-        case FInfo::Qualities::BROKEN_LINK:           scanResultText= A_CHAR("BRL"); break;
-        case FInfo::Qualities::CIRCULAR_LINK:         scanResultText= A_CHAR("CIL"); break;
-        case FInfo::Qualities::DUPLICATE:             scanResultText= A_CHAR("DBL"); break;
-        case FInfo::Qualities::NOT_EXISTENT:          scanResultText= A_CHAR("NEX"); break;
-        case FInfo::Qualities::UNKNOWN_ERROR:         scanResultText= A_CHAR("UKN"); break;
-    }
-
-    String4K symlinkInfo;
-    if(    (    type == FInfo::Types::SYMBOLIC_LINK
-             || type == FInfo::Types::SYMBOLIC_LINK_DIR )
-        && entry.Quality() >= FInfo::Qualities::RESOLVED )
-    {
-        symlinkInfo <<  " -> " << entry.GetLinkTarget();
-        if(     entry.GetRealLinkTarget().IsNotEmpty()
-            && !entry.GetLinkTarget().Equals( entry.GetRealLinkTarget()) )
-            symlinkInfo <<  " (" << entry.GetRealLinkTarget() <<  ")";
-        if( quality == FInfo::Qualities::BROKEN_LINK )
-             symlinkInfo <<" (Broken)";
-    }
-
-    // print first part
-    fmt->Format( buf, "{} {:>4} {:>4} {:>6} {:yyyy-MM-dd HH:mm} {} {}{}",
-                 entry.WriteTypeAndAccess( bufPerms.Reset() ),
-                 ownerAndGroup.first, ownerAndGroup.second,
-                 bufSize,
-                 entry.MTime(),
-                 scanResultText,
-                 entry.IsCrossingFS()   ? 'M' : '-',
-                 entry.IsArtificialFS() ? 'A' : '-'         );
-
-    buf << ' ';
-
-    // print path as table
-    {
-        // build stack of parent nodes
-        auto actNode= node;
-        FTree::Cursor nodeStack[256];
-        int sp= 1;
-        nodeStack[0]= actNode;
-        while( actNode.GoToParent().IsValid() )
-            nodeStack[sp++]= actNode;
-
-        // process stack reversely
-        String8 DirSep(DirectorySeparator);
-        for (int i = sp-1; i >= 0; --i)
-        {
-            const String& name= nodeStack[i].Name();
-            fmt->Format( buf, "{}{}{!FillC }",
-                         i > sp-3        ? ""     : DirSep,
-                         name.IsEmpty()  ? DirSep : name,
-                         i>0 ? nameWidth[sp-i-1] - name.Length() : 0);
-        }
-
-    }
-
-    buf << ' ';
-
-    // print last part
-    fmt->Format( buf, "{} {}\n", symlinkInfo, bufSizes  );
-
-
-} //dbgDumpEntry()
-}// anonymous namespace
+String DBG_DUMP_FORMAT=
+    A_CHAR("{:ta h{2,r} on{10,r} gn{10,r} s(IEC){10,r} dm qqq FxFa (rd{3r}' D' rf{3r}' F' re{2r}' EA' rb{2r}'BL) 'nf l}\n");
 
 AString&     DbgDump( AString&                  target,
                       FTree&                    tree,
@@ -302,42 +272,32 @@ AString&     DbgDump( AString&                  target,
 
 {
     if( startNode.IsInvalid() )
-        startNode= tree.Root();
+        startNode= tree.Root().AsCursor();
 
-    SPFormatter fmt= Formatter::AcquireDefault( ALIB_CALLER_PRUNED );
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    Formatter& fmt= *Formatter::Default;
+    fmt.Reset();
     FTree::RecursiveIterator rit;
     rit.SetPathGeneration(lang::Switch::Off);
 
-    // determine the maximum width of child names for each depth level
-    int nameWidth[256];
-    {
-        for (int i = 0; i < 256; ++i) nameWidth[i]=0;
-        rit.Initialize( startNode );
-        while( rit.IsValid())
-        {
-            if( includedTypes.Test(rit.Node().Value().Type()))
-                nameWidth[rit.CurrentDepth()+1]= (std::max)( nameWidth[rit.CurrentDepth()+1],
-                                                             int(rit.Node().Name().Length())    );
-            rit.Next();
-        }
-    }
-
     // loop over all nodes and dump
-    OwnerAndGroupResolver ogResolver;
-    dbgDumpEntry( target, ogResolver, fmt, nameWidth, startNode );
+    fmt.Format( target, DBG_DUMP_FORMAT, File(startNode) );
+
     rit.Initialize( startNode, depth );
     while( rit.IsValid())
     {
-        if( includedTypes.Test(rit.Node().Value().Type()))
-            dbgDumpEntry( target, ogResolver, fmt, nameWidth, rit.Node() );
+        if( includedTypes.Test(rit.Node()->Type()))
+            fmt.Format( target, DBG_DUMP_FORMAT, File(rit.Node())     );
         rit.Next();
     }
-
-    fmt->Release();
 
     return target;
 }
 
-#endif // ALIB_DEBUG && !defined(ALIB_DOX)  (dump methods)
+#endif // ALIB_DEBUG && !DOXYGEN  (dump methods)
+#include "alib/lang/callerinfo_methods.hpp"
 
 } // namespace alib::files
+
+
+

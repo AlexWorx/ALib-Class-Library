@@ -6,150 +6,135 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_SINGLETONS_SINGLETON)
-#      include "alib/singletons/singleton.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
-#      include "alib/compatibility/std_typeinfo.hpp"
-#   endif
-
+#if !DOXYGEN
+#   include "alib/singletons/singleton.hpp"
+#   include "alib/compatibility/std_typeinfo.hpp"
 #   if ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG
-#      if !defined(HPP_ALIB_SINGLETONS_DBGSINGLETONS)
 #          include "alib/singletons/dbgsingletons.hpp"
-#      endif
-#      if ALIB_STRINGS && !defined (HPP_ALIB_STRINGS_FORMAT)
-#         include "alib/strings/format.hpp"
-#      endif
-#   endif
-
-#   if ALIB_STRINGS
-#      if  !defined (HPP_ALIB_STRINGS_ASTRING)
+#      if ALIB_STRINGS
 #         include "alib/strings/astring.hpp"
 #      endif
 #   endif
-
-#   if ALIB_MONOMEM
-#      if !defined(HPP_ALIB_MONOMEM_HASHMAP)
-#         include "alib/monomem/hashmap.hpp"
-#      endif
-#      if !defined(HPP_ALIB_MONOMEM_HASHSET)
-#         include "alib/monomem/hashset.hpp"
-#      endif
-#   else
-#      if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
-#         include <unordered_map>
-#      endif
-#      if !defined (_GLIBCXX_MUTEX) && !defined(_MUTEX_)
-#         include <mutex>
-#      endif
-#      if !defined (_GLIBCXX_CSTRING) && !defined(_CSTRING_)
-#         include <cstring>
-#      endif
+#   if ALIB_STRINGS
+#       include "alib/strings/astring.hpp"
 #   endif
-
-#endif // !defined(ALIB_DOX)
+#   if ALIB_MONOMEM && ALIB_CONTAINERS
+#       include "alib/monomem/globalallocator.hpp"
+#       include "alib/containers/hashtable.hpp"
+#   else
+#       include <unordered_map>
+#       include <mutex>
+#       include <cstring>
+#   endif
+#endif // !DOXYGEN
 
 namespace alib {
 
-#if ALIB_FEAT_SINGLETON_MAPPED && !defined(ALIB_DOX)
+#if ALIB_FEAT_SINGLETON_MAPPED && !DOXYGEN
 namespace { bool inShutdown= false; }
 #endif
-/**
- * This is the namespace of \alibmod <b>"Singletons"</b>. Please refer to the
- * \ref alib_mod_singletons "Programmer's Manual Of ALib Singletons" for information about
- * using this (single :-) \b %Singleton class in this tiny namespace.
- */
+/// This is the namespace of \alibmod <b>"Singletons"</b>. Please refer to the
+/// \ref alib_mod_singletons "Programmer's Manual Of ALib Singletons" for information about
+/// using this (single :-) \b %Singleton class in this tiny namespace.
 namespace singletons {
+#if ALIB_FEAT_SINGLETON_MAPPED && !DOXYGEN
 
-
-#if ALIB_FEAT_SINGLETON_MAPPED && !defined(ALIB_DOX)
-
-#if ALIB_MONOMEM
-    extern ALIB_API HashMap           <TypeFunctors::Key, void*,
-                                       TypeFunctors::Hash,
-                                       TypeFunctors::EqualTo    >  singletonMap;
-           ALIB_API HashMap           <TypeFunctors::Key, void*,
-                                       TypeFunctors::Hash,
-                                       TypeFunctors::EqualTo    >  singletonMap(&monomem::GlobalAllocator);
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+extern
+ALIB_API HashMap< MonoAllocator,
+                  TypeFunctors::Key, void*,
+                  TypeFunctors::Hash,
+                  TypeFunctors::EqualTo,
+                  lang::Caching::Auto,
+                  Recycling::None            >  singletonMap;
+ALIB_API HashMap< MonoAllocator,
+                  TypeFunctors::Key, void*,
+                  TypeFunctors::Hash,
+                  TypeFunctors::EqualTo,
+                  lang::Caching::Auto,
+                  Recycling::None            >  singletonMap(monomem::GLOBAL_ALLOCATOR);
 #else
-    extern ALIB_API std::unordered_map<TypeFunctors::Key, void*,
-                                       TypeFunctors::Hash,
-                                       TypeFunctors::EqualTo    >  singletonMap;
-           ALIB_API std::unordered_map<TypeFunctors::Key, void*,
-                                       TypeFunctors::Hash,
-                                       TypeFunctors::EqualTo    >  singletonMap;
+extern ALIB_API std::unordered_map<TypeFunctors::Key, void*,
+                                   TypeFunctors::Hash,
+                                   TypeFunctors::EqualTo    >  singletonMap;
+ALIB_API std::unordered_map<TypeFunctors::Key, void*,
+                            TypeFunctors::Hash,
+                            TypeFunctors::EqualTo    >  singletonMap;
 
-    ALIB_IF_THREADS(
-    extern std::recursive_mutex     singletonLock;
-           std::recursive_mutex     singletonLock;   )
+IF_ALIB_THREADS(
+extern std::recursive_mutex     singletonLock;
+       std::recursive_mutex     singletonLock;   )
 #endif
 
+#include "alib/lang/callerinfo_functions.hpp"
 void  storeSingleton( const std::type_info& type, void* theSingleton )
-{
-    #if ALIB_MONOMEM
-        if( singletonMap.Size() == 0)
-        {
-            singletonMap.MaxLoadFactor( 10 );
-            singletonMap.Reserve( 23, lang::ValueReference::Absolute );
-        }
+       {
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
+           if( singletonMap.Size() == 0)
+           {
+               singletonMap.MaxLoadFactor( 10 );
+               singletonMap.Reserve( 23, lang::ValueReference::Absolute );
+           }
 
-        singletonMap.EmplaceUnique( &type, theSingleton );
+           singletonMap.EmplaceUnique( &type, theSingleton );
 
-        // we unlock now as we were locked in getSingleton
-        monomem::ReleaseGlobalAllocator();
+           // we unlock now as we were locked in getSingleton
+           IF_ALIB_THREADS( monomem::GLOBAL_ALLOCATOR_LOCK.ReleaseRecursive(ALIB_CALLER_PRUNED) );
     #else
-        if( singletonMap.size() == 0)
-        {
-            singletonMap.max_load_factor( 10 );
-            singletonMap.reserve( 23 );
-        }
+           if( singletonMap.size() == 0)
+           {
+               singletonMap.max_load_factor( 10 );
+               singletonMap.reserve( 23 );
+           }
 
-        singletonMap.emplace(&type, theSingleton);
+           singletonMap.emplace(&type, theSingleton);
 
-        // we unlock now as we were locked in getSingleton
-        ALIB_IF_THREADS( singletonLock.unlock(); )
-    #endif
-}
+           // we unlock now as we were locked in getSingleton
+           IF_ALIB_THREADS( singletonLock.unlock(); )
+       #endif
+   }
 
 void  removeSingleton( const std::type_info& type )
-{
-    if( !inShutdown)
-    {
-        #if ALIB_MONOMEM
-            monomem::AcquireGlobalAllocator(ALIB_CALLER_PRUNED);
-            ALIB_ASSERT_RESULT_EQUALS( singletonMap.Erase(&type), 1)
-            monomem::ReleaseGlobalAllocator();
-        #else
-            ALIB_IF_THREADS( singletonLock.lock();  )
-            ALIB_ASSERT_RESULT_EQUALS( singletonMap.erase(&type), 1)
-            ALIB_IF_THREADS( singletonLock.unlock(); )
-        #endif
-    }
+       {
+           if( !inShutdown)
+           {
+        #if ALIB_MONOMEM && ALIB_CONTAINERS
+               ALIB_LOCK_RECURSIVE_WITH(monomem::GLOBAL_ALLOCATOR_LOCK)
+               ALIB_ASSERT_RESULT_EQUALS( singletonMap.Erase(&type), 1)
+           #else
+               IF_ALIB_THREADS( singletonLock.lock();  )
+               ALIB_ASSERT_RESULT_EQUALS( singletonMap.erase(&type), 1)
+               IF_ALIB_THREADS( singletonLock.unlock(); )
+           #endif
+       }
+       }
+
+#if !DOXYGEN && ALIB_FEAT_SINGLETON_MAPPED && ALIB_THREADS
+void  unlock() {
+monomem::GLOBAL_ALLOCATOR_LOCK.ReleaseRecursive(ALIB_CALLER_PRUNED);
 }
+#endif
 
 void* getSingleton  ( const std::type_info& type )
 {
-    #if ALIB_MONOMEM
-        monomem::AcquireGlobalAllocator( ALIB_CALLER_PRUNED );
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
+        IF_ALIB_THREADS( monomem::GLOBAL_ALLOCATOR_LOCK.AcquireRecursive(ALIB_CALLER_PRUNED) );
         auto entry= singletonMap.Find( &type );
         if ( entry != singletonMap.end() )
         {
             void* result= entry->second;
-            monomem::ReleaseGlobalAllocator();
             return result;
         }
 
         // Attn: we do not unlock when we have not found the singleton!
         return nullptr;
     #else
-        ALIB_IF_THREADS( singletonLock.lock(); )
+        IF_ALIB_THREADS( singletonLock.lock(); )
         auto entry= singletonMap.find( &type );
         if ( entry != singletonMap.end() )
         {
             void* result= entry->second;
-            ALIB_IF_THREADS( singletonLock.unlock(); )
+            IF_ALIB_THREADS( singletonLock.unlock(); )
             return result;
         }
 
@@ -171,20 +156,31 @@ void Shutdown()
             memcpy( &theSingleton, &mapPair.second, sizeof(void*) );
             delete theSingleton;
         }
+        #if ALIB_MONOMEM && ALIB_CONTAINERS
+            new (&singletonMap) HashMap< MonoAllocator,
+                                         TypeFunctors::Key, void*,
+                                         TypeFunctors::Hash,
+                                         TypeFunctors::EqualTo,
+                                         lang::Caching::Auto,
+                                         Recycling::None            >(monomem::GLOBAL_ALLOCATOR);
+        #endif
     #endif
 }
 
 
 
 #if ALIB_DEBUG && ALIB_FEAT_SINGLETON_MAPPED
-    #if ALIB_MONOMEM
-        HashMap           <TypeFunctors::Key, void*,
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
+        HashMap           <MonoAllocator,
+                           TypeFunctors::Key, void*,
                            TypeFunctors::Hash,
-                           TypeFunctors::EqualTo    >&   DbgGetSingletons()  { return singletonMap; }
+                           TypeFunctors::EqualTo,
+                           lang::Caching::Auto,
+                           Recycling::None          >&   DbgGetSingletons() { return singletonMap; }
     #else
         std::unordered_map<TypeFunctors::Key, void*,
                            TypeFunctors::Hash,
-                           TypeFunctors::EqualTo    >&   DbgGetSingletons()  { return singletonMap; }
+                           TypeFunctors::EqualTo    >&   DbgGetSingletons() { return singletonMap; }
     #endif
 
     #if ALIB_STRINGS && ALIB_DEBUG
@@ -194,9 +190,9 @@ void Shutdown()
             for( auto& it : types )
                 target << lang::DbgTypeDemangler(*it.first).Get()
                        <<  " = 0x" << NFormat::Hex(reinterpret_cast<uint64_t>(it.second) )
-                       << NNewLine();
+                       << NNEW_LINE;
 
-    #if ALIB_MONOMEM
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
             return static_cast<int>( types.Size() );
     #else
             return static_cast<int>( types.size() );
@@ -205,4 +201,7 @@ void Shutdown()
     #endif
 #endif
 
+#include "alib/lang/callerinfo_methods.hpp"
+
 }} // namespace [alib::singletons]
+

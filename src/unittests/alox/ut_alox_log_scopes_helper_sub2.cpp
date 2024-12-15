@@ -7,15 +7,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
+
 #if ALIB_UT_ALOX
-
-
 #include "alib/alox.hpp"
 
 using namespace std;
 using namespace alib;
 
 
+#include "alib/lang/callerinfo_functions.hpp"
 namespace ut_alox
 {
 
@@ -46,6 +46,7 @@ namespace ut_alox
 #endif
 
 } // namespace
+#include "alib/lang/callerinfo_methods.hpp"
 
 
 #endif // ALIB_UT_ALOX

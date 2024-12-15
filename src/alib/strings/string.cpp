@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,34 +6,28 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_STRING)
+#if !DOXYGEN
 #   include "alib/strings/string.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
 #   include "alib/strings/detail/numberconversion.hpp"
-#endif
-
-#if ALIB_DEBUG && !defined(HPP_ALIB_STRINGS_LOCALSTRING)
-#   include "alib/strings/localstring.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#   if ALIB_DEBUG
+#      include "alib/strings/localstring.hpp"
+#   endif
+#endif // !DOXYGEN
 
 using namespace alib::characters;
 
 namespace alib {
 
-/** ************************************************************************************************
- * This is the reference documentation of sub-namespace \c strings of the \aliblink, which
- * holds types of library module \alib_strings_nl.
- *
- * Extensive documentation for this module is provided with
- * \ref alib_mod_strings "ALib Module Strings - Programmer's Manual".
- **************************************************************************************************/
+//==================================================================================================
+/// This is the reference documentation of sub-namespace \c strings of the \aliblink, which
+/// holds types of library module \alib_strings_nl.
+///
+/// Extensive documentation for this module is provided with
+/// \ref alib_mod_strings "ALib Module Strings - Programmer's Manual".
+//==================================================================================================
 namespace strings {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 
 // #################################################################################################
@@ -76,14 +70,17 @@ void TString<TChar>::dbgCheck() const
 // #################################################################################################
 template<typename   TChar>
 template<lang::Case TSensitivity>
-integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer startIdx )  const
+integer  TString<TChar>::indexOfString( const TString<TChar>&  needle,
+                                        integer startIdx, integer endIdx )  const
 {
     integer nLen=   needle.Length();
     if( nLen == 0 )
         return startIdx;
+    ALIB_ASSERT_ERROR( startIdx >= 0 && startIdx <= length, "STRINGS", "Illegal start index given." )
+    ALIB_ASSERT_ERROR(   endIdx <= length -nLen + 1       , "STRINGS", "Illegal end index given." )
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     const TChar*  buf=    buffer + startIdx;
-    const TChar*  bufEnd= buffer + length - nLen + 1;
+    const TChar*  bufEnd= buffer + endIdx;
     const TChar* nBuf=    needle.Buffer();
     const TChar* nBufEnd= nBuf + nLen;
 
@@ -91,7 +88,7 @@ integer  TString<TChar>::indexOfString( const TString<TChar>&  needle, integer s
     {
         const TChar* b=  buf;
         const TChar* n= nBuf;
-        while ( CharArray<TChar>::template Equal<TSensitivity>(*b++, *n++ ) )
+        while ( characters::Equal<TChar,TSensitivity>(*b++, *n++ ) )
             if( n == nBufEnd )
                 return buf  - buffer;
         ++buf;
@@ -108,9 +105,9 @@ integer  TString<TChar>::IndexOfSegmentEnd( TChar opener, TChar closer, integer 
     {
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         if( buffer[idx] == opener )   ++openCnt;
-        if( buffer[idx] == closer )
-            if( --openCnt == 0 )
-                break;
+        if( buffer[idx] == closer &&  --openCnt == 0 )
+            break;
+
         ++idx;
         ALIB_WARNINGS_RESTORE
     }
@@ -302,14 +299,14 @@ integer  TString<nchar>::WStringLength()  const
     //--------- __GLIBCXX__ Version ---------
     #elif defined (__GLIBCXX__) || defined(__APPLE__) || defined(__ANDROID_NDK__)
 
-        size_t conversionSize=  mbsnrtowcs( nullptr, &cs, static_cast<size_t>(length), 0, nullptr );
-        if ( conversionSize ==  static_cast<size_t>(-1) )
+        size_t conversionSize=  mbsnrtowcs( nullptr, &cs, size_t(length), 0, nullptr );
+        if ( conversionSize ==  size_t(-1) )
         {
             ALIB_WARNING( "STRINGS", "MBCS to WCS conversion failed. Illegal MBC sequence. Probably UTF-8 is not set in locale" )
             return length;
         }
 
-        ALIB_ASSERT_ERROR( conversionSize <= static_cast<size_t>( length ), "STRINGS",
+        ALIB_ASSERT_ERROR( conversionSize <= size_t( length ), "STRINGS",
                            NString128( "MBCS to WCS conversion failed. Conversion length=")
                            << conversionSize )
 
@@ -323,31 +320,31 @@ integer  TString<nchar>::WStringLength()  const
     #endif
 }
 
-template integer  TString<nchar>::indexOfString<lang::Case::Sensitive>(const TString<nchar>&, integer)  const;
-template integer  TString<nchar>::indexOfString<lang::Case::Ignore   >(const TString<nchar>&, integer)  const;
-template integer  TString<nchar>::IndexOfSegmentEnd( nchar opener, nchar closer, integer  idx )      const;
-template uint64_t TString<nchar>::ParseDecDigits( integer, integer*                           ) const;
-template  int64_t TString<nchar>::ParseInt      ( integer, TNumberFormat<nchar>*, integer* ) const;
-template uint64_t TString<nchar>::ParseDec      ( integer, TNumberFormat<nchar>*, integer* ) const;
-template uint64_t TString<nchar>::ParseBin      ( integer, TNumberFormat<nchar>*, integer* ) const;
-template uint64_t TString<nchar>::ParseHex      ( integer, TNumberFormat<nchar>*, integer* ) const;
-template uint64_t TString<nchar>::ParseOct      ( integer, TNumberFormat<nchar>*, integer* ) const;
-template double   TString<nchar>::ParseFloat    ( integer, TNumberFormat<nchar>*, integer* ) const;
+template integer  TString<nchar>::indexOfString<lang::Case::Sensitive>(const TString<nchar>&,integer,integer) const;
+template integer  TString<nchar>::indexOfString<lang::Case::Ignore   >(const TString<nchar>&,integer,integer) const;
+template integer  TString<nchar>::IndexOfSegmentEnd( nchar opener, nchar closer, integer  idx               ) const;
+template uint64_t TString<nchar>::ParseDecDigits( integer, integer*                                         ) const;
+template  int64_t TString<nchar>::ParseInt      ( integer, TNumberFormat<nchar>*            , integer*      ) const;
+template uint64_t TString<nchar>::ParseDec      ( integer, TNumberFormat<nchar>*            , integer*      ) const;
+template uint64_t TString<nchar>::ParseBin      ( integer, TNumberFormat<nchar>*            , integer*      ) const;
+template uint64_t TString<nchar>::ParseHex      ( integer, TNumberFormat<nchar>*            , integer*      ) const;
+template uint64_t TString<nchar>::ParseOct      ( integer, TNumberFormat<nchar>*            , integer*      ) const;
+template double   TString<nchar>::ParseFloat    ( integer, TNumberFormat<nchar>*            , integer*      ) const;
 
 
 // #################################################################################################
 // WString
 // #################################################################################################
-template integer  TString<wchar>::indexOfString<lang::Case::Sensitive>(const TString<wchar>&, integer)  const;
-template integer  TString<wchar>::indexOfString<lang::Case::Ignore   >(const TString<wchar>&, integer)  const;
-template integer  TString<wchar>::IndexOfSegmentEnd( wchar opener, wchar closer, integer  idx )     const;
-template uint64_t TString<wchar>::ParseDecDigits( integer, integer*                           ) const;
-template  int64_t TString<wchar>::ParseInt      ( integer, TNumberFormat<wchar>*, integer* ) const;
-template uint64_t TString<wchar>::ParseDec      ( integer, TNumberFormat<wchar>*, integer* ) const;
-template uint64_t TString<wchar>::ParseBin      ( integer, TNumberFormat<wchar>*, integer* ) const;
-template uint64_t TString<wchar>::ParseHex      ( integer, TNumberFormat<wchar>*, integer* ) const;
-template uint64_t TString<wchar>::ParseOct      ( integer, TNumberFormat<wchar>*, integer* ) const;
-template double   TString<wchar>::ParseFloat    ( integer, TNumberFormat<wchar>*, integer* ) const;
+template integer  TString<wchar>::indexOfString<lang::Case::Sensitive>(const TString<wchar>&,integer,integer) const;
+template integer  TString<wchar>::indexOfString<lang::Case::Ignore   >(const TString<wchar>&,integer,integer) const;
+template integer  TString<wchar>::IndexOfSegmentEnd( wchar opener, wchar closer             , integer  idx  ) const;
+template uint64_t TString<wchar>::ParseDecDigits( integer, integer*                                         ) const;
+template  int64_t TString<wchar>::ParseInt      ( integer, TNumberFormat<wchar>*            , integer*      ) const;
+template uint64_t TString<wchar>::ParseDec      ( integer, TNumberFormat<wchar>*            , integer*      ) const;
+template uint64_t TString<wchar>::ParseBin      ( integer, TNumberFormat<wchar>*            , integer*      ) const;
+template uint64_t TString<wchar>::ParseHex      ( integer, TNumberFormat<wchar>*            , integer*      ) const;
+template uint64_t TString<wchar>::ParseOct      ( integer, TNumberFormat<wchar>*            , integer*      ) const;
+template double   TString<wchar>::ParseFloat    ( integer, TNumberFormat<wchar>*            , integer*      ) const;
 
 // #################################################################################################
 // XString
@@ -408,16 +405,16 @@ integer  TString<xchar>::WStringLength()  const
     return result;
 }
 
-template integer  TString<xchar>::indexOfString<lang::Case::Sensitive>(const TString<xchar>&, integer) const;
-template integer  TString<xchar>::indexOfString<lang::Case::Ignore   >(const TString<xchar>&, integer) const;
-template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer, integer  idx  ) const;
-template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                            ) const;
-template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*, integer*     ) const;
-template uint64_t TString<xchar>::ParseDec      ( integer, TNumberFormat<xchar>*, integer*     ) const;
-template uint64_t TString<xchar>::ParseBin      ( integer, TNumberFormat<xchar>*, integer*     ) const;
-template uint64_t TString<xchar>::ParseHex      ( integer, TNumberFormat<xchar>*, integer*     ) const;
-template uint64_t TString<xchar>::ParseOct      ( integer, TNumberFormat<xchar>*, integer*     ) const;
-template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*, integer*     ) const;
+template integer  TString<xchar>::indexOfString<lang::Case::Sensitive>(const TString<xchar>&,integer,integer) const;
+template integer  TString<xchar>::indexOfString<lang::Case::Ignore   >(const TString<xchar>&,integer,integer) const;
+template integer  TString<xchar>::IndexOfSegmentEnd( xchar opener, xchar closer             ,integer        ) const;
+template uint64_t TString<xchar>::ParseDecDigits( integer, integer*                                         ) const;
+template  int64_t TString<xchar>::ParseInt      ( integer, TNumberFormat<xchar>*            , integer*      ) const;
+template uint64_t TString<xchar>::ParseDec      ( integer, TNumberFormat<xchar>*            , integer*      ) const;
+template uint64_t TString<xchar>::ParseBin      ( integer, TNumberFormat<xchar>*            , integer*      ) const;
+template uint64_t TString<xchar>::ParseHex      ( integer, TNumberFormat<xchar>*            , integer*      ) const;
+template uint64_t TString<xchar>::ParseOct      ( integer, TNumberFormat<xchar>*            , integer*      ) const;
+template double   TString<xchar>::ParseFloat    ( integer, TNumberFormat<xchar>*            , integer*      ) const;
 
 // #################################################################################################
 // Hashcode
@@ -426,7 +423,7 @@ template<typename TChar>
 std::size_t TString<TChar>::Hashcode()                                                         const
 {
     return std::hash<std::basic_string_view<TChar>>()(
-              std::basic_string_view<TChar>( Buffer(), static_cast<size_t>( Length() ) ) );
+           std::basic_string_view<TChar>( Buffer(), size_t( Length() ) ) );
 }
 
 
@@ -437,12 +434,12 @@ template std::size_t TString<xchar>::Hashcode          () const;
 template<typename TChar>
 std::size_t TString<TChar>::HashcodeIgnoreCase()                                               const
 {
-    std::size_t result= 68460391ul * ( static_cast<size_t>(length) + 1 );
+    std::size_t result= 68460391ul * ( size_t(length) + 1 );
 
     auto* begin= buffer;
     auto* end  = buffer + length;
     while( begin != end )
-        result = 199ul * result + std::size_t( CharArray<TChar>::ToUpper( *begin++ ) );
+        result = 199ul * result + std::size_t( ToUpper<TChar>( *begin++ ) );
 
     return result;
 }
@@ -460,24 +457,8 @@ template   void TString<xchar>::dbgCheck() const;
 #endif
 
 
-#endif // defined(ALIB_DOX)
+#endif // DOXYGEN
 
 } // namespace alib[::strings]
+} // namespace [alib]
 
-// #################################################################################################
-// String constants
-// #################################################################################################
-String              NULL_STRING             = nullptr;
-ComplementString    NULL_COMPLEMENT_STRING  = nullptr;
-StrangeString       NULL_STRANGE_STRING     = nullptr;
-NString             NULL_N_STRING           = nullptr;
-WString             NULL_W_STRING           = nullptr;
-XString             NULL_X_STRING           = nullptr;
-CString             EMPTY_STRING            =  A_CHAR ("");
-ComplementCString   EMPTY_COMPLEMENT_STRING = A_CCHAR ("");
-StrangeCString      EMPTY_STRANGE_STRING    = A_SCHAR ("");
-NCString            EMPTY_N_STRING          = A_NCHAR ("");
-WCString            EMPTY_W_STRING          = A_WCHAR ("");
-XString             EMPTY_X_STRING          = A_XCHAR ("");
-
-}// namespace [alib]

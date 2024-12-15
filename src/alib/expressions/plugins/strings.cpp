@@ -6,30 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
-#      include "alib/expressions/plugins/strings.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_MONOMEM_MASTRING)
-#      include "alib/monomem/mastring.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
-#      include "alib/strings/util/wildcardmatcher.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_STRINGS_UTIL_REGEXMATCHER)
-#      include "alib/strings/util/regexmatcher.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/expressions/plugins/strings.hpp"
+#   include "alib/monomem/aliases/astringma.hpp"
+#   include "alib/strings/util/wildcardmatcher.hpp"
+#   include "alib/strings/util/regexmatcher.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#endif // !DOXYGEN
 
 
 //! @cond NO_DOX
@@ -42,9 +25,8 @@
 #define FLT(box)       (box).Unbox<double   >()
 #define STR(box)       (box).Unbox<String   >()
 #define LEN(box)       (box).UnboxLength()
-#define CPY(str,size)  MAString( scope.Allocator, STR(str), size)
-#define WRT(box,size)  MAString( scope.Allocator, box, size)
-#define EMP(size )     MAString( scope.Allocator, size)
+#define STR1K(str)     String1K(STR(str))
+#define ALLOCS(str)    String(scope.Allocator, str)
 
 #define FUNC( name,...) Box name( Scope& scope,                                                    \
                                   ArgIterator  args,                                               \
@@ -76,7 +58,7 @@ Box CBToString( Scope& scope, ArgIterator  args, ArgIterator end)
         ++args;
     }
 
-    return MAString( scope.Allocator, tmp, 0 );
+    return String(scope.Allocator, tmp);
 }
 
 // #################################################################################################
@@ -84,10 +66,10 @@ Box CBToString( Scope& scope, ArgIterator  args, ArgIterator end)
 // #################################################################################################
 Box CBFormat( Scope& scope, ArgIterator  args, ArgIterator end)
 {
-    String256 buf;
+    String1K buf;
     buf.DbgDisableBufferReplacementWarning();
 
-    Boxes& formatterArgs= scope.Formatter->Acquire(ALIB_CALLER_PRUNED);
+    BoxesMA& formatterArgs= scope.Formatter->GetArgContainer();
     while( args != end)
         formatterArgs.Add( *args++ );
 
@@ -97,13 +79,10 @@ Box CBFormat( Scope& scope, ArgIterator  args, ArgIterator end)
     }
     catch( Exception& )
     {
-        scope.Formatter->Release();
         throw;
     }
 
-    scope.Formatter->Release();
-
-    return MAString( scope.Allocator, buf, 0 );
+    return String( scope.Allocator, buf );
 }
 
 
@@ -120,14 +99,14 @@ Box constNL;
 // ### String functions
 // #################################################################################################
 
-FUNC(toUpper    ,   return CPY(ARG0, 0).ToUpper(); )
-FUNC(toLower    ,   return CPY(ARG0, 0).ToLower(); )
-FUNC(startsWith ,   return             STR(ARG0).StartsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
-FUNC(startsWithC,   return BOL(ARG2) ? STR(ARG0).StartsWith<true,lang::Case::Ignore   >( STR(ARG1) )
-                                     : STR(ARG0).StartsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
-FUNC(endsWith   ,   return             STR(ARG0).  EndsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
-FUNC(endsWithC  ,   return BOL(ARG2) ? STR(ARG0).  EndsWith<true,lang::Case::Ignore   >( STR(ARG1) )
-                                     : STR(ARG0).  EndsWith<true,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(toUpper    ,   return ALLOCS(STR1K(ARG0).ToUpper()); )
+FUNC(toLower    ,   return ALLOCS(STR1K(ARG0).ToLower()); )
+FUNC(startsWith ,   return             STR(ARG0).StartsWith<CHK,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(startsWithC,   return BOL(ARG2) ? STR(ARG0).StartsWith<CHK,lang::Case::Ignore   >( STR(ARG1) )
+                                     : STR(ARG0).StartsWith<CHK,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(endsWith   ,   return             STR(ARG0).  EndsWith<CHK,lang::Case::Sensitive>( STR(ARG1) ); )
+FUNC(endsWithC  ,   return BOL(ARG2) ? STR(ARG0).  EndsWith<CHK,lang::Case::Ignore   >( STR(ARG1) )
+                                     : STR(ARG0).  EndsWith<CHK,lang::Case::Sensitive>( STR(ARG1) ); )
 FUNC(substr     ,   return STR(ARG0).Substring( INT(ARG1)             ); )
 FUNC(substr2    ,   return STR(ARG0).Substring( INT(ARG1), INT(ARG2)  ); )
 FUNC(idxof      ,   String needle= STR(ARG1); return needle.Length() == 1 ? STR(ARG0).IndexOf         ( needle[0], 0 )
@@ -154,17 +133,17 @@ FUNC(hex        ,   String128 buf;
                     buf << Format::Hex( static_cast<uint64_t>(INT(ARG0)),
                                         args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
-                    return MAString(scope.Allocator, buf,0);                                       )
+                    return ALLOCS(buf);                                                     )
 FUNC(oct        ,   String128 buf;
                     buf << Format::Oct( static_cast<uint64_t>(INT(ARG0)),
                                         args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
-                    return MAString(scope.Allocator, buf,0);                                       )
+                    return ALLOCS(buf);                                       )
 FUNC(bin        ,   String128 buf;
                     buf << Format::Bin( static_cast<uint64_t>(INT(ARG0)),
                                         args + 1 != end ? static_cast<int>(INT(ARG1)) : 0,
                                         &scope.Formatter->DefaultNumberFormat );
-                    return MAString(scope.Allocator, buf,0);                                       )
+                    return ALLOCS(buf);                                              )
 
 
 Box replace( Scope& scope, ArgIterator  args, ArgIterator )
@@ -176,9 +155,9 @@ Box replace( Scope& scope, ArgIterator  args, ArgIterator )
     // replace char with char?
     if( needle.Length() == 1 && replacement.Length() == 1 )
     {
-        MAString result(scope.Allocator, src, 0 );
+        String2K result(src);
         result.SearchAndReplace( needle[0], replacement[0], 0 );
-        return result;
+        return ALLOCS(result);
     }
 
     // replace string with char or string
@@ -186,7 +165,7 @@ Box replace( Scope& scope, ArgIterator  args, ArgIterator )
     buf.DbgDisableBufferReplacementWarning();
     buf << src;
     buf.SearchAndReplace( needle, replacement, 0 );
-    return MAString( scope.Allocator, buf, 0 );
+    return ALLOCS(buf);
 }
 
 Box repeat( Scope& scope, ArgIterator  args, ArgIterator )
@@ -196,7 +175,7 @@ Box repeat( Scope& scope, ArgIterator  args, ArgIterator )
     buf.DbgDisableBufferReplacementWarning();
     for( auto i= INT(ARG1) ; i > 0  ; --i )
         buf << src;
-    return MAString( scope.Allocator, buf, 0 );
+    return ALLOCS(buf);
 }
 
 // #################################################################################################
@@ -209,21 +188,15 @@ FUNC(boolNot,   return LEN(ARG0) == 0;         )
 // ### Strings - Binary operators
 // #################################################################################################
 
-FUNC(add_SI, return CPY(ARG0, 28      ) << Format( INT(ARG1), &scope.Formatter->DefaultNumberFormat );     )
-FUNC(add_SF, return CPY(ARG0, 48      ) << Format( FLT(ARG1), &scope.Formatter->DefaultNumberFormat );     )
+FUNC(add_SI, return  ALLOCS(STR1K(ARG0) << Format( INT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
+FUNC(add_SF, return  ALLOCS(STR1K(ARG0) << Format( FLT(ARG1), &scope.Formatter->DefaultNumberFormat ));     )
 
 
-FUNC(add_IS, return EMP(LEN(ARG1) + 28      ) << Format( INT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1);    )
-FUNC(add_FS, return EMP(LEN(ARG1) + 48      ) << Format( FLT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1);    )
-FUNC(add_SS, return CPY(ARG0, LEN(ARG1)) << STR(ARG1); )
-FUNC(add_SX,
-    String256 tmp;
-    tmp.DbgDisableBufferReplacementWarning();
-    tmp << ARG1;
-    return CPY(ARG0, tmp.Length()  ) << tmp;
-)
-
-FUNC(add_XS,  return WRT( ARG0, ARG1.UnboxLength()  ) << ARG1; )
+FUNC(add_IS, return ALLOCS(String1K() << Format( INT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
+FUNC(add_FS, return ALLOCS(String1K() << Format( FLT(ARG0), &scope.Formatter->DefaultNumberFormat) << STR(ARG1));    )
+FUNC(add_SS, return ALLOCS(String1K(STR(ARG0)) << STR(ARG1)); )
+FUNC(add_SX, return ALLOCS(String1K(STR(ARG0)) <<     ARG1); )
+FUNC(add_XS, return ALLOCS(String1K(    ARG0)  << STR(ARG1)); )
 
 
 FUNC(     sm, return  STR(ARG0)   <   ( STR(ARG1) ); )
@@ -235,14 +208,14 @@ FUNC(    neq, return !STR(ARG0).Equals( STR(ARG1) ); )
 
 FUNC(    arr, return  STR(ARG0).Substring( INT(ARG1), 1); )
 
-FUNC( compSS, return TOINT(             STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
-FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Ignore   >( STR(ARG1) )
-                                      : STR(ARG0).CompareTo<true ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
+FUNC( compSS, return TOINT(             STR(ARG0).CompareTo<CHK ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
+FUNC(compSSB, return TOINT( BOL(ARG2) ? STR(ARG0).CompareTo<CHK ALIB_COMMA lang::Case::Ignore   >( STR(ARG1) )
+                                      : STR(ARG0).CompareTo<CHK ALIB_COMMA lang::Case::Sensitive>( STR(ARG1) ) ); )
 
 // #################################################################################################
 // ### Strings - Wildcard matching
 // #################################################################################################
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_1])
+DOX_MARKER([DOX_EXPR_CTRES_1])
 struct ScopeWildcardMatcher : public ScopeResource
 {
     // the matcher object
@@ -251,9 +224,9 @@ struct ScopeWildcardMatcher : public ScopeResource
     // virtual destructor, implicitly deletes the matcher.
     virtual ~ScopeWildcardMatcher()  override {}
 };
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_1])
+DOX_MARKER([DOX_EXPR_CTRES_1])
 
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_6])
+DOX_MARKER([DOX_EXPR_CTRES_6])
 Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
 {
     String haystack= STR(ARG0);
@@ -267,21 +240,22 @@ Box wldcrd( Scope& scope, ArgIterator  args, ArgIterator end )
         NString128 keyString("_wc");
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-        auto storedMatcher=  scope.CTScope->NamedResources.Find( keyString );
-        if( storedMatcher != scope.CTScope->NamedResources.end() )
+        auto storedMatcher=  scope.vmMembers->CTScope->NamedResources->Find( keyString );
+        if( storedMatcher != scope.vmMembers->CTScope->NamedResources->end() )
             return dynamic_cast<ScopeWildcardMatcher*>( storedMatcher.Mapped() )
                    ->matcher.Match( haystack, sensitivity );
     }
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_6])
+DOX_MARKER([DOX_EXPR_CTRES_6])
 
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_7])
-    // This is either compile-time or the pattern string is not constant
+DOX_MARKER([DOX_EXPR_CTRES_7])
+    // This is either compile-time (with both arguments being constant) or it is
+    // evaluation time and the pattern string is not constant.
     {
         WildcardMatcher matcher( pattern );
         return matcher.Match( haystack, sensitivity );
     }
 }
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_7])
+DOX_MARKER([DOX_EXPR_CTRES_7])
 
 // #################################################################################################
 // ### Strings - Regex matching
@@ -307,8 +281,8 @@ Box regex( Scope& scope, ArgIterator  args, ArgIterator )
         NString128 keyString( "_re" );
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-        auto storedMatcher=  scope.CTScope->NamedResources.Find( keyString );
-        if( storedMatcher != scope.CTScope->NamedResources.end() )
+        auto storedMatcher=  scope.vmMembers->CTScope->NamedResources->Find( keyString );
+        if( storedMatcher != scope.vmMembers->CTScope->NamedResources->end() )
         {
             ScopeRegexMatcher* matcher= dynamic_cast<ScopeRegexMatcher*>( storedMatcher->second );
             return matcher->matcher.Match( haystack );
@@ -359,10 +333,10 @@ constexpr Calculus::OperatorTableEntry  operatorTableStrings[] =
 // ### Strings - Constructor. Creates the hash map
 // #################################################################################################
 Strings::Strings( Compiler& compiler )
-: Calculus( "ALib Strings", compiler )
+: Calculus( "ALib Strings", compiler, CompilePriorities::Strings )
 {
     constTAB=  A_CHAR("\t"); // Initialize constant static boxes. This must not be done
-    constNL =  NewLine();    // in the C++ bootstrap code.
+    constNL =  NEW_LINE;     // in the C++ bootstrap code.
 
     AddOperators( operatorTableStrings );
 
@@ -444,13 +418,13 @@ bool genericConcatenation( Type type )
 }
 }
 
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_2])
+DOX_MARKER([DOX_EXPR_CTRES_2])
 bool Strings::TryCompilation( CIFunction& ciFunction )
 {
     // invoke parent
     if( !Calculus::TryCompilation( ciFunction ) )
         return false;
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_2])
+DOX_MARKER([DOX_EXPR_CTRES_2])
 
 #if ALIB_FEAT_BOOST_REGEX && (!ALIB_CHARACTERS_WIDE || ALIB_CHARACTERS_NATIVE_WCHAR)
     if( ciFunction.Callback == regex && (ciFunction.ArgsBegin + 1)->UnboxLength() > 0)
@@ -459,42 +433,44 @@ DOX_MARKER([DOX_ALIB_EXPR_CTRES_2])
         NString128 keyString("_re");
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-        auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources.Find( keyString );
-        if( storedMatcher == ciFunction.CompileTimeScope.NamedResources.end() )
+        auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources->Find( keyString );
+        if( storedMatcher == ciFunction.CompileTimeScope.NamedResources->end() )
         {
-            ScopeRegexMatcher* matcher= new ScopeRegexMatcher();
+            auto& alloc= ciFunction.CompileTimeScope.Allocator;
+            ScopeRegexMatcher* matcher= alloc().New<ScopeRegexMatcher>();
             matcher->matcher.Compile( pattern );
-            ciFunction.CompileTimeScope.NamedResources.EmplaceOrAssign(
-                                 NMAString( ciFunction.CompileTimeScope.Allocator, keyString, 0 ),
-                                 matcher                                                       );
+            ciFunction.CompileTimeScope.NamedResources->EmplaceOrAssign(
+                                 NString( alloc, keyString ),
+                                 matcher                                   );
         }
     }
 #endif
 
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_3])
+DOX_MARKER([DOX_EXPR_CTRES_3])
     if( ciFunction.Callback == wldcrd && (ciFunction.ArgsBegin + 1)->UnboxLength() > 0)
     {
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_3])
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_4])
+DOX_MARKER([DOX_EXPR_CTRES_3])
+DOX_MARKER([DOX_EXPR_CTRES_4])
         String pattern= (ciFunction.ArgsBegin + 1)->Unbox<String>();
         NString128 keyString(A_CHAR("_wc"));
         keyString.DbgDisableBufferReplacementWarning();
         keyString << pattern;
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_4])
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_5])
+DOX_MARKER([DOX_EXPR_CTRES_4])
+DOX_MARKER([DOX_EXPR_CTRES_5])
         auto hashCode     =  keyString.Hashcode();
-        auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources.Find( keyString, hashCode );
-        if( storedMatcher == ciFunction.CompileTimeScope.NamedResources.end() )
+        auto storedMatcher=  ciFunction.CompileTimeScope.NamedResources->Find( keyString, hashCode );
+        if( storedMatcher == ciFunction.CompileTimeScope.NamedResources->end() )
         {
-            ScopeWildcardMatcher* matcher= new ScopeWildcardMatcher();
+            auto& alloc= ciFunction.CompileTimeScope.Allocator;
+            ScopeWildcardMatcher* matcher= alloc().New<ScopeWildcardMatcher>();
             matcher->matcher.Compile( pattern );
-            NString keyCopy= ciFunction.CompileTimeScope.Allocator.EmplaceString( keyString );
-            ciFunction.CompileTimeScope.NamedResources.InsertUnique( std::make_pair(keyCopy, matcher),
-                                                                     hashCode);
+            NString keyCopy( ciFunction.CompileTimeScope.Allocator, keyString );
+            ciFunction.CompileTimeScope.NamedResources->InsertUnique( std::make_pair(keyCopy, matcher),
+                                                                      hashCode);
         }
     }
     return true;
-DOX_MARKER([DOX_ALIB_EXPR_CTRES_5])
+DOX_MARKER([DOX_EXPR_CTRES_5])
 }
 
 
@@ -557,13 +533,14 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
         keyString << pattern;
         auto hashCode     =  keyString.Hashcode();
 
-        auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources.Find( keyString, hashCode );
-        if( storedMatcher == ciBinaryOp.CompileTimeScope.NamedResources.end() )
+        auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources->Find( keyString, hashCode );
+        if( storedMatcher == ciBinaryOp.CompileTimeScope.NamedResources->end() )
         {
-            ScopeRegexMatcher* matcher= new ScopeRegexMatcher();
+            auto& alloc= ciBinaryOp.CompileTimeScope.Allocator;
+            ScopeRegexMatcher* matcher= alloc().New<ScopeRegexMatcher>();
             matcher->matcher.Compile( pattern );
-            ciBinaryOp.CompileTimeScope.NamedResources.InsertOrAssign(
-                         NMAString( ciBinaryOp.CompileTimeScope.Allocator, keyString, 0 ),
+            ciBinaryOp.CompileTimeScope.NamedResources->InsertOrAssign(
+                         NString(alloc, keyString ),
                          matcher,
                          hashCode     );
         }
@@ -579,14 +556,15 @@ bool Strings::TryCompilation( CIBinaryOp& ciBinaryOp )
         keyString << pattern;
         auto hashCode     =  keyString.Hashcode();
 
-        auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources.Find( keyString, hashCode );
-        if( storedMatcher == ciBinaryOp.CompileTimeScope.NamedResources.end() )
+        auto storedMatcher=  ciBinaryOp.CompileTimeScope.NamedResources->Find( keyString, hashCode );
+        if( storedMatcher == ciBinaryOp.CompileTimeScope.NamedResources->end() )
         {
-            ScopeWildcardMatcher* matcher= new ScopeWildcardMatcher();
+            auto& alloc= ciBinaryOp.CompileTimeScope.Allocator;
+            ScopeWildcardMatcher* matcher= alloc().New<ScopeWildcardMatcher>();
             matcher->matcher.Compile( pattern );
 
-            NString keyCopy= ciBinaryOp.CompileTimeScope.Allocator.EmplaceString( keyString );
-            ciBinaryOp.CompileTimeScope.NamedResources.InsertUnique( std::make_pair(keyCopy, matcher),
+            NString keyCopy(alloc, keyString);
+            ciBinaryOp.CompileTimeScope.NamedResources->InsertUnique( std::make_pair(keyCopy, matcher),
                                                                      hashCode );
         }
     }

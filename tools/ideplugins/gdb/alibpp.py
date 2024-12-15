@@ -16,69 +16,6 @@
 
     (where ALOX_LIB_PATH has to be replaced by the right directory path!)
 
-  Attention:
-    The author of this file had a lot of troubles in creating this script. The solution so
-    far might be improvable.
-    It seems that many IDEs, e.g. Eclipse CDT or CLion do not support the use of 'children' very well
-    (as of August 2016 versions). As soon as child values are returned, the 'main' pretty
-    printing result is not shown.  It is not very probable that this is a fault of this script,
-    because this is also true for official pretty printer scripts of standard c++ container classes
-    when used with these IDEs: The objects main value is just not shown with these IDEs.
-    Update 2023/01/30: It is still an issue in CLion as tracked here:
-        https://youtrack.jetbrains.com/issue/CPP-15217
-
-    Therefore, this script is configurable. Configuration is made by adding global symbols
-    to (the debug version) of the inferior (the library or executable to debug). This script
-    checks if these symbols exists. The symbols are:
-    - ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN
-      If this symbol is defined, the pretty printers of this script never return any children.
-      Instead, the children's names and values are just appended to the pretty-print result
-      of the variable itself.
-
-    - ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES
-      If this symbol is defined, then pointer types are treated just as normal types.
-      This is dangerous. For example, with CLion V. 2016.2.1, this symbol must only
-      be set if ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN is set as well. If not, the whole debug system might
-      crash and debugging is not possible anymore.
-
-    To set the symbols, just add a global int value, in one of your C++ files (conditionally, only in
-    debug mode). E.g.
-
-        #if defined( ALIB_DEBUG )
-
-        int ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN;
-        int ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES
-
-        #endif
-
-        int main( int argc, char **argv )
-        {
-            ...
-            ...
-
-    Alternatively, for CMake users, the provided ALib/ALox CMake scripts create corresponding CMAke
-    cache variables that allow to switch this feature.
-
-    The symbols control the global script variables
-    - cfg_suppress_children  and
-    - cfg_find_pointers which
-    are defined below. Instead of compiling the symbols into your software, you can also modify
-    the initial value directly in this script. Their default is "-1" which makes the script
-    search for the symbols on the first use.
-
-    Currently, in file alib.cpp these variables are set for different IDEs.
-
-    This is all quite ugly, but currently we do not find a different solution.
-
-
-  Types supported so far:
-    - All sorts of ALib string types,
-    - strings::util::Tokenizer
-    - system::Directory, system::CalendarDate
-    - time::Ticks
-    - threads::Thread, threads::ThreadLock, threads::ThreadLockNR,
-    - lox::core::Logger, lox::core::Domain, lox::core::LoggerData
-
 #################################################################################################'''
 import string
 try:
@@ -94,18 +31,7 @@ import os.path
 import sys
 import struct
 import types
-
-# For explanation see notes above!
-cfg_suppress_children= -1
-
-# For explanation see notes above!
-cfg_find_pointers= -1
-
-global cfg_alib_detected
-global cfg_alib_character_is_wide
-global cfg_alib_wchar_size
-
-
+import re
 
 #
 # ############################ Working with the inferior #############################
@@ -128,16 +54,11 @@ class InferiorByteArray(object):
 # ############################ ALIB String Tools #############################
 #
 
-#----- Compare two ALib strings  ------
+#----- Compare two ALib strings  ------       <
 def areEqualStrings(strObject1, strObject2, width):
     if width == 0:
-        if cfg_alib_character_is_wide:
-            width= -1
-        else:
-            width=  1
-
-    if width == -1:
-        width= cfg_alib_wchar_size
+        gdb.write( "Error: width=0 in areEqualStrings!\n" )
+        return 0
 
     # compare length
     length1=     strObject1["length"]
@@ -171,29 +92,9 @@ def areEqualStrings(strObject1, strObject2, width):
 
 #----- Get the string value of an ALib string  ------
 # Width: 1, 2 or 4
-#        0: default width
-#       -1: default wide width (either 2 or 4)
-def getASString(strObject):
-    return getASString(strObject, 0)
-
 def getASString(strObject, width):
-    if   str(width) == "char":
-        width= int(0)
-    elif str(width) == "wchar_t":
-        width= int(-1)
-    elif str(width) == "char16_t":
-        width= int(2)
-    elif str(width) == "char32_t":
-        width= int(4)
-
-    if width == 0:
-        if cfg_alib_character_is_wide:
-            width= -1
-        else:
-            width=  1
-
-    if width == -1:
-        width= cfg_alib_wchar_size
+    if width < 1 or width > 4:
+        return "Error: width wrongly given"
 
     straddress= strObject["buffer"]
     length=     strObject["length"]
@@ -357,237 +258,297 @@ def getLoggerDescription(value):
     typeName=   value["TypeName"]
     result= getASString( name, 1 )
 
-    if not areEqualStrings( name, typeName, 0 ):
+    if not areEqualStrings( name, typeName, 1 ):
         result+= " (" + getASString( typeName, 1 ) + ")"
     result+= " [" + str(value["CntLogs"] ) + "]"
 
     return result
 
 
-#
-# ############################## The Pretty Printer class ##############################
-#
+def get_variable_name(val):
+    """
+    Attempt to retrieve the name of the variable corresponding to the gdb.Value.
+
+    Args:
+        val (gdb.Value): The value being pretty-printed.
+
+    Returns:
+        str: The name of the variable, or None if not found.
+    """
+    frame = gdb.selected_frame()
+    for sym in frame.block():
+        if sym.is_variable or sym.is_argument:
+            try:
+                if frame.read_var(sym).address == val.address:
+                    return sym.name
+            except gdb.error:
+                pass
+    return "<var_not_found>"
+
 def dbgDumpPythonObject(obj):
   for attr in dir(obj):
     print("  obj.%s = %r" % (attr, getattr(obj, attr)))
 
+def extractCurlyBrackets(inputString):
+    """
+    Simple regex matcher that extracts the portion of a given string that is enclosed in
+    curly brackets {}.
 
-class ALibPrinter(object):
-    ''' Generic printer taking the readily made variables result and children '''
+    Args:
+        inputString (str): The string to parse.
 
-    def __init__( self, pResult, pChildren ):
-        self.result=        pResult
-        self.childrenDict=  pChildren
+    Returns:
+        str: The extracted string. If no brackets are found, the original string.
+    """
+    match = re.search(r"{\s*(.*?)\s*}", inputString)
+    if match:
+        return match.group(1)
+
+    return inputString
+
+def extractQuotation(inputString):
+    """
+    Simple regex matcher that extracts the portion of a given string that is enclosed in
+    qutoation marks "...".
+
+    Args:
+        inputString (str): The string to parse.
+
+    Returns:
+        str: The extracted string. If no quotation marks are found, the original string.
+    """
+    match = re.search(r"\"\s*(.*?)\s*\"", inputString)
+    if match:
+        return match.group(1)
+
+    return inputString
+
+def getPPValue(value):
+    """
+    Retrieve the pretty-printed value of a gdb.Value.
+
+    Args:
+        value (gdb.Value): The value to pretty-print.
+
+    Returns:
+        str: The pretty-printed string, or the raw string if no pretty-printer is found.
+    """
+    pp = gdb.default_visualizer(value)
+    if pp:
+        return pp.to_string()
+    return str(value)  # Fallback to raw string representation
+
+
+def invoke(value, method):
+    """
+    Invoke the method on the given object.
+    Exceptions are not handled here. Thus the caller can generate a specific error message.
+    Args:
+        value (gdb.Value): The value that represents the object (for pointers see invokeOnPointer).
+        method (str): The method (including call brackets) to invoke.
+
+    Returns:
+        gdb value: The result of the method invocation.
+    """
+
+    try:
+        # Get the address of the value
+        addr = value.address
+        if not addr:
+            # Compute the address using `&` explicitly
+            addr = gdb.parse_and_eval(f"&({value})")
+
+        # Step 3: Cast the address to the appropriate pointer type
+        pointer_type = value.type.pointer()  # Create the pointer type (e.g., T*)
+        ptr_value = addr.cast(pointer_type)
+
+        # Step 4: Dereference the pointer and call the method
+        evalStr=   "((" + str(pointer_type) +  ")"+str(int(ptr_value))+ ")->"+method
+        print("EvalString: <" + evalStr+">")
+        method_result = gdb.parse_and_eval(evalStr)
+        return method_result
+
+    except gdb.error as e:
+        print( "Error invoking method: " + method )
+        return None
+
+def invokeOnPointer(value, method):
+    """
+    Invoke the method on the casted address of the pointer given with the gdb value.
+    Exceptions are not handled here. Thus the caller can generate a specific error message.
+    Args:
+        value (gdb.Value): The value that represents the pointer.
+        method (str): The method (including call brackets) to invoke.
+
+    Returns:
+        gdb value: The result of the method invocation.
+    """
+
+    address= value.dereference()
+    type=  str(address.type.pointer())
+    evalStr=   "((" + type +  f"){address.address})->{method}"
+    #print(f"ALib: evalStr=<{evalStr}>")
+    return gdb.parse_and_eval(evalStr)
+
+
+class ALibPrinter:
+    ''' Generic printer taking the readily made display string while keeping children '''
+
+    def __init__( self, pDisplay, pValue ):
+        self.display=  pDisplay
+        self.value  =  pValue
 
     def to_string(self):
-        return self.result
+        return self.display
 
     def children(self):
-        #print("------------------------------------ " + str(self.childrenDict))
-        if self.childrenDict is None:
-            self.childrenDict= [ ("No Children With This Pretty Printer" , "./."   ) ]
-        return self.childrenDict
-
-
-glbALibPrinterWithOutChildrenBlocker= False
-class ALibPrinterWithOutChildren(object):
-    ''' Printer that does not define the 'children' method, to avoid problems with
-    some IDEs '''
-
-    def __init__( self, pResult, pChildren ):
-        self.result=        pResult
-        self.childrenDict=  pChildren
-
-    def to_string(self):
-        result= self.result
-        global glbALibPrinterWithOutChildrenBlocker
-        if glbALibPrinterWithOutChildrenBlocker is False:
-            if self.childrenDict is not None:
-                result= str(result) + " | {"
-                glbALibPrinterWithOutChildrenBlocker= True
-                isFirst= True
-                for t in self.childrenDict:
-                    if not isFirst:
-                        result+= ", "
-                    isFirst= False
-                    result+= t[0] +'=' + str(t[1])
-                result+= "}"
-                glbALibPrinterWithOutChildrenBlocker= False
-        return result
-
-    #def display_hint (self):
-    #    return 'string'
+        try:
+            if not hasattr(self.value.type, "fields") or not self.value.type.is_complete():
+                return
+            fields = self.value.type.fields()
+            if not fields:
+                return
+            for field in fields:
+                yield field.name, self.value[field.name]
+        except Exception as e:
+            yield f"Error accessing children: {str(e)}", None
 
 #
 # ############################## ALIB Printer ##############################
 #
-def lookup_pp_alib_and_alox( value  ):
-    "Looks and implements ALib printers"
+class ALibPrinterSelector:
+    name    = "ALibPrettyPrinter"
+    enabled = True
 
-    # get character width configuration
-    global cfg_alib_character_is_wide
-    global cfg_alib_wchar_size
-    global cfg_alib_detected
-    if cfg_alib_detected is False:
-        cfg_alib_detected = True
-        print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_DEFAULT_CHAR_IS_WIDE"...')
-        if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_DEFAULT_CHAR_IS_WIDE" ) is None:
-            print ( '      ... not found')
-            cfg_alib_character_is_wide=  False
-        else:
-            print ( '      ... found')
-            cfg_alib_character_is_wide=  True
+    def __init__(self):
+        pass
 
-        print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_WCHAR_SIZE_IS_4"...')
-        if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_WCHAR_SIZE_IS_4" ) is None:
-            print ( '      ... not found')
-            cfg_alib_wchar_size=  2
-        else:
-            print ( '      ... found')
-            cfg_alib_wchar_size=  4
+    def __call__(self, value):
 
+        typeNameOrig=  str(value.type.name )               # This is not used yet, but may be helpful to identify "custom pod-types"
+        typeName    =  str(value.type.strip_typedefs() )
 
+        if typeName.startswith("const "):
+            typeName= typeName[6:]
 
-    typeNameOrig=  str(value.type.name )               # This is not used yet, but may be helpful to identify "custom pod-types"
-    typeName    =  str(value.type.strip_typedefs() )
-
-
-
-
-    if typeName.startswith("const "):
+        # not alib?
+        if not typeName.startswith( "alib::"):
+            return None
         typeName= typeName[6:]
 
-    # not alib?
-    if not typeName.startswith( "alib::"):
-        return None
-    typeName= typeName[6:]
+        #print("----ALib Type: " + typeNameOrig + " -> " +typeName )
+        #print( "ALib: Lookup for type >%s< " % type )
 
-    print("----ALib Type: " + typeNameOrig + " -> " +typeName )
-    #print( "ALib: Lookup for type >%s< " % type )
+        if typeName.endswith(" &"):
+            typeName= typeName[0:-2]
+
+        # declare result for our pretty printer
+        display=     None
+
+        try:
+            stdCharWidth= gdb.lookup_type("alib::character").sizeof
+            #------------------------------------- strings ---------------------------------
+            if typeName.startswith( 'lang::' ):
+                typeName= typeName[6::]
+
+                if typeName == "CallerInfo":
+                    display=         getPPValue(value["File"])
+                    display+= ":"  + getPPValue(value["Line"])
+                    display+= " (" + getPPValue(value["Func"]) + ")"
+                    display+= " "  + getPPValue(value["TypeInfo"])
+                    try:
+                       display+= getPPValue(value["ThreadID"])
+                    except:
+                       pass
+
+                #--------------------------------- System ---------------------------------
+                elif typeName.startswith( 'system::' ):
+                    typeName= typeName[8::]
+
+                    if typeName == "Path":
+                        cWidth= gdb.lookup_type("alib::lang::system::PathCharType").sizeof
+                        asBuffer= getASString( value, cWidth )
+                        display= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+                        if( cWidth != stdCharWidth ):
+                            display+= " (PathCharType)"
 
 
-    # pointer / reference
-    global cfg_find_pointers
-    if cfg_find_pointers == -1:
-        print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES"...')
-        if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_FIND_POINTER_TYPES" ) is None:
-            print ( 'ALib: ... not found')
-            cfg_find_pointers=  0
-        else:
-            print ( 'ALib: ... found')
-            cfg_find_pointers=  1
+                    elif typeName == "CalendarDate":
+                        display=          str(   value["stamp"] >> 12       )               \
+                                + '/'  + str( ( value["stamp"] >>  8) & 15 )               \
+                                + '/'  + str( ( value["stamp"] >>  3) & 31 )               \
+                                + ' (' + getDayOfWeekString( value["stamp"] & 7 )  + ')'
 
+                    elif typeName == "CalendarDateTime":
+                        display=   '{}/{:02}/{:02} ({}) {}:{:02}:{:02} {}ms'.format(
+                                              value["Year"       ]              , \
+                                         int( value["Month"      ] )            , \
+                                         int( value["Day"        ] )            , \
+                          getDayOfWeekString( value["DayOfWeek"  ] & 7 )        , \
+                                              value["Hour"       ]              , \
+                                         int( value["Minute"     ] )            , \
+                                         int( value["Second"     ] )            , \
+                                         int( value["Millisecond"] )            )
 
-    if cfg_find_pointers == 1 and typeName.endswith(" *"):
-        typeName= typeName[0:-2]
-
-
-    if typeName.endswith(" &"):
-        typeName= typeName[0:-2]
-
-
-    # declare result and children for our pretty printer
-    result=     None
-    children=   None
-
-
-    try:
-        ################################## ALib ##################################
-        if typeName.startswith( ''):
-            #typeName= typeName[5:]
 
 
             #------------------------------------- strings ---------------------------------
-            if typeName.startswith( 'strings::' ):
+            elif typeName.startswith( 'strings::' ):
                 typeName= typeName[9::]
 
-                #--------------------- char -----------------------
-                if typeName.startswith("TString<"):
-                    cType= typeName[8:typeName.find(">")]
-                    asBuffer= getASString( value, cType )
-                    result= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+                if (    typeName.startswith("TString<")
+                     or typeName.startswith("TCString<")
+                     or typeName.startswith("TSubstring<") ):
 
-                    children=  [ ("buffer" , value["buffer"]   ),
-                                 ("length" , value["length"]   )   ];
-
-
-                elif typeName.startswith("TCString<"):
-                    cType= typeName[9:typeName.find(">")]
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, cType ) + '"'
-
-                elif typeName.startswith("TSubstring<"):
-                    cType= typeName[11:typeName.find(">")]
-                    result= "[" + str(value["length"]) + '] "'  + getASString( value, cType ) + '"'
-
+                    cType = str(value.type.template_argument(0))
+                    cWidth= gdb.lookup_type(cType).sizeof
+                    asBuffer= getASString( value, cWidth )
+                    display= "[" + str(value["length"]) + '] "'  + asBuffer + '"'
+                    if( cWidth != stdCharWidth ):
+                        display+= " (" + cType + ")"
 
                 elif typeName.startswith("TAString<"):
-                    cType= typeName[9:typeName.find(">")]
-                    result= "[" + str(value["length"]) +"/"
+                    cType = str(value.type.template_argument(0))
+                    aType = str(value.type.template_argument(1))
+                    cWidth= gdb.lookup_type(cType).sizeof
+                    asBuffer= getASString( value, cWidth )
+
+                    display= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) + "(Ext)"
+                        display+=  str(-capacity) + "(Ext)"
                     else:
-                        result+= str(capacity)
-                    result+= '] "'  + getASString( value, cType ) + '"'
-
-                    children= [  ( "alib::strings::TString<"+cType+">", value.cast(gdb.lookup_type("alib::strings::TString<char>") ) )
-                                ,( "capacity" , value["capacity"] )
-                              ];
-                    try:
-                        children.append( ("OTW_ReplaceExternalBuffer" , value["ALIB_OTW_ReplaceExternalBuffer"] ) )
-                    except:
-                        pass
+                        display+= str(capacity)
+                    display+= '] "'  + getASString( value, cWidth ) + '"'
+                    if( cWidth != stdCharWidth ):
+                        display+= " (" + cType + ")"
 
                 elif typeName.startswith("TLocalString<"):
-                    cType= typeName[13:typeName.find(",")]
-                    result= "[" + str(value["length"]) +"/"
+                    cType     = str(value.type.template_argument(0))
+                    TCapacity = int(value.type.template_argument(1))
+                    aType     = str(value.type.template_argument(2))
+                    cWidth= gdb.lookup_type(cType).sizeof
+                    asBuffer= getASString( value, cWidth )
+
+                    display= "[" + str(value["length"]) +"/"
                     capacity= value["capacity"]
                     if capacity < 0:
-                        result+=  str(-capacity) +"(LS)"
+                        display+=  str(-capacity) + "(LS)"
                     else:
-                        result+= str(capacity)  +"(Replaced!)"
-                    result+= '] "'  + getASString( value, cType ) + '"'
-
-                    children= [  ( "alib::strings::TAString<"+cType+">", value.cast(gdb.lookup_type("alib::strings::TAString<char>") ) )
-                                ,( "capacity" , value["capacity"] )
-                                 ];
+                        display+= str(capacity)   + " (Replaced)"
+                    display+= '] "'  + getASString( value, cWidth ) + '"'
+                    if( cWidth != stdCharWidth ):
+                        display+= " (" + cType + ")"
 
 
                 elif typeName.startswith("util::TTokenizer<"):
-                    cType= typeName[17:typeName.find(">")]
-                    result= 'Actual="'  + getASString( value["Actual"]  ,cType ) + \
-                             '" Rest="' + getASString( value["Rest"]    ,cType ) + '"' + \
+                    cType = str(value.type.template_argument(0))
+                    cWidth= gdb.lookup_type(cType).sizeof
+                    display= 'Actual="'  + getASString( value["Actual"]  ,cWidth ) + \
+                             '" Rest="' + getASString( value["Rest"]    ,cWidth ) + '"' + \
                              " Delim='" + chr(value["delim"]) + "'"
 
-                else:  print("ALib Type without Pretty Printer: " + typeName )
 
-
-
-            #--------------------------------- System ---------------------------------
-            elif typeName.startswith( 'lang::system::' ):
-                typeName= typeName[8::]
-
-                if typeName == "Directory":
-                    result= getASString( value["Path"] )
-
-
-
-                elif typeName == "CalendarDate":
-                    result=          str(   value["stamp"] >> 12       )               \
-                            + '/'  + str( ( value["stamp"] >>  8) & 15 )               \
-                            + '/'  + str( ( value["stamp"] >>  3) & 31 )               \
-                            + ' (' + getDayOfWeekString( value["stamp"] & 7 )  + ')'
-
-                elif typeName == "CalendarDateTime":
-                    result=   '{}/{:02}/{:02} ({}) {}:{:02}:{:02} {}ms'.format(
-                                          value["Year"       ]              , \
-                                     int( value["Month"      ] )            , \
-                                     int( value["Day"        ] )            , \
-                      getDayOfWeekString( value["DayOfWeek"  ] & 7 )        , \
-                                          value["Hour"       ]              , \
-                                     int( value["Minute"     ] )            , \
-                                     int( value["Second"     ] )            , \
-                                     int( value["Millisecond"] )            )
 
 
             #--------------------------------- Time ---------------------------------
@@ -595,91 +556,145 @@ def lookup_pp_alib_and_alox( value  ):
                 typeName= typeName[6::]
 
                 if typeName == "Ticks":
-                    result= getDurationString( value["stamp"]["__d"]["__r"] )
+                    display= getDurationString( value["stamp"]["__d"]["__r"] )
 
                 elif typeName.endswith("Ticks>::Duration"):
-                    result= getDurationString( value["span"]["__r"] )
+                    display= getDurationString( value["span"]["__r"] )
 
                 elif typeName == "DateTime":
-                    result= getDurationString( value["stamp"]["__d"]["__r"] )
+                    display= getPPValue( value["stamp"] )
+                    match = re.search(r"\[\s*(.*?)\s*\]", display)
+                    if match:
+                        display= match.group(1)
+
 
                 elif typeName.endswith("DateTime>::Duration"):
-                    result= getDurationString( value["span"]["__r"] )
+                    display= getDurationString( value["span"]["__r"] )
 
                 elif typeName == "StopWatch":
-                    result=  "Cnt="  +               str( value["cntSamples"] )
-                    result+= " SUM=" + getDurationString( value["sum"]["span"]["__r"] )
-                    result+= " MIN=" + getDurationString( value["min"]["span"]["__r"] )
-                    result+= " MAX=" + getDurationString( value["max"]["span"]["__r"] )
-                    result+= " AVG=" + getDurationString( int(value["sum"]["span"]["__r"]) / int(value["cntSamples"])  )
+                    display=  "Cnt="  +               str( value["cntSamples"] )
+                    display+= " SUM=" + getDurationString( value["sum"]["span"]["__r"] )
+                    display+= " MIN=" + getDurationString( value["min"]["span"]["__r"] )
+                    display+= " MAX=" + getDurationString( value["max"]["span"]["__r"] )
+                    if int(value["cntSamples"]) > 0:
+                        display+= " AVG=" + getDurationString( int(value["sum"]["span"]["__r"]) / int(value["cntSamples"])  )
 
-            #--------------------------------- Memory ---------------------------------
+            #--------------------------------- BitBuffer ---------------------------------
             elif typeName.startswith( 'bitbuffer::' ):
-                typeName= typeName[8::]
-
+                typeName= typeName[11::]
                 if typeName == "BitBufferBase::Index":
-                    result= "data[" + str(value["pos"]) +"]." + str(value["bit"] )
+                    display= "data[" + str(value["pos"]) +"]." + str(value["bit"] )
 
                 elif typeName == "BitWriter":
-                    result = "{:039_b}".format(int(value["word"]))
+                    display = "{:039_b}".format(int(value["word"]))
                     bitIdx= int( value["idx"]["bit"] )
                     bitIdx+= int(bitIdx / 4)
-                    result= result[0:39-bitIdx] + "<" + result[39-bitIdx:]
-                    result+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
+                    display= display[0:39-bitIdx] + "<" + display[39-bitIdx:]
+                    display+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
 
                 elif typeName == "BitReader":
-                    result = "{:039_b}".format(int(value["word"]))
+                    display = "{:039_b}".format(int(value["word"]))
                     bitIdx= int( value["idx"]["bit"] )
                     bitIdx+= int(bitIdx / 4)
-                    result =  result[bitIdx:] + "<"
-                    result+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
+                    display =  display[bitIdx:] + "<"
+                    display+= " Index=" + str(value["idx"]["pos"]) +"/" + str(value["idx"]["bit"] )
 
 
 
             #--------------------------------- Threads ---------------------------------
             elif typeName.startswith( 'threads::' ):
                 typeName= typeName[9::]
-                if typeName == "ThreadLockNR":
-                    tnrIsAcquired= value["dbgIsAcquiredBy"]["_M_thread"]
-                    if tnrIsAcquired == 0 :
-                        result= "Unlocked"
+                if typeName == "Thread":
+                    display =  "#" + str(value["id"]) + ' "' + getASString( value["name"], stdCharWidth )
+                    display+=  '" State::'
+                    state=  value["state"]
+                    if state == 0:
+                        display+=  "Unstarted"
+                    elif state == 1:
+                        display+=  "Started"
+                    elif state == 2:
+                        display+=  "Running"
+                    elif state == 3:
+                        display+=  "Done"
+                    elif state == 4:
+                        display+=  "Terminated"
                     else:
-                        result= "Locked (by internal thread ID: " + str(tnrIsAcquired) + ")"
+                        display+=  "PrettyPrinterUnknownState"
 
+                    if( value["id"] < 0 ):
+                        display+=  " (Non-ALib-Thread)"
 
-                elif typeName == "ThreadLock":
-                    tnrCntLock= value["cntAcquirements"]
-                    if tnrCntLock == 0:
-                        result= "Unlocked"
-
-                    elif tnrCntLock == 1:
-                        result= "Locked"
-
-                    elif tnrCntLock < 0:
-                        result= "Illegal State. cntAcquirements=" + str(tnrCntLock)
-
+                elif typeName == "DbgLockAsserter":
+                    display= str(value["Name"])
+                    strCntAcq= str(value["CntAcquirements"])
+                    if strCntAcq != "0":
+                        display+= " Acquired(" + strCntAcq + ")"
                     else:
-                        result= "Locked (" + str(tnrCntLock) +")"
+                        display+= " Not Acquired"
 
-                    if value["safeness"] == 1:
-                        result+= " (Unsafe mode!)"
+                    #-- print to gdb console to allow source-code jumping --
+                    display+= " (Check GDB Console for source-jumps)"
+                    consoleOutput=  "DbgLockAsserter CallerInfos:"
+                    consoleOutput+= "\n  AcqCI: " + str(value["AcqCI"]["File"])    + ":" + str(value["AcqCI"]["Line"])
+                    consoleOutput+= "\n  RelCI: " + str(value["RelCI"]["File"])    + ":" + str(value["RelCI"]["Line"])
+                    print(consoleOutput.replace('"', ""))
+
+
+                elif typeName == "DbgSharedLockAsserter":
+                    display= str(value["Name"])
+                    strCntAcq= str(value["CntAcquirements"])
+                    if strCntAcq != "0":
+                        display+= " Acquired(" + strCntAcq + ")"
                     else:
-                        if tnrCntLock >= 1:
-                            result+=  ", Owner: " + "#" + str(value["owner"]["_M_thread"]) + ' "'
+                        display+= " Not acquired"
+                        
+                    strCntShrdAcq= extractCurlyBrackets(getPPValue(value["CntSharedAcquirements"]))
+                    if strCntShrdAcq != "0":
+                        display+= ", Shared-acquired(" + strCntShrdAcq + ")"
+                    else:
+                        display+= ", Not shared-acquired"
+
+                    #-- print to gdb console to allow source-code jumping --
+                    display+= " (Check GDB Console for source-jumps)"
+                    consoleOutput=  "DbgLockAsserter CallerInfos:"
+                    consoleOutput+= "\n   AcqCI: " + str(value["AcqCI"]["File"])    + ":" + str(value["AcqCI"]["Line"])
+                    consoleOutput+= "\n   RelCI: " + str(value["RelCI"]["File"])    + ":" + str(value["RelCI"]["Line"])
+                    consoleOutput+= "\n  SAcqCI: " + str(value["SAcqCI"]["File"])   + ":" + str(value["SAcqCI"]["Line"])
+                    consoleOutput+= "\n  SRelCI: " + str(value["SRelCI"]["File"])   + ":" + str(value["SRelCI"]["Line"])
+                    print(consoleOutput.replace('"', ""))
 
 
-#                    children= [ ("cntAcquirements"         , value["cntAcquirements"]         ),
-#                                ("owner"                   , value["owner"]                   ),
-#                                ("mutex"                   , value["mutex"]                   ),
-#                                ("acquirementSourcefile"   , value["acquirementSourcefile"]   ),
-#                                ("acquirementLineNumber"   , value["acquirementLineNumber"]   ),
-#                                ("acquirementMethodName"   , value["acquirementMethodName"]   )   ];
+                elif (     typeName == "Lock"
+                        or typeName == "TimedLock"
+                        or typeName == "RecursiveLock"
+                        or typeName == "RecursiveTimedLock"
+                        or typeName == "SharedLock"
+                        or typeName == "SharedTimedLock" ):
+                    display= getPPValue(value["Dbg"])
 
-                elif typeName == "Thread":
-                    result =  "#" + str(value["id"]) + ' "' + getASString( value["name"] )
-                    result+=  '" (Alive/' if (value["isAliveFlag"]   != 0) else '" (Not alive/'
-                    result+=  "User)"    if (value["id"]             >  0) else "System)"
+                elif typeName == "DbgConditionAsserter":
+                    display= getPPValue(value["Name"])
+                    strCntWaiters= extractCurlyBrackets(getPPValue(value["CntWaiters"]))
+                    if strCntWaiters != "0":
+                        display+= ", Waiters: " + strCntWaiters
+                    else:
+                        display+= ", No waiters"
 
+                    if int(value["Owner"]) != 0:
+                        display+= ", Owner={" + getPPValue(value["Owner"].dereference()) + "}"
+
+                    #-- print to gdb console to allow source-code jumping --
+                    display+= " (Check GDB Console for source-jumps)"
+                    consoleOutput=  "DbgConditionAsserter CallerInfos:"
+                    consoleOutput+= "\n     AcqCI: " + str(value["AcqCI"]["File"])    + ":" + str(value["AcqCI"]["Line"])
+                    consoleOutput+= "\n     RelCI: " + str(value["RelCI"]["File"])    + ":" + str(value["RelCI"]["Line"])
+                    consoleOutput+= "\n    WaitCI: " + str(value["WaitCI"]["File"])   + ":" + str(value["WaitCI"]["Line"])
+                    consoleOutput+= "\n  NotifyCI: " + str(value["NotifyCI"]["File"]) + ":" + str(value["NotifyCI"]["Line"])
+                    print(consoleOutput.replace('"', ""))
+
+                elif typeName.startswith("TCondition<"):   
+                    display= getPPValue(value["Dbg"])
+                    
 
             ################################## ALox ##################################
             elif typeName.startswith( 'lox::' ):
@@ -688,134 +703,143 @@ def lookup_pp_alib_and_alox( value  ):
 
                 #---------------------------- Verbosity ------------------------------
                 if typeName == "Verbosity":
-                    result= getVerbosityString( value )
+                    display= getVerbosityString( value )
 
                 #---------------------------- Loggers ------------------------------
                 elif typeName == "detail::Logger"                 or \
-                     typeName == "detail::textlogger::TextLogger" or \
+                     typeName == "textlogger::TextLogger" or \
                      typeName == "loggers::ConsoleLogger"       or \
                      typeName == "loggers::MemoryLogger"        or \
                      typeName == "loggers::AnsiLogger"          or \
                      typeName == "loggers::AnsiConsoleLogger":
 
-                    result= getLoggerDescription( value )
+                    display= getLoggerDescription( value )
 
                 #---------------------------- Domain ------------------------------
-                elif typeName == "core::Domain":
+                elif typeName == "detail::Domain":
 
                     # get absolute domain path
-                    result= ""
+                    display= ""
                     domain= value
                     omitFirstSlash= domain["Parent"] != 0
                     while True:
                         if omitFirstSlash == False:
-                            result=   "/" + result
+                            display=   "/" + display
                         omitFirstSlash= False
 
                         if domain["Name"]["length"] != 0:
-                            result= getASString( domain["Name"], 1 ) + result
+                            display= getASString( domain["Name"], 1 ) + display
                         domain= domain["Parent"]
                         if domain == 0:
                             break
 
-                    result+= "  [" + str(value["CntLogCalls"]) + "]"
-
-                    children= [   #("Name"                     , value["Name"]              ) ,
-                                   ("Parent"                   , value["Parent"]            ) ,
-                                   ("SubDomains"               , value["SubDomains"]        ) ,
-                                   ("Data"                     , value["Data"]              ) ,
-                                   ("FullPath"                 , value["FullPath"]          ) ,
-                                   ("CntLogCalls"              , value["CntLogCalls"]       ) ,
-                                   ("ConfigurationAlreadyRead" , value["ConfigurationAlreadyRead"] )   ]
+                    display+= "  [" + str(value["CntLogCalls"]) + "]"
 
 
                 #---------------------------- Domain::LoggerData ------------------------------
-                elif typeName == "core::Domain::LoggerData":
-                    result = "<"            + getVerbosityString(   value["LoggerVerbosity"]   )
-                    result+= ", "           + getLoggerDescription( value["Logger"]            )
-                    result+= ", priority="  + str(                  value["Priority"]          )
-                    result+= ">["           + str(                  value["LogCallsPerDomain"] ) + "]"
+                elif typeName == "detail::Domain::LoggerData":
+                    display = "<"            + getVerbosityString(   value["LoggerVerbosity"]   )
+                    display+= ", "           + getLoggerDescription( value["Logger"]            )
+                    display+= ", priority="  + str(                  value["Priority"]          )
+                    display+= ">["           + str(                  value["LogCallsPerDomain"] ) + "]"
 
-                    #children= [ ("Name"                     , value["Name"]              ) ,
-                    #            ("Parent"                   , value["Parent"]            ) ,
-                    #            ("SubDomains"               , value["SubDomains"]        ) ,
-                    #            ("Data"                     , value["Data"]              ) ,
-                    #            ("FullPath"                 , value["FullPath"]          ) ,
-                    #            ("CntLogCalls"              , value["CntLogCalls"]       ) ,
-                    #            ("ConfigurationAlreadyRead" , value["ConfigurationAlreadyRead"] )   ];
+            ################################## Files ##################################
+            elif typeName.startswith( 'files::' ):
+                typeName= typeName[7:]
 
 
-    except Exception as e:
-        print ("\nALib PrettyPrinters: Exception occurred: %s" % str(e))
-        if result != None and len(result) > 0:
-            result= "<Pretty Printer Exception. Unfinished result='%s'>" % result
-        else:
-            result= "<Pretty Printer Exception>"
-        #pass
+                #---------------------------- File ------------------------------
+                if typeName == "File":
+                    node= value["node"].dereference()
+                    display= '"' + getPPValue(node["name"]["storage"]) + '"'
+                    display+= " [" + getPPValue(node["qtyChildren"])
+                    display+= "/" + getPPValue(node["data"]["size"])
+                    display+= "/" + getPPValue(node["data"]["mDate"])
+                    display+= "] (Children/Size/Modif.)"
 
 
-    # now return a printer
-    if result is None:
-        return None
-
-    if children is None:
-        return ALibPrinterWithOutChildren( result, children )
-
-    global cfg_suppress_children
-    if cfg_suppress_children == -1:
-        print ( 'ALib: Detecting global symbol "ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN"...')
-        if  gdb.lookup_global_symbol( "ALIB_PRETTY_PRINTERS_SUPPRESS_CHILDREN" ) is None:
-            print ( 'ALib: ... not found')
-            cfg_suppress_children=  0
-        else:
-            print ( 'ALib: ... found')
-            cfg_suppress_children=  1
-
-    if cfg_suppress_children == 0:
-        return ALibPrinter( result, children )
-    else:
-        return ALibPrinterWithOutChildren( result, children )
+            ################################## Config ##################################
+            elif typeName.startswith( 'config::' ):
+                typeName= typeName[8:]
 
 
-    return None
+                #---------------------------- Variable ------------------------------
+                if typeName == "Variable":
+                    node= value["node"].dereference()
+                    display= extractQuotation(getPPValue(node["name"]["storage"]))
+                    if node["data"]["meta"] == 0:
+                        display+= " [undeclared]"
+                    else:
+                        type= "Error calling VMeta::typeName()"
+                        display+= " <"
+                        try:
+                            type= extractQuotation(getPPValue(invokeOnPointer(node["data"]["meta"], "typeName()")))
+                        except Exception as e:
+                            print("ALib: Exception occurred while trying to get typename: " + str(e))
+                            pass
+                        display+= type + ">"
 
-def add_printers(obj):
-    "Register ALib/ALox pretty printer lookup methods with."
+                        # Check if variable is defined
+                        if node["data"]["priority"] == 0:
+                            display+= " [undefined]"
+                        else:
+                            # Get some type-specific values
+                            varval= "Pretty printer error retrieving variable value"
+                            display+= ' "'
+                            try:
+                                if type == "B":
+                                    varval= getPPValue(invoke(value, "GetBool()"))
+                                elif type == "I":
+                                    varval= getPPValue(invoke(value, "GetInt()"))
+                                elif type == "F":
+                                    varval= getPPValue(invoke(value, "GetDouble()"))
+                                elif type == "S":
+                                    AStringPA= invoke(value, "GetString()")
+                                    StringType= gdb.lookup_type("alib::String").reference()
+                                    varval= getPPValue(AStringPA.cast(StringType))
+                                elif type == "SV," or type == "SV;" :
+                                    size= invoke(value, "GetStrings().size()")
+                                    display+= " [" + str(size) + "]={"
+                                    for i in range(int(size)):
+                                        sref= invoke(value, f"GetString({i})")
+                                        s = sref.cast(sref.type.target())
+                                        display+= '"' + extractQuotation(getPPValue(s)) + '"'
+                                        if i!= int(size)-1:
+                                            display+= ", "
+                                    display+= "}"
+                                    varval= None
 
-    print( 'ALib: Registering Pretty Printers for ALib', True  )
-    gdb.printing.register_pretty_printer(obj, lookup_pp_alib_and_alox, replace=True)
+                                else:
+                                    varval+= "Pretty Printer: unknown variable type, cannot evaluate"
+
+                            except Exception as e:
+                                print("ALib: Exception occurred while trying to get variable value: " + str(e))
+                                pass
+                            if varval != None:
+                                display+= varval + '"'
+
+                        
+        except Exception as e:
+            print ("\nALib PrettyPrinters: Exception occurred: %s" % str(e))
+            if display != None and len(display) > 0:
+                display= "<Pretty Printer Exception. Unfinished display='%s'>" % display
+            else:
+                display= "<Pretty Printer Exception>"
+            #pass
+
+
+        # now return a printer
+        if display is None:
+            return None
+
+        return ALibPrinter( display, value )
 
 
 ####################################################################################################
 ### main entry point
 ####################################################################################################
+gdb.printing.register_pretty_printer(gdb.current_objfile(), ALibPrinterSelector())
 
-# invoked from .gdbinit ?
-cfg_alib_detected= False
-if gdb.current_objfile() is None:
-
-    # import adpp main module
-    try:
-        import alibpp
-    except Exception as e:
-        gdb.write("Exception occurred: %s" % str(e) )
-        raise Exception("Seems like this script is included in file '.gdbinit', but the propper import path is not set. ")
-
-
-else:
-    # import adpp main module
-    try:
-        import alibpp
-    except:
-        # In  /usr/lib/gcc/x86_64-pc-linux-gnu/5.4.0/libstdc++.so.6.0.21-gdb.py  some code
-        # is included that inserts the module path to find the library from the object file name
-        # not supported today....
-        print ( __file__)
-
-        raise Exception( "Can't find module 'addp.py'. Exiting" )
-
-
-alibpp.add_printers(gdb.current_objfile())
 
 ##### For debugging: starts our test program.
 ##### (We just get more info when running this in a stand-alone GDB session)

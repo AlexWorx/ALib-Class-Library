@@ -1,29 +1,34 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- *
- * This header does not belong to a module of \alib, but is
- * included in any \alibdist.
- * Its purposes are:
- * - To identify given \ref GrpALibPreproSymbols  related to module selection and enable
- *   corresponding symbols (that may be not given) of dependent modules.
- * - Provide functions \alib{Bootstrap} and \alib{Shutdown} which select the right bootstrapping
- *   and shutdown methods, depending on the \alibdist_nl.
- *
- * \note
- *   This header is not shown in inclusion graphs of this documentation, as it is always
- *   included directly or indirectly.
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+///
+/// This header does not belong to a module of \alib, but is
+/// included in any \alibdist.
+/// Its purposes are:
+/// - To identify given \ref GrpALibPreproSymbols  related to module selection and enable
+///   corresponding symbols (that may be not given) of dependent modules.
+/// - Provide functions \alib{Bootstrap} and \alib{Shutdown} which select the right bootstrapping
+///   and shutdown methods, depending on the \alibdist_nl.
+///
+/// \note
+///   This header is not shown in inclusion graphs of this documentation, as it is always
+///   included directly or indirectly.
+//==================================================================================================
 #ifndef HPP_ALIB
 #define HPP_ALIB 1
+#pragma once
 
-#define ALIB_VERSION              2402
-#define ALIB_REVISION             1
+#define ALIB_VERSION              2412
+#define ALIB_REVISION             0
 
-#if !defined(ALIB_DOX)
+#ifndef DOXYGEN
+#   define DOXYGEN 0
+#endif
+
+#if !DOXYGEN
 
 // #################################################################################################
 // No module selection symbol given but threads? -> choose ALL
@@ -34,6 +39,7 @@
      && !defined( ALIB_CHARACTERS   )       \
      && !defined( ALIB_CLI          )       \
      && !defined( ALIB_CONFIGURATION)       \
+     && !defined( ALIB_CONTAINERS   )       \
      && !defined( ALIB_ENUMS        )       \
      && !defined( ALIB_EXPRESSIONS  )       \
      && !defined( ALIB_FILES        )       \
@@ -42,13 +48,14 @@
      && !defined( ALIB_STRINGS      )       \
      && !defined( ALIB_CAMP         )       \
      && !defined( ALIB_TIME         )       \
+     && !defined( ALIB_THREADMODEL  )       \
      && !defined( ALIB_THREADS      )
-#   define  ALIB_ALOX                1
-#   define  ALIB_EXPRESSIONS         1
-#   define  ALIB_CLI                 1
-#   define  ALIB_FILES               1
-#   define  ALIB_THREADS             1
-#   define  ALIB_BITBUFFER           1
+#   define  ALIB_ALOX               1
+#   define  ALIB_EXPRESSIONS        1
+#   define  ALIB_CLI                1
+#   define  ALIB_FILES              1
+#   define  ALIB_THREADMODEL        1
+#   define  ALIB_BITBUFFER          1
 #endif
 
 #if !defined(ALIB_ALOX         )
@@ -60,11 +67,17 @@
 #if !defined(ALIB_BOXING       )
 #   define ALIB_BOXING              0
 #endif
+#if !defined(ALIB_TIME         )
+#   define ALIB_TIME                0
+#endif
 #if !defined(ALIB_CLI          )
 #   define ALIB_CLI                 0
 #endif
 #if !defined(ALIB_CHARACTERS   )
 #   define ALIB_CHARACTERS          0
+#endif
+#if !defined(ALIB_CONTAINERS)
+#   define ALIB_CONTAINERS          0
 #endif
 #if !defined(ALIB_CONFIGURATION)
 #   define ALIB_CONFIGURATION       0
@@ -79,7 +92,7 @@
 #   define ALIB_FILES               0
 #endif
 #if !defined(ALIB_MONOMEM      )
-#   define ALIB_MONOMEM              0
+#   define ALIB_MONOMEM             0
 #endif
 #if !defined(ALIB_SINGLETONS   )
 #   define ALIB_SINGLETONS          0
@@ -87,11 +100,11 @@
 #if !defined(ALIB_STRINGS      )
 #   define ALIB_STRINGS             0
 #endif
-#if !defined(ALIB_CAMP       )
-#   define ALIB_CAMP              0
+#if !defined(ALIB_CAMP         )
+#   define ALIB_CAMP                0
 #endif
-#if !defined(ALIB_TIME         )
-#   define ALIB_TIME                0
+#if !defined( ALIB_THREADMODEL )
+#   define  ALIB_THREADMODEL        0
 #endif
 #if !defined( ALIB_THREADS     )
 #   define  ALIB_THREADS            0
@@ -103,65 +116,83 @@
 // #################################################################################################
 #if ALIB_ALOX
 #    undef  ALIB_CONFIGURATION
-#    define ALIB_CONFIGURATION       1
+#    define ALIB_CONFIGURATION      1
 #endif
 #if ALIB_CLI
 #    undef  ALIB_CAMP
-#    define ALIB_CAMP                1
+#    define ALIB_CAMP               1
 #endif
 #if ALIB_CONFIGURATION
 #    undef  ALIB_CAMP
-#    define ALIB_CAMP                1
+#    define ALIB_CAMP               1
 #endif
 #if ALIB_EXPRESSIONS
 #    undef  ALIB_CAMP
-#    define ALIB_CAMP                1
+#    define ALIB_CAMP               1
 #endif
 #if ALIB_FILES
 #    undef  ALIB_CAMP
-#    define ALIB_CAMP                1
+#    define ALIB_CAMP               1
 #endif
 #if ALIB_CAMP
 #    undef  ALIB_STRINGS
-#    define ALIB_STRINGS             1
+#    define ALIB_STRINGS            1
 #    undef  ALIB_BOXING
-#    define ALIB_BOXING              1
+#    define ALIB_BOXING             1
+#    undef  ALIB_CONTAINERS
+#    define ALIB_CONTAINERS         1
 #    undef  ALIB_ENUMS
-#    define ALIB_ENUMS               1
+#    define ALIB_ENUMS              1
 #    undef  ALIB_TIME
-#    define ALIB_TIME                1
+#    define ALIB_TIME               1
 #    undef  ALIB_MONOMEM
-#    define ALIB_MONOMEM             1
+#    define ALIB_MONOMEM            1
 #endif
 #if ALIB_BITBUFFER
 #    undef  ALIB_MONOMEM
-#    define ALIB_MONOMEM             1
+#    define ALIB_MONOMEM            1
+#    undef  ALIB_CONTAINERS
+#    define ALIB_CONTAINERS         1
 #    undef  ALIB_ENUMS
-#    define ALIB_ENUMS               1
+#    define ALIB_ENUMS              1
+#endif
+#if ALIB_THREADMODEL
+#    undef  ALIB_BOXING
+#    define ALIB_BOXING             1
+#    undef  ALIB_CONTAINERS
+#    define ALIB_CONTAINERS         1
+#    undef  ALIB_ENUMS
+#    define ALIB_ENUMS              1
+#    undef  ALIB_MONOMEM
+#    define ALIB_MONOMEM            1
+#    undef  ALIB_THREADS
+#    define ALIB_THREADS            1
 #endif
 #if ALIB_ENUMS
 #    undef  ALIB_STRINGS
-#    define ALIB_STRINGS             1
+#    define ALIB_STRINGS            1
 #    undef  ALIB_SINGLETONS
-#    define ALIB_SINGLETONS          1
+#    define ALIB_SINGLETONS         1
 #endif
 #if ALIB_THREADS
 #    undef  ALIB_STRINGS
-#    define ALIB_STRINGS             1
+#    define ALIB_STRINGS            1
+#    undef  ALIB_TIME
+#    define ALIB_TIME               1
 #endif
 #if ALIB_STRINGS
 #    undef  ALIB_CHARACTERS
-#    define ALIB_CHARACTERS          1
+#    define ALIB_CHARACTERS         1
 #endif
 #if ALIB_BOXING
 #    undef  ALIB_SINGLETONS
-#    define ALIB_SINGLETONS          1
+#    define ALIB_SINGLETONS         1
 #    undef  ALIB_CHARACTERS
-#    define ALIB_CHARACTERS          1
+#    define ALIB_CHARACTERS         1
 #endif
 
 // #################################################################################################
-// if !defined(ALIB_DOX)
+// if !DOXYGEN
 // #################################################################################################
 #else
 #define ALIB_ALOX                     1
@@ -171,16 +202,18 @@
 #define ALIB_CHARACTERS               1
 #define ALIB_CLI                      1
 #define ALIB_CONFIGURATION            1
+#define ALIB_CONTAINERS               1
 #define ALIB_ENUMS                    1
 #define ALIB_EXPRESSIONS              1
 #define ALIB_FILES                    1
 #define ALIB_MONOMEM                  1
 #define ALIB_SINGLETONS               1
 #define ALIB_STRINGS                  1
+#define ALIB_THREADMODEL              1
 #define ALIB_THREADS                  1
 #define ALIB_TIME                     1
 
-#endif //!defined(ALIB_DOX)
+#endif //!DOXYGEN
 
 // #################################################################################################
 // Macros for checking availability of modules
@@ -193,131 +226,181 @@ static_assert( ALIB_ ## modulename,                                             
                "See " ALIB_DOCUMENTATION_URL "alib_manual.html for more information" );            \
 
 // #################################################################################################
-// Macros to sect code (without using #if/#endif)
+// Macros to select code (without using #if/#endif)
 // #################################################################################################
 #if ALIB_ALOX
-#   define  ALIB_IF_ALOX(...)               __VA_ARGS__
-#   define  ALIB_IFN_ALOX(...)
+#   define  IF_ALIB_ALOX(...)               __VA_ARGS__
+#   define  IFNOT_ALIB_ALOX(...)
 #else
-#   define  ALIB_IF_ALOX(...)
-#   define  ALIB_IFN_ALOX(...)              __VA_ARGS__
+#   define  IF_ALIB_ALOX(...)
+#   define  IFNOT_ALIB_ALOX(...)            __VA_ARGS__
 #endif
 
 #if ALIB_BITBUFFER
-#   define  ALIB_IF_BITBUFFER(...)          __VA_ARGS__
-#   define  ALIB_IFN_BITBUFFER(...)
+#   define  IF_ALIB_BITBUFFER(...)          __VA_ARGS__
+#   define  IFNOT_ALIB_BITBUFFER(...)
 #else
-#   define  ALIB_IF_BITBUFFER(...)
-#   define  ALIB_IFN_BITBUFFER(...)          __VA_ARGS__
+#   define  IF_ALIB_BITBUFFER(...)
+#   define  IFNOT_ALIB_BITBUFFER(...)       __VA_ARGS__
 #endif
 
 #if ALIB_BOXING
-#   define  ALIB_IF_BOXING(...)             __VA_ARGS__
-#   define  ALIB_IFN_BOXING(...)
+#   define  IF_ALIB_BOXING(...)             __VA_ARGS__
+#   define  IFNOT_ALIB_BOXING(...)
 #else
-#   define  ALIB_IF_BOXING(...)
-#   define  ALIB_IFN_BOXING(...)            __VA_ARGS__
+#   define  IF_ALIB_BOXING(...)
+#   define  IFNOT_ALIB_BOXING(...)          __VA_ARGS__
 #endif
 
 #if ALIB_CHARACTERS
-#   define  ALIB_IF_CHARACTERS(...)         __VA_ARGS__
-#   define  ALIB_IFN_CHARACTERS(...)
+#   define  IF_ALIB_CHARACTERS(...)         __VA_ARGS__
+#   define  IFNOT_ALIB_CHARACTERS(...)
 #else
-#   define  ALIB_IF_CHARACTERS(...)
-#   define  ALIB_IFN_CHARACTERS(...)        __VA_ARGS__
+#   define  IF_ALIB_CHARACTERS(...)
+#   define  IFNOT_ALIB_CHARACTERS(...)      __VA_ARGS__
 #endif
 
 #if ALIB_CLI
-#   define  ALIB_IF_CLI(...)                __VA_ARGS__
-#   define  ALIB_IFN_CLI(...)
+#   define  IF_ALIB_CLI(...)                __VA_ARGS__
+#   define  IFNOT_ALIB_CLI(...)
 #else
-#   define  ALIB_IF_CLI(...)
-#   define  ALIB_IFN_CLI(...)               __VA_ARGS__
+#   define  IF_ALIB_CLI(...)
+#   define  IFNOT_ALIB_CLI(...)             __VA_ARGS__
 #endif
 
 #if ALIB_CONFIGURATION
-#   define  ALIB_IF_CONFIGURATION(...)      __VA_ARGS__
-#   define  ALIB_IFN_CONFIGURATION(...)
+#   define  IF_ALIB_CONFIGURATION(...)      __VA_ARGS__
+#   define  IFNOT_ALIB_CONFIGURATION(...)
 #else
-#   define  ALIB_IF_CONFIGURATION(...)
-#   define  ALIB_IFN_CONFIGURATION(...)     __VA_ARGS__
+#   define  IF_ALIB_CONFIGURATION(...)
+#   define  IFNOT_ALIB_CONFIGURATION(...)   __VA_ARGS__
+#endif
+
+#if ALIB_CONTAINERS
+#   define  IF_ALIB_CONTAINERS(...)         __VA_ARGS__
+#   define  IFNOT_ALIB_CONTAINERS(...)
+#else
+#   define  IF_ALIB_CONTAINERS(...)
+#   define  IFNOT_ALIB_CONTAINERS(...)      __VA_ARGS__
 #endif
 
 #if ALIB_ENUMS
-#   define  ALIB_IF_ENUMS(...)              __VA_ARGS__
-#   define  ALIB_IFN_ENUMS(...)
+#   define  IF_ALIB_ENUMS(...)              __VA_ARGS__
+#   define  IFNOT_ALIB_ENUMS(...)
 #else
-#   define  ALIB_IF_ENUMS(...)
-#   define  ALIB_IFN_ENUMS(...)             __VA_ARGS__
+#   define  IF_ALIB_ENUMS(...)
+#   define  IFNOT_ALIB_ENUMS(...)           __VA_ARGS__
 #endif
 
 #if ALIB_EXPRESSIONS
-#   define  ALIB_IF_EXPRESSIONS(...)        __VA_ARGS__
-#   define  ALIB_IFN_EXPRESSIONS(...)
+#   define  IF_ALIB_EXPRESSIONS(...)        __VA_ARGS__
+#   define  IFNOT_ALIB_EXPRESSIONS(...)
 #else
-#   define  ALIB_IF_EXPRESSIONS(...)
-#   define  ALIB_IFN_EXPRESSIONS(...)       __VA_ARGS__
+#   define  IF_ALIB_EXPRESSIONS(...)
+#   define  IFNOT_ALIB_EXPRESSIONS(...)     __VA_ARGS__
 #endif
 
 #if ALIB_FILES
-#   define  ALIB_IF_FILES(...)              __VA_ARGS__
-#   define  ALIB_IFN_FILES(...)
+#   define  IF_ALIB_FILES(...)              __VA_ARGS__
+#   define  IFNOT_ALIB_FILES(...)
 #else
-#   define  ALIB_IF_FILES(...)
-#   define  ALIB_IFN_FILES(...)             __VA_ARGS__
+#   define  IF_ALIB_FILES(...)
+#   define  IFNOT_ALIB_FILES(...)           __VA_ARGS__
 #endif
 
 #if ALIB_MONOMEM
-#   define  ALIB_IF_MONOMEM(...)            __VA_ARGS__
-#   define  ALIB_IFN_MONOMEM(...)
+#   define  IF_ALIB_MONOMEM(...)            __VA_ARGS__
+#   define  IFNOT_ALIB_MONOMEM(...)
 #else
-#   define  ALIB_IF_MONOMEM(...)
-#   define  ALIB_IFN_MONOMEM(...)           __VA_ARGS__
+#   define  IF_ALIB_MONOMEM(...)
+#   define  IFNOT_ALIB_MONOMEM(...)         __VA_ARGS__
 #endif
 
 #if ALIB_SINGLETONS
-#   define  ALIB_IF_SINGLETONS(...)         __VA_ARGS__
-#   define  ALIB_IFN_SINGLETONS(...)
+#   define  IF_ALIB_SINGLETONS(...)         __VA_ARGS__
+#   define  IFNOT_ALIB_SINGLETONS(...)
 #else
-#   define  ALIB_IF_SINGLETONS(...)
-#   define  ALIB_IFN_SINGLETONS(...)        __VA_ARGS__
+#   define  IF_ALIB_SINGLETONS(...)
+#   define  IFNOT_ALIB_SINGLETONS(...)      __VA_ARGS__
 #endif
 
 #if ALIB_STRINGS
-#   define  ALIB_IF_STRINGS(...)            __VA_ARGS__
-#   define  ALIB_IFN_STRINGS(...)
+#   define  IF_ALIB_STRINGS(...)            __VA_ARGS__
+#   define  IFNOT_ALIB_STRINGS(...)
 #else
-#   define  ALIB_IF_STRINGS(...)
-#   define  ALIB_IFN_STRINGS(...)           __VA_ARGS__
+#   define  IF_ALIB_STRINGS(...)
+#   define  IFNOT_ALIB_STRINGS(...)         __VA_ARGS__
 #endif
 
 #if ALIB_CAMP
-#   define  ALIB_IF_CAMP(...)             __VA_ARGS__
-#   define  ALIB_IFN_CAMP(...)
+#   define  IF_ALIB_CAMP(...)               __VA_ARGS__
+#   define  IFNOT_ALIB_CAMP(...)
 #else
-#   define  ALIB_IF_CAMP(...)
-#   define  ALIB_IFN_CAMP(...)            __VA_ARGS__
+#   define  IF_ALIB_CAMP(...)
+#   define  IFNOT_ALIB_CAMP(...)            __VA_ARGS__
+#endif
+
+#if ALIB_THREADMODEL
+#   define  IF_ALIB_THREADMODEL(...)        __VA_ARGS__
+#   define  IFNOT_ALIB_THREADMODEL(...)
+#else
+#   define  IF_ALIB_THREADMODEL(...)
+#   define  IFNOT_ALIB_THREADMODEL(...)     __VA_ARGS__
 #endif
 
 #if ALIB_THREADS
-#   define  ALIB_IF_THREADS(...)            __VA_ARGS__
-#   define  ALIB_IFN_THREADS(...)
+#   define  IF_ALIB_THREADS(...)            __VA_ARGS__
+#   define  IFNOT_ALIB_THREADS(...)
 #else
-#   define  ALIB_IF_THREADS(...)
-#   define  ALIB_IFN_THREADS(...)           __VA_ARGS__
+#   define  IF_ALIB_THREADS(...)
+#   define  IFNOT_ALIB_THREADS(...)         __VA_ARGS__
 #endif
 
 #if ALIB_TIME
-#   define  ALIB_IF_TIME(...)               __VA_ARGS__
-#   define  ALIB_IFN_TIME(...)
+#   define  IF_ALIB_TIME(...)               __VA_ARGS__
+#   define  IFNOT_ALIB_TIME(...)
 #else
-#   define  ALIB_IF_TIME(...)
-#   define  ALIB_IFN_TIME(...)              __VA_ARGS__
+#   define  IF_ALIB_TIME(...)
+#   define  IFNOT_ALIB_TIME(...)            __VA_ARGS__
 #endif
 
 // #################################################################################################
+// Availability of external libraries
+// #################################################################################################
+#if !defined(ALIB_EXT_LIB_THREADS_AVAILABLE)
+#	define ALIB_EXT_LIB_THREADS_AVAILABLE   1
+#endif
+
+#if !defined(ALIB_FEAT_BOOST_REGEX)
+#   define   ALIB_FEAT_BOOST_REGEX          0
+#endif
+
+// #################################################################################################
+// Debug or release compilation
+// #################################################################################################
+#if !defined(ALIB_DEBUG)
+#   if  !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
+#       define ALIB_DEBUG 1
+#   else
+#       define ALIB_DEBUG 0
+#   endif
+#endif
+
+#if ALIB_DEBUG
+    #define ALIB_DBG(...)    __VA_ARGS__
+    #define ALIB_REL(...)
+    #define ALIB_REL_DBG(releaseCode, ...)    __VA_ARGS__
+#else
+    #define ALIB_DBG(...)
+    #define ALIB_REL(...)    __VA_ARGS__
+    #define ALIB_REL_DBG(releaseCode, ...)    releaseCode
+#endif
+
+
+
+// #################################################################################################
 // ALib Feature detection
-// (Note: this has to be done outside of the module code, because the features are used with
+// (Note: this has to be done outside the module code, because the features are used with
 //        the compilation verification flags below)
 // #################################################################################################
 
@@ -332,7 +415,7 @@ static_assert( ALIB_ ## modulename,                                             
 
 // ALIB_CHARACTERS_WIDE, ALIB_SIZEOF_WCHAR_T
 #if defined(__WCHAR_MAX__)
-    #if    __WCHAR_MAX__ == 0x7FFFFFFF  \
+    #if    __WCHAR_MAX__ == 0x7FFFFFFF     \
         || __WCHAR_MAX__ == 0xFFFFFFFF
         #define     ALIB_SIZEOF_WCHAR_T    4
     #else
@@ -360,10 +443,7 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #   error "Illegal value for symbol ALIB_CHARACTERS_SIZEOF_WCHAR given. Allowed is 2 or 4."
 #endif
 
-//  ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
-//  ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS
-//  ALIB_FEAT_BOXING_BIJECTIVE_FLOATS
-//  ALIB_DEBUG_BOXING
+//  Bijective boxing symbols
 #if !defined(ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS)
 #   define ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS     0
 #endif
@@ -374,6 +454,56 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 
 #if !defined(ALIB_FEAT_BOXING_BIJECTIVE_FLOATS)
 #   define ALIB_FEAT_BOXING_BIJECTIVE_FLOATS        0
+#endif
+
+//  ALIB_DEBUG_ARRAY_COMPRESSION
+#if !defined(ALIB_DEBUG_ARRAY_COMPRESSION)
+#   define   ALIB_DEBUG_ARRAY_COMPRESSION   ALIB_DEBUG
+#elif !ALIB_DEBUG && ALIB_DEBUG_ARRAY_COMPRESSION
+#   undef    ALIB_DEBUG_ARRAY_COMPRESSION
+#   define   ALIB_DEBUG_ARRAY_COMPRESSION 0
+#   pragma message "Symbol ALIB_DEBUG_ARRAY_COMPRESSION set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#endif
+
+
+//  ALIB_DEBUG_CRITICAL_SECTIONS
+#if !defined(ALIB_DEBUG_CRITICAL_SECTIONS)
+#   define   ALIB_DEBUG_CRITICAL_SECTIONS       0
+#elif !ALIB_DEBUG && ALIB_DEBUG_CRITICAL_SECTIONS
+#   undef    ALIB_DEBUG_CRITICAL_SECTIONS
+#   define   ALIB_DEBUG_CRITICAL_SECTIONS           0
+#   pragma message "Symbol ALIB_DEBUG_CRITICAL_SECTIONS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#elif !ALIB_THREADS && ALIB_DEBUG_CRITICAL_SECTIONS
+#   undef    ALIB_DEBUG_CRITICAL_SECTIONS
+#   define   ALIB_DEBUG_CRITICAL_SECTIONS           0
+#   pragma message "Symbol ALIB_DEBUG_CRITICAL_SECTIONS set (from outside!) while module Threads is not included in the distribution. The symbol got disabled."
+#endif
+
+//  ALIB_DEBUG_CONTAINERS
+#if !defined(ALIB_DEBUG_CONTAINERS)
+#   define   ALIB_DEBUG_CONTAINERS           0
+#elif !ALIB_DEBUG && ALIB_DEBUG_CONTAINERS
+#   undef    ALIB_DEBUG_CONTAINERS
+#   define   ALIB_DEBUG_CONTAINERS           0
+#   pragma message "Symbol ALIB_DEBUG_CONTAINERS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#endif
+
+//  ALIB_DEBUG_ALLOCATIONS
+#if !defined(ALIB_DEBUG_ALLOCATIONS)
+#   define   ALIB_DEBUG_ALLOCATIONS           0
+#elif !ALIB_DEBUG && ALIB_DEBUG_ALLOCATIONS
+#   undef    ALIB_DEBUG_ALLOCATIONS
+#   define   ALIB_DEBUG_ALLOCATIONS           0
+#   pragma message "Symbol ALIB_DEBUG_ALLOCATIONS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
+#endif
+
+//  ALIB_DEBUG_MONOMEM
+#if !defined(ALIB_DEBUG_MONOMEM)
+#   define   ALIB_DEBUG_MONOMEM           0
+#elif !ALIB_DEBUG && ALIB_DEBUG_MONOMEM
+#   undef    ALIB_DEBUG_MONOMEM
+#   define   ALIB_DEBUG_MONOMEM           0
+#   pragma message "Symbol ALIB_DEBUG_MONOMEM set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
 #endif
 
 #if !defined(ALIB_DEBUG_BOXING)
@@ -391,15 +521,6 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #   undef    ALIB_DEBUG_STRINGS
 #   define   ALIB_DEBUG_STRINGS 0
 #   pragma message "Symbol ALIB_DEBUG_STRINGS set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
-#endif
-
-//  ALIB_DEBUG_MONOMEM
-#if !defined(ALIB_DEBUG_MONOMEM)
-#   define   ALIB_DEBUG_MONOMEM           0
-#elif !ALIB_DEBUG && ALIB_DEBUG_MONOMEM
-#   undef    ALIB_DEBUG_MONOMEM
-#   define   ALIB_DEBUG_MONOMEM           0
-#   pragma message "Symbol ALIB_DEBUG_MONOMEM set (from outside!) while ALIB_DEBUG is not. The symbol got disabled."
 #endif
 
 //  ALIB_DEBUG_RESOURCES
@@ -429,8 +550,8 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 // #################################################################################################
 // Compiler detection and specifics
 // #################################################################################################
-#if !defined(ALIB_DOX)
-    #define  DOX_MARKER( marker )
+#if !DOXYGEN
+    #define  DOX_MARKER(marker)
 #endif
 
 
@@ -442,26 +563,6 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #   define ALIB_GCC 1
 #endif
 
-
-
-// Debug or release compilation
-#if !defined(ALIB_DEBUG)
-#   if  !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
-#       define ALIB_DEBUG 1
-#   else
-#       define ALIB_DEBUG 0
-#   endif
-#endif
-
-#if ALIB_DEBUG
-    #define ALIB_DBG(...)    __VA_ARGS__
-    #define ALIB_REL(...)
-    #define ALIB_REL_DBG(releaseCode, ...)    __VA_ARGS__
-#else
-    #define ALIB_DBG(...)
-    #define ALIB_REL(...)    __VA_ARGS__
-    #define ALIB_REL_DBG(releaseCode, ...)    releaseCode
-#endif
 
 
 // --- C++ standard: set ALIB_CPP_STANDARD ---
@@ -594,13 +695,24 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
         _Pragma("GCC diagnostic push")                                          \
         _Pragma("GCC diagnostic ignored \"-Wshift-count-overflow\"")            \
 
+    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+        _Pragma("GCC diagnostic push")                                          \
+        _Pragma("GCC diagnostic ignored \"-Wunused-macros\"")                   \
+
     #define ALIB_WARNINGS_IGNORE_UNUSED_PARAMETER                               \
         _Pragma("GCC diagnostic push")                                          \
         _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")                \
 
-    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+    #define ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE                                \
         _Pragma("GCC diagnostic push")                                          \
-        _Pragma("GCC diagnostic ignored \"-Wunused-macros\"")                   \
+        _Pragma("GCC diagnostic ignored \"-Wunused-variable\"")                 \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION                                \
+        _Pragma("GCC diagnostic push")                                          \
+        _Pragma("GCC diagnostic ignored \"-Wunused-function\"")                 \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_LAMBDA_CAPTURE                          \
+        _Pragma("GCC diagnostic push")                                          \
 
     #define ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE                              \
         _Pragma("GCC diagnostic push")                                          \
@@ -618,6 +730,10 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
     #define ALIB_WARNINGS_IGNORE_DOCS                                           \
         _Pragma("GCC diagnostic push")                                          \
 
+    #define ALIB_WARNINGS_IGNORE_SIGN_CONVERSION                                \
+        _Pragma("GCC diagnostic push")                                          \
+        _Pragma("GCC diagnostic ignored \"-Wsign-conversion\"")                 \
+    
     #define ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW                               \
         _Pragma("GCC diagnostic push")                                          \
         _Pragma("GCC diagnostic ignored \"-Wshift-count-overflow\"")            \
@@ -680,13 +796,27 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
         _Pragma("clang diagnostic push")                                        \
         _Pragma("clang diagnostic ignored \"-Wshift-count-overflow\"")          \
 
+    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+        _Pragma("clang diagnostic push")                                        \
+        _Pragma("clang diagnostic ignored \"-Wunused-macros\"")                 \
+
     #define ALIB_WARNINGS_IGNORE_UNUSED_PARAMETER                               \
         _Pragma("clang diagnostic push")                                        \
         _Pragma("clang diagnostic ignored \"-Wunused-parameter\"")              \
 
-    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+    #define ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE                                \
         _Pragma("clang diagnostic push")                                        \
-        _Pragma("clang diagnostic ignored \"-Wunused-macros\"")                 \
+        _Pragma("clang diagnostic ignored \"-Wunused-variable\"")               \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION                                \
+        _Pragma("clang diagnostic push")                                        \
+        _Pragma("clang diagnostic ignored \"-Wunused-function\"")               \
+        _Pragma("clang diagnostic ignored \"-Wunused-member-function\"")        \
+        _Pragma("clang diagnostic ignored \"-Wunused-template\"")               \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_LAMBDA_CAPTURE                          \
+        _Pragma("clang diagnostic push")                                        \
+        _Pragma("clang diagnostic ignored \"-Wunused-lambda-capture\"")         \
 
     #define ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE                              \
         _Pragma("clang diagnostic push")                                        \
@@ -710,6 +840,10 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
     #define ALIB_WARNINGS_IGNORE_INTEGER_OVERFLOW                               \
         _Pragma("clang diagnostic push")                                        \
         _Pragma("clang diagnostic ignored \"-Winteger-overflow\"")              \
+
+    #define ALIB_WARNINGS_IGNORE_SIGN_CONVERSION                                \
+        _Pragma("clang diagnostic push")                                        \
+        _Pragma("clang diagnostic ignored \"-Wsign-conversion\"")               \
 
 
     #define ALIB_WARNINGS_RESTORE                                               \
@@ -758,10 +892,19 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
     #define ALIB_WARNINGS_ALLOW_SHIFT_COUNT_OVERFLOW                            \
         __pragma(warning( push ))                                               \
 
+    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+        __pragma(warning( push ))                                               \
+
     #define ALIB_WARNINGS_IGNORE_UNUSED_PARAMETER                               \
         __pragma(warning( push ))                                               \
 
-    #define ALIB_WARNINGS_IGNORE_UNUSED_MACRO                                   \
+    #define ALIB_WARNINGS_IGNORE_UNUSED_VARIABLE                                \
+        __pragma(warning( push ))                                               \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_FUNCTION                                \
+        __pragma(warning( push ))                                               \
+
+    #define ALIB_WARNINGS_IGNORE_UNUSED_LAMBDA_CAPTURE                          \
         __pragma(warning( push ))                                               \
 
     #define ALIB_WARNINGS_IGNORE_FUNCTION_TEMPLATE                              \
@@ -783,6 +926,15 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
         __pragma(warning( push ))                                               \
         __pragma(warning( disable : 4293 ))                                     \
 
+    #define ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER                            \
+        __pragma(warning( push ))                                               \
+
+    #define ALIB_WARNINGS_IGNORE_DOCS                                           \
+        __pragma(warning( push ))                                               \
+
+    #define ALIB_WARNINGS_IGNORE_SIGN_CONVERSION                                \
+        __pragma(warning( push ))                                               \
+                                                                                
     #define ALIB_WARNINGS_IGNORE_DOCS                                           \
         __pragma(warning( push ))                                               \
 
@@ -799,7 +951,7 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 // #################################################################################################
 // Preprocessor tools
 // #################################################################################################
-#if defined(ALIB_DOX)
+#if DOXYGEN
 #   define     ALIB_NSTRINGIFY(a)
 #   define     ALIB_STRINGIFY(a)
 #else
@@ -809,7 +961,12 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #   define     ALIB_NSTRINGIFY(a)       ALIB_NSTRINGIFY_X(a)
 #endif
 
-#define        ALIB_CONCAT(a,b)         a ## b
+// Note: The double expansion ensures that if another macro is given, e.g., "__LINE__", it is
+//       expanded before it is concatenated.
+#if !DOXYGEN
+#define        ALIB_CONCAT_IMPL(a,b)    a ## b
+#endif
+#define        ALIB_CONCAT(a,b)         ALIB_CONCAT_IMPL(a,b)
 
 #if defined(__clang__)
 #   define     ALIB_IDENTIFIER(prefix)  ALIB_WARNINGS_IGNORE_RESERVED_IDENTIFIER    \
@@ -829,28 +986,7 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 #  define   ALIB_COMMA_DBG
 #endif
 
-
-// Macros for passing source code information
-#if defined( __GNUC__ )
-#   define ALIB_CALLER    __FILE__, __LINE__, __func__
-  //#define ALIB_CALLER    __FILE__, __LINE__, __PRETTY_FUNCTION__
-#elif defined ( _MSC_VER )
-#   define ALIB_CALLER     __FILE__, __LINE__, __FUNCTION__
-  //#define ALIB_CALLER     __FILE__, __LINE__, __FUNCSIG__
-#else
-#   pragma message ("Unknown Platform in file: " __FILE__ )
-#endif
-
-#if ALIB_DEBUG
-    #define ALIB_CALLER_PRUNED        ALIB_CALLER
-    #define ALIB_CALLER_NULLED        ALIB_CALLER
-#else
-    #define ALIB_CALLER_PRUNED
-    #define ALIB_CALLER_NULLED        nullptr, 0, nullptr
-#endif
-
-
-// Macros for doing "nicer" static_assert messages
+// Macros for writing "nicer" static_assert messages
 #define ALIB_STATIC_ASSERT( CondVariable, Cond, Message )                                          \
 { constexpr bool CondVariable= Cond;                                                               \
   static_assert( CondVariable, Message );   }                                                      \
@@ -859,9 +995,9 @@ static_assert( sizeof(wchar_t) == ALIB_SIZEOF_WCHAR_T, "Error: Platform not supp
 { constexpr bool CondVariable= !(Cond);                                                            \
   static_assert( CondVariable, Message );   }                                                      \
 
-/** ************************************************************************************************
- *  Used with macro \ref ALIB_ASSERT_GLOBAL_NAMESPACE for testing.
- **************************************************************************************************/
+//==================================================================================================
+///  Used with macro \ref ALIB_ASSERT_GLOBAL_NAMESPACE for testing.
+//==================================================================================================
 struct ALibTestGlobalNamespace;
 #define ALIB_ASSERT_GLOBAL_NAMESPACE                                                               \
 struct ALibTestGlobalNamespace;                                                                    \
@@ -872,127 +1008,278 @@ static_assert(std::is_same<ALibTestGlobalNamespace, ::ALibTestGlobalNamespace>::
 // Copies of command line arguments of the process
 // #################################################################################################
 namespace alib {
-    /** The number of command line arguments. Defaults to \c 0.
-     *  \note An application is responsible for setting this global variable in its <c>main()</c>
-     *        function, in case the value is needed somewhere.                                   */
-    ALIB_API extern int                 ArgC;
+    /// The number of command line arguments. Defaults to \c 0.
+    /// \note An application is responsible for setting this global variable in its <c>main()</c>
+    ///       function, in case the value is needed somewhere.
+    ALIB_API extern int                 ARG_C;
 
-    /** List of command line arguments if given as single byte character strings.
-     *  \note An application is responsible for setting this global variable in its <c>main()</c>
-     *        function, in case the value is needed somewhere.                                   */
-    ALIB_API extern const char**        ArgVN;
+    /// List of command line arguments if given as single byte character strings.
+    /// \note An application is responsible for setting this global variable in its <c>main()</c>
+    ///       function, in case the value is needed somewhere.
+    ALIB_API extern const char**        ARG_VN;
 
-    /** List of command line arguments if given as multi-byte character strings.
-     *  \note An application is responsible for setting this global variable in its <c>main()</c>
-     *        function, in case the value is needed somewhere.                                   */
-    ALIB_API extern const wchar_t**     ArgVW;
-}
+    /// List of command line arguments if given as multi-byte character strings.
+    /// \note An application is responsible for setting this global variable in its <c>main()</c>
+    ///       function, in case the value is needed somewhere.
+    ALIB_API extern const wchar_t**     ARG_VW;
+} // namespace [alib]
+
+// #################################################################################################
+// Other tools
+// #################################################################################################
+#define ALIB_STACK_ALLOCATED_TYPE(T)                                                               \
+private:    void* operator new  (size_t);                                                          \
+            void* operator new  (size_t, void*);                                                   \
+            void* operator new[](size_t);                                                          \
+            void* operator new[](size_t, void*);                                                   \
+            T(const T&  );                                                                         \
+            T(      T&& );                                                                         \
+            void  operator=(const T&  );                                                           \
+            void  operator=(      T&& );
+
+#include <type_traits>
+namespace alib::lang {
+
+#if DOXYGEN
+    /// Checks if a given object equals a default-constructed value of the same type.
+    /// This function is useful with types that are not otherwise testable, for example,
+    /// type <c>std::thread::id</c>.
+    /// @param t The instance to test.
+    /// @return \c true if \p{t} is default-constructed, \c false otherwise.
+    template<typename T> inline constexpr bool IsNull(const T& t);
+
+    /// The negation of #alib::lang::IsNull.
+    /// @param t The instance to test.
+    /// @return \c false if \p{t} is default-constructed, \c true otherwise.
+    template<typename T> inline constexpr bool IsNotNull(const T& t) { return t==T(); }
+
+    /// Assigns a default-constructed value to the given instance.
+    /// This function is useful with types that are not otherwise nullable, for example,
+    /// type <c>std::thread::id</c>.
+    /// @param t The instance to test.
+    template<typename T> inline constexpr void SetNull(const T& t);
+#else
+    template<typename T>
+    inline constexpr
+    typename std::enable_if_t<std::is_default_constructible_v<T>,bool>
+    IsNull(const T& t) { return t==T(); }
+
+    template<typename T>
+    inline constexpr
+    typename std::enable_if_t<std::is_default_constructible_v<T>,bool>
+    IsNotNull(const T& t) { return t!=T(); }
+
+    template<typename T>
+    inline constexpr
+    typename std::enable_if_t<std::is_default_constructible_v<T>,void>
+    SetNull(T& t) { t= T(); }
+#endif
+} // namespace [alib::lang]
+
+namespace alib {
+/// This tag-type is used accross \alib to indicate that no check of the input parameters should be
+/// performed.
+/// Methods affected expose a template parameter named \p{TCheck} which usually defaults to
+/// this types' counterpart \alib{CHK}.
+///
+/// For example, various methods of the \alib string types, which perform range-checks on
+/// string-indices, use this template parameter.
+/// With debug-compilations the checks are still made, and if they fail, the parameters are not
+/// corrected, but instead an \alib assertion is raised.
+/// In release builds, however, no checks are performed, which improves execution speed.
+///
+/// A programmer does not notice the existence of this option, unless he consults the corresponding
+/// method's reference documentation, because of the default-value \alib{CHK}.
+/// Only with code critical to performance or size, the parameter might be crucial to give.
+struct NC   : public std::false_type {};
+
+/// See sibling type \alib{NC}.
+struct CHK  : public std::true_type {};
+
+
+} // namespace [alib]
+
+// #################################################################################################
+// Debug Messages and Assertions
+// #################################################################################################
+#if ALIB_EXT_LIB_THREADS_AVAILABLE
+#   include <thread>
+#endif
+#include <typeinfo>
+
+namespace alib { namespace lang {
+    /// A simple struct that holds source code location information.
+    /// Usually, this is information about a caller of a function, used with debug-compilations.
+    /// Module \alib_alox might be explicitly compiled to include such caller information also in
+    /// release-versions of software.
+    ///
+    ///
+    /// @see
+    ///  - Chapter \ref alib_manual_appendix_callerinfo of the General Programmer's Manual.
+    ///  - Macros \ref ALIB_CALLER, \ref ALIB_CALLER_PRUNED, \ref ALIB_COMMA_CALLER_PRUNED and
+    ///    \ref ALIB_CALLER_NULLED.
+    ///  - Instances of this type are appendable to class \b AString in a default way.
+    ///    This is implemented with functor
+    ///    \alib{strings::APPENDABLES;T_Append<lang::CallerInfo,TChar,TAllocator>}.
+    ///  - Class \alib{lang::format;FMTCallerInfo} defines a format specification to customize
+    ///    the output.
+    ///    As always, \alib{lang::format;FMTCallerInfo;that syntax} is directly available in
+    ///    placeholder fields of class \alib{lang::format;FormatterPythonStyle}.
+    struct CallerInfo
+    {
+        const char*     File{nullptr};  ///< The name of the source file as given by compiler.
+        int             Line{0};        ///< The line number within #File.
+        const char*     Func{nullptr};  ///< The function name of the source location. Nulled if
+                                        ///< the location is not inside a function or method.
+                                        ///
+        #if ALIB_EXT_LIB_THREADS_AVAILABLE
+        std::thread::id ThreadID;       ///< The ID of the calling thread.
+        #endif
+        const std::type_info* TypeInfo{nullptr}; ///< The calling type.
+    };
+} // namespace alib[::lang]
+
+/// Type alias in namespace \b alib.
+using CallerInfo      = lang::CallerInfo;
+
+// DbgAssertSingleThreaded()
+#if !DOXYGEN
+#   if ALIB_DEBUG && !ALIB_THREADS && ALIB_EXT_LIB_THREADS_AVAILABLE
+       ALIB_API  void DbgAssertSingleThreaded();
+#   else
+       inline    void DbgAssertSingleThreaded() {}  // optimized out
+#   endif
+#endif
+} // namespace [alib]
+
+
+// Macros for passing source code information
+#if defined ( _MSC_VER )
+#    define ALIB_CALLER_FUNC __FUNCTION__
+#else
+#    define ALIB_CALLER_FUNC __func__
+#endif
+
+#if ALIB_EXT_LIB_THREADS_AVAILABLE
+#   define ALIB_CALLER   {__FILE__,__LINE__,ALIB_CALLER_FUNC,::std::this_thread::get_id(),&typeid(*this)}
+#else
+#   define ALIB_CALLER   {__FILE__,__LINE__,ALIB_CALLER_FUNC,&typeid(*this)}
+#endif
+
+#if ALIB_DEBUG
+#   define ALIB_CALLER_PRUNED            ALIB_CALLER
+#   define ALIB_COMMA_CALLER_PRUNED    , ALIB_CALLER
+#   define ALIB_CALLER_PRUNED_COMMA      ALIB_CALLER ,
+#   define ALIB_CALLER_NULLED            ALIB_CALLER
+#   define ALIB_COMMA_CALLER_NULLED    , ALIB_CALLER
+#   define ALIB_CALLER_NULLED_COMMA      ALIB_CALLER ,
+#   define ALIB_DBG_TAKE_CI              const CallerInfo& ci
+#else
+#   define ALIB_CALLER_PRUNED
+#   define ALIB_COMMA_CALLER_PRUNED
+#   define ALIB_CALLER_PRUNED_COMMA
+#   if ALIB_EXT_LIB_THREADS_AVAILABLE
+#       define ALIB_CALLER_NULLED         {nullptr,0,nullptr,::std::thread::id(), nullptr}
+#       define ALIB_COMMA_CALLER_NULLED , {nullptr,0,nullptr,::std::thread::id(), nullptr}
+#       define ALIB_CALLER_NULLED_COMMA   {nullptr,0,nullptr,::std::thread::id(), nullptr} ,
+#   else
+#       define ALIB_CALLER_NULLED         {nullptr,0,nullptr,nullptr}
+#       define ALIB_COMMA_CALLER_NULLED , {nullptr,0,nullptr,nullptr}
+#       define ALIB_CALLER_NULLED_COMMA   {nullptr,0,nullptr,nullptr} ,
+#   endif
+#   define ALIB_DBG_TAKE_CI
+#endif
 
 // #################################################################################################
 // Debug Messages and Assertions
 // #################################################################################################
 #if ALIB_DEBUG
-#   if !defined (_ASSERT_H) && !defined(assert)
-#      include <assert.h>
-#   endif
-
+#if !defined (_ASSERT_H) && !defined(assert)
+#   include <assert.h>
+#endif
 namespace alib::lang {
-
-/**
- * Some \alib modules do not (must not) rely on \alib{lang,Report} /
- * \alib{lang,ReportWriter} mechanics. Therefore, this simple method is
- * used for error handling in those portions of \alib that are exposed in such modules.<br>
- * This method first checks if static function pointer \alib{lang::DBG_SIMPLE_ALIB_MSG_PLUGIN} is set
- * and if yes, passes the parameters to this method and exits.
- * If module \alib_basecamp is included in the \alibdist, method \alib{lang::basecamp,BaseCamp::bootstrap}
- * sets this plug-in function to a custom one which passes the message(s) to a proper
- * \alib{lang,Report,ALib Report}.
- *
- * Otherwise the method just writes to the standard output stream and then,  if \p{type} equals
- * \c 0, invokes <c>assert(0)</c>.
- *
- * @param file    The source file of the message invocation.
- * @param line    The line number within \p{file}.
- * @param method  The method invoking this function.
- * @param type    The type of the message. The default implementation does not use this, other
- *                than invoking <c>assert(0)</c> in the case this parameter equals \c 0.
- * @param topic   The topic of the message.
- * @param msg1    The first message string.
- * @param msg2    Optional 2nd message string.
- * @param msg3    Optional 3rd message string.
- * @param msg4    Optional 4th message string.
- * @param msg5    Optional 5th message string.
- *
- */
+/// Some \alib modules do not (must not) rely on \alib{lang;Report} /
+/// \alib{lang;ReportWriter} mechanics. Therefore, this simple method is
+/// used for error handling in those portions of \alib that are exposed in such modules.<br>
+/// This method first checks if static function pointer \alib{lang::DBG_SIMPLE_ALIB_MSG_PLUGIN} is set
+/// and if yes, passes the parameters to this method and exits.
+/// If the module \alib_basecamp is included in the \alibdist, method \alib{lang::basecamp;BaseCamp::bootstrap}
+/// sets this plug-in function to a custom one which passes the message(s) to a proper
+/// \alib{lang;Report;ALib Report}.
+///
+/// Otherwise, the method just writes to the standard output stream and then,  if \p{type} equals
+/// \c 0, invokes <c>assert(0)</c>.
+///
+/// @param ci      Caller information.
+/// @param type    The type of the message. The default implementation does not use this, other
+///                than invoking <c>assert(0)</c> in the case this parameter equals \c 0.
+/// @param topic   The topic of the message.
+/// @param msg1    The first message string.
+/// @param msg2    Optional 2nd message string.
+/// @param msg3    Optional 3rd message string.
+/// @param msg4    Optional 4th message string.
+/// @param msg5    Optional 5th message string.
 ALIB_API
-extern void DbgSimpleALibMsg( const char* file,  int line,  const char* method,
-                              int         type,
-                              const char* topic,
-                              const char* msg1= nullptr,
-                              const char* msg2= nullptr,
-                              const char* msg3= nullptr,
-                              const char* msg4= nullptr,
-                              const char* msg5= nullptr );
+extern void DbgSimpleALibMsg( const CallerInfo& ci, int type, const char*  topic,
+                              const char*  msg1= nullptr,
+                              const char*  msg2= nullptr,
+                              const char*  msg3= nullptr,
+                              const char*  msg4= nullptr,
+                              const char*  msg5= nullptr );
 
-/**
- * Overloaded version of
- * \ref DbgSimpleALibMsg(const char*,int,const char*,int,const char*,const char*,const char*,const char*,const char*,const char*) "DbgSimpleALibMsg"
- * which accepts one integral value and writes \p{msg} and \p{intValue} in sequence.
- *
- * @param file     The source file of the message invocation.
- * @param line     The line number within \p{file}.
- * @param method   The method invoking this function.
- * @param type     The type of the message. The default implementation does not use this, other
- *                 than invoking <c>assert(0)</c> in the case this parameter equals \c 0.
- * @param topic   The topic of the report.
- * @param msg      The message string.
- * @param intValue An integer parameter (optional due to overload).
- *
- */
+/// Overloaded version of
+/// \ref DbgSimpleALibMsg(const CallerInfo& ci,int,const char*,const char*,const char*,const char*,const char*,const char*) "DbgSimpleALibMsg"
+/// which accepts one integral value and writes \p{msg} and \p{intValue} in sequence.
+///
+/// @param ci       Caller information.
+/// @param type     The type of the message. The default implementation does not use this, other
+///                 than invoking <c>assert(0)</c> in the case this parameter equals \c 0.
+/// @param topic    The topic of the report.
+/// @param msg      The message string.
+/// @param intValue An integer parameter (optional due to overload).
+///
 ALIB_API
-extern void DbgSimpleALibMsg( const char*   file,  int line,  const char* method,
-                              int           type,
-                              const char*   topic,
-                              const char*   msg,
-                              const int     intValue );
+extern void DbgSimpleALibMsg( const CallerInfo&  ci,
+                              int                type,
+                              const char*        topic,
+                              const char*        msg,
+                              const int          intValue );
 
-/**
- * This function pointer defaults to \c nullptr and may be set to replace function
- * #DbgSimpleALibMsg.
- * With the use of \alib_basecamp, the module's bootstrap code (precisely method
- * \alib{lang::basecamp,BaseCamp::bootstrap}) sets this pointer to a small method which creates an
- * \alib{lang,Report} on the default \alib{lang,ReportWriter}.
- *
- * - \p{file}:    Information about the scope of invocation.
- * - \p{line}:    Information about the scope of invocation.
- * - \p{method}:  Information about the scope of invocation.
- * - \p{type}:    The type of the message. As a convention, 0 is severe error, others are  warning levels.
- * - \p{qtyMsgs}: The number of messages passed.
- * - \p{msgs}:    The message strings.
- */
-extern void (*DBG_SIMPLE_ALIB_MSG_PLUGIN)( const char* file,  int line,  const char* method,
+/// This function pointer defaults to \c nullptr and may be set to replace function
+/// #DbgSimpleALibMsg.
+/// With the use of \alib_basecamp, the module's bootstrap code (precisely method
+/// \alib{lang::basecamp;BaseCamp::bootstrap}) sets this pointer to a small method which creates an
+/// \alib{lang;Report} on the default \alib{lang;ReportWriter}.
+///
+/// - \p{ci}:      Information about the scope of invocation.
+/// - \p{type}:    The type of the message. As a convention, 0 is severe error, others are  warning levels.
+/// - \p{qtyMsgs}: The number of messages passed.
+/// - \p{msgs}:    The message strings.
+extern void (*DBG_SIMPLE_ALIB_MSG_PLUGIN)( const CallerInfo& ci,
                                            int type   , const char* topic,
                                            int qtyMsgs, const char** msgs                   );
 
 
 } // namespace [alib::lang]
+#endif // ALIB_DEBUG
 
-#define ALIB_ERROR(...)                { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED, 0, __VA_ARGS__); }
-#define ALIB_WARNING(...)              { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED, 1, __VA_ARGS__); }
-#define ALIB_MESSAGE(...)              { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED, 2, __VA_ARGS__); }
-#define ALIB_ASSERT(cond)              { if(!(cond)) ALIB_ERROR( "Assertion Failed" ); }
-#define ALIB_ASSERT_ERROR(cond, ...)   { if(!(cond)) ALIB_ERROR( __VA_ARGS__ );        }
-#define ALIB_ASSERT_WARNING(cond, ...) { if(!(cond)) ALIB_WARNING( __VA_ARGS__ );      }
-#define ALIB_ASSERT_MESSAGE(cond, ...) { if(!(cond)) ALIB_MESSAGE( __VA_ARGS__ );      }
+#if ALIB_DEBUG
+#define ALIB_ERROR( ...)                    { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED   , 0, __VA_ARGS__); }
+#define ALIB_WARNING( ...)                  { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED   , 1, __VA_ARGS__); }
+#define ALIB_MESSAGE( ...)                  { alib::lang::DbgSimpleALibMsg( ALIB_CALLER_PRUNED   , 2, __VA_ARGS__); }
+#define ALIB_ASSERT( cond)                  { if( !( cond)) ALIB_ERROR     ( "Assertion Failed" ); }
+#define ALIB_ASSERT_ERROR( cond, ...)       { if( !( cond)) ALIB_ERROR     ( __VA_ARGS__ ); }
+#define ALIB_ASSERT_WARNING( cond, ...)     { if( !( cond)) ALIB_WARNING   ( __VA_ARGS__ ); }
+#define ALIB_ASSERT_MESSAGE( cond, ...)     { if( !( cond)) ALIB_MESSAGE   ( __VA_ARGS__ ); }
 
 #else  // ALIB_DEBUG
-    #define ALIB_ERROR(...)                 {}
-    #define ALIB_WARNING(...)               {}
-    #define ALIB_MESSAGE(...)               {}
-    #define ALIB_ASSERT(cond)               {}
-    #define ALIB_ASSERT_ERROR(cond, ...)    {}
-    #define ALIB_ASSERT_WARNING(cond, ...)  {}
-    #define ALIB_ASSERT_MESSAGE(cond, ...)  {}
+    #define ALIB_ERROR( ...  )                 { }
+    #define ALIB_WARNING( ...  )               { }
+    #define ALIB_MESSAGE( ...  )               { }
+    #define ALIB_ASSERT( cond )                { }
+    #define ALIB_ASSERT_ERROR( cond, ...)      { }
+    #define ALIB_ASSERT_WARNING( cond, ...)    { }
+    #define ALIB_ASSERT_MESSAGE( cond, ...)    { }
 #endif
 
 #if ALIB_DEBUG
@@ -1007,43 +1294,6 @@ extern void (*DBG_SIMPLE_ALIB_MSG_PLUGIN)( const char* file,  int line,  const c
     #define ALIB_ASSERT_RESULT_LESS_THAN(   func, value ) { func; }
 #endif
 
-// #################################################################################################
-// Other ALib Features
-// #################################################################################################
-// Avoid analyzer (valgrind) warnings
-#if !defined(ALIB_AVOID_ANALYZER_WARNINGS )
-#   define   ALIB_AVOID_ANALYZER_WARNINGS   1
-#endif
-
-// 3rd party libraries included in the build
-#if !defined(ALIB_EXT_LIB_THREADS_AVAILABLE)
-#   define ALIB_EXT_LIB_THREADS_AVAILABLE   0
-#endif
-#if !defined(ALIB_FEAT_BOOST_REGEX)
-#   define   ALIB_FEAT_BOOST_REGEX          0
-#endif
-
-
-// If module Threads is not available we have to define the locking macros. This allows
-// to reduce the effort of testing for thread availability of those modules which are
-// tolerant to work in thread-unsafe mode.
-// On the same token, this allows a debug-check to assert that no two threads use the library.
-#if ALIB_DEBUG && !ALIB_THREADS && ALIB_EXT_LIB_THREADS_AVAILABLE
-    namespace alib {  ALIB_API  void DbgCheckSingleThreaded();   }
-#else
-    namespace alib {  inline    void DbgCheckSingleThreaded() {} } // optimized out
-#endif // !ALIB_THREADS
-
-#if !ALIB_THREADS
-#   if ALIB_DEBUG
-#       define   ALIB_LOCK              { alib::DbgCheckSingleThreaded(); }
-#       define   ALIB_LOCK_WITH(VOID)   { alib::DbgCheckSingleThreaded(); }
-#   else
-#       define   ALIB_LOCK              { }
-#       define   ALIB_LOCK_WITH(VOID)   { }
-#   endif
-#endif // !ALIB_THREADS
-
 
 // #################################################################################################
 // Bootstrapping & Shutdown
@@ -1056,33 +1306,45 @@ extern void (*DBG_SIMPLE_ALIB_MSG_PLUGIN)( const char* file,  int line,  const c
 // #################################################################################################
 
 namespace alib {
-    /** This is a simple copyable set of bits comprising the compilation flags.
-     *  @see Used with methods \alib{Bootstrap} which calls \alib{AssertALibVersionAndFlags}. */
+    /// This is a simple copyable set of bits comprising the compilation flags.
+    /// @see Used with methods \alib{Bootstrap} which calls \alib{AssertALibVersionAndFlags}.
     struct TCompilationFlags
     {
-        unsigned char bits[4]; ///< The Flags.
+        unsigned char bits[6]; ///< The Flags.
     };
 }
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 #   define    ALIB_COMPILATION_FLAGS                       \
-    (1<<0)  *  ALIB_DEBUG                                  \
- +  (1<<1)  *  ALIB_MONOMEM                                \
- +  (1<<2)  *  ALIB_SINGLETONS                             \
- +  (1<<3)  *  ALIB_CHARACTERS                             \
- +  (1<<4)  *  ALIB_ENUMS                                  \
- +  (1<<5)  *  ALIB_TIME                                   \
- +  (1<<6)  *  ALIB_BOXING                                 \
- +  (1<<7)  *  ALIB_STRINGS                                \
- ,                                                         \
- +  (1<<0)  *  ALIB_BITBUFFER                              \
- +  (1<<1)  *  ALIB_THREADS                                \
- +  (1<<2)  *  ALIB_CAMP                                   \
- +  (1<<3)  *  ALIB_ALOX                                   \
- +  (1<<4)  *  ALIB_CLI                                    \
- +  (1<<5)  *  ALIB_CONFIGURATION                          \
- +  (1<<6)  *  ALIB_EXPRESSIONS                            \
- +  (1<<7)  *  ALIB_FILES                                  \
+ +  (1<<0)  *  ALIB_ALOX                                   \
+ +  (1<<1)  *  ALIB_BITBUFFER                              \
+ +  (1<<2)  *  ALIB_BOXING                                 \
+ +  (1<<3)  *  ALIB_CAMP                                   \
+ +  (1<<4)  *  ALIB_CHARACTERS                             \
+ +  (1<<5)  *  ALIB_CLI                                    \
+ +  (1<<6)  *  ALIB_CONFIGURATION                          \
+ +  (1<<7)  *  ALIB_CONTAINERS                             \
+,                                                          \
+ +  (1<<0)  *  ALIB_ENUMS                                  \
+ +  (1<<1)  *  ALIB_EXPRESSIONS                            \
+ +  (1<<2)  *  ALIB_FILES                                  \
+ +  (1<<3)  *  ALIB_MONOMEM                                \
+ +  (1<<4)  *  ALIB_SINGLETONS                             \
+ +  (1<<5)  *  ALIB_STRINGS                                \
+ +  (1<<6)  *  ALIB_THREADMODEL                            \
+ +  (1<<7)  *  ALIB_THREADS                                \
+,                                                          \
+ +  (1<<0)  *  ALIB_TIME                                   \
+ +  (1<<7)  *  ALIB_DEBUG                                  \
+,                                                          \
+ +  (1<<0)  *  ALIB_DEBUG_ARRAY_COMPRESSION                \
+ +  (1<<1)  *  ALIB_DEBUG_ALLOCATIONS                      \
+ +  (1<<2)  *  ALIB_DEBUG_BOXING                           \
+ +  (1<<3)  *  ALIB_DEBUG_CONTAINERS                       \
+ +  (1<<4)  *  ALIB_DEBUG_CRITICAL_SECTIONS                \
+ +  (1<<5)  *  ALIB_DEBUG_MONOMEM                          \
+ +  (1<<6)  *  ALIB_DEBUG_STRINGS                          \
+ +  (1<<7)  *  ALIB_DEBUG_RESOURCES                        \
 ,                                                          \
  +  (1<<0)  *  ALIB_FEAT_SINGLETON_MAPPED                  \
  +  (1<<1)  *  ALIB_CHARACTERS_WIDE                        \
@@ -1090,133 +1352,164 @@ namespace alib {
  +  (1<<3)  *  ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS        \
  +  (1<<4)  *  ALIB_FEAT_BOXING_BIJECTIVE_CHARACTERS       \
  +  (1<<5)  *  ALIB_FEAT_BOXING_BIJECTIVE_FLOATS           \
- +  (1<<6)  *  ALIB_DEBUG_BOXING                           \
- +  (1<<7)  *  ALIB_DEBUG_STRINGS                          \
- ,                                                         \
- +  (1<<0)  *  ALIB_DEBUG_MONOMEM                          \
- +  (1<<1)  *  ALIB_DEBUG_RESOURCES                        \
- +  (1<<2)  *  ALOX_DBG_LOG                                \
- +  (1<<3)  *  ALOX_DBG_LOG_CI                             \
- +  (1<<4)  *  ALOX_REL_LOG                                \
- +  (1<<5)  *  ALOX_REL_LOG_CI
-
+ +  (1<<6)  *  ALIB_FEAT_BOOST_REGEX                       \
+,                                                          \
+ +  (1<<0)  *  ALOX_DBG_LOG                                \
+ +  (1<<1)  *  ALOX_DBG_LOG_CI                             \
+ +  (1<<2)  *  ALOX_REL_LOG                                \
+ +  (1<<3)  *  ALOX_REL_LOG_CI                             \
 
 #endif //ALIB_DOX
 
-
 namespace alib {
 
-/** State of initialization of the \alibmods that do not dispose over a \alib{lang::Camp}.
- *  instance. */
+/// State of initialization of the \alibmods that do not dispose over a \alib{lang::Camp}.
+/// instance.
 extern bool     NonCampModulesInitialized;
 
-/**
- * Performs standard bootstrapping of \alib. All details are explained
- * in chapter \ref alib_manual_bootstrapping of the \ref alib_manual.
- *
- * \note In addition, function \ref alib::AssertALibVersionAndFlags is invoked.
- *       For this, the parameters of this function must not be given, but left to their
- *       default values, which are read from corresponding preprocessor symbols.<br>
- *       For more information on this topic, see chapter
- *       \ref alib_manual_bootstrapping_assertcomp  of the \ref alib_manual.
- *
- * @param alibVersion      The \alib version required.
- *                         Defaults to \ref ALIB_VERSION and \b must not be passed.
- * @param alibRevision     The \alib sub-version required.
- *                         Defaults to \ref ALIB_REVISION and \b must not be passed.
- * @param compilationFlags The flags as defined in invoking compilation unit.
- *                         Defaults to \ref ALIB_COMPILATION_FLAGS and \b must not be passed.
- */
+/// Performs standard bootstrapping of \alib. All details are explained
+/// in chapter \ref alib_manual_bootstrapping of the \ref alib_manual.
+///
+/// \note In addition, function \ref alib::AssertALibVersionAndFlags is invoked.
+///       For this, the parameters of this function must not be given, but left to their
+///       default values, which are read from corresponding preprocessor symbols.<br>
+///       For more information on this topic, see chapter
+///       \ref alib_manual_bootstrapping_assertcomp  of the \ref alib_manual.
+///
+/// @param alibVersion      The \alib version used by the caller.
+///                         Defaults to \ref ALIB_VERSION and \b must not be passed.
+/// @param alibRevision     The \alib sub-version used by the caller.
+///                         Defaults to \ref ALIB_REVISION and \b must not be passed.
+/// @param compilationFlags The flags as defined in invoking compilation unit.
+///                         Defaults to
+///                         \doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}
+///                         and \b must not be passed.
 ALIB_API    void     Bootstrap(int               alibVersion        = ALIB_VERSION,
                                int               alibRevision       = ALIB_REVISION,
                                TCompilationFlags compilationFlags   = TCompilationFlags{ALIB_COMPILATION_FLAGS});
 
-/**
- * Terminates \alib. All details are explained
- * in chapter \ref alib_manual_bootstrapping of the \ref alib_manual.
- */
+/// Initialization levels usable with \ref alib_manual_bootstrapping_camps "Bootstrapping ALib Camps".
+enum class BootstrapPhases
+{
+    /// Field \alib{lang;Camp::resourcePool} is created when this phase is called for a camp.
+    /// Camps are requested to feed in their resources now. When this is done, all entities that
+    /// rely exclusively on resources are to be initialized. For example, all resourced enumerations
+    /// of a camp should be parsed in this phase.
+    PrepareResources = 1,
+
+    /// Field \alib{lang;Camp::config} is created when this phase is called for a camp.
+    /// Camps are requested to
+    /// \alib{config;Configuration::RegisterType;register application specific variable types} in
+    /// this phase. Furthermore modifications on the configuration object itself might be performed,
+    /// for example \alib{config;ConfigurationPlugin;custom plugins} might be added to a
+    /// configuration or configurable options of default plug-ins can be set.<br>
+    /// Finally, this is the right phase to
+    /// \alib{config;Configuration::PreloadVariables;declare variables} which have a resourced
+    /// variable declaration, or likewise perform 'hard-coded' variable declarations including
+    /// their default values.
+    PrepareConfig    = 2,
+
+    /// The final initialization phase. Here, camps are initializing their custom setup.
+    Final            = 3,
+};
+
+/// Termination levels usable with \ref alib_manual_bootstrapping_camps "Bootstrapping ALib Camps".
+enum class ShutdownPhases
+{
+    Announce         = 1,    ///< Signals termination. Keeps resources, config, etc.
+                             ///< intact. Usable to write configuration data, stop
+                             ///< background threads, etc.
+    Destruct         = 2,    ///< The main phase of termination that destructs everything.
+};
+
+// forwards
+namespace lang   { class Camp; }
+ALIB_API void Bootstrap(BootstrapPhases targetPhase,
+                    lang::Camp*         targetCamp         = nullptr,
+                    int                 alibVersion        = ALIB_VERSION,
+                    int                 alibRevision       = ALIB_REVISION,
+                    TCompilationFlags   compilationFlags   = TCompilationFlags{ALIB_COMPILATION_FLAGS} );
+
+ALIB_API void Shutdown (ShutdownPhases  targetPhase,
+                        lang::Camp*     targetCamp  = nullptr  );
+
+
+
+/// Terminates \alib. All details are explained
+/// in chapter \ref alib_manual_bootstrapping of the \ref alib_manual.
 ALIB_API    void    Shutdown();
 
 
-/**
- * This is a struct composing an entry in #CompilationFlagMeanings.
- */
+/// This is a struct composing an entry in #COMPILATION_FLAG_MEANINGS.
 struct CompilationFlagMeaningsEntry
 {
     int             Flag; ///< The bit number in the bitset.
-    const char*     Name; ///< The human readable meaning of the bit.
+    const char*     Name; ///< The human-readable meaning of the bit.
 };
 
-/**
- * This is for the creation of output on information about the bits found in
- * field #CompilationFlags.
- * Declared public to allow exposure, e.g. in verbose logging.
- * \see Method #AssertALibVersionAndFlags for more information.
- */
+/// This is for the creation of output on information about the bits found in
+/// field #COMPILATION_FLAGS.
+/// Declared public to allow exposure, e.g., in verbose logging.
+/// \see Method #AssertALibVersionAndFlags for more information.
 extern ALIB_API
-CompilationFlagMeaningsEntry    CompilationFlagMeanings[30];
+CompilationFlagMeaningsEntry    COMPILATION_FLAG_MEANINGS[37];
 
 
-/**
- * The module version. Standard \alib versioning scheme is YYMM (as integer number)
- * of the module release date.
- * Besides this version number, field #Revision indicates if this is a revised version
- * of a former release.
- */
+/// The module version. Standard \alib versioning scheme is YYMM (as integer number)
+/// of the module release date.
+/// Besides this version number, field #REVISION indicates if this is a revised version
+/// of a former release.
 extern ALIB_API
-int                             Version;
+int                             VERSION;
 
-/**
- * The revision number of this release. Usually a module is initially released as
- * revision \e 0. Pure bug-fix releases that do not change the interface of \alib
- * are holding the same #Version but an increased number in this field.
- */
+/// The revision number of this release. Usually a module is initially released as
+/// revision \e 0. Pure bug-fix releases that do not change the interface of \alib
+/// are holding the same #VERSION but an increased number in this field.
 extern ALIB_API
-unsigned char                   Revision;
+unsigned char                   REVISION;
 
-/**
- * These flags are used internally to detect incompatibilities when linking \alib to binaries that
- * use different compilation flags. Declared public to allow exposure, e.g. in verbose logging.
- * \see Function #AssertALibVersionAndFlags, which is invoked by overloaded functions
- *      #Bootstrap.
- */
+/// These flags are used internally to detect incompatibilities when linking \alib to binaries that
+/// use different compilation flags. Declared public to allow exposure, e.g., in verbose logging.
+/// \see Function #AssertALibVersionAndFlags, which is invoked by overloaded functions
+///      #Bootstrap.
 extern ALIB_API
-TCompilationFlags               CompilationFlags;
+TCompilationFlags               COMPILATION_FLAGS;
 
 
 
-/** ****************************************************************************************
- * Compares a given set of compilation flags with the ones set in the \alib library.
- * If a mismatch is found, the configuration mismatch is written to <c>std::cerr</c>
- * and <c>exit(255)</c> is performed.
- *
- * This function called in all variants of function \ref alib::Bootstrap.
- * If a using application wants to act different on such a mismatch, an own check of
- * fields \ref alib::Version, \ref alib::Revision and \ref alib::CompilationFlags against
- * preprocessor symbols \ref ALIB_VERSION, \ref ALIB_REVISION and \ref ALIB_COMPILATION_FLAGS
- * has to be performed \e prior to calling \b Bootstrap.
- *
- * \attention A mismatch in \alib library version and compilation flags, may lead to very
- *            dubious misbehavior which is almost impossible to debug. This is true for any
- *            C/C++ software/library mismatch.
- *
- * @param alibVersion      The \alib version required.
- *                         Defaults to \ref ALIB_VERSION and \b must not be passed when invoking
- *                         this function.
- * @param alibRevision     The \alib sub-version required.
- *                         Defaults to \ref ALIB_REVISION and \b must not be passed when invoking
- *                         this function.
- * @param compilationFlags The flags as defined in invoking compilation unit.
- *                         Defaults to \c ALIB_COMPILATION_FLAGS and \b must not be given.
- *
- ******************************************************************************************/
+//==================================================================================================
+/// Compares a given set of compilation flags with the ones set in the \alib library.
+/// If a mismatch is found, the configuration mismatch is written to <c>std::cerr</c>
+/// and <c>exit(255)</c> is performed.
+///
+/// This function called in all variants of function \ref alib::Bootstrap.
+/// If a using application wants to act different on such a mismatch, an own check of
+/// global variables \ref alib::VERSION, \ref alib::REVISION and \ref alib::COMPILATION_FLAGS against
+/// preprocessor symbols \ref ALIB_VERSION, \ref ALIB_REVISION and
+/// \doxlinkproblem{group__GrpALibPreproMacros.html;gaac71b6511690f5af0abf5213b0434111;ALIB_COMPILATION_FLAGS;ALIB_COMPILATION_FLAGS}
+/// has to be performed \e before calling \b Bootstrap.
+///
+/// \attention A mismatch in \alib library version and compilation flags, may lead to very
+///            dubious misbehavior which is almost impossible to debug. This is true for any
+///            C/C++ software/library mismatch.
+///
+/// @param alibVersion      The \alib version required.
+///                         Defaults to \ref ALIB_VERSION and \b must not be passed when invoking
+///                         this function.
+/// @param alibRevision     The \alib sub-version required.
+///                         Defaults to \ref ALIB_REVISION and \b must not be passed when invoking
+///                         this function.
+/// @param compilationFlags The flags as defined in invoking compilation unit.
+///                         Defaults to \c ALIB_COMPILATION_FLAGS and \b must not be given.
+///
+//==================================================================================================
 ALIB_API
 void            AssertALibVersionAndFlags( int               alibVersion     = ALIB_VERSION,
                                            int               alibRevision    = ALIB_REVISION,
                                            TCompilationFlags compilationFlags= TCompilationFlags{ALIB_COMPILATION_FLAGS} );
 
-
 } // namespace [alib]
 
 
 #endif // HPP_ALIB
+

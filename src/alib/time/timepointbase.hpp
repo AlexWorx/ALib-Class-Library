@@ -1,352 +1,402 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_time of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_time of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_TIME_TIMEPOINTBASE
 #define HPP_ALIB_TIME_TIMEPOINTBASE 1
-
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#pragma once
+#if !defined(DOXYGEN)
 #   include "alib/alib.hpp"
 #endif
-
 ALIB_ASSERT_MODULE(TIME)
 
 #if ALIB_STRINGS && ALIB_ENUMS
-#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
-#      include "alib/lang/commonenums.hpp"
-#   endif
+#   include "alib/lang/commonenums.hpp"
 #else
-#   if !defined(HPP_ALIB_LANG_COMMONENUMS_DEFS)
-#      include "alib/lang/commonenumdefs.hpp"
-#   endif
+#   include "alib/lang/commonenumdefs.hpp"
 #endif
-
-#if !defined(HPP_ALIB_LANG_INTEGERS)
-#   include "alib/lang/integers.hpp"
-#endif
-
-
-#if !defined (_GLIBCXX_CHRONO) && !defined (_CHRONO_)
-    #include <chrono>
-#endif
-
-#if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
-    #include <cmath>
-#endif
-
-#if !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
-#   include <algorithm>
-#endif
+#include "alib/lang/integers.hpp"
+#include <chrono>
+#include <cmath>
+#include <algorithm>
 
 namespace alib {  namespace time {
 
-/** ************************************************************************************************
- * As explained in detail in the documentation of module \alib_time, a steady time model is
- * supported with class \alib{time,Ticks} and a non-steady one representing the system clock with
- * class \alib{time,DateTime}.
- * Both types share this template class as their generic base.
- *
- * The common features that this class provides to its descendants are:
- * - Type definition #TTimePoint used to store a point in time.
- * - Method #Export, which returns the internal value of type #TTimePoint which is of C++
- *   standard type \c std::chrono::time_point.
- * - Inner class \alib{time::TimePointBase,Duration} that represents the difference type of this
- *   class.
- * - Static method #Now which creates an instance representing the current point in time.
- * - Methods #Age and #Since.
- * - Various overloaded arithmetic and comparison operators.
- *
- * \note
- *   The resolution and accuracy of the values is platform dependent. Especially nanoseconds are
- *   deemed to be inaccurate if below several hundreds (this was written and fact in 2013,
- *   reviewed 2019).
- *
- * \attention
- *   The dates storable in objects of this class are limited to a certain time range. In the
- *   current GNU/Linux and Windows implementations the range is roughly <c>+-292.27</c> years
- *   before and after the point in time that the system that the software is running on was
- *   initialized (bootstrapped). This value results from the following facts for these
- *   implementations:
- *   - the storage resolution is one nanosecond.
- *   - the storage size is 64 bits (63 plus the sign bit).
- *   - system dependent ticks counters are reset to \c 0 with the boot of a system.
- *
- *   Now, dividing <c>2^63</c> by the number of nanoseconds of one year which
- *   consists of roughly 365.25 days, this results in 292.27 years.
- *
- * @tparam TClock    The type of clock to use. This will be
- *                   - \c std::chrono::system_clock with descendant class \alib{time,DateTime} and
- *                   - \c std::chrono::steady_clock with descendant class \alib{time,Ticks}.
- * @tparam TDerived  The derived type itself, hence either \alib{time,DateTime} or
- *                   \alib{time,Ticks}. This template parameter is needed to define the result
- *                   type of various methods and operators.
- **************************************************************************************************/
+#if !DOXYGEN
+#   define sc std::chrono::
+#endif
+
+//==================================================================================================
+/// As explained in detail in the documentation of module \alib_time, a steady time model is
+/// supported with class \alib{time;Ticks} and a non-steady one representing the system clock with
+/// class \alib{time;DateTime}.
+/// Both types share this template class as their generic base.
+///
+/// The common features that this class provides to its descendants are:
+/// - Type definition #TTimePoint used to store a point in time.
+/// - Method #Export, which returns the internal value of type #TTimePoint which is of C++
+///   standard type \c std::chrono::time_point.
+/// - Inner class \alib{time::TimePointBase;Duration} that represents the difference type of this
+///   class.
+/// - Static method #Now which creates an instance representing the current point in time.
+/// - Methods #Age and #Since.
+/// - Various overloaded arithmetic and comparison operators.
+///
+/// \note
+///   The resolution and accuracy of the values is platform-dependent. Especially nanoseconds are
+///   deemed to be inaccurate if below several hundreds (this was written and fact in 2013,
+///   reviewed 2019).
+///
+/// \attention
+///   The dates storable in objects of this class are limited to a certain time range. In the
+///   current GNU/Linux and Windows implementations the range is roughly <c>+-292.27</c> years
+///   before and after the point in time that the system that the software is running on was
+///   initialized (bootstrapped). This value results from the following facts for these
+///   implementations:
+///   - the storage resolution is one nanosecond.
+///   - the storage size is 64 bits (63 plus the sign bit).
+///   - system dependent ticks counters are reset to \c 0 with the boot of a system.
+///
+///   Now, dividing <c>2^63</c> by the number of nanoseconds of one year which
+///   consists of roughly 365.25 days, this results in 292.27 years.
+///
+/// @tparam TClock    The type of clock to use. This will be
+///                   - \c std::chrono::system_clock with descendant class \alib{time;DateTime} and
+///                   - \c std::chrono::steady_clock with descendant class \alib{time;Ticks}.
+/// @tparam TDerived  The derived type itself, hence either \alib{time;DateTime} or
+///                   \alib{time;Ticks}. This template parameter is needed to define the result
+///                   type of various methods and operators.
+//==================================================================================================
 template<typename TClock, typename TDerived>
 class TimePointBase
 {
     public:
-        /** The internal c++ type for time points. */
+        /// The internal c++ type for time points.
         using   TTimePoint=    typename TClock::time_point;
 
-        /** Integral type used for exporting and importing values in raw units. */
+        /// Integral type used for exporting and importing values in raw units.
         using   TRaw=          typename TTimePoint::rep;
 
 
-    /** ********************************************************************************************
-     * This inner class of \b %TimePointBase represents durations, hence difference values of two
-     * values of the parent class.
-     *
-     * Often, objects of this class are generated by the subtraction of \b %TimePointBase values or
-     * by using methods \alib{time,TimePointBase::Age} and \alib{time,TimePointBase::Since}.
-     * Furthermore, class \alib{lang::system,CalendarDuration} (found in module \alib_basecamp)
-     * can be used to convert durations to and from human readable units (days, hours, minutes,
-     * etc.).
-     *
-     * ## Friends ##
-     * class \alib{time,TimePointBase}
-     **********************************************************************************************/
+    //==============================================================================================
+    /// This inner class of \b %TimePointBase represents durations, hence difference values of two
+    /// values of the parent class.
+    ///
+    /// Often, objects of this class are generated by the subtraction of \b %TimePointBase values or
+    /// by using methods \alib{time;TimePointBase::Age} and \alib{time;TimePointBase::Since}.
+    /// Furthermore, class \alib{lang::system;CalendarDuration} (found in module \alib_basecamp)
+    /// can be used to convert durations to and from human-readable units (days, hours, minutes,
+    /// etc.).
+    ///
+    /// ## Appending Durations to Class AString ##
+    /// An specialization of struct \alib{strings;T_Append} for this type exists with the inclusion
+    /// of camp \alib_basecamp in the \alibdist and the inclusion of
+    /// \alibheader{lang/system/calendar.hpp}.
+    ///
+    /// ## Friends ##
+    /// class \alib{time;TimePointBase}
+    //==============================================================================================
     class   Duration
     {
-        #if !defined(ALIB_DOX)
+        #if !DOXYGEN
         // In C++ inner classes need to be friend to access protected elements of the outer class.
         friend class TimePointBase;
         #endif
 
 
         public:
-            /** The value type for time spans. */
-            using   TDuration =    typename std::chrono::steady_clock::duration;
+            /// The value type for time spans.
+            using   TDuration =   sc steady_clock::duration;
 
 
         // #########################################################################################
         // protected fields
         // #########################################################################################
         protected:
-            /** The internal time value. */
+            /// The internal time value.
             TDuration         span;
-
-            /** ************************************************************************************
-             * Protected constructor.
-             *
-             * For construction with C++ library values, see method #Import.
-             * @param internalValue The value to copy into this.
-             **************************************************************************************/
-            Duration( TDuration internalValue )
-            : span( internalValue )
-            {}
 
         // #########################################################################################
         // Constructors
         // #########################################################################################
         public:
 
-            /** ************************************************************************************
-             * Creates a zero-length time span.
-             **************************************************************************************/
+            //======================================================================================
+            /// Creates a zero-length time span.
+            //======================================================================================
             constexpr
             Duration()
             : span(0)
             {}
 
+            /// Constructs an instance from C++ library values.
+            /// @see Methods #Import/#Export.
+            /// @param stdLibValue The value to copy into this.
+            Duration( const TDuration& stdLibValue )
+            : span( stdLibValue )
+            {}
+
+            /// Constructs an instance from C++ library values.
+            /// @see Methods #Import/#Export.
+            /// @param stdLibValue The value to copy into this.
+            /// @return A reference to this object.
+            Duration& operator=( const TDuration& stdLibValue ) { span= stdLibValue; return *this; }
+
         // #########################################################################################
         // Interface
         // #########################################################################################
-        public:
-            /** ************************************************************************************
-             * Returns the internal time span value using the C++ standard library format.
-             * @return  The internal value.
-             **************************************************************************************/
-            TDuration       Export()                    const   { return span;         }
 
-            /** ************************************************************************************
-             * Creates an instance representing the time span given in C++ standard library format.
-             * @param timeSpan The C++ stead clock time point value.
-             * @return A time span value representing the given externalized \p{timeSpan}.
-             **************************************************************************************/
+            //======================================================================================
+            /// Returns the internal time span value using the C++ standard library format.
+            /// @return  The internal value.
+            //======================================================================================
+            TDuration       Export()                                          const { return span; }
+
+            //======================================================================================
+            /// Creates an instance representing the time span given in C++ standard library format.
+            /// @param timeSpan The C++ time point value.
+            /// @return A time span value representing the given externalized \p{timeSpan}.
+            //======================================================================================
             static
-            Duration        Import( TDuration timeSpan )        {  return Duration ( timeSpan ); }
+            Duration        Import( const TDuration& timeSpan )   {  return Duration ( timeSpan ); }
 
 
-            /** ************************************************************************************
-             * Sets this object's value to the given duration, in the case the given is shorter.
-             * @param other The time stamp to compare.
-             * @return A reference to this object.
-             **************************************************************************************/
-            Duration&        SetMinimum( const Duration& other  )
+            //======================================================================================
+            /// Sets this object's value to the given duration, in the case the given is shorter.
+            /// @param other The time stamp to compare.
+            /// @return A reference to this object.
+            //======================================================================================
+            Duration&       SetMinimum( const Duration& other  )
             {
                 span= (std::min)(span, other.span);
                 return *this;
             }
 
-            /** ************************************************************************************
-             * Sets this object's value to the given duration, in the case the given is longer.
-             * @param other The time stamp to compare.
-             * @return A reference to this object.
-             **************************************************************************************/
-            Duration&        SetMaximum( const Duration& other  )
+            //======================================================================================
+            /// Sets this object's value to the given duration, in the case the given is longer.
+            /// @param other The time stamp to compare.
+            /// @return A reference to this object.
+            //======================================================================================
+            Duration&       SetMaximum( const Duration& other  )
             {
                 span= (std::max)(span, other.span);
                 return *this;
             }
 
-            /** ************************************************************************************
-             * Equal to operator.
-             * @param other The time stamp to compare.
-             * @return The result of the comparison.
-             **************************************************************************************/
-            bool   operator==( const Duration& other )const     { return span == other.span;  }
+            /// @return \c true if this is a positive duration, \c false otherwise.
+            bool            IsPositive()                          const { return span.count() > 0; }
+
+            /// @return \c true if this is is a zero-length time-span, \c false otherwise.
+            bool            IsZero()                             const { return span.count() == 0; }
+
+            //======================================================================================
+            /// Equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator==( const Duration& other )          const { return span == other.span; }
 
 
-            /** ************************************************************************************
-             * Not equal to operator.
-             * @param other The time stamp to compare.
-             * @return The result of the comparison.
-             **************************************************************************************/
-            bool   operator!=( const Duration& other )const     { return span != other.span;  }
+            //======================================================================================
+            /// Equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator==( const TDuration& other )              const { return span == other; }
 
-            /** ************************************************************************************
-             * Less than operator.
-             * @param other The time stamp to compare.
-             * @return A reference to this object.
-             **************************************************************************************/
-            bool   operator<( const Duration& other ) const     { return span <  other.span;  }
+            //======================================================================================
+            /// Not equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator!=( const Duration& other )          const { return span != other.span; }
 
-            /** ************************************************************************************
-             * Less than or equal to operator.
-             * @param other The time stamp to compare.
-             * @return The result of the comparison.
-             **************************************************************************************/
-            bool   operator<=( const Duration& other ) const    { return span <=  other.span;  }
+            //======================================================================================
+            /// Not equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator!=( const TDuration& other )              const { return span != other; }
 
-            /** ************************************************************************************
-             * Greater than operator.
-             * @param other The time stamp to compare.
-             * @return The result of the comparison.
-             **************************************************************************************/
-            bool   operator>( const Duration& other ) const     { return span >  other.span;  }
+            //======================================================================================
+            /// Less than operator.
+            /// @param other The duration to compare.
+            /// @return A reference to this object.
+            //======================================================================================
+            bool   operator<( const Duration& other )           const { return span <  other.span; }
 
-            /** ************************************************************************************
-             * Greater than or equal to operator.
-             * @param other The time stamp to compare.
-             * @return The result of the comparison.
-             **************************************************************************************/
-            bool   operator>=( const Duration& other ) const    { return span >=  other.span;  }
+            //======================================================================================
+            /// Less than operator.
+            /// @param other The duration to compare.
+            /// @return A reference to this object.
+            //======================================================================================
+            bool   operator<( const TDuration& other )               const { return span <  other; }
 
-            /** ************************************************************************************
-             * Addition operator.
-             * @param rhs The right-hand side time span to add.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
-            Duration operator+( const Duration& rhs ) const     { return Duration(span + rhs.span);}
+            //======================================================================================
+            /// Less than or equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator<=( const Duration& other )         const { return span <=  other.span; }
 
-            /** ************************************************************************************
-             * Assignment by sum operator.
-             * @param other The time span object subtract.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Less than or equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator<=( const TDuration& other )             const { return span <=  other; }
+
+            //======================================================================================
+            /// Greater than operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator>( const Duration& other )           const { return span >  other.span; }
+
+            //======================================================================================
+            /// Greater than operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator>( const TDuration& other )               const { return span >  other; }
+
+            //======================================================================================
+            /// Greater than or equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator>=( const Duration& other )         const { return span >=  other.span; }
+
+            //======================================================================================
+            /// Greater than or equal to operator.
+            /// @param other The duration to compare.
+            /// @return The result of the comparison.
+            //======================================================================================
+            bool   operator>=( const TDuration& other )             const { return span >=  other; }
+
+            //======================================================================================
+            /// Addition operator.
+            /// @param rhs The right-hand side time span to add.
+            /// @return A time span containing the sum.
+            //======================================================================================
+            Duration operator+( const Duration& rhs )    const { return Duration(span + rhs.span); }
+
+            //======================================================================================
+            /// Addition operator.
+            /// @param rhs The right-hand side time span to add.
+            /// @return A time span containing the sum.
+            //======================================================================================
+            Duration operator+( const TDuration& rhs )        const { return Duration(span + rhs); }
+
+            //======================================================================================
+            /// Assignment by sum operator.
+            /// @param other The time span to subtract.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator+=( const Duration& other )       { span+= other.span; return *this; }
 
-            /** ************************************************************************************
-             * Subtraction operator.
-             * @param rhs The right-hand side time span object to subtract.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
-            Duration operator-( const Duration& rhs )const      { return Duration(span - rhs.span);}
+            //======================================================================================
+            /// Assignment by sum operator.
+            /// @param other The time span to subtract.
+            /// @return A reference to this object.
+            //======================================================================================
+            Duration& operator+=( const TDuration& other )           { span+= other; return *this; }
 
-            /** ************************************************************************************
-             * Assignment by difference operator.
-             * @param other The time span object subtract.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Subtraction operator.
+            /// @param rhs The right-hand side time span to subtract.
+            /// @return A time span containing the sum.
+            //======================================================================================
+            Duration operator-( const Duration& rhs )    const { return Duration(span - rhs.span); }
+
+            //======================================================================================
+            /// Subtraction operator.
+            /// @param rhs The right-hand side time span to subtract.
+            /// @return A time span containing the sum.
+            //======================================================================================
+            Duration operator-( const TDuration& rhs )        const { return Duration(span - rhs); }
+
+            //======================================================================================
+            /// Assignment by difference operator.
+            /// @param other The time span subtract.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator-=( const Duration& other )       { span-= other.span; return *this; }
 
-            /** ************************************************************************************
-             * Multiply operator.
-             * @param multiplier The multiplier.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
+            //======================================================================================
+            /// Assignment by difference operator.
+            /// @param other The time span subtract.
+            /// @return A reference to this object.
+            //======================================================================================
+            Duration& operator-=( const TDuration& other )           { span-= other; return *this; }
+
+            //======================================================================================
+            /// Multiply operator.
+            /// @param multiplier The multiplier.
+            /// @return A time span containing the sum.
+            //======================================================================================
             Duration operator*( double multiplier ) const
-            {
-               return std::chrono::duration_cast<TDuration>( (span * multiplier) );
-            }
+            { return sc duration_cast<TDuration>( (span * multiplier) ); }
 
-            /** ************************************************************************************
-             * Multiply operator.
-             * @param multiplier The multiplier.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
+            //======================================================================================
+            /// Multiply operator.
+            /// @param multiplier The multiplier.
+            /// @return A time span containing the sum.
+            //======================================================================================
             Duration operator*( int64_t multiplier ) const
-            {
-               return std::chrono::duration_cast<TDuration>( (span * multiplier) );
-            }
+            { return sc duration_cast<TDuration>( (span * multiplier) ); }
 
-            /** ************************************************************************************
-             * Assignment by product operator.
-             * @param multiplier The multiplier.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Assignment by product operator.
+            /// @param multiplier The multiplier.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator*=( double multiplier )
-            {
-               span= std::chrono::duration_cast<TDuration>( (span * multiplier) );
-               return *this;
-            }
+            { span= sc duration_cast<TDuration>( (span * multiplier) ); return *this; }
 
-            /** ************************************************************************************
-             * Assignment by product operator.
-             * @param multiplier The multiplier.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Assignment by product operator.
+            /// @param multiplier The multiplier.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator*=( int64_t multiplier )
-            {
-               span= std::chrono::duration_cast<TDuration>( (span * multiplier) );
-               return *this;
-            }
+            { span= sc duration_cast<TDuration>( (span * multiplier) ); return *this; }
 
-            /** ************************************************************************************
-             * Divide operator.
-             * @param divisor The divisor.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
+            //======================================================================================
+            /// Divide operator.
+            /// @param divisor The divisor.
+            /// @return A time span containing the sum.
+            //======================================================================================
             Duration operator/( double divisor ) const
-            {
-               return std::chrono::duration_cast<TDuration>( (span / divisor) );
-            }
+            { return sc duration_cast<TDuration>( (span / divisor) ); }
 
-            /** ************************************************************************************
-             * Divide operator.
-             * @param divisor The divisor.
-             * @return A time span object containing the sum.
-             **************************************************************************************/
+            //======================================================================================
+            /// Divide operator.
+            /// @param divisor The divisor.
+            /// @return A time span object containing the sum.
+            //======================================================================================
             Duration operator/( int64_t divisor ) const
-            {
-               return std::chrono::duration_cast<TDuration>( (span / divisor) );
-            }
+            { return sc duration_cast<TDuration>( (span / divisor) ); }
 
-            /** ************************************************************************************
-             * Assignment by quotient operator.
-             * @param divisor The divisor.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Assignment by quotient operator.
+            /// @param divisor The divisor.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator/=( double divisor )
-            {
-               span= std::chrono::duration_cast<TDuration>( (span / divisor) );
-               return *this;
-            }
+            { span= sc duration_cast<TDuration>( (span / divisor) ); return *this; }
 
 
-            /** ************************************************************************************
-             * Assignment by quotient operator.
-             * @param divisor The divisor.
-             * @return A reference to this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Assignment by quotient operator.
+            /// @param divisor The divisor.
+            /// @return A reference to this object.
+            //======================================================================================
             Duration& operator/=( int64_t divisor )
-            {
-               span= std::chrono::duration_cast<TDuration>( (span / divisor) );
-               return *this;
-            }
+            { span= sc duration_cast<TDuration>( (span / divisor) ); return *this; }
 
 
         // #########################################################################################
@@ -354,138 +404,138 @@ class TimePointBase
         // #########################################################################################
         public:
 
-            /** ************************************************************************************
-             * Converts the internal value to days.
-             * @return  The internal value converted to days.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to days.
+            /// @return  The internal value converted to days.
+            //======================================================================================
             double         InDays()       const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
+               return double( sc duration_cast<sc microseconds>( span ).count() )
                       / (1000000. * 3600. * 24. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute days.
-             * @return  The internal value converted to days.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute days.
+            /// @return  The internal value converted to days.
+            //======================================================================================
             integer        InAbsoluteDays()       const
             {
-               return static_cast<integer>( std::chrono::duration_cast<std::chrono::hours>( span ).count()
+               return integer( sc duration_cast<sc hours>( span ).count()
                                             / 24 );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to hours.
-             * @return  The internal value converted to hours.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to hours.
+            /// @return  The internal value converted to hours.
+            //======================================================================================
             double        InHours()      const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
-                                           / (1000000. * 3600. );
+               return double( sc duration_cast<sc microseconds>( span ).count() )
+                      / (1000000. * 3600. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute hours.
-             * @return  The internal value converted to hours.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute hours.
+            /// @return  The internal value converted to hours.
+            //======================================================================================
             integer       InAbsoluteHours()      const
             {
-                return static_cast<integer>( std::chrono::duration_cast<std::chrono::hours>( span ).count() );
+                return integer( sc duration_cast<sc hours>( span ).count() );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to minutes.
-             * @return  The internal value converted to minutes.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to minutes.
+            /// @return  The internal value converted to minutes.
+            //======================================================================================
             double        InMinutes()    const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::microseconds>( span ).count() )
+               return double( sc duration_cast<sc microseconds>( span ).count() )
                       / (1000000. * 60. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute minutes.
-             * @return  The internal value converted to minutes.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute minutes.
+            /// @return  The internal value converted to minutes.
+            //======================================================================================
             int64_t       InAbsoluteMinutes()    const
             {
-                return std::chrono::duration_cast<std::chrono::minutes>( span ).count();
+                return sc duration_cast<sc minutes>( span ).count();
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to seconds.
-             * @return  The internal value converted to seconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to seconds.
+            /// @return  The internal value converted to seconds.
+            //======================================================================================
             double        InSeconds()    const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count() )
+               return double( sc duration_cast<sc nanoseconds>( span ).count() )
                       / (1000000000. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute seconds.
-             * @return  The internal value converted to seconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute seconds.
+            /// @return  The internal value converted to seconds.
+            //======================================================================================
             int64_t       InAbsoluteSeconds()    const
             {
-                return std::chrono::duration_cast<std::chrono::seconds>( span ).count();
+                return sc duration_cast<sc seconds>( span ).count();
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to milliseconds.
-             * @return  The internal value converted to milliseconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to milliseconds.
+            /// @return  The internal value converted to milliseconds.
+            //======================================================================================
             double      InMilliseconds()    const
             {
-               return static_cast<double>( std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count() )
+               return double( sc duration_cast<sc nanoseconds>( span ).count() )
                       / (1000000. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute milliseconds.
-             * @return  The internal value converted to milliseconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute milliseconds.
+            /// @return  The internal value converted to milliseconds.
+            //======================================================================================
             int64_t     InAbsoluteMilliseconds()    const
             {
-                return std::chrono::duration_cast<std::chrono::milliseconds>( span ).count();
+                return sc duration_cast<sc milliseconds>( span ).count();
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to microseconds.
-             * @return  The internal value converted to microseconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to microseconds.
+            /// @return  The internal value converted to microseconds.
+            //======================================================================================
             double      InMicroseconds()    const
             {
-               return static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count())
+               return double(sc duration_cast<sc nanoseconds>( span ).count())
                       / (1000. );
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to absolute microseconds.
-             * @return  The internal value converted to microseconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to absolute microseconds.
+            /// @return  The internal value converted to microseconds.
+            //======================================================================================
             int64_t     InAbsoluteMicroseconds()    const
             {
-                return std::chrono::duration_cast<std::chrono::microseconds>( span ).count();
+                return sc duration_cast<sc microseconds>( span ).count();
             }
 
-            /** ************************************************************************************
-             * Converts the internal value to nanoseconds.
-             * @return  The internal value converted to nanoseconds.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value to nanoseconds.
+            /// @return  The internal value converted to nanoseconds.
+            //======================================================================================
             int64_t     InNanoseconds()    const
             {
-                return std::chrono::duration_cast<std::chrono::nanoseconds>( span ).count();
+                return sc duration_cast<sc nanoseconds>( span ).count();
             }
 
-            /** ************************************************************************************
-             * Returns 1 divided by internal value in seconds, hence the number of Hertz that this
-             * object represents when interpreted as a time span.
-             *
-             * @param qtyFractionalDigits Number of digits that the return value will be rounded to.
-             *                            Defaults to -1 which means no rounding.
-             * @return     double value representing the frequency in hertz.
-             **************************************************************************************/
+            //======================================================================================
+            /// Returns 1 divided by internal value in seconds, hence the number of Hertz that this
+            /// object represents when interpreted as a time span.
+            ///
+            /// @param qtyFractionalDigits Number of digits that the return value will be rounded to.
+            ///                            Defaults to -1 which means no rounding.
+            /// @return     double value representing the frequency in hertz.
+            //======================================================================================
             double      InHertz( int qtyFractionalDigits= -1 ) const
             {
                 // check
@@ -493,7 +543,7 @@ class TimePointBase
                     return 0.0;
 
                 // calc hertz
-                double hz= 1000000000.0 / static_cast<double>(InNanoseconds());
+                double hz= 1000000000.0 / double(InNanoseconds());
 
                 // no rounding? that's it
                 if ( qtyFractionalDigits < 0 )
@@ -506,161 +556,122 @@ class TimePointBase
             }
 
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in days.
-             * @param days  The time span to set in days.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in days.
+            /// @param days  The time span to set in days.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromDays( double days )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::hours(24) * days   );
-            }
+            { return sc duration_cast<TDuration>(sc hours(24) * days); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in days.
-             * @param days  The time span to set in days.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in days.
+            /// @param days  The time span to set in days.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromAbsoluteDays( int64_t days )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::hours(24) * days   );
-            }
+            { return sc duration_cast<TDuration>(sc hours(24) * days); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in hours.
-             * @param hours  The time span to set in hours.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in hours.
+            /// @param hours  The time span to set in hours.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromHours( double hours )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::hours(1) * hours   );
-            }
+            { return sc duration_cast<TDuration>(sc hours(1) * hours); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in hours.
-             * @param hours  The time span to set in hours.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in hours.
+            /// @param hours  The time span to set in hours.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromAbsoluteHours( int64_t hours )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::hours(1) * hours   );
-            }
+            { return sc duration_cast<TDuration>( sc hours(1) * hours ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in hours.
-             * @param minutes  The time span to set in minutes.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in hours.
+            /// @param minutes  The time span to set in minutes.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration     FromMinutes(double minutes )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::minutes(1) * minutes   );
-            }
+            { return sc duration_cast<TDuration>( sc minutes(1) * minutes ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in hours.
-             * @param minutes  The time span to set in minutes.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in hours.
+            /// @param minutes  The time span to set in minutes.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration     FromAbsoluteMinutes(int64_t minutes )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::minutes(1) * minutes   );
-            }
+            { return sc duration_cast<TDuration>( sc minutes(1) * minutes ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in seconds.
-             * @param seconds  The time span to set in seconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in seconds.
+            /// @param seconds  The time span to set in seconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromSeconds( double seconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::seconds(1) * seconds   );
-            }
+            { return sc duration_cast<TDuration>(sc seconds(1) * seconds ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in seconds.
-             * @param seconds  The time span to set in seconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in seconds.
+            /// @param seconds  The time span to set in seconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromAbsoluteSeconds( int64_t seconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::seconds(1) * seconds   );
-            }
+            { return sc duration_cast<TDuration>(sc seconds(1) * seconds);  }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in milliseconds.
-             * @param milliseconds    The time span to set in milliseconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in milliseconds.
+            /// @param milliseconds    The time span to set in milliseconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromMilliseconds( double  milliseconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::milliseconds(1) * milliseconds   );
-            }
+            { return sc duration_cast<TDuration>(sc milliseconds(1) * milliseconds);  }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in milliseconds.
-             * @param milliseconds    The time span to set in milliseconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in milliseconds.
+            /// @param milliseconds    The time span to set in milliseconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromAbsoluteMilliseconds( int64_t  milliseconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::milliseconds(1) * milliseconds   );
-            }
+            { return sc duration_cast<TDuration>( sc milliseconds(1) * milliseconds ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in microseconds.
-             * @param microseconds  The time span to set in microseconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in microseconds.
+            /// @param microseconds  The time span to set in microseconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromMicroseconds( double  microseconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::microseconds(1) * microseconds   );
-            }
+            { return sc duration_cast<TDuration>(sc microseconds(1) * microseconds   );  }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in microseconds.
-             * @param microseconds  The time span to set in microseconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in microseconds.
+            /// @param microseconds  The time span to set in microseconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration    FromAbsoluteMicroseconds( int64_t  microseconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::microseconds(1) * microseconds   );
-            }
+            { return sc duration_cast<TDuration>( sc microseconds(1) * microseconds ); }
 
-            /** ************************************************************************************
-             * Sets the internal value to a time span provided in nanoseconds.
-             * @param nanoseconds  The time span to set in nanoseconds.
-             * @return   \c *this to allow concatenated calls.
-             **************************************************************************************/
+            //======================================================================================
+            /// Sets the internal value to a time span provided in nanoseconds.
+            /// @param nanoseconds  The time span to set in nanoseconds.
+            /// @return   \c *this to allow concatenated calls.
+            //======================================================================================
             static
             Duration  FromNanoseconds( int64_t  nanoseconds )
-            {
-                return std::chrono::duration_cast<TDuration>(
-                    std::chrono::nanoseconds( nanoseconds )   );
-            }
+            { return sc duration_cast<TDuration>(sc nanoseconds( nanoseconds )); }
     }; // inner class Duration
 
     // #############################################################################################
@@ -668,8 +679,8 @@ class TimePointBase
     // #############################################################################################
 
     protected:
-        /** The internal timer value. This value can be accessed using methods #Export and
-         *  #Import. */
+        /// The internal timer value. This value can be accessed using methods #Export and
+        /// #Import.
         TTimePoint                stamp;
 
     // #############################################################################################
@@ -677,55 +688,64 @@ class TimePointBase
     // #############################################################################################
 
     public:
-        /** ****************************************************************************************
-         * Creates an instance representing the point in time when this constructor
-         * was invoked.
-         *
-         * The default invocation measures the current point in time, which introduces some
-         * effort. To avoid this in situations where an instance is overwritten by the result of
-         * static method #Now at a later point in time, parameter \p{init} can be used to suppress
-         * the initial measurement.
-         *
-         * @param init If \c Initialization::Perform, the current time is measured and set.
-         *             If \c Initialization::Suppress, the time stamp will be initialized to
-         *             represent the start of the epoch.<br>
-         *             Defaults to \c Initialization::Perform.
-         ******************************************************************************************/
+        /// Constructor. With parameter \p{init} being defaulted, this constructor acts as
+        /// the default constructor, which creates an instance representing the point in time when
+        /// this constructor was invoked.
+        /// This measures the current point in time, which introduces some effort.
+        ///
+        /// To avoid this in situations where an instance is overwritten after construction
+        /// (i.e., before it is read), parameter \p{init} can be passed to either \b Suppress
+        /// or \b Nulled. Both values set this instance to a \e nulled state, as complete
+        /// suppression is not available. Inn many situations the compiler will optimize out
+        /// a nulled construction.
+        ///
+        /// If not initialized, the method #IsSet will return \c false.
+        ///
+        /// @param init If \c Initialization::Default, the current time is measured and set.
+        ///             Defaults to \c Initialization::Default.
         constexpr
-        TimePointBase(lang::Initialization init= lang::Initialization::Perform)
+        TimePointBase(const lang::Initialization init= lang::Initialization::Default)
         {
-            if(init == lang::Initialization::Perform )
-                stamp= TClock::now();
+             if(init == lang::Initialization::Default )
+                 stamp= TClock::now();
         }
 
-        /** ****************************************************************************************
-         * Returns an instance representing the actual point in time.
-         * @return A value type of \p{TDerived}. Usually this is assigned to a value variable which
-         *         might have been constructed with measurement suppression.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Returns an instance representing the actual point in time.
+        /// @return The current point in time time.
+        //==========================================================================================
         static
-        TDerived     Now()
-        {
-           return TDerived(TClock::now());
-        }
+        TDerived    Now()                                        { return TDerived(TClock::now()); }
 
-        /** ****************************************************************************************
-         * Resets this instance to the current point in time.
-         * @return A reference to \c this, (casted to the derived type) to allow concatenated
-         *         operations.
-         ******************************************************************************************/
-        TDerived&  Reset()
+        /// Returns an instance representing the beginning of the epoch.
+        /// No time point represented by this type can be further in the past.
+        /// @return The earliest point in time.
+        static
+        TDerived    BeginningOfEpoch()             { return TDerived((TClock::time_point::min)()); }
+
+        /// Returns an instance representing the end of the epoch.
+        /// No time point represented by this type can be further in the future.
+        /// @return A maximum point in time.
+        static
+        TDerived    EndOfEpoch()                   { return TDerived((TClock::time_point::max)()); }
+
+        //==========================================================================================
+        /// Resets this instance to the current point in time.
+        /// @return A reference to \c this, (cast to the derived type) to allow concatenated
+        ///         operations.
+        //==========================================================================================
+        TDerived&   Reset()
         {
             stamp= TClock::now();
             return *static_cast<TDerived*>(this);
         }
 
-        /** ****************************************************************************************
-         * Constructor using native C++ library values.
-         * \see Methods #Import and #Export.
-         *
-         * @param internalValue The value to copy into this.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Constructor using native C++ library values.
+        /// \see Methods #Import and #Export.
+        ///
+        /// @param internalValue The value to copy into this.
+        //==========================================================================================
         constexpr
         TimePointBase( TTimePoint internalValue )
         : stamp(internalValue)
@@ -736,186 +756,202 @@ class TimePointBase
     // #############################################################################################
     public:
 
-        /** ****************************************************************************************
-         * Returns \c true if this object is not representing the start of the epoch.
-         * An uninitialized object that returns \c false can be created with provision of
-         * \c Initialization::Suppress on construction.
-         *
-         * @return \c true if this object is initialized, \c false otherwise.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Returns \c true if this object is not representing the start of the epoch.
+        /// An uninitialized object that returns \c false can be created with provision of
+        /// \c Initialization::Suppress on construction.
+        ///
+        /// @return \c true if this object is initialized, \c false otherwise.
+        //==========================================================================================
         bool        IsSet()
         {
             return stamp != TTimePoint();
         }
 
-        /** ****************************************************************************************
-         * Unsets this object, hence makes this object representing the start of the epoch, as if
-         * it was constructed with parameter value \c Initialization::Suppress.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Unsets this object, hence makes this object representing the start of the epoch, as if
+        /// it was constructed with parameter value \c Initialization::Suppress.
+        //==========================================================================================
         void        Unset()
         {
             stamp= TTimePoint();
         }
 
-        /** ****************************************************************************************
-         * Copies the value from the given object.
-         * @param other The point in time to copy from.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Copies the value from the given object.
+        /// @param other The point in time to copy from.
+        //==========================================================================================
         void        SetAs( const TDerived& other )
         {
             stamp=    other.stamp;
         }
 
-        /** ****************************************************************************************
-         * Returns the internal time value in the C++ standard library type.
-         * @return  The internal value.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Returns the internal time value in the C++ standard library type.
+        /// @return  The internal value.
+        //==========================================================================================
         TTimePoint  Export()                                                                   const
         {
             return stamp;
         }
 
-        /** ****************************************************************************************
-         * Sets the internal time value given by a value of C++ standard library type.
-         * @param timePoint  The value to set.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Sets the internal time value given by a value of C++ standard library type.
+        /// @param timePoint  The value to set.
+        //==========================================================================================
         void        Import(TTimePoint timePoint)
         {
             stamp= timePoint;
         }
 
 
-        /** ****************************************************************************************
-         * Returns the internal time value in the C++ standard library's tick unit.
-         *
-         * @return  The internal value.
-         ******************************************************************************************/
-        TRaw        ToRaw()                                                                   const
-        {
-            return stamp.time_since_epoch().count();
-        }
+        //==========================================================================================
+        /// Returns the internal time value in the C++ standard library's tick unit.
+        ///
+        /// @return  The internal value.
+        //==========================================================================================
+        TRaw        ToRaw()                                                                    const
+        { return stamp.time_since_epoch().count(); }
 
-        /** ****************************************************************************************
-         * Sets the value from a value of C++ standard library's tick unit type.
-         * @param raw The time span to create in raw units.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Sets the value from a value of C++ standard library's tick unit type.
+        /// @param raw The time span to create in raw units.
+        //==========================================================================================
         void        SetFromRaw( TRaw raw )
-        {
-            stamp= TTimePoint( typename TClock::duration( raw ) );
-        }
+        { stamp= TTimePoint( typename TClock::duration( raw ) ); }
 
-        /** ****************************************************************************************
-         * Creates an instance from a value of C++ standard library's tick unit type.
-         *
-         * @param raw The time span to create in raw units.
-         * @return  The internal value.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Creates an instance from a value of C++ standard library's tick unit type.
+        ///
+        /// @param raw The time span to create in raw units.
+        /// @return  The internal value.
+        //==========================================================================================
         static
         TDerived    FromRaw( TRaw raw )
-        {
-            return TDerived( TTimePoint( typename TClock::duration( raw ) ) );
-        }
+        { return TDerived( TTimePoint( typename TClock::duration( raw ) ) );  }
 
-        /** ****************************************************************************************
-         * Addition operator.
-         * @param timeSpan The time span to add.
-         * @return A time stamp object containing the sum.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Addition operator.
+        /// @param timeSpan The time span to add.
+        /// @return A time stamp object containing the sum.
+        //==========================================================================================
         TDerived operator+( const Duration& timeSpan )                                         const
-        {
-            return stamp + std::chrono::duration_cast<typename TClock::duration>( timeSpan.span );
-        }
+        { return stamp + sc duration_cast<typename TClock::duration>( timeSpan.span );  }
 
-        /** ****************************************************************************************
-         * Assignment by sum operator.
-         * @param timeSpan The time span to add.
-         * @return A reference to this object.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Addition operator.
+        /// @param timeSpan The time span to add.
+        /// @return A time stamp object containing the sum.
+        //==========================================================================================
+        TDerived operator+( const typename Duration::TDuration& timeSpan )                     const
+        { return stamp + timeSpan; }
+
+        //==========================================================================================
+        /// Assignment by sum operator.
+        /// @param timeSpan The time span to add.
+        /// @return A reference to this object.
+        //==========================================================================================
         TDerived  operator+=( const Duration& timeSpan )
         {
-            stamp+= std::chrono::duration_cast<typename TClock::duration>( timeSpan.span );
+            stamp+= sc duration_cast<typename TClock::duration>( timeSpan.span );
             return stamp;
         }
 
-        /** ****************************************************************************************
-         * Subtraction operator.
-         * @param timeSpan The time span to subtract.
-         * @return A time stamp object containing the sum.
-         ******************************************************************************************/
-        TDerived operator-( const Duration& timeSpan )                                         const
-        {
-            return stamp - std::chrono::duration_cast<typename TClock::duration>( timeSpan.span );
-        }
+        //==========================================================================================
+        /// Assignment by sum operator.
+        /// @param timeSpan The time span to add.
+        /// @return A reference to this object.
+        //==========================================================================================
+        TDerived  operator+=( const typename Duration::TDuration& timeSpan )
+        { stamp+= timeSpan;  return stamp;  }
 
-        /** ****************************************************************************************
-         * Assignment by difference operator.
-         * @param timeSpan The time span to subtract.
-         * @return A reference to this object.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Subtraction operator.
+        /// @param timeSpan The time span to subtract.
+        /// @return A time stamp object containing the sum.
+        //==========================================================================================
+        TDerived operator-( const Duration& timeSpan )                                         const
+        { return stamp - sc duration_cast<typename TClock::duration>( timeSpan.span );  }
+
+        //==========================================================================================
+        /// Subtraction operator.
+        /// @param timeSpan The time span to subtract.
+        /// @return A time stamp object containing the sum.
+        //==========================================================================================
+        TDerived operator-( const typename Duration::TDuration& timeSpan )                     const
+        { return stamp - timeSpan; }
+
+        //==========================================================================================
+        /// Assignment by difference operator.
+        /// @param timeSpan The time span to subtract.
+        /// @return A reference to this object.
+        //==========================================================================================
         TDerived  operator-=( const Duration& timeSpan )
         {
             stamp-= timeSpan.span;
             return stamp;
         }
 
-        /** ****************************************************************************************
-         * Subtraction operator with other time span argument. If the given time stamp represents
-         * a point in type earlier than the one this object represents, the result is positive.
-         * @param other The time stamp to subtract.
-         * @return A time span object containing the difference.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Assignment by difference operator.
+        /// @param timeSpan The time span to subtract.
+        /// @return A reference to this object.
+        //==========================================================================================
+        TDerived  operator-=( const typename Duration::TDuration& timeSpan )
+        { stamp-= timeSpan; return stamp;  }
+
+        //==========================================================================================
+        /// Subtraction operator with other time span argument. If the given time stamp represents
+        /// a point in type earlier than the one this object represents, the result is positive.
+        /// @param other The time stamp to subtract.
+        /// @return A time span object containing the difference.
+        //==========================================================================================
         Duration operator-( const TDerived& other )                                            const
-        {
-            return Duration(stamp - other.stamp);
-        }
+        { return Duration(stamp - other.stamp); }
 
     // #############################################################################################
     // Interface Age, Since
     // #############################################################################################
 
-        /** ****************************************************************************************
-         * Returns the time span between value represented by this instance and the current system
-         * time.
-         * If the internal value represents a historic point in time, the result is positive.
-         *
-         * @return  The age of this instance stored in a new Duration.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Returns the time span between the value represented by this instance and the current
+        /// system time.
+        /// If the internal value represents a historic point in time, the result is positive.
+        ///
+        /// @return  The age of this instance stored in a new Duration.
+        //==========================================================================================
         Duration    Age()                                                                      const
-        {
-            return Duration( TDerived().stamp - this->stamp );
-        }
+        { return Duration( TDerived().stamp - this->stamp ); }
 
-        /** ****************************************************************************************
-         * Returns the time span between the value represented by this instance and the given
-         * other time stamp. If the given time stamp represents an earlier point in time, the result
-         * is positive.
-         *
-         * @param other The value to compare this instance with
-         *
-         * @return  The age of this instance stored in the given or created object.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Returns the time span between the value represented by this instance and the given
+        /// other time stamp. If the given time stamp represents an earlier point in time, the result
+        /// is positive.
+        ///
+        /// @param other The value to compare this instance with
+        ///
+        /// @return  The age of this instance stored in the given or created object.
+        //==========================================================================================
         Duration    Since( const TDerived& other )                                             const
-        {
-            return (*this) - other;
-        }
+        { return (*this) - other; }
 
-        /** ****************************************************************************************
-         * Determines if this object's age is higher than a given time span.
-         *
-         * @param timeSpan  A time span to compare.
-         * @return  \c true if the given time span is smaller equal than the age of this object,
-         *          hence to the time span passed since the point in time this object represents.
-         *          \c false otherwise.
-         ******************************************************************************************/
-        bool   IsOlderThan( Duration timeSpan )                                                const
-        {
-            return Age()  >  timeSpan;
-        }
+        //==========================================================================================
+        /// Determines if this object's age is higher than a given time span.
+        ///
+        /// @param timeSpan  A time span to compare.
+        /// @return  \c true if the given time span is smaller equal than the age of this object,
+        ///          hence to the time span passed since the point in time this object represents.
+        ///          \c false otherwise.
+        //==========================================================================================
+        bool   IsOlderThan( const Duration& timeSpan )                                                const
+        { return Age()  >  timeSpan; }
 
 }; // class TimePointBase
 
 }} // namespace [alib::time]
 
+#undef sc
 
 
 #endif // HPP_ALIB_TIME_TIMEPOINTBASE
+

@@ -6,16 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined(HPP_ALIB_TIME_TIME)
+#if !DOXYGEN
 #   include "alib/time/time.hpp"
-#endif
-
-#if !defined (HPP_ALIB_TIME_TICKSCONVERTER)
 #   include "alib/time/tickconverter.hpp"
-#endif
-
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 using namespace std::chrono;
 
@@ -28,32 +22,39 @@ using namespace std::chrono;
 
 namespace alib {
 
-/**
- * This namespace of \alib provides types for calendrical date and time processing as well as
- * for non-calendrical steady and monotonic time measurement.
- *
- * Besides this reference documentation, further information is provided with
- * \ref alib_mod_time "ALib Module Time - Programmer's Manual".
- */
+/// This namespace of \alib provides types for calendrical date and time processing as well as
+/// for non-calendrical steady and monotonic time measurement.
+///
+/// Besides this reference documentation, further information is provided with
+/// \ref alib_mod_time "ALib Module Time - Programmer's Manual".
 namespace time {
 
 // #################################################################################################
 // Module Bootstrap/Termination
 // #################################################################################################
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace
 {
     Ticks*   creationTime= nullptr;
+
+#   if ALIB_DEBUG
+    unsigned int initFlag= 0;
+#   endif
 }
 #endif
 
+#include "alib/lang/callerinfo_functions.hpp"
+
 void    Bootstrap()
 {
+    ALIB_ASSERT_ERROR( initFlag == 0, "TIME", "This method must not be invoked twice." )
+    ALIB_DBG(initFlag= 0x92A3EF61);
+
     // create a ticks object that marks the time of creation of this non-camp module
     if( !creationTime )
         creationTime= new Ticks();
 
-    ALIB_IF_BOXING(
+    IF_ALIB_BOXING(
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_ticks             )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_ticks_duration    )
         ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_time_datetime          )
@@ -62,6 +63,8 @@ void    Bootstrap()
 
 void    Shutdown()
 {
+    ALIB_ASSERT_ERROR( initFlag == 0x92A3EF61, "TIME", "Not initialized when calling shutdown." )
+    ALIB_DBG(initFlag= 1);
     if( creationTime )
     {
         delete creationTime;
@@ -74,6 +77,7 @@ Ticks&  CreationTime()
     return *creationTime;
 }
 
+#include "alib/lang/callerinfo_methods.hpp"
 
 // #################################################################################################
 // TickConverter
@@ -91,7 +95,7 @@ void TickConverter::SyncClocks( int qtyRepeats )
         auto systemCount= systemClock.time_since_epoch().count();
         auto steadyCount= steadyClock.time_since_epoch().count();
 
-        // This can not be optimized, because:
+        // This cannot be optimized, because:
         // a) we have to use an unsigned integer, and
         // b) we have to take into account which clock was measured first and which last. If
         //    interrupted between the calls, the difference either shrinks or increases.
@@ -123,7 +127,7 @@ void TickConverter::SyncClocks( int qtyRepeats )
 // #################################################################################################
 // Windows OS specific: file time, system time
 // #################################################################################################
-#if defined( _WIN32 ) && !defined(ALIB_DOX)
+#if defined( _WIN32 ) && !DOXYGEN
 
 // filetime_duration has the same layout as FILETIME; 100ns intervals
 using filetime_duration = duration<int64_t, std::ratio<1, 10000000> >;
@@ -196,5 +200,6 @@ DateTime DateTime::FromSystemTime( const SYSTEMTIME& st, lang::Timezone timezone
     }
     return DateTime::FromFileTime( ft );
 }
-#endif // defined( _WIN32 ) && !defined(ALIB_DOX)
+#endif // defined( _WIN32 ) && !DOXYGEN
 }} // namespace [alib::time]
+

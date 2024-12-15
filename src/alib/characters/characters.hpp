@@ -1,679 +1,694 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_characters of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_characters of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_CHARACTERS_CHARACTERS
 #define HPP_ALIB_CHARACTERS_CHARACTERS 1
+#pragma once
 
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
-#   include "alib/alib.hpp"
-#endif
+#include "alib/characters/chartraits.hpp"
+#include "alib/lang/commonenumdefs.hpp"
+#include <limits>
+#include <cstring>
+#include <cctype>
+#include <cwctype>
+#include <cwchar>
+#include <string>
 
-ALIB_ASSERT_MODULE(CHARACTERS)
-
-#if !defined(HPP_ALIB_LANG_INTEGERS)
-#   include "alib/lang/integers.hpp"
-#endif
-
-
-#if !defined (_GLIBCXX_STRING) && !defined(_STRING_)
-#   include <string>
-#endif
-
+#include "alib/lang/tmp.hpp"
 
 namespace alib {  namespace characters {
+//==============================================================================================
+/// Converts a character to upper case.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param c    The character to convert
+/// @return The upper case version of the given character.
+//==============================================================================================
+template<typename TChar>
+TChar       ToUpper( TChar c );
+
+//==============================================================================================
+/// Converts a character sequence to upper case.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param src     Pointer to the character array.
+/// @param length  The length of the array.
+//==============================================================================================
+template<typename TChar>
+void        ToUpper( TChar* src, integer length );
+
+//==============================================================================================
+/// Converts a character to lower case.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param c    The character to convert
+/// @return The lower case version of the given character.
+//==============================================================================================
+template<typename TChar>
+TChar       ToLower( TChar c );
+
+//==============================================================================================
+/// Converts a character sequence to lower case.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param src     Pointer to the character array.
+/// @param length  The length of the array.
+//==============================================================================================
+template<typename TChar>
+void        ToLower( TChar* src, integer length );
+
+//==============================================================================================
+/// Compares two characters of arbitrary types.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @tparam sensitivity Letter case sensitivity of the comparison.
+/// @tparam TRhs        The type of the right hand side letter to compare.
+/// @param  lhs         The left-hand side character to compare of class template
+///                     type \p{TChar}.
+/// @param  rhs         The right-hand side character to compare of method template
+///                     type \p{TCharRhs} .
+/// @return \c true if the given characters are equal, \c false otherwise.
+//==============================================================================================
+template<typename TChar, lang::Case sensitivity, typename TRhs >
+bool Equal( TChar lhs, TRhs rhs )
+{
+    using TLhs= TChar;
+    bool sensitive=  (sensitivity == lang::Case::Sensitive);
+
+         if constexpr ( sizeof(TLhs) == sizeof(TRhs) )
+        return  sensitive ?                             lhs  ==                            rhs
+                          :  ToUpper(                   lhs) ==  ToUpper(                  rhs);
+
+    else if constexpr ( sizeof(TLhs) < sizeof(TRhs) )
+        return  sensitive ?           static_cast<TRhs>(lhs)  ==                           rhs
+                          :  ToUpper( static_cast<TRhs>(lhs)) == ToUpper(                  rhs);
+
+    else if constexpr ( sizeof(TLhs) > sizeof(TRhs) )
+        return  sensitive ?                             lhs   ==         static_cast<TLhs>(rhs)
+                          :  ToUpper(                   lhs ) == ToUpper(static_cast<TLhs>(rhs));
+}
+
+//==============================================================================================
+/// Returns the length of a zero-terminated "c-style" character array.
+///
+/// Note: This method is implemented as an inlined, direct direct call to
+/// \c std::char_traits::length.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param cstring         Pointer to a zero-terminated character array.
+/// @return The length of the string.
+//==============================================================================================
+template<typename TChar>
+integer     Length( const TChar* cstring )
+{
+    return static_cast<integer>( std::char_traits<TChar>::length(cstring) );
+}
+
+//==============================================================================================
+/// Copies the contents of a character array into another, non-overlapping (!) array.
+///
+/// Note: This method is implemented as an inlined, direct direct call to
+/// \c std::char_traits::copy.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param src     Pointer to the source array.
+/// @param length  The length to copy.
+/// @param dest    Pointer to the destination array.
+//==============================================================================================
+template<typename TChar>
+void        Copy( const TChar* src, integer length, TChar* dest )
+{
+    std::char_traits<TChar>::copy( dest, src, size_t(length) );
+}
+
+//==============================================================================================
+/// Copies the contents of a character array into another, possibly overlapping array.
+///
+/// Note: This method is implemented as an inlined, direct direct call to
+/// \c std::char_traits::move.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param src     Pointer to the source array.
+/// @param length  The length to copy.
+/// @param dest    Pointer to the destination array, optionally within source.
+//==============================================================================================
+template<typename TChar>
+void        Move( const TChar* src, integer length, TChar* dest )
+{
+    std::char_traits<TChar>::move( dest, src, size_t(length) );
+}
+
+//==============================================================================================
+/// Sets all elements of the given character array to value \p{value}.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param dest      Pointer to the destination array.
+/// @param length    The length to fill.
+/// @param value     The value to fill the array with.
+//==============================================================================================
+template<typename TChar>
+void        Fill( TChar* dest, integer length, TChar value );
+
+//==============================================================================================
+/// Reverses the order of the characters.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param src     Pointer to the character array.
+/// @param length  The length of the array.
+//==============================================================================================
+template<typename TChar>
+void        Reverse( TChar* src, integer length );
+
+//==============================================================================================
+/// Searches the character. Returns a pointer to the location of \p{needle} in \p{haystack},
+/// respectively \c nullptr if not found.
+///
+/// Note: This method is implemented as a direct call to \c std::memchr, respectively
+///       other character versions of it.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param haystackLength  The length of the string or the maximum position to search.
+/// @param needle          Character to search.
+///
+/// @return The pointer to the first occurrence of \p{needle} respectively \c nullptr if
+///         not found.
+//==============================================================================================
+template<typename TChar>
+const TChar* Search( const TChar* haystack, integer haystackLength, TChar needle )
+{
+    return std::char_traits<TChar>::find( haystack, size_t(haystackLength), needle );
+}
+
+//==============================================================================================
+/// Returns the index of the first character in \p{haystack} which is included in a given set
+/// of \p{needles}.
+///
+/// This method searches up to a given maximum index. For a search to the end of the
+/// zero-terminated string, use faster method provided with class
+/// \alib{strings;TCString;CString}.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param haystackLength  The length of the string or the maximum position to search.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs haystack to be zero-terminated).
+/// @param needles         Pointer to a set of characters to be searched for.
+/// @param needlesLength   The length of the string of needles.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs needles to be zero-terminated).
+///
+/// @return The index of the first character found that is included in \p{needles}.
+///         If no character of haystack is included in \p{needles}, \c -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer IndexOfAnyIncluded( const TChar*  haystack,   integer  haystackLength,
+                            const TChar*  needles,    integer  needlesLength     );
+
+//==============================================================================================
+/// Same as #IndexOfAnyIncluded(const TChar*,integer,const TChar*,integer) but works on
+/// zero-terminated strings.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack Pointer to a zero-terminated character array to search in.
+/// @param needles  Pointer to a zero-terminated set of characters to search for.
+///
+/// @return The index of the first character found that is included in \p{needles}.
+///         If no character of haystack is included in \p{needles}, \c -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer IndexOfAnyIncludedZT( const TChar* haystack, const TChar* needles );
+
+//==============================================================================================
+/// Returns the index of the first character in \p{haystack} which is not included in a given
+/// set of \p{needles}.
+///
+/// This method searches up to a given maximum index. For a search to the end of the
+/// zero-terminated string, use the faster method provided with class
+/// \alib{strings;TCString;CString}.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param haystackLength  The length of the string or the maximum position to search.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs haystack to be zero-terminated).
+/// @param needles         Pointer to a set of characters to be searched for.
+/// @param needlesLength   The length of the string of needles.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs needles to be zero-terminated).
+///
+/// @return The index of the first character that is not included in \p{needles}.
+///         If all characters of haystack are included in \p{needles}, \c -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer IndexOfAnyExcluded( const TChar*  haystack,   integer  haystackLength,
+                            const TChar*  needles,    integer  needlesLength     );
 
 
+//==============================================================================================
+/// Same as #IndexOfAnyExcluded(const TChar*,integer,const TChar*,integer) but works on
+/// zero-terminated strings.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack Pointer to a zero-terminated character array to search in.
+/// @param needles  Pointer to a zero-terminated set of characters to search for.
+///
+/// @return The index of the first character that is not included in \p{needles}.
+///         If all characters of haystack are included in \p{needles}, \c -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer IndexOfAnyExcludedZT( const TChar* haystack, const TChar* needles );
+
+//==============================================================================================
+/// Returns the index of the last character in \p{haystack} which is included in a given set
+/// of \p{needles}.
+///
+/// This method searches backwards from the end of the string.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param startIdx        The position to start the search from. This must be smaller than
+///                        the length of the string and greater or equal to  zero.
+/// @param needles         Pointer to a set of characters to be searched for.
+/// @param needlesLength   The length of the string of needles.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs needles to be zero-terminated).
+///
+/// @return The index of the first character found which is included in the given set
+///         of characters. If nothing is found, -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer LastIndexOfAnyInclude( const TChar*  haystack,    integer  startIdx,
+                               const TChar*  needles,     integer  needlesLength );
+
+//==============================================================================================
+/// Returns the index of the last character in \p{haystack} which is not included in a given
+/// set of \p{needles}.
+///
+/// This method searches backwards from the end of the string.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param startIdx        The position to start the search from. This must be smaller than
+///                        the length of the string and greater or equal to  zero.
+/// @param needles         Pointer to a set of characters to be searched for.
+/// @param needlesLength   The length of the string of needles.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs needles to be zero-terminated).
+///
+/// @return The index of the first character found which is included in the given set
+///         of characters. If nothing is found, -1 is returned.
+//==============================================================================================
+template<typename TChar>
+integer LastIndexOfAnyExclude( const TChar*  haystack,    integer  startIdx,
+                               const TChar*  needles,     integer  needlesLength );
+
+//==============================================================================================
+/// Returns the index of the first character which is not equal within two strings.
+/// If \p{haystack} starts with \p{needle}, then the length of \p{needle} is returned.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param haystack        Pointer to the start of the string.
+/// @param haystackLength  The length of the string or the maximum position to search.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs haystack to be zero-terminated).
+/// @param needle          Pointer to the start of the string to compare with.
+/// @param needleLength    The length of \p{needle}.
+///                        If -1 is provided, the length is determined using standard library
+///                        function \b strlen (which needs needles to be zero-terminated).
+/// @param sensitivity     Denotes whether the comparison should be made case-sensitive
+///                        or not.
+///
+/// @return The index of the first character found which is not equal in given strings.
+//==============================================================================================
+template<typename TChar>
+integer IndexOfFirstDifference( const TChar*  haystack,   integer  haystackLength,
+                                const TChar*  needle,     integer  needleLength,
+                                lang::Case    sensitivity                         );
+
+//==============================================================================================
+/// Searches for a difference in two character arrays of equal length.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param lhs       The first array to compare.
+/// @param rhs       The second array to compare.
+/// @param cmpLength The number of characters to compare.
+///
+/// @return  \c true if the string arrays have identical contents, \c false otherwise.
+//==============================================================================================
+template<typename TChar>
+bool Equal( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
+{
+    return  ::memcmp( lhs, rhs, size_t(cmpLength) * sizeof(TChar) ) == 0;
+}
+
+//==============================================================================================
+/// Compares up to \p{cmpLength} characters of two character arrays.
+/// Comparison stops if termination character \c '\0' is found in one of the arrays.
+///
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param lhs       The first array to compare.
+/// @param rhs       The second array to compare.
+/// @param cmpLength The number of characters to compare.
+///
+/// @return  Negative value if lhs appears before rhs in lexicographical order.
+///          \c 0 if lhs and rhs are equal.
+///          Positive value if lhs appears after rhs in lexicographical order.
+//==============================================================================================
+template<typename TChar>
+int Compare( const TChar* lhs,  const TChar* rhs, integer cmpLength  )
+{
+    return std::char_traits<TChar>::compare( lhs, rhs, size_t(cmpLength) );
+}
+
+//==============================================================================================
+/// Compares two character arrays of equal length ignoring letter case.
+/// @tparam TChar One of the six (overlapping) \ref alib_characters_chars "character types".
+/// @param lhs      The first array to compare.
+/// @param rhs      The second array to compare.
+/// @param cmpLength The number of characters to compare.
+///
+/// @return  Negative value if lhs appears before rhs in lexicographical order.
+///          \c 0 if lhs and rhs are equal.
+///          Positive value if lhs appears after rhs in lexicographical order.
+//==============================================================================================
+template<typename TChar>
+int CompareIgnoreCase( const TChar* lhs,  const TChar* rhs, integer cmpLength  );
+
+
+
+//! @cond NO_DOX
 // #################################################################################################
-// Narrow type: nchar
+// Narrow character specifics
 // #################################################################################################
+template<> inline void    Fill<nchar>( nchar* dest, integer length, nchar c )
+{
+    memset( dest, c, size_t(length) );
+}
 
-/**
- * This type represents a narrow character in \alib. This is an alias for built-in C++
- * type \c char.
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using nchar=    char;
+template<> inline nchar   ToUpper<nchar>(nchar c)
+{
+    return static_cast<nchar>( toupper(c) );
+}
 
-// #################################################################################################
-// Wide types: wchar, xchar
-// #################################################################################################
-#if defined(ALIB_CHARACTERS_NATIVE_WCHAR)
-#   error "Preprocessor symbol ALIB_CHARACTERS_NATIVE_WCHAR must not be passed to the compiler. It is deduced in ALib headers."
-#endif
+template<> inline nchar   ToLower<nchar>(nchar c)
+{
+    return static_cast<nchar>( tolower(c) );
+}
 
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+template<> inline void    ToUpper<nchar>(nchar* src, integer length)
+{
+    nchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToUpper<nchar>( *src );
+        ++src;
+    }
+}
 
+template<> inline void    ToLower<nchar>(nchar* src, integer length)
+{
+    nchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToLower<nchar>( *src );
+        ++src;
+    }
+}
+ALIB_WARNINGS_RESTORE
 
-#if defined(ALIB_DOX)
-/**
- * This type represents a wide character in \alib.
- * Usually this is an alias for built-in C++ type \c wchar_t.
- * As the width of the latter is compiler-specific (the width may vary with different compilers even
- * on the same platform), compiler symobls \ref ALIB_CHARACTERS_SIZEOF_WCHAR may be used to
- * manipulate its width.
- *
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using wchar=    PLATFORM_SPECIFIC;
-
-/**
- * This type represents a second wide character type which has a width complementary to
- * that of type \alib{characters,wchar}: If \b %wchar is 2 bytes wide, then this type aliases
- * \c char32_t and if its width is 4 bytes, this type aliases \c char16_t.
- *
- * While together with types \ref alib::nchar and \ref alib::wchar it forms
- * the group of "explicit character types", it is always identical to logical type
- * \ref alib::strangeChar.
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using xchar     =  PLATFORM_SPECIFIC;
-
-#else // !defined(ALIB_DOX)
-
-    #define A_NCHAR(STR)  STR
-
-
-    #if ALIB_CHARACTERS_SIZEOF_WCHAR == ALIB_SIZEOF_WCHAR_T
-
-    #   define ALIB_CHARACTERS_NATIVE_WCHAR 1
-
-    #   if ALIB_CHARACTERS_SIZEOF_WCHAR == 2
-            using wchar     =  wchar_t;
-            using xchar     =  char32_t;
-            #define A_WCHAR(STR)  L ## STR
-            #define A_XCHAR(STR)  U ## STR
-            #define A_SCHAR(STR)  U ## STR
-    #   else
-            using wchar     =  wchar_t;
-            using xchar     =  char16_t;
-            #define A_WCHAR(STR)  L ## STR
-            #define A_XCHAR(STR)  u ## STR
-            #define A_SCHAR(STR)  u ## STR
-    #   endif
-
+template<> inline int     CompareIgnoreCase<nchar>( const nchar* lhs,  const nchar* rhs, integer cmpLength  )
+{
+    #if defined (__GLIBCXX__)  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return  ::strncasecmp( lhs, rhs, size_t(cmpLength) );
+    #elif defined ( _WIN32 )
+        return  _strnicmp  ( lhs, rhs, size_t(cmpLength)  );
     #else
-
-    #   define ALIB_CHARACTERS_NATIVE_WCHAR 0
-
-    #   if ALIB_CHARACTERS_SIZEOF_WCHAR == 2
-            using wchar     =  char16_t;
-            using xchar     =  wchar_t;
-            #define A_WCHAR(STR)  u ## STR
-            #define A_XCHAR(STR)  L ## STR
-            #define A_SCHAR(STR)  L ## STR
-    #   else
-            using wchar     =  char32_t;
-            using xchar     =  wchar_t;
-            #define A_WCHAR(STR)  U ## STR
-            #define A_XCHAR(STR)  L ## STR
-            #define A_SCHAR(STR)  L ## STR
-    #   endif
-
+        #pragma message ( "Unknown Platform in file: " __FILE__ )
     #endif
+}
+
+template<> inline integer IndexOfAnyIncludedZT   <nchar>( const nchar* haystack, const nchar* needles )
+{
+    const nchar* result= std::strpbrk(haystack, needles);
+    return result ? result - haystack
+                  : -1;
+}
+
+template<> inline integer IndexOfAnyExcludedZT<nchar>( const nchar* haystack, const nchar* needles )
+{
+    return static_cast<integer>( std::strspn(haystack, needles) );
+}
 
 
-#endif // !defined(ALIB_DOX)
+
+extern template ALIB_API integer IndexOfAnyIncluded    <nchar>(const nchar*,integer,const nchar*,integer);
+extern template ALIB_API integer IndexOfAnyExcluded    <nchar>(const nchar*,integer,const nchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyInclude <nchar>(const nchar*,integer,const nchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyExclude <nchar>(const nchar*,integer,const nchar*,integer);
+extern template ALIB_API integer IndexOfFirstDifference<nchar>(const nchar*,integer,const nchar*,integer,lang::Case);
+extern template ALIB_API void    Reverse               <nchar>(      nchar*,integer );
 
 
 // #################################################################################################
-// Logical types: character, complementChar and strangeChar
+// Wide character specifics
 // #################################################################################################
+template<> inline wchar   ToUpper<wchar>(wchar c)
+{
+    return static_cast<wchar>(towupper(static_cast<wint_t>(c)));
+}
 
-#if defined(ALIB_DOX)
-/**
- * This type represents a standard \alib character.
- * The width (size) of a character is dependent on the platform and compilation flags.
- *
- * This is why this type is called a "logical" type. The two other logical character types are
- * #complementChar and #strangeChar.
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using character= PLATFORM_SPECIFIC;
+template<> inline wchar   ToLower<wchar>(wchar c)
+{
+    return static_cast<wchar>(towlower(static_cast<wint_t>(c)));
+}
 
-/**
- * This type represents a non-standard \alib character.
- * If \ref alib::character is defined to implement a narrow character type, then this type
- * implements a wide character and vice versa.
- * Note, that the width of a wide character is not defined as well. It might be \c 2 or \c 4
- * bytes wide.
- *
- * This type is called a "logical" type. The two other logical character types are
- * #character and #strangeChar.
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using complementChar= PLATFORM_SPECIFIC;
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+template<> inline void    ToUpper<wchar>(wchar* src, integer length)
+{
+    wchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToUpper<wchar>( *src );
+        ++src;
+    }
+}
 
-/**
- * Besides types \ref alib::character and \ref alib::complementChar, this is the third
- * logical character type defined by \alib.<br>
- * Independent from compiler defaults and optional compiler symbols provided, this type always
- * is equivalent to type \alib{characters,xchar}
- *
- * \see
- *   For details, see chapter \ref alib_characters_chars "2. Character Types" of the
- *   Programmer's Manual of module \alib_characters_nl.
- */
-using strangeChar= PLATFORM_SPECIFIC;
+template<> inline void    ToLower<wchar>(wchar* src, integer length)
+{
+    wchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToLower<wchar>( *src );
+        ++src;
+    }
+}
+ALIB_WARNINGS_RESTORE
 
-#elif !ALIB_CHARACTERS_WIDE
-    using character=        nchar;
-    using complementChar=   wchar;
-    using strangeChar=      xchar;
+#if ALIB_CHARACTERS_NATIVE_WCHAR
+template<> inline void    Fill<wchar>( wchar* dest, integer length, wchar c )
+{
+    wmemset( dest, c, size_t(length) );
+}
 
-    #define A_CHAR(STR)     STR
-    #define A_CCHAR(STR)    A_WCHAR(STR)
+template<> inline int     CompareIgnoreCase<wchar>( const wchar* lhs,  const wchar* rhs, integer cmpLength  )
+{
+    #if defined ( _WIN32 )
+        return  _wcsnicmp  ( lhs, rhs, size_t(cmpLength)  );
+    #elif defined (__GLIBCXX__)  || defined(__APPLE__)  || defined(__ANDROID_NDK__)
+        return  ::wcsncasecmp( lhs, rhs, size_t(cmpLength) );
+    #else
+        #pragma message ( "Unknown Platform in file: " __FILE__ )
+    #endif
+}
+
+template<> inline integer IndexOfAnyIncludedZT   <wchar>( const wchar* haystack, const wchar* needles )
+{
+    const wchar* result= std::wcspbrk(haystack, needles);
+    return result ? result - haystack
+                  : -1;
+}
+template<> inline integer IndexOfAnyExcludedZT<wchar>( const wchar* haystack, const wchar* needles )
+{
+    return static_cast<integer>( std::wcsspn(haystack, needles) );
+}
+
+
 #else
-    using character=        wchar;
-    using complementChar=   nchar;
-    using strangeChar=      xchar;
-
-    #define A_CHAR(STR)     A_WCHAR(STR)
-    #define A_CCHAR(STR)    STR
-
+template<> ALIB_API void    Fill<wchar>( wchar* dest, integer length, wchar c );
+template<> ALIB_API int     CompareIgnoreCase   <wchar>( const wchar* lhs,      const wchar* rhs, integer cmpLength );
+template<> ALIB_API integer IndexOfAnyIncludedZT<wchar>( const wchar* haystack, const wchar* needles );
+template<> ALIB_API integer IndexOfAnyExcludedZT<wchar>( const wchar* haystack, const wchar* needles );
 #endif
 
+
+extern template ALIB_API integer IndexOfAnyIncluded    <wchar>(const wchar*,integer,const wchar*,integer);
+extern template ALIB_API integer IndexOfAnyExcluded    <wchar>(const wchar*,integer,const wchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyInclude <wchar>(const wchar*,integer,const wchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyExclude <wchar>(const wchar*,integer,const wchar*,integer);
+extern template ALIB_API integer IndexOfFirstDifference<wchar>(const wchar*,integer,const wchar*,integer,lang::Case);
+extern template ALIB_API void    Reverse               <wchar>(      wchar*,integer );
+
+
+
 // #################################################################################################
-// T_CharArray and T_ZTCharArray
+// Strange character specifics
 // #################################################################################################
-
-/**
- * Enumeration of possible values for field \b %Access used with traits types
- * \alib{characters,T_CharArray} and \alib{characters,T_ZTCharArray}.
- * The elements of this enumeration indicate if and how the data of an
- * (non-zero terminated, respectively zero terminated) array-like type may be accessed.
- */
-enum class AccessType
+template<> inline xchar     ToUpper<xchar>(xchar c)
 {
-    /**
-     * Data may not be received. This value usually indicates that a custom type does not implement
-     * a character array at all. Hence, this is the default value of the non-specialized versions of
-     * \alib{characters,T_CharArray} and \alib{characters,T_ZTCharArray}.
-     *
-     */
-    NONE,
+    return static_cast<xchar>(towupper(static_cast<wint_t>(c)));
+}
 
-    /** Allows implicit (and explicit) access of the character array data from mutable or constant
-     *  objects. */
-    Implicit,
-
-    /** Allows explicit access of the character array data from mutable or constant objects. */
-    ExplicitOnly,
-
-    /** Allows explicit access of the character array data from mutable objects. */
-    MutableOnly,
-};
-
-/**
- * Enumeration of possible values for field \b %Construction used with traits types
- * \alib{characters,T_CharArray} and \alib{characters,T_ZTCharArray}.
- * The elements of this enumeration indicate if and how values an array-like type may be
- * constructed from a (non-zero terminated, respectively zero terminated) character array.
- */
-enum class ConstructionType
+template<> inline xchar     ToLower<xchar>(xchar c)
 {
-    /**
-     * The custom type may not be constructed from character arrays.
-     * This is the default value of the non-specialized versions of \alib{characters,T_CharArray}
-     * and \alib{characters,T_ZTCharArray} but may very well be used with specializations as well.
-     */
-    NONE,
+    return static_cast<xchar>(towlower(static_cast<wint_t>(c)));
+}
 
-    /** Allows implicit (and explicit) construction of objects from character array data. */
-    Implicit,
-
-    /** Allows explicit construction of objects from character array data. */
-    ExplicitOnly,
-
-};
-
-/** ************************************************************************************************
- * This type provides type traits for character arrays. Specializations of this struct for
- * a custom type \p{TString}, expose information about that type representing a character array
- * and how the array data may be accessed.<br>
- * In addition, information about how the type may be constructed from character array data
- * may be provided with specializations of this type.
- *
- * \see
- *   For detailed information, see chapter \ref alib_characters_arrays "4. Character Arrays" of
- *   the Programmer's Manual of module \alib_characters.
- *
- * @tparam TString     The type for which specializations of this struct provide array type traits.
- * @tparam TChar       The character type of the character array that specializations provide
- *                     type traits for.
- * @tparam TEnableIf   Optional TMP parameter to allow templated and/or selective specializations.
- * ************************************************************************************************/
-template<typename TString, typename TChar, typename TEnableIf= void>
-struct T_CharArray
+ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+template<> inline void    ToUpper<xchar>(xchar* src, integer length)
 {
-    /** Provides information about how the character array data of instances of type \p{TString}
-     *  may be accessed */
-    static constexpr    AccessType         Access      =   AccessType::NONE;
+    xchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToUpper<xchar>( *src );
+        ++src;
+    }
+}
 
-    /** Provides information about if and how instances of type \p{TString} may be created from
-     *  character array data.*/
-    static constexpr    ConstructionType   Construction=   ConstructionType::NONE;
-
-    #if defined(ALIB_DOX)
-    /** ********************************************************************************************
-     * In specialized versions, this method has to be provided in case that field #Access is
-     * not equal to \alib{characters,AccessType::NONE}.
-     * In addition to this static method, sibling method #Length has to be provoided.
-     *
-     * For example, in a specialization for standard C++ class \c std::string, this method returns
-     * the result of method <c>std::string::data()</c>.
-     *
-     * Note, that in the case of access type \alib{characters,AccessType::MutableOnly}, the
-     * signature of this method needs to be slightly different with the specialization: argument
-     * \p{src} in this case must be of type <c>TString&</c>, hence must not be \c const.
-     *
-     * @param  src The source object of external type \p{TString}.
-     * @returns Specializatins have to return a pointer to the start of the character array
-     *          represented by the given object \p{src} of type \p{TString}.
-     **********************************************************************************************/
-    static
-    const TChar* Buffer( const TString& src );
-
-    /** ********************************************************************************************
-     * In specialized versions, this method has to be provided in case that field #Access is
-     * not equal to \alib{characters,AccessType::NONE}.
-     * In addition to this static method, sibling method #Buffer has to be provoided.
-     *
-     * For example, in a specialization for standard C++ class \c std::string, this method returns
-     * the result of method <c>std::string::size()</c>.
-     *
-     * Note, that in the case of access type \alib{characters,AccessType::MutableOnly}, the
-     * signature of this method needs to be slightly different with the specialization: argument
-     * \p{src} in this case must be of type <c>TString&</c>, hence must not be \c const.
-     *
-     * @param  src The source object of external type \p{TString}.
-     * @returns Specializatins have to return the length of the character array
-     *          represented by the given object \p{src} of type \p{TString}.
-     **********************************************************************************************/
-    static
-    integer Length( const TString& src );
-
-    /** ********************************************************************************************
-     * In specialized versions, this method has to be provided in case that field #Construction is
-     * not equal to \alib{characters,ConstructionType::NONE}.
-     *
-     * If so, this method needs to construct and return an instance of type \p{TString}, created
-     * from the character array specified by arguments \p{array} and \p{length}
-     *
-     * @param  array  The external array to be used to create the return value.
-     * @param  length The length of the external array.
-     * @returns A new instance (value) of type \p{TString}.
-     **********************************************************************************************/
-    static
-    TString      Construct(  const TChar* array, integer length );
-#endif
-};
-
-/** ************************************************************************************************
- * This type traits struct is in all aspects equivalent to \alib{characters,T_CharArray}, only that
- * this struct provides traits on zero-terminated character arrays, while \b % T_CharArray is
- * about non-zero terminated arrays.
- *
- * Please, therefore consult the documentation of type \alib{characters,T_CharArray}.
- *
- * \see
- *   For detailed information, see chapter \ref alib_characters_arrays "4. Character Arrays" of
- *   the Programmer's Manual of module \alib_characters.
- *
- * @tparam TString     The type for which specializations of this struct provide array type traits.
- * @tparam TChar       The character type of the character array that specializations provide
- *                     type traits for.
- * @tparam TEnableIf   Optional TMP parameter to allow templated and/or selective specializations.
- * ************************************************************************************************/
-template<typename TString, typename TChar, typename TEnableIf= void>
-struct T_ZTCharArray
+template<> inline void    ToLower<xchar>(xchar* src, integer length)
 {
-    #if !defined(ALIB_DOX)
-        static constexpr    AccessType         Access      =   AccessType::NONE;
-        static constexpr    ConstructionType   Construction=   ConstructionType::NONE;
+    xchar* end= src  + length;
+    while( src != end )
+    {
+        *src=  ToLower<xchar>( *src );
+        ++src;
+    }
+}
+ALIB_WARNINGS_RESTORE
+
+#if ALIB_CHARACTERS_NATIVE_WCHAR
+template<> ALIB_API void    Fill<xchar>( xchar* dest, integer length, xchar c );
+template<> ALIB_API int     CompareIgnoreCase<xchar>( const xchar* lhs,  const xchar* rhs, integer cmpLength  );
+template<> ALIB_API integer IndexOfAnyIncludedZT<xchar>( const xchar* haystack, const xchar* needles );
+template<> ALIB_API integer IndexOfAnyExcludedZT<xchar>( const xchar* haystack, const xchar* needles );
+#else
+template<> inline void    Fill<xchar>( xchar* dest, integer length, xchar c )
+{
+    wmemset( dest, c, size_t(length) );
+}
+
+template<> inline int     CompareIgnoreCase<xchar>( const xchar* lhs,  const xchar* rhs, integer cmpLength  )
+{
+    #if defined (__GLIBCXX__)  || defined(__APPLE__)
+        return  ::wcsncasecmp( lhs, rhs, size_t(cmpLength) );
+    #elif defined ( _WIN32 )
+        return  _wcsnicmp  ( lhs, rhs, size_t(cmpLength)  );
     #else
-    /** ********************************************************************************************
-     * Same as corresponding method \alib{characters::T_CharArray,Buffer} of sibling struct
-     * \b T_CharArray.
-     *
-     * @param  src The source object of external type \p{TString}.
-     * @returns Specializatins have to return a pointer to the start of the zero-terminated
-     *          character array represented by the given object \p{src} of type \p{TString}.
-     **********************************************************************************************/
-    static
-    const TChar* Buffer( const TString& src );
-
-    /** ********************************************************************************************
-     * Same as corresponding method \alib{characters::T_CharArray,Length} of sibling struct
-     * \b T_CharArray.
-     *
-     * @param  src The source object of external type \p{TString}.
-     * @returns Specializatins have to return the length of the character array
-     *          represented by the given object \p{src} of type \p{TString}.
-     **********************************************************************************************/
-    static
-    integer Length( const TString& src );
-
-    /** ********************************************************************************************
-     * Same as corresponding method \alib{characters::T_CharArray,Construct} of sibling struct
-     * \b T_CharArray.
-     *
-     * @param  array  The external zero-terminated array to be used to create the return value.
-     * @param  length The length of the external array.
-     * @returns A new instance (value) of type \p{TString}.
-     **********************************************************************************************/
-    static
-    TString      Construct(  const TChar* array, integer length );
-#endif
-
-};
-
-
-/** ************************************************************************************************
- * Helper TMP struct that determines if a specialization of TMP struct \alib{characters,T_CharArray}
- * exists for type \p{TString}, and if so, for which character type such specialization was
- * made.
- *
- * If a specialization exists, the class inherits <c>std::true_type</c>, otherwise
- * <c>std::false_type</c>.
- *
- * \see
- *   For details see Programmer's Manual chapter \ref alib_characters_arrays_traits_tool_arraytype.
- *   A sibling helper struct exists with \alib{characters,TT_ZTCharArrayType}.
- *
- * @tparam TString      The custom type to test.
- * @tparam TEnableIf    Helper parameter used for templated specializations of this struct.
- **************************************************************************************************/
-template<typename TString, typename TEnableIf= void>
-struct TT_CharArrayType : std::false_type
-{
-    /** The character type of the character array that is implemented with type \p{TString}. */
-    using TChar= void;
-};
-
-/** ************************************************************************************************
- * Helper TMP struct that determines if a specialization of TMP struct \alib{characters,T_ZTCharArray}
- * exists for type \p{TString}, and if so, for which character type such specialization was
- * made.
- *
- * If a specialization exists, the class inherits <c>std::true_type</c>, otherwise
- * <c>std::false_type</c>.
- *
- * \see
- *   For details see Programmer's Manual chapter \ref alib_characters_arrays_traits_tool_arraytype.
- *   A sibling helper struct exists with \alib{characters,TT_CharArrayType}.
- *
- * @tparam TString      The custom type to test.
- * @tparam EnableIf  Helper parameter used for templated specializations of this struct.
- **************************************************************************************************/
-template<typename TString, typename EnableIf= void>
-struct TT_ZTCharArrayType : std::false_type
-{
-    /** The character type of the zero-terminated character array that is implemented with type
-     * \p{TString}. */
-    using TChar= void;
-};
-
-#if !defined(ALIB_DOX)
-template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,nchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= nchar; };
-template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,wchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= wchar; };
-template<typename T> struct TT_CharArrayType  <T, typename std::enable_if<characters::T_CharArray  <T,xchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= xchar; };
-template<typename T> struct TT_ZTCharArrayType<T, typename std::enable_if<characters::T_ZTCharArray<T,nchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= nchar; };
-template<typename T> struct TT_ZTCharArrayType<T, typename std::enable_if<characters::T_ZTCharArray<T,wchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= wchar; };
-template<typename T> struct TT_ZTCharArrayType<T, typename std::enable_if<characters::T_ZTCharArray<T,xchar>::Access != AccessType::NONE>::type>: std::true_type { using TChar= xchar; };
-#endif
-
-
-// #################################################################################################
-// Helper macros to specialize T_CharArray/T_ZTCharArray
-// #################################################################################################
-
-#if !defined(ALIB_DOX)
-
-#define ALIB_CHARACTER_ARRAY_internal( C_ZTC, TString, TChar, Const, pAccess, pConstruction)       \
-template<>  struct     T_ ## C_ZTC ## harArray<TString, TChar>                                     \
-{                                                                                                  \
-    static constexpr    AccessType               Access=    AccessType::       pAccess;            \
-    static constexpr    ConstructionType   Construction=    ConstructionType:: pConstruction;      \
-                                                                                                   \
-    static inline       const TChar*          Buffer(  TString Const &  src );                     \
-    static inline       integer               Length(  TString Const &  src );                     \
-                                                                                                   \
-    static inline       TString               Construct(  const TChar* array, integer length );    \
-};
-
-#endif
-
-
-#define ALIB_CHARACTER_ARRAY(            TString, TChar,        Access     , Construction )        \
-ALIB_CHARACTER_ARRAY_internal(     C ,   TString, TChar, const, Access     , Construction )
-
-#define ALIB_CHARACTER_ARRAY_MUTABLE(    TString, TChar,                     Construction )        \
-ALIB_CHARACTER_ARRAY_internal(     C ,   TString, TChar,      , MutableOnly, Construction )
-
-#define ALIB_CHARACTER_ZT_ARRAY(         TString, TChar,        Access     , Construction )        \
-ALIB_CHARACTER_ARRAY_internal(    ZTC,   TString, TChar, const, Access     , Construction )
-
-#define ALIB_CHARACTER_ZT_ARRAY_MUTABLE( TString, TChar,                     Construction )        \
-ALIB_CHARACTER_ARRAY_internal(    ZTC,   TString, TChar,      , MutableOnly, Construction )
-
-
-
-#define ALIB_CHARACTER_ARRAY_IMPL_BUFFER(           TString, TChar, ... )                         \
-const TChar*  T_CharArray<TString,TChar>::Buffer(TString const&  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ARRAY_IMPL_LENGTH(           TString, TChar, ... )                         \
-integer       T_CharArray<TString,TChar>::Length(TString const&  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ARRAY_IMPL_BUFFER_MUTABLE(   TString, TChar, ... )                          \
-const TChar*  T_CharArray<TString,TChar>::Buffer(TString      &  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ARRAY_IMPL_LENGTH_MUTABLE(   TString, TChar, ... )                          \
-integer       T_CharArray<TString,TChar>::Length(TString      &  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ARRAY_IMPL_CONSTRUCT(        TString, TChar, ... )                          \
-    TString  T_CharArray  <TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER(        TString, TChar, ... )                          \
-const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString const&  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH(        TString, TChar, ... )                          \
-integer      T_ZTCharArray<TString,TChar>::Length( TString const&  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_BUFFER_MUTABLE(TString, TChar, ... )                          \
-const TChar* T_ZTCharArray<TString,TChar>::Buffer( TString      &  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_LENGTH_MUTABLE(TString, TChar, ... )                          \
-integer      T_ZTCharArray<TString,TChar>::Length( TString      &  src ) { __VA_ARGS__ }
-
-#define ALIB_CHARACTER_ZT_ARRAY_IMPL_CONSTRUCT(     TString, TChar, ... )                          \
-    TString  T_ZTCharArray<TString,TChar>::Construct( const TChar* array, integer length ) { __VA_ARGS__ }
-
-
-// #################################################################################################
-// Specializations of T_CharArray and T_ZTCharArray for const and non-const character pointer types
-// #################################################################################################
-
-#if !defined(ALIB_DOX)
-// Fixed length arrays
-template<size_t TCapacity, typename TChar>
-struct T_CharArray<TChar[TCapacity], TChar>
-{
-    static constexpr AccessType     Access       =       AccessType::Implicit;
-    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
-};
-
-
-template<size_t TCapacity, typename TChar>
-struct T_ZTCharArray<TChar[TCapacity], TChar>
-{
-    static constexpr AccessType     Access       =       AccessType::Implicit;
-    static constexpr const TChar*   Buffer( TChar const (&src) [TCapacity] ) { return src; }
-    static constexpr integer        Length( TChar const (&   ) [TCapacity] ) { return TCapacity -1; }
-};
-
-// constant character pointers
-template<typename TChar> struct T_CharArray<TChar const*, TChar>
-{
-    static constexpr AccessType        Access       =       AccessType::Implicit;
-    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
-    static constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
-};
-
-template<typename TChar> struct T_ZTCharArray<TChar const*, TChar>
-{
-    static constexpr AccessType        Access       =       AccessType::Implicit;
-    static constexpr ConstructionType  Construction = ConstructionType::Implicit;
-    static constexpr const TChar*      Buffer(const TChar* const & src       ) { return src; }
-    static constexpr integer           Length(const TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static constexpr const TChar*      Construct(const TChar* array, integer ) { return array; }
-};
-
-// mutable character pointers:
-template<typename TChar> struct T_CharArray<TChar*, TChar>
-{
-    static constexpr AccessType        Access       =       AccessType::ExplicitOnly;
-    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static constexpr const TChar*      Buffer(      TChar* const & src       ) { return src;  }
-    static constexpr integer           Length(      TChar* const & src       ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
-};
-
-// mutable character pointers:
-template<typename TChar> struct T_ZTCharArray<TChar*, TChar>
-{
-    static constexpr AccessType        Access       =       AccessType::ExplicitOnly;
-    static constexpr ConstructionType  Construction = ConstructionType::ExplicitOnly;
-    static constexpr const TChar*      Buffer(     TChar* const & src        ) { return src;  }
-    static constexpr integer           Length(     TChar* const & src        ) { return src ? static_cast<integer>( std::char_traits<TChar>::length(src) ) : 0; }
-    static constexpr       TChar*      Construct(const TChar* array, integer ) { return const_cast<TChar*>( array ); }
-};
-
-#endif
-
-// #################################################################################################
-// TMP tool structs
-// #################################################################################################
-
-/**
- * This simple template struct provides inner type definition <c>type</c>, which in the two
- * specializations for types \ref alib::nchar and \ref alib::wchar aliases the respective other
- * type.
- *
- * The struct may be used to generalize code that is templated in respect to the character type to
- * work on and that needs to refer to the character type that is complementary to the one currently
- * compiled.
- *
- * The struct may be used in code via shortcut macro \ref ATMP_CHAR_COMPLEMENT.
- */
-template<typename>  struct TT_ComplementChar
-{
-    using type=  void;        ///< Default is void
-};
-
-#if !defined(ALIB_DOX)
-template<>          struct TT_ComplementChar<nchar> { using type=  wchar; };
-template<>          struct TT_ComplementChar<wchar> { using type=  nchar; };
-
-
-#define ATMP_CHAR_COMPLEMENT( TChar )    typename TT_ComplementChar<TChar>::type
-
-#endif
-
-
-
-/**
- * This helper struct is used to determine the corresponding \alib character type, in cases that
- * a fixed size of characters is required. Specializations for size values \c 1, \c 2 and \c 4
- * exists.
- *
- * As an example, the \https{QT Class Library,www.qt.io} uses a 2-byte character width,
- * independent from compiler and platform. Therefore, to convert a \b QT character value to
- * an \alib character value, the destination type is:
- *
- *          typename TT_CharOfSize<2>::type
- *
- * @tparam TCharSize The size of the required character type in bytes.
- */
-template<int TCharSize> struct TT_CharOfSize : public std::false_type
-{
-    #if defined(ALIB_DOX)
-    /** One of the \alib character types, \alib{characters,nchar}, \alib{characters,wchar} or
-     *  \alib{characters,xchar}. */
-    using type= void;
+        #pragma message ( "Unknown Platform in file: " __FILE__ )
     #endif
+}
+
+template<> inline integer IndexOfAnyIncludedZT   <xchar>( const xchar* haystack, const xchar* needles )
+{
+    const xchar* result= std::wcspbrk(haystack, needles);
+    return result ? result - haystack
+                  : -1;
+}
+template<> inline integer IndexOfAnyExcludedZT<xchar>( const xchar* haystack, const xchar* needles )
+{
+    return static_cast<integer>( std::wcsspn(haystack, needles) );
+}
+#endif
+
+extern template ALIB_API integer IndexOfAnyIncluded    <xchar>(const xchar*,integer,const xchar*,integer);
+extern template ALIB_API integer IndexOfAnyExcluded    <xchar>(const xchar*,integer,const xchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyInclude <xchar>(const xchar*,integer,const xchar*,integer);
+extern template ALIB_API integer LastIndexOfAnyExclude <xchar>(const xchar*,integer,const xchar*,integer);
+extern template ALIB_API integer IndexOfFirstDifference<xchar>(const xchar*,integer,const xchar*,integer,lang::Case);
+extern template ALIB_API void    Reverse               <xchar>(      xchar*,integer );
+//! @endcond
+
+// #################################################################################################
+// struct AlignedCharArray
+// #################################################################################################
+/// Encapsulates a fixed-size character buffer.
+/// The character type and the buffer's length are templated.
+/// Furthermore the buffer, and with it this type, is aligned to \c 8 bytes on 64-bit machines and
+/// to \c 4 bytes on 32-bit hardware.
+/// This supports fast access and compile-time optimizations.
+///
+/// An overloaded constructor and method #Fill allow filling the buffer with a distinct character.
+/// This is provided, as a frequent use-case for this struct is to provide
+/// \alib{strings;TString;String} objects of variable length.
+/// For example, when generating indentation in text files, a <c>std::basic_ostream</c> might be
+/// faster filled with spaces using a local variable of this type than putting character by
+/// character to the stream in a loop.
+///
+/// The type's name uses the word "local" because usually it is used with local (stack allocated)
+/// variables.
+/// @tparam TChar    The character type.
+///                  Alias names for C++ character types exist with
+///                          - \alib{characters;character},
+///                          - \alib{characters;nchar},
+///                          - \alib{characters;wchar},
+///                          - \alib{characters;xchar},
+///                          - \alib{characters;complementChar}, and
+///                          - \alib{characters;strangeChar}.
+///
+///                  Defaults to \alib{characters;character}.
+///
+/// @tparam TLength  The length of the local buffer. Defaults to 128 bytes.
+template<typename TChar= character, size_t TLength= 128/sizeof(TChar)>
+struct AlignedCharArray {
+    /// The alignment of the field #buffer. Because this is the first (and only) field, this
+    /// struct itself shares this alignment.
+    static constexpr size_t Alignment =
+        std::conditional_t<sizeof(void*) == 8, std::integral_constant<size_t ALIB_COMMA 64>,
+                                               std::integral_constant<size_t ALIB_COMMA 64>>::value;
+
+    /// The buffer.
+    alignas(Alignment) TChar buffer[TLength];
+
+    /// Default constructor. Leaves the characters uninitialized.
+    constexpr               AlignedCharArray()                              noexcept= default;
+
+    /// Constructor taking a character to initialize the buffer with.
+    /// @param fillChar The character to fill this local buffer with.
+    constexpr               AlignedCharArray( TChar fillChar )  noexcept { Fill( fillChar ); }
+
+    /// Returns a pointer to the internal buffer.
+    /// @return A mutable pointer  to the characters.
+    constexpr TChar*        Buffer()                                     noexcept { return buffer; }
+
+    /// Returns a pointer to the internal buffer.
+    /// @return A const pointer to the characters.
+    constexpr const TChar*  Buffer()                               const noexcept { return buffer; }
+
+    /// Returns the number of characters in this buffer.
+    /// @return The value of template parameter \p{TLength}.
+    constexpr integer       Length()                              const noexcept { return TLength; }
+
+    /// Fills the buffer with given \p{fillChar}.
+    /// @param fillChar The character to fill this local buffer with.
+    constexpr void Fill( TChar fillChar )                                                   noexcept
+    { characters::Fill( buffer, TLength, fillChar); }
 };
 
-#if !defined(ALIB_DOX)
-template<>   struct TT_CharOfSize<sizeof(nchar)> : public std::true_type     { using type= nchar; };
-template<>   struct TT_CharOfSize<sizeof(wchar)> : public std::true_type     { using type= wchar; };
-template<>   struct TT_CharOfSize<sizeof(xchar)> : public std::true_type     { using type= xchar; };
-#endif
-
-/**
- * Helper struct that in its non-specialized version inherits from \c std::false_type.
- * For the three \alib character types \alib{characters,nchar}, \alib{characters,wchar} and
- * \alib{characters,xchar} (respectively \alib{characters,character},
- * \alib{characters,complementChar} and  \alib{characters,strangeChar}), a specialization exists
- * that inherits \c std::true_type.
- *
- * With that, the class may be used to decide if template type \p{TChar} is an \alib character type.
- *
- * @tparam TChar The type to test for being an \alib character type.
- */
-template<typename TChar> struct TT_IsChar : public std::false_type {};
-
-#if !defined(ALIB_DOX)
-template<>   struct TT_IsChar<nchar> : public std::true_type {};
-template<>   struct TT_IsChar<wchar> : public std::true_type {};
-template<>   struct TT_IsChar<xchar> : public std::true_type {};
-#endif
-
-} // namespace alib[::character]
-
+}
 
 /// Type alias in namespace \b alib.
-using  nchar         = characters::nchar;
+/// Note that the original struct has template parameters, which, for technical reasons can
+/// not be defaulted with this alias as they are defaulted in the original.
+/// Therefore this alias uses explicit defaults (which are not changeable).
+using AlignedCharArray=   characters::AlignedCharArray<>;
 
-/// Type alias in namespace \b alib.
-using  wchar         = characters::wchar;
-
-/// Type alias in namespace \b alib.
-using  xchar         = characters::xchar;
-
-/// Type alias in namespace \b alib.
-using  character     = characters::character;
-
-/// Type alias in namespace \b alib.
-using  complementChar= characters::complementChar;
-
-/// Type alias in namespace \b alib.
-using  strangeChar   = characters::strangeChar;
-
-} // namespace [alib]
+} // namespace [alib::character]
 
 
+#endif // HPP_ALIB_CHARACTERS_CHARARRAY
 
-
-
-#endif // HPP_ALIB_CHARACTERS_CHARACTERS

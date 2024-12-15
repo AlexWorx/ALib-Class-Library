@@ -5,22 +5,19 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
-
-#if !defined(HPP_AWORX_ALIB_BITBUFFER)
-#   include "alib/bitbuffer/bitbuffer.hpp"
-#endif
+#include "alib/bitbuffer/bitbuffer.hpp"
 
 namespace alib {
 
-/** ************************************************************************************************
- * This \alibmod implements a buffer that is write- and readable bit by bit.
- * Conversion for standard numerical types is provided. Furthermore several array compression
- * algorithms are given, which allow the bit buffers to be compressed before transported or
- * stored.
- *
- * Please consult the little quick
- * \ref alib_mod_bitbuffer "ALib Module BitBuffer - Programmer's Manual" for further information.
- **************************************************************************************************/
+//==================================================================================================
+/// This \alibmod implements a buffer that is write- and readable bit by bit.
+/// Conversion for standard numerical types is provided. Furthermore several array compression
+/// algorithms are given, which allow the bit buffers to be compressed before transported or
+/// stored.
+///
+/// Please consult the little quick
+/// \ref alib_mod_bitbuffer "ALib Module BitBuffer - Programmer's Manual" for further information.
+//==================================================================================================
 namespace bitbuffer {
 
 BitBufferBase::Index BitBufferBase::Terminate( Index idx )
@@ -62,7 +59,7 @@ BitBufferBase::Index BitBufferBase::Unterminate(Index terminationIndex )
     return terminationIndex;
 }
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 // anonymous check if this platform has little endian encoding
 // already (done once). If so, this method does nothing.
 namespace
@@ -73,10 +70,11 @@ namespace
     {
         if( isLittleEndianEncoding == 0 )
         {
-            static_assert(   bitsof(BitBufferBase::TStorage) == 16
-                          || bitsof(BitBufferBase::TStorage) == 32
-                          || bitsof(BitBufferBase::TStorage) == 64,
-                          "Platform not supported");
+            ALIB_STATIC_ASSERT( Sizeof_int_must_be_16_32_or_64,
+                                   bitsof(BitBufferBase::TStorage) == 16
+                                || bitsof(BitBufferBase::TStorage) == 32
+                                || bitsof(BitBufferBase::TStorage) == 64,
+                               "Platform not supported")
 
             isLittleEndianEncoding= 2;
             if constexpr ( bitsof(BitBufferBase::TStorage) == 16 )
@@ -292,6 +290,5 @@ uint64_t BitReader::readUIntegral64()
     }
 }
 
-
-
 }} // namespace [alib::bitbuffer]
+

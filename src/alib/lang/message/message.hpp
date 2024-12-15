@@ -1,147 +1,61 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_basecamp of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_basecamp of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_CAMP_MESSAGE_MESSAGE
 #define HPP_ALIB_CAMP_MESSAGE_MESSAGE 1
-
-#if !defined (HPP_ALIB_STRINGS_CSTRING)
-#   include "alib/strings/cstring.hpp"
-#endif
-
+#pragma once
+#include "alib/strings/cstring.hpp"
 ALIB_ASSERT_MODULE(CAMP)
 
-#if !defined(HPP_ALIB_BOXING_ENUM)
-#   include "alib/boxing/enum.hpp"
-#endif
-
-#if !defined (HPP_ALIB_MONOMEM_SELF_CONTAINED)
-#   include "alib/monomem/selfcontained.hpp"
-#endif
-
+#include "alib/boxing/enum.hpp"
+#include "alib/monomem/sharedmonoval.hpp"
 
 namespace alib::lang {
 
-/** ************************************************************************************************
- * This struct stores a list of information objects of arbitrary type by publically inheriting type
- * \alib{boxing,Boxes}. In addition, source code location information is attached, which usually
- * refers to the place of construction of an instance of this type.<br>
- * Finally, a type identifier is available with field #Type.
- *
- * Note that while message data might be passed with construction, informational data may be added,
- * changed or removed during the life-cycle of an instance using the inherited interface of
- * class \alib{boxing,Boxes}.
- *
- *
- * Inside \alib, the struct is used with types \alib{lang,Exception} and \alib{lang,Report}.
- *
- **************************************************************************************************/
-struct Message : public Boxes
+//==================================================================================================
+/// This struct stores a list of information objects of arbitrary types, by publicly inheriting type
+/// \alib{BoxesMA}.
+/// In addition, the \alib{lang;CallerInfo} is attached, which usually refers to the place
+/// (and thread) tat constructed an instance of this type.<br>
+/// Finally, a type identifier is available with field #Type.
+///
+/// Note that while message data might be passed with construction, informational data may be added,
+/// changed or removed during the life-cycle of an instance using the inherited interface of
+/// class \alib{boxing;TBoxes}.
+///
+/// Inside \alib, the struct is used with types \alib{lang;Exception} and \alib{lang;Report}.
+//==================================================================================================
+struct Message : BoxesMA
 {
-    public:
-        /** The file name that this message relates to. */
-        NCString                File;
-
-        /** The line number within #File, that this message relates to. */
-        int                     Line;
-
-        /** The function/method name that this message relates to. */
-        NCString                Function;
-
-        /**
-         * A type identifier, defined with construction by providing an element of arbitrary
-         * enumeration type.
-         */
-        Enum                    Type;
-
-    protected:
-        /**
-         * Denotes whether this instance is responsible for deleting the (inherited) monotonic
-         * allocator or not.
-         */
-        lang::Responsibility    monoAllocatorResponsibility;
-
-    public:
-        /** ****************************************************************************************
-         * Constructs a message that does not use a \alib{monomem,MonoAllocator} and therefore
-         * uses dynamic memory allocation for storing the boxable arguments.
-         * @param file      Information about the scope of invocation.
-         * @param line      Information about the scope of invocation.
-         * @param function  Information about the scope of invocation.
-         * @param type      The message type.
-         * @param args      Variadic, templated list of arguments.
-         ******************************************************************************************/
-        template <typename... TBoxables>
-        Message( const NCString& file, int line, const NCString& function,
-                 const Enum& type, TBoxables&&... args )
-        : Boxes( nullptr)
-        , File(file),  Line(line), Function(function), Type(type)
-        , monoAllocatorResponsibility(lang::Responsibility::KeepWithSender)
-        {
-            Add( std::forward<TBoxables>(args)... );
-        }
-
-        /** ****************************************************************************************
-         * Constructs a message that uses a \alib{monomem,MonoAllocator} to store the boxable
-         * arguments. If parameter \p{monoAllocatorResp} equals \b Responsibility::Transfer, then
-         * this destructor of this class will delete the object given with \p{monoAllocator}.
-         *
-         * @param file               Information about the scope of invocation.
-         * @param line               Information about the scope of invocation.
-         * @param function           Information about the scope of invocation.
-         * @param monoAllocator     The allocator to store the arguments in.
-         * @param monoAllocatorResp The responsibility for the allocator.
-         * @param type               The message type.
-         * @param args               Variadic, templated list of arguments.
-         ******************************************************************************************/
-        template <typename... TBoxables>
-        Message( const NCString& file, int line, const NCString& function,
-                 MonoAllocator* monoAllocator, lang::Responsibility monoAllocatorResp,
-                 const Enum& type, TBoxables&&... args )
-        : Boxes( monoAllocator )
-        , File(file), Line(line), Function( function), Type( type)
-        , monoAllocatorResponsibility(monoAllocatorResp)
-        {
-            Add( std::forward<TBoxables>(args)... );
-        }
-
-        /** ****************************************************************************************
-         * Destructor. If a monotonic allocator was provided in the constructor along with
-         * flag \b Responsibility::Transfer, this allocator is deleted.
-         ******************************************************************************************/
-        ~Message()
-        {}
-
-        /** ****************************************************************************************
-         * Loops over all contained boxes and invokes box-function \alib{boxing,FClone}.
-         * The monotonic allocator passed in the constructor of this message is passed to \b FClone.
-         * If no allocator was passed in the constructor, this method must not be invoked.
-         * This condition is asserted in debug-compilations.
-         *
-         * It is the responsibility of the user or creator of a message object to invoke this method
-         * and to ensure that objects that are referenced in the stored boxes either survive the
-         * lifetime of the methods or are duly cloned.
-         *
-         * \see
-         *   Manual chapter \ref alib_basecamp_message_message_lifecycle for details.
-         ******************************************************************************************/
-        void CloneArguments()
-        {
-            CloneAll( *get_allocator().allocator );
-        }
-
-
+    CallerInfo  CI;       ///< The source code location that this message relates to.
+    Enum        Type;     ///< A type identifier, defined with construction by providing an element
+                              ///< of an arbitrary enumeration type.
+    /// Constructor.
+    /// @param ci                 Information about the scope of invocation.
+    /// @param monoAllocator      The allocator to store the arguments in.
+    /// @param type               The message type.
+    /// @param args               Variadic, templated list of arguments.
+    template <typename... TBoxables>
+    Message( const CallerInfo& ci,
+             MonoAllocator& monoAllocator,
+             const Enum& type, TBoxables&&... args )
+    : TBoxes( monoAllocator )
+    , CI  (ci)
+    , Type(type)
+    { Add( std::forward<TBoxables>(args)... ); }
 };
 
 } // namespace [alib::lang]
 
 
-// Customize boxing of type Message to its parent type Boxes. This allows to "flatten" all
+// Customize boxing of type Message to its parent type Boxes. This allows "flattening" all
 // arguments stored in a message when added to an instance of Boxes.
-ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING( alib::lang::Message*, alib::boxing::Boxes* )
+ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING( alib::lang::Message*, boxing::TBoxes<MonoAllocator>* )
 
 
 #endif // HPP_ALIB_CAMP_MESSAGE_MESSAGE
+

@@ -6,58 +6,51 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSION)
+#if !DOXYGEN
 #   include "alib/expressions/expression.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
 #   include "alib/expressions/detail/program.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_SCOPE)
 #   include "alib/expressions/scope.hpp"
-#endif
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
 
 namespace alib {  namespace expressions {
 
 
-Expression::Expression( const String& sourceString, Scope* pCTScope )
-: ctScope       ( pCTScope)
+ExpressionVal::ExpressionVal( MonoAllocator&  ma,
+                        const String&   sourceString,
+                        Scope*          pCTScope           )
+: allocator     ( ma )
+, ctScope       ( pCTScope )
 , name          ( nullptr )
 , program       ( nullptr )
-, originalString( ctScope->Allocator.EmplaceString( sourceString ) )
+, originalString( ma, sourceString )
 {
     normalizedString.SetBuffer(sourceString.Length());
 }
 
-Expression::~Expression()
+ExpressionVal::~ExpressionVal()
 {
+    allocator.DbgLock(false);
     if(program)
        delete program;
-    delete ctScope;
-
+    lang::Destruct(*ctScope);
 }
 
-String   Expression::Name()
+String   ExpressionVal::Name()
 {
     if( name.IsNull() )
         name= EXPRESSIONS.GetResource("ANON_EXPR_NAME");
     return name;
 }
 
-alib::Box  Expression::ResultType()
+alib::Box  ExpressionVal::ResultType()
 {
     ALIB_ASSERT_ERROR( program, "EXPR", "Internal error: Expression without program" )
         return program->ResultType();
 }
 
-alib::Box  Expression::Evaluate( Scope& scope )
+alib::Box  ExpressionVal::Evaluate( Scope& scope )
 {
     ALIB_ASSERT_ERROR( program, "EXPR","Internal error: Expression without program" )
     #if ALIB_TIME && ALIB_DEBUG
@@ -74,10 +67,10 @@ alib::Box  Expression::Evaluate( Scope& scope )
 }
 
 
-String     Expression::GetOptimizedString()
+String     ExpressionVal::GetOptimizedString()
 {
     if( optimizedString.IsNull() )
-        dynamic_cast<detail::Program*>( program )->compiler.getOptimizedExpressionString(this);
+        dynamic_cast<detail::Program*>( program )->compiler.getOptimizedExpressionString(*this);
     return optimizedString;
 }
 

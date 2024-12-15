@@ -11,58 +11,64 @@ at the [ALib Homepage](https://alib.dev).
 
 ## Abstract ##
 
-**ALib** is a general purpose, use-case agnostic, platform independent, low-level C++ class library.
+**ALib** is a general purpose, use-case agnostic, platform-independent, low-level C++ class library.
 
 Its mission is to provide foundational concepts, types and idioms relevant to any C++ project.
-As of today, **ALib** consists of **15 modules**, each addressing
+As of today, **ALib** consists of **17 modules**, each addressing
 different topics.
 A subset of the available modules can be selectively included in a custom library build. 
-This means, you just get what you choose from the menu.
+This means you only get what you choose from the menu.
 
 Some highlights of the functionality:
-- ALib Strings: String types with interfaces similar to Java/C#, compatible with anything that "smells" like a string
+- [ALib Strings](https://alib.dev/alib_mod_strings.html): String-types with interfaces similar to Java/C#, compatible with anything that "smells" like a string
   (due to some template meta programming magic).
-- ALibBoxing: Consider this "std::any on steroids".
-- ALib Enums: Finally, we get what we expected from C++ enums.
-- ALib Monomem: Monotonic allocation with recycling. Why use the oh-so-slow heap?
-- ALib ALox: Logging for adults.
-- ALib Bitbuffer: Write bit-streams instead of human readable text.
-- ALib CLI: Command line parser with support of environment variables and configuration files.
-- ALib Expressions: Type-safe run-time expression compiler. Easily extensible to support your 
+- [ALib Boxing](https://alib.dev/alib_mod_boxing.html): Consider this "std::any on steroids".
+- [ALib Enums](https://alib.dev/alib_mod_enums.html): Finally, we get what we expected from C++ enums.
+- [ALib Monomem](https://alib.dev/alib_mods_contmono.html): Monotonic allocation with recycling. Why use the oh-so-slow heap?
+- [ALib ALox](https://alib.dev/alib_mod_alox.html): Logging for adults.
+- [ALib Bitbuffer](https://alib.dev/alib_mod_bitbuffer.html): Write bit-streams instead of human-readable text.
+- [ALib CLI](https://alib.dev/alib_mod_cli.html): Command line parser with support of environment variables and configuration files.
+- [ALib Expressions](https://alib.dev/alib_mod_expressions.html): Type-safe run-time expression compiler. Easily extensible to support your 
   custom expression functions. 130+ (optional) predefined functions (math, string compare, date/time, etc.)
-- ALib Files: A directory and file scanner (with run-time expression support)
+- [ALib Configuration](https://alib.dev/alib_mod_config.html): Run-time variables for C++. 
+  Its priority-management allows hard-coding defaults and having them be overridden by
+  configuration files, environment-variables or command-line parameters.  
+- [ALib Files](https://alib.dev/alib_mod_files.html): A directory and file scanner (with run-time expression support)
+- [ALib Threadmodel](https://alib.dev/alib_mod_threadmodel.html): A dynamic thread-pool implementation, 
+  dedicated worker threads with prioritized job-management, and periodic event-triggering.
 - And last but not least: Many more tools like managing bootstrapping of C++ software, externalized resources,
-  resources, configuration data, singletons with Windows DLLs, ...  
+  configuration data, singletons with Windows DLLs, ...  
 
 ## Main Characteristics And Design Goals ##
 
 - **ALib** is **free software**.
-- Compiles and tested with **C++ 17 and  20**.
-- **Modularization**: Possible selective use of only parts of the library.
+- Compiles and tested with **C++ 17, 20, and 23**.
+- **Modularization**: Possible selective use and compilation of the library.
 - Extensive **documentation**.
-- **Least intrusive**: Designed to keep user code as independent from **ALib** types and idioms as possible.
+- **Least intrusive**: Designed to keep user code independent of **ALib** types and idioms when possible.
 - **Ease of use** by design.
   When things become complex, features are hidden behind default
-  behaviour and are only available to users who read the detail chapters of the various Programmer's Manuals. 
-- Developed and steadily tested under **GNU/Linux**, **Windows OS**, **Mac OS**, and
-  **Raspberry**. For details in respect to the current release, see section below. 
+  behavior and are only available to users who investigate deeper. 
+  For example, by consulting the detail chapters of the Programmer's Manuals. There is one available 
+  for each module. 
+- Developed and steadily tested under **GNU/Linux**, **Windows OS**, **macOS**, and
+  **Raspberry Pi**-devices. For details in respect to the current release, see the section below. 
 
 ## Documentation ##
 
-The following documentation is provided.
-The following documentation is provided.
+The following documentation is provided:
 
 1. A \ref alib_manual [General Library Manual](https://alib.dev/alib_manual.html) is available describing the library structure,
    its setup and compilation, bootstrapping, etc.
 
-2. **Fifteen** separated [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are published
-   with the [ALib Homepage](https://alib.dev)! (One for each ALib Module).
+2. Separated [Programmer's Manuals](https://alib.dev/alib_manual.html#alib_manual_modules_overview) are published with the [ALib Homepage](https://alib.dev)! 
+   One dedicated manual is provided for each ALib Module. 
  
-   The manuals are well structured, provide **step by step source-code tutorials** and sometimes go 
+   The manuals are well-structured, provide **step-by-step sourcecode tutorials** and sometimes go 
    into in-depth discussion in respect to design decisions and overall rationals behind important features
    of the ALib Modules.
 
-3. [Reference Documentation](https://alib.dev/annotated.html) which is covering100% of the provided types, members,
+3. [Reference Documentation](https://alib.dev/annotated.html) which is covering 100% of the provided types, members,
    functions, namespaces, macros, etc. In short, **each and every C++ entity is documented**.
 
 4. A detailed version history, documenting every interface change is found in the [Changelog](https://alib.dev/alib_changelog.html).
@@ -72,23 +78,22 @@ The following documentation is provided.
 
    Therefore, changes in the library's interfaces are always detected and corrected.
    The many **code samples** are implemented as unit tests and thus are "live"-integrated
-   to the documentation, often together with the output text snippets of the recent unit test run.
-   (See  [an example here](https://alib.dev/alib_expressions_calculator.html)).
+   to the documentation, often with the output text snippets of the recent unit test run.
+   (See  [an example here](https://alib.dev/alib_mod_expressions.html#alib_expressions_calculator)).
 
 Summary: **ALib** comes with a **complete book of documentation**, which has more than
-**1000 pages** if printed. Its all explained, for beginners and experts!
+**1000 pages** if it was printed. It is all explained, for beginners and experts!
 
-   
 
 ## IDE / Build System Setup ##
 The current Version got tested on the following platform combinations:
-- GNU/Linux Arch 6.7.6, GNU C++ 13.2.1 / Clang++ 16.0.6, C++ 17/20, 32-Bit / 64-Bit
+- GNU/Linux Arch 6.12.1, GNU C++ 14.2.1 / Clang++ 18.1.8, C++ 17/20/23, 32-Bit / 64-Bit<br>
   (This is the main development platform.)
-- Windows 10/11, MSC 17.8.3 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
-- Windows 10/11, MinGW,  C++ 17/20, 64-Bit
-- MacOS Sonoma 14.3.1, Apple M2 / ARM64, Apple Clang Version 15.0.0, C++ 17/20, 64-Bit
-- Raspberry 3, ARM, 64-bit OS, GCC 10.2.1, C++ 17/20, 64-Bit
-- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20
+- WindowsOS 10/11, MSC 19.42 (Visual Studio 2022), C++ 17/20, 32-Bit / 64-Bit
+- WindowsOS 10/11, MinGW, GCC 13.47  C++ 17/20, 64-Bit 
+- macOS Sequoia 15.2, Apple M2 / ARM64, Apple Clang Version 16.0.0, C++ 17/20/23, 64-Bit
+- Raspberry 3, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
+- Raspberry 4, ARM, 64-bit OS, GNU C++ 12.2.0, C++ 17/20/23
 
 The Programmer's Manual contains an extensive chapter about how to compile and use ALib in your 
 C++ environment.
@@ -97,11 +102,10 @@ C++ environment.
 
 Parts of **ALib** have sibling incarnations in programming languages C# and JAVA. Historically,
 **ALib** aimed to be a cross platform/cross language library. This goal was (mostly) dropped
-in favour to be able to independently develop **ALib for C++**.
+in favor to be able to independently develop **ALib for C++**.
 
 **ALib for C#** and **ALib for Java** are included in and distributed with the
 cross platform [ALox Logging Library](https://alexworx.github.io/ALox-Logging-Library/).
-
 
 ## License ##
 
@@ -111,14 +115,14 @@ and sources are published under [Boost Software License](LICENSE.txt)
 ## Library Dependencies ##
 
 **ALib** compiles as is, hence it is **not dependent on any 3rd-party library**.
-Optional dependencies exist. For example if [boost](https://www.boost.org) is available,
-**ALib Strings** are using its regex search.
+Optional dependencies exist. For example, if [boost](https://www.boost.org) is available,
+**ALib Strings** are using its regex-search.
 In contrast, **ALib** provides optional compatibility headers for 3rd-party libraries
-(e.g. [QT Class Library](https://www.qt.io)), which for example provide adoptions of **ALib** type-traits
+(e.g., [QT Class Library](https://www.qt.io)), which, for example, provide adoptions of **ALib** type-traits
 for QT-types.
 
 ##  Contributions ##
-We would be happy, if the community started to support this library and are willing to receive
+We would be happy if the community started to support this library and are willing to receive
 contributions and, if accepted, to update the code accordingly.
 
 Note that for legal reasons, we hereby explicitly refuse and reject code (or ideas for code)
@@ -128,8 +132,8 @@ Please do not even contact us with your ideas/code in that case.
 
 ## Thanks ##
 
-Our thanks go to all supporters that did and do help realizing this project. Furthermore
-to just all of these millions of supporters of *free software*, including:
+Our thanks go to all supporters that did and do help to realize this project. 
+Furthermore, to just all of these millions of supporters of *free software*, including:
 - The [GNU/Linux](https://gnu.org) project and community,
 - The [LLVM/Clang](http://llvm.org/) project,
 - The [CMake](https://cmake.org/) project,
@@ -144,8 +148,7 @@ to just all of these millions of supporters of *free software*, including:
 Special thanks also to C. Darwin, who created life on earth hundreds of millions of years ago,
 until he - when things became too crazy - disappeared in 1882.
 
-
-## More Information... ##
+## All Information ##
 Please visit the [ALib Homepage](https://alib.dev)!
 
 

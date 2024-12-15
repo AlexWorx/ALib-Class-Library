@@ -1,31 +1,27 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of sub-namespace #  alib::lang::system of module \alib_basecamp of
- * the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
-#ifndef HPP_ALIB_CAMP_ERRORS
-#define HPP_ALIB_CAMP_ERRORS 1
-
-#if !defined (HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
-#   include "alib/lang/message/exception.hpp"
-#endif
+//==================================================================================================
+/// \file
+/// This header file is part of sub-namespace #alib::lang::system of module \alib_basecamp of
+/// the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#ifndef HPP_ALIB_LANG_SYSTEM_ERRORS
+#define HPP_ALIB_LANG_SYSTEM_ERRORS 1
+#pragma once
+#include "alib/lang/message/exception.hpp"
 
 ALIB_ASSERT_MODULE(CAMP)
 
-#if   defined( __GNUC__ ) || ( defined(_WIN32) && defined(_MSC_VER))
-#   if  !defined(_ERRNO_H)
-#       include <errno.h>
-#   endif
+#if defined( __GNUC__ ) || ( defined(_WIN32) && defined(_MSC_VER))
+#   include <errno.h>
 #endif
 
 namespace alib { namespace  lang::system {
 
-/** ************************************************************************************************
- * Denotes result values returned by system functions (glibc, etc).
- **************************************************************************************************/
+//==================================================================================================
+/// Denotes result values returned by system functions (glibc, etc).
+//==================================================================================================
 enum class SystemErrors
 {
         UNKNOWN         = -1              , ///< Unknown Error
@@ -120,7 +116,7 @@ enum class SystemErrors
         enotuniq        = ENOTUNIQ        , ///<  76  "Name not unique on network"
         ebadfd          = EBADFD          , ///<  77  "File descriptor in bad state"
         eremchg         = EREMCHG         , ///<  78  "Remote address changed"
-        elibacc         = ELIBACC         , ///<  79  "Can not access a needed shared library"
+        elibacc         = ELIBACC         , ///<  79  "Cannot access a needed shared library"
         elibbad         = ELIBBAD         , ///<  80  "Accessing a corrupted shared library"
         elibscn         = ELIBSCN         , ///<  81  ".lib section in a.out corrupted"
         elibmax         = ELIBMAX         , ///<  82  "Attempting to link in too many shared libraries"
@@ -276,38 +272,35 @@ enum class SystemErrors
     #endif
 };
 
-/** ************************************************************************************************
- * Denotes exceptions thrown by classes of namespace \ref alib::lang::system.
- **************************************************************************************************/
+//==================================================================================================
+/// Denotes exceptions thrown by classes of namespace \ref alib::lang::system.
+//==================================================================================================
 enum class SystemExceptions
 {
-    /** Everything is fine. */
+    /// Everything is fine.
     OK,
 };
 
-/**
- * Namespace function that creates an according \alib{lang,Exception} to a corresponding
- * system error number.
- *
- * The small challenge here is that arbitrary error numbers (of unknown) type might occur, that
- * do not have a corresponding enum record. \alib{lang::system,SystemErrors::UNKNOWN} is thrown
- * and only the number is displayed in the description text.
- *
- * @param file  File name of the place of exception creation.
- * @param line  Line number of the place of exception creation.
- * @param func  Function/method name of the place of exception creation.
- * @param errNo The system's error number.
- * @return An exception object.
- */
-ALIB_API Exception CreateSystemException( const NCString& file, int line, const NCString& func,
-                                          int errNo );
+/// Namespace function that creates an according \alib{lang;Exception} to a corresponding
+/// system error number.
+///
+/// The small challenge here is that arbitrary error numbers (of an unknown) type might occur, that
+/// do not have a corresponding enum record. \alib{lang::system;SystemErrors;SystemErrors::UNKNOWN}
+/// is thrown and only the number is displayed in the description text.
+///
+/// @param ci    The source location of the exception creation.
+/// @param errNo The system's error number.
+/// @return An exception object.
+        ALIB_API Exception
+        CreateSystemException( const CallerInfo& ci, int errNo );
 
 
 } // namespace alib[:: lang::system]
 
 /// Type alias in namespace \b alib.
-using     SystemErrors=        lang::system::SystemErrors;
+using SystemErrors = lang::system::SystemErrors;
 
 } // namespace [alib]
 
-#endif // HPP_ALIB_CAMP_ERRORS
+#endif // HPP_ALIB_LANG_SYSTEM_ERRORS
+

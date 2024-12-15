@@ -6,197 +6,120 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_LANG_BASECAMP)
-#      include "alib/lang/basecamp/basecamp.hpp"
+#if !DOXYGEN
+#   include "alib/lang/basecamp/basecamp.hpp"
+#   include "alib/lang/system/processinfo.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   include "alib/strings/numberformat.hpp"
+#   include "alib/strings/substring.hpp"
+#   include "alib/strings/astring.hpp"
+#   include "alib/strings/detail/numberconversion.hpp"
+#   include "alib/time/time.hpp"
+#   include "alib/lang/resources/resources.hpp"
+#   include "alib/lang/system/path.hpp"
+#   include "alib/lang/system/calendar.hpp"
+#   include "alib/enums/recordbootstrap.hpp"
+#   include "alib/enums/serialization.hpp"
+#   include "alib/lang/message/report.hpp"
+#   include "alib/lang/format/fwds.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#   include "alib/lang/format/formatterpythonstyle.hpp"
+#   include "alib/lang/format/formatterjavastyle.hpp"
+#   include "alib/lang/format/bytesize.hpp"
+#   include "alib/lang/format/fmtcallerinfo.hpp"
+#   include "alib/lang/system/environment.hpp"
+#   if ALIB_THREADS
+#       include "alib/threads/thread.hpp"
 #   endif
-#   if !defined (HPP_ALIB_CAMP_PROCESSINFO)
-#      include "alib/lang/system/processinfo.hpp"
+#   if ALIB_THREADMODEL
+#       include "alib/threadmodel/dedicatedworker.hpp"
 #   endif
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
+#   if ALIB_CONFIGURATION
+#       include "alib/config/configcamp.hpp"
+#       include "alib/config/configuration.hpp"
 #   endif
-#   if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
-#      include "alib/strings/numberformat.hpp"
+#   if ALIB_ALOX
+#       include "alib/alox/aloxcamp.hpp"
 #   endif
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
+#   if ALIB_CLI
+#       include "alib/cli/clicamp.hpp"
 #   endif
-#   if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-#      include "alib/strings/substring.hpp"
+#   if ALIB_EXPRESSIONS
+#       include "alib/expressions/expressionscamp.hpp"
 #   endif
-#   if !defined (HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION)
-#      include "alib/strings/detail/numberconversion.hpp"
+#   if ALIB_FILES
+#       include "alib/files/filescamp.hpp"
 #   endif
-#   if !defined(HPP_ALIB_TIME_TIME)
-#      include "alib/time/time.hpp"
+#   if ALIB_BITBUFFER
+#       include "alib/bitbuffer/arraycompressor.hpp"
 #   endif
-#   if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
-#      include "alib/lang/resources/resources.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CAMP_DIRECTORY)
-#      include "alib/lang/system/directory.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CAMP_CALENDAR)
-#      include "alib/lang/system/calendar.hpp"
-#   endif
-#   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
-#      include "alib/enums/recordbootstrap.hpp"
-#   endif
-#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#      include "alib/enums/serialization.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_LANG_FORMAT_FWDS)
-#       include "alib/lang/format/fwds.hpp"
-#   endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_PYTHONSTYLE)
-#      include "alib/lang/format/formatterpythonstyle.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_JAVASTYLE)
-#      include "alib/lang/format/formatterjavastyle.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_FORMAT_BYTESIZE)
-#      include "alib/lang/format/bytesize.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CAMP_ENVIRONMENT)
-#      include "alib/lang/system/environment.hpp"
-#   endif
-
-
-#if ALIB_CONFIGURATION
-#   if !defined (HPP_ALIB_CONFIG_CONFIG)
-#      include "alib/config/config.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CONFIG_INI_FILE)
-#      include "alib/config/inifile.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CONFIG_VARIABLE)
-#      include "alib/config/variable.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#      include "alib/config/configuration.hpp"
-#   endif
-#endif
-
-#if ALIB_ALOX
-#   if !defined (HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
-#endif
-#if ALIB_CLI
-#   if !defined (HPP_ALIB_CLI_CLI)
-#      include "alib/cli/cli.hpp"
-#   endif
-#endif
-#if ALIB_EXPRESSIONS
-#   if !defined (HPP_ALIB_EXPRESSIONS_EXPRESSIONS)
-#      include "alib/expressions/expressions.hpp"
-#   endif
-#endif
-#if ALIB_FILES
-#   if !defined (HPP_ALIB_FILES_CAMP)
-#      include "alib/files/filescamp.hpp"
-#   endif
-#endif
-#if ALIB_BITBUFFER
-#   if !defined (HPP_AWORX_ALIB_BITBUFFER_ARRAY_COMPRESSOR)
-#      include "alib/bitbuffer/arraycompressor.hpp"
-#   endif
-#endif
-
-#if !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
 #   include "alib/compatibility/std_strings_iostream.hpp"
-#endif
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-
-#endif // !defined(ALIB_DOX)
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
 using namespace alib;
 
 
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::system::SystemExceptions , vt_system_exceptions    )
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::system::SystemErrors     , vt_system_systemerrors  )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::system::Path*            , vt_system_path          )
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::format::FMTExceptions    , vt_system_fmtexceptions )
 
-namespace alib {
-lang::basecamp::BaseCamp BASECAMP;
 
-namespace lang {
-namespace format { NumberFormat* ByteSizeNumberFormat= nullptr; }
+namespace alib   {  lang::basecamp::BaseCamp BASECAMP;
+namespace lang   {
+namespace format { NumberFormat* BYTESIZE_NUMBER_FORMAT= nullptr; }
 
-
-
-/**
- * This is the reference documentation of sub-namespace \b system of module \alib_basecamp.
- */
+/// This is the reference documentation of sub-namespace \b system of module \alib_basecamp.
 namespace system {}
-
 
 // #################################################################################################
 // Replacement method for ALib Essential Reports
 // #################################################################################################
 #if ALIB_DEBUG
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace {
 #endif
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-/**
- * This method is installed with \alib{lang::DBG_SIMPLE_ALIB_MSG_PLUGIN} in method
- * \alib{lang,Camp::bootstrap}.
- *
- * The message strings are simply passed to the default \alib{lang,Report}.
- * This way, the essential assert, error and message macros are using the \alib report system
- * in the moment that the \alib_basecamp_nl is included in the \alibdist.
- *
- * @param file    Information about the scope of invocation.
- * @param line    Information about the scope of invocation.
- * @param method  Information about the scope of invocation.
- * @param type    The type of message. See \alib{lang,Message}.
- * @param topic   The topic of message.
- * @param qtyMsgs The number of messages in \p{msgs}.
- * @param msgs    A list of strings (this is all that the essential versions of \alib reporting
- *                macros provide).
- */
-void debugReportPlugin(const char* file, int line, const char* method,
-                       int type, const char* topic, int qtyMsgs, const nchar** msgs)
+/// This method is installed with \alib{lang::DBG_SIMPLE_ALIB_MSG_PLUGIN} in method
+/// \alib{lang;Camp::bootstrap}.
+///
+/// The message strings are simply passed to the default \alib{lang;Report}.
+/// This way, the essential assert, error and message macros are using the \alib report system
+/// at the moment that the \alib_basecamp_nl is included in the \alibdist.
+///
+/// @param ci      Information about the scope of invocation.
+/// @param type    The type of message. See \alib{lang;Message}.
+/// @param topic   The topic of message.
+/// @param qtyMsgs The number of messages in \p{msgs}.
+/// @param msgs    A list of strings (this is all that the essential versions of \alib reporting
+///                macros provide).
+void debugReportPlugin(const CallerInfo& ci, int type, const char* topic,
+                       int qtyMsgs, const nchar** msgs)
 {
-    Message message( file,line,method, Report::Types(type), topic );
+    LocalAllocator1K allocator; 
+    Message message( ci, allocator, Report::Types(type), topic );
     for (int i= 0; i< qtyMsgs; ++i )
         message.Add( msgs[i] );
     Report::GetDefault().DoReport( message );
 }
 ALIB_WARNINGS_RESTORE
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 } // anonymous namespace
 #endif
 #endif // ALIB_DEBUG
 
 
-/**
- * This is the reference documentation of sub-namespace \b format of module \alib_basecamp.
- *
- * Extensive documentation for this namespace is provided with chapter
- * \ref alib_basecamp_format "4. Namespace alib::lang::format" of the Programmer's Manual of that module.
- */
+/// This is the reference documentation of sub-namespace \b format of module \alib_basecamp.
+///
+/// Extensive documentation for this namespace is provided with chapter
+/// \ref alib_basecamp_format "4. Namespace alib::lang::format" of the Programmer's Manual of that module.
 namespace format {}
 
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace
 {
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
@@ -225,7 +148,7 @@ namespace
     String units[SIZE_OF_UNITS];
     ALIB_WARNINGS_RESTORE
 } // namespace alib::lang::format[::anonymous]
-#endif // defined(ALIB_DOX)
+#endif // DOXYGEN
 
 namespace basecamp {
 
@@ -241,14 +164,11 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
 {
     if( phase == BootstrapPhases::PrepareResources )
     {
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_exceptions   )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_systemerrors )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_system_fmtexceptions )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_exception )
-        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_alib_report_types )
-
         #if ALIB_DEBUG
             DBG_SIMPLE_ALIB_MSG_PLUGIN= debugReportPlugin;
+        #   if ALIB_THREADS
+                Formatter::DefaultLock.Dbg.Name= "DefaultFormatter";
+        #   endif
         #endif
 
 
@@ -295,10 +215,12 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
        "Inclusion",         A_CHAR("0"  ","  "Include"            ","  "1" ","
                                    "1"  ","  "Exclude"            ","  "1"     ),
 
-       "Initialization",    A_CHAR("0"  ","  "DontInitialize"     ","  "1" ","
+       "Initialization",    A_CHAR("0"  ","  "Suppress"           ","  "1" ","
+                                   "1"  ","  "Default"            ","  "1" ","
+                                   "2"  ","  "Nulled"             ","  "1" ","
+                                   "0"  ","  "None"               ","  "2" ","
                                    "1"  ","  "Initialize"         ","  "1" ","
-                                   "0"  ","  "Suppress"           ","  "1" ","
-                                   "1"  ","  "Perform"            ","  "1"     ),
+                                   "2"  ","  "Zero"               ","  "1"     ),
 
        "Phase",             A_CHAR("0"  ","  "Begin"              ","  "1" ","
                                    "1"  ","  "End"                ","  "1"     ),
@@ -349,29 +271,37 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
        "TSts",             A_CHAR( "0"  ","  "Unstarted"          ","  "1" ","
                                    "1"  ","  "Started"            ","  "3" ","
                                    "2"  ","  "Running"            ","  "1" ","
-                                   "3"  ","  "Stopped"            ","  "3" ","
+                                   "3"  ","  "Done"               ","  "3" ","
                                    "4"  ","  "Terminated"         ","  "1"      ),
+
+         #if ALIB_THREADMODEL
+           "TMDWP",        A_CHAR(    "0"  ","  "Lowest"              ","  "4" ","
+                                    "500"  ","  "DeferredDeletion"    ","  "1" ","
+                                   "1000"  ","  "Low"                 ","  "1" ","
+                                   "2000"  ","  "Standard"            ","  "1" ","
+                                   "4000"  ","  "Highest"             ","  "5" ","
+                                   "3000"  ","  "High"                ","  "1"     ),
+         #endif
        #endif
 
 
-       #if ALIB_CONFIGURATION
+
+#if ALIB_CONFIGURATION
        // variables
-       "Var0",    A_CHAR("1|ALIB|LOCALE|||"),
-       "Var1",    A_CHAR("2|ALIB|WAIT_FOR_KEY_PRESS|||"),
-       "Var2",    A_CHAR("3|ALIB|HAS_CONSOLE_WINDOW|||"),
+DOX_MARKER([DOX_CONFIG_DECLARATION6])
+"Var0",    A_CHAR("1|ALIB/LOCALE|"             "S"  ),
+"Var1",    A_CHAR("2|ALIB/WAIT_FOR_KEY_PRESS|" "B"  ),
+"Var2",    A_CHAR("3|ALIB/HAS_CONSOLE_WINDOW|" "B"  ),
 
+"Var_C1",  A_CHAR("Defines the locale of the application. If empty or not set, the system's locale is used.\n"
+                 "If set, a UTF8 local should be used, for example 'us_US.UTF-8' or 'de_DE.UTF-8'" ),
+"Var_C2",  A_CHAR("If true, the process waits for a key stroke on termination. If empty, under Windows"   "\n"
+                 "behavior is detected, under other OSes, defaults to false."                               ),
+"Var_C3",  A_CHAR("Boolean value that denotes what its name indicates. If empty, under Windows value is " "\n"
+                 "detected, under other OSes, defaults to true."                                            ),
+DOX_MARKER([DOX_CONFIG_DECLARATION6])
 
-       "Var_C1",  A_CHAR("Defines the locale of the application. If empty or not set, the system's locale is used."),
-       "Var_C2",  A_CHAR("If true, the process waits for a key stroke on termination. If empty, under Windows"   "\n"
-                         "behavior is detected, under other OSes, defaults to false."                               ),
-       "Var_C3",  A_CHAR("Boolean value that denotes what its name indicates. If empty, under Windows value is " "\n"
-                         "detected, under other OSes, defaults to true."                                            ),
-
-       // default values
-       "Var_D2",  A_CHAR("No"),
-       "Var_D3",  A_CHAR("No"),
-
-       #endif // ALIB_CONFIGURATION
+#endif // ALIB_CONFIGURATION
 
        // INI-File comment for section ALIB
        "INI_CMT_ALIB", A_CHAR("@>'/// '@HL-General ALib library settings.\n@HL-"),
@@ -410,14 +340,18 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
                              " ns"         ","     // 13  NSecP
                              " ns"            ),   // 14  NSecS
 
-        "DFMT",  A_CHAR( "yyyy-MM-dd HH:mm:ss"),   // default format string for DateTime values used by FFormat_DateTime()
+        "FMTDT"  ,  A_CHAR( "yyyy-MM-dd HH:mm:ss"),             // default format string for DateTime values used by FFormat_DateTime()
+        "FMTCI"  ,  A_CHAR( "[@ sf:sl from ''ya'' by ''ta'']"), // default format string for CallerInfo values used by FFormat_CallerInfo()
+        "FMTCINT",  A_CHAR( "<None>"),       // format output if CallerInfo has no thread set
+        "FMTCINY",  A_CHAR( "<None>"),       // format output if CallerInfo originates from static method or namespace function
+        "FMTCINR",  A_CHAR( "<Null>"),       // format output if CallerInfo originates from static method or namespace function
 
         // Exceptions
         "E<", A_CHAR("system::"),
         "E",  A_CHAR("0,OK"               ",NON"  ) EOS
 
         // Enums
-        "SpecialFolder", A_CHAR("0,Root"        ",1,"
+        "SystemFolders", A_CHAR("0,Root"        ",1,"
                                 "1,Current"     ",1,"
                                 "3,HomeConfig"  ",5,"
                                 "2,Home"        ",1,"
@@ -690,6 +624,19 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
 // ----------------------------------- system/format ------------------------------------
     "FE<", A_CHAR("format::"),
 
+    "PHT",         A_CHAR(  "0,NotGiven"          ",1,"
+                            "1,String"            ",1,"
+                            "2,Character"         ",1,"
+                            "3,IntBase10"         ",6,"
+                            "4,IntBinary"         ",6,"
+                            "5,IntOctal"          ",6,"
+                            "6,IntHex"            ",6,"
+                            "7,Float"             ",1,"
+                            "8,Bool"              ",1,"
+                            "9,HashCode"          ",1,"
+                           "10,Fill"              ",4" ) ,
+
+
 // general formatter errors
 
     "FE0" , A_CHAR( "11,ArgumentIndexIs0"                       ",FMG11"   ),
@@ -706,7 +653,7 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
     "FE7" , A_CHAR( "105,ExclamationMarkExpected"               ",FPS105"  ),
     "FE8" , A_CHAR( "106,UnknownConversionPS"                   ",FPS106"  ),
     "FE9" , A_CHAR( "107,PrecisionSpecificationWithInteger"     ",FPS107"  ),
-    "FE10", A_CHAR( "108,MissingReplacementStrings"            ",FPS108"  ),
+    "FE10", A_CHAR( "108,MissingReplacementStrings"             ",FPS108"  ),
 
     // Formatter Java Style
     "FE11" , A_CHAR( "201,NegativeValuesInBracketsNotSupported" ",FJS101"  ),
@@ -728,49 +675,60 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
 
     // general formatter errors
     "FMG11"      , A_CHAR( "Argument index 0 not allowed.\n"
-                           "In: {!Q}\n     {!Fill}^" ),
+                           "In: {!Q}\n    >{!FillC-}^" ),
     "FMG12"      , A_CHAR( "Argument index #{} is out of bounds. {} arguments are available.\n"
-                           "In: {!Q}\n     {!Fill}^" ),
-    "FMG13"      , A_CHAR( "Incompatible type code {!Q'} for argument #{} which is of type {!Q}.\n"
-                           "In: {!Q}\n     {!Fill}^" ),
+                           "In: {!Q}\n    >{!FillC-}^" ),
+    "FMG13"      , A_CHAR( "Detected placeholder type does not match given argument.\n"
+                           "Placeholder number:    {}\n"
+                           "Placeholder type:      {} ({})\n" )
+                           "Deduced argument type: {!Q}\n"
+     ALIB_REL_DBG( A_CHAR( "{!X}") ,
+                   A_CHAR( "Native argument type:   <{}>\n" )
+                           "In: {!Q}\n    >{!FillC-}^"  ),
 
     // Formatter Python Style
     "FPS101"     , A_CHAR( "Closing bracket '}}' of placeholder not found (or syntax error).\n"
-                           "In: {!Q}\n     {!Fill}^" ),
+                           "In: {!Q}\n    >{!FillC-}^" ),
     //...
     //...
     //...
     "FPS102"     , A_CHAR( "Missing precision value after '.' character."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FPS103"     , A_CHAR( "Duplicate type code {!Q'} given (previous was {!Q'})."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ") )
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FPS104"     , A_CHAR( "Unknown type code {!Q'} given."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  )
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ")                             ),
     "FPS105"     , A_CHAR( "Expected '!' in continuation of placeholder."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ") )
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FPS106"     , A_CHAR( "Unknown conversion \"!{}\"."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ") )
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FPS107"     , A_CHAR( "Precision not allowed with integer format."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
-    "FPS108"     , A_CHAR( "Missing pair of replacement strings \")<src><repl>\" after \"!Replace\"."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ") )
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
+    "FPS108"     , A_CHAR( "Missing pair of replacement strings \"<src><repl>\" after \"!Replace\"."
+     ALIB_REL_DBG( A_CHAR( "{!X}") , A_CHAR( "\nNative argument type: <{}> ") )
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
 
 
     // Formatter Java Style
     "FJS101"     , A_CHAR( "Brackets for negative values not implemented/supported."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS102"     , A_CHAR( "Missing precision value after '.' character."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS103"     , A_CHAR( "Hexadecimal float format not implemented/supported."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS104"     , A_CHAR( "Alternate form '#' not supported with conversion {!Q}."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS105"     , A_CHAR( "Precision specification (\".{}\") is not supported with conversion {!Q}."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS106"     , A_CHAR( "Unknown date/time conversion suffix {!Q'}."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
     "FJS107"     , A_CHAR( "Unknown conversion character {!Q'}."
-                           "\nIn: {!Q}\n     {!Fill}^"                                                  ),
+                           "\nIn: {!Q}\n    >{!FillC-}^"                                                  ),
 
 
     // PropertyFormatter and PropertyFormatters
@@ -778,15 +736,15 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
                            "Format string: {!Q}.\n"
                            "Allowed identifiers: "                                                               ),
     "PFM502"     , A_CHAR( "Error in resulting format string.\nSource format: {!Q}."                             ),
-    "PFM510"     , A_CHAR( "Missing or empty configuration variable {!Q} containing user defined format string." ),
+    "PFM510"     , A_CHAR( "Missing or empty configuration variable {!Q} containing user-defined format string." ),
 
     // class Paragraphs
     "ST601"     ,  A_CHAR( "Unknown marker at position {}.\n"
                            "  Marked text: {!Q}.\n"
-                           "                {!Fill}^\n"                                                          ),
+                           "               >{!FillC-}^\n"                                                          ),
     "ST602"     ,  A_CHAR( "Found an end-marker without a start marker at position {}.\n"
                            "  Marked text: {!Q}.\n"
-                           "                {!Fill}^\n"                                                          ),
+                           "               >{!FillC-}^\n"                                                          ),
 
 
     "BS",          A_CHAR(  "0,B"                 ",3,"
@@ -817,10 +775,16 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
 #endif // !ALIB_RESOURCES_OMIT_DEFAULTS
 
 
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_iec )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_si  )
+        ALIB_BOXING_BOOTSTRAP_VTABLE_DBG_REGISTER( vt_lang_format_bytesize_units )
+
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(  lang::system::SystemErrors    )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(  lang::system::SystemExceptions)
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(  lang::system::Path*           )
 
-        boxing::BootstrapRegister< lang::format::FFormat, boxing::TMappedTo<time::DateTime>>(system::FFormat_DateTime);
+        boxing::BootstrapRegister< lang::format::FFormat, boxing::TMappedTo<time::DateTime   >>(system::FFormat_DateTime);
+        boxing::BootstrapRegister< lang::format::FFormat, boxing::TMappedTo<lang::CallerInfo*>>(format::FFormat_CallerInfo);
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N( time::DateTime::Duration )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W( time::DateTime::Duration )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X( time::DateTime::Duration )
@@ -828,33 +792,35 @@ void BaseCamp::bootstrap( BootstrapPhases phase )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W( time::Ticks   ::Duration )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X( time::Ticks   ::Duration )
 
+        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(   format::FormatterStdImpl::PHTypes  )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(   format::FMTExceptions    )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(   format::ByteSizeSI    )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE(   format::ByteSizeIEC   )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_N( format::ByteSizeUnits )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_W( format::ByteSizeUnits )
         ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE_X( format::ByteSizeUnits )
-
-        // create formatters. This has to be done very early, so that they can be used during
-        // initialization.
-        Formatter::defaultFormatter      .reset( new FormatterPythonStyle() );
-        Formatter::defaultFormatter->Next.reset( new FormatterJavaStyle() )   ;
-
-   #if ALIB_BITBUFFER && ALIB_BOXING && ALIB_ENUMS
+    #if ALIB_THREADS
+        alib::boxing::BootstrapRegister<FAppend<character, alib::HeapAllocator>,
+                                        alib::boxing::TMappedTo <alib::threads::Thread*> >(alib::threads::FAppend_thread);
+       ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::threads::Thread::State )
+    #endif
+    #if ALIB_BITBUFFER
        ALIB_BOXING_BOOTSTRAP_REGISTER_FAPPEND_FOR_APPENDABLE_TYPE( alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm  )
     #endif
 
-    }
 
-    else if( phase == BootstrapPhases::PrepareConfig )
-    {
+        // create formatters. This has to be done very early, so that they can be used during
+        // initialization.
+        Formatter::Default      .InsertDerived<FormatterPythonStyle>();
+        Formatter::Default->Next.InsertDerived<FormatterJavaStyle  >();
+
         // CodeMarker_CommonEnums
         EnumRecords<alib::lang::Alignment        >::Bootstrap( *this, "Alignment"      );
         EnumRecords<alib::lang::Bool             >::Bootstrap( *this, "Bool"           );
         EnumRecords<alib::lang::Caching          >::Bootstrap( *this, "Caching"        );
-DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
+DOX_MARKER( [DOX_ENUMS_MAKE_PARSABLE_22] )
         EnumRecords<alib::lang::Case>::Bootstrap( *this, "Case"  );
-DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
+DOX_MARKER( [DOX_ENUMS_MAKE_PARSABLE_22] )
         EnumRecords<alib::lang::ContainerOp      >::Bootstrap( *this, "ContainerOp"    );
         EnumRecords<alib::lang::CreateDefaults   >::Bootstrap( *this, "Bool"           );
         EnumRecords<alib::lang::CreateIfNotExists>::Bootstrap( *this, "Bool"           );
@@ -876,20 +842,36 @@ DOX_MARKER( [DOX_ALIB_ENUMS_MAKE_PARSABLE_22] )
         EnumRecords<alib::lang::ValueReference   >::Bootstrap( *this, "ValueReference" );
         EnumRecords<alib::lang::Whitespaces      >::Bootstrap( *this, "Whitespaces"    );
 
-ALIB_IF_THREADS(       EnumRecords<alib::threads::Thread::State>                      ::Bootstrap( *this, "TSts"     ); )
-ALIB_IF_BITBUFFER(     EnumRecords<alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm>::Bootstrap( *this, "ACAlgos"  ); )
-ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                         ::Bootstrap('|'); )
+IF_ALIB_BITBUFFER(  EnumRecords<alib::bitbuffer::ac_v1::ArrayCompressor::Algorithm>::Bootstrap( *this, "ACAlgos"  ); )
+IF_ALIB_THREADS(    EnumRecords<alib::threads::Thread::State>                      ::Bootstrap( *this, "TSts"     ); )
+IF_ALIB_THREADMODEL(EnumRecords<alib::threadmodel::Priority>                       ::Bootstrap( *this, "TMDWP"    ); )
+#if ALIB_CONFIGURATION
+DOX_MARKER([DOX_CONFIG_DECLARATION7])
+EnumRecords<Variables>::Bootstrap('|');
+DOX_MARKER([DOX_CONFIG_DECLARATION7])
+#endif
 
-        EnumRecords<system::SystemExceptions >::Bootstrap();
-        EnumRecords<SystemErrors             >::Bootstrap();
-        EnumRecords<Directory::SpecialFolder >::Bootstrap( *this, "SpecialFolder" );
-        EnumRecords<ReportExceptions         >::Bootstrap();
-        EnumRecords<format::FMTExceptions    >::Bootstrap();
-        EnumRecords<format::ByteSizeUnits    >::Bootstrap( *this, "BS");
+        EnumRecords<system::SystemExceptions          >::Bootstrap();
+        EnumRecords<SystemErrors                      >::Bootstrap();
+        EnumRecords<SystemFolders                     >::Bootstrap( *this, "SystemFolders" );
+        EnumRecords<ReportExceptions                  >::Bootstrap();
+        EnumRecords<format::FormatterStdImpl::PHTypes >::Bootstrap();
+        EnumRecords<format::FMTExceptions             >::Bootstrap();
+        EnumRecords<format::ByteSizeUnits             >::Bootstrap();
+    }
+
+    else if( phase == BootstrapPhases::PrepareConfig )
+    {
+
+        // preload all variable with declarations (and without placeholders)
+        #if ALIB_CONFIGURATION
+            config->PreloadVariables<basecamp::Variables>();
+        #endif
     }
 
     else if( phase == BootstrapPhases::Final )
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         Substring parser;
         parser= GetResource( "Months" ); for( int i= 0 ; i < 12 ; ++i ) { months[i]= parser.ConsumeToken(','); }
         parser= GetResource( "Days"   ); for( int i= 0 ; i <  7 ; ++i ) {   days[i]= parser.ConsumeToken(','); }
@@ -900,22 +882,21 @@ ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                   
 
         ALIB_ASSERT( units[Units::SIZE_OF_UNITS-1].IsNotEmpty() )
         ALIB_ASSERT( parser.IsEmpty() )
+        ALIB_WARNINGS_RESTORE
 
-        format::ByteSizeNumberFormat= monomem::GlobalAllocator.Emplace<NumberFormat>( NumberFormat::Global );
-        format::ByteSizeNumberFormat->FractionalPartWidth= 1;
-
-        ALIB_IF_CONFIGURATION( Variable variable; )
+        format::BYTESIZE_NUMBER_FORMAT= monomem::GLOBAL_ALLOCATOR().New<NumberFormat>(NumberFormat::Global );
+        format::BYTESIZE_NUMBER_FORMAT->FractionalPartWidth= 1;
 
         //############### set locale ###############
         int receivedFrom= 0;
         String256 locale;
         #if ALIB_CONFIGURATION
-            variable.Declare( Variables::LOCALE );
-            if (     config->Load( variable ) != Priorities::NONE
-                 &&  variable.GetString().IsNotEmpty()        )
+            Variable varLocale(*config, Variables::LOCALE);
+            if (     varLocale.IsDefined()
+                 &&  varLocale.GetString().IsNotEmpty()        )
             {
                 receivedFrom= 1;
-                locale._( variable.GetString() );
+                locale._( varLocale.GetString() );
             }
             else
         #endif
@@ -923,7 +904,7 @@ ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                   
              if ( EnvironmentVariables::Get( A_CHAR("LANG")      ,locale ) )  receivedFrom= 2;
         else if ( EnvironmentVariables::Get( A_CHAR("LANGUAGE")  ,locale ) )  receivedFrom= 3;
 
-        if( receivedFrom > 0 && !locale.Equals<false,lang::Case::Ignore>( A_CHAR("none") ) )
+        if( receivedFrom > 0 && !locale.Equals<NC,lang::Case::Ignore>( A_CHAR("none") ) )
         {
             ALIB_STRINGS_TO_NARROW( locale, nLocale, 1024)
             if( !setlocale(LC_ALL, nLocale ) )
@@ -949,7 +930,7 @@ ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                   
                 std::cerr << std::endl;
             }
             else
-                LocaleFound= monomem::GlobalAllocator.EmplaceString(locale);
+                LocaleFound.Allocate( monomem::GLOBAL_ALLOCATOR, locale);
         }
 
         // set the system's locale as the default for our static default number format
@@ -959,41 +940,13 @@ ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                   
         #endif
 
 
-        // --- determine if we want to wait for a keypress upon termination ---
-        #if ALIB_CONFIGURATION
-            variable.Declare( Variables::WAIT_FOR_KEY_PRESS );
-            config->Load( variable );
-            if ( variable.Size() > 0 )
-                WaitForKeyPressOnTermination= variable.IsTrue();
-            else
-            {
-                #if defined(_WIN32) && ALIB_DEBUG
-                    WaitForKeyPressOnTermination=    HasConsoleWindow
-                                                  && IsDebuggerPresent();
-                #else
-                    WaitForKeyPressOnTermination=  false;
-                #endif
-            }
-        #else
-            {
-                #if defined(_WIN32) && ALIB_DEBUG
-                    WaitForKeyPressOnTermination=    HasConsoleWindow
-                                                  && IsDebuggerPresent();
-                #else
-                    WaitForKeyPressOnTermination=  false;
-                #endif
-            }
-        #endif
-
         // --- determine if we have a console window ---
         // read configuration
         #if ALIB_CONFIGURATION
-            variable.Declare( Variables::HAS_CONSOLE_WINDOW );
-            config->Load( variable );
-            if ( variable.Size() > 0  && variable.GetString().Length() > 0 )
-                HasConsoleWindow=  variable.IsTrue();
+            Variable varHasConsoleWindow(*config, Variables::HAS_CONSOLE_WINDOW );
+            if ( varHasConsoleWindow.IsDefined() )
+                HasConsoleWindow=  varHasConsoleWindow;
             else
-        #endif // ALIB_CONFIGURATION
             {
                 #if defined(_WIN32)
                     // determine if we have a console window
@@ -1001,7 +954,50 @@ ALIB_IF_CONFIGURATION( EnumRecords<Variables>                                   
                 #else
                     HasConsoleWindow= true;
                 #endif
+                (void) varHasConsoleWindow.Define();
+                varHasConsoleWindow=  HasConsoleWindow;
             }
+        #else // -> !ALIB_CONFIGURATION
+            #if defined(_WIN32)
+                // determine if we have a console window
+                HasConsoleWindow= GetConsoleWindow() != NULL;
+            #else
+                HasConsoleWindow= true;
+            #endif
+        #endif // ALIB_CONFIGURATION
+
+        // --- determine if we want to wait for a keypress upon termination ---
+        #if ALIB_CONFIGURATION
+            Variable varWaitForKeyPress(*config, Variables::WAIT_FOR_KEY_PRESS );
+            if ( varWaitForKeyPress.IsDefined() )
+                WaitForKeyPressOnTermination= varWaitForKeyPress;
+            else
+            {
+                #if defined(_WIN32) && ALIB_DEBUG
+                    WaitForKeyPressOnTermination=    HasConsoleWindow
+                                                  && IsDebuggerPresent();
+                #else
+                    WaitForKeyPressOnTermination=  false;
+                #endif
+                (void) varWaitForKeyPress.Define();
+                varWaitForKeyPress= WaitForKeyPressOnTermination;
+            }
+        #else // -> !ALIB_CONFIGURATION
+            #if defined(_WIN32) && ALIB_DEBUG
+                WaitForKeyPressOnTermination=    HasConsoleWindow
+                                              && IsDebuggerPresent();
+            #else
+                WaitForKeyPressOnTermination=  false;
+            #endif
+        #endif
+
+        // --- attach Lock to Default-Formatter ---
+DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
+#if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
+    Formatter::Default->DCSLock= &Formatter::DefaultLock;
+#endif
+DOX_MARKER([DOX_CRITICAL_SECTIONS_ADD_LOCK2])
+
     }
 }
 
@@ -1009,15 +1005,13 @@ void BaseCamp::shutdown( ShutdownPhases phase )
 {
     if( phase == ShutdownPhases::Announce )
     {
-        #if ALIB_CONFIGURATION
-            IniFile::AddResourcedSectionComments( GetConfig(),
-                                                  GetResourcePool(), ResourceCategory, "INI_CMT_" );
+        #if ALIB_DEBUG_CRITICAL_SECTIONS && ALIB_MONOMEM
+            Formatter::Default->DCSLock= nullptr;
         #endif
         return;
     }
 
-    // phase == ShutdownPhases::Destruct )
-
+    // ShutdownPhases::Destruct:
     if ( BASECAMP.WaitForKeyPressOnTermination )
     {
         #if defined(_WIN32)
@@ -1030,11 +1024,11 @@ void BaseCamp::shutdown( ShutdownPhases phase )
     }
 
     // ::format
-    ALIB_ASSERT_WARNING( Formatter::defaultFormatter.use_count() == 1,
+    ALIB_ASSERT_WARNING( Formatter::Default.UseCount() == 1,
                          "ALIB", "DefaultFormatter still shared more than once: ",
-                         int(Formatter::defaultFormatter.use_count()) )
+                         int(Formatter::Default.UseCount()) )
 
-    Formatter::defaultFormatter.reset();
+    Formatter::Default= nullptr;
 
     // alib/lang/message
     #if ALIB_DEBUG
@@ -1095,15 +1089,15 @@ void BaseCamp::shutdown( ShutdownPhases phase )
 // namespace  lang::system
 // #################################################################################################
 } namespace system {
-Exception CreateSystemException( const NCString& file, int line, const NCString& func, int errNo )
+Exception CreateSystemException( const CallerInfo& ci, int errNo )
 {
     auto* enumRecord= enums::TryRecord( SystemErrors(errNo) );
     if( enumRecord == nullptr )
-        return Exception( file, line, func, SystemErrors::UNKNOWN, errNo );
+        return Exception( ci, SystemErrors::UNKNOWN, errNo );
 
-    return Exception( file, line, func, SystemErrors(errNo),  // as exception
-                                        SystemErrors(errNo),  // boxing the exception's name (!)
-                                        errNo                    );
+    return Exception( ci, SystemErrors(errNo),  // as exception
+                          SystemErrors(errNo),  // boxing the exception's name (!)
+                          errNo                    );
 }
 
 // #################################################################################################
@@ -1133,9 +1127,9 @@ AString& CalendarDateTime::Format( Substring format, AString& target, lang::Curr
                 // one or more pairs of single quotes?
                 if ( n > 1 )
                 {
-                    int pairs= n >> 1;
-                    target.InsertChars<false>( '\'', pairs );
-                    n-= (pairs << 1);
+                    int pairs= n / 2;
+                    target.InsertChars<NC>( '\'', pairs );
+                    n-= (pairs * 2);
                 }
 
                 // one single quote?
@@ -1146,53 +1140,55 @@ AString& CalendarDateTime::Format( Substring format, AString& target, lang::Curr
                     if ( end < 1 )
                     {
                         ALIB_WARNING( "ALIB", "Format Error: Missing single Quote" )
-                        target <<     "Format Error: Missing single Quote" ;
+                        target <<     "Format Error: Missing closing single quote character <'>" ;
                         return target;
                     }
 
-                    target._<false>( format, 0, end );
-                    format.ConsumeChars<false>( end + 1 );
+                    target._<NC>( format, 0, end );
+                    format.ConsumeChars<NC>( end + 1 );
                 }
 
             } break;
 
             case 's': // second
-                target.template _<false>( alib::Format( Second, n, nf ) );
+                target.template _<NC>( alib::Format( Second, n, nf ) );
                 break;
 
             case 'm': //minute
-                target._<false>( alib::Format( Minute, n, nf ) );
+                target._<NC>( alib::Format( Minute, n, nf ) );
                 break;
 
             case 'K': // hour 0..11
-                target._<false>( alib::Format( Hour % 12, n, nf ) );
-                target._<false>( Hour < 12 ? " am" : " pm" );
+                target._<NC>( alib::Format( Hour % 12, n, nf ) );
+                target._<NC>( Hour < 12 ? " am" : " pm" );
                 break;
 
             case 'H': // hour 0..23
-                target._<false>( alib::Format( Hour,   n, nf ) );
+                target._<NC>( alib::Format( Hour,   n, nf ) );
                 break;
 
+            ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
             case 'd': // day
-                     if ( n <= 2 )     target._<false>( alib::Format( Day, n, nf) );
-                else if ( n == 3 )     target._<false>( days[DayOfWeek], 0, 3 );
-                else                   target._<false>( days[DayOfWeek]    );
+                     if ( n <= 2 )     target._<NC>( alib::Format( Day, n, nf) );
+                else if ( n == 3 )     target._<NC>( days[DayOfWeek], 0, 3 );
+                else                   target._<NC>( days[DayOfWeek]    );
                 break;
 
             case 'M': // month
-                     if ( n <= 2 )     target._<false>( alib::Format( Month, n, nf ) );
-                else if ( n == 3 )     target._<false>( months[Month-1], 0, 3 );
-                else                   target._<false>( months[Month-1]     );
+                     if ( n <= 2 )     target._<NC>( alib::Format( Month, n, nf ) );
+                else if ( n == 3 )     target._<NC>( months[Month-1], 0, 3 );
+                else                   target._<NC>( months[Month-1]     );
                 break;
+            ALIB_WARNINGS_RESTORE
 
             case 'y': // year
-                     if ( n == 1 )     target._<false>( alib::Format(Year,        1, nf) );
-                else if ( n == 2 )     target._<false>( alib::Format(Year %  100, 2, nf) );
-                else                   target._<false>( alib::Format(Year,        n, nf) );
+                     if ( n == 1 )     target._<NC>( alib::Format(Year,        1, nf) );
+                else if ( n == 2 )     target._<NC>( alib::Format(Year %  100, 2, nf) );
+                else                   target._<NC>( alib::Format(Year,        n, nf) );
                 break;
 
             default: // otherwise: copy what was in
-                target.InsertChars<false>( c, n );
+                target.InsertChars<NC>( c, n );
                 break;
         }
 
@@ -1206,24 +1202,22 @@ AString& CalendarDateTime::Format( Substring format, AString& target, lang::Curr
 // #################################################################################################
 // FFormat_DateTime
 // #################################################################################################
-#if !defined(ALIB_DOX)
-DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
+#if !DOXYGEN
+DOX_MARKER([DOX_BOXING_IFORMAT_DATETIME])
 void FFormat_DateTime( const Box& box, const String& formatSpec, NumberFormat&, AString& target )
 {
     lang::system::CalendarDateTime tct( box.Unbox<DateTime>() );
     tct.Format( formatSpec.IsNotEmpty() ? formatSpec
-                                        : BASECAMP.GetResource("DFMT"),
+                                        : BASECAMP.GetResource("FMTDT"),
                 target );
 }
-DOX_MARKER([DOX_ALIB_BOXING_IFORMAT_DATETIME])
+DOX_MARKER([DOX_BOXING_IFORMAT_DATETIME])
 #endif
 
+}}} // namespace [alib::lang::system]
 
 
-}}} // namespace [alib::files::system]
-
-
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace alib::strings {
 
 // #################################################################################################
@@ -1233,9 +1227,10 @@ using namespace lang;
 
 namespace {
 
-    template<typename TChar>
-    void appendDateTime(TAString<TChar>& target, const DateTime::Duration pSrc)
+    template<typename TChar, typename TAllocator>
+    void appendDateTime(TAString<TChar,TAllocator>& target, const DateTime::Duration pSrc)
     {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         using Duration= DateTime::Duration;
         Duration src= pSrc;
         auto nanos= src.InNanoseconds();
@@ -1328,39 +1323,40 @@ namespace {
         target << TFormat<TChar>(val,&nf) << ( val!= 1  ?  units[Units::NSecPlural]
                                                         :  units[Units::NSecSingular] );
         return;
+        ALIB_WARNINGS_RESTORE
     }
 } //anonymous namespace
 
 
-template<typename TChar>
-void T_Append<time::DateTime::Duration,TChar>::operator()( TAString<TChar>& target, const time::DateTime::Duration src )
+template<typename TChar, typename TAllocator>
+void T_Append<time::DateTime::Duration,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target, const time::DateTime::Duration src )
 {
     appendDateTime( target, src );
 }
 
-template<typename TChar>
-void T_Append<time::Ticks::Duration,TChar>::operator()( TAString<TChar>& target, const time::Ticks::Duration src)
+template<typename TChar, typename TAllocator>
+void T_Append<time::Ticks::Duration,TChar,TAllocator>::operator()( TAString<TChar,TAllocator>& target, const time::Ticks::Duration src)
 {
     // simply convert the ticks-duration to a DateTime duration and use its append function
     appendDateTime( target, time::DateTime::Duration::FromNanoseconds( src.InNanoseconds() ));
 }
 
 // Instantiations
-template void T_Append<time::DateTime::Duration, nchar>::operator()( TAString<nchar>&, const time::DateTime::Duration   );
-template void T_Append<time::DateTime::Duration, wchar>::operator()( TAString<wchar>&, const time::DateTime::Duration   );
-template void T_Append<time::DateTime::Duration, xchar>::operator()( TAString<xchar>&, const time::DateTime::Duration   );
-template void T_Append<time::Ticks::   Duration, nchar>::operator()( TAString<nchar>&, const time::Ticks   ::Duration   );
-template void T_Append<time::Ticks::   Duration, wchar>::operator()( TAString<wchar>&, const time::Ticks   ::Duration   );
-template void T_Append<time::Ticks::   Duration, xchar>::operator()( TAString<xchar>&, const time::Ticks   ::Duration   );
+template void T_Append<time::DateTime::Duration, nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>&, const time::DateTime::Duration   );
+template void T_Append<time::DateTime::Duration, wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>&, const time::DateTime::Duration   );
+template void T_Append<time::DateTime::Duration, xchar, lang::HeapAllocator>::operator()( TAString<xchar, lang::HeapAllocator>&, const time::DateTime::Duration   );
+template void T_Append<time::Ticks::   Duration, nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>&, const time::Ticks   ::Duration   );
+template void T_Append<time::Ticks::   Duration, wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>&, const time::Ticks   ::Duration   );
+template void T_Append<time::Ticks::   Duration, xchar, lang::HeapAllocator>::operator()( TAString<xchar, lang::HeapAllocator>&, const time::Ticks   ::Duration   );
 
 } // namespace [alib::strings]
-#endif  //!defined(ALIB_DOX)
+#endif  //!DOXYGEN
 
 
 // #################################################################################################
 // format::ByteSize
 // #################################################################################################
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace alib::lang::format {
 namespace {
 
@@ -1415,15 +1411,15 @@ void FormatByteSize(AString& target, uinteger val, uint16_t magnitudeThreshold,
     if( magnitude.second ==  0 )
         target << Format( val, nullptr );
     else
-        target.SetLength( strings::detail::WriteFloat(magnitude.first,
-                                                       target.VBuffer(), target.Length(), 1, nf)  );
+        target.SetLength( strings::detail::WriteFloat( magnitude.first,
+                                                       target.VBuffer(), target.Length(), 0, nf)  );
 
     if( unitSeparator )
         target << unitSeparator;
     target <<  (magnitude.second + unit);
 } // FormatByteSize()
 
-std::pair<double,ByteSizeUnits>     ByteSizeIEC::GetMagnitude()
+std::pair<double, ByteSizeUnits>     ByteSizeIEC::GetMagnitude()
 {
     auto result= getMagnitude( Value, MagnitudeThreshold, 1024 );
     result.second+= ByteSizeUnits::IEC;
@@ -1443,16 +1439,22 @@ double   ByteSizeSI ::ConvertTo(ByteSizeUnits unit) { return convertTo(Value, un
 
 } namespace alib::strings {
 
-void T_Append< lang::format::ByteSizeSI>::operator()( AString& target, const  lang::format::ByteSizeSI src )
+void T_Append< lang::format::ByteSizeSI, character, lang::HeapAllocator>::operator()( AString& target, const  lang::format::ByteSizeSI src )
 {
      lang::format::FormatByteSize( target, src.Value, src.MagnitudeThreshold, src.UnitSeparator,
-                           lang::format::ByteSizeUnits::SI, * lang::format::ByteSizeNumberFormat          );
+                           lang::format::ByteSizeUnits::SI, * lang::format::BYTESIZE_NUMBER_FORMAT          );
 }
-void T_Append< lang::format::ByteSizeIEC>::operator()( AString& target, const  lang::format::ByteSizeIEC src )
+void T_Append< lang::format::ByteSizeIEC, character, lang::HeapAllocator>::operator()( AString& target, const  lang::format::ByteSizeIEC src )
 {
      lang::format::FormatByteSize( target, src.Value, src.MagnitudeThreshold, src.UnitSeparator,
-                           lang::format::ByteSizeUnits::IEC, * lang::format::ByteSizeNumberFormat         );
+                           lang::format::ByteSizeUnits::IEC, * lang::format::BYTESIZE_NUMBER_FORMAT         );
 }
 
 } // namespace [alib::strings]
-#endif  //!defined(ALIB_DOX)
+
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::format::ByteSizeIEC      , vt_lang_format_bytesize_iec )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::format::ByteSizeSI       , vt_lang_format_bytesize_si  )
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::format::ByteSizeUnits    , vt_lang_format_bytesize_units )
+
+#endif  //!DOXYGEN
+

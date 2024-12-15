@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,11 +6,9 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#if !DOXYGEN
 #   include "alib/strings/util/tokenizer.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 namespace alib {  namespace strings { namespace util  {
 
@@ -33,8 +31,8 @@ TSubstring<TChar>& TTokenizer<TChar>::Next( lang::Whitespaces trimming, TChar ne
 
         if ( nextDelimiter >= 0 )
         {
-            Actual=  Rest.template Substring<false>( 0                , nextDelimiter                       );
-            Rest  =  Rest.template Substring<false>( nextDelimiter + 1, Rest.Length() - (nextDelimiter + 1) );
+            Actual=  Rest.template Substring<NC>( 0                , nextDelimiter                       );
+            Rest  =  Rest.template Substring<NC>( nextDelimiter + 1, Rest.Length() - (nextDelimiter + 1) );
         }
         else
         {
@@ -55,3 +53,4 @@ template TSubstring<nchar>& TTokenizer<nchar>::Next( lang::Whitespaces trimming,
 template TSubstring<wchar>& TTokenizer<wchar>::Next( lang::Whitespaces trimming, wchar newDelim );
 
 }}} // namespace [alib::strings::util]
+

@@ -6,41 +6,18 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
-#      include "alib/lang/message/exception.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_STD)
-#      include "alib/lang/format/formatterstdimpl.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
-#      include "alib/lang/format/paragraphs.hpp"
-#   endif
-
-#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
+#if !DOXYGEN
+#   include "alib/lang/message/exception.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   include "alib/lang/format/formatterstdimpl.hpp"
+#   include "alib/lang/format/paragraphs.hpp"
 #   include "alib/lang/message/report.hpp"
-#endif
-
-#   if !defined (HPP_ALIB_CAMP_MESSAGE_EXCEPTION)
-#      include "alib/lang/message/exception.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_ENUMS_RECORDPARSER)
-#      include "alib/enums/recordparser.hpp"
-#   endif
-#   if !defined (HPP_ALIB_ENUMS_DETAIL_ENUMRECORDMAP)
-#      include "alib/enums/detail/enumrecordmap.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/lang/message/exception.hpp"
+#   include "alib/enums/recordparser.hpp"
+#   include "alib/enums/detail/enumrecordmap.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#   include <algorithm>
+#endif // !DOXYGEN
 
 
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::Exception*, vt_alib_exception )
@@ -58,20 +35,20 @@ void ERException::Parse()
 Message* Exception::allocMessageLink()
 {
     // find pointer to the last entry pointer;
-    detail::ExceptionEntry** tail= &Self();
+    detail::ExceptionEntry** tail= &**this;
     while(*tail != nullptr)
         tail= &(*tail)->next;
 
-    *tail= Allocator().Alloc<detail::ExceptionEntry>();
+    *tail= GetAllocator()().Alloc<detail::ExceptionEntry>();
     (*tail)->next= nullptr;
-
 
     return &(*tail)->message;
 }
 
+
 void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool* pool, const NString& category )
 {
-    message->CloneArguments();
+    message->CloneAll();
 
     if( hasRecord )
     {
@@ -97,18 +74,19 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
                            return a.first < b.first;
                        });
                     AString recordListDump;
-                    auto formatter= Formatter::AcquireDefault( ALIB_CALLER_PRUNED );
-                    formatter->Format( recordListDump,
-                                       "Enum record {} not found for exception enumeration type {}.\n"
-                                       "The following records have been found:\n",
-                                       message->Type.Integral(),
-                                       message->Type.TypeID()     );
+                    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+                    Formatter& formatter= *Formatter::Default;
+                    formatter.GetArgContainer();
+                    formatter.Format( recordListDump,
+                                      "Enum record {} not found for exception enumeration type {}.\n"
+                                      "The following records have been found:\n",
+                                      message->Type.Integral(),
+                                      message->Type.TypeID()     );
 
                     for( auto& pair : recordList )
-                        formatter->Format( recordListDump, "  {:2}: {}\n",
-                                           pair.first,
-                                           reinterpret_cast<const ERException*>( pair.second )->EnumElementName );
-                    formatter->Release();
+                        formatter.Format( recordListDump, "  {:2}: {}\n",
+                                          pair.first,
+                                          reinterpret_cast<const ERException*>( pair.second )->EnumElementName );
                     ALIB_ERROR( "EXCEPT", recordListDump )
                 }
             }
@@ -129,7 +107,7 @@ void Exception::finalizeMessage( Message* message, bool hasRecord, ResourcePool*
 
 Message&   Exception::Back() const
 {
-    auto* result= Self();
+    auto* result= **this;
     while( result->next != nullptr )
         result= result->next;
 
@@ -139,7 +117,7 @@ Message&   Exception::Back() const
 int   Exception::Size() const
 {
     int result= 1;
-    auto* entry= Self();
+    auto* entry= **this;
     while( entry->next != nullptr )
     {
         entry= entry->next;
@@ -151,7 +129,7 @@ int   Exception::Size() const
 
 const Enum&   Exception::Type() const
 {
-    auto* entry= Self();
+    auto* entry= **this;
     Enum* result= &entry->message.Type;
     while( (entry= entry->next) != nullptr )
         if( entry->message.Type.Integral() >= 0 )
@@ -169,7 +147,8 @@ AString&   Exception::Format( AString& target )     const
     tknzr.TrimChars= A_CHAR( "\r" );
     String1K buf;
     buf.DbgDisableBufferReplacementWarning();
-    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    Formatter& formatter= *Formatter::Default;
+    formatter.GetArgContainer();
     size_t entryNo= 1;
     for ( auto entry= begin(); entry != end(); ++entry )
     {
@@ -177,7 +156,7 @@ AString&   Exception::Format( AString& target )     const
         text.PushIndent( A_CHAR("    ") );
         try
         {
-            formatter->FormatArgs( buf.Reset(), *entry );
+            formatter.FormatArgs( buf.Reset(), *entry );
         }
         catch( Exception& e )
         {
@@ -188,11 +167,14 @@ AString&   Exception::Format( AString& target )     const
         while( tknzr.HasNext() )
             text.Add( tknzr.Next()  );
 
+        #if ALIB_DEBUG
+            text.Add( entry->CI );
+        #endif
+
         text.PopIndent();
         ++entryNo;
     }
 
-    formatter->Release();
     return target;
 }
 

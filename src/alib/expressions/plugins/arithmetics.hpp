@@ -1,29 +1,27 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_expressions of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_expressions of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
 #define HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
-
-#ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#   include "alib/expressions/plugins/calculus.hpp"
-#endif
+#pragma once
+#include "alib/expressions/plugins/calculus.hpp"
 
 
 namespace alib {  namespace expressions { namespace plugins {
 
 /** ************************************************************************************************
- * This built-in \alib{expressions,CompilerPlugin} of \alib_expressions_nl
+ * This built-in \alib{expressions;CompilerPlugin} of \alib_expressions_nl
  * primarily compiles unary and binary operators for permutations of types
- * \alib{expressions::Types,Boolean}, \alib{expressions::Types,Integer} and
- * \alib{expressions::Types,Float}.
+ * \alib{expressions::Types;Boolean}, \alib{expressions::Types;Integer} and
+ * \alib{expressions::Types;Float}.
  *
- * By default, this plug-in is \alib{expressions,Compiler::CfgBuiltInPlugins,automatically created}
- * and inserted into each instance of class \alib{expressions,Compiler} with the invocation of
- * \alib{expressions::Compiler,SetupDefaults}.
+ * By default, this plug-in is \alib{expressions;Compiler::CfgBuiltInPlugins;automatically created}
+ * and inserted into each instance of class \alib{expressions;Compiler} with the invocation of
+ * \alib{expressions::Compiler;SetupDefaults}.
  *
  * <b>General Notes:</b><br>
  * - All identifier and function names are defined case insensitive.
@@ -47,9 +45,9 @@ namespace alib {  namespace expressions { namespace plugins {
  *
  * - Dependent on configuration flags of the given \b %Compiler, the following alias operators
  *   are defined:
- *   - With flag \alib{expressions::Compilation,AliasEqualsOperatorWithAssignOperator}:<br>
+ *   - With flag \alib{expressions::Compilation;AliasEqualsOperatorWithAssignOperator}:<br>
  *     Operator <c>'=='</c> is aliased with <c>'='</c>.
- *   - With flag \alib{expressions::Compilation,AllowBitwiseBooleanOperators}:<br>
+ *   - With flag \alib{expressions::Compilation;AllowBitwiseBooleanOperators}:<br>
  *     Operators <c>'&&'</c>) and <c>'||'</c> are aliased with operators <c>'&'</c> and <c>'|'</c>.
  *
  *
@@ -72,7 +70,7 @@ namespace alib {  namespace expressions { namespace plugins {
  *
  * | Return Type | Name      |Min. Abbreviation| Signature| Description
  * |-------------|-----------|-----------------|--------- |------------
- * | Boolean     |\b Boolean |bool             | \<any\>  | Converts any type of boxed value by invoking box-function \alib{boxing,FIsTrue}.
+ * | Boolean     |\b Boolean |bool             | \<any\>  | Converts any type of boxed value by invoking box-function \alib{boxing;FIsTrue}.
  * | Integer     |\b Integer |int              | Boolean  | Converts \c true to \c 1, \c false to \c 0.
  * | Integer     |\b Integer |int              | Integer  | Does nothing (identity function).
  * | Integer     |\b Integer |int              | Float    | Returns the integral part of a floating point number.
@@ -232,44 +230,44 @@ namespace alib {  namespace expressions { namespace plugins {
  **************************************************************************************************/
 struct Arithmetics   : public plugins::Calculus
 {
-    /** ********************************************************************************************
-     * Constructor. Creates the hash maps.
-     * @param compiler The compiler we will get attached to.
-     **********************************************************************************************/
+    //==============================================================================================
+    /// Constructor. Creates the hash maps.
+    /// @param compiler The compiler we will get attached to.
+    //==============================================================================================
      ALIB_API   Arithmetics( Compiler& compiler );
 
-    /** ********************************************************************************************
-     * Virtual destructor
-     **********************************************************************************************/
+    //==============================================================================================
+    /// Virtual destructor
+    //==============================================================================================
     virtual    ~Arithmetics()                                                               override
     {}
 
-    /** ********************************************************************************************
-     * Invokes parent's method. On failure, tries to compile function <b>%Length(array)</b>.
-     *
-     * @param[in,out] ciFunction  The compilation information.
-     * @return \c true if an entry was found. \c false otherwise.
-     **********************************************************************************************/
+    //==============================================================================================
+    /// Invokes parent's method. On failure, tries to compile function <b>%Length(array)</b>.
+    ///
+    /// @param[in,out] ciFunction  The compilation information.
+    /// @return \c true if an entry was found. \c false otherwise.
+    //==============================================================================================
     ALIB_API
     virtual bool    TryCompilation( CIFunction& ciFunction )                               override;
 
 };
 
-/** ************************************************************************************************
- * This is the callback method for function \b %Boolean, which converts arbitrary
- * types to boolean values.
- * As an exclamation to the rule, this function is not defined in an anonymous namespace, but
- * exposed through the header of struct \alib{expressions,plugins::Arithmetics}.
- * The rationale for this is that the function is also used for auto-casting custom types to
- * boolean values, which is performed with compiler plug-in \alib{expressions,plugins::AutoCast}.
- *
- * The function is compile-time invokable and uses box-function \alib{boxing,FIsTrue} to
- * determine if a boxed value represents \c true or \c false.
- *
- * @param scope The scope.
- * @param args  The single argument.
- * @return The boxed boolean result.
- **************************************************************************************************/
+//==================================================================================================
+/// This is the callback method for function \b %Boolean, which converts arbitrary types to boolean
+/// values.
+/// As an exception to the rule, this function is not defined in an anonymous namespace, but
+/// exposed through the header of struct \alib{expressions;plugins::Arithmetics}.
+/// The rationale for this is that the function is also used for auto-casting custom types to
+/// boolean values, which is performed with compiler plug-in \alib{expressions;plugins::AutoCast}.
+///
+/// The function is compile-time invokable and uses box-function \alib{boxing;FIsTrue} to
+/// determine if a boxed value represents \c true or \c false.
+///
+/// @param scope The scope.
+/// @param args  The single argument.
+/// @return The boxed boolean result.
+//==================================================================================================
 ALIB_API
 Box ToBoolean( Scope& scope, ArgIterator  args, ArgIterator );
 
@@ -279,3 +277,4 @@ Box ToBoolean( Scope& scope, ArgIterator  args, ArgIterator );
 
 
 #endif // HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS
+

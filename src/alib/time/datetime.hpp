@@ -1,40 +1,42 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_time of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_time of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_TIME_DATETIME
 #define HPP_ALIB_TIME_DATETIME 1
-
-#if !defined (HPP_ALIB_TIME_TIMEPOINT)
-#   include "alib/time/timepointbase.hpp"
-#endif
+#pragma once
+#include "alib/time/timepointbase.hpp"
 
 namespace alib {  namespace time {
 
-/** ************************************************************************************************
- * This class provides an interface into the system's clock values. In contrast to values of sibling
- * class \alib{time,Ticks}, the underlying system timer is not guaranteed to be steady.
- * This means that an object created or set at a later point in time of the program execution,
- * might represent an earlier point in time.
- * This might happen when the system clock gets adjusted in-between two measurements.
- *
- * Therefore, the class is to be used to represent calendar clock values which usually get
- * converted to human readable formats (calendar dates and 24/60/60 clock times).
- *
- * Apart from a few system-dependent conversion methods, the class has no specific interface, but
- * the methods and operators inherited from base \alib{time,TimePointBase}.
- *
- * To construct an object of this type using calendrical date an time values, helper class
- * \alib{lang::system,CalendarDateTime} with its constructor
- * \alib{lang::system::CalendarDateTime,CalendarDateTime(int\,int\,int\,int\,int\,int\,int)} is
- * available if module \alib_basecamp is included in the \alibdist.
- * A typical construction with this helper could look like this:
- *
- *      DateTime myDate= CalendarDateTime(2023,1,31,14,5).Get( Timezone::UTC );
- **************************************************************************************************/
+//==================================================================================================
+/// This class provides an interface into the system's clock values. In contrast to values of sibling
+/// class \alib{time;Ticks}, the underlying system timer is not guaranteed to be steady.
+/// This means that an object created or set at a later point in time of the program execution,
+/// might represent an earlier point in time.
+/// This might happen when the system clock gets adjusted in-between two measurements.
+///
+/// Therefore, the class is to be used to represent calendar clock values which usually get
+/// converted to human-readable formats (calendar dates and 24/60/60 clock times).
+///
+/// Apart from a few system-dependent conversion methods, the class has no specific interface, but
+/// the methods and operators inherited from base \alib{time;TimePointBase}.
+///
+/// To construct an object of this type using calendrical date an time values, helper-class
+/// \alib{lang::system;CalendarDateTime} with its constructor
+/// \alib{lang::system::CalendarDateTime;CalendarDateTime(int,int,int,int,int,int,int)} is
+/// available if module \alib_basecamp is included in the \alibdist.
+/// A typical construction with this helper could look like this:
+///
+///      DateTime myDate= CalendarDateTime(2023,1,31,14,5).Get( Timezone::UTC );
+///
+/// @see
+///   For this class, a \ref alibtools_debug_helpers_gdb "pretty printer" for the
+///   GNU debugger is provided.
+//==================================================================================================
 class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 {
     public:
@@ -49,25 +51,25 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
     // Conversion to time platform/language specific values
     // #############################################################################################
 
-        /** ****************************************************************************************
-         * Converts the internal value into seconds since January 1, 1970, 00:00:00 GMT.
-         * The conversion is dependent on time zone and system clock setting of the host.
-         *
-         * @return Seconds in the epoch.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Converts the internal value into seconds since January 1, 1970, 00:00:00 GMT.
+        /// The conversion is dependent on time zone and system clock setting of the host.
+        ///
+        /// @return Seconds in the epoch.
+        //==========================================================================================
         time_t      InEpochSeconds()    const
         {
             return std::chrono::system_clock::to_time_t( stamp );
         }
 
 
-        /** ****************************************************************************************
-         * Static method that creates a \b %DateTime object representing the given system
-         * point in time measured in seconds since January 1st 1970, 00:00:00 GMT.
-         *
-         * @param epochSeconds The milliseconds in the epoch to convert.
-         * @return A time stamp object
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Static method that creates a \b %DateTime object representing the given system
+        /// point in time measured in seconds since January 1st 1970, 00:00:00 GMT.
+        ///
+        /// @param epochSeconds The milliseconds in the epoch to convert.
+        /// @return A time stamp object
+        //==========================================================================================
         static
         DateTime    FromEpochSeconds ( time_t epochSeconds )
         {
@@ -76,144 +78,144 @@ class DateTime : public TimePointBase<std::chrono::system_clock, DateTime>
 
 
         #if defined (_WIN32)
-            /** ************************************************************************************
-             * Converts the internal value into windows specific file time, a 64-bit value that
-             * represents the number of 100 nanosecond intervals that have elapsed since
-             * 12:00 A.M. January 1, 1601 UTC. The conversion is dependent on time zone and system
-             * clock setting of the host.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @return The Windows OS file time value represented by this object.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value into windows specific file time, a 64-bit value that
+            /// represents the number of 100 nanosecond intervals that have elapsed since
+            /// 12:00 A.M. January 1, 1601 UTC. The conversion is dependent on time zone and system
+            /// clock setting of the host.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @return The Windows OS file time value represented by this object.
+            //======================================================================================
             ALIB_API  FILETIME          ToFileTime()                                          const;
 
-            /** ************************************************************************************
-             * Converts the internal value into windows specific file time, a 64-bit value that
-             * represents the number of 100 nanosecond intervals that have elapsed since
-             * 12:00 A.M. January 1, 1601 UTC. The conversion is dependent on time zone and system
-             * clock setting of the host.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @return The Windows OS file time represented by this object as type
-             *         struct \b %ULARGE_INTEGER.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value into windows specific file time, a 64-bit value that
+            /// represents the number of 100 nanosecond intervals that have elapsed since
+            /// 12:00 A.M. January 1, 1601 UTC. The conversion is dependent on time zone and system
+            /// clock setting of the host.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @return The Windows OS file time represented by this object as type
+            ///         struct \b %ULARGE_INTEGER.
+            //======================================================================================
             ALIB_API  ULARGE_INTEGER    ToFileTimeLI()                                        const;
 
-            /** ************************************************************************************
-             * Static method that creates a \b %DateTime object representing the given "file time".
-             * File time is a 64-bit value that represents the number of 100 nanosecond intervals
-             * that have elapsed since 12:00 A.M. January 1, 1601 UTC.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @param fileTime The file time to use.
-             * @return A time stamp object
-             **************************************************************************************/
+            //======================================================================================
+            /// Static method that creates a \b %DateTime object representing the given "file time".
+            /// File time is a 64-bit value that represents the number of 100 nanosecond intervals
+            /// that have elapsed since 12:00 A.M. January 1, 1601 UTC.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @param fileTime The file time to use.
+            /// @return A time stamp object
+            //======================================================================================
             ALIB_API  static DateTime  FromFileTime( const FILETIME& fileTime );
 
-            /** ************************************************************************************
-             * Static method that creates a \b %DateTime object representing the given "file time".
-             * File time is a 64-bit value that represents the number of 100 nanosecond intervals
-             * that have elapsed since 12:00 A.M. January 1, 1601 UTC.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @param fileTime The file time to use.
-             * @return A time stamp object
-             **************************************************************************************/
+            //======================================================================================
+            /// Static method that creates a \b %DateTime object representing the given "file time".
+            /// File time is a 64-bit value that represents the number of 100 nanosecond intervals
+            /// that have elapsed since 12:00 A.M. January 1, 1601 UTC.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @param fileTime The file time to use.
+            /// @return A time stamp object
+            //======================================================================================
             ALIB_API  static DateTime FromFileTime( const ULARGE_INTEGER& fileTime );
 
-            /** ************************************************************************************
-             * Converts the internal value into windows specific system time struct.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @param timezone Denote if the time that is returned should be local or UTC.
-             *                 Defaults to \c TimeZone::Local.
-             * @return The time point as \b %SYSTEMTIME.
-             **************************************************************************************/
+            //======================================================================================
+            /// Converts the internal value into windows specific system time struct.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @param timezone Denote if the time that is returned should be local or UTC.
+            ///                 Defaults to \c TimeZone::Local.
+            /// @return The time point as \b %SYSTEMTIME.
+            //======================================================================================
             ALIB_API  SYSTEMTIME ToSystemTime( lang::Timezone timezone = lang::Timezone::Local ) const;
 
-            /** ************************************************************************************
-             * Static method that creates a \b %DateTime object representing the given as windows
-             * system time.
-             *
-             * \note
-             *    Microsoft Windows specific.
-             *
-             * @param systemTime Pointer to a SYSTEMTIME struct that holds the system time to use.
-             * @param timezone Denote if the time is interpreted as local or UTC.
-             *                 Defaults to \c TimeZone::Local.
-             * @return Seconds in the epoch.
-             **************************************************************************************/
+            //======================================================================================
+            /// Static method that creates a \b %DateTime object representing the given as windows
+            /// system time.
+            ///
+            /// \note
+            ///    Microsoft Windows specific.
+            ///
+            /// @param systemTime Pointer to a SYSTEMTIME struct that holds the system time to use.
+            /// @param timezone Denote if the time is interpreted as local or UTC.
+            ///                 Defaults to \c TimeZone::Local.
+            /// @return Seconds in the epoch.
+            //======================================================================================
             ALIB_API static DateTime FromSystemTime( const SYSTEMTIME& systemTime,
                                                      lang::Timezone timezone= lang::Timezone::Local );
         #endif
 
 
-        /** ****************************************************************************************
-         * Equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Equal to operator.
+        /// @param other The time stamp to compare.
+        /// @return The result of the comparison.
+        //==========================================================================================
         bool   operator==( const DateTime& other )                                        const
         {
             return stamp == other.stamp;
         }
 
 
-        /** ****************************************************************************************
-         * Not equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Not equal to operator.
+        /// @param other The time stamp to compare.
+        /// @return The result of the comparison.
+        //==========================================================================================
         bool   operator!=( const DateTime& other )                                        const
         {
             return stamp != other.stamp;
         }
 
-        /** ****************************************************************************************
-         * Less than operator.
-         * @param other The time stamp to compare.
-         * @return A reference to this object.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Less than operator.
+        /// @param other The time stamp to compare.
+        /// @return A reference to this object.
+        //==========================================================================================
         bool   operator<( const DateTime& other )                                         const
         {
             return stamp <  other.stamp;
         }
 
-        /** ****************************************************************************************
-         * Less than or equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Less than or equal to operator.
+        /// @param other The time stamp to compare.
+        /// @return The result of the comparison.
+        //==========================================================================================
         bool   operator<=( const DateTime& other )                                        const
         {
             return stamp <=  other.stamp;
         }
 
-        /** ****************************************************************************************
-         * Greater than operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Greater than operator.
+        /// @param other The time stamp to compare.
+        /// @return The result of the comparison.
+        //==========================================================================================
         bool   operator>( const DateTime& other )                                         const
         {
             return stamp >  other.stamp;
         }
 
-        /** ****************************************************************************************
-         * Greater than or equal to operator.
-         * @param other The time stamp to compare.
-         * @return The result of the comparison.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Greater than or equal to operator.
+        /// @param other The time stamp to compare.
+        /// @return The result of the comparison.
+        //==========================================================================================
         bool   operator>=( const DateTime& other )                                        const
         {
             return stamp >=  other.stamp;
@@ -237,3 +239,4 @@ using     DateTime=                time::DateTime;
 #endif
 
 #endif // HPP_ALIB_TIME_DATETIME
+

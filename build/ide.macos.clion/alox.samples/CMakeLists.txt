@@ -18,9 +18,6 @@ cmake_minimum_required( VERSION 3.18.0 )
 # Settings prior to including the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    ### uncomment to force cotire on clean cmake built
-    #set( ALIB_CMAKE_COTIRE   "On" )
-
 
 # -------------------------------------------------------------------------------------------------
 # Include the generic cmake CMake file

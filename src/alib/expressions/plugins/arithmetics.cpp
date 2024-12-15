@@ -5,16 +5,11 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
+#if !DOXYGEN
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
-#   include "alib/expressions/plugins/arithmetics.hpp"
-#endif
-
+#include "alib/expressions/plugins/arithmetics.hpp"
 #include <math.h>
-#endif // !defined(ALIB_DOX)
 
-#if !defined(ALIB_DOX)
 #define ARG0           (*args)
 #define ARG1           (*(args+1))
 #define BOL(box)       (box).Unbox<bool     >()
@@ -433,7 +428,7 @@ Calculus::BinaryOpOptimizationsTableEntry  binaryOperatorOptimizations[] =
 // ### Arithmetics - Constructor. Creates the hash map
 // #################################################################################################
 Arithmetics::Arithmetics( Compiler& compiler )
-: Calculus( "ALib Arithmetics", compiler )
+: Calculus( "ALib Arithmetics", compiler, CompilePriorities::Arithmetics )
 {
     constexpr int tableSize= 9;
     Token functionNames[tableSize];

@@ -6,15 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   ifndef HPP_ALIB_EXPRESSIONS_PLUGINS_CALCULUS
-#      include "alib/expressions/plugins/calculus.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_COMPATIBILITY_STD_BOXING_FUNCTIONAL)
-#      include "alib/compatibility/std_boxing_functional.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/expressions/plugins/calculus.hpp"
+#   include "alib/compatibility/std_boxing_functional.hpp"
+#endif // !DOXYGEN
 
 ALIB_WARNINGS_IGNORE_UNUSED_MACRO
 
@@ -156,7 +151,7 @@ ALIB_WARNINGS_RESTORE
 // #################################################################################################
 bool Calculus::TryCompilation( CIUnaryOp&  ciUnaryOp )
 {
-    Box& arg= ciUnaryOp.CompileTimeScope.Stack[0];
+    Box& arg= ciUnaryOp.CompileTimeScope.Stack->at(0);
     OperatorKey key     =  { ciUnaryOp.Operator, arg.TypeID(), typeid(void) };
     auto        hashCode=  OperatorKey::Hash()( key );
 
@@ -360,12 +355,12 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             if ( entry.Descriptor.Match( name ) )
             {
                 // check for wrong parentheses
-                if(     ciFunction.NoParentheses
+                if(     ciFunction.IsIdentifier
                     && !HasBits(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
                     throw Exception( ALIB_CALLER_NULLED, Exceptions::MissingFunctionParentheses,
                                      entry.Descriptor );
 
-                if(    !ciFunction.NoParentheses
+                if(    !ciFunction.IsIdentifier
                     && !HasBits(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
                     throw Exception( ALIB_CALLER_NULLED, Exceptions::IdentifierWithFunctionParentheses,
                                      entry.Descriptor );
@@ -419,19 +414,17 @@ bool Calculus::TryCompilation( CIFunction& ciFunction )
             }
 
             // check for wrong parentheses
-            if(     ciFunction.NoParentheses
+            if(     ciFunction.IsIdentifier
                 &&  entry.Signature != nullptr
                 && !HasBits(Cmplr.CfgCompilation, Compilation::AllowOmittingParenthesesOfParameterlessFunctions ) )
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::MissingFunctionParentheses,
                                  entry.Descriptor );
 
-            if(    !ciFunction.NoParentheses
+            if(    !ciFunction.IsIdentifier
                 &&  entry.Signature == nullptr
                 && !HasBits(Cmplr.CfgCompilation, Compilation::AllowEmptyParenthesesForIdentifierFunctions ) )
                 throw Exception( ALIB_CALLER_NULLED, Exceptions::IdentifierWithFunctionParentheses,
                                  entry.Descriptor );
-
-
 
             // accept
             ciFunction.Name.Reset( entry.Descriptor );
@@ -498,7 +491,7 @@ namespace {
             {
                 operatorIsIn= false;
                 for( auto& op : *entry.OperatorsAccepted )
-                    if( op.Equals<false>( ciAutoCast.Operator ) )
+                    if( op.Equals<NC>( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= true;
                         break;
@@ -511,7 +504,7 @@ namespace {
                 && entry.OperatorsDeclined->size() > 0    )
             {
                 for( auto& op : *entry.OperatorsDeclined )
-                    if( op.Equals<false>( ciAutoCast.Operator ) )
+                    if( op.Equals<NC>( ciAutoCast.Operator ) )
                     {
                         operatorIsIn= false;
                         break;

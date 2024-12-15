@@ -21,15 +21,7 @@ using namespace std;
 using namespace alib;
 
 
-// Fix the method name of logging (needed for unity builds)
-ALIB_WARNINGS_MACRO_NOT_USED_OFF
-#undef  ALIB_CALLER
-#if defined( __GNUC__ )
-#   define ALIB_CALLER    __FILE__, __LINE__, __func__
-#else
-#   define ALIB_CALLER    __FILE__, __LINE__, __FUNCTION__
-#endif
-ALIB_WARNINGS_RESTORE
+#include "alib/lang/callerinfo_functions.hpp"
 
 namespace ut_alox {
 // used with unit test Log_ScopeInfoCacheTest
@@ -143,98 +135,98 @@ UT_METHOD(Lox_TestVerbositySetting)
     UT_METHOD(Lox_TestScopeDomain)
     {
         UT_INIT()
-        int  cntLL;
+        integer  cntLL;
         MemoryLogger ml;
         Lox lox("ReleaseLox");
         TextLogger*  cl= Lox::CreateConsoleLogger();
-        Lox_Error("No domain and nothing set");
+        Lox_Error("No domain and nothing set")
 
-        Lox_SetDomain( "REPLACED",  Scope::Method );
-        Lox_SetDomain( "DFLT",      Scope::Method );
+        Lox_SetDomain( "REPLACED",  Scope::Method )
+        Lox_SetDomain( "DFLT",      Scope::Method )
 
-        String testOK=  "OK";
-        String testERR= "Error";
+        String testOK=  A_CHAR("OK"   );
+        String testERR= A_CHAR("Error");
 
         // Test Verbosity setting
-        Lox_SetVerbosity( cl,    Verbosity::Warning, "" );
-        cntLL= cl->CntLogs;    Lox_Info       ( testERR );    UT_EQ( 0, cl->CntLogs - cntLL );
-        cntLL= cl->CntLogs;    Lox_Warning    ( testOK  );    UT_EQ( 1, cl->CntLogs - cntLL );
+        Lox_SetVerbosity( cl,    Verbosity::Warning, "" )
+        cntLL= cl->CntLogs;    Lox_Info       ( testERR )    UT_EQ( 0, cl->CntLogs - cntLL )
+        cntLL= cl->CntLogs;    Lox_Warning    ( testOK  )    UT_EQ( 1, cl->CntLogs - cntLL )
 
-        Lox_SetVerbosity( cl,  Verbosity::Error );
-        cntLL= cl->CntLogs;    Lox_Warning    ( testERR );    UT_EQ( 0, cl->CntLogs - cntLL );
-        cntLL= cl->CntLogs;    Lox_Error      ( testOK  );    UT_EQ( 1, cl->CntLogs - cntLL );
+        Lox_SetVerbosity( cl,  Verbosity::Error )
+        cntLL= cl->CntLogs;    Lox_Warning    ( testERR )    UT_EQ( 0, cl->CntLogs - cntLL )
+        cntLL= cl->CntLogs;    Lox_Error      ( testOK  )    UT_EQ( 1, cl->CntLogs - cntLL )
 
-        // test sub domains
-        Lox_SetVerbosity( cl, Verbosity::Verbose, Lox::InternalDomains );
+        // test subdomains
+        Lox_SetVerbosity( cl, Verbosity::Verbose, Lox::InternalDomains )
 
-        // Lox_LogState ( "/TEST",      Verbosity::Info, "Dumping Log Configuration:" );
+        // Lox_LogState ( "/TEST",      Verbosity::Info, "Dumping Log Configuration:" )
 
-        Lox_SetVerbosity( cl,  Verbosity::Info, "/DFLT"      );
-        Lox_SetVerbosity( cl,  Verbosity::Warning    , "/DFLT/WARN" );
-        Lox_SetVerbosity( cl,  Verbosity::Error               ,       "ERR"  );
-        Lox_SetVerbosity( &ml, Verbosity::Info, "/DFLT"      );
-        Lox_SetVerbosity( &ml, Verbosity::Warning    , "/DFLT/WARN" );
-        Lox_SetVerbosity( &ml, Verbosity::Error               ,       "ERR"  );
+        Lox_SetVerbosity( cl,  Verbosity::Info, "/DFLT"      )
+        Lox_SetVerbosity( cl,  Verbosity::Warning    , "/DFLT/WARN" )
+        Lox_SetVerbosity( cl,  Verbosity::Error               ,       "ERR"  )
+        Lox_SetVerbosity( &ml, Verbosity::Info, "/DFLT"      )
+        Lox_SetVerbosity( &ml, Verbosity::Warning    , "/DFLT/WARN" )
+        Lox_SetVerbosity( &ml, Verbosity::Error               ,       "ERR"  )
 
-        //Lox_LogState ( "/TEST",      Verbosity::Info, "Dumping Log Configuration:" );
+        //Lox_LogState ( "/TEST",      Verbosity::Info, "Dumping Log Configuration:" )
 
         // log with leading "/" on domain
-        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT",        testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT/ERR",    testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT/WARN",   testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT",        testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT/ERR",    testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "/DFLT/WARN",   testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT",        testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT/ERR",    testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT/WARN",   testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT",        testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT/ERR",    testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "/DFLT/WARN",   testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT",        testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT/WARN",   testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT/ERR",    testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT",        testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT/WARN",   testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "/DFLT/ERR",    testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT",        testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT/WARN",   testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT/ERR",    testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT",        testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT/WARN",   testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "/DFLT/ERR",    testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
 
-        // log without leading "/" on domain (of-course, this is quite an error of using ALox
-        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT",         testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT/ERR",     testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT/WARN",    testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        // log without leading "/" on domain (of course, this is quite an error of using ALox
+        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT",         testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT/ERR",     testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "DFLT/WARN",    testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT",         testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT/ERR",     testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT/WARN",    testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT",         testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT/ERR",     testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "DFLT/WARN",    testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT",         testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT/WARN",    testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT/ERR",     testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT",         testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT/WARN",    testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "DFLT/ERR",     testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT",         testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT/WARN",    testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT/ERR",     testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT",         testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT/WARN",    testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "DFLT/ERR",     testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
 
 
         // relative addressing with "~"domain
-        cntLL= ml.CntLogs;    Lox_Verbose (                 testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "",             testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "ERR",          testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Verbose ( "WARN",         testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Verbose (                 testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "",             testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "ERR",          testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Verbose ( "WARN",         testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Info    (                 testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "",             testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "ERR",          testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Info    ( "WARN",         testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Info    (                 testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "",             testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "ERR",          testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Info    ( "WARN",         testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Warning (                 testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "",             testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "WARN",         testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Warning ( "ERR",          testERR );    UT_EQ( 0, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Warning (                 testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "",             testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "WARN",         testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Warning ( "ERR",          testERR )    UT_EQ( 0, ml.CntLogs - cntLL )
 
-        cntLL= ml.CntLogs;    Lox_Error   (                 testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "",             testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "WARN",         testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
-        cntLL= ml.CntLogs;    Lox_Error   ( "ERR",          testOK  );    UT_EQ( 1, ml.CntLogs - cntLL );
+        cntLL= ml.CntLogs;    Lox_Error   (                 testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "",             testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "WARN",         testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
+        cntLL= ml.CntLogs;    Lox_Error   ( "ERR",          testOK  )    UT_EQ( 1, ml.CntLogs - cntLL )
 
-        Lox_RemoveLogger( cl );
+        Lox_RemoveLogger( cl )
         delete cl;
     }
 #endif
