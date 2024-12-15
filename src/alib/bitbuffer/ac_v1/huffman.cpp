@@ -6,33 +6,29 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_BITBUFFER_AC_V1_HUFFMAN)
-#      include "alib/bitbuffer/ac_v1/huffman.hpp"
-#   endif
-#   if !defined(HPP_ALIB_MONOMEM_UTIL_FIXED_CAPACITY_VECTOR)
-#      include "alib/monomem/util/fixedcapacityvector.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/bitbuffer/ac_v1/huffman.hpp"
+#   include "alib/containers/fixedcapacityvector.hpp"
+#endif // !DOXYGEN
 
 namespace alib {  namespace bitbuffer { namespace ac_v1 {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 //#define TEMP_PT(...)    __VA_ARGS__
 #   define TEMP_PT(...)
 #endif
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace
 {
-    /** Internal struct representing nodes of the huffman code tree.   */
+    /// Internal struct representing nodes of the huffman code tree.
     class Node
     {
         using Symbol= HuffmanEncoder::Symbol;
 
         protected:
-            /** Either a pointer to a left subtree or to a symbol.
-             *  The latter makes the node a leaf.                       */
+            /// Either a pointer to a left subtree or to a symbol.
+            /// The latter makes the node a leaf.
             union LeftPointer
             {
                 Symbol*         symbol;      ///< The symbol represented by this node (if not \c nullptr).
@@ -40,14 +36,14 @@ namespace
 
                 LeftPointer()  = default;    ///< Non-initializing default constructor.
 
-                /** Constructs this union with a symbol pointer.
-                 * @param s The symbol to set.                    */
+                /// Constructs this union with a symbol pointer.
+                /// @param s The symbol to set.
                 LeftPointer( Symbol* s )
                 : symbol( s )
                 {}
 
-                /** Constructs this union with a cursor.
-                 * @param l The node to set.                    */
+                /// Constructs this union with a cursor.
+                /// @param l The node to set.
                 LeftPointer( Node* l )
                 : left ( l )
                 {}
@@ -61,26 +57,22 @@ namespace
         public:
             size_t     frequency;    ///< The frequency of the symbol or the sum of the two subtrees.
 
-            /** Default constructor used when defining arrays of nodes on stack memory. */
+            /// Default constructor used when defining arrays of nodes on stack memory.
             Node() = default;
 
-           /**
-            * Constructs a node representing a symbol (leaf).
-            * Left and right pointers are set to nullptr
-            * @param s Pointer to the symbol in #symbols, that this node represents.
-            */
+           /// Constructs a node representing a symbol (leaf).
+           /// Left and right pointers are set to nullptr
+           /// @param s Pointer to the symbol in #symbols, that this node represents.
             Node(Symbol* s)
             : left      (s)
             , right     (nullptr)
             , frequency (s->frequency)
             {}
 
-           /**
-            * Constructs a node as an internal non-leaf node.
-            * Left and right pointers are set to as given.
-            * @param l Pointer to the left node.
-            * @param r Pointer to the right node.
-            */
+           /// Constructs a node as an internal non-leaf node.
+           /// Left and right pointers are set to as given.
+           /// @param l Pointer to the left node.
+           /// @param r Pointer to the right node.
             Node(Node* l, Node* r)
             : left      (l)
             , right     (r)
@@ -286,3 +278,4 @@ ALIB_WARNINGS_RESTORE
 #undef TEMP_PT
 
 }}} // namespace [alib::bitbuffer::ac_v1]
+

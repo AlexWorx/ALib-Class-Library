@@ -1,114 +1,101 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong. It does not belong to an \alibmod and is
- * included in any \alibdist.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong. It does not belong to an \alibmod and is
+/// included in any \alibdist.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_LANG_INTEGERS
 #define HPP_ALIB_LANG_INTEGERS 1
-
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#pragma once
+#if !defined(DOXYGEN)
 #   include "alib/alib.hpp"
 #endif
 
-#if !defined (_GLIBCXX_CSTDINT) && !defined (_CSTDINT_)
-#   include <cstdint>
-#endif
-
-#if !defined (_GLIBCXX_CSTDDEF) && !defined (_CSTDDEF_)
-#   include <cstddef>
-#endif
+#include <cstdint>
+#include <cstddef>
 
 namespace alib { namespace lang {
 
 // #################################################################################################
 // types integer, uinteger, intGap_t and uintGap_t
 // #################################################################################################
-#if defined(ALIB_DOX)
+#if DOXYGEN
 
     #define ALIB_SIZEOF_INTEGER
 
-/**
- * This type specifies platform independent integral values of the 'natural' bit-size of the
- * underlying platform. In general, on 32-bit systems this will be 32-bit wide, on 64-bit systems,
- * 64-bits. Hence, on standard architectures, it has the same bit-size and signedness as
- * \b std::ptrdiff_t.
- *
- * The type can be considered as a signed version of \c std::size_t. It is needed because
- * standard type \c 'int' is not specified in respect to its size. E.g. GNU C++ and Clang compiler
- * use 32-Bit integers for type \c int, even on 64-Bit platforms.
- *
- * See also \ref alib::uinteger "alib::uinteger".
- *
- * \note This documentation is generated using the 64-Bit version of the library. In fact, the
- *       definition as \c int64_t shown here, is not guaranteed platform specific.
- *
- */
+/// This type specifies platform-independent integral values of the 'natural' bit-size of the
+/// underlying platform. In general, on 32-bit systems this will be 32-bit wide, on 64-bit systems,
+/// 64-bits. Hence, on standard architectures, it has the same bit-size and signedness as
+/// \b std::ptrdiff_t.
+///
+/// The type can be considered as a signed version of \c std::size_t. It is needed because
+/// standard type \c 'int' is not specified in respect to its size. E.g., GNU C++ and Clang compiler
+/// use 32-Bit integers for type \c int, even on 64-Bit platforms.
+///
+/// See also \ref alib::uinteger "alib::uinteger".
+///
+/// \note This documentation is generated using the 64-Bit version of the library. In fact, the
+///       definition as \c int64_t shown here, is not guaranteed platform-specific.
+///
 
 using  integer =                    platform_specific;
 
-/**
- * Unsigned version of \ref alib::integer "alib::integer".
- * This type should be the same as \c std::size_t on all platforms.
- */
+/// Unsigned version of \ref alib::integer "alib::integer".
+/// This type should be the same as \c std::size_t on all platforms.
 using uinteger =                    platform_specific;
 
 
-/**
- * This type, together with its counterpart
- * \ref alib::uintGap_t "alib::uintGap_t" is used to fill a gap that occurs
- * when method overloads or template specialization are needed for integer types.
- * The rationale behind and use of this pair of types is best explained with a sample.
- *
- * Consider the following code:
- *
- *  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_INTXX_DECLARATION
- *
- * When this is run under 64 Bit - Linux, GNU compiler, the following output is produced:
- *   \verbinclude "DOX_ALIB_INTXX.txt"
- *
- * This is not what many C++ programmers would expect: Although type <c>long long</c> is the same
- * 64-bit type as <c>long</c>, the template method is not seen as specialized by the compiler.
- * Therefore, we have a "gap" in the definition of specializations for types
- * <c>long long</c> and <c>unsigned long long</c>.
- *
- * When compiling and running the same sample code under GNU compiler 32-bit or under
- * MSVC (Microsoft compiler), 32 or 64-bit, then the gap "moves" to be with types
- * <c>long</c> and <c>unsigned long</c> instead.
- * Here, this hurts a lot, because code that uses a simple integer constant \c 1L is not fetched by
- * the template specializations!
- *
- * The lesson learned is that two more specializations are needed and that their types are
- * dependent on the compiler and library used. Because it is not allowed to specialize
- * simply with all possible extra variants (this would lead to doubly defined methods),
- * a preprocessor switch that chooses the right types to fill the gap is needed.
- *
- * This type, together with #uintGap_t, does exactly this: using the preprocessor to select
- * the right "missing" type.
- *
- * To fix the sample above, the following two specializations of the template method need to
- * be added:
- *
- *  \snippet "DOX_ALIB_ENUMS.cpp"     DOX_ALIB_INTXX_DECLARATION2
- *
- * When overloading functions with integer types, similar rules apply: To have the complete set
- * of integer types covered, 10 overloads are needed: from type \b int8_t to type \b int64_t,
- * type \b %intGap_t and then those five types in two versions, signed and unsigned.
- * Only with all overloads in place, compiler warnings (on high warning levels),
- * compiler errors due to ambiguouties and/or the necessity of explicit type conversions are
- * avoided.
- *
- * \see
- *   Along with these definitions, preprocessor symbol \ref ALIB_SIZEOF_INTGAP is defined.
- */
+/// This type, together with its counterpart
+/// \ref alib::uintGap_t "alib::uintGap_t" is used to fill a gap that occurs
+/// when method overloads or template specialization are needed for integer types.
+/// The rationale behind and use of this pair of types is best explained with a sample.
+///
+/// Consider the following code:
+///
+///  \snippet "DOX_ENUMS.cpp"     DOX_INTXX_DECLARATION
+///
+/// When this is run under 64 Bit - Linux, GNU compiler, the following output is produced:
+///   \verbinclude "DOX_INTXX.txt"
+///
+/// This is not what many C++ programmers would expect: Although type <c>long long</c> is the same
+/// 64-bit type as <c>long</c>, the template method is not seen as specialized by the compiler.
+/// Therefore, we have a "gap" in the definition of specializations for types
+/// <c>long long</c> and <c>unsigned long long</c>.
+///
+/// When compiling and running the same sample code under GNU compiler 32-bit or under
+/// MSVC (Microsoft compiler), 32 or 64-bit, then the gap "moves" to be with types
+/// <c>long</c> and <c>unsigned long</c> instead.
+/// Here, this hurts a lot, because code that uses a simple integer constant \c 1L is not fetched by
+/// the template specializations!
+///
+/// The lesson learned is that two more specializations are needed and that their types are
+/// dependent on the compiler and library used. Because it is not allowed to specialize
+/// simply with all possible extra variants (this would lead to doubly defined methods),
+/// a preprocessor switch that chooses the right types to fill the gap is needed.
+///
+/// This type, together with #uintGap_t, does exactly this: using the preprocessor to select
+/// the right "missing" type.
+///
+/// To fix the sample above, the following two specializations of the template method need to
+/// be added:
+///
+///  \snippet "DOX_ENUMS.cpp"     DOX_INTXX_DECLARATION2
+///
+/// When overloading functions with integer types, similar rules apply: To have the complete set
+/// of integer types covered, 10 overloads are needed: from type \b int8_t to type \b int64_t,
+/// type \b %intGap_t and then those five types in two versions, signed and unsigned.
+/// Only with all overloads in place, compiler warnings (on high warning levels),
+/// compiler errors due to ambiguouties and/or the necessity of explicit type conversions are
+/// avoided.
+///
+/// \see
+///   Along with these definitions, preprocessor symbol \ref ALIB_SIZEOF_INTGAP is defined.
 using  intGap_t=                    platform_specific;
 
- /**
-  * Used to complete overwriting methods and template specializations.<br>
-  * See signed sibling type \ref alib::intGap_t "alib::intGap_t" for more information.
-  */
+ /// Used to complete overwriting methods and template specializations.<br>
+ /// See signed sibling type \ref alib::intGap_t "alib::intGap_t" for more information.
 using uintGap_t=                    platform_specific;
 
 
@@ -160,7 +147,7 @@ is given (instead of letting ALib detect them), then the whole group has to be g
             #define ALIB_INTGAP_TYPE        long long;
             #define ALIB_SIZEOF_INTGAP      8
         #else
-        #   error "Can not detect compilation platform. Please provide Symbols  \
+        #   error "Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
 'ALIB_SIZEOF_INTGAP', \
 'ALIB_INTGAP_TYPE', \
@@ -189,7 +176,7 @@ as documented with ALib User Manual at https://alib.dev"
             #define ALIB_INTGAP_TYPE        long;
             #define ALIB_SIZEOF_INTGAP      4
         #else
-        #error "Can not detect compilation platform. Please provide Symbols  \
+        #error "Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
 'ALIB_SIZEOF_INTGAP', \
 'ALIB_INTGAP_TYPE', \
@@ -209,7 +196,7 @@ as documented with ALib User Manual at https://alib.dev"
 
     // unrecognized platform
     #else
-            #error "Can not detect compilation platform. Please provide Symbols  \
+            #error "Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
 'ALIB_SIZEOF_INTGAP', \
 'ALIB_INTGAP_TYPE', \
@@ -250,7 +237,7 @@ using uintGap_t=       unsigned  ALIB_INTGAP_TYPE;
 
 // #############   checks     #############
 #define ERROR_DETECTING \
-"Can not detect compilation platform. Please provide Symbols  \
+"Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
 'ALIB_SIZEOF_INTGAP', \
 'ALIB_INTGAP_TYPE', \
@@ -269,7 +256,7 @@ static_assert( sizeof(long double) == ALIB_SIZEOF_LONGDOUBLE_REPORTED, "\nSize m
 
 
 #if !defined(ALIB_SIZEOF_LONGDOUBLE_WRITTEN)
-        #error "Can not detect compilation platform. Please provide Symbols  \
+        #error "Cannot detect compilation platform. Please provide Symbols  \
 'ALIB_SIZEOF_INTEGER', \
 'ALIB_SIZEOF_INTGAP', \
 'ALIB_INTGAP_TYPE', \
@@ -297,3 +284,4 @@ using uintGap_t      = lang::uintGap_t;
 } // namespace [alib]
 
 #endif // HPP_ALIB_LANG_INTEGERS
+

@@ -2,13 +2,15 @@ cd ../../
 
 if [ ! -d _builds_ ]
 then
-    echo "can not find _builds_ directory "
+    echo "cannot find _builds_ directory "
     exit -1
 fi
 
 cd _builds_
 mkdir moduletests_batch
 cd    moduletests_batch
+
+
 
 echo "n#############################################################################"
 echo "n#############################################################################"
@@ -25,6 +27,11 @@ echo "n#########################################################################
 echo "\n\n############################  MONOMEM    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=MONOMEM"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  CONTAINERS    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=CONTAINERS"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  BITBUFFER    ############################"
@@ -60,6 +67,11 @@ make -j
 echo "\n\n############################  STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=STRINGS"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  THREADMODEL    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=THREADMODEL"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  THREADS    ############################"
@@ -115,11 +127,15 @@ rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=MONOMEM;BOXING"  ../../cmake/moduletests
 make -j
 
+echo "\n\n############################  MONOMEM;CONTAINERS    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=MONOMEM;CONTAINERS"  ../../cmake/moduletests
+make -j
+
 echo "\n\n############################  BITBUFFER;BOXING    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=BITBUFFER;BOXING"  ../../cmake/moduletests
 make -j
-
 echo "\n\n############################  THREADS;STRINGS    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=THREADS;STRINGS"  ../../cmake/moduletests
@@ -128,6 +144,11 @@ make -j
 echo "\n\n############################  THREADS;BOXING    ############################"
 rm -r -f *
 cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=THREADS;BOXING"  ../../cmake/moduletests
+make -j
+
+echo "\n\n############################  THREADS;THREADMODEL    ############################"
+rm -r -f *
+cmake "-DALIB_COMPILER_FEATURES=cxx_std_17"  "-DALIB_DISTRIBUTION=THREADS;THREADMODEL"  ../../cmake/moduletests
 make -j
 
 echo "\n\n############################  MONOMEM;STRINGS    ############################"

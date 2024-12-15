@@ -1,25 +1,20 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong. It does not belong to an \alibmod and is
- * included in any \alibdist.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- *
- * \note
- *   To reduce complexity, this header is not shown in inclusion graphs of this documentation.
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong. It does not belong to an \alibmod and is
+/// included in any \alibdist.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+///
+/// \note
+///   To reduce their complexity, this header is not shown in inclusion graphs of this documentation.
+//==================================================================================================
 #ifndef HPP_ALIB_LANG_TMP
 #define HPP_ALIB_LANG_TMP 1
-
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+#pragma once
+#if !defined(DOXYGEN)
 #   include "alib/alib.hpp"
 #endif
-
-#if !defined(_GLIBCXX_TYPE_TRAITS) || !defined(_TYPE_TRAITS_)
-#   include <type_traits>
-#endif
-
 
 // is/eq/isof
 #define ATMP_IS_CONST( T       )   std::is_const   <T>::value
@@ -49,11 +44,17 @@
                                    typename std::remove_reference<T>::type>::type>::type>::type
 
 // enable_if / conditional
-#define ATMP_VOID_IF( Cond       ) typename std::enable_if<Cond  >::type
-#define ATMP_T_IF( T, Cond       ) typename std::enable_if<Cond,T>::type
-#define ATMP_IF_T_F(  Cond, T, F ) typename std::conditional<Cond,T,F>::type
+#define ATMP_VOID_IF( Cond       )    typename std::enable_if<Cond,void >::type
+#define ATMP_BOOL_IF( Cond       )    typename std::enable_if<Cond,bool >::type
+#define ATMP_T_IF( T, Cond       )    typename std::enable_if<Cond,T    >::type
+#define ATMP_IF_T_F(  Cond, T, F )    typename std::conditional<Cond,T,F>::type
+#define ATMP_HAS_METHOD(T,Method,...) !ATMP_EQ(lang::TMPUnknownType, decltype(std::declval<T>(). Method( __VA_ARGS__ )))
+#define ATMP_RESULT_TYPE(T,Method,...) decltype(std::declval<T>(). Method( __VA_ARGS__ ))
+
 
 // method selection
+#define ATMP_IF( Cond )            typename = typename std::enable_if<Cond,void >::type
+
 #define ATMP_SELECT_IF_1TP( TParam,                           ... )                                \
   template <TParam,                    typename std::enable_if<__VA_ARGS__  ,int>::type = 0 >      \
   ALIB_FORCE_INLINE                                                                                \
@@ -88,30 +89,30 @@
 
 namespace alib::lang {
 
-/**
- * This "TAG-type" denotes that initialization should be performed.
- *
- * For example, this type might be accepted by an alternative constructor of a type that has
- * a defaulted constructor that does not initialize its members to default values.
- * Such alternative constructor then would perform member initialization (and ignore the parameter
- * otherwise).
- *
- * \see Tag type struct \alib{lang,TOmitInitialization}.
- */
-struct TInitializeDefaults {};
+/// Template meta programming struct that is a type not equal to any other type.
+/// For example, used with \ref ATMP_HAS_METHOD.
+struct TMPUnknownType {};
 
-/**
- * This "TAG-type" denotes that initialization should not be performed.
- *
- * For example, this type might be accepted by an alternative constructor of a type that has
- * a default constructor, initializing its members to default values.
- * Such alternative constructor then would omit any member initialization (and ignore the parameter
- * otherwise).
- *
- * \see Tag type struct \alib{lang,TInitializeDefaults}.
- */
-struct TOmitInitialization {};
+/// Cast function that chooses either <c>static_cast</c> or <c>dynamic_cast</c>, dependent
+/// on whether type \p{TTo} is polymorphic or not.
+/// @tparam TTo       The type to cast down to.
+/// @tparam TFrom     The type to cast from.
+/// @param derived    A pointer to the derived type.
+/// @return A pointer to the base type.
+template <typename TTo, typename TFrom>
+TTo* SafeCast(TFrom* derived)
+{
+    // Ensure TTo is a base of TFrom
+    ALIB_STATIC_ASSERT( SafeCast_not_allowed,   std::is_base_of<TTo   ALIB_COMMA TFrom>::value
+                                             || std::is_base_of<TFrom ALIB_COMMA TTo  >::value,
+        "TFrom and TTo must be related by inheritance.")
+
+    if constexpr (std::is_polymorphic<TTo>::value)   return dynamic_cast<TTo*>(derived);
+    else                                             return  static_cast<TTo*>(derived);
+}
+
 
 } // namespace [alib::lang]
 
 #endif // HPP_ALIB_LANG_TMP
+

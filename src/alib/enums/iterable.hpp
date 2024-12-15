@@ -1,30 +1,20 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_enums of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_enums of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_ENUMS_ITERABLE
 #define HPP_ALIB_ENUMS_ITERABLE 1
-
-#if !defined (HPP_ALIB_ENUMS_BITWISE)
-#   include "alib/enums/bitwise.hpp"
-#endif
+#pragma once
+#include "alib/enums/bitwise.hpp"
 
 ALIB_ASSERT_MODULE(ENUMS)
 
-#if !defined (HPP_ALIB_ENUMS_UNDERLYING_INTEGRAL)
-#   include "alib/enums/underlyingintegral.hpp"
-#endif
-
-#if !defined (_GLIBCXX_CSTDINT) && !defined (_CSTDINT_)
-#   include <cstdint>
-#endif
-
-#if !defined (_GLIBCXX_ITERATOR) && !defined (_ITERATOR_)
-#   include <iterator>
-#endif
+#include "alib/enums/underlyingintegral.hpp"
+#include <cstdint>
+#include <iterator>
 
 namespace alib {  namespace enums {
 
@@ -33,65 +23,61 @@ namespace alib {  namespace enums {
 // #################################################################################################
 
 
-/** ************************************************************************************************
- * Simple TMP struct that - if specialized - enables standard and range-based C++ iteration of the
- * elements of an enumeration.
- * Specializations have to declare <c>constexpr</c> fields #Begin and #End, as documented with this
- * type.
- *
- * \note
- *    The unspecialized version of this struct is empty.
- *
- * If specialized, the following entities become available:
- * - \alib{enums::iterable,operator+}
- * - \alib{enums::iterable,operator-}
- * - struct \alib{enums,EnumIterator}
- *
- * \attention
- *   Likewise with the operators introduced with other TMP structs of this module,
- *   this documentation "fakes" the operators into namespace
- *   <c>alib::enums::iterable</c>, while in fact they are defined in the global
- *   namespace!<br>
- *   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
- *   for details.
- *
- * <b>Restrictions</b><br>
- * For technical reasons, this concept is not applicable to enum types that are defined as
- * \c private or \c protected inner types of structs or classes.
- *
- * \see
- *   - Macros \ref ALIB_ENUMS_MAKE_ITERABLE and \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END, which
- *     specialize this TMP struct for a given enumeration type.
- *   - Type \alib{enums,EnumIterator} used to perform iterations.
- *   - For details and a source code sample see chapter \ref alib_enums_iter "3. Enum Iteration"
- *     of the Programmer's Manual of module \alib_enums.
- *
- * @tparam TEnum      The enum type to enable iteration for.
- * @tparam TEnableIf  This parameter has a default expressions and <b>must not</b> be provided
- *                    with specializations of this struct.
- *                    It is used to ensure that template parameter \p{TEnum} is an enumeration type.
- **************************************************************************************************/
+//==================================================================================================
+/// Simple TMP struct that - if specialized - enables standard and range-based C++ iteration of the
+/// elements of an enumeration.
+/// Specializations have to declare <c>constexpr</c> fields #Begin and #End, as documented with this
+/// type.
+///
+/// \note
+///    The unspecialized version of this struct is empty.
+///
+/// If specialized, the following entities become available:
+/// - \alib{enums::iterable;operator+}
+/// - \alib{enums::iterable;operator-}
+/// - struct \alib{enums;EnumIterator}
+///
+/// \attention
+///   Likewise with the operators introduced with other TMP structs of this module,
+///   this documentation "fakes" the operators into namespace
+///   <c>alib::enums::iterable</c>, while in fact they are defined in the global
+///   namespace!<br>
+///   See \ref alib_enums_arithmetic_standard "corresponding note" in the Programmer's Manual
+///   for details.
+///
+/// <b>Restrictions</b><br>
+/// For technical reasons, this concept is not applicable to enum types that are defined as
+/// \c private or \c protected inner types of structs or classes.
+///
+/// \see
+///   - Macros \ref ALIB_ENUMS_MAKE_ITERABLE and \ref ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END, which
+///     specialize this TMP struct for a given enumeration type.
+///   - Type \alib{enums;EnumIterator} used to perform iterations.
+///   - For details and a source code sample see chapter \ref alib_enums_iter "3. Enum Iteration"
+///     of the Programmer's Manual of module \alib_enums.
+///
+/// @tparam TEnum      The enum type to enable iteration for.
+/// @tparam TEnableIf  This parameter has a default expressions and <b>must not</b> be provided
+///                    with specializations of this struct.
+///                    It is used to ensure that template parameter \p{TEnum} is an enumeration type.
+//==================================================================================================
 template<typename TEnum,
          typename TEnableIf= typename std::enable_if<std::is_enum<TEnum>::value>::type>
 struct T_EnumIsIterable    : public std::false_type
 {
-    #if defined(ALIB_DOX)
-        /**
-         * Specializations have to implement this static method to return the first enum element
-         * of the iteration.
-         *
-         * @return The first enumeration element.
-         */
+    #if DOXYGEN
+        /// Specializations have to implement this static method to return the first enum element
+        /// of the iteration.
+        ///
+        /// @return The first enumeration element.
         static constexpr   TEnum    Begin;
     #endif
 
-    #if defined(ALIB_DOX)
-        /**
-         * Specializations have to implement this static method to return the element value after
-         * the last enum element of the iteration.
-         *
-         * @return The element after the last enumeration element.
-         */
+    #if DOXYGEN
+        /// Specializations have to implement this static method to return the element value after
+        /// the last enum element of the iteration.
+        ///
+        /// @return The element after the last enumeration element.
         static constexpr   TEnum    End;
     #endif
 
@@ -121,73 +107,73 @@ ALIB_ENUMS_MAKE_ITERABLE_BEGIN_END( TEnum, TEnum(0),  StopElement )
 
 // For documentation, all operators and enum related template functions are faked into namespace
 // alib::enums
-#if defined(ALIB_DOX)
+#if DOXYGEN
 namespace alib {  namespace enums {
-/**
- * Operators available to elements of enumerations if \alib{enums,T_EnumIsIterable} is
- * specialized.
- *
- * \note
- *   This namespace exits only in the documentation to collect the operators.
- *   When parsed by a C++ compiler, <b>the operators reside in the global namespace</b>.
- */
+/// Operators available to elements of enumerations if \alib{enums;T_EnumIsIterable} is
+/// specialized.
+///
+/// \note
+///   This namespace exits only in the documentation to collect the operators.
+///   When parsed by a C++ compiler, <b>the operators reside in the global namespace</b>.
 namespace iterable {
 #endif
 
-#if defined(ALIB_DOX)
-/**
- * Add operator useable with scoped enum types and integral values.
- *
- * Selected by the compiler only if \alib{enums,T_EnumIsIterable} is specialized for
- * enum type \p{TEnum}.
- *
- * @tparam TEnum      Enumeration type.
- * @param  element    First operand of \p{TEnum} type.
- * @param  addend     The addend as of \c int type.
- * @return The <em>"addend-th"</em> enum element after \p{element} .
- */
-template<typename TEnum>
+#if DOXYGEN
+/// Add operator usable with scoped enum types and integral values.
+///
+/// Selected by the compiler only if \alib{enums;T_EnumIsIterable} is specialized for
+/// enum type \p{TEnum}.
+///
+/// @tparam TEnum      Enumeration type.
+/// @tparam TRhs       The type of the summand.
+/// @param  element    First operand of \p{TEnum} type.
+/// @param  summand    The summand.
+/// @return The <em>"summand-th"</em> enum element after \p{element} .
+template<typename TEnum, typename TRhs=int>
 constexpr
-TEnum    operator+  (TEnum element, int addend) noexcept(true);
+TEnum    operator+  (TEnum element, TRhs summand) noexcept;
 #else
-template<typename TEnum>
+template<typename TEnum, typename TRhs= int>
 constexpr
-ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin)) )
-operator+  (TEnum element, int addend) noexcept(true)
+ATMP_T_IF(TEnum,    ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin))
+                &&  ATMP_IS_INT(const TRhs) )
+operator+  (TEnum element, TRhs summand) noexcept
 {
-    return TEnum( alib::UnderlyingIntegral(element) + addend );
+    return TEnum(   alib::UnderlyingIntegral(element)
+                  + static_cast<typename std::underlying_type<TEnum>::type>(summand) );
 }
 #endif
 
-#if defined(ALIB_DOX)
-/**
- * Subtract operator useable with scoped enum types and integral values.
- *
- * Selected by the compiler only if \alib{enums,T_EnumIsIterable} is specialized for
- * enum type \p{TEnum}.
- *
- * @tparam TEnum      Enumeration type.
- * @param  element    First operand of \p{TEnum} type.
- * @param  subtrahend The subtrahend as of \c int type.
- * @return The <em>"subtrahend-th"</em> enum element before \p{element} .
- */
-template<typename TEnum>
+#if DOXYGEN
+/// Subtract operator usable with scoped enum types and integral values.
+///
+/// Selected by the compiler only if \alib{enums;T_EnumIsIterable} is specialized for
+/// enum type \p{TEnum}.
+///
+/// @tparam TEnum      Enumeration type.
+/// @tparam TRhs       The type of the subtrahend.
+/// @param  element    First operand of \p{TEnum} type.
+/// @param  subtrahend The subtrahend.
+/// @return The <em>"subtrahend-th"</em> enum element before \p{element} .
+template<typename TEnum, typename TRhs=int>
 constexpr
-TEnum    operator-  (TEnum element, int subtrahend) noexcept(true);
+TEnum    operator-  (TEnum element, TRhs subtrahend) noexcept;
 #else
 
-template<typename TEnum>
+template<typename TEnum, typename TRhs= int>
 constexpr
-ATMP_T_IF(TEnum, ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin)) )
-operator-  (TEnum element, int subtrahend) noexcept(true)
+ATMP_T_IF(TEnum,      ATMP_EQ(const TEnum, decltype(alib::enums::T_EnumIsIterable<TEnum>::Begin))
+                  &&  ATMP_IS_INT(const TRhs) )
+operator-  (TEnum element, typename std::underlying_type<TEnum>::type subtrahend) noexcept
 {
-    return TEnum( alib::UnderlyingIntegral(element) - subtrahend );
+    return TEnum(   alib::UnderlyingIntegral(element)
+                  - static_cast<typename std::underlying_type<TEnum>::type>(subtrahend) );
 }
 #endif
 
 
 // Faking all operators and enum related template functions to namespace alib::enums
-#if defined(ALIB_DOX)
+#if DOXYGEN
 }
 #else
     namespace alib {  namespace enums {
@@ -197,19 +183,19 @@ operator-  (TEnum element, int subtrahend) noexcept(true)
 // #################################################################################################
 // EnumIterator
 // #################################################################################################
-#if defined(ALIB_DOX)
-/** ************************************************************************************************
- * Implements a \c std::iterator_traits class for scoped and non-scoped enum types.
- * The documentation is found with TMP struct \alib{enums,T_EnumIsIterable}, which needs to be
- * specialized for template type \p{TEnum}. For other types, this class is not constructible.
- *
- * @tparam TEnum      The enum type to iterate over.
- * @tparam TEnableIf  This parameter has a default expressions and <b>must not</b> be provided
- *                    with specializations of this struct.
- *                    It is used internally to ensure that only if a specialization of
- *                    \alib{enums,T_EnumIsIterable,T_EnumIsIterable<TEnum>} exists, this class
- *                    is available.
- **************************************************************************************************/
+#if DOXYGEN
+//==================================================================================================
+/// Implements a \c std::iterator_traits class for scoped and non-scoped enum types.
+/// The documentation is found with TMP struct \alib{enums;T_EnumIsIterable}, which needs to be
+/// specialized for template type \p{TEnum}. For other types, this class is not constructible.
+///
+/// @tparam TEnum      The enum type to iterate over.
+/// @tparam TEnableIf  This parameter has a default expressions and <b>must not</b> be provided
+///                    with specializations of this struct.
+///                    It is used internally to ensure that only if a specialization of
+///                    \alib{enums;T_EnumIsIterable;T_EnumIsIterable<TEnum>} exists, this class
+///                    is available.
+//==================================================================================================
 template<typename TEnum, typename TEnableIf>
 struct EnumIterator
 #else
@@ -218,19 +204,19 @@ template<typename TEnum, typename TEnableIf
 struct EnumIterator
 #endif
 {
-    /** ********************************************************************************************
-     * Default constructor.
-     **********************************************************************************************/
+    //==============================================================================================
+    /// Default constructor.
+    //==============================================================================================
     EnumIterator()= default;
 
-    /** ********************************************************************************************
-     * Implementation of \c std::iterator_traits for enum type \p{TEnum}. This class exposes
-     * #ConstIterator which uses <c>const TEnum*</c> and <c>const TEnum&</c> as
-     * pointer and reference types.
-     *
-     * As the name of the class indicates, this iterator satisfies the C++ standard library concept
-     * \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
-     **********************************************************************************************/
+    //==============================================================================================
+    /// Implementation of \c std::iterator_traits for enum type \p{TEnum}. This class exposes
+    /// #ConstIterator which uses <c>const TEnum*</c> and <c>const TEnum&</c> as
+    /// pointer and reference types.
+    ///
+    /// As the name of the class indicates, this iterator satisfies the C++ standard library concept
+    /// \https{RandomAccessIterator,en.cppreference.com/w/cpp/concept/RandomAccessIterator}.
+    //==============================================================================================
     template<typename TPointer, typename TReference>
     class TRandomAccessIterator
     {
@@ -241,16 +227,16 @@ struct EnumIterator
         using reference         = TReference                     ;  ///< Implementation of <c>std::iterator_traits</c>.
 
         protected:
-            /** The actual enum element. */
+            /// The actual enum element.
             TEnum p;
 
-            /** The underlying integer type. */
+            /// The underlying integer type.
             using TIntegral= typename std::underlying_type<TEnum>::type;
 
 
         public:
-            /** Constructor.
-             *  @param _p Our initial value       */
+            /// Constructor.
+            /// @param _p Our initial value
             constexpr
             explicit TRandomAccessIterator( TEnum _p = TEnum(0) ) : p(_p)
             {
@@ -258,8 +244,8 @@ struct EnumIterator
 
         //######################   To satisfy concept of  InputIterator   ######################
 
-            /** Prefix increment operator.
-             *  @return A reference to ourselves. */
+            /// Prefix increment operator.
+            /// @return A reference to ourselves.
             TRandomAccessIterator& operator++()
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -270,9 +256,9 @@ struct EnumIterator
                 return *this;
             }
 
-            /** Postfix increment operator.
-             *  @return A reference to ourselves. */
-            TRandomAccessIterator operator++(int)
+            /// Postfix increment operator.
+            /// @return A reference to ourselves.
+            TRandomAccessIterator operator++(typename std::underlying_type<TEnum>::type)
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
                     return TRandomAccessIterator(p= p + 1);
@@ -280,26 +266,26 @@ struct EnumIterator
                     return TRandomAccessIterator(p= TEnum( UnderlyingIntegral( p ) << 1) );
             }
 
-            /** Comparison operator.
-             *  @param other  The iterator to compare ourselves to.
-             *  @return \c true if this and given iterator are equal, \c false otherwise. */
+            /// Comparison operator.
+            /// @param other  The iterator to compare ourselves to.
+            /// @return \c true if this and given iterator are equal, \c false otherwise.
             constexpr
             bool operator==(TRandomAccessIterator other)             const
             {
                 return p == other.p;
             }
 
-            /** Comparison operator.
-             *  @param other  The iterator to compare ourselves to.
-             *  @return \c true if this and given iterator are not equal, \c false otherwise. */
+            /// Comparison operator.
+            /// @param other  The iterator to compare ourselves to.
+            /// @return \c true if this and given iterator are not equal, \c false otherwise.
             constexpr
             bool operator!=(TRandomAccessIterator other)             const
             {
                 return !(*this == other);
             }
 
-            /** Retrieves the enum element that this iterator references.
-             * @return The enum element.                               */
+            /// Retrieves the enum element that this iterator references.
+            /// @return The enum element.
             constexpr
             TEnum  operator*()                                          const
             {
@@ -309,8 +295,8 @@ struct EnumIterator
 
         //##################   To satisfy concept of  BidirectionalIterator   ##################
 
-            /** Prefix decrement operator.
-             *  @return A reference to ourselves. */
+            /// Prefix decrement operator.
+            /// @return A reference to ourselves.
             TRandomAccessIterator& operator--()
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -321,9 +307,9 @@ struct EnumIterator
             }
 
 
-            /** Postfix decrement operator.
-             *  @return An iterator that with the old value. */
-            TRandomAccessIterator operator--(int)
+            /// Postfix decrement operator.
+            /// @return An iterator that with the old value.
+            TRandomAccessIterator operator--(typename std::underlying_type<TEnum>::type)
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
                     return TRandomAccessIterator(p= p - 1);
@@ -334,9 +320,9 @@ struct EnumIterator
 
         //##################   To satisfy concept of  RandomAccessIterator   ###################
 
-            /** Addition assignment.
-             *  @param n The value to subtract.
-             *  @return A reference to ourselves. */
+            /// Addition assignment.
+            /// @param n The value to subtract.
+            /// @return A reference to ourselves.
             TRandomAccessIterator& operator+=(TIntegral n)
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -346,9 +332,9 @@ struct EnumIterator
                 return *this;
             }
 
-            /** Subtraction assignment.
-             *  @param n The value to subtract.
-             *  @return A reference to ourselves. */
+            /// Subtraction assignment.
+            /// @param n The value to subtract.
+            /// @return A reference to ourselves.
             TRandomAccessIterator& operator-=(TIntegral n)
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -357,9 +343,9 @@ struct EnumIterator
                     p= TEnum( UnderlyingIntegral( p ) >> n );
             }
 
-            /** Addition.
-             *  @param n The value to subtract.
-             *  @return A reference to the new iterator. */
+            /// Addition.
+            /// @param n The value to subtract.
+            /// @return A reference to the new iterator.
             TRandomAccessIterator operator+(TIntegral n)       const
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -368,9 +354,9 @@ struct EnumIterator
                     return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) << n ) );
             }
 
-            /** Subtraction.
-             *  @param n The value to subtract.
-             *  @return A reference to the new iterator. */
+            /// Subtraction.
+            /// @param n The value to subtract.
+            /// @return A reference to the new iterator.
             TRandomAccessIterator operator-(TIntegral n)       const
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -379,9 +365,9 @@ struct EnumIterator
                     return TRandomAccessIterator( TEnum( UnderlyingIntegral( p ) >> n ) );
             }
 
-            /** Difference (distance) from this iterator to the given one.
-             *  @param other  The iterator to subtract
-             *  @return The iterator to subtract.    */
+            /// Difference (distance) from this iterator to the given one.
+            /// @param other  The iterator to subtract
+            /// @return The iterator to subtract.
             std::ptrdiff_t operator-(TRandomAccessIterator other)   const
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -391,10 +377,9 @@ struct EnumIterator
                             - static_cast<std::ptrdiff_t>(lang::MSB(UnderlyingIntegral( other.p ) ));
             }
 
-            /** Subscript operator.
-             *  @param n  The iterator to subtract
-             *  @return <c>*( (*this) + n )</c>.
-             */
+            /// Subscript operator.
+            /// @param n  The iterator to subtract
+            /// @return <c>*( (*this) + n )</c>.
             TEnum operator[]( std::ptrdiff_t n )   const
             {
                 if( !T_EnumIsBitwise<TEnum>::value )
@@ -405,54 +390,50 @@ struct EnumIterator
 
         //#### Comparison operators (also needed to satisfy concept of RandomAccessIterator) ###
 
-            /** Compares this iterator with the given one.
-             *  @param other  The iterator to compare
-             *  @return \c true if this iterator is \e smaller than \p{other},
-             *          \c false otherwise. */
+            /// Compares this iterator with the given one.
+            /// @param other  The iterator to compare
+            /// @return \c true if this iterator is \e smaller than \p{other},
+            ///         \c false otherwise.
             bool operator<(TRandomAccessIterator other)   const
             {
                 return p < other.p;
             }
 
-            /** Compares this iterator with the given one.
-             *  @param other  The iterator to compare
-             *  @return \c true if this iterator is \e smaller than or equal to \p{other},
-             *          \c false otherwise. */
+            /// Compares this iterator with the given one.
+            /// @param other  The iterator to compare
+            /// @return \c true if this iterator is \e smaller than or equal to \p{other},
+            ///         \c false otherwise.
             bool operator<=(TRandomAccessIterator other)   const
             {
                 return p <= other.p;
             }
 
 
-            /** Compares this iterator with the given one.
-             *  @param other  The iterator to compare
-             *  @return \c true if this iterator is \e greater than \p{other},
-             *          \c false otherwise. */
+            /// Compares this iterator with the given one.
+            /// @param other  The iterator to compare
+            /// @return \c true if this iterator is \e greater than \p{other},
+            ///         \c false otherwise.
             bool operator>(TRandomAccessIterator other)   const
             {
                 return p > other.p;
             }
 
-            /** Compares this iterator with the given one.
-             *  @param other  The iterator to compare
-             *  @return \c true if this iterator is \e greater than or equal to \p{other},
-             *          \c false otherwise. */
+            /// Compares this iterator with the given one.
+            /// @param other  The iterator to compare
+            /// @return \c true if this iterator is \e greater than or equal to \p{other},
+            ///         \c false otherwise.
             bool operator>=(TRandomAccessIterator other)   const
             {
                 return p >= other.p;
             }
     };
 
-    /**
-     * The constant iterator exposed by this class. A Mutable version is not available.
-     */
+    /// The constant iterator exposed by this class. A Mutable version is not available.
     using ConstIterator= TRandomAccessIterator<const TEnum*, const TEnum&>;
 
 
-    /**
-     * Returns an iterator referring to the start of enumeration \p{TEnum}.
-     * @return The start of the enumeration.
-     */
+    /// Returns an iterator referring to the start of enumeration \p{TEnum}.
+    /// @return The start of the enumeration.
     ConstIterator begin()                       const
     {
         return ConstIterator(   T_EnumIsBitwise<TEnum>::value
@@ -461,10 +442,8 @@ struct EnumIterator
                                 : T_EnumIsIterable<TEnum>::Begin );
     }
 
-    /**
-     * Returns an iterator referring the first illegal value of enumeration \p{TEnum}.
-     * @return The end of the enumeration.
-     */
+    /// Returns an iterator referring the first illegal value of enumeration \p{TEnum}.
+    /// @return The end of the enumeration.
     ConstIterator end()                         const
     {
         return ConstIterator( TEnum(0) + UnderlyingIntegral( T_EnumIsIterable<TEnum>::End ) );
@@ -476,7 +455,7 @@ struct EnumIterator
 
 } // namespace alib[::enums]
 
-#if defined(ALIB_DOX)
+#if DOXYGEN
 
 /// Type alias in namespace \b alib.
 template<typename TEnum, typename TEnableIf= void>
@@ -493,3 +472,4 @@ using  EnumIterator=     enums::EnumIterator<TEnum, TEnableIf>;
 } // namespace [alib]
 
 #endif // HPP_ALIB_ENUMS_ITERABLE
+

@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,21 +6,12 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_STD)
-#      include "alib/lang/format/formatterstdimpl.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/lang/format/formatterstdimpl.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#endif // !DOXYGEN
 
-#if !defined (_GLIBCXX_CMATH) && !defined (_CMATH_)
-#   include <cmath>
-#endif
+#include <cmath>
 
 
 // For code compatibility with ALox Java/C++
@@ -54,7 +45,7 @@ FormatterStdImpl::FormatterStdImpl( const String& formatterClassName )
 
 int  FormatterStdImpl::format( AString&        pTargetString,
                                const String&   pFormatString,
-                               const Boxes&    pArguments,
+                               const BoxesMA&  pArguments,
                                int             pArgOffset        )
 {
     // save parameters/init state
@@ -84,7 +75,7 @@ int  FormatterStdImpl::format( AString&        pTargetString,
 
         // write string before ESC code
         writeStringPortion( escStart );
-        parser.template ConsumeChars<false>(1);
+        parser.template ConsumeChars<NC>(1);
 
         // get and clean field attributes
         resetPlaceholder();
@@ -171,7 +162,7 @@ bool    FormatterStdImpl::setArgument( int pos )
                         arguments->Size() - argOffset,
                         formatString, formatString.Length() - parser.Length() - 1 );
 
-    placeholder.Arg= &(*arguments)[static_cast<size_t>(argIdx)];
+    placeholder.Arg= &(*arguments)[size_t(argIdx)];
     return true;
 
 
@@ -180,8 +171,6 @@ bool    FormatterStdImpl::setArgument( int pos )
 
 bool    FormatterStdImpl::checkStdFieldAgainstArgument()
 {
-    const Box* arg= placeholder.Arg;
-
     if( placeholder.TypeCodePosition < 0 )
         placeholder.TypeCodePosition= static_cast<int>( formatString.Length() - parser.Length() - 1 );
 
@@ -192,25 +181,26 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
         return true;
 
 
-    if ( arg->IsFloatingPoint() )
+    if ( placeholder.Arg->IsFloatingPoint() )
     {
         if( placeholder.Type == PHTypes::NotGiven )
-            placeholder.Type= PHTypes::Float;
+            placeholder.Type=   PHTypes::Float;
 
         if(  placeholder.Type == PHTypes::Float )
             return true;
 
         throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
-                         placeholder.TypeCode, placeholder.ArgIdx + argumentCountStartsWith1,
-                         "floating point",
-                         formatString, placeholder.TypeCodePosition                           );
+                         placeholder.ArgIdx + argumentCountStartsWith1,
+                         placeholder.TypeCode, placeholder.Type,
+                         "floating point",  placeholder.Arg->TypeID(),
+                         formatString,      placeholder.TypeCodePosition                           );
     }
 
-    if(    arg->IsSignedIntegral()
-        || arg->IsUnsignedIntegral()
+    if(    placeholder.Arg->IsSignedIntegral()
+        || placeholder.Arg->IsUnsignedIntegral()
      #if ALIB_SIZEOF_INTEGER == 4
-        || arg->IsType< int64_t>()
-        || arg->IsType<uint64_t>()
+        || placeholder.Arg->IsType< int64_t>()
+        || placeholder.Arg->IsType<uint64_t>()
      #endif
       )
     {
@@ -229,23 +219,25 @@ bool    FormatterStdImpl::checkStdFieldAgainstArgument()
         }
 
         // not found
-        throw Exception(ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
-                        placeholder.TypeCode, placeholder.ArgIdx + argumentCountStartsWith1,
-                        "integer",
-                         formatString, placeholder.TypeCodePosition                           );
+        throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
+                         placeholder.ArgIdx + argumentCountStartsWith1,
+                         placeholder.TypeCode, placeholder.Type,
+                         "integer",     placeholder.Arg->TypeID(),
+                         formatString,  placeholder.TypeCodePosition               );
     }
 
-    if(   arg->IsCharacter() )
+    if(   placeholder.Arg->IsCharacter() )
     {
         if( placeholder.Type == PHTypes::NotGiven )
             placeholder.Type=   PHTypes::Character;
         if( placeholder.Type == PHTypes::Character )
             return true;
 
-        throw Exception(ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
-                        placeholder.TypeCode, placeholder.ArgIdx + argumentCountStartsWith1,
-                        "character",
-                        formatString, placeholder.TypeCodePosition                           );
+        throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
+                         placeholder.ArgIdx + argumentCountStartsWith1,
+                         placeholder.TypeCode, placeholder.Type,
+                         "character",   placeholder.Arg->TypeID(),
+                         formatString,  placeholder.TypeCodePosition                           );
     }
 
     if( placeholder.Type == PHTypes::NotGiven )
@@ -288,11 +280,11 @@ void    FormatterStdImpl::writeStdArgument()
         break;
 
         case PHTypes::String:
-            placeholder.Arg->Call<FAppend<character>>( *target );
+            placeholder.Arg->Call<FAppend<character, lang::HeapAllocator>>( *target );
         break;
 
         case PHTypes::Bool:
-            target->_<false>( placeholder.Arg->Call<FIsTrue>() ? "true" : "false" );
+            target->_<NC>( placeholder.Arg->Call<FIsTrue>() ? "true" : "false" );
         break;
 
         case PHTypes::Character:
@@ -304,16 +296,20 @@ void    FormatterStdImpl::writeStdArgument()
 
             if ( wc == 0)
                 wc= L'?';
-            target->_<false>( wc );
+            target->_<NC>( wc );
         }
         break;
 
         case PHTypes::Fill:
         {
-            integer qty=  placeholder.Arg->IsSignedIntegral()
-                          ?                       placeholder.Arg->UnboxSignedIntegral  ()
-                          : static_cast<integer>( placeholder.Arg->UnboxUnsignedIntegral() );
-
+            integer qty;
+                 if( placeholder.Arg->IsSignedIntegral()   ) qty=         placeholder.Arg->UnboxSignedIntegral  () ;
+            else if( placeholder.Arg->IsUnsignedIntegral() ) qty= integer(placeholder.Arg->UnboxUnsignedIntegral());
+            else throw Exception( ALIB_CALLER_NULLED, FMTExceptions::IncompatibleTypeCode,
+                                 placeholder.ArgIdx + argumentCountStartsWith1,
+                                 placeholder.TypeCode, placeholder.Type,
+                                 "Fill",  placeholder.Arg->TypeID(),
+                                 formatString,      placeholder.TypeCodePosition                           );
             target->InsertChars( placeholder.FillChar, qty );
         }
         break;
@@ -325,12 +321,12 @@ void    FormatterStdImpl::writeStdArgument()
                 placeholder.NF.DecMinimumFieldWidth= static_cast<int8_t>( placeholder.Width );
 
           #if ALIB_SIZEOF_INTEGER == 4
-                 if( placeholder.Arg->IsType< int64_t>() )  target->_<false>( strings::TFormat<character>( placeholder.Arg->Unbox< int64_t>(), &placeholder.NF ) );
-            else if( placeholder.Arg->IsType<uint64_t>() )  target->_<false>( strings::TFormat<character>( placeholder.Arg->Unbox<uint64_t>(), &placeholder.NF ) );
+                 if( placeholder.Arg->IsType< int64_t>() )  target->_<NC>( strings::TFormat<character>( placeholder.Arg->Unbox< int64_t>(), &placeholder.NF ) );
+            else if( placeholder.Arg->IsType<uint64_t>() )  target->_<NC>( strings::TFormat<character>( placeholder.Arg->Unbox<uint64_t>(), &placeholder.NF ) );
             else
           #endif
-            if( placeholder.Arg->IsSignedIntegral())  target->_<false>( strings::TFormat<character>( placeholder.Arg->UnboxSignedIntegral()  , &placeholder.NF ) );
-            else                                      target->_<false>( strings::TFormat<character>( placeholder.Arg->UnboxUnsignedIntegral(), &placeholder.NF ) );
+            if( placeholder.Arg->IsSignedIntegral())  target->_<NC>( strings::TFormat<character>( placeholder.Arg->UnboxSignedIntegral()  , &placeholder.NF ) );
+            else                                      target->_<NC>( strings::TFormat<character>( placeholder.Arg->UnboxUnsignedIntegral(), &placeholder.NF ) );
         }
         break;
 
@@ -343,7 +339,7 @@ void    FormatterStdImpl::writeStdArgument()
             int digits= placeholder.Width;
             if( placeholder.WriteBinOctHexPrefix )
             {
-                target->_<false>( placeholder.Type == PHTypes::IntOctal  ? placeholder.NF.OctLiteralPrefix :
+                target->_<NC>( placeholder.Type == PHTypes::IntOctal  ? placeholder.NF.OctLiteralPrefix :
                                   placeholder.Type == PHTypes::IntBinary ? placeholder.NF.BinLiteralPrefix :
                                                                            placeholder.NF.HexLiteralPrefix       );
                 digits-= static_cast<int>((target->Length() - fieldStartIdx));
@@ -383,10 +379,10 @@ void    FormatterStdImpl::writeStdArgument()
                             :                        placeholder.Arg->Data().Integrals.UInt64;
   #endif
 
-                 if( placeholder.Type == PHTypes::IntOctal)  target->_<false>( typename strings::TFormat<character>::Oct( value, digits, &placeholder.NF ) );
-            else if( placeholder.Type == PHTypes::IntBinary) target->_<false>( typename strings::TFormat<character>::Bin( value, digits, &placeholder.NF ) );
-            else if( placeholder.Type == PHTypes::HashCode ) target->_<false>( typename strings::TFormat<character>::Hex( value, digits, &placeholder.NF ) );
-            else                                             target->_<false>( typename strings::TFormat<character>::Hex( value, digits, &placeholder.NF ) );
+                 if( placeholder.Type == PHTypes::IntOctal)  target->_<NC>( TFormat<character>::Oct( value, digits, &placeholder.NF ) );
+            else if( placeholder.Type == PHTypes::IntBinary) target->_<NC>( TFormat<character>::Bin( value, digits, &placeholder.NF ) );
+            else if( placeholder.Type == PHTypes::HashCode ) target->_<NC>( TFormat<character>::Hex( value, digits, &placeholder.NF ) );
+            else                                             target->_<NC>( TFormat<character>::Hex( value, digits, &placeholder.NF ) );
         }
         break;
 
@@ -415,13 +411,13 @@ void    FormatterStdImpl::writeStdArgument()
 
                     if( negative )
                     {
-                        targetString->_<false>( '-' );
+                        targetString->_<NC>( '-' );
                         --placeholder.Width;
                         value= -value;
                     }
                     else if( placeholder.NF.PlusSign != '\0' )
                     {
-                        targetString->_<false>( placeholder.NF.PlusSign );
+                        targetString->_<NC>( placeholder.NF.PlusSign );
                         --placeholder.Width;
                     }
                     placeholder.NF.PlusSign= '\0';
@@ -450,10 +446,10 @@ void    FormatterStdImpl::writeStdArgument()
 
             }
 
-            target->_<false>( strings::TFormat<character>( value, &placeholder.NF ) );
+            target->_<NC>( strings::TFormat<character>( value, &placeholder.NF ) );
 
             if( placeholder.IsPercentage )
-                target->_<false>( '%' );
+                target->_<NC>( '%' );
 
 
             // if nan or inf was written, we fill with spaces
@@ -464,7 +460,9 @@ void    FormatterStdImpl::writeStdArgument()
 
         }
         break;
-    }
+
+        default: ALIB_ERROR("Illegal switch state.") break;
+    } // switch( placeholder.Type )
 
     // now do an 'intermediate post phase' processing
     preAndPostProcess( fieldStartIdx, target );
@@ -482,7 +480,7 @@ void    FormatterStdImpl::writeStdArgument()
         }
         else
         {
-            integer qtyWCharsAdded= target->Substring<false>( oldTargetLength, target->Length() - oldTargetLength ).WStringLength();
+            integer qtyWCharsAdded= target->Substring<NC>( oldTargetLength, target->Length() - oldTargetLength ).WStringLength();
 
             // too much added?
             if( qtyWCharsAdded > placeholder.CutContent )
@@ -498,10 +496,10 @@ void    FormatterStdImpl::writeStdArgument()
                     WString256 wBuf;
                     wBuf.DbgDisableBufferReplacementWarning();
                     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-                    wBuf.Append<false>( target->Buffer() + oldTargetLength, target->Length() - oldTargetLength );
+                    wBuf.Append<NC>( target->Buffer() + oldTargetLength, target->Length() - oldTargetLength );
                     ALIB_WARNINGS_RESTORE
                     target->ShortenTo( oldTargetLength );
-                    target->Append<false>( wBuf.Buffer(),placeholder.CutContent );
+                    target->Append<NC>( wBuf.Buffer(),placeholder.CutContent );
                 }
             }
         }
@@ -510,7 +508,7 @@ void    FormatterStdImpl::writeStdArgument()
 
     // if field mode, we have to append the field buffer as a field to the real target now
     if( target ==  &fieldBuffer )
-        targetString->_<false>( strings::TFormat<character>::Field( fieldBuffer, placeholder.Width, placeholder.ValueAlignment, placeholder.FillChar ) );
+        targetString->_<NC>( strings::TFormat<character>::Field( fieldBuffer, placeholder.Width, placeholder.ValueAlignment, placeholder.FillChar ) );
 
 }
 
@@ -524,6 +522,5 @@ bool    FormatterStdImpl::writeCustomFormat()
     return true;
 }
 
-
-
 } // namespace [alib::lang::format]
+

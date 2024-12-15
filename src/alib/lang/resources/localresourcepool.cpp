@@ -6,41 +6,28 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_LANG_RESOURCES_LOCALRESOURCEPOOL)
-#      include "alib/lang/resources/localresourcepool.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/lang/resources/localresourcepool.hpp"
+#endif // !DOXYGEN
 
-#if !defined (_GLIBCXX_CSTDARG) && !defined (_CSTDARG_)
-#   include <cstdarg>
-#endif
-
-#if ALIB_DEBUG_RESOURCES && !defined (_GLIBCXX_ALGORITHM) && !defined(_ALGORITHM_)
+#include <cstdarg>
+#if ALIB_DEBUG_RESOURCES
 #   include <algorithm>
 #endif
-
 #if ALIB_CAMP
-#   if  !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_PYTHONSTYLE)
-#      include "alib/lang/format/formatterpythonstyle.hpp"
-#   endif
-#   if  !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
+#   include "alib/lang/format/formatterpythonstyle.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
 #endif
-
-#if ALIB_DEBUG_RESOURCES &&  !defined (HPP_ALIB_COMPATIBILITY_STD_STRINGS_IOSTREAM)
+#if ALIB_DEBUG_RESOURCES
 #   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
 namespace alib::lang {
 
-/**
- * This is the reference documentation of sub-namespace \b resources of module \alib_basecamp.
- *
- * Extensive documentation for this namespace is provided with chapter
- * \ref alib_basecamp_resources "3. Namespace alib::lang::resources" of the
- * Programmer's Manual of that module..
- */
+/// This is the reference documentation of sub-namespace \b resources of module \alib_basecamp.
+///
+/// Extensive documentation for this namespace is provided with chapter
+/// \ref alib_basecamp_resources "3. Namespace alib::lang::resources" of the
+/// Programmer's Manual of that module..
 namespace resources {
 
 #if ALIB_DEBUG_RESOURCES
@@ -154,7 +141,7 @@ LocalResourcePool::DbgGetList()
 {
     std::vector<std::tuple<NString, NString, String, integer>> result;
 
-    result.reserve( static_cast<size_t>( data.Size() ) );
+    result.reserve( size_t( data.Size() ) );
     for( auto& it : data )
     {
         result.emplace_back(
@@ -169,11 +156,11 @@ LocalResourcePool::DbgGetList()
                    const std::tuple<NString, NString, String, integer>& b )
                {
 
-                    auto comp= std::get<0>(a).template CompareTo<true, Case::Ignore>( std::get<0>(b) );
+                    auto comp= std::get<0>(a).template CompareTo<CHK, Case::Ignore>( std::get<0>(b) );
                     if( comp != 0 )
                         return comp < 0;
 
-                    return     std::get<1>(a).template CompareTo<true, Case::Ignore>( std::get<1>(b) ) < 0;
+                    return     std::get<1>(a).template CompareTo<CHK, Case::Ignore>( std::get<1>(b) ) < 0;
                }
     );
     return result;
@@ -199,16 +186,15 @@ LocalResourcePool::DbgGetCategories()
     return result;
 }
 
-
-
 #if ALIB_CAMP
-
+#include "alib/lang/callerinfo_functions.hpp"
 AString ResourcePool::DbgDump( std::vector<std::tuple<NString, NString, String, integer>>& list,
                                const NString& catFilter, const String& format  )
 {
     AString result;
     NString actCategory( nullptr );
-    auto formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    auto& formatter= Formatter::Default;
     for( auto it : list )
     {
         if( catFilter.IsNotEmpty() )
@@ -216,7 +202,7 @@ AString ResourcePool::DbgDump( std::vector<std::tuple<NString, NString, String, 
             TokenizerN cats( catFilter, ',');
             bool found= false;
             while( cats.HasNext() )
-               found|= cats.Next().Trim().Equals<true, Case::Ignore>(std::get<0>(it) );
+               found|= cats.Next().Trim().Equals<CHK, Case::Ignore>(std::get<0>(it) );
             if( !found )
                 continue;
         }
@@ -224,18 +210,20 @@ AString ResourcePool::DbgDump( std::vector<std::tuple<NString, NString, String, 
         if( actCategory != std::get<0>(it) )
         {
             actCategory=   std::get<0>(it);
-            result << NewLine()
-                   << '[' << actCategory << ']' << NewLine();
+            result << NEW_LINE
+                   << '[' << actCategory << ']' << NEW_LINE;
         }
 
         formatter->Format( result, format, std::get<0>(it), std::get<1>(it),
                                            std::get<2>(it), std::get<3>(it)     );
     }
-    formatter->Release();
 
     return result;
 }
+#include "alib/lang/callerinfo_methods.hpp"
 #endif // ALIB_CAMP
+
 #endif // ALIB_DEBUG_RESOURCES
 
 }} // namespace [alib::lang::resources]
+

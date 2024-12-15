@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,19 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_UTIL_EXPRESSION_FORMATTER)
-#      include "alib/expressions/util/expressionformatter.hpp"
-#   endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
+#if !DOXYGEN
+#   include "alib/expressions/util/expressionformatter.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#   include "alib/expressions/compiler.hpp"
+#endif // !DOXYGEN
 
-#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-#       include "alib/expressions/compiler.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
-
+/// Utility types of camp \alib_expressions.
 namespace alib::expressions::util {
 
 ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
@@ -30,8 +24,8 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
 , originalFormatString( pFormatString )
 {
     // use ALib standard formatter, if no dedicated instance was given.
-    if(!formatter.get())
-        stdFormatter= Formatter::GetDefault();
+    if(!formatter.Get())
+        stdFormatter= Formatter::Default;
 
     // parse format string
     integer nonExprPortionStart= 0;
@@ -90,7 +84,7 @@ ExpressionFormatter::ExpressionFormatter( const String   pFormatString,
 void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope )
 {
     // evaluate expressions and collect boxes
-    auto& results= stdFormatter->Acquire(ALIB_CALLER_PRUNED);
+    auto& results= stdFormatter->GetArgContainer();
     results.Add( formatStringStripped );
 
     try
@@ -100,7 +94,6 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     }
     catch( Exception& e)
     {
-        stdFormatter->Release();
         e.Add( ALIB_CALLER_NULLED, Exceptions::InExpressionFormatter,
                expressions.size() + 1, originalFormatString );
         throw;
@@ -112,13 +105,11 @@ void    ExpressionFormatter::Format( AString& target, expressions::Scope&  scope
     }
     catch(Exception& e)
     {
-        stdFormatter->Release();
         e.Add( ALIB_CALLER_NULLED,  lang::format::FMTExceptions::ErrorInResultingFormatString,
                originalFormatString );
         throw;
     }
-
-    stdFormatter->Release();
 }
 
 } // namespace [alib::expressions::util]
+

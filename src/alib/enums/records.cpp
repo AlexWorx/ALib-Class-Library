@@ -6,24 +6,14 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_LANG_COMMONENUMS)
-#       include "alib/lang/commonenums.hpp"
-#   endif
-#   if !defined(HPP_ALIB_ENUMS_DETAIL_ENUMRECORDMAP)
-#      include "alib/enums/detail/enumrecordmap.hpp"
-#   endif
+#if !DOXYGEN
+#   include "alib/lang/commonenums.hpp"
+#   include "alib/enums/detail/enumrecordmap.hpp"
+#   include "alib/enums/recordbootstrap.hpp"
+#   include "alib/strings/localstring.hpp"
+#endif // !DOXYGEN
 
-#   if ALIB_STRINGS
-#       if !defined(HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
-#           include "alib/enums/recordbootstrap.hpp"
-#       endif
-#       if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-#          include "alib/strings/localstring.hpp"
-#       endif
-#   endif
-#
-#endif // !defined(ALIB_DOX)
+#include <stdexcept>
 
 
 namespace alib {  namespace enums {
@@ -37,23 +27,32 @@ namespace detail {
 namespace
 {
     #if ALIB_MONOMEM
-        HashMap           < EnumRecordKey, const void*,
+        #if DOXYGEN
+        /// Global directory to find enum records.
+        HashMap           < MonoAllocator,
+                            EnumRecordKey, const void*,
                             EnumRecordKey::Hash,
-                            EnumRecordKey::EqualTo       >  EnumRecordMap( &monomem::GlobalAllocator,
+                            EnumRecordKey::EqualTo       >  ENUM_RECORD_MAP;
+        #else
+        HashMap           < MonoAllocator,
+                            EnumRecordKey, const void*,
+                            EnumRecordKey::Hash,
+                            EnumRecordKey::EqualTo       >  ENUM_RECORD_MAP( monomem::GLOBAL_ALLOCATOR,
                                                                            3.0, 6.0  );
+        #endif //if DOXYGEN
     #else
         std::unordered_map< EnumRecordKey, const void*,
                             EnumRecordKey::Hash,
-                            EnumRecordKey::EqualTo       >  EnumRecordMap;
+                            EnumRecordKey::EqualTo       >  ENUM_RECORD_MAP;
     #endif
 }
 
 void  setEnumRecord( const std::type_info& rtti, integer elementValue, const void* record )
 {
     #if ALIB_MONOMEM
-        EnumRecordMap.EmplaceIfNotExistent( EnumRecordKey(rtti, elementValue ), record );
+        ENUM_RECORD_MAP.EmplaceIfNotExistent( EnumRecordKey(rtti, elementValue ), record );
     #else
-        EnumRecordMap.try_emplace( EnumRecordKey(rtti, elementValue ), record );
+        ENUM_RECORD_MAP.try_emplace( EnumRecordKey(rtti, elementValue ), record );
     #endif
 }
 
@@ -61,27 +60,28 @@ const void* getEnumRecord( const std::type_info& rtti, integer elementValue )
 {
 
 #if ALIB_MONOMEM
-    auto it= EnumRecordMap.Find( EnumRecordKey( rtti, elementValue ) );
+    auto it= ENUM_RECORD_MAP.Find( EnumRecordKey( rtti, elementValue ) );
 #else
-    auto it= EnumRecordMap.find( EnumRecordKey( rtti, elementValue ) );
+    auto it= ENUM_RECORD_MAP.find( EnumRecordKey( rtti, elementValue ) );
 #endif
-    if ( it != EnumRecordMap.end() )
+    if ( it != ENUM_RECORD_MAP.end() )
         return it->second;
 
     return nullptr;
 }
 
-#if ALIB_MONOMEM
-const HashMap           < EnumRecordKey, const void*,
-                          EnumRecordKey::Hash,
-                          EnumRecordKey::EqualTo       >&  getInternalRecordMap()
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+HashMap           < MonoAllocator,
+                    EnumRecordKey, const void*,
+                    EnumRecordKey::Hash,
+                    EnumRecordKey::EqualTo       >&  getInternalRecordMap()
 #else
-const std::unordered_map< EnumRecordKey, const void*,
-                          EnumRecordKey::Hash,
-                          EnumRecordKey::EqualTo       >&  getInternalRecordMap()
+std::unordered_map< EnumRecordKey, const void*,
+                    EnumRecordKey::Hash,
+                    EnumRecordKey::EqualTo       >&  getInternalRecordMap()
 #endif
 {
-    return EnumRecordMap;
+    return ENUM_RECORD_MAP;
 }
 
 
@@ -91,7 +91,7 @@ const std::unordered_map< EnumRecordKey, const void*,
 // #################################################################################################
 // EnumRecordParser
 // #################################################################################################
-#if ALIB_STRINGS && !defined(ALIB_DOX)
+#if !DOXYGEN
 
 namespace {
     void assembleMsgAndThrow [[noreturn]] ( const NString& error )
@@ -100,16 +100,16 @@ namespace {
                          - EnumRecordParser::Input        .Length();
 
         NAString msg;
-        msg << "ERROR WHILE PARSING ENUMERATION RECORD STRING"             << NewLine()
-            << "  Detail:  " << error                                      << NewLine()
+        msg << "ERROR WHILE PARSING ENUMERATION RECORD STRING"             << NEW_LINE
+            << "  Detail:  " << error                                      << NEW_LINE
             << "  Resrc :  "; if(EnumRecordParser::ResourceCategory.IsNotEmpty() )
                                     msg << '"'       << EnumRecordParser::ResourceCategory
                                         << "\" / \"" << EnumRecordParser::ResourceName << '"';
                                 else
                                     msg << "(Not resourced)";
-        msg << NewLine()
-            << "  Column:   "   << column + 1                                << NewLine()
-            << "  Input :   \"" << EnumRecordParser::OriginalInput << '"'    << NewLine()
+        msg << NEW_LINE
+            << "  Column:   "   << column + 1                                << NEW_LINE
+            << "  Input :   \"" << EnumRecordParser::OriginalInput << '"'    << NEW_LINE
             << "            ";
         for( integer i= column ; i >= 0 ; --i )
             msg << (i != 0 ? '-' : '>');
@@ -134,14 +134,14 @@ void EnumRecordParser::error [[noreturn]] (const NCString& what)
 void EnumRecordParser::assertNoWhitespaces(const NCString& where)
 {
     if(    Input.IsNotEmpty()
-        && Input.IndexOfAny<lang::Inclusion::Exclude>( DefaultWhitespaces() ) != 0 )
+        && Input.IndexOfAny<lang::Inclusion::Exclude>( DEFAULT_WHITESPACES ) != 0 )
         assembleMsgAndThrow( NString256() << "Found whitespaces "
                                           << where );
 }
 
 void EnumRecordParser::assertNoTrailingWhitespaces(String& token)
 {
-    if( token.LastIndexOfAny<lang::Inclusion::Exclude>( DefaultWhitespaces() ) != token.Length() -1 )
+    if( token.LastIndexOfAny<lang::Inclusion::Exclude>( DEFAULT_WHITESPACES ) != token.Length() -1 )
         assembleMsgAndThrow( NString256() << "Found trailing whitespaces in string value \""
                                           << token << '"' );
 }
@@ -215,7 +215,7 @@ void EnumRecordParser::Get( String& result, bool isLastField )
     if( !isLastField )
         result= Input.ConsumeToken(InnerDelimChar);
     else
-        Input.ConsumeChars<false>( Input.IndexOfOrLength( OuterDelimChar ), result );
+        Input.ConsumeChars<NC>( Input.IndexOfOrLength( OuterDelimChar ), result );
     assertNoTrailingWhitespaces(result);
     if( isLastField )
         assertEndOfRecord();
@@ -224,7 +224,7 @@ void EnumRecordParser::Get( String& result, bool isLastField )
 void EnumRecordParser::Get( character& result, bool isLastField )
 {
     assertNoWhitespaces( "before a character value" );
-    result= Input.ConsumeChar<true, lang::Whitespaces::Keep>();
+    result= Input.ConsumeChar<CHK, lang::Whitespaces::Keep>();
     if(    (!isLastField && ( result == InnerDelimChar                   ) )
         || ( isLastField && ( result == OuterDelimChar || result == '\0' ) )  )
         result= '\0';
@@ -261,17 +261,19 @@ void EnumRecordParser::Get( double& result, bool isLastField )
 
 void EnumRecordParser:: Delim()
 {
-    assertNoWhitespaces( "prior to a delimiter");
+    assertNoWhitespaces( "before a delimiter");
     assertChar(InnerDelimChar,"expected inner delimiter" );
     assertNoWhitespaces( "after an inner delimiter");
 }
 
 void EnumRecordParser::OuterDelim()
 {
-    assertNoWhitespaces( "prior to an outer delimiter");
+    assertNoWhitespaces( "before an outer delimiter");
     assertChar(OuterDelimChar,"expected outer delimiter" );
     assertNoWhitespaces( "after an outer delimiter");
 }
+
+#endif // #if !ALIB_DOX
 
 
 // #################################################################################################
@@ -283,17 +285,31 @@ void ERSerializable::Parse()
     EnumRecordParser::Get( MinimumRecognitionLength , true );
 }
 
-#endif // ALIB_STRINGS && defined(ALIB_DOX)
-
 
 // #################################################################################################
 // enums::Bootstrap()
 // #################################################################################################
-#if !ALIB_CAMP
+#if ALIB_DEBUG && !DOXYGEN
+namespace{ unsigned int initFlag= 0; }
+#endif // !DOXYGEN
+
+#include "alib/lang/callerinfo_functions.hpp"
+void Shutdown()
+{
+    ALIB_ASSERT_ERROR( initFlag == 0x92A3EF61, "ENUMS", "Not initialized when calling shutdown." )
+    ALIB_DBG(initFlag= 1);
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
+    alib::enums::detail::getInternalRecordMap().Reset();
+    #endif
+}
+
 void Bootstrap()
 {
-#if ALIB_STRINGS
-DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS])
+    ALIB_ASSERT_ERROR( initFlag == 0, "ENUMS", "This method must not be invoked twice." )
+    ALIB_DBG(initFlag= 0x92A3EF61);
+
+#if !ALIB_CAMP
+DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS])
 EnumRecords<lang::Bool>::Bootstrap(
 {
     { lang::Bool::True , A_CHAR("False"), 1 },
@@ -307,7 +323,7 @@ EnumRecords<lang::Bool>::Bootstrap(
     { lang::Bool::True , A_CHAR("-"    ), 1 },
     { lang::Bool::False, A_CHAR("Ok"   ), 2 }
 } );
-DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS])
+DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS])
 
 EnumRecords<lang::Case>::Bootstrap(
 {
@@ -315,7 +331,7 @@ EnumRecords<lang::Case>::Bootstrap(
     { lang::Case::Ignore   , A_CHAR("Ignore"   ), 1 },
 } );
 
-DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS_2])
+DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS_2])
 EnumRecords<lang::ContainerOp>::Bootstrap(
 {
     { lang::ContainerOp::Insert   , A_CHAR("Insert"   ), 1 }, // integral 0
@@ -324,7 +340,7 @@ EnumRecords<lang::ContainerOp>::Bootstrap(
     { lang::ContainerOp::Get      , A_CHAR("Get"      ), 1 }, // integral 2 <--
     { lang::ContainerOp::Create   , A_CHAR("Create"   ), 1 }, // integral 4
 } );
-DOX_MARKER([DOX_ALIB_ENUMS_MULTIPLE_RECORDS_2])
+DOX_MARKER([DOX_ENUMS_MULTIPLE_RECORDS_2])
 
 EnumRecords<lang::Switch>::Bootstrap(
 {
@@ -414,11 +430,12 @@ EnumRecords<lang::Phase>::Bootstrap(
 
 EnumRecords<lang::Initialization>::Bootstrap(
 {
-    { lang::Initialization::Suppress         , A_CHAR("Suppress")    , 1 },
-    { lang::Initialization::Perform          , A_CHAR("Perform" )    , 1 },
-    { lang::Initialization::Suppress         , A_CHAR("NoInit"  )    , 1 },
-    { lang::Initialization::Perform          , A_CHAR("Init"    )    , 1 },
-    { lang::Initialization::Perform          , A_CHAR("Yes"     )    , 1 },
+    { lang::Initialization::Suppress         , A_CHAR("Suppress"  )    , 1 },
+    { lang::Initialization::Default          , A_CHAR("Default"   )    , 1 },
+    { lang::Initialization::Nulled           , A_CHAR("Nulled"    )    , 1 },
+    { lang::Initialization::Suppress         , A_CHAR("None"      )    , 2 },
+    { lang::Initialization::Default          , A_CHAR("Initialize")    , 1 },
+    { lang::Initialization::Nulled           , A_CHAR("Zero"      )    , 1 },
 } );
 
 EnumRecords<lang::Timing>::Bootstrap(
@@ -437,92 +454,83 @@ EnumRecords<lang::Caching>::Bootstrap(
     { lang::Caching::Auto                  , A_CHAR("Auto"    )      , 1 },
 } );
 
-#endif // ALIB_STRINGS
-
-
-} // enums::Bootstrap()
 #endif // !ALIB_CAMP
 
-
-
+} // enums::Bootstrap()
+#include "alib/lang/callerinfo_methods.hpp"
 
 // #################################################################################################
 // EnumRecordPrototype (Doxygen only)
 // #################################################################################################
 
-#if defined(ALIB_DOX)
-/** ************************************************************************************************
- * This struct is \b not part of the library but only provided with the documentation of this
- * \alibmod_nl.
- *
- * The struct prototypes what module \alib_enums_nl \b expects from custom types that are
- * associated to enumerations as the type of  \ref alib_enums_records "ALib Enum Records".
- *
- * Usually, enum records are rather simple structs with fields of scalar or
- * \https{POD types,en.cppreference.com/w/cpp/types/is_pod} like, \c int, \c double or
- * \alib{strings,TString,String} and this way remain POD types themselves.
- *
- * When parsed or otherwise otherwise initialized, String members do not need to copy data to an
- * own buffer, because the input string for parsing
- * an instance, as well as the parameters of alternative constructors, are deemed to be static data.
- *
- * The life-cycle of instances of enumeration record is from bootstrapping an application
- * to its termination. After creation, the data can not be modified.
- **************************************************************************************************/
+#if DOXYGEN
+//==================================================================================================
+/// This struct is \b not part of the library but only provided with the documentation of this
+/// \alibmod_nl.
+///
+/// The struct prototypes what module \alib_enums_nl \b expects from custom types that are
+/// associated to enumerations as the type of  \ref alib_enums_records "ALib Enum Records".
+///
+/// Usually, enum records are rather simple structs with fields of scalar or
+/// \https{POD types,en.cppreference.com/w/cpp/types/is_pod} like, \c int, \c double or
+/// \alib{strings;TString;String} and this way remain POD types themselves.
+///
+/// When parsed or otherwise initialized, String members do not need to copy data to an
+/// own buffer, because the input string for parsing
+/// an instance, as well as the parameters of alternative constructors, are deemed to be static data.
+///
+/// The life-cycle of instances of enumeration record is from bootstrapping an application
+/// to its termination. After creation, the data cannot be modified.
+//==================================================================================================
 struct EnumRecordPrototype
 {
-    /**
-     * Default constructor leaving the record undefined. For efficiency, this usually does
-     * not initialize fields, as those will be overwritten by a subsequent invocation to #Parse.
-     *
-     * This constructor is only needed when method #Parse is given. Note that it is advised to
-     * provide the parsing option and this way also this constructor.
-     */
+    /// Default constructor leaving the record undefined. For efficiency, this usually does
+    /// not initialize fields, as those will be overwritten by a subsequent invocation to #Parse.
+    ///
+    /// This constructor is only needed when method #Parse is given. Note that it is advised to
+    /// provide the parsing option and this way also this constructor.
     EnumRecordPrototype()                                                       noexcept  = default;
 
-    /**
-     * Constructor accepting all necessary arguments to completely define the record.
-     * This constructor is needed only in the case that records should be defined in a statical
-     * way which is an alternative to implementing the definition by parsing an (externalized)
-     * initialization strings. Static definition can be performed with method
-     * \alib{enums,EnumRecords::Bootstrap(std::initializer_list<Initializer> definitions)}
-     * but is not recommended and the definition from parsable stings is preferred.
-     *
-     * Note that the parameter's passed when this constructor is invoked, have to be of
-     * "static nature". For example, the buffers and contents of passed string values are
-     * deemed to survive the life-cycle of an application. Usually, C++ string literals are passed.
-     *
-     * @param myArg1   Assigned to the first custom field.
-     * @param myArg2   Assigned to the second custom field.
-     * @param ...      Further parameters, assigned to further fields.
-     */
+    /// Constructor accepting all necessary arguments to completely define the record.
+    /// This constructor is needed only in the case that records should be defined in a statical
+    /// way which is an alternative to implementing the definition by parsing an (externalized)
+    /// initialization strings. Static definition can be performed with method
+    /// \alib{enums;EnumRecords<TEnum;TEnableIf>::Bootstrap(std::initializer_list<Initializer> definitions)}
+    /// but is not recommended and the definition from parsable stings is preferred.
+    ///
+    /// Note that the parameter's passed when this constructor is invoked, have to be of
+    /// "static nature". For example, the buffers and contents of passed string values are
+    /// deemed to survive the life-cycle of an application. Usually, C++ string literals are passed.
+    ///
+    /// @param myArg1   Assigned to the first custom field.
+    /// @param myArg2   Assigned to the second custom field.
+    /// @param ...      Further parameters, assigned to further fields.
     EnumRecordPrototype(  const MyType1& myArg1, MyType2 myArg2, ... )                     noexcept;
 
-    /**
-     * Implementation has to parse the fields of this record from static interface struct
-     * \alib{enums,EnumRecordParser}.
-     *
-     * For - usually simple - enum records, the process of parsing is limited to reading
-     * values separated by delimiters. Convenient methods to do so are given by static type
-     * \alib{enums,EnumRecordParser}. More complex parsing logic may be implemented by
-     * using the "parser" substring found with \alib{enums,EnumRecordParser::Input} and further
-     * of its entities.<br>
-     * Please refer to the documentation of \alib{enums,EnumRecordParser} for all details.
-     * A source code sample is given in chapter \ref alib_enums_records_resourced_parsing of the
-     * Programmer's Manual of module \alib_enums_nl.
-     *
-     * The contents (buffer) of the string parsed is by contract of static nature. This means
-     * that no copies of portions need to be allocated when used as a field value of string type.
-     * This is in alignment with the static nature of \ref alib_enums_records "ALib Enum Records"
-     * and their creation during bootstrap, either from C++ string literals or
-     * \ref alib_basecamp_resources "ALib Externalized Resources", which comply to the same contract.
-     *
-     * On the same token, in case of an error, an implementation should raise an exception in
-     * debug-compilations, as parsing is deemed to succeed on static data, even if externalized.
-     */
+    /// Implementation has to parse the fields of this record from static interface struct
+    /// \alib{enums;EnumRecordParser}.
+    ///
+    /// For - usually simple - enum records, the process of parsing is limited to reading
+    /// values separated by delimiters. Convenient methods to do so are given by static type
+    /// \alib{enums;EnumRecordParser}. More complex parsing logic may be implemented by
+    /// using the "parser" substring found with \alib{enums;EnumRecordParser::Input} and further
+    /// of its entities.<br>
+    /// Please refer to the documentation of \alib{enums;EnumRecordParser} for all details.
+    /// A source code sample is given in chapter \ref alib_enums_records_resourced_parsing of the
+    /// Programmer's Manual of module \alib_enums_nl.
+    ///
+    /// The contents (buffer) of the string parsed is by contract of static nature. This means
+    /// that no copies of portions need to be allocated when used as a field value of string-type.
+    /// This is in alignment with the static nature of \ref alib_enums_records "ALib Enum Records"
+    /// and their creation during bootstrap, either from C++ string literals or
+    /// \ref alib_basecamp_resources "ALib Externalized Resources", which comply to the same contract.
+    ///
+    /// By the same token, in case of an error, an implementation should raise an exception in
+    /// debug-compilations, as parsing is deemed to succeed on static data, even if externalized.
     ALIB_API
     void Parse()                                                                           noexcept;
 }; // EnumRecordPrototype
-#endif // defined(ALIB_DOX)
+#endif // DOXYGEN
 
 }} // namespace [alib::enums]
+

@@ -6,19 +6,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_DATEANDTIME)
+#if !DOXYGEN
 #   include "alib/expressions/plugins/dateandtime.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 #if ALIB_CAMP
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_CAMP_CALENDAR)
+#if !DOXYGEN
 #   include "alib/lang/system/calendar.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 //! @cond NO_DOX
 
@@ -47,7 +43,7 @@ namespace {
 // #################################################################################################
 // ### Reverse generation: convert program constants to expression strings
 // #################################################################################################
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_3])
+DOX_MARKER([DOX_EXPR_FToLiteral_3])
 void FToLiteral_Duration( const Box& constantValue, AString& expressionString )
 {
     // Unbox the time span and convert to nanoseconds
@@ -96,7 +92,7 @@ void FToLiteral_Duration( const Box& constantValue, AString& expressionString )
     // wWite the function argument
     expressionString << result << '(' << value << ')' ;
 }
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_3])
+DOX_MARKER([DOX_EXPR_FToLiteral_3])
 
 void FToLiteral_DateTime( const Box& constantValue, AString& expressionString )
 {
@@ -275,15 +271,15 @@ Calculus::OperatorTableEntry  binaryOpTableDateTime[] =
 // #################################################################################################
 void  DateAndTime::Bootstrap()
 {
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
+DOX_MARKER([DOX_EXPR_FToLiteral_2])
 // register ToLiteral interface for class DateTime::Duration with boxing
 boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime::Duration>>( FToLiteral_Duration );
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_2])
+DOX_MARKER([DOX_EXPR_FToLiteral_2])
 boxing::BootstrapRegister<FToLiteral, boxing::TMappedTo<time::DateTime          >>( FToLiteral_DateTime );
 }
 
 DateAndTime::DateAndTime( Compiler& compiler )
-: Calculus( "ALib DateAndTime", compiler )
+: Calculus( "ALib DateAndTime", compiler, CompilePriorities::DateAndTime )
 {
     // load identifier/function names from resources
     constexpr int tableSize= 58;
@@ -309,9 +305,9 @@ DateAndTime::DateAndTime( Compiler& compiler )
     // functions
     Functions=
     {
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
+DOX_MARKER([DOX_EXPR_FToLiteral_1])
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(nanosecondsInt  ), &Types::Duration , CTI },
-DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
+DOX_MARKER([DOX_EXPR_FToLiteral_1])
         { *descriptor  , CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(microsecondsInt ), &Types::Duration , CTI },
         { *descriptor++, CALCULUS_SIGNATURE(Signatures::F   ), CALCULUS_CALLBACK(microsecondsFlt ), &Types::Duration , CTI },
         { *descriptor  , CALCULUS_SIGNATURE(Signatures::I   ), CALCULUS_CALLBACK(millisecondsInt ), &Types::Duration , CTI },
@@ -369,7 +365,7 @@ DOX_MARKER([DOX_ALIB_EXPR_FToLiteral_1])
                        "Descriptor table size mismatch: Consumed {} descriptors, {} available.",
                        descriptor - functionNames, tableSize  )
     ALIB_WARNINGS_RESTORE
-/**/}
+}
 
 
 }}} // namespace [alib::expressions::detail]

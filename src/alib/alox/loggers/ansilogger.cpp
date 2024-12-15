@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::loggers - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,86 +6,46 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALOX_ANSI_LOGGER)
-       #include "alib/alox/loggers/ansilogger.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_STRINGS_UTIL_SPACES)
-       #include "alib/strings/util/spaces.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
-#      include "alib/strings/util/tokenizer.hpp"
-#   endif
-#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#      include "alib/enums/serialization.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/alox/loggers/ansilogger.hpp"
+#   include "alib/alox/aloxcamp.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
+#   include "alib/lang/message/report.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
 using namespace alib::lox::detail;
 
 namespace alib {  namespace lox { namespace loggers {
 
-// #################################################################################################
-// Constructor/Destructor
-// #################################################################################################
-AnsiLogger::AnsiLogger( const NString&  name, const NString&  typeName  )
-:    TextLogger( name, typeName, true )
+void AnsiLogger::AcknowledgeLox( detail::LoxImpl* lox, lang::ContainerOp op )
 {
-    construct();
-}
+    TextLogger::AcknowledgeLox( lox, op );
+    if( op != lang::ContainerOp::Insert )
+        return;
 
-AnsiLogger::AnsiLogger( std::ostream* pOStream,
-                        const NString&  name, const NString&  typeName  )
-:    TextLogger( name, typeName, false )
-{
-    writer.SetStream( pOStream );
+    auto& fmt= GetFormatMetaInfo();
 
-    construct();
-}
-
-void AnsiLogger::construct()
-{
     // set msg suffix to "reset"
-    FmtMsgSuffix=   ANSI_RESET;
+    fmt.MsgSuffix.Reset(ANSI_RESET);
 
     // evaluate environment variable "ALOX_CONSOLE_LIGHT_COLORS"
-    UseLightColors= LightColorUsage::Auto;
-    Variable variable( Variables::CONSOLE_LIGHT_COLORS );
-    if ( ALOX.GetConfig().Load( variable ) != Priorities::NONE && variable.Size() > 0)
-    {
-        Substring p= variable.GetString();
-        if(p.Trim().IsNotEmpty())
-        {
-            if( !enums::Parse<LightColorUsage>( p, UseLightColors ) )
-            {
-                ALIB_WARNING( "ALOX", "Unknown value specified in variable: {} = {!Q'}.",
-                              variable.Fullname(), variable.GetString() )
-            }
-        }
-    }
+    // If default, we assume dark background, hence use light color on foreground
+    ALIB_LOCK_WITH(ALOX.GetConfigLock())
+    Variable useLightColors(ALOX, Variables::CONSOLE_LIGHT_COLORS );
+    (void) useLightColors.Define();
+    CFP= useLightColors.Get<textlogger::ColorfulLoggerParameters>();
+    if( CFP.LCU == textlogger::ColorfulLoggerParameters::LightColorUsage::Auto )
+        CFP.LCU=   textlogger::ColorfulLoggerParameters::LightColorUsage::Foreground;
 
-    if( UseLightColors == LightColorUsage::Auto )
+    // If the meta-information came from the defaults (resources) we parse different ones
+    // dedicated to ANSI consoles.
+    if( varFormatMetaInfo.GetPriority() == Priority::DefaultValues )
     {
-        // default: dark background, hence use light color on foreground
-        UseLightColors= LightColorUsage::Foreground;
+        // This moves the verbosity information to the end to colorize the whole line
+        auto ansiLoggerDefaultFormat= ALOX.GetResource("Var_D21A");
+        varFormatMetaInfo.Import(ansiLoggerDefaultFormat, Priority::DefaultValues );
     }
-
-    // move verbosity information to the end to colorize the whole line
-    ALIB_ASSERT_RESULT_NOT_EQUALS( MetaInfo->Format.SearchAndReplace( A_CHAR("]%V["), A_CHAR("][") ), 0)
-    MetaInfo->Format._("%V");
-    MetaInfo->VerbosityError           = ESC::RED;
-    MetaInfo->VerbosityWarning         = ESC::BLUE;
-    MetaInfo->VerbosityInfo            = A_CHAR("");
-    MetaInfo->VerbosityVerbose         = ESC::GRAY;
 }
 
 AnsiLogger::~AnsiLogger()
@@ -97,7 +57,7 @@ AnsiLogger::~AnsiLogger()
 // #################################################################################################
 
 
-void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
+void AnsiLogger::logText( detail::Domain&    ,    Verbosity         ,
                           AString&        msg,
                           ScopeInfo&         ,    int                )
 {
@@ -125,7 +85,7 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
             column+= actual.WStringLength();
 
             actual= Substring( actual.Buffer(), actual.Length() + idx + 2 );
-            rest.ConsumeChars<false>( idx  + 1 );
+            rest.ConsumeChars<NC>( idx  + 1 );
 
             writer.Write( actual );
 
@@ -158,9 +118,9 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
             colNo+=  isForeGround ? 0 : 10;
 
             // add light
-            if( UseLightColors != LightColorUsage::Never && ( (UseLightColors == LightColorUsage::Foreground) == isForeGround ) )
+            if(        CFP.LCU != textlogger::ColorfulLoggerParameters::LightColorUsage::Never
+                && ( ( CFP.LCU == textlogger::ColorfulLoggerParameters::LightColorUsage::Foreground ) == isForeGround ) )
                 colNo+= 20;
-
 
             String ansiCol;
             switch( colNo )
@@ -233,20 +193,17 @@ void AnsiLogger::logText( detail::Domain&      ,    Verbosity         ,
                                                   : ( c - 'A' ) + 10;
 
             // tab stop (write spaces using a growing buffer)
-            integer tabStop= AutoSizes.Next( AutoSizes::Types::Tabstop, column, extraSpace );
+            integer tabStop= varFormatAutoSizes.Get<textlogger::FormatAutoSizes>().Main.Next(
+                                                    AutoSizes::Types::Tabstop, column, extraSpace );
             integer qtySpaces= tabStop - column;
-            if( qtySpaces > 0 )
-            {
-                Spaces::Write( *writer.GetStream(), qtySpaces );
-                column+= qtySpaces;
-            }
-
+            writer.WriteChars(' ', qtySpaces );
+            column+= qtySpaces;
         }
 
         // Link (we just colorize links here)
         else if ( c == 'l' )
             writer.Write( rest.ConsumeChar() == 'S'
-                           ? ( UseLightColors == LightColorUsage::Foreground
+                           ? ( CFP.LCU == textlogger::ColorfulLoggerParameters::LightColorUsage::Foreground
                                ? static_cast<const String&>( ANSI_LIGHT_BLUE )
                                : static_cast<const String&>( ANSI_BLUE       ) )
                            :     static_cast<const String&>( ANSI_STD_COL    )   );
@@ -276,3 +233,4 @@ AnsiConsoleLogger::~AnsiConsoleLogger()
 }
 
 }}} // namespace [alib::lox::loggers]
+

@@ -6,23 +6,17 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_CAMP_ENVIRONMENT)
+#if !DOXYGEN
 #   include "alib/lang/system/environment.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
 #   include "alib/strings/localstring.hpp"
-#endif
-
-#if defined (__GLIBCXX__)  || defined(__APPLE__) || defined(__ANDROID_NDK__)
-    #include <unistd.h>
-#elif   defined( _WIN32 )
-    #include <direct.h>
-#else
-    #pragma message ("Unknown Platform in file: " __FILE__ )
-#endif
-#endif // !defined(ALIB_DOX)
+#   if defined (__GLIBCXX__)  || defined(__APPLE__) || defined(__ANDROID_NDK__)
+#      include <unistd.h>
+#   elif   defined( _WIN32 )
+#      include <direct.h>
+#   else
+#      pragma message ("Unknown Platform in file: " __FILE__ )
+#   endif
+#endif // !DOXYGEN
 
 namespace alib {  namespace lang::system {
 

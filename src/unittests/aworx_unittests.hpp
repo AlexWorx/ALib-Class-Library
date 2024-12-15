@@ -12,43 +12,37 @@
  *
  * Before including this header, the prepro variable "TESTCLASSNAME" has to be defined.
  **************************************************************************************************/
-#ifndef HPP_AWORX_UNIT_TESTS
-#define HPP_AWORX_UNIT_TESTS 1
-
-#if !defined (HPP_ALOX)
+#ifndef HPP_ALIB_UNIT_TESTS
+#define HPP_ALIB_UNIT_TESTS 1
+#pragma once
+#if !defined (HPP_ALIB_LOX)
 #   include "alib/alox.hpp"
 #endif
 
-
 #if ALIB_ALOX
-#   if !defined (HPP_ALOX_LOGTOOLS)
-#       include "alib/alox/logtools.hpp"
-#   endif
-#   if !defined (HPP_ALOX_DETAIL_TEXTLOGGER_TEXTLOGGER)
-#       include "alib/alox/detail/textlogger/textlogger.hpp"
-#   endif
+#   include "alib/alox/logtools.hpp"
+#   include "alib/alox/textlogger/textlogger.hpp"
 #else
     namespace alib{  enum class Verbosity { Verbose, Info, Warning, Error, Off }; }
-    #include "alib/strings/util/tokenizer.hpp"
-    #include "alib/strings/util/spaces.hpp"
+#   include "alib/strings/util/tokenizer.hpp"
 #endif
-
 #if ALIB_CAMP
-#   if !defined(HPP_ALIB_CAMP_DIRECTORY)
-#       include "alib/lang/system/directory.hpp"
-#   endif
+#   include "alib/lang/system/path.hpp"
 #else
-    namespace alib{  constexpr character DirectorySeparator = '/'; }
+    namespace alib{  constexpr character DIRECTORY_SEPARATOR = '/'; }
 #endif
-
 #include "alib/strings/localstring.hpp"
 #include "alib/lang/message/report.hpp"
-
 #include <iostream>
 #include <fstream>
 
 #if !defined(ALIB_GTEST)
     #define ALIB_GTEST 0
+#endif
+
+// Avoid analyzer (valgrind) warnings
+#if !defined(ALIB_UT_AVOID_ANALYZER_WARNINGS )
+#   define   ALIB_UT_AVOID_ANALYZER_WARNINGS   0
 #endif
 
 
@@ -80,7 +74,7 @@
     #endif
 
 
-    // disable warning missing prototypes for clang/gtest (we can not add prototypes as in the
+    // disable warning missing prototypes for clang/gtest (we cannot add prototypes as in the
     // windows code, the test functions are class methods)
     #if defined(__clang__)
         #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -92,7 +86,7 @@
     #include <iomanip>
 
 
-    // nothing (almost) in it in GTest: every test is own class
+    // nothing (almost) in it in GTest: every test is an own class
     #if defined(__clang__)
         #define  UT_CLASS                 _Pragma("clang diagnostic push")                                       \
                                           _Pragma("clang diagnostic ignored \"-Wzero-as-null-pointer-constant\"")
@@ -106,16 +100,37 @@
     #define  UT_METHOD_Z(m, sm, sc)       GTEST_TEST(TESTCLASSNAME, m)
 
 
-    #define UT_INIT(...)        alib::NAString utSC (__FILE__);                                       \
-                                {                                                                      \
-                                    alib::integer idx= utSC.LastIndexOf( alib::DirectorySeparator ); \
-                                    utSC.DeleteStart( idx + 1 );                                       \
-                                    idx= utSC.LastIndexOf( '.' );                                      \
-                                    if( idx > 0 )                                                      \
-                                        utSC.Delete( idx );                                            \
-                                }                                                                      \
-                                AWorxUnitTesting ut( ::testing::UnitTest::GetInstance()->current_test_info()->name() );             \
-                                UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
+  #if ALIB_EXT_LIB_THREADS_AVAILABLE
+    #define UT_INIT(...)                                                                           \
+        alib::NAString utSC (__FILE__);                                                            \
+        {                                                                                          \
+            alib::integer idx= utSC.LastIndexOf( alib::lang::system::DIRECTORY_SEPARATOR );        \
+            utSC.DeleteStart( idx + 1 );                                                           \
+            idx= utSC.LastIndexOf( '.' );                                                          \
+            if( idx > 0 )                                                                          \
+                utSC.Delete( idx );                                                                \
+        }                                                                                          \
+        {alib::lang::Owner<alib::threads::SharedLock> ocfg(ALOX.GetConfigLock()                    \
+                  ALIB_DBG(, {nullptr,-1,nullptr, ::std::this_thread::get_id(),&typeid(*this)}));  \
+           ALOX.GetConfig().DeletePath(A_CHAR("ALOX")); }                                          \
+        AWorxUnitTesting ut( ::testing::UnitTest::GetInstance()->current_test_info()->name() );    \
+        UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
+  #else
+    #define UT_INIT(...)                                                                           \
+        alib::NAString utSC (__FILE__);                                                            \
+        {                                                                                          \
+            alib::integer idx= utSC.LastIndexOf( alib::lang::system::DIRECTORY_SEPARATOR );        \
+            utSC.DeleteStart( idx + 1 );                                                           \
+            idx= utSC.LastIndexOf( '.' );                                                          \
+            if( idx > 0 )                                                                          \
+                utSC.Delete( idx );                                                                \
+        }                                                                                          \
+        {alib::lang::Owner<alib::threads::SharedLock> ocfg(ALOX.GetConfigLock()                    \
+                                                 ALIB_DBG(, {nullptr,-1,nullptr,&typeid(*this)})); \
+           ALOX.GetConfig().DeletePath(A_CHAR("ALOX")); }                                          \
+        AWorxUnitTesting ut( ::testing::UnitTest::GetInstance()->current_test_info()->name() );    \
+        UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
+  #endif
 
 // ************ Macros using Microsoft Visual Studio UnitTestFramework ************
 #elif defined(_WIN32)
@@ -136,17 +151,17 @@
                                           END_TEST_METHOD_ATTRIBUTE()                        \
                                           TEST_METHOD(m)
 
-    #define UT_INIT(...)        alib::NAString utSC (__FILE__);                                        \
-                                {                                                                      \
-                                    alib::Bootstrap();                                                 \
-                                    alib::integer idx= utSC.LastIndexOf( alib::DirectorySeparator );   \
-                                    utSC.DeleteStart( idx + 1 );                                       \
-                                    idx= utSC.LastIndexOf( '.' );                                      \
-                                    if( idx > 0 )                                                      \
-                                        utSC.Delete( idx );                                            \
-                                }                                                                      \
-                                AWorxUnitTesting ut( aworxTestName );                                  \
-                                UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
+    #define UT_INIT(...) alib::NAString utSC (__FILE__);                                        \
+                         {                                                                      \
+                             alib::Bootstrap();                                                 \
+                             alib::integer idx= utSC.LastIndexOf( alib::lang::system::DIRECTORY_SEPARATOR );  \
+                             utSC.DeleteStart( idx + 1 );                                       \
+                             idx= utSC.LastIndexOf( '.' );                                      \
+                             if( idx > 0 )                                                      \
+                                 utSC.Delete( idx );                                            \
+                         }                                                                      \
+                         AWorxUnitTesting ut( aworxTestName );                                  \
+                         UT_PRINT( "################### Unit Test: {}.{}() ###################", utSC, UT_GET_TEST_NAME );
 
 #else
     #pragma message ("Unknown Testing platform in: " __FILE__ )
@@ -156,17 +171,25 @@
 
 #define  UT_GET_TEST_NAME  ut.ActTestName
 
-#define  UT_PRINT(...   )  { ut.Print (__FILE__, __LINE__, alib::Verbosity::Info   , __VA_ARGS__ ); }
-#define  UT_WARN(...    )  { ut.Print (__FILE__, __LINE__, alib::Verbosity::Warning, __VA_ARGS__ ); }
-#define  UT_EQ(    a,b  )  ut.EQ      (__FILE__, __LINE__,  a,b    );
-#define  UT_NEAR( a,b,d )  ut.Near    (__FILE__, __LINE__,  a,b, d );
-#define  UT_TRUE(  cond )  ut.IsTrue  (__FILE__, __LINE__,  cond   );
-#define  UT_FALSE( cond )  ut.IsFalse (__FILE__, __LINE__,  cond   );
+#define  UT_PRINT(...   )  { ut.Print (ALIB_CALLER, alib::Verbosity::Info   , __VA_ARGS__ ); }
+#define  UT_WARN(...    )  { ut.Print (ALIB_CALLER, alib::Verbosity::Warning, __VA_ARGS__ ); }
+#define  UT_EQ(    a,b  )  ut.EQ      (ALIB_CALLER,  a,b    );
+#define  UT_NEAR( a,b,d )  ut.Near    (ALIB_CALLER,  a,b, d );
+#define  UT_TRUE(  cond )  ut.IsTrue  (ALIB_CALLER,  cond   );
+#define  UT_FALSE( cond )  ut.IsFalse (ALIB_CALLER,  cond   );
+
+#define UT_TEQ(T1,T2)       static_assert( std::is_same<T1 , T2>::value , "Unit test error: types not equal"); 
+#define UT_STRUE( exp )     static_assert(  exp                         , "Is not true");                      
+#define UT_SFALSE( exp )    static_assert( !exp                         , "Is not false");                     
 
 
-// change logging function name
+// change logging function name in caller-info
 #undef  ALIB_CALLER
-#define ALIB_CALLER     __FILE__, __LINE__, UT_GET_TEST_NAME
+#if ALIB_EXT_LIB_THREADS_AVAILABLE
+#   define ALIB_CALLER     {__FILE__, __LINE__, UT_GET_TEST_NAME,::std::this_thread::get_id(),&typeid(*this) }
+#else
+#   define ALIB_CALLER     {__FILE__, __LINE__, UT_GET_TEST_NAME,&typeid(*this) }
+#endif
 
 
 namespace ut_aworx {
@@ -184,9 +207,6 @@ namespace ut_aworx {
 
                       UTVStudioLogger();
             virtual  ~UTVStudioLogger();
-
-            virtual int   AddAcquirer( ThreadLock* newAcquirer );
-            virtual int   RemoveAcquirer( ThreadLock* acquirer );
 
             virtual void logText( alib::lox::detail::Domain&     domain,     alib::lox::Verbosity verbosity,
                                   alib::AString&               msg,
@@ -210,7 +230,7 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
         #endif
         alib::NAString         Domain;
         alib::NCString         ActTestName;
-        bool                    AssertOnFailure= true;
+        bool                   AssertOnFailure= true;
 
         static alib::String128 LastAutoSizes;
         static alib::NAString  GeneratedSamplesDir;
@@ -223,8 +243,8 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
 
     public:
 #if ALIB_ALOX
-        alib::lox::Lox                              lox;
-        alib::lox::detail::textlogger::TextLogger*  utl;
+        alib::lox::Lox                      lox;
+        alib::lox::textlogger::TextLogger*  utl;
 #else
         alib::Boxes      logablesFileAndLine;
         alib::Boxes      logables;
@@ -236,18 +256,18 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
         virtual ~AWorxUnitTesting() override;
 
         template <typename... T>
-        void Print (  const alib::NCString& file, int line, alib::Verbosity verbosity,  T&&... args  )
+        void Print (  const alib::CallerInfo& ci, alib::Verbosity verbosity,  T&&... args  )
         {
-            alib::Boxes& argsBoxed= printPrepare( file, line );
+            alib::BoxesMA& argsBoxed= printPrepare( ci );
             argsBoxed.Add(std::forward<T>( args )...);
             printDo( verbosity, argsBoxed );
         }
 
-        void Failed(  const alib::NCString& file, int line, const alib::Box& exp, const alib::Box& given );
+        void Failed( const alib::CallerInfo& ci, const alib::Box& exp, const alib::Box& given );
 
 
         template<typename T>
-        void WriteResultFile(const alib::NString& name, const T& output, const alib::NString& doxyTag= "//! [OUTPUT]" )
+        void WriteResultFile(const alib::NString& name, const T& output, const alib::NString& doxyTag= "DOX_MARKER( [OUTPUT])" )
         {
             ALIB_DBG(AWorxUnitTesting& ut= *this;) //needed for the assertion, as macro ALIB_CALLER is changed here
             alib::String4K buf; buf.DbgDisableBufferReplacementWarning();
@@ -263,10 +283,10 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
         ATMP_VOID_IF(     ( alib::characters::T_CharArray<TComp1 ALIB_COMMA alib::character>::Access
                                                                 !=alib::characters::AccessType::Implicit)
                       && !std::is_base_of<alib::NString ALIB_COMMA TComp1>::value )
-        EQ( const alib::NCString& file, int line,  TComp1      exp , TComp2  v )
+        EQ( const alib::CallerInfo& ci,  TComp1      exp , TComp2  v )
         {
             if ( v != exp)
-                Failed(file,line, exp, v);
+                Failed(ci, exp, v);
 
             #if ALIB_GTEST
                 EXPECT_EQ   ( exp, v );
@@ -278,19 +298,19 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
         }
 
 
-        void EQ( const alib::NCString& file, int line,  const alib::NString& exp , const alib::NString& v );
-        void EQ( const alib::NCString& file, int line,  const alib::WString& exp , const alib::WString& v );
-        void EQ( const alib::NCString& file, int line,  wchar_t*              exp , wchar_t*              v );
-        void EQ( const alib::NCString& file, int line,       float            exp ,      float            v );
-        void EQ( const alib::NCString& file, int line,       double           exp ,      double           v );
-        void EQ( const alib::NCString& file, int line,  long double           exp , long double           v );
+        void EQ( const alib::CallerInfo& ci,  const alib::NString& exp , const alib::NString& v );
+        void EQ( const alib::CallerInfo& ci,  const alib::WString& exp , const alib::WString& v );
+        void EQ( const alib::CallerInfo& ci,  wchar_t*              exp , wchar_t*              v );
+        void EQ( const alib::CallerInfo& ci,       float            exp ,      float            v );
+        void EQ( const alib::CallerInfo& ci,       double           exp ,      double           v );
+        void EQ( const alib::CallerInfo& ci,  long double           exp , long double           v );
 
         template<typename TComp1, typename TComp2, typename TCompDiff>
-        void Near   ( const alib::NCString& file, int line,  TComp1  exp , TComp2 v, TCompDiff prec )
+        void Near   ( const alib::CallerInfo& ci,  TComp1  exp , TComp2 v, TCompDiff prec )
         {
             bool c= (v < exp ? exp-v : v-exp) <= prec;
             if (!c)
-                Failed(file,line,exp,v);
+                Failed(ci,exp,v);
             #if ALIB_GTEST
                 EXPECT_NEAR ( static_cast<double>(exp), static_cast<double>(v), static_cast<double>(prec) );
             #elif defined(_WIN32)
@@ -301,16 +321,16 @@ class AWorxUnitTesting : public alib::lang::ReportWriter
         }
 
 
-        void IsTrue ( const alib::NCString& file, int line,  bool cond );
-        void IsFalse( const alib::NCString& file, int line,  bool cond );
+        void IsTrue ( const alib::CallerInfo& ci,  bool cond );
+        void IsFalse( const alib::CallerInfo& ci,  bool cond );
 
     protected:
         void            writeResultFile(const alib::NString& name, alib::AString& output, const alib::NString& doxyTag );
-        alib::Boxes&   printPrepare   (const alib::NCString& file, int line  );
-        void            printDo        (alib::Verbosity verbosity, alib::Boxes& args );
+        alib::BoxesMA&  printPrepare   (const alib::lang::CallerInfo& ci  );
+        void            printDo        (alib::Verbosity verbosity, alib::BoxesMA& args );
 };
 
 } // namespace ut_aworx
 
 
-#endif // HPP_AWORX_UNIT_TESTS
+#endif // HPP_ALIB_UNIT_TESTS

@@ -6,21 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_AUTOCAST)
+#if !DOXYGEN
 #   include "alib/expressions/plugins/autocast.hpp"
-#endif
-
-// we are using method ToString
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_STRINGS)
+    // we are using method ToString
 #   include "alib/expressions/plugins/strings.hpp"
-#endif
-
-// ...and method ToBoolean
-#if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_ARITHMETICS)
+    // ...and method ToBoolean
 #   include "alib/expressions/plugins/arithmetics.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 //! @cond NO_DOX
 
@@ -37,7 +29,7 @@
 namespace alib {  namespace expressions { namespace plugins {
 
 AutoCast::AutoCast( Compiler& compiler )
-: CompilerPlugin( "ALib Auto Cast", compiler )
+: CompilerPlugin( "ALib Auto Cast", compiler, CompilePriorities::AutoCast )
 {}
 
 namespace {

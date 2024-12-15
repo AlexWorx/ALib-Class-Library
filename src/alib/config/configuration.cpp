@@ -6,445 +6,444 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_CONFIG_CONFIGURATION)
-#      include "alib/config/configuration.hpp"
-#   endif
-#   if !defined(HPP_ALIB_CONFIG_CONFIG)
-#      include "alib/config/config.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_MONOMEM_HASHSET)
-#      include "alib/monomem/hashset.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/config/configuration.hpp"
+#   include "alib/config/plugins.hpp"
+#   include "alib/config/configcamp.hpp"
+#   include "alib/lang/message/report.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
 
 namespace alib {
 
-
-/** ************************************************************************************************
- * This is the namespace of\alibmod, which implements access, evaluation and writing of
- * configuration variables. Variable data can be load from different sources, for example
- * configuration files, command line parameters, environment variables, or any custom storage type.
- *
- * Please consult \ref alib_mod_config "ALib Module Config - Programmer's Manual"
- * for further information.
- **************************************************************************************************/
+//==================================================================================================
+/// This is the namespace of\alibmod, which implements access, evaluation and writing of
+/// configuration variables. Variable data can be load from different sources, for example
+/// configuration files, command line parameters, environment variables, or any custom storage type.
+///
+/// Please consult \ref alib_mod_config "ALib Module Config - Programmer's Manual"
+/// for further information.
+//==================================================================================================
 namespace config {
 
 
-
-// #################################################################################################
-// Configuration
-// #################################################################################################
-
-Configuration::Configuration( lang::CreateDefaults addPlugins )
+// =================================================================================================
+//  Implementation of class detail::NodeMaintainer
+// =================================================================================================
+namespace detail
 {
-    TrueValues= { A_CHAR("1"), A_CHAR("true"), A_CHAR("t"), A_CHAR("yes"), A_CHAR("y"), A_CHAR("on"), A_CHAR("ok") };
+void ConfigNodeHandler::FreeNode( TTree& tree, typename TTree::Node& node )
+{
+    // delete node name
+    auto& cfg= static_cast<Configuration&>(tree);
+    cfg.Pool.free( const_cast<TTree::CharacterType*>(node.name.storage.Buffer()),
+                                                       size_t(node.name.storage.Length()) * sizeof(TTree::CharacterType) );
 
-    if( addPlugins == lang::CreateDefaults::Yes )
+    // delete vdata
+    Entry& entry= node.data;
+    if( entry.data  )
     {
-        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgDef") ), Priorities::DefaultValues   , lang::Responsibility::Transfer);
-        InsertPlugin( new Environment   (                                ), Priorities::Environment     , lang::Responsibility::Transfer);
-        InsertPlugin( new CLIArgs       (                                ), Priorities::CLI             , lang::Responsibility::Transfer);
-        InsertPlugin( new InMemoryPlugin(CONFIG.GetResource("CfgPlgPro") ), Priorities::ProtectedValues , lang::Responsibility::Transfer);
+        entry.meta->destruct(entry.data, cfg.Pool);
+        cfg.Pool().Free(entry.data, entry.meta->size() );
+    }
+}
+} // namespace detail
+
+// =================================================================================================
+//  Implementation of class Configuration
+// =================================================================================================
+Configuration::Configuration( MonoAllocator& allocator, lang::CreateDefaults createDefaults )
+: StringTree             ( allocator, '/')
+, Pool                   ( allocator )
+, types                  ( allocator )
+, replacementDeclarations( allocator )
+, listeners              ( allocator )
+, BooleanTokens          ( allocator )
+{
+    DbgSetDCSName("Configuration");
+
+    // Register built-in types
+    registerType<alib::config::detail::VMeta_Bool                 >();
+    registerType<alib::config::detail::VMeta_integer              >();
+    registerType<alib::config::detail::VMeta_float               >();
+    registerType<alib::config::detail::VMeta_Box                  >();
+    registerType<alib::config::detail::VMeta_String               >();
+    registerType<alib::config::detail::VMeta_StringVectorComma    >();
+    registerType<alib::config::detail::VMeta_StringVectorSemicolon>();
+
+    // read boolean false/true values from resources
+    if( createDefaults == lang::CreateDefaults::Yes)
+    {
+        Token tokenBuf[10];
+        Token::LoadResourcedTokens( CONFIG, "BTF", tokenBuf ALIB_DBG(, 10) );
+        for (int i = 0; i < 10; i+= 2 )
+            BooleanTokens.EmplaceBack(tokenBuf[i], tokenBuf[i+1]);
+
+        // create default plugins
+        auto& ma= GetAllocator();
+        InsertPlugin( environmentPlugin= ma().New<EnvironmentVariablesPlugin>(ma) );
+        InsertPlugin(         cliPlugin= ma().New<        CLIVariablesPlugin>(ma) );
     }
 }
 
-
-int Configuration::FetchFromDefault( ConfigurationPlugin& dest, const String& sectionName  )
+Configuration::~Configuration()
 {
-    InMemoryPlugin* defaultPlugin= GetPluginTypeSafe<InMemoryPlugin>( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
-                       "Utility method FetchFromDefault used without default plugin in place." )
+    // we have to delete all nodes before the invocation of the base destructor, because
+    // this would use our pool allocator on existing nodes (which is then destructed already).
+    base::Clear();
 
-    int cntCopied= 0;
-    Variable variable;
-    for( auto& section : defaultPlugin->sections )
-    {
-        if( sectionName.IsNotEmpty() && !sectionName.Equals( section.Name() ) )
-            continue;
-
-        for( auto entryIt= section.entries.begin() ; entryIt != section.entries.end() ; ++entryIt )
-        {
-            if( !dest.Load( variable.Declare( section.name, entryIt->Name() ), true ) )
-            {
-                defaultPlugin->Load  ( variable );
-                dest.Store( variable );
-                ++cntCopied;
-            }
-        }
-    }
-
-    return  cntCopied;
+    ALIB_ASSERT_WARNING( listeners.IsEmpty(), "CONFIG",
+         "Remaining registered listeners when destruction configuration.")
 }
 
-bool Configuration::IsTrue( const String& value )
-{
-    for ( auto& it : TrueValues )
-        if ( value.Equals<false, lang::Case::Ignore>( it ) )
-            return true;
-
-    return false;
-}
-
-
-
-// #############################################################################################
-// Load/Store
-// #############################################################################################
-Priorities Configuration::Load( Variable& variable )
-{
-    variable.SetConfig  (this);
-    variable.SetPriority( loadImpl( variable, true ) );
-
-    if (    variable.Priority()    == Priorities::NONE
-         && variable.DefaultValue().IsNotNull()         )
-    {
-        Store( variable, variable.DefaultValue() );
-
-        // if this now did not set the values although we have a default value, then
-        // no plug-in seemed to be able to store the variable. Nevertheless, we need to
-        // set the default value, as loading failed.
-        if( variable.Size() == 0 && variable.DefaultValue() != NullString() )
-            XTernalizer().LoadFromString( variable, variable.DefaultValue() );
-    }
-    return variable.Priority();
-}
-
-Priorities Configuration::Store( Variable& variable, const String& externalizedValue )
+void Configuration::registerListener( ConfigurationListener*         listener,
+                                          lang::ContainerOp              insertOrRemove,
+                                          int                            event,
+                                          const Variable*                variable,
+                                          const StringTree::Cursor*      subTree,
+                                          const String&                  variableName,
+                                          const String&                  pathPrefixGiven,
+                                          const String&                  pathSubstring  )
 {
     // checks
-    if( externalizedValue.IsNull() )
-    {
-        if ( variable.Name().IsEmpty())
-        {
-            ALIB_ERROR( "CONFIG", "Trying to store an undefined variable."  )
-            return Priorities::NONE;
-        }
+    ALIB_ASSERT_ERROR( variable==nullptr ||  variable->IsDeclared()              , "CONFIG", "Given variable not declared.")
+    ALIB_ASSERT_ERROR( variable==nullptr || &variable->AsCursor().Tree() == this , "CONFIG", "Given variable does not belong to this configuration.")
+    ALIB_ASSERT_ERROR( subTree ==nullptr ||  subTree->IsValid()                  , "CONFIG", "Invalid cursor given."       )
+    ALIB_ASSERT_ERROR( subTree ==nullptr || &subTree            ->Tree() == this , "CONFIG", "Given cursor does not belong to this configuration.")
 
-        if ( variable.Size() > 1 && variable.Delim() == '\0' )
-        {
-            ALIB_ERROR( "CONFIG", "Trying to store variable {!Q} which has multiple values "
-                                  "set but no delimiter defined.", variable.Fullname() )
-            return Priorities::NONE;
-        }
+    // remove / from path
+    const String pathPrefix= pathPrefixGiven.CharAtStart() == StringTree::Separator()
+                             ? pathPrefixGiven.Substring(1)
+                             : pathPrefixGiven;
+
+    // ---------------- registration ---------------------
+    if( insertOrRemove == lang::ContainerOp::Insert)
+    {
+        listeners.EmplaceBack( ListenerRecord{ listener,
+                                               event,
+                                               variable ? variable->AsCursor().Export() : ConstCursorHandle(),
+                                               subTree  ? subTree->            Export() : ConstCursorHandle(),
+                                               AStringPA(Pool),
+                                               AStringPA(Pool),
+                                               AStringPA(Pool)   } );
+        listeners.Back().variableName << variableName;
+        listeners.Back().pathPrefix   << pathPrefix;
+        listeners.Back().pathSubstring<< pathSubstring;
+
+        return;
     }
 
-    // set us as config
-    variable.SetConfig( this );
+    // ---------------- de-registration ---------------------
+    for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
+        if(     it->listener == listener
+            &&  it->event    == event
+            &&  it->variable == ( variable ? variable->AsCursor().Export() : ConstCursorHandle() )
+            &&  it->subTree  == ( subTree  ? subTree            ->Export() : ConstCursorHandle() )
+            &&  it->variableName .Equals( variableName )
+            &&  it->pathPrefix   .Equals( pathPrefix )
+            &&  it->pathSubstring.Equals( pathSubstring )    )
+        {
+            (void) listeners.Erase( it );
+            return;
+        }
 
-    // detect?
-    if ( variable.Priority() <= Priorities::NONE )
-    {
-        variable.SetPriority( Priorities::NONE );
-        for ( auto& ppp : plugins )
-            if ( ppp.plugin->Load( variable, true ) )
+    ALIB_WARNING( "CONFIG", "Listener with matching set of parameters not found with deregistration." )
+
+}  // Configuration::registerListener
+
+
+int Configuration::MonitorStop( ConfigurationListener*  listener )
+{
+    // checks
+    ALIB_ASSERT_ERROR( listener!=nullptr, "CONFIG", "Given listener is nullptr.")
+
+    // ---------------- de-registration ---------------------
+    int cnt= 0;
+    for (auto it= listeners.begin() ; it != listeners.end() ; )
+        if( it->listener == listener )
+        {
+            it= listeners.Erase( it );
+            ++cnt;
+        }
+        else
+             ++it;
+
+    return cnt;
+}  // Configuration::registerListener
+
+void Configuration::notifyListeners(  int               event,
+                                          const Variable&   variable,
+                                          const String&     variablePathGiven,
+                                          Priority          previousPriority  )
+{
+    String256       variablePathBuffer;
+    const String*   variablePath= &variablePathGiven;
+    for (auto it= listeners.begin() ; it != listeners.end() ; ++it )
+        if( event == it->event )
+        {
+            // if needed generate variable path
+            if(     variablePath->IsEmpty()
+                &&  (   it->variableName .IsNotEmpty()
+                     || it->pathPrefix   .IsNotEmpty()
+                     || it->pathSubstring.IsNotEmpty() )     )
             {
-                variable.SetPriority( ppp.priority );
-                break;
+                variablePathBuffer << variable;
+                variablePath= &variablePathBuffer;
             }
 
-        if( variable.Priority() == Priorities::ProtectedValues )
+            if(    ( it->variable     .IsValid()    && ( it->variable ==  variable.AsCursor().Export() ) )
+                || ( it->subTree      .IsValid()    && ( variable.AsCursor().Distance( ImportCursor(it->subTree) ) >= 0 ) )
+                || ( it->variableName .IsNotEmpty() && it->variableName.Equals(variable.AsCursor().Name()) )
+                || ( it->pathPrefix   .IsNotEmpty() && variablePath->StartsWith(it->pathPrefix) )
+                || ( it->pathSubstring.IsNotEmpty() && variablePath->IndexOf(it->pathSubstring) >= 0 )
+               )
+            {
+                it->listener->Notify( variable,
+                                      ConfigurationListener::Event(event),
+                                      previousPriority                        );
+            }
+     }
+} // Configuration::notifyListeners
+
+
+void Configuration::presetImportString(const String& name, const String& value,
+                                                   const StringEscaper* escaper,   Priority priority)
+{
+    auto cursor= Root();
+    cursor.GoToCreateChildIfNotExistent(A_CHAR("$PRESETS"));
+
+    // nullptr given? Delete a preset.
+    if( value.IsNull() )
+    {
+        if( cursor.GoTo(name).IsNotEmpty() )
+            return; // nothing was previously set
+
+        auto& entry= *cursor;
+        if( entry.priority > priority )
+            return; // do not delete if lower priority!
+
+        if( entry.data )
         {
-            variable.SetPriority( Priorities::NONE);
-            return Priorities::NONE;
+            entry.meta->destruct( entry.data, Pool );
+            Pool().Free( entry.data, entry.meta->size() );
+            entry.meta= nullptr;
+            entry.data= nullptr;
+            entry.priority= Priority::NONE;
         }
+
+        // delete this node, but only if it is a leaf.
+        if( !cursor.HasChildren() )
+            cursor.Delete();
+
+        return;
     }
 
-    // new variables go to default
-    if ( variable.Priority() == Priorities::NONE )
-        variable.SetPriority( Priorities::DefaultValues);
 
-    // store
-    for ( auto& ppp : plugins )
-        if (    ppp.priority <= variable.Priority()
-             && ppp.plugin->Store( variable, externalizedValue ) )
-            {
-                variable.SetPriority(ppp.priority);
-                return ppp.priority;
-            }
+    // set-mode
+    cursor.GoToCreatedPathIfNotExistent(name);
 
-    variable.SetPriority( Priorities::NONE );
-    return Priorities::NONE;
+    // create a fake variable. We do not do this using the variable class, because this would
+    // raise assertions.
+    auto& entry= *cursor;
+    if( entry.data == nullptr )
+    {
+        auto it= types.Find(A_CHAR("S"));
+        ALIB_ASSERT_ERROR( it != types.end(), "CONFIG",
+                           "Variable type 'S' not registered. This usually cannot happen." )
+        auto*  meta= entry.meta= *it;
+
+        // initialize fields
+        entry.data   =  reinterpret_cast<detail::VDATA*>(Pool().Alloc( meta->size(), alignof(detail::VDATA)));
+        meta->construct( cursor->data, Pool );
+        entry.priority= priority;
+    }
+
+    if( entry.priority <= priority )
+    {
+        entry.priority   = priority;
+        entry.declaration= reinterpret_cast<const Declaration*>( escaper );
+        (Variable(cursor))= value;
+    }
 }
-
-
-// #################################################################################################
- // convenience methods using Configuration::Default singleton
- // #################################################################################################
-Priorities  Configuration::StoreDefault( Variable& variable, const String& externalizedValue )
-{
-    ConfigurationPlugin* defaultPlugin= GetPlugin( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
-                       "Utility method StoreDefault used without default plugin in place." )
-
-    if ( externalizedValue.IsNotNull() )
-        defaultPlugin->StringConverter->LoadFromString( variable, externalizedValue );
-
-    if ( variable.Size() == 0 && variable.DefaultValue().IsNotNull() )
-        defaultPlugin->StringConverter->LoadFromString( variable, variable.DefaultValue() );
-
-    variable.SetPriority( Priorities::DefaultValues );
-    return Store( variable, NullString() );
-}
-
-Priorities  Configuration::Protect( Variable& variable, const String& externalizedValue )
-{
-    ConfigurationPlugin* protectedPlugin= GetPlugin( Priorities::ProtectedValues );
-
-    if ( externalizedValue.IsNotNull() )
-        protectedPlugin->StringConverter->LoadFromString( variable, externalizedValue );
-
-    if ( variable.Size() == 0 && variable.DefaultValue().IsNotNull() )
-        protectedPlugin->StringConverter->LoadFromString( variable, variable.DefaultValue() );
-
-    ALIB_ASSERT_ERROR( protectedPlugin, "CONFIG",
-                       "Utility method Protect used without default plugin in place." )
-
-    variable.SetPriority( Priorities::ProtectedValues );
-    return Store( variable, NullString() );
-}
-
-integer  Configuration::LoadFromString( Variable& variable, const String& externalizedValue )
-{
-    ConfigurationPlugin* defaultPlugin= GetPlugin( Priorities::DefaultValues );
-    ALIB_ASSERT_ERROR( defaultPlugin, "CONFIG",
-                       "Utility method LoadFromString used without default plugin in place." )
-    defaultPlugin->StringConverter->LoadFromString( variable, externalizedValue );
-    return  variable.Size();
-}
-
 
 // #############################################################################################
-// internals
+// Declaration replacement allocation
 // #############################################################################################
-Priorities  Configuration::loadImpl( Variable& variable, bool substitute )
+const Declaration* Configuration::StoreDeclaration( const Declaration* orig, const Box& replacements )
 {
-    variable.ClearValues();
-    if ( variable.Name().IsEmpty() )
+    //------------- prepare replacement -------------
+    String128 replace;
+
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    const Box*  replacementPtr;
+    integer     qtyReplacements;
+         if ( replacements.IsArrayOf<Box>() )
     {
-        ALIB_WARNING( "CONFIG", "Empty variable name given" )
-        return Priorities::NONE;
+        replacementPtr = replacements.UnboxArray<Box>();
+        qtyReplacements= replacements.UnboxLength();
+    }
+    else if ( replacements.IsType<BoxesHA*>() )
+    {
+        const auto* boxes= replacements.Unbox<BoxesHA*>();
+        replacementPtr = boxes->data();
+        qtyReplacements= boxes->Size();
+    }
+    else if ( replacements.IsType<BoxesMA*>() )
+    {
+        const auto* boxes= replacements.Unbox<BoxesMA*>();
+        replacementPtr = boxes->data();
+        qtyReplacements= boxes->Size();
+    }
+    else if ( replacements.IsType<BoxesPA*>() )
+    {
+        const auto* boxes= replacements.Unbox<BoxesPA*>();
+        replacementPtr = boxes->data();
+        qtyReplacements= boxes->Size();
+    }
+    else
+    {
+        replacementPtr = &replacements;
+        qtyReplacements= 1;
     }
 
-    // search variable
-    Priorities priority= Priorities::NONE;
-    for ( auto& ppp : plugins )
-        if ( ppp.plugin->Load( variable ) )
+    //------------- replace name -------------
+    String256 bufName;              ALIB_DBG( bufName    .DbgDisableBufferReplacementWarning() );
+    bufName         << orig->EnumElementName;
+
+    for ( integer  replCnt= 0; replCnt< qtyReplacements ; ++replCnt )
+        if ( !replacementPtr->IsType<void>() )
         {
-            priority= ppp.priority;
-            break;
+            String64  search("%"); search._( replCnt + 1 );
+            replace.Reset( *( replacementPtr + replCnt) );
+            bufName    .SearchAndReplace( search, replace );
         }
 
-    // no substitution or not found?
-    if ( !substitute || priority == Priorities::NONE )
-        return priority;
-
-    // substitution in all values of variable
-    String512 valBuffer; valBuffer.DbgDisableBufferReplacementWarning();
-    for ( int valueNo= 0; valueNo < variable.Size(); ++valueNo )
+    // search in hashtable
     {
-        integer searchStartIdx  =  0;
-        int     maxReplacements = 50;
-        do
-        {
-            const String& value= variable.GetString( valueNo );
-
-            // search start
-            integer repStart= value.IndexOf( SubstitutionVariableStart, searchStartIdx );
-            if ( repStart < 0 )
-                break;
-            searchStartIdx= repStart;
-            integer varStart= repStart + SubstitutionVariableStart.Length();
-
-            integer repLen;
-            integer varLen;
-
-            // search end in two different ways depending on setting of public field "SubstitutionVariableEnd"
-            if ( SubstitutionVariableEnd.IsEmpty() )
-            {
-                integer idx=   value.IndexOfAny<lang::Inclusion::Include>( SubstitutionVariableDelimiters, varStart );
-                if ( idx < 0 )
-                    idx= value.Length();
-
-                varLen= idx - varStart;
-                repLen= idx - repStart;
-            }
-            else
-            {
-                integer idx=   value.IndexOf   ( SubstitutionVariableEnd, varStart );
-                if (idx < 0 )
-                {
-                    ALIB_WARNING( "CONFIG", "End of substitution variable not found (while start was found). "
-                                  "Variable name: {} Value: {!Q}.",
-                                  variable.Fullname(), variable.GetString()  )
-                    break;
-                }
-
-                varLen= idx - varStart;
-                repLen= idx + SubstitutionVariableEnd.Length() - repStart;
-            }
-
-            // get variable name string
-            Substring    replVarCategory(nullptr);
-            Substring    replVarName= value.Substring( varStart, varLen );
-            if ( replVarName.IsEmpty() )
-            {
-                searchStartIdx+=   SubstitutionVariableStart.Length()
-                                 + SubstitutionVariableEnd.Length();
-                continue;
-            }
-
-            // parse category from name
-            integer catSeparatorIdx= replVarName.IndexOf( '_' );
-            if (catSeparatorIdx >= 0 )
-            {
-                replVarCategory= replVarName.Substring<false>( 0, catSeparatorIdx );
-                replVarName    = replVarName.Substring       ( catSeparatorIdx + 1);
-            }
-
-            // load replacement variable
-            if ( replVarName.IsNotEmpty() )
-            {
-                tempVar.Declare( replVarCategory, replVarName, variable.Delim() );
-                loadImpl( tempVar, false );
-            }
-            else
-                tempVar.Reset();
-
-            // do the replacement (even if no variable was found)
-            if ( tempVar.Size() > 1 )
-            {
-                variable.ReplaceValue( valueNo, tempVar );
-
-                // repeat replacements in current value, as current value changed
-                --valueNo;
-                break;
-            }
-            else
-            {
-                valBuffer.Reset(value);
-                if ( tempVar.Size() == 1 )
-                    valBuffer.ReplaceSubstring<false>( tempVar.GetString(), repStart, repLen );
-                else
-                    valBuffer.Delete<false>( repStart, repLen );
-                variable.ReplaceValue( valueNo, valBuffer );
-            }
-
-        }
-        while( --maxReplacements );
-
-        // warn if max replacements
-        if( maxReplacements <= 0 )
-        {
-            ALIB_WARNING( "CONFIG", "Too many substitutions in variable {!Q}. "
-                          "Probably a recursive variable definition?", variable.Fullname() )
-        }
+        auto it= replacementDeclarations.Find( bufName );
+        if( it != replacementDeclarations.end() )
+            return *it;
     }
-    return priority;
+
+    // not found, we have to create a new one
+    String1K  bufComments;       ALIB_DBG( bufComments    .DbgDisableBufferReplacementWarning() );
+    String128 bufDefaultValue;   ALIB_DBG( bufDefaultValue.DbgDisableBufferReplacementWarning() );
+    bufComments         << orig->comments;
+    if ( orig->defaultValue.IsNotNull() )
+        bufDefaultValue << orig->defaultValue;
+
+    for ( integer  replCnt= 0; replCnt< qtyReplacements ; ++replCnt )
+        if ( !replacementPtr->IsType<void>() )
+        {
+            String64  search("%"); search._( replCnt + 1 );
+            replace.Reset( *( replacementPtr + replCnt) );
+            bufComments    .SearchAndReplace( search, replace );
+            bufDefaultValue.SearchAndReplace( search, replace );
+        }
+
+    ALIB_WARNINGS_RESTORE
+
+    // --------------------- create copy ---------------------
+    Declaration* result    = GetAllocator()().New<Declaration>();
+    result->EnumElementName.Allocate(GetAllocator(), bufName);
+    result->typeName       = orig->typeName;
+    result->defaultValue   .Allocate(GetAllocator(), bufDefaultValue);
+    result->comments       .Allocate(GetAllocator(), bufComments);
+    replacementDeclarations.EmplaceUnique(result);
+
+    return result;
 }
 
-
-// #################################################################################################
-// Iterator
-// #################################################################################################
-//! @cond NO_DOX
-namespace {
-
-class IteratorImpl : public Configuration::Iterator
+// #############################################################################################
+// Other tools
+// #############################################################################################
+std::pair<bool,int8_t> Configuration::ParseBooleanToken( const String& pValue )
 {
-    Configuration&                  config;
-    String                          sectionName;
+    int8_t index= 0;
+    Substring value(pValue);
+    if( value.Trim().IsEmpty() )
+        return {false, int8_t(-1)};
 
-    MonoAllocator                   allocator;
-    HashSet<String>                 variablesFound;
-
-    ConfigurationPlugin::Iterator*  pluginIt;
-
-    integer                         nextPlugin;
-
-    public:
-
-    IteratorImpl( Configuration& configuration, const String& pSectionName )
-    : config        (configuration)
-    , sectionName   (pSectionName)
-    , allocator     (4096)
-    , variablesFound(&allocator)
-    , pluginIt      (nullptr)
-    , nextPlugin    (0)
-    {}
-
-    virtual ~IteratorImpl()                                                                 override
+    for ( auto& it : BooleanTokens )
     {
-        if( pluginIt )
-            delete pluginIt;
+        if ( it.first .Match(value)  ) return {false, index};
+        if ( it.second.Match(value)  ) return {true , index};
+        ++index;
     }
-
-    void ResetToSection( const String& pSectionName )                                       override
-    {
-        sectionName= pSectionName;
-        variablesFound.Reset();
-        allocator.Reset();
-        if( pluginIt )
-        {
-            delete pluginIt;
-            pluginIt= nullptr;
-        }
-        nextPlugin= 0;
-
-    }
-
-
-    virtual bool            Next()                                                          override
-    {
-        for(;;)
-        {
-            // next plugin?
-            while( pluginIt == nullptr )
-            {
-                // end of iteration?
-                if( nextPlugin >= config.CountPlugins() )
-                    return false;
-
-                // It might be that a plug-in is not iterable and returns nullptr.
-                // Therefore the while loop
-                pluginIt= config.GetPlugin( nextPlugin++ )->GetIterator( sectionName );
-            }
-
-            // continue in case of end of plugin vars
-            if( !pluginIt->Next(Actual) )
-            {
-                delete pluginIt;
-                pluginIt= nullptr;
-                continue;
-            }
-
-            // check if variable already existed
-            if( variablesFound.InsertIfNotExistent( Actual.Name() ).second == false )
-                continue;
-
-            // set the config field and return success!
-            Actual.SetConfig( &config );
-            return true;
-        }
-    }
-};
-
-} // anonymous namespace
-
-Configuration::Iterator*       Configuration::GetIterator( const String& sectionName )
-{
-    return new IteratorImpl( *this, sectionName );
+    return {false, int8_t(-1)};
 }
-//! @endcond
+
+AString& Configuration::WriteBooleanToken( bool value, int8_t idxRequested, AString& dest )
+{
+    // find the right pair of tokens
+    if(idxRequested < 0)
+        idxRequested= 0;
+
+    auto it= BooleanTokens.begin();
+    for( int8_t index=0 ; index < idxRequested && it != BooleanTokens.end() ; ++index )
+        ++it;
+
+    if( it == BooleanTokens.end() )
+        it= BooleanTokens.begin();
+
+    // use first (false) or second (true) to write
+    (!value ? it->first : it->second).GetExportName( dest );
+    return dest;
+}
+
+bool Configuration::DeletePath( const String& path )
+{
+DOX_MARKER( [DOX_CONFIG_DELETE_SAMPLE] )
+// get root node of the tree
+Cursor cs= Root();
+
+// try to walk the givedn path. If a remainder of the string exits, exit.
+if( cs.GoTo(path).IsNotEmpty() )
+    return false;
+
+// now delete the subtree, including the node the cursor represents
+cs.Delete();
+
+// that's it
+return true;
+DOX_MARKER( [DOX_CONFIG_DELETE_SAMPLE] )
+}
 
 }} // namespace [alib::config]
+
+
+// #################################################################################################
+// struct T_Append<Variable>
+// #################################################################################################
+#if !DOXYGEN
+
+namespace alib::strings {
+
+void T_Append<config::Variable,nchar, lang::HeapAllocator>::operator()( TAString<nchar, lang::HeapAllocator>& target, const config::Variable& variable )
+{
+#if ALIB_CHARACTERS_WIDE
+    String256 name;
+    variable.Name(name);
+    target << name;
+#else
+    variable.Name(target);
+#endif
+
+}
+
+void T_Append<config::Variable,wchar, lang::HeapAllocator>::operator()( TAString<wchar, lang::HeapAllocator>& target, const config::Variable& variable )
+{
+#if ALIB_CHARACTERS_WIDE
+    variable.Name(target);
+#else
+    String256 name;
+    variable.Name(name);
+    target << name;
+#endif
+}
+
+
+} // namespace [alib::strings]
+#endif // ALIB_DOX
+
+

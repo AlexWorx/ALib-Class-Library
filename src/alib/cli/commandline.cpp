@@ -6,19 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_CLI_COMMANDLINE)
+#if !DOXYGEN
 #   include "alib/cli/commandline.hpp"
-#endif
-
-#if !defined (HPP_ALIB_CLI_CLIUTIL)
 #   include "alib/cli/cliutil.hpp"
-#endif
-
-#if !defined (HPP_ALIB_LANG_BASECAMP)
 #   include "alib/lang/basecamp/basecamp.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 
 namespace alib::cli {
@@ -32,17 +24,17 @@ void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
     Resources       =  resourcePool;
     ResourceCategory=  resCategory;
 
-    ArgStrings.reserve( static_cast<size_t>(ArgC) );
-    ArgsLeft  .reserve( static_cast<size_t>(ArgC) );
+    ArgStrings.reserve( size_t(ARG_C) );
+    ArgsLeft  .reserve( size_t(ARG_C) );
 
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
 
     #if !ALIB_CHARACTERS_WIDE
-        if( ArgVN )
+        if( ARG_VN )
         {
-            for ( int i= 1; i < ArgC ; ++i )
+            for ( int i= 1; i < ARG_C ; ++i )
             {
-                ArgStrings.emplace_back( ArgVN[i] );
+                ArgStrings.emplace_back( ARG_VN[i] );
                 ArgsLeft  .emplace_back( i -1      );
             }
         }
@@ -52,20 +44,20 @@ void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
             NString1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ArgC ; ++i )
+            for ( int i= 1; i < ARG_C ; ++i )
             {
-                converter.Reset() << ArgVW[i];
-                ArgStrings.emplace_back( allocator.EmplaceString(converter) );
-                ArgsLeft  .emplace_back( i - 1                              );
+                converter.Reset() << ARG_VW[i];
+                ArgStrings.emplace_back( String( allocator, converter) );
+                ArgsLeft  .emplace_back( i - 1 );
             }
         }
     #else
         #if ALIB_CHARACTERS_NATIVE_WCHAR // use original strings only if alib::wchar == wchar_t
-        if( ArgVW )
+        if( ARG_VW )
         {
-            for ( int i= 1; i < ArgC ; ++i )
+            for ( int i= 1; i < ARG_C ; ++i )
             {
-                ArgStrings.emplace_back( ArgVW[i] );
+                ArgStrings.emplace_back( ARG_VW[i] );
                 ArgsLeft  .emplace_back( i - 1           );
             }
         }
@@ -76,11 +68,11 @@ void   CommandLine::Init( ResourcePool* resourcePool, NCString resCategory )
             String1K converter;
             converter.DbgDisableBufferReplacementWarning();
 
-            for ( int i= 1; i < ArgC ; ++i )
+            for ( int i= 1; i < ARG_C ; ++i )
             {
-                converter.Reset() << ArgVN[i];
-                ArgStrings.emplace_back( allocator.EmplaceString(converter) );
-                ArgsLeft  .emplace_back( i -1                       );
+                converter.Reset() << ARG_VN[i];
+                ArgStrings.emplace_back( String(allocator, converter) );
+                ArgsLeft  .emplace_back( i -1                      );
             }
         }
     #endif
@@ -98,7 +90,7 @@ void CommandLine::ReadOptions()
     while( argIdx < static_cast<integer>(ArgsLeft.size()) )
     {
         // get arg number and string once
-        auto   argNo=  ArgsLeft[static_cast<size_t>(argIdx)];
+        auto   argNo=  ArgsLeft[size_t(argIdx)];
         String arg  =  GetArg(argNo);
 
         SHORTCUT_JUMP:
@@ -110,9 +102,9 @@ void CommandLine::ReadOptions()
             continue;
         }
 
-        // create an option object and search decl with actual argument
+        // create an option object and search decl with the actual argument
         {
-            Option* option= allocator.Emplace<Option>(this);
+            Option* option= allocator().New<Option>(this);
 
             auto optionDeclIt= OptionDecls.begin();
             try
@@ -132,7 +124,7 @@ void CommandLine::ReadOptions()
             }
 
             // found a declaration?
-            if( option->QtyArgsConsumed > 0 )
+            if( option->ConsumedArguments > 0 )
             {
                 // shortcut to another option?
                 OptionDecl& decl= *option->Declaration;
@@ -144,7 +136,7 @@ void CommandLine::ReadOptions()
 
                 // delete args and continue
                 ArgsLeft.erase( ArgsLeft.begin() + argIdx,
-                                ArgsLeft.begin() + argIdx +  option->QtyArgsConsumed );
+                                ArgsLeft.begin() + argIdx +  option->ConsumedArguments );
 
                 // move local option into the monotonic memory add to the list for this option type.
                 Options.PushBack( option );
@@ -178,8 +170,8 @@ void CommandLine::ReadNextCommands()
     while( lastCommandFullyParsed &&  ArgsLeft.size() > 0 )
     {
         // create a command object and search decl with actual argument
-        Command* command= allocator.Emplace<Command>(this);
-        ALIB_ASSERT_ERROR( CommandDecls.Size() > 0,  "CLI", "No commands declared." )
+        Command* command= allocator().New<Command>(this);
+        ALIB_ASSERT_ERROR( CommandDecls.Count() > 0,  "CLI", "No commands declared." )
         for( auto* commandDecl : CommandDecls )
         {
             try
@@ -194,7 +186,7 @@ void CommandLine::ReadNextCommands()
                 throw;
             }
 
-            if( command->QtyArgsConsumed > 0 )
+            if( command->ConsumedArguments > 0 )
             {
                 CommandsParsed.PushBack( command );
                 if( NextCommandIt == CommandsParsed.end() )
@@ -232,7 +224,7 @@ Command* CommandLine::NextCommand()
 String  CommandLine::PopArg()
 {
     if( ArgsLeft.size() == 0)
-        return NullString();
+        return NULL_STRING;
 
     String result= GetArg(ArgsLeft[0]);
     ArgsLeft.erase( ArgsLeft.begin() );

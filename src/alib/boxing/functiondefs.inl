@@ -1,20 +1,22 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_boxing of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_boxing of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_BOXING_FUNCTIONDEFS
 #define HPP_ALIB_BOXING_FUNCTIONDEFS 1
-
+#pragma once
 #if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
-namespace alib {  namespace boxing  {
+#include "alib/lang/callerinfo_functions.hpp"
 
-#if !defined(ALIB_DOX)
+namespace alib { namespace boxing  {
+
+#if !DOXYGEN
 
     template<typename TComparable>
 ATMP_T_IF(bool, !ATMP_IS_PTR(TComparable) )  FEquals::ComparableTypes( const Box& self, const Box& rhsBox )
@@ -67,7 +69,7 @@ ATMP_T_IF(bool, ATMP_IS_PTR(TComparableP) )  FIsLess::ComparableTypes( const Box
     return *lhs < *rhs;
 }
 
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 template<size_t N>
 size_t FHashcode::UsePlaceholderBytes( const Box& self )
@@ -83,7 +85,7 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
 
         // smaller than first "word"
         if constexpr( N < sizeof( uinteger ) )
-            return static_cast<size_t>( (  self.Data().GetUInteger(0)
+            return size_t( (  self.Data().GetUInteger(0)
                                           & ((Bit1 << (N * 8) )- 1)   )   * 92334534 )
                    + result;
 
@@ -96,7 +98,7 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
         // tests if smaller than second "word"
         else if constexpr ( N - sizeof( uinteger ) < sizeof( uinteger ) )
         {
-            return static_cast<size_t>( (   self.Data().GetUInteger(1)
+            return size_t( (   self.Data().GetUInteger(1)
                                           & ((Bit1 << ((N - sizeof(uinteger)) * 8) )- 1)   )   * 892112 )
                    + result;
         }
@@ -105,23 +107,23 @@ size_t FHashcode::UsePlaceholderBytes( const Box& self )
     ALIB_WARNINGS_RESTORE
 }
 
-#if ALIB_STRINGS && !defined(ALIB_DOX)
-template<typename TChar>
+#if ALIB_STRINGS && !DOXYGEN
+template<typename TChar, typename TAllocator>
 template<typename TAppendable>
 ATMP_VOID_IF( !ATMP_IS_PTR(TAppendable) )
-FAppend<TChar>::Appendable( const Box& self, strings::TAString<TChar>& target )
+FAppend<TChar,TAllocator>::Appendable( const Box& self, strings::TAString<TChar, TAllocator>& target )
 {
-    target.template Append<false>( self.Unbox<TAppendable>() );
+    target.template Append<NC>( self.Unbox<TAppendable>() );
 }
 
-template<typename TChar>
+template<typename TChar, typename TAllocator>
 template<typename TAppendable>
 ATMP_VOID_IF(  ATMP_IS_PTR(TAppendable) )
-FAppend<TChar>::Appendable( const Box& self, strings::TAString<TChar>& target )
+FAppend<TChar,TAllocator>::Appendable( const Box& self, strings::TAString<TChar, TAllocator>& target )
 {
     auto pointer= self.Unbox<TAppendable>();
     if( pointer )
-        target.template Append<false>( *pointer );
+        target.template Append<NC>( *pointer );
     else
     {
         #if ALIB_DEBUG
@@ -132,13 +134,16 @@ FAppend<TChar>::Appendable( const Box& self, strings::TAString<TChar>& target )
 
 }
 
-template<typename TChar>
+template<typename TChar, typename TAllocator>
 template<typename TAppendable>
-void FAppend<TChar>::WrappedAppendable( const Box& self, strings::TAString<TChar>& target)
+void FAppend<TChar,TAllocator>::WrappedAppendable( const Box& self, strings::TAString<TChar, TAllocator>& target)
 {
-    target.template _<false>( self.Unbox<std::reference_wrapper<TAppendable>>().get() );
+    target.template _<NC>( self.Unbox<std::reference_wrapper<TAppendable>>().get() );
 }
-#endif // defined(ALIB_DOX)
+#endif // DOXYGEN
 }} // namespace [alib::boxing]
 
+#include "alib/lang/callerinfo_methods.hpp"
+
 #endif // HPP_ALIB_BOXING_FUNCTIONDEFS
+

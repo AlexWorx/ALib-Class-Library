@@ -5,7 +5,7 @@
 //  Copyright 2024 A-Worx GmbH, Germany
 //  Published under Boost Software License (a free software license, see LICENSE.txt)
 // #################################################################################################
-#include "alib/compatibility/std_characters.hpp"
+#include "alib/compatibility/std_strings.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/lang/format/formatterpythonstyle.hpp"
 
@@ -36,15 +36,28 @@ void AppendToAString( const Box& box )
     std::cout << aString << std::endl;
 }
 
+// we "misuse" this sample application to document some feature of module Monomem
+DOX_MARKER([DOX_MONOMEM_GLOBALALLOCATOR_CHANGE_DEFAULT])
+#include "alib/monomem/globalallocator.hpp"
 
-int main()
+int main( int argc, const char** argv )
 {
+    // before bootstrapping, we initialize the global allocator "manually" to determine
+    // the size of its initial buffer ourselves:
+    new (&alib::monomem::GLOBAL_ALLOCATOR) MonoAllocator(ALIB_DBG("GlobalAllocator", ) 1234, 150);
+
     // it is important to initialize ALib once on bootstrap
+    alib::ARG_C = argc;
+    alib::ARG_VN= argv;
     alib::Bootstrap();
+
+    //...
+    //...
+DOX_MARKER([DOX_MONOMEM_GLOBALALLOCATOR_CHANGE_DEFAULT])
 
     // Simple appending of different boxed types to an AString.
     // Note: This is sampled here, because with module CAMP, modules Strings and Boxing are
-    //       included, which allows to append boxes to AString objects.)
+    //       included, which allows appending boxes to AString objects.)
     AppendToAString( "Hello ALib" );
     AppendToAString( 12345 );
     AppendToAString( 3.1415 );

@@ -1,35 +1,32 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- *
- * Precompiled Header for ALib.
- * Each ALib <c>.cpp</c> compilation unit includes this header before doing anything else.
- *
- * Compiler symbol \ref ALIB_PRECOMPILED_HEADER may be used to \e enable this header.
- * While still included, the header itself will not include anything if this variable is not
- * defined or equals \c 0.<br>
- * As of today, with GNU and clang compilers, compilation seems more efficient if this header is
- * disabled.
- **************************************************************************************************/
-#if !defined(ALIB_DOX)
-
+//==================================================================================================
+/// \file
+/// This header file is part of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+///
+/// Precompiled Header for ALib.
+/// Each ALib <c>.cpp</c> compilation unit includes this header before doing anything else.
+///
+/// Compiler symbol \ref ALIB_PRECOMPILED_HEADER may be used to \e enable this header.
+/// While still included, the header itself will not include anything if this variable is not
+/// defined or equals \c 0.<br>
+/// As of today, with GNU and clang compilers, compilation seems more efficient if this header is
+/// disabled.
+//==================================================================================================
+#if !defined(DOXYGEN)
 #include "alib/alib.hpp"
 
 #if defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
 
-#if !defined(HPP_ALIB_LANG_PLATFORM_INCLUDES)
-#   include "alib/lang/platformincludes.hpp"
-#endif
+#include "alib/lang/platformincludes.hpp"
 
 #if ALIB_CHARACTERS
-#   define  ALIB_TEMP_HDRNAME "alib/characters/chararray.hpp"
+#   define  ALIB_TEMP_HDRNAME "alib/characters/characters.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 
-#   define  ALIB_TEMP_HDRNAME "alib/compatibility/std_characters.hpp"
+#   define  ALIB_TEMP_HDRNAME "alib/compatibility/std_strings.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 
@@ -47,7 +44,7 @@
 #endif
 
 #if ALIB_THREADS
-#   define  ALIB_TEMP_HDRNAME "alib/threads/threadlock.hpp"
+#   define  ALIB_TEMP_HDRNAME "alib/threads/recursivelock.hpp"
 #   include ALIB_TEMP_HDRNAME
 #   undef   ALIB_TEMP_HDRNAME
 #endif
@@ -105,3 +102,4 @@
 
 #endif  // defined(ALIB_PRECOMPILED_HEADER) && ALIB_PRECOMPILED_HEADER
 #endif  // ALIB_DOX
+

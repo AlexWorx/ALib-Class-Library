@@ -6,26 +6,12 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PARSER_IMPL)
-#      include "alib/expressions/detail/parser_impl.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_EXPRESSIONS_COMPILER)
-#      include "alib/expressions/compiler.hpp"
-#   endif
-
-#   if !defined (HPP_ALIB_MONOMEM_MASTRING)
-#      include "alib/monomem/mastring.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/expressions/detail/parser_impl.hpp"
+#   include "alib/expressions/compiler.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#   include "alib/monomem/aliases/stdvector.hpp"
+#endif // !DOXYGEN
 
 
 namespace alib {  namespace expressions { namespace detail {
@@ -34,10 +20,11 @@ namespace alib {  namespace expressions { namespace detail {
 // Parser
 // #################################################################################################
 
-ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator* allocator )
-: compiler       ( pCompiler )
-, unaryOperators ( allocator )
-, binaryOperators( allocator )
+ParserImpl::ParserImpl( Compiler& pCompiler, MonoAllocator& allocator )
+: compileTimeAllocator(allocator)
+, compiler            (pCompiler)
+, unaryOperators      (allocator)
+, binaryOperators     (allocator)
 {
     // characters to be known
     syntaxTokens [static_cast<unsigned char>('(')]= true;
@@ -119,7 +106,7 @@ void ParserImpl::NextToken()
         return;
     }
 
-    character first= scanner.CharAtStart<false>();
+    character first= scanner.CharAtStart<NC>();
 
     //------------------------------  Syntax Tokens ------------------------------
     if( syntaxTokens[static_cast<unsigned char>(first)]  )
@@ -174,7 +161,7 @@ void ParserImpl::NextToken()
         integer len= 1;
         while( len < scanner.Length() && ( isalpha( scanner[len] ) || scanner[len] == '_' ) )
             ++len;
-        tokString= scanner.Substring<false>( 0, len );
+        tokString= scanner.Substring<NC>( 0, len );
         auto hashCode=  tokString.HashcodeIgnoreCase();
 
         // unary
@@ -182,9 +169,9 @@ void ParserImpl::NextToken()
             decltype(unaryOperators)::Iterator it;
             if(    (it= unaryOperators .Find( tokString, hashCode )) != unaryOperators.end()
                 && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                     || tokString.Equals<false>( it.Value() ) ) )
+                     || tokString.Equals<NC>( it.Value() ) ) )
             {
-                scanner.ConsumeChars<false>( tokString.Length() );
+                scanner.ConsumeChars<NC>( tokString.Length() );
                 token= Tokens::AlphaUnOp;
                 return;
             }
@@ -195,9 +182,9 @@ void ParserImpl::NextToken()
             decltype(binaryOperators)::Iterator it;
             if(    (it= binaryOperators .Find( tokString, hashCode )) != binaryOperators.end()
                 && (    HasBits(compiler.CfgCompilation, Compilation::AlphabeticOperatorsIgnoreCase)
-                     || tokString.Equals<false>( it.Value() ) ) )
+                     || tokString.Equals<NC>( it.Value() ) ) )
             {
-                scanner.ConsumeChars<false>( tokString.Length() );
+                scanner.ConsumeChars<NC>( tokString.Length() );
                 token= Tokens::AlphaBinOp;
                 return;
             }
@@ -218,7 +205,7 @@ void ParserImpl::NextToken()
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
         tokString= String( expression.Buffer() + tokPosition, endOfIdent );
         ALIB_WARNINGS_RESTORE
-        scanner.ConsumeChars<false>( endOfIdent );
+        scanner.ConsumeChars<NC>( endOfIdent );
         return;
     }
 
@@ -278,7 +265,7 @@ void ParserImpl::NextToken()
     if( first == '"' )
     {
         bool lastWasSlash= false;
-        scanner.ConsumeChar<false>();
+        scanner.ConsumeChar<NC>();
         character next;
         while( (next= scanner.ConsumeChar()) != '\0' )
         {
@@ -300,12 +287,8 @@ void ParserImpl::NextToken()
         String quoted( expression.Buffer() + tokPosition + 1,
                        expression.Length() - scanner.Length() - tokPosition -2 );
         ALIB_WARNINGS_RESTORE
-
-
-        MAString internalizer( *compileTimeAllocator, quoted.Length() + 1 );
-        internalizer << quoted << Format::Escape( lang::Switch::Off );
         token    = Tokens::LitString;
-        tokString= internalizer;
+        tokString.Allocate(compileTimeAllocator, String1K(quoted) << Format::Escape( lang::Switch::Off ) );
         return;
     }
 
@@ -322,15 +305,14 @@ void ParserImpl::NextToken()
 // #################################################################################################
 #define Start               parseConditional
 
-detail::AST* ParserImpl::Parse( const String& exprString, NumberFormat* nf, MonoAllocator* ba )
+detail::AST* ParserImpl::Parse( const String& exprString, NumberFormat* nf )
 {
     if( exprString.IsEmpty() )
         throw Exception( ALIB_CALLER, Exceptions::EmptyExpressionString );
 
-    expression          = exprString;
-    numberFormat        = nf;
-    compileTimeAllocator= ba;
-    ASTs= ba->Emplace<std::vector<AST*, StdContMA<AST*>>>( StdContMA<AST*>(*ba) );
+    expression  = exprString;
+    numberFormat= nf;
+    ASTs        = compileTimeAllocator().New<StdVectorMono<AST*>>( compileTimeAllocator );
     ASTs->reserve(20);
 
     // load first token
@@ -381,7 +363,7 @@ AST* ParserImpl::parseConditional()
         AST* F= Start();
         AST* T= pop();
         AST* Q= pop();
-        return compileTimeAllocator->Emplace<ASTConditional>( Q, T, F, qmPosition, colonPosition );
+        return compileTimeAllocator().New<ASTConditional>(Q, T, F, qmPosition, colonPosition );
     }
 
     // was no conditional
@@ -405,7 +387,7 @@ AST* ParserImpl::parseBinary()
         // rhs is braced? -> lhs becomes <lhs op rhs> and we start over
         if( token == Tokens::BraceOpen )
         {
-            replace( compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, top(), parseSimple(), position ) );
+            replace( compileTimeAllocator().New<ASTBinaryOp>(binOp, top(), parseSimple(), position ) );
             position= tokPosition;
             continue;
         }
@@ -436,11 +418,11 @@ AST* ParserImpl::parseBinary()
     pop();
     pop();
     if( parent == nullptr )
-        return compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, lhs, rhs, position );
+        return compileTimeAllocator().New<ASTBinaryOp>( binOp, lhs, rhs, position );
 
     // insert binary at lhs of deepest equal-level binary found.
     // Its current lhs becomes its new lhs-child's rhs.
-    parent->Lhs=  compileTimeAllocator->Emplace<ASTBinaryOp>( binOp, lhs, parent->Lhs, position );
+    parent->Lhs=  compileTimeAllocator().New<ASTBinaryOp>( binOp, lhs, parent->Lhs, position );
     return rhs;
 }
 
@@ -469,16 +451,16 @@ AST* ParserImpl::parseSimple()
         String unOp= getUnaryOp();
         if( unOp.IsNotNull() )
         {
-            push( compileTimeAllocator->Emplace<ASTUnaryOp>( unOp, parseSimple(), position ) );
+            push( compileTimeAllocator().New<ASTUnaryOp>(unOp, parseSimple(), position ) );
             replace( parseSubscript( top() ) );
             return pop();
         }
     }
 
     // terminals
-    if( token == Tokens::LitInteger ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokInteger, position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
-    if( token == Tokens::LitFloat   ) { push(compileTimeAllocator->Emplace<ASTLiteral>( tokFloat  , position, tokLiteralHint )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
-    if( token == Tokens::LitString  ) { push(compileTimeAllocator->Emplace<ASTLiteral>( compileTimeAllocator->EmplaceString(tokString), position )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitInteger ) { push(compileTimeAllocator().New<ASTLiteral>(tokInteger, position, tokLiteralHint )             ); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitFloat   ) { push(compileTimeAllocator().New<ASTLiteral>(tokFloat  , position, tokLiteralHint )             ); NextToken(); replace( parseSubscript(top()) ); return pop(); }
+    if( token == Tokens::LitString  ) { push(compileTimeAllocator().New<ASTLiteral>(String(compileTimeAllocator, tokString), position )); NextToken(); replace( parseSubscript(top()) ); return pop(); }
     if( token == Tokens::Identifier || token == Tokens::AlphaBinOp )   // allow bin op's names here! This is tricky but right!
     {
         String name= tokString;
@@ -487,7 +469,7 @@ AST* ParserImpl::parseSimple()
         // function
         if( token == Tokens::BraceOpen )
         {
-            ASTFunction* astFunction= compileTimeAllocator->Emplace<ASTFunction>( name, position, *compileTimeAllocator );
+            ASTFunction* astFunction= compileTimeAllocator().New<ASTFunction>( name, position, compileTimeAllocator );
             push( astFunction );
             for(;;)
             {
@@ -516,7 +498,7 @@ AST* ParserImpl::parseSimple()
         }
 
         // identifier
-        replace( parseSubscript( push(compileTimeAllocator->Emplace<ASTIdentifier>( compileTimeAllocator->EmplaceString(name), position ) ) ) );
+        replace( parseSubscript( push(compileTimeAllocator().New<ASTIdentifier>( String(compileTimeAllocator, name), position ) ) ) );
         return pop();
     }
 
@@ -549,7 +531,7 @@ AST* ParserImpl::parseSimple()
         throw e;
     }
 
-    ALIB_ERROR( "EXPR", "Internal parser Error. This should never happen")
+    ALIB_ERROR( "EXPR", "Internal error. This should never happen.")
     return nullptr;
 }
 
@@ -574,7 +556,7 @@ AST* ParserImpl::parseSubscript( AST *function )
 
     // success
     NextToken();
-    return compileTimeAllocator->Emplace<ASTBinaryOp>( A_CHAR("[]"), function, pop(), position );
+    return compileTimeAllocator().New<ASTBinaryOp>( A_CHAR("[]"), function, pop(), position );
 }
 
 
@@ -618,7 +600,7 @@ String ParserImpl::getUnaryOp()
         return alphabeticOperator;
     }
 
-    return NullString();
+    return NULL_STRING;
 }
 
 String ParserImpl::getBinaryOp()
@@ -627,7 +609,7 @@ String ParserImpl::getBinaryOp()
     {
         // ignore ternary
         if ( tokString == A_CHAR( "?" ) || tokString == A_CHAR( ":" ) )
-            return NullString();
+            return NULL_STRING;
 
         // binary ops may be longer and concatenated with unaries. So we consume as much as possible
         // but are happy with less than available
@@ -661,7 +643,7 @@ String ParserImpl::getBinaryOp()
         return alphabeticOperator;
     }
 
-    return NullString();
+    return NULL_STRING;
 }
 
 

@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,14 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_LANG_FORMAT_PROPERTY_FORMATTER)
-#      include "alib/lang/format/propertyformatter.hpp"
-#   endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/lang/format/propertyformatter.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#endif // !DOXYGEN
 
 namespace alib::lang::format {
 
@@ -25,8 +21,8 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
 , propertyFormatString( customFormatString )
 , formatString        ( customFormatString )
 {
-    if(!formatter.get())
-        stdFormatter= Formatter::GetDefault();
+    if(!formatter.Get())
+        stdFormatter= Formatter::Default;
 
     integer parsePos= 0;
     while(parsePos < formatString.Length() )
@@ -52,7 +48,7 @@ PropertyFormatter::PropertyFormatter( const String             customFormatStrin
             while( endPos < formatString.Length()  && isalpha( formatString[endPos] ) )
                 ++endPos;
 
-            identifier= formatString.Substring<false>( parsePos + 1, endPos - parsePos - 1 );
+            identifier= formatString.Substring<NC>( parsePos + 1, endPos - parsePos - 1 );
         }
 
         // not found
@@ -101,7 +97,7 @@ void    PropertyFormatter::Format( AString& target, const Box&  src )
     localString.DbgDisableBufferReplacementWarning();
 
     // collect boxes
-    Boxes& results= stdFormatter->Acquire(ALIB_CALLER_PRUNED);
+    BoxesMA& results= stdFormatter->GetArgContainer();
     results.Add( formatString );
     for( auto& entry : callBacks )
     {
@@ -127,9 +123,9 @@ void    PropertyFormatter::Format( AString& target, const Box&  src )
         throw;
     }
 
-    stdFormatter->Release();
     results.clear();
 }
 
 
 } // namespace [alib::lang::format]
+

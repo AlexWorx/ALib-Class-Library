@@ -1,20 +1,20 @@
-/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_boxing of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_boxing of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_BOXING_CUSTOMIZATIONS
 #define HPP_ALIB_BOXING_CUSTOMIZATIONS 1
-
+#pragma once
 #if !defined(HPP_ALIB_BOXING_BOXING)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
 
 
 // #########  Switch off documentation parser for (almost) the whole header #####
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 // #################################################################################################
 // void*, Boxes*, Box[]
@@ -30,8 +30,11 @@ template<> struct T_Boxer<void*>
 };
 }}
 
-ALIB_BOXING_VTABLE_DECLARE(            Boxes*,  vt_boxes    )
-ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE(  Box   ,  vt_boxarray )
+ALIB_BOXING_VTABLE_DECLARE(            BoxesHA*,  vt_boxes      )
+#if ALIB_MONOMEM
+ALIB_BOXING_VTABLE_DECLARE(            BoxesMA*,  vt_boxesma    )
+#endif
+ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE(  Box     ,  vt_boxarray   )
 
 
 // #################################################################################################
@@ -58,9 +61,9 @@ template<typename TEnum> struct T_Boxer<TEnum, ATMP_VOID_IF( std::is_enum<TEnum>
 // #################################################################################################
 // Boolean
 // #################################################################################################
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DECLARE_1])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_1])
 ALIB_BOXING_VTABLE_DECLARE( bool, vt_bool )
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DECLARE_1])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_1])
 
 ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( bool, bool )
 
@@ -89,7 +92,7 @@ ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( bool, bool )
   #endif
 
 
-DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
+DOX_MARKER([DOX_BOXING_CUSTOM_MANUAL])
 namespace alib {  namespace boxing {
 
 template<>  struct T_Boxer<int16_t>
@@ -106,7 +109,7 @@ template<>  struct T_Boxer<int16_t>
 };
 
 }}
-DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
+DOX_MARKER([DOX_BOXING_CUSTOM_MANUAL])
 
 //--------- documentation sample of Programmer's Manual --------
 
@@ -157,7 +160,37 @@ DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
 
 #if ALIB_SIZEOF_LONGDOUBLE_REPORTED <= 2 * ALIB_SIZEOF_INTEGER
     ALIB_BOXING_VTABLE_DECLARE(                   long double, vt_long_double )
-    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( long double, long double    )
+//    ALIB_BOXING_CUSTOMIZE_TYPE_MAPPING_CONSTEXPR( long double, long double    )
+
+namespace alib::boxing {
+template<>  struct T_Boxer<long double>
+{
+    using               Mapping=    TMappedTo<long double>;
+    static Placeholder  Write(  long double const & value )
+    {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        Placeholder target;
+        const char* src = reinterpret_cast<const char*>( &value  );
+              char* dest= reinterpret_cast<      char*>( &target );
+        for (int i = 0; i < ALIB_SIZEOF_LONGDOUBLE_WRITTEN; ++i)
+            *dest++= *src++;
+        ALIB_WARNINGS_RESTORE
+        return target;
+    }
+
+    static long double                Read (const Placeholder& placeholder)
+    {
+        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+        long double target;
+        const char* src = reinterpret_cast<const char*>( &placeholder  );
+              char* dest= reinterpret_cast<      char*>( &target );
+        for (int i = 0; i < ALIB_SIZEOF_LONGDOUBLE_WRITTEN; ++i)
+            *dest++= *src++;
+        ALIB_WARNINGS_RESTORE
+        return target;
+    }
+}; }
+
 #endif
 
 
@@ -202,32 +235,30 @@ DOX_MARKER([DOX_ALIB_BOXING_CUSTOM_MANUAL])
 // #################################################################################################
 
 // vtables
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DECLARE_2])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_2])
 ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char, vt_arr_char )
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DECLARE_2])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DECLARE_2])
 ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( wchar_t   , vt_arr_wchar_t )
 ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char16_t  , vt_arr_char16_t)
 ALIB_BOXING_VTABLE_DECLARE_ARRAYTYPE( char32_t  , vt_arr_char32_t)
 
 
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 namespace alib {  namespace boxing  {
-/**
- * This type-traits struct by default inherits \c std::false_type. If specialized for
- * template type \p{TCharArray} to inherit \c std::true_type, then boxing that type will not be
- * customized automatically with a corresponding specialization of \alib{characters,T_CharArray}.
- * This keeps the customization of boxing open to be performed in a different way.
- *
- * \see
- *   See manual chapter \ref alib_boxing_strings "10. Boxing Character Strings" of the
- *   Programmer's Manual of module \alib_boxing_nl.
- *
- * @tparam TCharArray The type that \alib{characters,T_CharArray} is specialized for but still no
- *                    character array boxing should be performed.
- */
+/// This type-traits struct by default inherits \c std::false_type. If specialized for
+/// template type \p{TCharArray} to inherit \c std::true_type, then boxing that type will not be
+/// customized automatically with a corresponding specialization of \alib{characters;T_CharArray}.
+/// This keeps the customization of boxing open to be performed in a different way.
+///
+/// \see
+///   See manual chapter \ref alib_boxing_strings "10. Boxing Character Strings" of the
+///   Programmer's Manual of module \alib_boxing_nl.
+///
+/// @tparam TCharArray The type that \alib{characters;T_CharArray} is specialized for but still no
+///                    character array boxing should be performed.
 template<typename TCharArray>      struct T_SuppressCharArrayBoxing    :    std::false_type      {};
 }}
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 namespace alib {  namespace boxing  {
 
 
@@ -313,15 +344,17 @@ ALIB_BOXING_VTABLE_DECLARE( alib::lang::Timing           , vt_alib_Timing       
 ALIB_BOXING_VTABLE_DECLARE( alib::lang::ValueReference   , vt_alib_ValueReference    )
 ALIB_BOXING_VTABLE_DECLARE( alib::lang::Whitespaces      , vt_alib_Whitespaces       )
 
+ALIB_BOXING_VTABLE_DECLARE( alib::lang::CallerInfo*      , vt_lang_callerinfo )
 // #################################################################################################
-// Static VTables for wrapped string types
+// Static VTables for wrapped string-types
 // #################################################################################################
 #if ALIB_STRINGS
-    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<nchar>>, vt_alib_wrapped_tanstring )
-    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<wchar>>, vt_alib_wrapped_tawstring )
-    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<xchar>>, vt_alib_wrapped_taxstring )
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<nchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tanstring )
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<wchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_tawstring )
+    ALIB_BOXING_VTABLE_DECLARE( std::reference_wrapper<alib::strings::TAString<xchar ALIB_COMMA lang::HeapAllocator>>, vt_alib_wrapped_taxstring )
 #endif
 
 #endif //ALIB_DOX
 
 #endif // HPP_ALIB_BOXING_CUSTOMIZATIONS
+

@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::loggers - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,19 +6,11 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALOX_TEXT_FILE_LOGGER)
+#if !DOXYGEN
 #   include "alib/alox/loggers/textfilelogger.hpp"
-#endif
-
-#if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
 #   include "alib/lang/message/report.hpp"
-#endif
-
-#if !defined (_GLIBCXX_FSTREAM) && !defined(_FSTREAM_)
 #   include <fstream>
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 
 using namespace alib;
@@ -110,6 +102,7 @@ bool TextFileLogger::notifyLogOp( lang::Phase phase )
 integer TextFileLogger::logSubstring( const String& buffer, integer start, integer length )
 {
     if (writer.GetStream() != nullptr && LastSystemError == SystemErrors::None)
-        return writer.WriteAndGetWideLength( buffer.Substring<false>( start, length ) );
+        return writer.WriteAndGetWideLength( buffer.Substring<NC>( start, length ) );
     return 0;
 }
+

@@ -1,30 +1,24 @@
-﻿/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_alox of the \aliblong.
- *
- * \note
- *   This file is always included in any \alibdist!<br>
- *   See \ref alib_manual_modules_special_alox "Special Treatment For Module ALox" for furhter
- *   explanation.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
-
-#ifndef HPP_ALOX
-#define HPP_ALOX 1
-
-#if !defined(HPP_ALIB) && !defined(ALIB_DOX)
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_alox of the \aliblong.
+///
+/// \note
+///   This file is always included in any \alibdist!<br>
+///   See \ref alib_manual_modules_special_alox "Special Treatment For Module ALox" for further
+///   explanation.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#ifndef HPP_ALIB_LOX
+#define HPP_ALIB_LOX 1
+#pragma once
+#if !defined(DOXYGEN)
 #   include "alib/alib.hpp"
 #endif
 
 #if ALIB_ALOX
-#   if !defined (HPP_ALIB_LANG_BASECAMP)
-#      include "alib/lang/basecamp/basecamp.hpp"
-#   endif
-#   if !defined(HPP_ALIB_ALOX)
-#      include "alib/alox/alox.hpp"
-#   endif
+#   include "alib/alox/alox.hpp"
 
 // #############################################################################################
 // If ALox not included in the build, set all alox macros to empty
@@ -82,8 +76,6 @@
 #   define Lox_SetPrefix(...)
 #   define Lox_Exception(...)
 
-
 #endif // ALIB_ALOX
+#endif // HPP_ALIB_LOX
 
-
-#endif // HPP_ALOX

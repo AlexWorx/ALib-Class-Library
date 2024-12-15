@@ -6,44 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_LANG_BASECAMP)
-#      include "alib/lang/basecamp/basecamp.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_BASECAMP)
-#      include "alib/lang/basecamp/basecamp.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
-#      include "alib/strings/numberformat.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_SUBSTRING)
-#      include "alib/strings/substring.hpp"
-#   endif
-#   if !defined(HPP_ALIB_TIME_TIME)
-#      include "alib/time/time.hpp"
-#   endif
-#   if !defined (HPP_ALIB_LANG_RESOURCES_RESOURCES)
-#      include "alib/lang/resources/resources.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CAMP_DIRECTORY)
-#      include "alib/lang/system/directory.hpp"
-#   endif
-#   if !defined (HPP_ALIB_CAMP_CALENDAR)
-#      include "alib/lang/system/calendar.hpp"
-#   endif
-#   if !defined (HPP_ALIB_ENUMS_RECORDBOOTSTRAP)
-#      include "alib/enums/recordbootstrap.hpp"
-#   endif
-#   if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#      include "alib/enums/serialization.hpp"
-#   endif
-#if !defined(HPP_ALIB_LANG_FORMAT_FWDS)
+#if !DOXYGEN
+#   include "alib/lang/basecamp/basecamp.hpp"
+#   include "alib/lang/basecamp/basecamp.hpp"
+#   include "alib/strings/numberformat.hpp"
+#   include "alib/strings/substring.hpp"
+#   include "alib/time/time.hpp"
+#   include "alib/lang/resources/resources.hpp"
+#   include "alib/lang/system/path.hpp"
+#   include "alib/lang/system/calendar.hpp"
+#   include "alib/enums/recordbootstrap.hpp"
+#   include "alib/enums/serialization.hpp"
 #   include "alib/lang/format/fwds.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 namespace   alib::lang::system {
 

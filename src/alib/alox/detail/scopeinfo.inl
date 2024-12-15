@@ -1,13 +1,13 @@
-﻿/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_alox of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
-#ifndef HPP_ALOX_DETAIL_SCOPEINFO
-#define HPP_ALOX_DETAIL_SCOPEINFO 1
-
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_alox of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
+#ifndef HPP_ALIB_LOX_DETAIL_SCOPEINFO
+#define HPP_ALIB_LOX_DETAIL_SCOPEINFO 1
+#pragma once
 #if !defined(HPP_ALIB_LOX_PROPPERINCLUDE)
 #   error "ALib sources with ending '.inl' must not be included from outside."
 #endif
@@ -15,24 +15,14 @@
 // #################################################################################################
 // includes
 // #################################################################################################
-#if !defined (HPP_ALIB_TIME_TICKS)
-    #include "alib/time/ticks.hpp"
+#include "alib/time/ticks.hpp"
+#include "alib/lang/system/path.hpp"
+#include "alib/containers/lrucachetable.hpp"
+#if ALIB_THREADS
+#   include "alib/threads/thread.hpp"
 #endif
-
-#if !defined (HPP_ALIB_CAMP_DIRECTORY)
-    #include "alib/lang/system/directory.hpp"
-#endif
-
-#if ALIB_THREADS && !defined (HPP_ALIB_THREADS_THREAD)
-    #include "alib/threads/thread.hpp"
-#endif
-
-#if !defined (HPP_ALIB_MONOMEM_HASHMAP)
-#   include "alib/monomem/hashmap.hpp"
-#endif
-#if !defined (HPP_ALIB_MONOMEM_STDCONTAINERMA)
-#   include "alib/monomem/stdcontainerma.hpp"
-#endif
+#include "alib/containers/hashtable.hpp"
+#include "alib/monomem/aliases/stdvector.hpp"
 
 namespace alib {
 
@@ -42,251 +32,222 @@ namespace lox    { namespace detail {
 
 struct LoxImpl;
 
-/** ************************************************************************************************
- * Encapsulates information of the caller that can be collected. This is platform specific, in
- * this case, C++. What we receive from the C++ preprocessor, is the source file name
- * of the calling code, the line number within the source file name and the name of the method
- * the call is placed in. E.g., wee do not get the class name of the object or even its instance.
- *
- * The method has a list of interface functions that gets such source information and some derived
- * variants of it. In addition, thread and timer information is stored and managed.
- *
- * As far as possible, 'lazy' techniques come to practice with this class. This means, only
- * the things that are queried in-between to invocations of method #Set are calculated.
- *
- * ## Friends ##
- * class \alib{lox,Lox}
- **************************************************************************************************/
+//==================================================================================================
+/// Encapsulates information of the caller that can be collected. This is platform-specific, in
+/// this case, C++. What we receive from the C++ preprocessor is the source file name
+/// of the calling code, the line number within the source file name and the name of the method
+/// the call is placed in.
+/// Furthermore, we collect the <c>std::type_info*</c> in case the call was not placed in a
+/// static or namespace function.
+///
+/// The method has a list of interface functions that gets such source information and some derived
+/// variants of it. In addition, thread and timer information is stored and managed.
+///
+/// As far as possible, 'lazy' techniques come to practice with this class. This means, only
+/// the things that are queried in-between to invocations of method #Set are calculated.
+///
+/// ## Friends ##
+/// class \alib{lox;Lox}
+//==================================================================================================
 class ScopeInfo
 {
-    #if !defined(ALIB_DOX)
-        friend void  LI::Reset(LoxImpl*, bool);
+    public:
+#if ALIB_THREADS
+        /// A map we use to translate thread IDs to thread names
+        using ThreadDictionary=   HashMap<MonoAllocator, threads::ThreadID, String32>;
+#endif
+
+  // ###############################################################################################
+  // Protected fields
+  // ###############################################################################################
+  protected:
+    #if !DOXYGEN
+        friend struct LoxImpl;
         friend void  LI::MapThreadName(LoxImpl*, const String&, threads::ThreadID);
         friend void  LI::GetState( LoxImpl*, NAString&, StateInfo);
     #endif
+
+        /// Defines how source paths names are to be trimmed. \alox allows a set of global rules and
+        /// a set that is 'local', hence specific to a \b Lox.
+        struct SourcePathTrimRule
+        {
+            NAString            Path;            ///< The path string
+            NAString            TrimReplacement; ///< Optional replacement string for trimmed paths.
+            int                 TrimOffset;      ///< Additional offset of the trim position
+            lang::Inclusion     IncludeString;   ///< Denotes if #Path itself should be included when trimmed
+            lang::Case          Sensitivity;     ///< The sensitivity of the comparison when trimming
+            config::Priority    Priority;        ///< The priority of the rule. Depends on origin: source code, config...)
+            bool                IsPrefix;        ///< \c true if path was not starting with <c>'*'</c>, when provided.
+        };
+
+        /// List of trim definitions for portions of source paths to be ignored.
+        ALIB_API
+        static std::vector<SourcePathTrimRule>  GlobalSPTRs;
+
+        /// List of trim definitions for portions of source paths to be ignored.
+               std::vector<SourcePathTrimRule>  LocalSPTRs;
+
+        /// Flag to determine if global rules have been read from config already.
+        ALIB_API
+        static bool                             GlobalSPTRsReadFromConfig;
+
+        ///  If true, next time a source path cannot be trimmed successfully with custom
+        ///  trim information provided with
+        ///  \ref alib::lox::Lox::SetSourcePathTrimRule "Lox::SetSourcePathTrimRule"
+        ///  some trim information is automatically created by comparing such source file's path
+        ///  with the path of the executable of the current process.
+        bool                                    AutoDetectTrimableSourcePath                 = true;
+
+    #if ALIB_THREADS
+        /// The C++ native ID.
+        std::thread::id                         threadNativeIDx;
+
+        /// The thread passed with #Set.
+        Thread*                                 thread                                    = nullptr;
+
+        /// The name of the thread that executed the log.
+        String                                  threadName;
+
+        /// Dictionary to translate thread IDs into something maybe nicer/shorter.
+        /// The dictionary may be filled by the user of the library using \alox{Lox.MapThreadName}.
+        ThreadDictionary                        threadDictionary;
+    #endif
+
+        /// Information of a single source file. Stored in field #parsedFileNameCache.
+        struct ParsedFileName
+        {
+            /// Path and name of source file (given by the C++ preprocessor).
+            NCString        origFile;
+
+            /// Full path of source file  (evaluated).
+            NString         fullPath                                                      = nullptr;
+
+            /// Trimmed path of source file  (evaluated).
+            NString         trimmedPath                                                   = nullptr;
+
+            /// Prefix for the trimmed path taken from trim rule. Has to be added on writing
+            /// the trimmed path *
+            NString         trimmedPathPrefix                                             = nullptr;
+
+            /// File name (evaluated).
+            NString         name                                                          = nullptr;
+
+            /// File name without extension (evaluated).
+            NString         nameWOExt                                                     = nullptr;
+
+            /// Index of last path separator in #origFile.
+            integer         origFilePathLength                                                 = -2;
+
+            /// Constructor.
+            /// @param filename Stored in #origFile.
+            ParsedFileName( const NCString  filename) : origFile(filename)                        {}
+        };
+
+        /// Serves as template parameter \p{TValueDescriptor} of field #parsedFileNameCache.
+        struct ValueDescriptorPFN : containers::TSubsetKeyDescriptor<ParsedFileName, NCString>
+        {
+            /// Provides access to the key-portion of the cached set.
+            /// @param src  The cached element.
+            /// @return The key portion of the element.
+            NCString            Key   (ParsedFileName& src)       const { return src.origFile; }
+        };
+
+        /// Least recently used cache of parsed file name.
+        LRUCacheTable< MonoAllocator, ValueDescriptorPFN, std::hash<NString>>   parsedFileNameCache;
+
+        /// Holds values for the current scope. Because recursive logging might occur (e.g., when
+        /// parameters rely on method invocations which incorporate log statements), objects of this
+        /// class are stored in stack #callStack.
+        struct FrameRecord
+        {
+            /// Time of the call that created this record.
+            Ticks                   timeStamp;
+
+            /// The entry from the #parsedFileNameCache
+            ParsedFileName*         Parsed;
+
+            /// Line number within the source file (given by the C++ preprocessor)
+            int                     origLine;
+
+            /// Function/method name (given by the C++ preprocessor)
+            NCString                origMethod;
+
+            /// Type information. Nullptr if call from static or global function.
+            const std::type_info*   typeInfo;
+        };
+
+        /// A stack of scopes (allows recursive calls/nested logging).
+        StdVectorMono<FrameRecord>  callStack;
+
+        /// The current depth of recursive invocations.
+        int                         callStackSize                                              = -1;
 
     // #############################################################################################
     // Types exposed
     // #############################################################################################
     public:
-#if ALIB_THREADS
-        /** A std::map we use to translate thread IDs to thread names */
-        using ThreadDictionary=   HashMap<threads::ThreadID, String32>;
-#endif
-
-        /**
-         * The number of source file path and corresponding, evaluated derived values.
-         * This might be modified, prior to creating any object of class \b Lox.<br>
-         * Defaults to 5.
-         */
-        ALIB_API
-        static  int             DefaultCacheSize;
-
-        /** The name of the Lox we are attached to. */
-        NString                 loxName;
-
-    // #############################################################################################
-    // Protected fields
-    // #############################################################################################
-    protected:
-        /** Defines portions of source paths to be ignored. */
-        struct SourcePathTrimRule
-        {
-            NAString        Path;            ///< The path string
-            bool            IsPrefix;        ///< true if path was not starting with '\*' when provided.
-            lang::Inclusion IncludeString;   ///< Denotes if #Path itself should be included when trimmed
-            lang::Case      Sensitivity;     ///< The sensitivity of the comparison when trimming
-            int             TrimOffset;      ///< Additional offset of the trim position
-            NAString        TrimReplacement; ///< Optional replacement string for trimmed paths.
-            Priorities      Priority;        ///< The priority of the rule. Depends on origin: source code, config...)
-        };
-
-        /** List of trim definitions for portions of source paths to be ignored. */
-        ALIB_API
-        static std::vector<SourcePathTrimRule>   GlobalSPTRs;
-
-        /** List of trim definitions for portions of source paths to be ignored. */
-               std::vector<SourcePathTrimRule>   LocalSPTRs;
-
-        /** Flag to determine if global rules have been read from config already. */
-        ALIB_API
-        static bool                              GlobalSPTRsReadFromConfig;
-
-        /**
-         *  If true, next time a source path can not be trimmed successfully with custom
-         *  trim information provided with
-         *  \ref alib::lox::Lox::SetSourcePathTrimRule "Lox::SetSourcePathTrimRule"
-         *  some trim information is automatically created by comparing such source file's path
-         *  with the path of the executable of the current process.
-         */
-        bool                                     AutoDetectTrimableSourcePath                = true;
-
-
-#if ALIB_THREADS
-        /** The thread passed with #Set. */
-        Thread*                                 thread                                    = nullptr;
-
-        /** The name of the thread that executed the log. */
-        String                                  threadName;
-
-        /**
-         * Dictionary to translate thread IDs into something maybe nicer/shorter.
-         * The dictionary may be filled by the user of the library using \alox{Lox.MapThreadName}.
-         */
-        ThreadDictionary                        threadDictionary;
-#endif
-
-        /** Information of a single source file. Stored in field #cache. */
-        struct SourceFile
-        {
-            /** 'Timestamp' for LRU overwriting (not a time, but using field #cacheRun). */
-            uint64_t        timeStamp                                                           = 0;
-
-            /** Path and name of source file (given by the C++ preprocessor). */
-            NCString        origFile                                                      = nullptr;
-
-            /** Full path of source file  (evaluated). */
-            NString         fullPath                                                      = nullptr;
-
-            /** Trimmed path of source file  (evaluated). */
-            NString         trimmedPath                                                   = nullptr;
-
-            /** Prefix for the trimmed path taken from trim rule. Has to be added on writing
-             *  the trimmed path **/
-            NString         trimmedPathPrefix                                             = nullptr;
-
-            /** File name (evaluated).  */
-            NString         name                                                          = nullptr;
-
-            /** File name without extension (evaluated). */
-            NString         nameWOExt                                                     = nullptr;
-
-            /** Index of last path separator in #origFile. */
-            integer         origFilePathLength                                                 = -2;
-
-            /** Clears calculated values. Keeps #origFile intact. */
-            void Clear()
-            {
-                origFilePathLength= -2;
-                fullPath=           nullptr;
-                trimmedPath=        nullptr;
-                name=               nullptr;
-                nameWOExt=          nullptr;
-            }
-        };
-
-
-        /** The 'timestamp' used to identify the LRU entry. Incremented, whenever a different source
-            file is evaluated.  */
-        uint64_t                                cacheRun                                        = 0;
-
-        /**
-          * The number of source file path and corresponding, evaluated derived values.
-          * Determined in the constructor by reading static field #DefaultCacheSize.
-          */
-        int                                     cacheSize;
-
-        /** An array of source files. Its size is dependent on static field #DefaultCacheSize. */
-        SourceFile*                             cache;
-
-        /**
-         * Holds values for the current scope. Because recursive logging might occur (e.g. when
-         * parameters rely on method invocations which incorporate log statements), objects of this
-         * class are stored in stack #scopes.
-         */
-        struct Scope
-        {
-            /** Time of the call represented by this instance. */
-            Ticks                               timeStamp;
-
-            /** The entry of the source file cache */
-            SourceFile*                         sourceFile;
-
-            /** Line number within the source file (given by the C++ preprocessor) */
-            int                                 origLine;
-
-            /** Function/method name (given by the C++ preprocessor) */
-            NCString                            origMethod;
-        };
-
-        /** A stack of scopes (allows recursive calls/nested logging). */
-        std::vector<Scope,StdContMA<Scope>>     scopes;
-
-        /** The current depth of recursive invocations. */
-        int                                     actScopeDepth                                  = -1;
-
-        /** The last source file used. This is tried first with next invocation. If it does not
-         *  match, the cache is searched for another matching one.*/
-        SourceFile*                             lastSourceFile;
+        /// The name of the Lox we are attached to.
+        NString                     loxName;
 
 
     // #############################################################################################
     // Constructor
     // #############################################################################################
     public:
-        /** ****************************************************************************************
-         * Constructs a scope info.
-         * @param name       The name of the Lox that this object belongs to.
-         *                   Will be converted to upper case.
-         * @param allocator  The monotonic allocator of "our" \b %Lox, used for long-term allocations
-         * @param tempVar    A temporary variable for internal use.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Constructs a scope info.
+        /// @param name       The name of the Lox that this object belongs to.
+        ///                   Will be converted to upper case.
+        /// @param allocator  The monotonic allocator of "our" \b %Lox, used for long-term allocations
+        //==========================================================================================
         ALIB_API
-        ScopeInfo( const NString& name, MonoAllocator* allocator, config::Variable& tempVar);
+        ScopeInfo( const NString& name, MonoAllocator& allocator);
 
      // #############################################################################################
      // public interface
      // #############################################################################################
     public:
-    #if defined(ALIB_DOX)
-        /** ****************************************************************************************
-         * Stores C++ specific caller parameters and some other values like the time stamp.
-         * Also, flags thread information as not received, yet.
-         * Counts the recursion counter up.
-         * @param source      Name, including path, of the source code file of the actual log
-         *                    invocation (__FILE__).
-         * @param lineNumber  Line number within the source code file of the actual log
-         *                    invocation (__LINE__).
-         * @param method      Name of method or function of the actual log invocation (mostly
-         *                    __func__/ __FUNCTION__).
-         * @param thread      The thread. If \c nullptr, it will be determined if needed.
-         ******************************************************************************************/
-        ALIB_API
-        void Set( const NCString&  source, int lineNumber, const NCString& method,
-                  threads::Thread* thread                                            );
-    #else
-        void Set( const NCString& source, int lineNumber, const NCString& method
-                  ALIB_IF_THREADS( , threads::Thread* thread )                       );
-    #endif
+        /// Changes the capacity of the \b %LRUCacheTable for parsed file names by calling
+        /// \alib{containers;LRUCacheTable::Reserve}.
+        /// @param numberOfLists  The number of LRU-lists to use.
+        /// @param entriesPerList The maximum length of each cache list.
+        void SetFileNameCacheCapacity( integer numberOfLists, integer entriesPerList )
+        { parsedFileNameCache.Reserve( numberOfLists, entriesPerList ); }
 
-        /** ****************************************************************************************
-         * Releases latest scope information.
-         ******************************************************************************************/
-        void Release()
+        //==========================================================================================
+        /// Stores C++ specific caller parameters and some other values like the time stamp.
+        /// Also, flags thread information as not received, yet.
+        /// Counts the recursion counter up.
+        /// @param ci   The caller information.
+        //==========================================================================================
+        ALIB_API
+        void Set( const lang::CallerInfo& ci  );
+
+        /// Releases latest scope information.
+        void PopNestedScope()
         {
-            lastSourceFile= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            --actScopeDepth;
-            ALIB_ASSERT( actScopeDepth >= -1 )
+            --callStackSize;
+            ALIB_ASSERT( callStackSize >= -1 )
         }
 
 
-        /** ****************************************************************************************
-         * Does the job for
-         * \ref alib::lox::Lox::SetSourcePathTrimRule    "Lox::SetSourcePathTrimRule" and
-         * \ref alib::lox::Lox::ClearSourcePathTrimRules "Lox::ClearSourcePathTrimRules".
-         *
-         * @param path            The path to search for. If not starting with <c> '*'</c>,
-         *                        a prefix is searched.
-         * @param includeString   Determines if \p{path} should be included in the trimmed path or not.
-         * @param trimOffset      Adjusts the portion of \p{path} that is trimmed. 999999 to clear!
-         * @param sensitivity     Determines if the comparison of \p{path} with a source file's path
-         *                        is performed case sensitive or not.
-         * @param trimReplacement Replacement string for trimmed portion of the path.
-         * @param reach           Denotes whether the rule is applied locally (to this \b %Lox only)
-         *                        or applies to all instances of class \b %Lox.
-         *                        Defaults to \b %Reach::Global.
-         * @param priority        The priority of the setting.
-        ******************************************************************************************/
+        //==========================================================================================
+        /// Does the job for
+        /// \ref alib::lox::Lox::SetSourcePathTrimRule    "Lox::SetSourcePathTrimRule" and
+        /// \ref alib::lox::Lox::ClearSourcePathTrimRules "Lox::ClearSourcePathTrimRules".
+        ///
+        /// @param path            The path to search for. If not starting with <c> '*'</c>,
+        ///                        a prefix is searched.
+        /// @param includeString   Determines if \p{path} should be included in the trimmed path or not.
+        /// @param trimOffset      Adjusts the portion of \p{path} that is trimmed. 999999 to clear!
+        /// @param sensitivity     Determines if the comparison of \p{path} with a source file's path
+        ///                        is performed case-sensitive or not.
+        /// @param trimReplacement Replacement string for trimmed portion of the path.
+        /// @param reach           Denotes whether the rule is applied locally (to this \b %Lox only)
+        ///                        or applies to all instances of class \b %Lox.
+        ///                        Defaults to \b %Reach::Global.
+        /// @param priority        The priority of the setting.
+        //==========================================================================================
         ALIB_API
         void      SetSourcePathTrimRule( const NCString&    path,
                                          lang::Inclusion    includeString,
@@ -294,162 +255,178 @@ class ScopeInfo
                                          lang::Case         sensitivity,
                                          const NString&     trimReplacement,
                                          lang::Reach        reach,
-                                         Priorities         priority                );
+                                         Priority           priority                );
 
-        /** ****************************************************************************************
-         * Receives the name of the \b Lox we are belonging to (this is a 1:1 relationship).
-         * @return The name of the \b Lox.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the name of the \b Lox we are belonging to (this is a 1:1 relationship).
+        /// @return The name of the \b Lox.
+        //==========================================================================================
         const NString   GetLoxName()
         {
             return loxName;
         }
 
-        /** ****************************************************************************************
-         * Receives the original filename and path of the source file
-         * (usually provided by the preprocessor).
-         * @return The full path and filename of the source file.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the original filename and path of the source file
+        /// (usually provided by the preprocessor).
+        /// @return The full path and filename of the source file.
+        //==========================================================================================
         const NCString& GetOrigFile()
         {
-            return scopes[static_cast<size_t>(actScopeDepth)].sourceFile->origFile;
+            return callStack[size_t(callStackSize)].Parsed->origFile;
         }
 
-        /** ****************************************************************************************
-         * Receives the path of the source file (not trimmed, see #GetTrimmedPath).
-         * @return The path of the source file.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the path of the source file (not trimmed, see #GetTrimmedPath).
+        /// @return The path of the source file.
+        //==========================================================================================
         const NString   GetFullPath()
         {
-            SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            if( actual->fullPath.IsNull() )
+            auto& srcFile= *callStack[size_t(callStackSize)].Parsed;
+            if( srcFile.fullPath.IsNull() )
             {
                 integer idx= getPathLength();
                 if( idx >= 0 )
-                    actual->fullPath= NString( actual->origFile.Buffer(), idx );
+                    srcFile.fullPath= NString( srcFile.origFile.Buffer(), idx );
                 else
-                    actual->fullPath= "";
+                    srcFile.fullPath= "";
             }
 
-            return actual->fullPath;
+            return srcFile.fullPath;
         }
 
-        /** ****************************************************************************************
-         * Writes the path of the source file, trimmed according to trim-information provided
-         * with #SetSourcePathTrimRule or detected according to #AutoDetectTrimableSourcePath.
-         * @param target The target string to append the trimmed path to.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Writes the path of the source file, trimmed according to trim-information provided
+        /// with #SetSourcePathTrimRule or detected according to #AutoDetectTrimableSourcePath.
+        /// @param target The target string to append the trimmed path to.
+        //==========================================================================================
         void            GetTrimmedPath( AString& target )
         {
-            SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            if( actual->trimmedPath.IsNull() )
+            auto& srcFile= *callStack[size_t(callStackSize)].Parsed;
+            if( srcFile.trimmedPath.IsNull() )
                 trimPath();
 
-            target._( actual->trimmedPathPrefix )
-                  ._( actual->trimmedPath );
+            target._( srcFile.trimmedPathPrefix )
+                  ._( srcFile.trimmedPath );
         }
 
-        /** ****************************************************************************************
-         * Receives the source file name excluding the path (usually provided by the preprocessor).
-         * @return The source file name excluding the path
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the source file name excluding the path (usually provided by the preprocessor).
+        /// @return The source file name excluding the path
+        //==========================================================================================
         const NString   GetFileName()
         {
-            SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            if( actual->name.IsNull() )
+            auto& srcFile= *callStack[size_t(callStackSize)].Parsed;
+            if( srcFile.name.IsNull() )
             {
                 integer idx= getPathLength();
                 if( idx >= 0 )
                 {
                     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-                    actual->name= NString( actual->origFile.Buffer() + idx + 1,
-                                           actual->origFile.Length() - idx - 1 );
+                    srcFile.name= NString( srcFile.origFile.Buffer() + idx + 1,
+                                           srcFile.origFile.Length() - idx - 1 );
                     ALIB_WARNINGS_RESTORE
                 }
                 else
-                    actual->name= "";
+                    srcFile.name= "";
             }
-            return actual->name;
+            return srcFile.name;
         }
 
-        /** ****************************************************************************************
-         * Receives the source file name excluding the path and without an extension
-         * (usually provided by the preprocessor).
-         * @return The source file name excluding the path and extension.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the source file name excluding the path and without an extension
+        /// (usually provided by the preprocessor).
+        /// @return The source file name excluding the path and extension.
+        //==========================================================================================
         const NString   GetFileNameWithoutExtension()
         {
-            SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            if( actual->nameWOExt.IsNull() )
+            auto& srcFile= *callStack[size_t(callStackSize)].Parsed;
+            if( srcFile.nameWOExt.IsNull() )
             {
-                actual->nameWOExt= GetFileName();
-                integer lastDot=   actual->nameWOExt.LastIndexOf( '.' );
+                srcFile.nameWOExt= GetFileName();
+                integer lastDot=   srcFile.nameWOExt.LastIndexOf( '.' );
                 if ( lastDot > 0 )
-                    actual->nameWOExt= NString( actual->nameWOExt.Buffer(), lastDot );
+                    srcFile.nameWOExt= NString( srcFile.nameWOExt.Buffer(), lastDot );
             }
-            return actual->nameWOExt;
+            return srcFile.nameWOExt;
         }
 
 
-        /** ****************************************************************************************
-         * Receives the method name (usually provided by the preprocessor).
-         * @return The method name.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the method name (usually provided by the preprocessor).
+        /// @return The method name.
+        //==========================================================================================
         const NCString   GetMethod()
         {
-            return scopes[static_cast<size_t>(actScopeDepth)].origMethod;
+             return callStack[size_t(callStackSize)].origMethod;
         }
 
-        /** ****************************************************************************************
-         * Receives the source file line number (usually provided by the preprocessor).
-         * @return The source file line number.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Receives the source file line number (usually provided by the preprocessor).
+        /// @return The source file line number.
+        //==========================================================================================
         int             GetLineNumber()
         {
-            return scopes[static_cast<size_t>(actScopeDepth)].origLine;
+            return callStack[size_t(callStackSize)].origLine;
         }
 
-        /** ****************************************************************************************
-         * The timestamp of the last invocation of #Set.
-         * @return The latest timestamp.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// The timestamp of the last invocation of #Set.
+        /// @return The latest timestamp.
+        //==========================================================================================
         Ticks           GetTimeStamp()
         {
-            return scopes[static_cast<size_t>(actScopeDepth)].timeStamp;
+            return callStack[size_t(callStackSize)].timeStamp;
+        }
+
+        //==========================================================================================
+        /// Receives the type information of the caller.
+        /// If called from global function or static method, this will be \c nullptr.
+        /// @returns The type information, if available.
+        //==========================================================================================
+        const std::type_info*   GetTypeInfo()
+        {
+            return callStack[size_t(callStackSize)].typeInfo;
         }
 
 #if ALIB_THREADS
-        /** ************************************************************************************
-         * Receives the thread ID of the caller.
-         * @returns The thread ID.
-         **************************************************************************************/
+        //==========================================================================================
+        /// Receives the thread ID of the caller.
+        /// @returns The thread ID.
+        //==========================================================================================
         threads::ThreadID  GetThreadID()
         {
             if( thread == nullptr )
-                thread= Thread::GetCurrent();
-            return thread->GetId();
+                thread= Thread::Get(threadNativeIDx);
+            return thread->GetID();
         }
 
-        /** ************************************************************************************
-         * Receives information about the thread that the current call was invoked with.
-         * @param id  Output parameter receiving the \alib thread ID. If nullptr, it will be
-         *            ignored.
-         * @returns The name of the current thread. The id is stored within the provided
-         *          pointer.
-         **************************************************************************************/
+        //==========================================================================================
+        /// Receives the thread ID of the caller.
+        /// @returns The thread ID.
+        //==========================================================================================
+        std::thread::id     GetThreadNativeID()                           { return threadNativeIDx; }
+
+        //==========================================================================================
+        /// Receives information about the thread that the current call was invoked with.
+        /// @param id  Output parameter receiving the \alib thread ID. If nullptr, it will be
+        ///            ignored.
+        /// @returns The name of the current thread. The id is stored within the provided
+        ///          pointer.
+        //==========================================================================================
         const alib::String& GetThreadNameAndID( threads::ThreadID* id )
         {
             if ( threadName.IsNull() )
             {
                 // get current thread, if not passed with set()
                 if( thread == nullptr )
-                    thread =  Thread::GetCurrent();
+                    thread =  Thread::Get(threadNativeIDx);
 
                 if (id != nullptr)
-                    *id=    thread->GetId();
+                    *id=    thread->GetID();
 
                 // do we have a dictionary entry?
-                auto it= threadDictionary.Find( thread->GetId() );
+                auto it= threadDictionary.Find( thread->GetID() );
                 if (it != threadDictionary.end() )
                     threadName= it->second;
                 else
@@ -465,28 +442,29 @@ class ScopeInfo
     // #############################################################################################
         protected:
 
-        /** ************************************************************************************
-         * Tries to trim the source file's path. Sets variable SourceFile::trimmedPath to either
-         * the successfully trimmed path or to the non-trimmed one. This way, it is executed
-         * only once, at it is 'lazily' invoked by #GetTrimmedPath()
-         **************************************************************************************/
+        //==========================================================================================
+        /// Tries to trim the source file's path. Sets variable SourceFile::trimmedPath to either
+        /// the successfully trimmed path or to the non-trimmed one. This way, it is executed
+        /// only once, at it is 'lazily' invoked by #GetTrimmedPath()
+        //==========================================================================================
         ALIB_API
         void            trimPath();
 
-        /** ************************************************************************************
-         * Gets position of path/filename separator. This is evaluated only once after an
-         * invocation of #Set.
-         * @return The index of the path separator in SourceFile::origFile.
-         **************************************************************************************/
-        integer        getPathLength()
+        //==========================================================================================
+        /// Gets position of path/filename separator. This is evaluated only once after an
+        /// invocation of #Set.
+        /// @return The index of the path separator in SourceFile::origFile.
+        //==========================================================================================
+        integer         getPathLength()
         {
-            SourceFile* actual= scopes[static_cast<size_t>(actScopeDepth)].sourceFile;
-            if( actual->origFilePathLength == -1 )
-                return -1;
-            return ( actual->origFilePathLength= actual->origFile.LastIndexOf( alib::DirectorySeparator ) );
+            auto& srcFile= *callStack[size_t(callStackSize)].Parsed;
+            if( srcFile.origFilePathLength == -2 )
+                srcFile.origFilePathLength= srcFile.origFile.LastIndexOf( lang::system::DIRECTORY_SEPARATOR );
+            return srcFile.origFilePathLength;
         }
 }; // class ScopeInfo
 
 }}} // namespace [alib::lox::detail]
 
-#endif // HPP_ALOX_DETAIL_SCOPEINFO
+#endif // HPP_ALIB_LOX_DETAIL_SCOPEINFO
+

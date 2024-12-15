@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,11 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_UTIL_SUBSEARCH)
+#if !DOXYGEN
 #   include "alib/strings/util/subsearch.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/strings/astring.hpp"
+#endif // !DOXYGEN
 
 
 namespace alib {  namespace strings { namespace util  {
@@ -40,21 +39,25 @@ void TSubstringSearch<TChar,TSensitivity>::Compile( const TString<TChar>& pNeedl
         if( kmpTable )
             delete[] kmpTable;
 
-        kmpTable= new integer[static_cast<size_t>( needle.Length() + 1 )];
+        kmpTable= new integer[size_t( needle.Length() + 1 )];
         kmpTableLength= needle.Length();
     }
     integer needleIdx= 0;
     integer pfxLen= kmpTable[0]= -1;
-    while (needleIdx != needle.Length())
+    ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+    for (;;)
     {
-        ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-        while ((pfxLen != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
+        while ((pfxLen != -1) && !characters::Equal<TChar,TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]))
             pfxLen= kmpTable[pfxLen];
         ++needleIdx;
+        if (needleIdx == needle.Length())
+            break;
+
         ++pfxLen;
-        kmpTable[needleIdx]=     characters::CharArray<TChar>::template Equal<TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]) ? kmpTable[pfxLen] : pfxLen;
-        ALIB_WARNINGS_RESTORE
+        kmpTable[needleIdx]=     characters::Equal<TChar,TSensitivity>(needle.Buffer()[needleIdx], needle.Buffer()[pfxLen]) ? kmpTable[pfxLen] : pfxLen;
     }
+    kmpTable[needleIdx]=  pfxLen;
+    ALIB_WARNINGS_RESTORE
 }
 
 template<typename TChar, lang::Case TSensitivity>
@@ -72,8 +75,8 @@ integer TSubstringSearch<TChar,TSensitivity>::Search( const TString<TChar>& hays
     while (haystackIdx != haystack.Length())
     {
         ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-        while ((needleIdx != -1) && !characters::CharArray<TChar>::template Equal<TSensitivity>( haystack.Buffer()[haystackIdx],
-                                                                                                 needle  .Buffer()[needleIdx] ) )
+        while ((needleIdx != -1) && !characters::Equal<TChar,TSensitivity>( haystack.Buffer()[haystackIdx],
+                                                                            needle  .Buffer()[needleIdx] ) )
             needleIdx= kmpTable[needleIdx];
         ALIB_WARNINGS_RESTORE
         ++haystackIdx;
@@ -106,3 +109,4 @@ template integer TSubstringSearch<wchar, lang::Case::Ignore   >::Search         
 
 
 }}} // namespace [alib::strings::util]
+

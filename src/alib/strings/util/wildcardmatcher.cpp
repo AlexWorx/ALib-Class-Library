@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,15 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_UTIL_WILDCARDMATCHER)
+#if !DOXYGEN
 #   include "alib/strings/util/wildcardmatcher.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_SUBSTRING)
 #   include "alib/strings/substring.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 namespace alib {  namespace strings { namespace util  {
 
@@ -97,7 +92,7 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
 
     TSubstring<TChar> haystack= pHaystack;
     size_t  actCmd = 0;
-    size_t  lastCmd= static_cast<size_t>( commands.size() - 1 );
+    size_t  lastCmd= size_t( commands.size() - 1 );
     bool    lastWasAsterisk= false;
 
     for( actCmd= 0; actCmd <= lastCmd ; ++actCmd )
@@ -109,7 +104,7 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
         {
             if ( haystack.Length() < cmd.first )
                 return false;
-            haystack.template ConsumeChars<false>( cmd.first );
+            haystack.template ConsumeChars<NC>( cmd.first );
             continue;
         }
 
@@ -129,8 +124,8 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
 
         if( lastWasAsterisk )
         {
-            integer idx= sensitivity==lang::Case::Sensitive  ?  haystack.template IndexOf<false, lang::Case::Sensitive>( cmd.second )
-                                                             :  haystack.template IndexOf<false, lang::Case::Ignore   >( cmd.second );
+            integer idx= sensitivity==lang::Case::Sensitive  ?  haystack.template IndexOf<NC, lang::Case::Sensitive>( cmd.second, 0, haystack.Length() - cmd.second.Length() + 1 )
+                                                             :  haystack.template IndexOf<NC, lang::Case::Ignore   >( cmd.second, 0, haystack.Length() - cmd.second.Length() + 1 );
             if( idx < 0 )
                 return false;
             haystack.ConsumeChars( idx + cmd.second.Length() );
@@ -138,11 +133,11 @@ bool TWildcardMatcher<TChar>::Match( const TString<TChar>& pHaystack, lang::Case
             continue;
         }
 
-        if( sensitivity==lang::Case::Sensitive ? (!haystack.template StartsWith<false, lang::Case::Sensitive>( cmd.second ) )
-                                               : (!haystack.template StartsWith<false, lang::Case::Ignore   >( cmd.second ) )  )
+        if( sensitivity==lang::Case::Sensitive ? (!haystack.template StartsWith<NC, lang::Case::Sensitive>( cmd.second ) )
+                                               : (!haystack.template StartsWith<NC, lang::Case::Ignore   >( cmd.second ) )  )
             return false;
 
-        haystack.template ConsumeChars<false>( cmd.second.Length() );
+        haystack.template ConsumeChars<NC>( cmd.second.Length() );
     }
 
     return haystack.IsEmpty() || lastWasAsterisk;
@@ -156,3 +151,4 @@ template bool TWildcardMatcher<wchar>::Match  ( const TString<wchar>& haystack, 
 #undef   STRING
 #undef   ASTERISK
 }}} // namespace [alib::strings::util]
+

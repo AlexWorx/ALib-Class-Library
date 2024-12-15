@@ -5,91 +5,90 @@
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
-
 #include "alib/files/finfo.hpp"
 
+#include "ftree.hpp"
 #if ALIB_DEBUG
-#   if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
-#      include "alib/lang/format/formatter.hpp"
-#   endif
+#   include "alib/lang/format/formatter.hpp"
 #endif
 
+#if !defined (_WIN32)
+#   include <pwd.h>
+#   include <grp.h>
+#endif
+
+using namespace alib::lang::system;
 namespace alib::files {
 
-//==================================================================================================
-//=== FInfo::WriteTypeAndAccess
-//==================================================================================================
-AString&  FInfo::WriteTypeAndAccess(AString& target)                                    const
-{
-    auto type = Type();
-    auto perms= Perms();
-    char typeChar= '?';
-    ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
-    switch( type )
-    {
-        case Types::REGULAR          : typeChar= '-'; break;
-        case Types::DIRECTORY        : typeChar= 'd'; break;
-        case Types::SYMBOLIC_LINK    : typeChar= 'l'; break;
-        case Types::SYMBOLIC_LINK_DIR: typeChar= 'L'; break;
-        case Types::BLOCK            : typeChar= 'b'; break;
-        case Types::CHARACTER        : typeChar= 'c'; break;
-        case Types::FIFO             : typeChar= 'p'; break;
-        case Types::SOCKET           : typeChar= 'S'; break;
-    }
-    ALIB_WARNINGS_RESTORE
-    target << typeChar
-           << (  (perms & Permissions::OWNER_READ  ) == Permissions::OWNER_READ    ? 'r'   : '-' )
-           << (  (perms & Permissions::OWNER_WRITE ) == Permissions::OWNER_WRITE   ? 'w'   : '-' )
-           << (  (perms & Permissions::OWNER_EXEC  ) == Permissions::OWNER_EXEC    ? 'x'   : '-' )
-           << (  (perms & Permissions::GROUP_READ  ) == Permissions::GROUP_READ    ? 'r'   : '-' )
-           << (  (perms & Permissions::GROUP_WRITE ) == Permissions::GROUP_WRITE   ? 'w'   : '-' )
-           << (  (perms & Permissions::GROUP_EXEC  ) == Permissions::GROUP_EXEC    ? 'x'   : '-' )
-           << (  (perms & Permissions::OTHERS_READ ) == Permissions::OTHERS_READ   ? 'r'   : '-' )
-           << (  (perms & Permissions::OTHERS_WRITE) == Permissions::OTHERS_WRITE  ? 'w'   : '-' )
-           << (  (perms & Permissions::OTHERS_EXEC ) == Permissions::OTHERS_EXEC   ? 'x'   : '-' )
-    ;
-    return target;
-}
-
-
-void   FInfo::SetLinkTarget(const String& target, const String& realTarget)
+void   FInfo::SetLinkTarget(FTree& tree, const PathString& target, const PathString& realTarget)
 {
     EISymLinkFile& ei= *static_cast<EISymLinkFile*>(extendedInfo);
+    auto& pool= tree.Pool;
 
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
-    // delete old?
-    if(ei.    Target.IsNotNull() && ei.Target.Buffer() != ei.internalBuf  )
-        delete[] ei.Target.Buffer();
-    if(ei.RealTarget.IsNotNull() && ei.RealTarget.Buffer() >= ei.internalBuf
-                                 && ei.RealTarget.Buffer() <  ei.internalBuf + ei.InternalBufSize  )
-        delete[] ei.RealTarget.Buffer();
+    // delete old values
+    if(    ei.RealTarget.Buffer() != ei.Target.Buffer()
+        && ei.RealTarget.Buffer() != nullptr             )
+        ei.RealTarget.Free(pool);
+    ei.Target.Free(pool);
 
-
-    // copy target to buffer or external memory
-    integer    tLen= target.Length();
-    character* tp  = (tLen +1 < EISymLinkFile::InternalBufSize ) ?  ei.internalBuf
-                                                                 :  new character[size_t(tLen+1)];
-    target.CopyTo( tp );
-    tp[tLen]= '\0';
-    ei.Target= CString( tp, tLen );
+    // allocate target
+    ei.Target.Allocate(pool, target);
 
     // real target is same?
     if( realTarget.Equals(target) )
-    {
         ei.RealTarget= ei.Target;
-        return;
-    }
+    else
+        ei.RealTarget.Allocate(pool, realTarget);
+}
 
-    // copy realTarget to remaining buffer or external memory
-    integer bufStart= (ei.internalBuf == ei.Target.Buffer()) ? tLen + 1
-                                                             : 0;
-    tLen=  realTarget.Length();
-    tp= (tLen +1 < EISymLinkFile::InternalBufSize - bufStart) ?  ei.internalBuf + bufStart
-                                                              :  new character[size_t(tLen+1)];
-    realTarget.CopyTo( tp );
-    tp[tLen]= '\0';
-    ei.RealTarget= CString( tp, tLen );
-    ALIB_WARNINGS_RESTORE
+//==================================================================================================
+//=== OwnerAndGroupResolver
+//==================================================================================================
+#if defined ( _WIN32) && !DOXYGEN
+    namespace { NString unknown("<Unknown>"); }
+#endif
+
+const NString&  OwnerAndGroupResolver::GetOwnerName( const FInfo& fInfo )
+{
+    #if !defined ( _WIN32)
+        auto key= fInfo.Owner();
+        auto resultPair= ownerCache.Try( key );
+        if( !resultPair.first )
+        {
+            auto* result= getpwuid(key);
+            resultPair.second.Construct( key, NString(result ? result->pw_name : "?"));
+        }
+        return resultPair.second.Mapped();
+    #else
+        (void) fInfo;
+        return unknown;
+    #endif
+}
+
+const NString&  OwnerAndGroupResolver::GetGroupName( const FInfo& fInfo )
+{
+    #if !defined ( _WIN32)
+        auto key= fInfo.Group();
+        auto resultPair= groupCache.Try( key );
+        if( !resultPair.first )
+        {
+            auto* result= getgrgid(key);
+            resultPair.second.Construct( key, NString(result ? result->gr_name : "?"));
+        }
+        return resultPair.second.Mapped();
+    #else
+        (void) fInfo;
+        return unknown;
+    #endif
 }
 
 } // namespace [alib::files]
+
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::Permissions         , vt_files_perms  )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::Types               , vt_files_type   )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::TypeNames1Letter    , vt_files_type1  )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::TypeNames2Letters   , vt_files_type2  )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::TypeNames3Letters   , vt_files_type3  )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::Qualities           , vt_files_qual   )
+ALIB_BOXING_VTABLE_DEFINE( alib::files::FInfo::Qualities3Letters   , vt_files_qual3  )

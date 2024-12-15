@@ -1,0 +1,11 @@
+The files in this folder with extension ".md" are not markdown files.
+Instead, they are doxygen input files.
+
+The reason why they are named .md is that CLion/Grazie-Plugin does not
+perform grammar checks on .dox files (as of today we could not make it work!)
+Furthermore, naming them .md gives a first preview in CLion, even though the doxygen
+links and some other stuff do not work.
+
+As we do not use Markdown otherwise with doxygen, we could tell doxygen to
+see ".md" files as C++ input files. This way, doxygen properly reads the
+files as non-markdown.

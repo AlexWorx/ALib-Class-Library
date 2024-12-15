@@ -11,19 +11,21 @@
 #include "alib/compatibility/std_boxing.hpp"
 #include "alib/boxing/dbgboxing.hpp"
 
-//! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP1]
+DOX_MARKER( [DOX_RESOURCES_DEBUG_BOOTSTRAP1])
 #if ALIB_DEBUG_RESOURCES
 #   include "alib/lang/resources/localresourcepool.hpp"
 #endif
-//! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP1]
+DOX_MARKER( [DOX_RESOURCES_DEBUG_BOOTSTRAP1])
 
 #if ALIB_DEBUG_MONOMEM
 #   include "alib/singletons/dbgsingletons.hpp"
-#   include "alib/monomem/hashtable.hpp"
+#   include "alib/containers/hashtable.hpp"
 #endif
 
+#include "alib/monomem/globalallocator.hpp"
+
 #if ALIB_CAMP
-#   include "alib/lang/system/directory.hpp"
+#   include "alib/lang/system/path.hpp"
 #endif
 
 #if ALIB_ALOX
@@ -40,7 +42,7 @@
     #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif
 
-    #include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
 #if defined(__clang__)
     #pragma clang diagnostic pop
@@ -50,29 +52,32 @@
 using namespace std;
 using namespace alib;
 
-//! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP2]
-int main( int argc, char **argv )
+DOX_MARKER( [DOX_RESOURCES_DEBUG_BOOTSTRAP2])
+#include "alib/lang/callerinfo_functions.hpp"
+
+int main( int argc, const char **argv )
 {
-    ArgC=   argc;
-    ArgVN=  const_cast<const char**>(argv);
+    ARG_C=   argc;
+    ARG_VN=  argv;
 
     #if ALIB_DEBUG_RESOURCES
-        resources::LocalResourcePool::DbgResourceLoadObserver= &std::cout;
+        lang::resources::LocalResourcePool::DbgResourceLoadObserver= &std::cout;
     #endif
 
     Bootstrap();
     //...
     //...
-//! [DOX_ALIB_RESOURCES_DEBUG_BOOTSTRAP2]
+DOX_MARKER( [DOX_RESOURCES_DEBUG_BOOTSTRAP2])
 
-//! [DOX_ALIB_COMPATIBILITY_BOOTSTRAP]
-ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Acquire(ALIB_CALLER_PRUNED); )
-alib::boxing::compatibility::std::BootstrapStdStringBoxing();
-ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
-//! [DOX_ALIB_COMPATIBILITY_BOOTSTRAP]
+DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
+{
+    ALIB_LOCK_RECURSIVE_WITH( monomem::GLOBAL_ALLOCATOR_LOCK )
+    alib::boxing::compatibility::std::BootstrapStdStringBoxing();
+}    
+DOX_MARKER( [DOX_COMPATIBILITY_BOOTSTRAP])
 
 
-    ::testing::InitGoogleTest( &argc, argv);
+    ::testing::InitGoogleTest( &argc, const_cast<char**>(argv));
 
     std::cout << "Unit Tests compiled with : ";
         #if defined( _MSC_VER )
@@ -139,74 +144,97 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
 
     //alib::lang::Report::GetDefault().HaltOnWarning= true;
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*";
+//    ::testing::GTEST_FLAG(filter) = "UT_*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Lib.Bits*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Lang.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Lang.Bits*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Lang.LangMacros*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_Strings_AString*:CPP_Ticks*:CPP_Thread*:CPP_ALox*:CPP_Tutorial*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.XAString";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.Count";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.Revert";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.Append";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_AString.CapacityLength";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Substring.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.ConvertFloats";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.TestFormatterJavaStyle";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.FormatterPythonStyle";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Format.ConvertIntegers";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.StringWriterNLCorrection";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.Text*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.SubstringSearch";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Util.Token*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Strings_Custom*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Strings.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Strings.PropertyFormatter";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Strings.PropertyFormatters";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Format.*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.XAString";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.Count";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.Revert";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_AString.Append";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Substring.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.ConvertFloats";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.FormatterJavaStyle";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.FormatterPythonStyle";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Format.ConvertIntegers";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.Text*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.SubstringSearch";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Util.Token*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Strings_Custom*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatter";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Strings.PropertyFormatters";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Format.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Enums.*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Enums.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Time*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Time.CalendarDate_Time";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Time.CalendarDate_Time";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem.List*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem.HashTable*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Monomem_StringTree*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.Bit*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.AC_16";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.AC_16_LargerArrays";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.ArrayCompressor";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.AC_Huffman*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_BitBuffer.AC_SignedAndMinimumSizes*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono.AString_Ma_AStringPA";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono.LocalAllocator";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono.List*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono.HashTable*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMonoHashtable.HashTableRecycling";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMono_StringTree*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMonoLRUCache*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ContMonoHashtable*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Threads*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Threads.ThreadSimple";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Threads.SmartLock";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.Bit*";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.AC_16";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.AC_16_LargerArrays";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.ArrayCompressor";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.AC_Huffman*";
+//    ::testing::GTEST_FLAG(filter) = "UT_BitBuffer.AC_SignedAndMinimumSizes*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_System.Dir*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Containers.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Config.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads.Locks";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads.LockSpeedTest";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads.ThreadSimple";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads.SmartLock";
+//    ::testing::GTEST_FLAG(filter) = "UT_Threads.TRequest";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Compatibility.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_ThreadModel*";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing_DOX.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Boxing_DOX.BoxingDerivedALibStrings*";
+//    ::testing::GTEST_FLAG(filter) = "UT_System.Dir*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Containers.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Config.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Config.Basics";
+//    ::testing::GTEST_FLAG(filter) = "UT_Config.ConfigIniFiles";
+//    ::testing::GTEST_FLAG(filter) = "UT_Config.ConfigSubstitution";
 
+//    ::testing::GTEST_FLAG(filter) = "UT_Compatibility.*";
+
+//    ::testing::GTEST_FLAG(filter) = "UT_Boxing*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Boxing.Boxing_Boxes";
+//    ::testing::GTEST_FLAG(filter) = "UT_Boxing_DOX.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Boxing_DOX.BoxingDerivedALibStrings*";
+
+//    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.ALox_Manual";
+//    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.Hello_ALox";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_Replacements";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_Multiline*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_Recursive*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_ColorsAndStyles*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_TextLogger_RegisterStreamLocks*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_TextLogger_RegisterStdStreamLocks*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_TextLogger_ObjectConverter*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_TextLogger_FormatConfig*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Logger.Log_TextLogger_TimeDiff";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_MultipleLogables";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_DumpStateOnExit";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_WriteVerbosities";
@@ -214,6 +242,7 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_SetSourcePathTrimRuleTest";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_ScopeInfoCacheTest";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_GetState*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox.Log_SimpleScopeDomain";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox_Release.*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Lox_Release.Lox_TestAssert";
@@ -226,6 +255,7 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Domains.Log_Domain_IniFile*";
 
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.*";
+//    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.Lox_ScopeDomains*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.Log_ScopeDomains*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.Log_Once*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_ALox_Log_Scopes.Log_Store_Test*";
@@ -235,33 +265,36 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
 //    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial*";
 //    ::testing::GTEST_FLAG(filter) = "CPP_Dox_Tutorial.ALoxTut_LogState";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_*Expr*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Conditional";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.TestNormalization";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Nested";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.NumberLiterals";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.Exceptions";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr.ProgramListing";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.Strings";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.DateTime";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Expr_Builtin.TokenConsistency";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Calculator.*";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.FileSystemIntro";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.Nested";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Expr_Tutorial.VMListings";
+//    ::testing::GTEST_FLAG(filter) = "UT_*Expr*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.MultiThreaded";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.Conditional";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.TestNormalization";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.Nested";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.NumberLiterals";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.Exceptions";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr.ProgramListing";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr_Builtin.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr_Builtin.Math";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr_Builtin.Strings";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr_Builtin.DateTime";
+//    ::testing::GTEST_FLAG(filter) = "UT_Expr_Builtin.TokenConsistency";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Calculator.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.FileSystemIntro";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.Nested";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Expr_Tutorial.VMListings";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_Files.filesFexFilter";
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Files.Basics";
+//    ::testing::GTEST_FLAG(filter) = "UT_Files.*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Files.Scanning";
+//    ::testing::GTEST_FLAG(filter) = "UT_Files.FileAndFTree";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_Files.filesFexFilter";
 
-//    ::testing::GTEST_FLAG(filter) = "CPP_ALib_Dox_CLI*";
+//    ::testing::GTEST_FLAG(filter) = "UT_Dox_CLI*";
 
     int result= RUN_ALL_TESTS();
 
     #if ALIB_CAMP && ALIB_DEBUG_RESOURCES
-//! [DOX_ALIB_RESOURCES_DEBUG_SHUTDOWN]
+DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
 #if ALIB_DEBUG_RESOURCES && ALIB_ALOX
     Log_Info( "---------------- Resource Pool Dump ----------------" )
         auto categoryList= alib::BASECAMP.GetResourcePool().DbgGetCategories();
@@ -277,17 +310,17 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
         Log_Info( ResourcePool::DbgDump( resourceList ) )
     Log_Info( "---------------- Resource Pool Dump (end) ----------" )
 #endif
-//! [DOX_ALIB_RESOURCES_DEBUG_SHUTDOWN]
+DOX_MARKER( [DOX_RESOURCES_DEBUG_SHUTDOWN])
     #endif
 
-    #if ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG_MONOMEM
+    #if ALIB_FEAT_SINGLETON_MAPPED && ALIB_DEBUG_CONTAINERS
         cout << endl;
         cout << "---------------- Mapped Singletons ----------------" << endl;
             AString singletonList;
             alib::singletons::DbgGetSingletons(singletonList);
             cout << singletonList << endl;
             AString hashTableStats=
-                    alib::monomem::DbgDumpDistribution( alib::singletons::DbgGetSingletons(), true );
+                    alib::containers::DbgDumpDistribution( alib::singletons::DbgGetSingletons(), true );
             cout << hashTableStats << endl;
 
         cout << "---------------- Mapped Singetons (end) ----------" << endl;
@@ -305,16 +338,16 @@ ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
     alib::Shutdown();
 
     #if !ALIB_DEBUG
-        cerr << "\n  *** Note: To generate the documentation samples, unit test have to be run in debug mode." << endl;
+        cout << "\n*** Note: To generate the documentation samples, unit test have to be run in debug mode." << endl;
     #elif !ALIB_CLI || !ALIB_ALOX || !ALIB_EXPRESSIONS || !ALIB_ALOX || !ALIB_THREADS || !ALIB_BITBUFFER
-        cerr << "\n  *** Note: To generate the documentation samples, all ALib modules have to be enabled." << endl;
+        cout << "\n*** Note: To generate the documentation samples, all ALib modules have to be enabled." << endl;
     #elif !ALIB_DEBUG_BOXING
-        cerr << "\n  *** Note: To generate the documentation samples, CMake flag ALIB_DEBUG_BOXING has to be true for compilation." << endl;
+        cout << "\n*** Note: To generate the documentation samples, CMake flag ALIB_DEBUG_BOXING has to be true for compilation." << endl;
     #else
-        if(!Directory::Exists(A_CHAR("/tmp/_builds_/ALib_Samples/cli_clion_debug")))
-            cerr << "\n  *** Note: To generate the documentation samples, ALib sample CLI has to be compiled to /tmp/_builds_/ALib_Samples/cli_clion_debug." << endl;
+        if(!Path(A_CHAR("/tmp/_builds_/ALib_Samples/cli_clion_debug")).IsDirectory())
+            cout << "\n*** Note: To generate the documentation samples, ALib sample CLI has to be compiled to /tmp/_builds_/ALib_Samples/cli_clion_debug." << endl;
         else
-            cout << "*** Note: Duly compiled to generate documentation after running these tests." << endl;
+            cout << "\n*** Note: Duly compiled to generate documentation after running these tests." << endl;
     #endif
 
     return result;

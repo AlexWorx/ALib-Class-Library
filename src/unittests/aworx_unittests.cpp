@@ -7,46 +7,33 @@
 #include "alib/alib_precompile.hpp"
 
 #include "alib/alox.hpp"
-#include "alib/lang/basecamp/basecamp.hpp"
-#include "alib/lang/basecamp/bootstrap.hpp"
+#if ALIB_CAMP
+#	include "alib/lang/basecamp/basecamp.hpp"
+#	include "alib/lang/basecamp/bootstrap.hpp"
+#	include "alib/lang/basecamp/bootstrap.hpp"
+#endif
 
 #if ALIB_ALOX
-#   if !defined (HPP_ALIB_ALOXMODULE)
-#      include "alib/alox/aloxmodule.hpp"
-#   endif
+#   include "alib/alox/aloxcamp.hpp"
 
-#   if !defined(HPP_ALOX_CONSOLE_LOGGER)
-#      include "alib/alox/loggers/consolelogger.hpp"
-#   endif
-
-#   if !defined(HPP_ALOX_ANSI_LOGGER)
-#      include "alib/alox/loggers/ansilogger.hpp"
-#   endif
-
-#   if !defined(HPP_ALOX_VSTUDIO_LOGGER)
-#      include "alib/alox/loggers/vstudiologger.hpp"
-#   endif
-
-#   if !defined(HPP_ALOX_WINDOWS_CONSOLE_LOGGER)
-#      include "alib/alox/loggers/windowsconsolelogger.hpp"
-#   endif
+#   include "alib/alox/loggers/consolelogger.hpp"
+#   include "alib/alox/loggers/ansilogger.hpp"
+#   include "alib/alox/loggers/vstudiologger.hpp"
+#   include "alib/alox/loggers/windowsconsolelogger.hpp"
 #else
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER)
-#       include "alib/lang/format/formatter.hpp"
-#   endif
+#   include "alib/lang/format/formatter.hpp"
 #   include "alib/compatibility/std_strings_iostream.hpp"
 #endif
-#if ALIB_THREADS
-#   include "alib/threads/smartlock.hpp"
-#endif
-
 #include "alib/strings/substring.hpp"
+
+#if ALIB_MONOMEM
+#	include "alib/monomem/globalallocator.hpp"
+#endif
 
 #if ALIB_CAMP
 #   include "alib/lang/system/environment.hpp"
 #endif
 #include "alib/compatibility/std_boxing.hpp"
-
 #include "unittests/aworx_unittests.hpp"
 #include <limits>
 #include <assert.h>
@@ -61,7 +48,7 @@
 
 using namespace std;
 using namespace alib;
-ALIB_IF_ALOX(
+IF_ALIB_ALOX(
 using namespace alib::lox::detail; )
 
 namespace ut_aworx {
@@ -99,7 +86,7 @@ bool       AWorxUnitTesting::fullyBootstrapped= false;
 // Constructors/destructor
 // #################################################################################################
 AWorxUnitTesting::AWorxUnitTesting( const NCString& testName)
-#if defined(_WIN32)
+#if defined(ALIB_IDE_VSTUDIO)
 // Redirect std::cout to OutputDebugString
 : initializerCout(    std::cout.rdbuf( &vstudioDbgStreamForCout )
                    && std::cerr.rdbuf( &vstudioDbgStreamForCout )  )
@@ -119,14 +106,14 @@ lox( "UTLox", false )
 	if( !fullyBootstrapped )
 	{ 
 		fullyBootstrapped= true;
-		ALIB_IF_THREADS(monomem::GlobalAllocatorLock.Acquire(ALIB_DBG(nullptr, 113, "AWorxUnitTesting")); )
+		IF_ALIB_THREADS(monomem::GLOBAL_ALLOCATOR_LOCK.AcquireRecursive(ALIB_DBG({ __FILE__, __LINE__, "AWorxUnitTesting",::std::this_thread::get_id(),&typeid(*this) })); )
 		alib::boxing::compatibility::std::BootstrapStdStringBoxing();
-		ALIB_IF_THREADS( monomem::GlobalAllocatorLock.Release(); )
+		IF_ALIB_THREADS( monomem::GLOBAL_ALLOCATOR_LOCK.ReleaseRecursive(ALIB_DBG({__FILE__, __LINE__, "AWorxUnitTesting",::std::this_thread::get_id(),&typeid(*this) })); )
 	}
     #endif
 
     //needed for the assertion, as macro ALIB_CALLER is changed here
-    ALIB_IF_ALOX( AWorxUnitTesting& ut= *this; )
+    IF_ALIB_ALOX( AWorxUnitTesting& ut= *this; )
 
     Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 
@@ -144,7 +131,7 @@ lox( "UTLox", false )
             utl->MetaInfo->VerbosityInfo=    "     ";
             utl->MetaInfo->VerbosityVerbose= "{***}";
 
-            Directory moduleName( Directory::SpecialFolder::Camp );
+            Path moduleName( SystemFolders::Camp );
             integer idx= moduleName.Path.IndexOf( "/ALox/" );
             if ( idx > 0 )
             {
@@ -163,23 +150,21 @@ lox( "UTLox", false )
         // check if we are in CLion. Here it is important to switch off the use of dark/light colors
         if( utl->GetTypeName().Equals("ANSI_CONSOLE") )
         {
-            if ( NString(*ArgVN).IndexOf<true, lang::Case::Ignore>( "CLion", 0) >= 0 )
-                dynamic_cast<AnsiConsoleLogger*>(utl)->UseLightColors= AnsiLogger::LightColorUsage::Never;
+            if ( NString(*ARG_VN).IndexOf<CHK, lang::Case::Ignore>( "CLion", 0) >= 0 )
+                dynamic_cast<AnsiConsoleLogger*>(utl)->CFP.LCU= lox::textlogger::ColorfulLoggerParameters::LightColorUsage::Never;
         }
     #endif
 
     if ( CustomMetaInfoFormat.IsNotEmpty() )
-        utl->MetaInfo->Format= CustomMetaInfoFormat;
-
-    if ( LastAutoSizes.IsNotEmpty() )
-        utl->AutoSizes.Import( LastAutoSizes, lang::CurrentData::Keep );
+        utl->GetFormatMetaInfo().Format.Reset(CustomMetaInfoFormat);
 
     lox.Acquire(ALIB_CALLER);
         lox.SetVerbosity( utl, Verbosity::Info, "/" );
         lox.SetVerbosity( utl, Verbosity::Verbose, Domain);
         lox.SetVerbosity( utl, Verbosity::Warning, Lox::InternalDomains );
         lox.SetVerbosity( utl, Verbosity::Info,    NString64() << Lox::InternalDomains << "UT_REPORT" );
-
+        if ( LastAutoSizes.IsNotEmpty() )
+            utl->GetAutoSizes().Main.Import( LastAutoSizes, lang::CurrentData::Keep );
     lox.Release();
 
     lang::Report::GetDefault().PushWriter( this );
@@ -195,43 +180,28 @@ AWorxUnitTesting::~AWorxUnitTesting()
     lox.Release();
 
     LastAutoSizes.Reset();
-    utl->AutoSizes.Export( LastAutoSizes );
+    utl->GetAutoSizes().Main.Export( LastAutoSizes );
 
     // clean debug lox and ALox
     Log_Prune( ALOX.Reset() );
+
+    lang::Report::GetDefault().PopWriter( this );
+
+    delete utl;
 #endif
-
-    // check if ALib SmartLock for std I/O was released properly
-    #if ALIB_THREADS
-        #if ALIB_ALOX
-            this->EQ (__FILE__, __LINE__, 0, SmartLock::StdOutputStreams.CntAcquirers()      );
-            this->EQ (__FILE__, __LINE__, 0, SmartLock::StdOutputStreams.CountAcquirements() );
-        #else
-            // without ALox, the standared report writer might attach
-            this->IsTrue(__FILE__, __LINE__, 2 > SmartLock::StdOutputStreams.CntAcquirers()     );
-            this->IsTrue(__FILE__, __LINE__, 2 > SmartLock::StdOutputStreams.CountAcquirements() );
-        #endif
-    #endif
-
-ALIB_IF_ALOX(
-    lang::Report::GetDefault().PopWriter( this ); )
-
-    // check if ALib default formatter was released properly
-    ALIB_IF_CAMP(
-        this->EQ (__FILE__, __LINE__, 0, Formatter::GetDefault().get()->CountAcquirements() ); )
-
-ALIB_IF_ALOX(
-    delete utl; )
 }
 
 
 // #################################################################################################
 // Print
 // #################################################################################################
-Boxes& AWorxUnitTesting::printPrepare (  const alib::NCString& file, int line )
+
+BoxesMA& AWorxUnitTesting::printPrepare ( const CallerInfo& ci )
 {
     #if ALIB_ALOX
-        lox.Acquire(file, line, ActTestName);
+        CallerInfo mci= const_cast<CallerInfo&>(ci);
+        mci.Func= ActTestName.Buffer();
+        lox.Acquire(mci);
         return lox.GetLogableContainer();
     #else
         logablesFileAndLine.clear();
@@ -241,9 +211,9 @@ Boxes& AWorxUnitTesting::printPrepare (  const alib::NCString& file, int line )
     #endif
 }
 
-void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::Boxes& args )
+void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::BoxesMA& args )
 {
-    #if ALIB_AVOID_ANALYZER_WARNINGS  && defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
+    #if ALIB_UT_AVOID_ANALYZER_WARNINGS  && defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
         (void) verbosity;
         (void) args;
         #if ALIB_ALOX
@@ -270,8 +240,8 @@ void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::Boxes& args )
             integer indent= outputBuffer.Length();
             std::cout << outputBuffer;
             formatter->FormatArgs( outputBuffer.Reset(), args );
-            if( NewLine().Length() > 1 )
-                outputBuffer.SearchAndReplace( NewLine(), A_CHAR("\n"));
+            if( NewLine.Length() > 1 )
+                outputBuffer.SearchAndReplace( NewLine, A_CHAR("\n"));
             lines.Set(outputBuffer, '\n' );
             std::cout << lines.Next() << std::endl;
             while( lines.HasNext() )
@@ -282,9 +252,9 @@ void AWorxUnitTesting::printDo (  alib::Verbosity verbosity, alib::Boxes& args )
     #endif
 }
 
-void AWorxUnitTesting::Failed( const NCString& file, int line, const Box& exp, const Box& given )
+void AWorxUnitTesting::Failed( const alib::CallerInfo& ci, const Box& exp, const Box& given )
 {
-    Print( file, line, alib::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
+    Print( ci, alib::Verbosity::Error, "UT Failure: Expected: \"{!ESC}\"\n"
                                                 "               given: \"{!ESC}\"", exp, given );
     assert(!AssertOnFailure);
 }
@@ -335,7 +305,7 @@ void AWorxUnitTesting::Report  ( lang::Message& msg )
         (void) msg;
         assert(false);
     #else
-        lox.Acquire(msg.File, msg.Line, msg.Function);
+        lox.Acquire(msg.CI);
             NString256 domain;
             domain << Lox::InternalDomains << "UT_REPORT";
 
@@ -372,7 +342,7 @@ void AWorxUnitTesting::Report  ( lang::Message& msg )
                        msg.Type == alib::lang::Report::Types::Error   ? Verbosity::Error    :
                        msg.Type == alib::lang::Report::Types::Warning ? Verbosity::Warning  :
                        msg.Type == alib::lang::Report::Types::Message ? Verbosity::Info     :
-                                                                                 Verbosity::Verbose    );
+                                                                        Verbosity::Verbose    );
 
         lox.Release();
     #endif
@@ -384,7 +354,7 @@ void AWorxUnitTesting::Report  ( lang::Message& msg )
     : MemoryLogger( "VSTUDIO_UNITTEST_CONSOLE" )
     {
         // prevent cutting off filenames
-        MetaInfo->Format.SearchAndReplace( A_CHAR("%Sp"), A_CHAR("%SP") );
+        //GetFormatMetaInfo().Format.SearchAndReplace( A_CHAR("%Sp"), A_CHAR("%SP") );
 
         // we set this, to make the unit-tests compatible in respect to locking SmartLock::StdOutputStreams
         usesStdStreams= true;
@@ -394,36 +364,14 @@ void AWorxUnitTesting::Report  ( lang::Message& msg )
     {
     }
 
-    int   UTVStudioLogger::AddAcquirer( ThreadLock* newAcquirer )
-    {
-        // when added to a lox, we register as std output stream user. This would not be necessary, because
-        // we do not write to the std output stream. But in other environments, the unit test logger does
-        // so, and therefore, if we dont do it, the unit test which tests the whole concept would fail.
-         SmartLock::StdOutputStreams.AddAcquirer( this );
-
-        // call parent's implementation
-        return Logger::AddAcquirer( newAcquirer );
-    }
-
-    int   UTVStudioLogger::RemoveAcquirer( ThreadLock* acquirer )
-    {
-         SmartLock::StdOutputStreams.RemoveAcquirer( this );
-
-        // call parent's implementation
-        return Logger::RemoveAcquirer( acquirer );
-    }
-
-
-
     void UTVStudioLogger::logText( Domain&       domain,
                                    Verbosity     verbosity,
                                    AString&      msg,
                                    ScopeInfo&    scope,
                                    int           lineNumber )
-
     {
         MemoryLogger::logText( domain, verbosity, msg, scope, lineNumber );
-        outputString.Reset( MemoryLog );
+        outputString.Reset( MemoryLog )._(NEW_LINE);
         Microsoft::VisualStudio::CppUnitTestFramework::Logger::WriteMessage( outputString );
         MemoryLog.Reset();
     }
@@ -435,26 +383,26 @@ void AWorxUnitTesting::Report  ( lang::Message& msg )
 // #################################################################################################
 
 #if ALIB_GTEST
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); EXPECT_TRUE( false );} }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); EXPECT_TRUE( false );} }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, long double    exp, long double     d )  { EQ(file,line,static_cast<double>(exp), static_cast<double>(d) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const NString& exp, const NString&  s )  { if (!exp.Equals(s))                  Failed(file,line,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const WString& exp, const WString&  s )  { if (!exp.Equals(s))                  Failed(file,line,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, wchar_t*       exp, wchar_t*        s )  { if (wcscmp(exp,s)!=0)                Failed(file,line,exp,s); EXPECT_STREQ( exp, s        ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); EXPECT_TRUE( false );} }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, long double    exp, long double     d )  { EQ(ci,static_cast<double>(exp), static_cast<double>(d) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const NString& exp, const NString&  s )  { if (!exp.Equals(s))                  Failed(ci,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const WString& exp, const WString&  s )  { if (!exp.Equals(s))                  Failed(ci,exp,s); EXPECT_TRUE ( exp.Equals(s) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, wchar_t*       exp, wchar_t*        s )  { if (wcscmp(exp,s)!=0)                Failed(ci,exp,s); EXPECT_STREQ( exp, s        ); }
 
-    void AWorxUnitTesting::IsTrue ( const NCString& file, int line, bool cond )                              {                        if (!cond )   Failed(file,line, true , false ); EXPECT_TRUE ( cond ); }
-    void AWorxUnitTesting::IsFalse( const NCString& file, int line, bool cond )                              {                        if (cond )    Failed(file,line, false, true  ); EXPECT_FALSE( cond ); }
+    void AWorxUnitTesting::IsTrue ( const alib::CallerInfo& ci, bool cond )                              {                        if (!cond )   Failed(ci, true , false ); EXPECT_TRUE ( cond ); }
+    void AWorxUnitTesting::IsFalse( const alib::CallerInfo& ci, bool cond )                              {                        if (cond )    Failed(ci, false, true  ); EXPECT_FALSE( cond ); }
 
 #elif defined(_WIN32)
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(file,line,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, long double    exp, long double     d )  { EQ(file,line,static_cast<double>(exp), static_cast<double>(d) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const NString& exp, const NString&  v )  { if (!exp.Equals(v))                              Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, const WString& exp, const WString&  v )  { if (!exp.Equals(v))                              Failed(file,line,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
-    void AWorxUnitTesting::EQ     ( const NCString& file, int line, wchar_t*       exp,       wchar_t*  v )  { bool c= wcscmp( v, exp )==0;              if(!c) Failed(file,line,"","Differences in wchar string."); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, float          exp, float           d )  { float  p= std::numeric_limits<float >::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, double         exp, double          d )  { double p= std::numeric_limits<double>::epsilon() * 2; if ((d < exp ? exp-d : d-exp) > p) { Failed(ci,exp,d); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue (false); } }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, long double    exp, long double     d )  { EQ(ci,static_cast<double>(exp), static_cast<double>(d) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const NString& exp, const NString&  v )  { if (!exp.Equals(v))                              Failed(ci,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, const WString& exp, const WString&  v )  { if (!exp.Equals(v))                              Failed(ci,exp,v);    Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( exp.Equals(v) ); }
+    void AWorxUnitTesting::EQ     ( const alib::CallerInfo& ci, wchar_t*       exp,       wchar_t*  v )  { bool c= wcscmp( v, exp )==0;              if(!c) Failed(ci,"","Differences in wchar string."); Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
 
-    void AWorxUnitTesting::IsTrue ( const NCString& file, int line, bool c )                                 {                                           if(!c) Failed(file,line,true ,false);Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
-    void AWorxUnitTesting::IsFalse( const NCString& file, int line, bool c )                                 {                                           if( c) Failed(file,line,false,true );Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( c      ); }
+    void AWorxUnitTesting::IsTrue ( const alib::CallerInfo& ci, bool c )                                 {                                           if(!c) Failed(ci,true ,false);Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsTrue  ( c      ); }
+    void AWorxUnitTesting::IsFalse( const alib::CallerInfo& ci, bool c )                                 {                                           if( c) Failed(ci,false,true );Microsoft::VisualStudio::CppUnitTestFramework::Assert::IsFalse ( c      ); }
 
 #else
     #pragma message ("Unknown Testing platform in: " __FILE__ )

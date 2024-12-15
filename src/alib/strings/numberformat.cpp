@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,19 +6,16 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_NUMBERFORMAT)
+#if !DOXYGEN
 #   include "alib/strings/numberformat.hpp"
 #endif
-#endif // !defined(ALIB_DOX)
-
 #if defined( _WIN32 ) || defined(__APPLE__)   || defined(__ANDROID_NDK__)
 #   include <clocale>
 #endif
 
 namespace alib {  namespace strings {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
 // #################################################################################################
 //  Set methods
@@ -47,10 +44,9 @@ namespace {
     template<typename TChar>
     void setComputational( TNumberFormat<TChar>& nf )
     {
-        nf.Flags                      = NumberFormatFlags::NONE;
+        nf.Flags                      = NumberFormatFlags::ForceDecimalPoint;
         nf.DecimalPointChar           = '.';
-        nf.Flags                      = NumberFormatFlags( uint8_t(nf.Flags) | uint8_t(NumberFormatFlags::ForceDecimalPoint) );
-        nf.Whitespaces                = TT_StringConstants<TChar>::DefaultWhitespaces();
+        nf.Whitespaces                = TT_CStringConstants<TChar>::DefaultWhitespaces();
         nf.PlusSign                   = '\0';
 
         // automatic field width (->minimum size of maximum accuracy)
@@ -126,6 +122,7 @@ template void     TNumberFormat<wchar>::SetFromLocale   ( );
 template void     TNumberFormat<xchar>::Set             ( TNumberFormat*);
 template void     TNumberFormat<xchar>::SetFromLocale   ( );
 
-#endif // HPP_ALIB_STRINGS_DETAIL_NUMBERCONVERSION
+#endif // !DOXYGEN
 
 }} // namespace [alib::strings]
+

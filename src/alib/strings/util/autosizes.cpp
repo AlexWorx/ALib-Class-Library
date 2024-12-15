@@ -1,28 +1,18 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
 //  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
+#include "tokenizer.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_STRINGS_UTIL_AUTOSIZES)
-#include "alib/strings/util/autosizes.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_LOCALSTRING)
-    #include "alib/strings/localstring.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_CSTRING)
+#if !DOXYGEN
+#   include "alib/strings/util/autosizes.hpp"
+#   include "alib/strings/localstring.hpp"
 #   include "alib/strings/cstring.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_SUBSTRING)
 #   include "alib/strings/substring.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 namespace alib {  namespace strings { namespace util  {
 
@@ -30,99 +20,105 @@ integer   AutoSizes::Actual( Types type, integer requestedSize, integer growthPa
 {
     // grow arrays as needed
     while ( data.size() <= ActualIndex )
+    {
         data.emplace_back( type, -1, -1 );
+        dirty= true;
+    }
 
-    data[ActualIndex].type= type;
+    if ( data[ActualIndex].type != type )
+    {
+        data[ActualIndex].type  = type;
+        data[ActualIndex].actual=  0;
+        data[ActualIndex].session= -1;
+        dirty= true;
+    }
+    
+    if( WriteProtected )
+        return (std::max)( data[ ActualIndex ].actual, requestedSize );
 
     // set measured size as it would be for the next session
-    integer session=    data[ ActualIndex ].session;
+    integer& session=   data[ ActualIndex ].session;
     if ( session < requestedSize )
     {
-        data[ ActualIndex ].session =  requestedSize;
+        session=  requestedSize;
+        dirty= true;
     }
 
-    // get size as it is for actual values (the ones that might have been imported)
-    integer actual=       data[ ActualIndex ].actual;
+    // get size as it is for actual values (max of imported and session)
+    integer& actual=    data[ ActualIndex ].actual;
     if ( actual <  requestedSize )
     {
-        actual=  data[ ActualIndex ].actual=  (requestedSize + ( actual    < 0 ? 0 : growthPadding ));
+        actual=  (requestedSize + ( actual    < 0 ? 0 : growthPadding ));
+        dirty= true;
     }
 
-    return static_cast<int>(actual);
+    return actual;
 }
-
 
 void    AutoSizes::Export( AString& target  )
 {
-    for( auto& entry : data )
+    if( WriteProtected )
+        target._( "! ");
+    
+    auto it= data.begin();
+    while( it!=data.end() )
     {
-        target._( '(' ) ._( entry.type == Types::Tabstop ? 'T' : 'F')._( ',' )
-                        ._( entry.actual                            )._( ',' )
-                        ._( entry.session                           )           ._( ')' );
-    }
+        target <<  ((*it).type == Types::Tabstop ? 'T' : 'F'     )
+               <<  (*it).actual;
+        if( !WriteProtected && (*it).session != (*it).actual)
+            target << ',' << (*it).session;
+
+        ++it;
+        if( it!=data.end())
+            target << '/';
+        else
+            break;
+  }
 
     // remove unused entries at the end
-    while( target.EndsWith(A_CHAR(",0,0)") ) )
-        target.DeleteEnd<false>(target.Length() - target.LastIndexOf('('));
+    while(     target.EndsWith(A_CHAR("/T0"  ))
+           ||  target.EndsWith(A_CHAR("/F0"  ))
+           ||  target.EndsWith(A_CHAR("/T-1" ))
+           ||  target.EndsWith(A_CHAR("/F-1" ))      )
+        target.DeleteEnd<NC>(target.Length() - target.LastIndexOf('/'));
+
+    dirty= false;
 }
 
-void    AutoSizes::Import( const String& sourceString, lang::CurrentData session  )
+void    AutoSizes::Import( const String& src, lang::CurrentData session  )
 {
     Reset();
+    dirty= false;
 
     #if ALIB_DEBUG
-    #   define PARSERROR ALIB_WARNING(                                                             \
-            NString512("Error reading tab stops string \"") << NString512(sourceString)            \
-                    << "\":\n   at position " << (sourceString.Length() - parser.Length())    )
+    #   define PARSERROR    ALIB_WARNING(                                                          \
+            NString512("Error reading tab stops string \"") << NString512(src)            \
+                    << "\":\n   at position " << (src.Length() - parser.Length())    )
     #else
     #   define PARSERROR
     #endif
-    Substring parser(sourceString);
-    while(parser.Trim().IsNotEmpty())
+    Substring parser(src);
+    WriteProtected= parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>('!');
+    if(parser.Trim().IsEmpty())
+        return;
+
+    Tokenizer tknzr( parser, '/' );
+    while(tknzr.HasNext())
     {
-        parser.TrimStart();
+        parser= tknzr.Next();
         Types type;
-        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( '(' ) )
-        {
-            PARSERROR
-            break;
-        }
-
-        if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'T' ) )
-            type= Types::Tabstop;
-        else if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'F' ) )
-            type= Types::Field;
-        else
-        {
-            PARSERROR
-            break;
-        }
-
-        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ',' ) )
-        {
-            PARSERROR
-            break;
-        }
-
+             if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'T' ) )  type= Types::Tabstop;
+        else if( parser.ConsumeChar<lang::Case::Ignore, lang::Whitespaces::Trim>( 'F' ) )  type= Types::Field;
+        else { PARSERROR break; }
 
         integer   actual;
         parser.ConsumeInt( actual        );
 
-        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ',' ) )
-        {
-            PARSERROR
-            break;
-        }
-
-
         integer   sessionValue;
-        parser.ConsumeInt( sessionValue );
-
-        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ')' ) )
-        {
-            PARSERROR
-            break;
-        }
+        if( !parser.ConsumeChar<lang::Case::Sensitive, lang::Whitespaces::Trim>( ',' ) )
+            sessionValue= actual;
+        else
+            parser.ConsumeInt( sessionValue );
 
         data.emplace_back( type, actual, sessionValue );
     }
@@ -168,3 +164,4 @@ void    AutoSizes::Consolidate()
 
 
 }}} // namespace [alib::strings::util]
+

@@ -2,39 +2,60 @@
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
-//  Published under 'Boost Software License' (a free software license, see LICENSE.txt)
+//  Published under 'Boost Software License' (a free software lbicense, see LICENSE.txt)
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
 #include "alib/files/fscanner.hpp"
+#include "alib/monomem/localallocator.hpp"
+
 #include "alib/strings/util/tokenizer.hpp"
+#include "alib/alox.hpp"
 
-#if !defined(ALIB_DOX)
+#include "alib/lang/callerinfo_functions.hpp"
 
-//#define ALIB_TESTSTDFS
+#if !DOXYGEN
 
-namespace alib::files {  namespace {
+
+
+using namespace alib::lang::system;
+
+namespace alib::files {  namespace {                    
 
     // forward declaration of startScan()
     bool startScan( FTree&                      tree,
-                    String                      realPath,
+                    PathString                  realPath,
                     ScanParameters&             params,
                     FInfo::DirectorySums&       parentSums,
-                    std::vector<ResultsPaths>&  resultPaths);
+                    std::vector<ResultsPaths>&  resultPaths
+  IF_ALIB_THREADS(, SharedLock*                 lock          ) );
 
     // scan parameters used with startScan to evaluate directory entries
     ScanParameters paramsPathOnly( nullptr, ScanParameters::SymbolicLinks::DONT_RESOLVE, 0, true, true );
-}}
+} // namespace alib::files[::anonymous]
+
+#if ALIB_DEBUG
+String DBG_FILES_SCAN_VERBOSE_LOG_FORMAT=
+   A_CHAR(" {:ta h{2,r} on{10,r} gn{10,r} s(IEC){10,r} dm qqq FxFa (rd{3r}' D' rf{3r}' F' re{2r}' EA' rb{2r}'BL) 'nf l}");
+#endif
+
+} // namespace [alib::files]
 
 //--------------------------------------------------------------------------------------------------
 //--- scanFilePosix
 //--------------------------------------------------------------------------------------------------
-#if   (     ( defined(__GLIBCXX__)    && !defined(__MINGW32__) )   \
-         || defined(__APPLE__)         \
-         || defined(__ANDROID_NDK__) )        && !defined(ALIB_TESTSTDFS)
+#if  ALIB_FILES_SCANNER_IMPL == ALIB_FILES_SCANNER_POSIX
 #   include <unistd.h>
+#   if defined(__linux__)
+#       include <asm/unistd.h>
+#   endif
 #   include <dirent.h>
-#   include <sys/stat.h>
+#   if defined(__linux__)
+#       include <linux/stat.h>
+#       include <sys/stat.h>
+#   else
+#       include <sys/stat.h>
+#   endif
 #   if !defined(__APPLE__)
 #       include <sys/sysmacros.h>
 #   else
@@ -47,11 +68,11 @@ namespace alib::files {  namespace {
 
 #if ALIB_DEBUG
 #   define DBG_CHECKERRNO                                                                          \
-        ALIB_ASSERT_WARNING(errno == 0, "CAMP/FILES", "Errno set ({}){!Q}.",                       \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}.",                       \
                             errno, SystemErrors(errno) )                                           \
         errno= 0;
 #   define DBG_CHECKERRNO_WITH_PATH                                                                \
-        ALIB_ASSERT_WARNING(errno == 0, "CAMP/FILES", "Errno set ({}){!Q}. Current path: {}",      \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}. Current path: {}",      \
                             errno, SystemErrors(errno), actPath )                                  \
         errno= 0;
 #else
@@ -59,43 +80,78 @@ namespace alib::files {  namespace {
 #   define DBG_CHECKERRNO_WITH_PATH
 #endif
 
+// Since Kernel 4.11 Linux/glibc has "statx". We use this is available on the current platform.
+#if defined(__NR_statx)
+#   define TMP_STATX_AVAILABLE 1
+#   define STATMEMBER(Name) stats.stx_ ## Name
+#   define STAT_DEV_MAJOR   stats.stx_dev_major
+#   define STAT_DEV_MINOR   stats.stx_dev_minor
+#else
+#   define TMP_STATX_AVAILABLE 0
+#   define STATMEMBER(Name) stats.st_ ## Name
+#   define STAT_DEV_MAJOR   major(stats.st_dev)
+#   define STAT_DEV_MINOR   minor(stats.st_dev)
+#endif
+
 namespace alib::files {  namespace {
 void scanFilePosix( DIR*                        pxDir,
                     FTree::Cursor&              node,
-                    const CString&              nameOrFullPath, // if full path, this has the same buffer as actPath!
+                    const CPathString&          nameOrFullPath, // if full path, this has the same buffer as actPath!
                     unsigned int                depth,
                     ScanParameters&             params,
-                    decltype(stat::st_dev)      currentDevice,
+                    uint64_t                    currentDevice,
                     FInfo::DirectorySums&       parentSums ,
-                    PathString&                 actPath,
-                    std::vector<ResultsPaths>&  resultPaths)
+                    Path&                       actPath,
+                    std::vector<ResultsPaths>&  resultPaths
+  IF_ALIB_THREADS(, SharedLock*                 lock)                           )
 {
-    ALIB_ASSERT_ERROR(          actPath.CharAtStart()== DirectorySeparator
+    ALIB_ASSERT_ERROR(          actPath.CharAtStart()== DIRECTORY_SEPARATOR
                         &&  (   actPath.Length()==1
-                             || actPath.CharAtEnd()  != DirectorySeparator )
-                        &&      actPath.IndexOf(String8(DirectorySeparator).Append(DirectorySeparator)) < 0 ,
-                    "CAMP/FILES","Given path not absolute or ending with '{}': {}", DirectorySeparator, actPath )
-    ALIB_DBG(  PathString dbgActFile;
+                             || actPath.CharAtEnd()  != DIRECTORY_SEPARATOR )
+                        &&      actPath.IndexOf(strings::TLocalString<lang::system::PathCharType,4>(
+                                                     DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR)) < 0 ,
+                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, actPath )
+    ALIB_DBG(  Path       dbgActFile;
                if( actPath.Buffer() == nameOrFullPath.Buffer() )
                    dbgActFile << nameOrFullPath;
                else
                {
                     dbgActFile << actPath;
                     if(dbgActFile.Length()>1)
-                        dbgActFile << DirectorySeparator;
+                        dbgActFile << DIRECTORY_SEPARATOR;
                     dbgActFile << nameOrFullPath;
                }                                                   )
-    //ALIB_MESSAGE( "CAMP/FILES","[{}] {}/{}   {}",  &params != &paramsPathOnly ? '>':'P',  depth,
-    //              params.MaxDepth < std::numeric_limits<unsigned int>::max()
-    //                        ? String128(params.MaxDepth)
-    //                        : String("M"),
-    //              dbgActFile )
-    ALIB_ASSERT_WARNING(errno == 0, "CAMP/FILES", "Errno set ({}){!Q} with current file: {}",
+    Log_Prune(
+        LocalAllocator<1> verboseAllocator;
+        BoxesMA verboseLogables( verboseAllocator);
+        int verboseLoggers;
+        Log_IsActive(verboseLoggers, Verbosity::Verbose)
+        if( verboseLoggers )
+        {
+            verboseLogables.Add("{!AWidth:>} ");
+            if( &params == &paramsPathOnly )
+                verboseLogables.Add("PO"); // 'Path Only'
+            else
+            {
+                auto& depthString= *verboseAllocator().New<String128>();
+                depthString << depth << DIRECTORY_SEPARATOR
+                            << ( params.MaxDepth < std::numeric_limits<unsigned int>::max()
+                                 ? String128(params.MaxDepth)
+                                 : String(A_CHAR("M")) );
+                verboseLogables.Add(depthString); 
+            }
+
+            verboseLogables.Add(files::DBG_FILES_SCAN_VERBOSE_LOG_FORMAT,  File(node) );
+        }
+    )
+    ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q} with current file: {}",
                         errno, SystemErrors(errno), dbgActFile )
     ALIB_DBG( errno= 0;)
 
-    auto& value         = node.Value();
+    auto& value    = *node;
     auto oldQuality= value.Quality();
+
+    ALIB_STRINGS_TO_NARROW(nameOrFullPath, nNameOrFullPath, 512)
 
     // ------------------------------   get stats?  ------------------------------
     if(          value.Quality() == FInfo::Qualities::NONE
@@ -103,85 +159,99 @@ void scanFilePosix( DIR*                        pxDir,
              &&  params.LinkTreatment != ScanParameters::SymbolicLinks::DONT_RESOLVE ) )
     {
         value.SetQuality(FInfo::Qualities::STATS);
-        PathString    symLinkDest;
-        PathString    symLinkDestReal;
+        Path          symLinkDest;
+        Path          symLinkDestReal;
 
         // read base stats
-        struct stat   stats;
-        int statResult=  pxDir ? fstatat(dirfd(pxDir), nameOrFullPath, &stats,  AT_SYMLINK_NOFOLLOW
-                                                                        #if !defined(__APPLE__)
-                                                                            | AT_NO_AUTOMOUNT
-                                                                        #endif
-                                                            )
-                               : lstat  (              nameOrFullPath, &stats );
+        ALIB_DBG( errno= 0;)
+        #if TMP_STATX_AVAILABLE
+            struct statx  stats;
+            int statResult=  statx(  pxDir ? dirfd(pxDir) : 0,
+                                     nNameOrFullPath,
+                                     AT_STATX_DONT_SYNC | AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW,
+                                     STATX_BASIC_STATS | STATX_BTIME,
+                                     &stats );
 
+        #else
+            struct stat stats;
+            int statResult=  pxDir ? fstatat(dirfd(pxDir), nNameOrFullPath, &stats,
+                                     AT_SYMLINK_NOFOLLOW
+                                     #if !defined(__APPLE__)
+                                         | AT_NO_AUTOMOUNT
+                                     #endif
+                                                                )
+                                   : lstat  (              nNameOrFullPath, &stats );
+        #endif
         if( statResult )
         {
-            ALIB_ASSERT_WARNING( errno != ENOENT, "CAMP/FILES", "File does not exist (anymore) while stating {!Q}",
+            ALIB_ASSERT_WARNING( errno != ENOENT, "FILES", "File does not exist (anymore) while stating {!Q}",
                                                                   dbgActFile )
-            ALIB_ASSERT_WARNING( errno == ENOENT, "CAMP/FILES", "Unknown error ({}) {!Q} while stating file {!Q}",
+            ALIB_ASSERT_WARNING( errno == ENOENT, "FILES", "Unknown error ({}) {!Q} while stating file {!Q}",
                                  errno, SystemErrors(errno), dbgActFile )
+            value.SetQuality(errno == ENOENT ?  FInfo::Qualities::NOT_EXISTENT
+                                             :  FInfo::Qualities::UNKNOWN_ERROR);
             ALIB_DBG( errno= 0;)
-            value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
         DBG_CHECKERRNO_WITH_PATH
 
         // check filesystem type (artificial fs & mount point)
-        if( currentDevice == 0)
-            currentDevice= stats.st_dev;
-        else if( currentDevice != stats.st_dev )
         {
-            value.SetCrossingFS();
-            currentDevice= stats.st_dev;
+            uint64_t device= (uint64_t(STAT_DEV_MAJOR) << 32L) + STAT_DEV_MINOR;
+                 if( currentDevice == 0)           currentDevice= device;
+            else if( currentDevice != device)   {  currentDevice= device;   value.SetCrossingFS();  }
         }
 
-        if(     major(stats.st_dev) == 0    // artificial?
-            &&  minor(stats.st_dev) != 35 ) // tmpfs included, not considered artificial!
+        if(     STAT_DEV_MAJOR == 0    // artificial?
+            &&  STAT_DEV_MINOR != 35 ) // tmpfs included, not considered artificial!
             value.SetArtificialFS();
 
-
         //------------ is symlink? ------------
-        bool origFileIsSymlink= (stats.st_mode & S_IFMT) == S_IFLNK;
+        bool origFileIsSymlink= (STATMEMBER(mode) & S_IFMT) == S_IFLNK;
         if(    origFileIsSymlink
             && params.LinkTreatment != ScanParameters::SymbolicLinks::DONT_RESOLVE )
         {
             value.SetQuality( FInfo::Qualities::RESOLVED );
 
             // 1. Read plain symlink target (only to be attached to the entry)
-            ssize_t cntChars= pxDir ? readlinkat( dirfd(pxDir), nameOrFullPath, symLinkDest.VBuffer(), PATH_MAX)
-                                    : readlink  (               nameOrFullPath, symLinkDest.VBuffer(), PATH_MAX);
+            ALIB_STRINGS_TO_NARROW(symLinkDest, nSymLinkDest, 512)
+            ssize_t cntChars= pxDir ? readlinkat( dirfd(pxDir), nNameOrFullPath, nSymLinkDest.VBuffer(), PATH_MAX)
+                                    : readlink  (               nNameOrFullPath, nSymLinkDest.VBuffer(), PATH_MAX);
 
             if (cntChars == -1) switch(errno)
-                {
-                    case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);      ALIB_DBG(errno= 0;)
-                        goto ABORT_SYMLINK;
+            {
+                case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);      ALIB_DBG(errno= 0;)
+                    goto ABORT_SYMLINK;
 
-                    case ENOENT: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);
-                        ALIB_ASSERT_ERROR(major(stats.st_dev) == 0, "CAMP/FILES",
-                                          "Posix raised ({}) {!Q} on reading a symbolic link which is not located on an "
-                                          "artificial filesystem (like /proc). File:{!Q}",
-                                          errno, SystemErrors(errno), dbgActFile )               ALIB_DBG(errno= 0;)
-                        goto ABORT_SYMLINK;
+                case ENOENT: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);
+                    ALIB_ASSERT_ERROR(STAT_DEV_MAJOR == 0, "FILES",
+                                      "Posix raised ({}) {!Q} on reading a symbolic link which is not located on an "
+                                      "artificial filesystem (like /proc). File:{!Q}",
+                                      errno, SystemErrors(errno), dbgActFile )               ALIB_DBG(errno= 0;)
+                    goto ABORT_SYMLINK;
 
-                    default:     value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                        ALIB_ERROR("CAMP/FILES", "Posix raised ({}) {!Q} on reading symbolic link {!Q}",
-                                   errno, SystemErrors(errno), dbgActFile )      ALIB_DBG(errno= 0;)
-                        goto ABORT_SYMLINK;
-                }
-            symLinkDest.SetLength(cntChars);
-
+                default:     value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
+                    ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on reading symbolic link {!Q}",
+                               errno, SystemErrors(errno), dbgActFile )      ALIB_DBG(errno= 0;)
+                    goto ABORT_SYMLINK;
+            }
+            nSymLinkDest.SetLength(cntChars);
+            #if ALIB_CHARACTERS_WIDE
+                symLinkDest.Reset(nSymLinkDest);
+            #endif
 
             // 2. Read symlink's real target path (fully and recursively translated)
             ALIB_STRING_RESETTER(actPath);
             if( pxDir )
-                actPath << DirectorySeparator << nameOrFullPath;
+                actPath << DIRECTORY_SEPARATOR << nameOrFullPath;
             errno= 0;
-            *symLinkDestReal.VBuffer()= '\0';
-            if(! realpath(actPath.Terminate(), symLinkDestReal.VBuffer() ) ) switch (errno)
+            ALIB_STRINGS_TO_NARROW(actPath        , nActPath        , 512)
+            ALIB_STRINGS_TO_NARROW(symLinkDestReal, nSymLinkDestReal, 512)
+            *nSymLinkDestReal.VBuffer()= '\0';
+            if(! realpath(nActPath.Terminate(), nSymLinkDestReal.VBuffer() ) ) switch (errno)
                 {   // The named file does not exist.
-                    case ENOENT: if( *symLinkDestReal.VBuffer() != '\0')
-                                    symLinkDestReal.DetectLength();
+                    case ENOENT: if( *nSymLinkDestReal.VBuffer() != '\0')
+                                    nSymLinkDestReal.DetectLength();
                                  value.SetQuality(FInfo::Qualities::BROKEN_LINK);    ALIB_DBG(errno= 0;)
                                  goto ABORT_SYMLINK;
                     case ELOOP:  value.SetQuality(FInfo::Qualities::CIRCULAR_LINK);  ALIB_DBG(errno= 0;)
@@ -189,21 +259,32 @@ void scanFilePosix( DIR*                        pxDir,
                     // this might happen with strange system files
                     case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL_TARGET); ALIB_DBG(errno= 0;)
                                  goto ABORT_SYMLINK;
-                    default:     ALIB_ERROR("CAMP/FILES", "Posix raised ({}) {!Q} on resolving symbolic link {!Q}",
+                    default:     ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on resolving symbolic link {!Q}",
                                             errno, SystemErrors(errno), dbgActFile )     ALIB_DBG(errno= 0;)
                                  goto ABORT_SYMLINK;
                 }
-            symLinkDestReal.DetectLength();
+            nSymLinkDestReal.DetectLength();
 
             ALIB_DBG( if( errno == EINVAL) errno= 0;) // this happens, even though realpath() above returned 'OK'
             DBG_CHECKERRNO_WITH_PATH
-            ALIB_ASSERT_ERROR( symLinkDestReal.CharAtStart() == DirectorySeparator,
-                               "CAMP/FILES", "Real path is not absolute: ", symLinkDestReal )
+            ALIB_ASSERT_ERROR( Path::IsAbsolute(symLinkDestReal),  "FILES",
+                                                 "Real path is not absolute: ", nSymLinkDestReal )
 
             // 3. get resolved status
             DBG_CHECKERRNO_WITH_PATH
-            statResult= stat(symLinkDestReal.Terminate(), &stats );
+            #if TMP_STATX_AVAILABLE
+                statResult= statx( 0,
+                                   nSymLinkDestReal.Terminate(),
+                                   AT_STATX_DONT_SYNC | AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW,
+                                   STATX_ALL,
+                                   &stats );
+            #else
+                statResult= stat(nSymLinkDestReal.Terminate(), &stats );
+            #endif
             DBG_CHECKERRNO_WITH_PATH
+            #if ALIB_CHARACTERS_WIDE
+                symLinkDestReal.Reset(nSymLinkDestReal);
+            #endif
 
             if(statResult == -1 )
             {
@@ -211,20 +292,20 @@ void scanFilePosix( DIR*                        pxDir,
                 if(errno) switch( SystemErrors(errno) )
                 {   case SystemErrors::enoent:  value.SetQuality(FInfo::Qualities::BROKEN_LINK);
                                                 ALIB_DBG(errno= 0;)
-                                                goto APPLY_FILTER;
-                    default: ALIB_WARNING("CAMP/FILES",
+                                                goto APPLY_POST_RECURSION_FILTER;
+                    default: ALIB_WARNING("FILES",
                                  "Unhandled error code invoking 'stat()' on resolved symbolic link: {} ({!Q})\n"
                                  "    Symbolic link target: {!Q}", errno, SystemErrors(errno), dbgActFile )
                                  ALIB_DBG(errno= 0;)
                              value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                             goto APPLY_FILTER;
+                             goto APPLY_POST_RECURSION_FILTER;
                 }
                 ALIB_WARNINGS_RESTORE
             }
 
             // check for target artificial fs
-            if(     major(stats.st_dev) == 0   // artificial?
-                &&  minor(stats.st_dev) != 35 ) // tempfs included!
+            if(     STAT_DEV_MAJOR == 0    // artificial?
+                &&  STAT_DEV_MINOR != 35 ) // tempfs included!
                 value.SetTargetArtificialFS();
 
         } // if is symlink && resolve symlinks
@@ -232,18 +313,21 @@ void scanFilePosix( DIR*                        pxDir,
         ABORT_SYMLINK:
         DBG_CHECKERRNO_WITH_PATH
 
+        // =========================================================================================
+        // ==================================      Copy Stats     ==================================
+        // =========================================================================================
         // 1. type
         {
             auto type= FInfo::Types::UNKNOWN_OR_ERROR;
-            auto posixType= stats.st_mode & S_IFMT;
+            auto posixType= STATMEMBER(mode) & S_IFMT;
             if( origFileIsSymlink  )
             {
                 type= posixType == S_IFDIR ? FInfo::Types::SYMBOLIC_LINK_DIR
                                            : FInfo::Types::SYMBOLIC_LINK;
             }
-            else switch(stats.st_mode & S_IFMT )
+            else switch(STATMEMBER(mode) & S_IFMT )
             {
-                case S_IFLNK :  type= FInfo::Types::SYMBOLIC_LINK; ALIB_ERROR( "CAMP/FILES", "Impossible")
+                case S_IFLNK :  type= FInfo::Types::SYMBOLIC_LINK; ALIB_ERROR( "FILES", "Impossible")
                     break;
                 case S_IFBLK :  type= FInfo::Types::BLOCK        ; break;
                 case S_IFCHR :  type= FInfo::Types::CHARACTER    ; break;
@@ -251,62 +335,105 @@ void scanFilePosix( DIR*                        pxDir,
                 case S_IFIFO :  type= FInfo::Types::FIFO         ; break;
                 case S_IFREG :  type= FInfo::Types::REGULAR      ; break;
                 case S_IFSOCK:  type= FInfo::Types::SOCKET       ; break;
-                default:  ALIB_ERROR("CAMP/FILES", "Internal error. 'unknown' file type can't happen. File: {!Q}",
+                default:  ALIB_ERROR("FILES", "Internal error. 'unknown' file type can't happen. File: {!Q}",
                                      dbgActFile )    break;
             }
             value.SetType( type );
         }
 
         // 2. perms
-        value.SetPerms( FInfo::Permissions(stats.st_mode & int32_t(FInfo::Permissions::MASK)) );
+        value.SetPerms( FInfo::Permissions(STATMEMBER(mode) & int32_t(FInfo::Permissions::MASK)) );
 
         // 3. timestamps
         {
-            #if !defined(__APPLE__)
-            #  define st_mtime_name  st_mtim
-            #  define st_ctime_name  st_ctim
-            #  define st_atime_name  st_atim
+            #if defined(__APPLE__)
+            #  define st_mtime_name  STATMEMBER(mtimespec)
+            #  define st_ctime_name  STATMEMBER(ctimespec)
+            #  define st_atime_name  STATMEMBER(atimespec)
             #else
-            #  define st_mtime_name  st_mtimespec
-            #  define st_ctime_name  st_ctimespec
-            #  define st_atime_name  st_atimespec
+            #   if TMP_STATX_AVAILABLE
+            #       define st_mtime_name  STATMEMBER(mtime)
+            #       define st_ctime_name  STATMEMBER(ctime)
+            #       define st_atime_name  STATMEMBER(atime)
+            #       define st_btime_name  STATMEMBER(btime)
+            #   else
+            #       define st_mtime_name  STATMEMBER(mtim)
+            #       define st_ctime_name  STATMEMBER(ctim)
+            #       define st_atime_name  STATMEMBER(atim)
+            #   endif
             #endif
             DateTime dt;
             dt.Import(
                     std::chrono::system_clock::time_point {
                             std::chrono::duration_cast<std::chrono::system_clock::duration>(
-                                    std::chrono::seconds    {stats.st_mtime_name.tv_sec }
-                                  + std::chrono::nanoseconds{stats.st_mtime_name.tv_nsec}          )    } );
-            value.SetMTime(dt);
+                                    std::chrono::seconds    {st_mtime_name.tv_sec }
+                                  + std::chrono::nanoseconds{st_mtime_name.tv_nsec}          )    } );
+            value.SetMDate(dt);
 
             dt.Import(
                     std::chrono::system_clock::time_point {
                             std::chrono::duration_cast<std::chrono::system_clock::duration>(
-                                    std::chrono::seconds    {stats.st_ctime_name.tv_sec }
-                                  + std::chrono::nanoseconds{stats.st_ctime_name.tv_nsec}          )    } );
-            value.SetCTime(dt);
+                                    std::chrono::seconds    {st_ctime_name.tv_sec }
+                                  + std::chrono::nanoseconds{st_ctime_name.tv_nsec}          )    } );
+            value.SetCDate(dt);
 
             dt.Import(
                     std::chrono::system_clock::time_point {
                             std::chrono::duration_cast<std::chrono::system_clock::duration>(
-                                    std::chrono::seconds    {stats.st_atime_name.tv_sec }
-                                  + std::chrono::nanoseconds{stats.st_atime_name.tv_nsec}          )    } );
-            value.SetATime(dt);
+                                    std::chrono::seconds    {st_atime_name.tv_sec }
+                                  + std::chrono::nanoseconds{st_atime_name.tv_nsec}          )    } );
+            value.SetADate(dt);
+
+            #if TMP_STATX_AVAILABLE
+                if( STATMEMBER(mask) & STATX_BTIME ) // file systems supports "btime"?
+                {
+                    dt.Import(
+                            std::chrono::system_clock::time_point {
+                                    std::chrono::duration_cast<std::chrono::system_clock::duration>(
+                                            std::chrono::seconds    {st_btime_name.tv_sec }
+                                          + std::chrono::nanoseconds{st_btime_name.tv_nsec}          )    } );
+                    value.SetBDate(dt);
+                }
+                else
+                {
+                    // use smallest of other times for "btime"
+                    auto btime= value.MDate();
+                    if( btime > value.CDate() ) btime= value.CDate();
+                    if( btime > value.ADate() ) btime= value.ADate();
+                    value.SetBDate( btime );
+
+                }
+            #else
+                // use smallest of other times for "btime"
+                auto btime= value.MDate();
+                if( btime > value.CDate() ) btime= value.CDate();
+                if( btime > value.ADate() ) btime= value.ADate();
+                value.SetBDate( btime );
+            #endif
+
+
           #undef st_mtime_name
           #undef st_ctime_name
           #undef st_atime_name
         }
+
         // 4. size
-        value.SetSize( uinteger(stats.st_size ) );
+        value.SetSize( uinteger(STATMEMBER(size) ) );
 
         // 5. uid/gid
-        value.SetOwner( stats.st_uid );
-        value.SetGroup( stats.st_gid );
+        value.SetOwner( STATMEMBER(uid) );
+        value.SetGroup( STATMEMBER(gid) );
 
-        // 6. Add extended information
+        // 6. qty of symlinks
+        value.SetQtyHardlinks( STATMEMBER(nlink) );
+
+        // 7. Add extended information
         if(    oldQuality < FInfo::Qualities::STATS
-            && (value.IsDirectory() || symLinkDest.IsNotEmpty()) )
-            static_cast<FTree&>(node.Tree()).AllocateExtendedInfo( node, symLinkDest, symLinkDestReal );
+            && (value.IsDirectory() || symLinkDest.IsNotEmpty()) ) {
+            IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+                File(node).GetFTree().AllocateExtendedInfo( node, symLinkDest, symLinkDestReal );
+            IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
+        }
 
     } // if scan stats (quality was just path)
 
@@ -316,41 +443,49 @@ void scanFilePosix( DIR*                        pxDir,
     if(value.Quality() == FInfo::Qualities::BROKEN_LINK)
     {
         ++parentSums.QtyErrsBrokenLink;
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
-    // ------------------------------ recursion with directories?  ------------------------------
-    if(    !value.IsDirectory()
+    // =============================================================================================
+    // =============================    recursion with directories?     ============================
+    // =============================================================================================
+    if(   !value.IsDirectory()
         || value.Quality() >= FInfo::Qualities::RECURSIVE )
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
 
     // stop recursion due to artificial fs?
     if( value.IsArtificialFS() && !params.IncludeArtificialFS )
     {
+        Log_Prune( if( verboseLogables.Size() )  verboseLogables.Add(" NO_AFS"); )
         value.SetQuality( FInfo::Qualities::NO_AFS );
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // stop recursion due to crossing filesystem?
     if( value.IsCrossingFS() &&   !params.CrossFileSystems )
     {
+        Log_Prune( if( verboseLogables.Size() )  verboseLogables.Add(" NOT_CROSSING_FS"); )
         value.SetQuality( FInfo::Qualities::NOT_CROSSING_FS );
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // stop recursion due to max depth?
     if( depth >= params.MaxDepth )
     {
+        Log_Prune( if( verboseLogables.Size() && (&params != &paramsPathOnly) )  verboseLogables.Add(" MAX_DEPTH_REACHED"); )
         value.SetQuality( FInfo::Qualities::MAX_DEPTH_REACHED );
         ++parentSums.QtyStopsOnMaxDepth;
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // stop recursion due to filter
     if(      depth > 0
          &&  params.DirectoryFilterPreRecursion
          && !params.DirectoryFilterPreRecursion->Includes( node, actPath )  )
-        goto APPLY_FILTER;
+    {
+        Log_Prune( if( verboseLogables.Size() )  verboseLogables.Add(" FILTERED(Pre)"); )
+        goto APPLY_POST_RECURSION_FILTER;
+    }
 
     // mark as recursively scanned
     value.SetQuality( FInfo::Qualities::RECURSIVE );
@@ -362,41 +497,48 @@ void scanFilePosix( DIR*                        pxDir,
             || value.IsArtificialFS() )   // never recurse with symlinks RESIDING on artificial fs!
         {
             value.SetQuality( FInfo::Qualities::NOT_FOLLOWED );
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
 
         if( value.TargetIsArtificialFS() &&  !params.IncludeArtificialFS )
         {
             value.SetQuality( FInfo::Qualities::NO_AFS );
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
 
         // recurse into symlink target
         FInfo::DirectorySums childSums;
-        if( startScan( static_cast<FTree&>(node.Tree()), value.GetRealLinkTarget(), params, childSums, resultPaths)  )
+        if( startScan( node.Tree<FTree>(), value.GetRealLinkTarget(), params, childSums,
+                       resultPaths   IF_ALIB_THREADS(,lock) )  )
             value.SetQuality(FInfo::Qualities::DUPLICATE);
         value.SetSums( childSums );
         parentSums+= childSums;
 
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // DIRECTORY RECURSION
     {ALIB_STRING_RESETTER( actPath );
         if( pxDir == nullptr )
         {
-            ALIB_ASSERT_ERROR( actPath.Buffer() == nameOrFullPath.Buffer(), "CAMP/FILES", "Internal error" )
+            ALIB_ASSERT_ERROR( actPath.Buffer() == nameOrFullPath.Buffer(), "FILES", "Internal error" )
             actPath.SetLength(nameOrFullPath.Length());
         }
         else
         {
-            if( actPath.Length() > 1 ) actPath << DirectorySeparator;
+            if( actPath.Length() > 1 ) actPath << DIRECTORY_SEPARATOR;
             actPath << nameOrFullPath;
         }
 
         errno= 0;
-        int fd= pxDir ? openat( dirfd(pxDir), nameOrFullPath, O_RDONLY | O_DIRECTORY )
-                      : open  (               actPath       , O_RDONLY | O_DIRECTORY );
+        int fd;
+        if( pxDir)
+            fd=   openat( dirfd(pxDir), nNameOrFullPath, O_RDONLY | O_DIRECTORY );
+        else
+        {
+            ALIB_STRINGS_TO_NARROW(actPath, nActPath, 512)
+            fd=     open( nActPath , O_RDONLY | O_DIRECTORY );
+        }
 
         if (fd != -1) // success?
         {
@@ -419,13 +561,13 @@ void scanFilePosix( DIR*                        pxDir,
                         case EACCES: value.SetQuality(FInfo::Qualities::NO_ACCESS_DIR);
                                      break;
                         case EINVAL: value.SetQuality( FInfo::Qualities::NO_ACCESS_DIR);
-                            ALIB_ASSERT_ERROR(major(currentDevice) == 0, "CAMP/FILES",
+                            ALIB_ASSERT_ERROR(major(currentDevice) == 0, "FILES",
                                               "Posix raised ({}) {!Q} on reading a directory which is not located on an "
                                               "artificial filesystem (like /proc). File:{!Q}",
                                               errno, SystemErrors(errno), dbgActFile )
                                     break;
                         default:    value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                                    ALIB_ERROR("CAMP/FILES", "Posix raised ({}) {!Q} on reading directory {!Q}",
+                                    ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on reading directory {!Q}",
                                        errno, SystemErrors(errno), dbgActFile )
                                     break;
                     }
@@ -440,12 +582,19 @@ void scanFilePosix( DIR*                        pxDir,
                                                    && pxEntry->d_name[2] == '\0' ) ) )
                     continue;
 
-                // recursive call
+                //----- recursive call -----
                 auto childNode= node;
+#if ALIB_CHARACTERS_WIDE
+                Path childName(const_cast<const char*>(&pxEntry->d_name[0]));
+#else
                 const CString childName(const_cast<const char*>(&pxEntry->d_name[0]));
-                childNode.GoToCreateChildIfNotExistent( childName );
-                scanFilePosix(childDir, childNode, childName,
-                              depth + 1, params, currentDevice, subSums, actPath, resultPaths);
+#endif
+                IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+                  childNode.GoToCreateChildIfNotExistent( childName );
+                IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
+                scanFilePosix( childDir, childNode, childName,
+                               depth + 1, params, currentDevice, subSums, actPath,
+                               resultPaths   IF_ALIB_THREADS(,lock) );
             } // dir entry loop
             closedir(childDir);
             DBG_CHECKERRNO_WITH_PATH
@@ -462,11 +611,11 @@ void scanFilePosix( DIR*                        pxDir,
                 parentSums+= subSums;
             }
             ALIB_DBG( errno= 0;)
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         } // success opening director
 
         // error with recursion
-        ALIB_ASSERT_ERROR(errno != ENOTDIR, "CAMP/FILES",
+        ALIB_ASSERT_ERROR(errno != ENOTDIR, "FILES",
                           "Internal error opening directory. This must never happen")
 
 
@@ -480,17 +629,19 @@ void scanFilePosix( DIR*                        pxDir,
                 break;
 
             default:
-            ALIB_ERROR("CAMP/FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
+            ALIB_ERROR("FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
                        errno, SystemErrors(errno), actPath)
                 value.SetQuality( FInfo::Qualities::UNKNOWN_ERROR );
                 break;
         }
     }
 
-    // ------------------------------------ Apply Filter  ------------------------------------------
-    APPLY_FILTER:
-    // delete node only if this was a new scan. It must not be deleted, if this node was
-    // created as a path.
+    // =============================================================================================
+    // ====================    Apply Post Filter and remove empty directories    ===================
+    // =============================================================================================
+    APPLY_POST_RECURSION_FILTER:
+    // delete node only if this was a new scan.
+    // It must not be deleted if this node was created as a path.
     if( oldQuality == FInfo::Qualities::NONE )
     {
         if ( value.IsDirectory() )
@@ -502,15 +653,35 @@ void scanFilePosix( DIR*                        pxDir,
                           &&  value.Sums().Count() == 0                                      )
                    )                                                                             )
             {
+                Log_Prune( if( verboseLogables.Size() ) { verboseLogables.Add(" FILTERED(Post)");
+                                                          Log_Verbose( verboseLogables )
+                                                          verboseLogables.clear(); } )
                 parentSums-= value.Sums();
                 if( params.RemoveEmptyDirectories )
                 {
+                    File file(node);
+                    node.Tree<FTree>().Notify( FTreeListener::Event::DeleteNode,
+                                               file,
+                               IF_ALIB_THREADS(lock,)
+                                               actPath );
                     node.Delete();
                     return;
                 }
-                else
-                    // do not return here. Still count the type below
-                    node.DeleteChildren();
+
+                // Notify deletion of all children.
+                auto it= node.FirstChild();
+                while ( it.IsValid() )
+                {
+                    File file(node);
+                    node.Tree<FTree>().Notify( FTreeListener::Event::DeleteNode,
+                                               file,
+                               IF_ALIB_THREADS(lock,)
+                                               actPath );
+                    it.GoToNextSibling();
+                }
+
+                // do not return here. Still count the type below
+                node.DeleteChildren();
             }
 
         }
@@ -519,35 +690,47 @@ void scanFilePosix( DIR*                        pxDir,
             if (      params.FileFilter
                   && !params.FileFilter->Includes(node, actPath )   )
             {
-                node.Delete();
+                Log_Prune( if( verboseLogables.Size() ) { verboseLogables.Add(" FILTERED(Post)");
+                                                          Log_Verbose( verboseLogables )  } )
+                IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+                  node.Delete();
+                IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
                 return;
             }
         }
     }
 
+    Log_Prune( if( verboseLogables.Size() ) { Log_Verbose( verboseLogables ) } )
+
     // cnt file type
     parentSums.Add(value);
+    File file(node);
+    node.Tree<FTree>().Notify( FTreeListener::Event::CreateNode, file, IF_ALIB_THREADS(lock,) actPath );
 
     ALIB_WARNINGS_RESTORE
     DBG_CHECKERRNO_WITH_PATH
 } // scanFilePosix()
+
 }} // namespace [alib::files::anonymous]
 #undef DBG_CHECKERRNO_WITH_PATH
+#undef TMP_STATX_AVAILABLE
+#undef STATMEMBER
 
 
 //--------------------------------------------------------------------------------------------------
 //--- UNKNOWN platform, using C++17 filesystem (not all functionality given)
 //--------------------------------------------------------------------------------------------------
 #else
-#   pragma message ("Unknown Platform. Using std::filesystem for scanning. In file: " __FILE__ )
 
-//#endif
-//#if !defined(TOOD_REMOVE_THIS_WITH_THE_ENDIF_ABOVE)
+#if ALIB_FILES_FORCE_STD_SCANNER
+#   pragma message ("ALIB_FILES_FORCE_STD_SCANNER given. Using std::filesystem for scanning. In file: " __FILE__ )
+#else
+#   pragma message ("Unknown Platform. Using std::filesystem for scanning. In file: " __FILE__ )
+#endif
 
 #include "alib/compatibility/std_strings.hpp"
 #include <filesystem>
 namespace fs = std::filesystem;
-using namespace alib;
 
 // Note: MacOS is currently (as of 231210) missing C++ 20 library features in the area of std::clock
 #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
@@ -564,11 +747,11 @@ using namespace alib;
 #endif
 #if ALIB_DEBUG
 #   define DBG_CHECKERRNO                                                                          \
-        ALIB_ASSERT_WARNING(errno == 0, "CAMP/FILES", "Errno set ({}){!Q}.",                     \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}.",                     \
                             errno, SystemErrors(errno) )                                           \
         errno= 0;
 #   define DBG_CHECKERRNO_WITH_PATH                                                                \
-        ALIB_ASSERT_WARNING(errno == 0, "CAMP/FILES", "Errno set ({}){!Q}. Current path: {}",    \
+        ALIB_ASSERT_WARNING(errno == 0, "FILES", "Errno set ({}){!Q}. Current path: {}",    \
                             errno, SystemErrors(errno), path.string() )                            \
         errno= 0;
 #else
@@ -583,39 +766,42 @@ void scanFileStdFS( const fs::path&               path,
                     unsigned int                  depth,
                     ScanParameters&               params,
                     FInfo::DirectorySums&         parentSums,
-                    std::vector<ResultsPaths>&    resultPaths  )
+                    std::vector<ResultsPaths>&    resultPaths
+ IF_ALIB_THREADS(, SharedLock*                lock)                           )
 {
 #if defined(__MINGW32__)
-    PathString pathAsCString(path.c_str());
+    Path       pathAsCString(path.c_str());
     pathAsCString.Terminate();
 #else
-    CString     pathAsCString(path.c_str());
+    CPathString           pathAsCString(path.c_str());
 #endif
-    Substring   parentPath= pathAsCString.Substring(0, pathAsCString.LastIndexOf(DirectorySeparator));
+    const PathSubstring   parentPath= pathAsCString.Substring(0, pathAsCString.LastIndexOf(DIRECTORY_SEPARATOR));
 
     #if !defined(_WIN32)
-    ALIB_ASSERT_ERROR(          pathAsCString.CharAtStart()== DirectorySeparator
+    ALIB_ASSERT_ERROR(          pathAsCString.CharAtStart()== DIRECTORY_SEPARATOR
                         &&  (   pathAsCString.Length()==1
-                             || pathAsCString.CharAtEnd()  != DirectorySeparator)
-                        &&      pathAsCString.IndexOf(String8(DirectorySeparator).Append(DirectorySeparator))<0,
-                    "CAMP/FILES","Given path not absolute or ending with '{}': {}", DirectorySeparator, pathAsCString )
+                             || pathAsCString.CharAtEnd()  != DIRECTORY_SEPARATOR)
+                        &&      pathAsCString.IndexOf(NString8(DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR))<0,
+                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
     #else
     ALIB_ASSERT_ERROR(      (    (    pathAsCString.CharAt(1)== ':'
-                                   && pathAsCString.CharAt(2)== DirectorySeparator
+                                   && pathAsCString.CharAt(2)== DIRECTORY_SEPARATOR
                                    &&  (   pathAsCString.Length()==3
-                                        || pathAsCString.CharAtEnd()  != DirectorySeparator) )
+                                        || pathAsCString.CharAtEnd()  != DIRECTORY_SEPARATOR) )
 
-                              || (    pathAsCString.CharAt(0)== DirectorySeparator
-                                   && pathAsCString.CharAt(1)== DirectorySeparator
+                              || (    pathAsCString.CharAt(0)== DIRECTORY_SEPARATOR
+                                   && pathAsCString.CharAt(1)== DIRECTORY_SEPARATOR
                                    &&  (   pathAsCString.Length()==2
-                                        || pathAsCString.CharAtEnd()  != DirectorySeparator) )
+                                        || pathAsCString.CharAtEnd()  != DIRECTORY_SEPARATOR) )
                             )
-                        &&  pathAsCString.IndexOf(String8(DirectorySeparator).Append(DirectorySeparator), 2)<0,
-                    "CAMP/FILES","Given path not absolute or ending with '{}': {}", DirectorySeparator, pathAsCString )
+                        &&  pathAsCString.IndexOf( strings::TLocalString<PathCharType, 8>(
+                                                    DIRECTORY_SEPARATOR).Append(DIRECTORY_SEPARATOR),
+                                                  2 ) < 0,
+                    "FILES","Given path not absolute or ending with '{}': {}", DIRECTORY_SEPARATOR, pathAsCString )
     #endif
 
 
-    ALIB_MESSAGE( "CAMP/FILES","[{}] {}/{}   {}",  &params != &paramsPathOnly ? '>':'P',  depth,
+    Log_Verbose(  "[{}] {}/{}   {}",  &params != &paramsPathOnly ? '>':'P',  depth,
                   params.MaxDepth < (std::numeric_limits<unsigned int>::max)()
                             ? String128(params.MaxDepth)
                             : String(A_CHAR("M")),
@@ -631,21 +817,21 @@ void scanFileStdFS( const fs::path&               path,
              && params.LinkTreatment != ScanParameters::SymbolicLinks::DONT_RESOLVE ) )
     {
         value.SetQuality( FInfo::Qualities::STATS );
-        PathString    symLinkDest;
-        PathString    symLinkDestReal;
+        Path          symLinkDest;
+        Path          symLinkDestReal;
 
         // read base stats (we have to use symlink_status() which does NOT follow the symlink!)
         fs::file_status stats= fs::symlink_status(path);
         ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
         if(errorCode) 
         {
-            ALIB_ERROR("CAMP/FILES",
-                       "Unhandled error code invoking 'directory_entry::symlink_status()': {} ({!Q})\n"
+            ALIB_ERROR("FILES",
+                       "Unhandled error code invoking 'fs::symlink_status()': {} ({!Q})\n"
                        "    With file: {!Q}",
                        errorCode.value(), errorCode.message(), pathAsCString )
             ALIB_DBG( errno= 0;)
             value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
         ALIB_WARNINGS_RESTORE
         ALIB_DBG(errno= 0;)
@@ -667,11 +853,11 @@ void scanFileStdFS( const fs::path&               path,
                     case SystemErrors::eacces: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL);
                                                ALIB_DBG(errno= 0;)
                                                goto ABORT_SYMLINK;
-                    default:  ALIB_ERROR("CAMP/FILES", "Unhandled error code invoking 'fs::read_symlink()': {} ({!Q})\n"
+                    default:  ALIB_ERROR("FILES", "Unhandled error code invoking 'fs::read_symlink()': {} ({!Q})\n"
                                          "   with file: ", errorCode.value(), errorCode.message(), pathAsCString )
                               ALIB_DBG( errno= 0;)
                               value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                              goto APPLY_FILTER;
+                              goto APPLY_POST_RECURSION_FILTER;
                 }
                 ALIB_WARNINGS_RESTORE
             }
@@ -685,11 +871,11 @@ void scanFileStdFS( const fs::path&               path,
             else
             {
                 symLinkDestReal << pathAsCString;
-                symLinkDestReal.ShortenTo( symLinkDestReal.LastIndexOf(DirectorySeparator) + 1);
+                symLinkDestReal.ShortenTo( symLinkDestReal.LastIndexOf(DIRECTORY_SEPARATOR) + 1);
                 symLinkDestReal << symLinkDest;
                 realPath=  fs::canonical(fs::path(
-                               std::basic_string_view<character>(symLinkDestReal.Buffer(),
-                                                                 size_t(symLinkDestReal.Length()))),
+                               std::basic_string_view<PathCharType>(symLinkDestReal.Buffer(),
+                                                             size_t(symLinkDestReal.Length()))),
                                          errorCode);
                 symLinkDestReal.Reset();
             }
@@ -702,7 +888,7 @@ void scanFileStdFS( const fs::path&               path,
                 case SystemErrors::eacces: value.SetQuality(FInfo::Qualities::NO_ACCESS_SL_TARGET); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::enoent: value.SetQuality(FInfo::Qualities::BROKEN_LINK);         ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::eloop:  value.SetQuality(FInfo::Qualities::CIRCULAR_LINK);       ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
-                default:  ALIB_ERROR("CAMP/FILES", "Unhandled error code invoking 'fs::canonical()': {} ({!Q})\n"
+                default:  ALIB_ERROR("FILES", "Unhandled error code invoking 'fs::canonical()': {} ({!Q})\n"
                                      "   with file: ", errorCode.value(), errorCode.message(), pathAsCString )
                     goto ABORT_SYMLINK;
             }
@@ -723,7 +909,7 @@ void scanFileStdFS( const fs::path&               path,
             {   case SystemErrors::eperm:   value.SetQuality( FInfo::Qualities::NO_ACCESS    ); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::enoent:  value.SetQuality( FInfo::Qualities::BROKEN_LINK  ); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
                 case SystemErrors::eloop:   value.SetQuality( FInfo::Qualities::CIRCULAR_LINK); ALIB_DBG(errno= 0;) goto ABORT_SYMLINK;
-                default: ALIB_WARNING("CAMP/FILES",
+                default: ALIB_WARNING("FILES",
                              "Unhandled error code invoking 'directory_entry::status()': {} ({!Q})\n"
                              "    With file: {!Q}", errorCode.value(), errorCode.message(), pathAsCString )
                          goto ABORT_SYMLINK;
@@ -731,12 +917,15 @@ void scanFileStdFS( const fs::path&               path,
             ALIB_WARNINGS_RESTORE
 
             // check for target artificial fs
-                // Not available with std::filesystem version
+            //  -/- Not available with std::filesystem version
         }
 
         ABORT_SYMLINK:
         DBG_CHECKERRNO_WITH_PATH
 
+        // =========================================================================================
+        // ==================================      Copy Stats     ==================================
+        // =========================================================================================
         // 1. type
         {
             auto type= FInfo::Types::UNKNOWN_OR_ERROR;
@@ -757,16 +946,20 @@ void scanFileStdFS( const fs::path&               path,
 
                 case fs::file_type::not_found:
                      value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                     ALIB_WARNING("CAMP/FILES", "Internal error. 'not found' file type can't happen. File: ", pathAsCString )
-                     ALIB_DBG( errno= 0;) goto APPLY_FILTER;
+                     ALIB_WARNING("FILES", "Internal error. 'not found' file type can't happen. File: ", pathAsCString )
+                     ALIB_DBG( errno= 0;) goto APPLY_POST_RECURSION_FILTER;
                 case fs::file_type::none     :
                      value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                     ALIB_WARNING("CAMP/FILES", "Internal error. 'none' file type can't happen. File: ", pathAsCString)
-                     ALIB_DBG( errno= 0;) goto APPLY_FILTER;
+                     ALIB_WARNING("FILES", "Internal error. 'none' file type can't happen. File: ", pathAsCString)
+                     ALIB_DBG( errno= 0;) goto APPLY_POST_RECURSION_FILTER;
                 case fs::file_type::unknown  :
                      value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                     ALIB_WARNING("CAMP/FILES", "Internal error. Can't happen. File: ", pathAsCString)
-                     ALIB_DBG( errno= 0;) goto APPLY_FILTER;
+                     ALIB_WARNING("FILES", "Internal error. Can't happen. File: ", pathAsCString)
+                     ALIB_DBG( errno= 0;) goto APPLY_POST_RECURSION_FILTER;
+                default:
+                     value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
+                     ALIB_WARNING("FILES", "Unknown fs::file_status::type '{}' with file {}.", stats.type(), pathAsCString)
+                     ALIB_DBG( errno= 0;) goto APPLY_POST_RECURSION_FILTER;
             }
             value.SetType( type );
         }
@@ -776,7 +969,7 @@ void scanFileStdFS( const fs::path&               path,
 
         // 3. timestamps
         // attn: This method always follows symbolic link and uses the target's time
-        // This seems to be a confirmed behaviour:
+        // This seems to be a confirmed behavior:
         // https://stackoverflow.com/questions/50778660/boost-filesystem-how-to-get-last-write-time-for-symlink-without-resolving
         auto fsTime= std::filesystem::file_time_type(std::filesystem::file_time_type::clock::now());
         if ( value.Quality() <= FInfo::Qualities::RESOLVED ) // no error
@@ -785,13 +978,13 @@ void scanFileStdFS( const fs::path&               path,
             ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
             if(errorCode) switch( SystemErrors(errorCode.value()) )
             {   // This happens if with symbolic links that point to nowhere.
-                case SystemErrors::enoent: ALIB_ERROR( "CAMP/FILES",
+                case SystemErrors::enoent: ALIB_ERROR( "FILES",
                                               "Internal error. This should never happen, checked above. "
                                               "Undefined system error handling" ) ALIB_DBG( errno= 0;)
                                            value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
                                            break;
 
-                default:     ALIB_ERROR( "CAMP/FILES", "Unhandled error code invoking 'fs::last_write_time()': {} ({!Q})\n"
+                default:     ALIB_ERROR( "FILES", "Unhandled error code invoking 'fs::last_write_time()': {} ({!Q})\n"
                                          "    With file {!Q}.", errorCode.value(), errorCode.message(), pathAsCString )
                              fsTime= (decltype(fsTime)::min)();                      ALIB_DBG( errno= 0;)
                              break;
@@ -801,16 +994,18 @@ void scanFileStdFS( const fs::path&               path,
 
 
         #if ALIB_CPP_STANDARD == 17 || defined(__APPLE__)  || defined(__ANDROID_NDK__)
-            value.SetMTime( DateTime::FromEpochSeconds( to_time_t( fsTime ) ) );
+            value.SetMDate( DateTime::FromEpochSeconds( to_time_t( fsTime ) ) );
         #else
-            value.SetMTime( DateTime::FromEpochSeconds( std::chrono::system_clock::to_time_t(
+            value.SetMDate( DateTime::FromEpochSeconds( std::chrono::system_clock::to_time_t(
                                                         std::chrono::clock_cast<std::chrono::system_clock>(fsTime) ) ) );
         #endif
-
+        value.SetBDate( value.MDate() );
+        value.SetCDate( value.MDate() );
+        value.SetADate( value.MDate() );
 
         // 4. size
         errorCode.clear();
-        value.SetSize(   symLinkDest.Length() > 0                    ?  uinteger(symLinkDest.Length())
+        value.SetSize(   symLinkDest.Length() > 0                      ?  uinteger(symLinkDest.Length())
                        : value.Quality() <= FInfo::Qualities::RESOLVED ?  uinteger(fs::file_size(path, errorCode))
                        : 0 );
         if( value.Size() == uinteger(-1))
@@ -825,13 +1020,13 @@ void scanFileStdFS( const fs::path&               path,
 
                 case SystemErrors::enoent: // this happens if we have a broken symbolic link
                     ALIB_ASSERT_ERROR(    value.Type() == FInfo::Types::SYMBOLIC_LINK
-                                       || value.Type() == FInfo::Types::SYMBOLIC_LINK_DIR , "CAMP/FILES",
+                                       || value.Type() == FInfo::Types::SYMBOLIC_LINK_DIR , "FILES",
                         "Internal error. This should never happen. Undefined system error handling" )
                     break;
 
                 // size not supported. Happens with sockets, files in /proc, etc
                 case SystemErrors::eopnotsupp: break;
-                   default: ALIB_ERROR("CAMP/FILES", "Unhandled error code invoking 'directory_entry::file_size()':{} ({!Q})\n"
+                   default: ALIB_ERROR("FILES", "Unhandled error code invoking 'directory_entry::file_size()':{} ({!Q})\n"
                                        "    With file {!Q}.", errorCode.value(), errorCode.message(), pathAsCString )
                             ALIB_DBG( errno= 0;)
                     break;
@@ -843,10 +1038,27 @@ void scanFileStdFS( const fs::path&               path,
         value.SetOwner( FInfo::UnknownID );
         value.SetGroup( FInfo::UnknownID );
 
-        // 6. Add extended information
+        // 6. qty of symlinks
+        uint32_t qtyHardLinks= uint32_t( fs::hard_link_count(path, errorCode ) );
+        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+        if(errorCode)
+        {
+            ALIB_MESSAGE("FILES",
+                       "Unhandled error code invoking 'fs::hard_link_count()': {} ({!Q})\n"
+                       "    With file: {!Q}",
+                       errorCode.value(), errorCode.message(), pathAsCString )
+            ALIB_DBG( errno= 0;)
+        }
+        ALIB_WARNINGS_RESTORE
+        value.SetQtyHardlinks( qtyHardLinks );
+
+        // 7. Add extended information
         if(    oldQuality < FInfo::Qualities::STATS
-            && (value.IsDirectory() || symLinkDest.IsNotEmpty()) )
-            static_cast<FTree&>(node.Tree()).AllocateExtendedInfo( node, symLinkDest, symLinkDestReal );
+            && (value.IsDirectory() || symLinkDest.IsNotEmpty()) ) {
+            IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+                File(node).GetFTree().AllocateExtendedInfo( node, symLinkDest, symLinkDestReal );
+            IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
+        }
 
     } // if scan stats (quality was just path)
 
@@ -856,13 +1068,13 @@ void scanFileStdFS( const fs::path&               path,
     if(value.Quality() == FInfo::Qualities::BROKEN_LINK)
     {
         ++parentSums.QtyErrsBrokenLink;
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // ------------------------------ recursion with directories?  ------------------------------
     if(    !value.IsDirectory()
         || value.Quality() >= FInfo::Qualities::RECURSIVE )
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
 
 
     // stop recursion due to artificial fs?
@@ -872,7 +1084,7 @@ void scanFileStdFS( const fs::path&               path,
     if( value.IsCrossingFS() &&   !params.CrossFileSystems )
     {
         value.SetQuality( FInfo::Qualities::NOT_CROSSING_FS );
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // stop recursion due to max depth?
@@ -880,14 +1092,14 @@ void scanFileStdFS( const fs::path&               path,
     {
         value.SetQuality( FInfo::Qualities::MAX_DEPTH_REACHED );
         ++parentSums.QtyStopsOnMaxDepth;
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
     }
 
     // stop recursion due to filter
     if(      depth > 0
          &&  params.DirectoryFilterPreRecursion
          && !params.DirectoryFilterPreRecursion->Includes( node, parentPath )  )
-        goto APPLY_FILTER;
+        goto APPLY_POST_RECURSION_FILTER;
 
     // mark as recursively scanned
     value.SetQuality( FInfo::Qualities::RECURSIVE );
@@ -899,17 +1111,18 @@ void scanFileStdFS( const fs::path&               path,
             || value.IsArtificialFS() )   // never recurse with symlinks RESIDING on artificial fs!
         {
             value.SetQuality( FInfo::Qualities::NOT_FOLLOWED );
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
         else
         {
             // recurse into symlink target
             FInfo::DirectorySums childSums;
-            if( startScan( static_cast<FTree&>(node.Tree()), value.GetRealLinkTarget(), params, childSums, resultPaths) )
+            if( startScan( File(node).GetFTree(), value.GetRealLinkTarget(), params, childSums,
+                           resultPaths IF_ALIB_THREADS(,lock) ) )
                 value.SetQuality(FInfo::Qualities::DUPLICATE);
             value.SetSums( childSums );
             parentSums+= childSums;
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
     }
 
@@ -922,16 +1135,19 @@ void scanFileStdFS( const fs::path&               path,
             for( const fs::directory_entry& childDir : dit )
             {
                 // recursive call
-            #if defined(__MINGW32__)
-                PathString mingwBuf( childDir.path().c_str());
-                Substring childName(mingwBuf);
+            #if defined(_WIN32)
+                Path            mingwBuf( childDir.path().c_str());
+                PathSubstring   childName(mingwBuf);
             #else
-                Substring childName(CString(childDir.path().c_str()));
+                NSubstring childName(NCString(childDir.path().c_str()));
             #endif
-                childName.ConsumeChars(childName.LastIndexOf(DirectorySeparator) + 1);
+                childName.ConsumeChars(childName.LastIndexOf(DIRECTORY_SEPARATOR) + 1);
                 auto childNode= node;
+        IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
                 childNode.GoToCreateChildIfNotExistent( childName );
-                scanFileStdFS(childDir.path(), childNode, depth + 1, params, subSums, resultPaths );
+        IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
+                scanFileStdFS( childDir.path(), childNode, depth + 1, params, subSums,
+                               resultPaths IF_ALIB_THREADS(,lock) );
             }
 
             // previously scanned in lower quality?
@@ -946,12 +1162,12 @@ void scanFileStdFS( const fs::path&               path,
                 parentSums+= subSums;
             }
             ALIB_DBG( errno= 0;)
-            goto APPLY_FILTER;
+            goto APPLY_POST_RECURSION_FILTER;
         }
     }
 
     // error with recursion
-    ALIB_ASSERT_ERROR(errorCode.value() != ENOTDIR, "CAMP/FILES",
+    ALIB_ASSERT_ERROR(errorCode.value() != ENOTDIR, "FILES",
                       "Internal error opening directory. This must never happen")
 
     ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
@@ -961,20 +1177,20 @@ void scanFileStdFS( const fs::path&               path,
         case SystemErrors::eacces: ++parentSums.QtyErrsAccess;
                                    value.SetQuality( FInfo::Qualities::NO_ACCESS_DIR );
                                    ALIB_DBG( errno= 0;)
-                                   goto APPLY_FILTER;
+                                   goto APPLY_POST_RECURSION_FILTER;
 
         default: value.SetQuality(FInfo::Qualities::UNKNOWN_ERROR);
-                 ALIB_ERROR("CAMP/FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
+                 ALIB_ERROR("FILES", "Unknown error {}({!Q}) while opening directory {!Q}",
                              errorCode.value(), SystemErrors(errorCode.value()), pathAsCString)
                  ALIB_DBG( errno= 0;)
-                 goto APPLY_FILTER;
+                 goto APPLY_POST_RECURSION_FILTER;
     }
     ALIB_WARNINGS_RESTORE
     ALIB_DBG( errno= 0;)
 
     // ------------------------------------ Apply Filter  ------------------------------------------
-    APPLY_FILTER:
-    // delete node only if this was a new scan. It must not be deleted, if this node was
+    APPLY_POST_RECURSION_FILTER:
+    // delete node only if this was a new scan. It must not be deleted if this node was
     // created as a path.
     if( oldQuality == FInfo::Qualities::NONE )
     {
@@ -990,11 +1206,29 @@ void scanFileStdFS( const fs::path&               path,
                 parentSums-= value.Sums();
                 if( params.RemoveEmptyDirectories )
                 {
+                    File file(node);
+                    node.Tree<FTree>().Notify( FTreeListener::Event::DeleteNode,
+                                               file,
+                             IF_ALIB_THREADS(  lock, )
+                                               parentPath );
                     node.Delete();
                     return;
                 }
-                else
-                    node.DeleteChildren(); // do not return here. Still count the directories
+
+                // Notify deletion of all children.
+                auto it= node.FirstChild();
+                while ( it.IsValid() )
+                {
+                    File file(node);
+                    node.Tree<FTree>().Notify( FTreeListener::Event::DeleteNode,
+                                               file,
+                             IF_ALIB_THREADS(  lock, )
+                                               parentPath );
+                    it.GoToNextSibling();
+                }
+
+                // do not return here. Still count the type below
+                node.DeleteChildren();
             }
 
         }
@@ -1003,7 +1237,9 @@ void scanFileStdFS( const fs::path&               path,
             if (      params.FileFilter
                   && !params.FileFilter->Includes(node, parentPath )   )
             {
-                node.Delete();
+                IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+                  node.Delete();
+                IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
                 return;
             }
         }
@@ -1011,6 +1247,8 @@ void scanFileStdFS( const fs::path&               path,
 
     // cnt file type
     parentSums.Add(value);
+    File file(node);
+    node.Tree<FTree>().Notify( FTreeListener::Event::CreateNode, file, IF_ALIB_THREADS(lock,) parentPath );
 
 } // scanFileStdFS
 
@@ -1028,47 +1266,47 @@ namespace alib::files {
 namespace {
 
 // Creates start path nodes and invokes scanFileXXX
-bool startScan( FTree&                      tree,
-                String                      realPath,
-                ScanParameters&             params,
-                FInfo::DirectorySums&       parentSums,
-                std::vector<ResultsPaths>&  resultPaths  )
+bool    startScan( FTree&                      tree,
+                   PathString                  realPath,
+                   ScanParameters&             params,
+                   FInfo::DirectorySums&       parentSums,
+                   std::vector<ResultsPaths>&  resultPaths
+ IF_ALIB_THREADS(, SharedLock*                 lock)        )
 {
-#if !defined(_WIN32)
-    ALIB_ASSERT_ERROR( realPath.CharAtStart() == DirectorySeparator,
-                       "CAMP/FILES", "Real path is not absolute: ", realPath )
+    ALIB_ASSERT_ERROR( Path::IsAbsolute(realPath),  "FILES",
+                        "Real path is not absolute: ", realPath )
 
-    PathString path(DirectorySeparator);
-    FTree::Cursor   node         = tree.Root();
+    FTree::Cursor   node= tree.Root().AsCursor();
+#if !defined(_WIN32)
+    Path path(DIRECTORY_SEPARATOR);
 
     // travel any existing portion of the path
-    Substring       pathRemainder= node.GoToTraversedPath( realPath );
+    IF_ALIB_THREADS( if (lock) lock->AcquireShared(ALIB_CALLER_PRUNED); )
+    PathSubstring  pathRemainder= node.GoTo( realPath );
+    IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
     path << realPath.Substring(1, realPath.Length() - pathRemainder.Length() - 1);
 #else
-    ALIB_ASSERT_ERROR(    (    realPath.CharAt(2) == DirectorySeparator
-                            && realPath.CharAt(1) == ':'                )
-                      ||  ( realPath.CharAt(0) == DirectorySeparator
-                            && realPath.CharAt(1) == DirectorySeparator ),
-                       "CAMP/FILES", "Real path is not absolute: ", realPath )
-
-    PathString      path;
-    Substring       pathRemainder;
-    FTree::Cursor   node = tree.Root();
+    Path            path;
+    PathSubstring       pathRemainder;
     if(realPath.CharAt(1) == ':')
     {
         path << realPath.Substring(0,3);
-        node.GoToCreateChildIfNotExistent(realPath.Substring(0,2));
-        pathRemainder= node.GoToTraversedPath( realPath.Substring(3) );
+        IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+          node.GoToCreateChildIfNotExistent(realPath.Substring(0,2));
+          pathRemainder= node.GoTo( realPath.Substring(3) );
+        IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
         path << realPath.Substring(3, realPath.Length() - pathRemainder.Length() -3 );
     }
     else
     {
-        integer serverNameEnd= realPath.IndexOf( DirectorySeparator, 2);
+        integer serverNameEnd= realPath.IndexOf( DIRECTORY_SEPARATOR, 2);
         if( serverNameEnd < 0)
             serverNameEnd= realPath.Length();
         path << realPath.Substring(0, serverNameEnd);
-        node.GoToCreateChildIfNotExistent(realPath.Substring(2, serverNameEnd - 2));
-        pathRemainder= node.GoToTraversedPath( realPath.Substring(serverNameEnd) );
+        IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
+          node.GoToCreateChildIfNotExistent(realPath.Substring(2, serverNameEnd - 2));
+          pathRemainder= node.GoTo( realPath.Substring(serverNameEnd + 1) );
+        IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
         path << realPath.Substring(serverNameEnd, realPath.Length() - pathRemainder.Length() -serverNameEnd );
     }
 
@@ -1081,20 +1319,22 @@ bool startScan( FTree&                      tree,
     if( pathRemainder.IsEmpty() )
     {
         // For directories, call scan just for the case of having 'higher' scan parameters
-        if( node.Value().IsDirectory())
+        if( node->IsDirectory())
         {
 
             #if   (    (defined(__GLIBCXX__) && !defined(__MINGW32__))                  \
                      || defined(__APPLE__)                                              \
-                     || defined(__ANDROID_NDK__) )        && !defined(ALIB_TESTSTDFS)
+                     || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
 
                 path.Terminate();
-                CString    fullPathChildName(path);
-                path.SetLength(path.LastIndexOf(DirectorySeparator) );
-                scanFilePosix( nullptr, node, fullPathChildName, 0, params, 0, parentSums, path, resultPaths );
+                CPathString    fullPathChildName(path);
+                path.SetLength(path.LastIndexOf(DIRECTORY_SEPARATOR) );
+                scanFilePosix( nullptr, node, fullPathChildName, 0, params, 0, parentSums, path,
+                               resultPaths IF_ALIB_THREADS(,lock));
             #else
-                scanFileStdFS( fs::path(std::basic_string_view<character>(path.Buffer(), size_t(path.Length()))),
-                               node, 0, params, parentSums, resultPaths  );
+                scanFileStdFS( fs::path(std::basic_string_view<PathCharType>(path.Buffer(),
+                                                                      size_t(path.Length()))),
+                               node, 0, params, parentSums, resultPaths IF_ALIB_THREADS(,lock) );
             #endif
 
             //resultPaths.emplace_back(ResultsPaths(realPath, node, true));
@@ -1105,35 +1345,38 @@ bool startScan( FTree&                      tree,
 
     // did not exist already
     if( path.Length() > 1 )
-        path.DeleteEnd<false>(1);
+        path.DeleteEnd<NC>(1);
 
-    Tokenizer  tknzr( pathRemainder, DirectorySeparator );
+    strings::util::TTokenizer<PathCharType>  tknzr( pathRemainder, DIRECTORY_SEPARATOR );
     while(tknzr.HasNext())
     {
-        String name;
+        PathString name;
         if( path.Length() != 1 )
         {
             name= tknzr.Next();
+IF_ALIB_THREADS( if (lock) lock->Acquire(ALIB_CALLER_PRUNED); )
             node= node.CreateChild(name);
+IF_ALIB_THREADS( if (lock) lock->Release(ALIB_CALLER_PRUNED); )
         }
-
 
         bool isLastPathElement= !tknzr.HasNext();
         if( isLastPathElement )
-            parentSums= FInfo::DirectorySums(); // clear the sums, because only the results of the last element is used.
+            parentSums= FInfo::DirectorySums(); // clear the sums, because only the results of the last element are used.
 
-        auto detectNodeDeletion= node.Depth();
+        IF_ALIB_THREADS( if (lock) lock->AcquireShared(ALIB_CALLER_PRUNED); )
+          auto detectNodeDeletion= node.Depth();
+        IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
 
         #if   (    (defined(__GLIBCXX__) && !defined(__MINGW32__))                      \
                  || defined(__APPLE__)                                                  \
-                 || defined(__ANDROID_NDK__) )        && !defined(ALIB_TESTSTDFS)
+                 || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
 
-            if( path.IsEmpty() ) path << DirectorySeparator;
-            CString    fullPathChildName;
+            if( path.IsEmpty() ) path << DIRECTORY_SEPARATOR;
+            CPathString    fullPathChildName;
             {
                 // add node name to existing path and use same buffer for fullPathChildName!
                 ALIB_STRING_RESETTER( path );
-                if( path.Length() > 1 ) path << DirectorySeparator;
+                if( path.Length() > 1 ) path << DIRECTORY_SEPARATOR;
                 path << node.Name();
                 path.Terminate();
                 fullPathChildName= path;
@@ -1141,24 +1384,31 @@ bool startScan( FTree&                      tree,
 
             scanFilePosix( nullptr, node, fullPathChildName,
                            0, isLastPathElement ? params : paramsPathOnly,
-                           0, parentSums, path, resultPaths );
+                           0, parentSums, path, resultPaths IF_ALIB_THREADS(,lock) );
             if( fullPathChildName.Length() == 1 )  path.Reset();
-            else { if(path.Length() > 1)  path << DirectorySeparator; path << name; }
+            else { if(path.Length() > 1)  path << DIRECTORY_SEPARATOR; path << name; }
         #else
-            if( path.Length() != 1 )  path << DirectorySeparator << name;
-            scanFileStdFS( fs::path(std::basic_string_view<character>(path.Buffer(), size_t(path.Length()))), node, 0,
+            if( path.Length() != 1 )  path << DIRECTORY_SEPARATOR << name;
+            scanFileStdFS( fs::path(std::basic_string_view<PathCharType>(path.Buffer(),
+                                                                  size_t(path.Length()))),
+                           node, 0,
                            isLastPathElement ? params : paramsPathOnly,
-                           parentSums, resultPaths );
+                           parentSums, resultPaths IF_ALIB_THREADS(,lock) );
             if( path.Length() == 1 )  path.Reset();
         #endif
 
         // if the just created node was not deleted during scan, add it to the result list
-        if( isLastPathElement && (detectNodeDeletion == node.Depth() ) )
-            resultPaths.insert(resultPaths.begin(), ResultsPaths(realPath, node, false));
+        if( isLastPathElement)
+        {
+            IF_ALIB_THREADS( if (lock) lock->AcquireShared(ALIB_CALLER_PRUNED); )
+              if (detectNodeDeletion == node.Depth() )
+                  resultPaths.insert(resultPaths.begin(), ResultsPaths(realPath, node, false));
+            IF_ALIB_THREADS( if (lock) lock->ReleaseShared(ALIB_CALLER_PRUNED); )
+        }
 
         // Correct quality from max depth to stats
-        if( !isLastPathElement  && node.Value().Quality() == FInfo::Qualities::MAX_DEPTH_REACHED)
-            node.Value().SetQuality(FInfo::Qualities::STATS);
+        if( !isLastPathElement  && node->Quality() == FInfo::Qualities::MAX_DEPTH_REACHED)
+            node->SetQuality(FInfo::Qualities::STATS);
     }
 
     return false;
@@ -1166,40 +1416,55 @@ bool startScan( FTree&                      tree,
 
 } // namespace  alib::files[::anonymous]
 
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 // --------------------------------------------------------------------------------------------------
 //--- ScanFiles()
 //--------------------------------------------------------------------------------------------------
 enum FInfo::Qualities  ScanFiles( FTree&                      tree,
                                   ScanParameters&             parameters,
-                                  std::vector<ResultsPaths>&  resultPaths  )
+                                  std::vector<ResultsPaths>&  resultPaths
+               IF_ALIB_THREADS( , SharedLock*                 lock)         )
 
 {
-    // get real path
-    PathString path(parameters.StartPath);
-    PathString realPath;
-    realPath.Terminate();
+    Log_SetDomain( "ALIB/FILES", Scope::Path)
+    Log_SetDomain( "SCAN"      , Scope::Filename)
 
+    ALIB_DBG(   if( alib::FILES.IsBootstrapped())
+                {
+                    Log_SetDomain( "ALIB/FILES", Scope::Path)
+                    Log_SetDomain( "SCAN"      , Scope::Filename)
+                }                                                   )
+
+
+    //--------------------------------------  get real path  ---------------------------------------
+    Path  path(parameters.StartPath);
+    Path  realPath;
+    realPath.Terminate();
 
     #if   (     (defined(__GLIBCXX__) && !defined(__MINGW32__))             \
               || defined(__APPLE__)                                         \
-              || defined(__ANDROID_NDK__) )        && !defined(ALIB_TESTSTDFS)
-        if(!realpath(path.Terminate(), realPath.VBuffer() ) ) switch (errno)
+              || defined(__ANDROID_NDK__) )        && !ALIB_FILES_FORCE_STD_SCANNER
+        ALIB_STRINGS_TO_NARROW(path    , nPath    , 512)
+        ALIB_STRINGS_TO_NARROW(realPath, nRealPath, 512)
+        if(!realpath(nPath.Terminate(), nRealPath.VBuffer() ) ) switch (errno)
         {
             case EACCES: ALIB_DBG(errno= 0;) return FInfo::Qualities::NO_ACCESS;
             case ENOENT: ALIB_DBG(errno= 0;) return FInfo::Qualities::NOT_EXISTENT;
             case ELOOP:  ALIB_DBG(errno= 0;) return FInfo::Qualities::CIRCULAR_LINK;
-            default: ALIB_ERROR("CAMP/FILES", "Posix raised ({}) {!Q} on resolving start path {!Q}",
+            default: ALIB_ERROR("FILES", "Posix raised ({}) {!Q} on resolving start path {!Q}",
                                 errno, SystemErrors(errno), path )   ALIB_DBG(errno= 0;)
                      return FInfo::Qualities::UNKNOWN_ERROR;
         }
-        realPath.DetectLength();
-    #else
+        nRealPath.DetectLength();
+        #if ALIB_CHARACTERS_WIDE
+            realPath.Reset(nRealPath);
+        #endif
+#else
         {
             std::error_code errorCode;
-            fs::path fsRealPath= fs::canonical(fs::path(std::basic_string_view<character>(path.Buffer(),
-                                                        size_t(path.Length()))),
+            fs::path fsRealPath= fs::canonical(fs::path(std::basic_string_view<PathCharType>(path.Buffer(),
+                                                                                      size_t(path.Length()))),
                                                errorCode);
             ALIB_DBG(if(errno==EINVAL && !errorCode) errno= 0;) // this happens!, we do not care, but clean up
             ALIB_DBG(if(errno==ENOENT && !errorCode) errno= 0;)
@@ -1210,7 +1475,7 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
                 case SystemErrors::eacces: return FInfo::Qualities::NO_ACCESS;
                 case SystemErrors::enoent: return FInfo::Qualities::NOT_EXISTENT;
                 case SystemErrors::eloop:  return FInfo::Qualities::CIRCULAR_LINK;
-                default: ALIB_ERROR("CAMP/FILES", "std::filesystem raised ({}) {!Q} on resolving start path {!Q}",
+                default: ALIB_ERROR("FILES", "std::filesystem raised ({}) {!Q} on resolving start path {!Q}",
                                     errorCode.value(), errorCode.message(), path )   ALIB_DBG(errno= 0;)
                          return FInfo::Qualities::UNKNOWN_ERROR;
             }
@@ -1220,17 +1485,44 @@ enum FInfo::Qualities  ScanFiles( FTree&                      tree,
 
     #endif
 
-    path.Reset(DirectorySeparator);
+    Log_Info( "Scanning: P=  {}\n"
+              "          RP= {}\n"
+              "          F={} DPre={} DPost={} XFS={} AFS={} Depth={}",
+              parameters.StartPath, realPath,
+              parameters.FileFilter                  .get() ? 'Y':'N',
+              parameters.DirectoryFilterPreRecursion .get() ? 'Y':'N',
+              parameters.DirectoryFilterPostRecursion.get() ? 'Y':'N',
+              parameters.CrossFileSystems ? 'Y':'N', parameters.IncludeArtificialFS ? 'Y':'N',
+              parameters.MaxDepth == ScanParameters::InfiniteRecursion ? String(A_CHAR("Inf"))
+                                                                       : String128(parameters.MaxDepth)
+            )
 
+    //--------------------------------------  start scanning  --------------------------------------
     ALIB_DBG( errno=0; )
-
     auto firstResultPos= resultPaths.size();
     FInfo::DirectorySums dummySums;
-    startScan( tree, realPath, parameters, dummySums, resultPaths );
-    return (*(resultPaths.begin() + int(firstResultPos))).Node.Value().Quality();
+
+    startScan( tree, realPath, parameters, dummySums, resultPaths IF_ALIB_THREADS( , lock)  );
+
+    Log_Info( "Scan Results: ", resultPaths.size() - firstResultPos )
+    Log_Prune( int cntPaths= 0;
+               for( auto& it : resultPaths )
+               {
+                   Log_Info( "    Path {}: {} {}  (Q={} D={}/F={}}",
+                             cntPaths++, it.Existed ? ' ' : '+',
+                             it.RealPath,
+                             it.Node->Quality(),
+                             it.Node->Quality() > FInfo::Qualities::STATS && it.Node->IsDirectory() ? it.Node.Value().Sums().CountDirectories()   : 0,
+                             it.Node->Quality() > FInfo::Qualities::STATS && it.Node->IsDirectory() ? it.Node.Value().Sums().CountNonDirectories(): 0    )
+               } )
+
+
+
+    return (*(resultPaths.begin() + int(firstResultPos))).Node->Quality();
 }
 
 #undef DBG_CHECKERRNO
 
-
 } // namespace [alib::files]
+
+#include "alib/lang/callerinfo_methods.hpp"

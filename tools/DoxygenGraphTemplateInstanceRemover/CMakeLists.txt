@@ -11,9 +11,6 @@
 # Prior to setting CMake project
 # -------------------------------------------------------------------------------------------------
 
-    # uncomment to force cotire on clean cmake built
-    #set( ALIB_CMAKE_COTIRE   "On" )
-
 # -------------------------------------------------------------------------------------------------
 # General
 # -------------------------------------------------------------------------------------------------
@@ -38,7 +35,9 @@
 ## include ALib/ALox base cmake file
 ## -------------------------------------------------------------------------------------------------
 
-    list( APPEND  ALIB_DISTRIBUTION  "ALOX"        )
+    list( APPEND  ALIB_DISTRIBUTION  "ALOX"         )
+    list( APPEND  ALIB_DISTRIBUTION  "FILES"        )
+    list( APPEND  ALIB_DISTRIBUTION  "EXPRESSIONS"  )
     include( ${CMAKE_CURRENT_LIST_DIR}/../../build/cmake/ALib.cmake )
 
 
@@ -58,26 +57,7 @@ aux_source_directory(. SRC_LIST)
 
     target_compile_definitions( dot   PUBLIC   ${ALIB_SYMBOLS} )
 
-
-#! [DOXYGEN_CMAKE_COTIRE_TARGET]
-# link against unity-built version of library in case of cotire
-if( ${ALIB_CMAKE_COTIRE} )
-    target_link_libraries     ( dot   PRIVATE ALib_StaticLib_unity  )
-else()
     target_link_libraries     ( dot   PRIVATE ALib_StaticLib        )
-endif()
-#! [DOXYGEN_CMAKE_COTIRE_TARGET]
 
     set( EXECUTABLE_OUTPUT_PATH       ${ALIB_BASE_DIR}/docs/doxygen)
 
-
-# -------------------------------------------------------------------------------------------------
-# Precompiled headers with 'cotire' CMake script.
-# For more Info see 'ALox.cmake' which downloads the script and the cotire website at
-# https://github.com/sakra/cotire/
-# -------------------------------------------------------------------------------------------------
-if( ${ALIB_CMAKE_COTIRE} )
-    set_target_properties( dot   PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j" )
-    set_target_properties( dot   PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT  "${ALIB_SOURCE_DIR}/alib/alib_precompile.hpp" )
-    cotire( dot )
-endif()

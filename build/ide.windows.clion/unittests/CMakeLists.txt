@@ -20,7 +20,6 @@ project("ALib_UnitTests")
 # -------------------------------------------------------------------------------------------------
 
     # Compile speed options. Uncomment during development ONLY!
-    # set( ALIB_CMAKE_COTIRE                 "On" )
      set( ALIB_PRECOMPILED_HEADER           "On" )
     # set( ALIB_UT_LINKER_MOLD               "On" )
     # set( ALIB_UT_REDUCED_COMPILE_TIME      "On" )
@@ -28,8 +27,8 @@ project("ALib_UnitTests")
     # set( CMAKE_VERBOSE_MAKEFILE            "On" )
 
 
-    # Allow valgrind runs.
-    #set( ALIB_AVOID_ANALYZER_WARNINGS      "On" )
+    # Allow valgrind runs?
+    list( APPEND ALIB_SYMBOLS   "ALIB_UT_AVOID_ANALYZER_WARNINGS=0"   )
 
     #set( ALIB_UT_NO_QT      "Off" )
 
@@ -44,13 +43,13 @@ project("ALib_UnitTests")
 
 
     # C++ Version selection
-    set(CMAKE_CXX_STANDARD 17)
-    #set(CMAKE_CXX_STANDARD 20)
+    #set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     #set(CMAKE_CXX_STANDARD 23)
 
     # 32-bit compilation
-    #list( APPEND ALIB_COMPILER_OPTIONS     "-m32"    )
     #list( APPEND ALIB_LINKER_OPTIONS       "-m32"    )
+    #list( APPEND ALIB_COMPILER_OPTIONS     "-m32"    )
 
     # valgrind dwarf 4
     #list( APPEND ALIB_COMPILER_OPTIONS    "-gdwarf-4"    )
@@ -82,11 +81,17 @@ project("ALib_UnitTests")
     #set( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS         "On" )
     #set( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS      "On" )
 
+    #set( ALIB_FILES_FORCE_STD_SCANNER      "On" )
+
+    set( ALIB_DEBUG_CRITICAL_SECTIONS      "On" )
+    set( ALIB_DEBUG_ALLOCATIONS            "On" )
     #set( ALIB_DEBUG_MONOMEM                "On" )
+    #set( ALIB_DEBUG_CONTAINERS             "On" )
     #set( ALIB_DEBUG_ARRAY_COMPRESSION      "On" )
     #set( ALIB_DEBUG_STRINGS                "On" )
     #set( ALIB_DEBUG_RESOURCES              "On" )
     set( ALIB_DEBUG_BOXING                 "On" ) # has to be switched on to create the documentation
+
 
 
     # For UNKNOWN platforms: Try and set the integral sizes as follows.

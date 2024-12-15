@@ -6,13 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_EXPRESSIONS_PLUGINS_MATH)
-#      include "alib/expressions/plugins/math.hpp"
-#   endif
-
+#if !DOXYGEN
+#   include "alib/expressions/plugins/math.hpp"
 #   include <cmath>
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 #if !defined(M_PI)
 #   define M_PI         3.14159265358979323846
@@ -112,7 +109,7 @@ FUNC(   cbrt     , return  ::cbrt     (FLT(*args)); )
 // ### Math - Constructor. Creates the hash map
 // #################################################################################################
 Math::Math( Compiler& compiler )
-: Calculus( "ALib Math", compiler )
+: Calculus( "ALib Math", compiler, CompilePriorities::Math )
 {
     constPI= M_PI; // Initialize constant static boxes. This must not be done
     constE = M_E;  // in the C++ bootstrap code.

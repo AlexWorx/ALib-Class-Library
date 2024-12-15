@@ -8,14 +8,4 @@
 #endif
 
 
-
-
-// Restore ALIB_CALLER
-#undef ALIB_CALLER
-#if defined( __GNUC__ )
-#   define ALIB_CALLER    __FILE__, __LINE__, __func__
-#elif defined ( _MSC_VER )
-#   define ALIB_CALLER     __FILE__, __LINE__, __FUNCTION__
-#else
-#   pragma message ("Unknown Platform in file: " __FILE__ )
-#endif
+#include "alib/lang/callerinfo_methods.hpp"

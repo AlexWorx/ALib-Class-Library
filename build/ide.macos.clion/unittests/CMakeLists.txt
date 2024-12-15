@@ -19,12 +19,10 @@ project("ALib_UnitTests")
 # Settings prior to including the generic cmake CMake file
 # -------------------------------------------------------------------------------------------------
 
-    # uncomment to force cotire on clean cmake built
-    #set( ALIB_CMAKE_COTIRE                 "On" )
     #set( ALIB_PRECOMPILED_HEADER           "On" )
 
-    # Allow valgrind runs.
-    #set( ALIB_AVOID_ANALYZER_WARNINGS      "On" )
+    # Allow valgrind runs ?
+    list( APPEND ALIB_SYMBOLS      "ALIB_UT_AVOID_ANALYZER_WARNINGS=0"   )
 
     # Uncomment to exclude huge loops, sleep times, thread races, etc
     #list( APPEND ALIB_SYMBOLS   "ALIB_UT_ROUGH_EXECUTION_SPEED_TEST"    )
@@ -69,6 +67,10 @@ project("ALib_UnitTests")
     #set( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS         "On" )
     #set( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS      "On" )
 
+
+    #set( ALIB_FILES_FORCE_STD_SCANNER      "On" )
+
+    #set( ALIB_DEBUG_ALLOCATIONS            "On" )
     #set( ALIB_DEBUG_MONOMEM                "On" )
     #set( ALIB_DEBUG_ARRAY_COMPRESSION      "Off")
     #set( ALIB_DEBUG_STRINGS                "On" )

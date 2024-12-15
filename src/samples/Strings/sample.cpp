@@ -14,16 +14,16 @@ using namespace alib;
 //
 //  There is one feature which makes ALib Strings quite unique: Using template meta
 //  programming (TMP),  ALib Strings can be constructed from anything that "smells like a string".
-//  With only a short piece of code (provided somewhere in a header) any custom string type
+//  With only a short piece of code (provided somewhere in a header) any custom string-type
 //  becomes "compatible".
 //
-//  Consequently, a method which expects an ALib String as a parameter, accepts just any string type!
-//  This is why we call ALib strings to be "least intrusive".
+//  Consequently, a method which expects an ALib String as a parameter, accepts just any
+//  string-type! This is why we call ALib strings to be "least intrusive".
 
 void AcceptAnyString( const alib::NString& s );
 void AcceptAnyString( const alib::NString& s )
 {
-    std::cout << "  The original string type was: " << s  << std::endl;
+    std::cout << "  The original string-type was: " << s  << std::endl;
 }
 
 
@@ -46,5 +46,5 @@ int main()
 
     // QTString compatibility becomes available in QT projects with
     //   #include "alib/compatibility/qt_strings.hpp"
-    // and you can quickly make any other custom C++ string type compatible as well.
+    // and you can quickly make any other custom C++ string-type compatible as well.
 }

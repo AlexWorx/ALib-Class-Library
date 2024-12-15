@@ -9,10 +9,10 @@
 #include "alib/alox/loggers/memorylogger.hpp"
 #include "alib/alox/loggers/textfilelogger.hpp"
 #include "alib/alox/reportwriter.hpp"
-#include "alib/alox/aloxmodule.hpp"
+#include "alib/alox/aloxcamp.hpp"
 #include "alib/lang/basecamp/basecamp.hpp"
 #include "alib/lang/basecamp/bootstrap.hpp"
-#include "alib/config/inifile.hpp"
+#include "alib/config/inifilefeeder.hpp"
 
 #include <iostream>
 #include <filesystem>
@@ -37,6 +37,8 @@ int main( int argc, const char *argv[] );
 
 // globals
 String128 autoSizes;
+
+#include "alib/lang/callerinfo_functions.hpp"
 
 void DebugLog()
 {
@@ -63,26 +65,26 @@ void ReleaseLog()
     // let the system choose an appropriate console logger
     Lox_Prune( TextLogger* releaseLogger= Lox::CreateConsoleLogger(); )
 
-    // With debug builds, we still install a report writer.
+    // With debug-builds, we still install a report writer.
     Log_Prune( Log::AddALibReportWriter( &LOX_LOX ); )
     Log_Prune( Lox_SetVerbosity( releaseLogger, Verbosity::Verbose, ALoxReportWriter::LogDomain() ); )
     Log_Prune( Lox_SetPrefix( "ALib Report: ", ALoxReportWriter::LogDomain() ); )
 
     // if makefile did not specify scope info for release logging (which is standard behavior),
     // we set a format string without scope information.
+    Lox_SetVerbosity( releaseLogger, Verbosity::Info )
     #if !ALOX_REL_LOG_CI
-        Lox_Prune( releaseLogger->MetaInfo->Format.Reset( "[%TC+%TL][%tN]%V[%D]%A1(%#): " ); )
+        Lox_Prune( releaseLogger->GetFormatMetaInfo().Format.Reset( "[%TC+%TL][%tN]%V[%D]%A1(%#): " ); )
     #endif
 
-    Lox_SetVerbosity( releaseLogger, Verbosity::Info )
     Lox_Info ( "Hello ALox, this is release logging" )
 
     ALIB_MESSAGE ( "And this is an ALib report message. Appears on release lox but only "
-                   "with debug builds." )
+                   "with debug-builds." )
 
 
     // shutdown
-    Log_Prune( Log::RemoveALibReportWriter() );  // with debug builds only
+    Log_Prune( Log::RemoveALibReportWriter() );  // with debug-builds only
 
     Lox_RemoveLogger( releaseLogger )
     Lox_Prune( delete releaseLogger; )
@@ -106,11 +108,11 @@ void PerformanceTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
-                                    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priorities::ProtectedValues   )
-    Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priorities::ProtectedValues   ) )
-                                    Log_SetVerbosity( &ml,              Verbosity::Verbose, "/MEM", Priorities::ProtectedValues   )
+                                    Log_SetVerbosity( Log::DebugLogger, Verbosity::Off    , "/MEM", Priority::Protected   )
+    Log_Prune( if (Log::IDELogger ) Log_SetVerbosity( Log::IDELogger  , Verbosity::Off    , "/MEM", Priority::Protected   ) )
+                                    Log_SetVerbosity( &ml,              Verbosity::Verbose, "/MEM", Priority::Protected   )
 
     Log_Info( "Logging simple info lines" )
 
@@ -172,22 +174,18 @@ void PerformanceTestRL()
     Lox_Prune( TextLogger*  releaseLogger= Lox::CreateConsoleLogger();  )
     Lox_Prune( MemoryLogger ml( nullptr, true, false);                  )
 
+    //Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,  Lox::InternalDomains, Priority::Protected )
+    Lox_SetVerbosity( releaseLogger, Verbosity::Off,       "/"   , Priority::Protected )
+    Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,   "/CON", Priority::Protected )
+    Lox_SetVerbosity( &ml,           Verbosity::Verbose,   "/"   , Priority::Protected )
+
     // if makefile did not specify scope info for release logging (which is standard behavior),
     // we set a format string without scope information.
     #if !ALOX_REL_LOG_CI
-        Lox_Prune( releaseLogger->MetaInfo->Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
-        Lox_Prune( ml.            MetaInfo->Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
+        Lox_Prune( releaseLogger->GetFormatMetaInfo().Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
+        Lox_Prune( ml.            GetFormatMetaInfo().Format.Reset( A_CHAR("[%TC+%TL][%tN]%V[%D]%A1(%#): ")); )
     #endif
 
-//Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,  Lox::InternalDomains, Config::PriorityOf(Priorities::ProtectedValues) );
-    Lox_SetVerbosity( releaseLogger, Verbosity::Off,       "/"   , Priorities::ProtectedValues )
-    Lox_SetVerbosity( releaseLogger, Verbosity::Verbose,   "/CON", Priorities::ProtectedValues )
-    Lox_SetVerbosity( &ml,           Verbosity::Verbose,   "/"   , Priorities::ProtectedValues )
-
-    // to align all samples nicely, we are manually adding the autosizes from the config.
-    // This is not needed for standard applications that create one debug logger at the start and
-    // use this till the end
-    Lox_Prune(     releaseLogger->AutoSizes.Import( Substring(autoSizes) );                           )
 
     Lox_Info( "/CON", "Logging simple info lines (release logging)" )
 
@@ -259,7 +257,7 @@ void LogColors()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     cout << "cout: Colorful logging:" <<  endl;
 
@@ -322,7 +320,7 @@ void WCharTest()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_SetDomain( "WCHAR", Scope::Method )
 
@@ -350,7 +348,7 @@ void textFileLogger()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Creating a text file logger with file 'Test.log.txt'" )
 
@@ -375,7 +373,7 @@ void SampleALibReport()
     // to align all samples nicely, we are manually adding the autosizes from the config.
     // This is not needed for standard applications that create one debug logger at the start and
     // use this till the end
-    Log_Prune( Log::DebugLogger->AutoSizes.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
+    Log_Prune( Log::DebugLogger->GetAutoSizes().Main.Import( Substring(autoSizes), lang::CurrentData::Keep );  )
 
     Log_Info( "Sample: ALib Report Writer\n"
               "Method \"Log::AddDebugLogger()\" by default creates a replacement for the\n"
@@ -396,7 +394,7 @@ void SampleALibReport()
     #endif
 
     Log_SetVerbosity( Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
-    ALIB_MESSAGE( "This is an ALib Report. Types other than 'message', 'warning' and 'error' are user defined.\n"
+    ALIB_MESSAGE( "This is an ALib Report. Types other than 'message', 'warning' and 'error' are user-defined.\n"
                   "Verbosity of Lox::InternalDomains has to be increased to see them when using "
                   "ALoxReportWriter."  )
 
@@ -410,7 +408,7 @@ void ALoxSampleReset()
     #if ALOX_DBG_LOG
         if ( Log::DebugLogger != nullptr )
         {
-            Log::DebugLogger->AutoSizes.Export( autoSizes.Reset() );
+            Log::DebugLogger->GetAutoSizes().Main.Export( autoSizes.Reset() );
             Log_RemoveDebugLogger()
         }
     #endif
@@ -419,38 +417,34 @@ void ALoxSampleReset()
     Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 }
 
+constexpr String INIFileName = ALIB_BASE_DIR   A_CHAR("/docs/pages/generated/ALoxSample.ini");
 
 int main( int argc, const char** argv)
 {
-    alib::ArgC  = argc;
-    alib::ArgVN = argv;
+    alib::ARG_C  = argc;
+    alib::ARG_VN = argv;
 
-    // we have to clear the ini-file prior to running the sample
-//    filesystem::remove(filesystem::path(ALIB_BASE_DIR "/docs/pages/generated/ALoxSample.ini"));
+    // we have to clear the ini-file before running the sample
+    // (otherwise different platform tests writewrite wrong defaults to each other)
+    filesystem::remove(filesystem::path(ALIB_BASE_DIR "/docs/pages/generated/ALoxSample.ini"));
 
-// [DOXYGEN_CREATE_INIFILE]
+DOX_MARKER([DOXYGEN_CREATE_INIFILE])
 // Partly initialize ALib/ALox, to have configuration and default resource pool in place
+// (This also invokes Configuration::PreloadVariables() for BaseCamp and ALox variables.)
 alib::Bootstrap(BootstrapPhases::PrepareConfig );
 
-// Create and attach an INI file to config system...
-IniFile iniFile(ALIB_BASE_DIR A_CHAR("/docs/pages/generated/ALoxSample.ini"));
-if ( iniFile.FileComments.IsEmpty() )
+// Open an INI file (if open fails, nothing is imported)
 {
-    iniFile.FileComments._(
-    "##################################################################################################\n"
-    "# ALox Samples INI file (created when running ALox Samples)\n"
-    "#\n"
-    "# Copyright 2013-2024 A-Worx GmbH, Germany\n"
-    "# Published under 'Boost Software License' (a free software license, see LICENSE.txt)\n"
-    "##################################################################################################\n"
-    );
+    // import variables
+    IniFileFeeder iniFileFeeder(BASECAMP.GetConfig());
+    iniFileFeeder.ImportStart( INIFileName );
+    iniFileFeeder.ImportAll();
+    iniFileFeeder.ImportEnd();
 }
-
-alib::ALOX.GetConfig().InsertPlugin( &iniFile, Priorities::Standard );
 
 //... and then bootstrap ALib completely
 Bootstrap();
-// [DOXYGEN_CREATE_INIFILE]
+DOX_MARKER([DOXYGEN_CREATE_INIFILE])
 
     Log_SetSourcePathTrimRule( "*/src/", lang::Inclusion::Include )
 
@@ -466,25 +460,52 @@ Bootstrap();
     textFileLogger();           ALoxSampleReset();
 
     // cleanup resources to make Valgrind happy
-// [DOXYGEN_REMOVE_INIFILE]
-// annonce the shudown (first shutdown phase) and remove the ini-file
+DOX_MARKER([DOXYGEN_REMOVE_INIFILE])
+// announce the shutdown (first shutdown phase) and remove the ini-file
 alib::Shutdown( alib::ShutdownPhases::Announce );
-alib::ALOX.GetConfig().RemovePlugin( &iniFile );
 
-// Use utility function to copy values from the in-memory-plug-in that carries the default values,
-// to the INI-File. Note that only those values that are not existing in the INI-file, yet, are
-// copied! This discloses the default values to
-// a) the developer gathering all information from his team-members in case of debug-logging
-// b) an end-user of an application in case of release-logging
-// Both now know what is possible, without consulting a documentation... :-)
-alib::ALOX.GetConfig().FetchFromDefault( iniFile );
+{
+    // Open INI-file (if open fails, we do not care)
+    IniFileFeeder iniFileFeeder(BASECAMP.GetConfig());
+    iniFileFeeder.ExportStart( INIFileName );
 
-// write the INI-File
-iniFile.WriteFile();
+    // export variables that are not existing in the INI-file yet
+    int cntChanges= 0;
+    cntChanges+= iniFileFeeder.ExportSubTree(A_CHAR("ALIB"));
+    cntChanges+= iniFileFeeder.ExportSubTree(A_CHAR("ALOX"));
+    cntChanges+= iniFileFeeder.ExportSubTree(A_CHAR("/"));
+
+    // add section comments (if not existing)
+    cntChanges+= iniFileFeeder.AddResourcedSectionComments(BASECAMP.GetResourcePool(), BASECAMP.ResourceCategory, "INI_CMT_" );
+    cntChanges+= iniFileFeeder.AddResourcedSectionComments(ALOX    .GetResourcePool(), ALOX    .ResourceCategory, "INI_CMT_" );
+
+    // add file comments
+    auto& iniFile= iniFileFeeder.GetIniFile();
+    if ( iniFile.FileComments.IsEmpty() )
+    {
+        iniFileFeeder.GetIniFile().FileComments.Allocate( iniFileFeeder.GetIniFile().Allocator,
+        A_CHAR(
+        "######################################################################################\n"
+        "# ALox Samples INI-file (created when running ALox Samples)\n"
+        "#\n"
+        "# Copyright 2013-2024 A-Worx GmbH, Germany\n"
+        "# Published under \"Boost Software License\" (a free software license, see LICENSE.txt)\n"
+        "######################################################################################\n"
+         ) );
+
+        cntChanges++;
+    }
+
+    // write INI-file, if changed.
+    if( cntChanges > 0 )
+        iniFileFeeder.ExportEnd( INIFileName );
+    else
+        iniFileFeeder.ExportEnd();
+}
 
 // finalize ALib termination
 alib::Shutdown();
-// [DOXYGEN_REMOVE_INIFILE]
+DOX_MARKER([DOXYGEN_REMOVE_INIFILE])
     cout << "ALox Samples finished" << endl;
     return 0;
 }

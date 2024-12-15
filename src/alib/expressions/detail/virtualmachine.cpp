@@ -6,42 +6,28 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_VIRTUAL_MACHINE)
+#if !DOXYGEN
 #   include "alib/expressions/detail/virtualmachine.hpp"
-#endif
-
-#if !defined (HPP_ALIB_LANG_FORMAT_PARAGRAPHS)
 #   include "alib/lang/format/paragraphs.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_COMPILERPLUGIN)
 #   include "alib/expressions/compilerplugin.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_PROGRAM)
 #   include "alib/expressions/detail/program.hpp"
-#endif
-
-#if !defined (HPP_ALIB_EXPRESSIONS_DETAIL_AST)
 #   include "alib/expressions/detail/ast.hpp"
-#endif
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#endif // !DOXYGEN
+
+#include "alib/containers/hashtable.hpp"
+#include "alib/lang/callerinfo_functions.hpp"
 
 namespace alib {  namespace expressions { namespace detail {
 
 
 VirtualMachine::Command::Command( Program* program, const Box& resultType, const String& functionOrOp,
                                   integer idxOriginal, integer idxNormalized          )
-: opcode          ( OpCodes::Subroutine )
-, Operation       ( program )
+: bits            ( int16_t(OpCodes::Subroutine) | int16_t(ListingTypes::NestedExpression) )
+, Parameter       ( program )
 , ResultType      ( resultType )
 , ExpressionPositions( (static_cast<uinteger>(idxNormalized) << (bitsof(integer)/2) )
                       + static_cast<uinteger>(idxOriginal  )  )
-, DecompileType   ( DecompileInfoType::Subroutine )
 , DecompileSymbol ( functionOrOp )
 {}
 
@@ -55,60 +41,61 @@ VirtualMachine::Command::Command( Program* program, const Box& resultType, const
 // Run()
 // #################################################################################################
 Box  VirtualMachine::Run( Program& program, Scope& scope )
-{
+{ALIB_DCS_WITH(scope.dcs)
     // If the scope.Stack is empty, this indicates, that this is an 'external' call and not a
     // subroutine.
-    scope.Reset();
+    scope.reset();
 
     // attach the compile-time scope to the evaluation scope.
-    scope.CTScope= program.expression.ctScope;
+    scope.vmMembers->CTScope= program.expression.ctScope;
 
     // run
     run( program, scope );
 
-    // unset ctscope
-    scope.CTScope=  nullptr;
+    // detach ct-scope
+    scope.vmMembers->CTScope=  nullptr;
 
     // Remove top element from the stack and return its result.
-    Box result= scope.Stack.back();
-    scope.Stack.pop_back();
+    Box result= scope.Stack->back();
+    scope.Stack->pop_back();
     return result;
 }
 
-
 void  VirtualMachine::run( Program& program, Scope& scope )
-{
+{ALIB_DCS_WITH(scope.dcs)
 
-    ALIB_DBG( using DCT= Command::DecompileInfoType; )
-    ALIB_DBG( auto initialStackSize= scope.Stack.size(); )
+    ALIB_DBG( using DCT= Command::ListingTypes; )
+    ALIB_DBG( auto initialStackSize= scope.Stack->size(); )
 
-    auto& stack= scope.Stack;
+    auto& stack= *scope.Stack;
 
     // check circular calls
-    for( auto* nestedExpression : scope.NestedExpressions )
+    auto& nestedExpressions= scope.vmMembers->NestedExpressions;
+    for( auto* nestedExpression : nestedExpressions )
         if( nestedExpression == &program.expression )
         {
             Exception e( ALIB_CALLER_NULLED, Exceptions::CircularNestedExpressions );
-            for( auto it2= scope.NestedExpressions.begin() ; it2!=  scope.NestedExpressions.end(); ++it2 )
+            for( auto it2= nestedExpressions.begin() ; it2!=  nestedExpressions.end(); ++it2 )
                 e.Add  ( ALIB_CALLER_NULLED, Exceptions::CircularNestedExpressionsInfo,
                           (*it2)->Name(),
-                          it2 + 1 != scope.NestedExpressions.end()
+                          it2 + 1 != nestedExpressions.end()
                               ? (*(it2+1))->Name()
                               : nestedExpression->Name()                   );
             throw e;
         }
 
-    scope.NestedExpressions.emplace_back( &program.expression );
+    nestedExpressions.emplace_back( &program.expression );
 
 
     for( integer programCounter= 0; programCounter < program.Length() ; ++ programCounter )
     {
         const Command& cmd= program.At(programCounter);
         ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-        switch( cmd.Which() )
+        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+        switch( cmd.OpCode() )
         {
             case Command::OpCodes::Constant:
-                stack.emplace_back( cmd.Operation.Value );
+                stack.emplace_back( cmd.ResultType );
 
             break;
 
@@ -117,9 +104,9 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                 try
                 {
                     // with no args, we need a new stack object
-                    if(  cmd.QtyFunctionArgs <= 0 )
+                    if(  cmd.HasArgs() )
                     {
-                        stack.emplace_back( cmd.Operation.Callback( scope,
+                        stack.emplace_back( cmd.Parameter.Callback( scope,
                                                                     stack.end() ,
                                                                     stack.end()  ) );
 
@@ -140,22 +127,22 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                stack.back()                                 )
                     }
 
-                    // otherwise, we assign the value the position of the first arg in the stack and
+                    // otherwise, we assign the position to the value of the first arg in the stack and
                     // delete the other args after the call
                     else
                     {
-                        ALIB_DBG( Box arg1Saved= *(stack.end() - static_cast<ptrdiff_t >( cmd.QtyFunctionArgs ) ); )
+                        ALIB_DBG( Box arg1Saved= *(stack.end() - cmd.QtyArgs() ); )
 
-                        *(stack.end() - static_cast<ptrdiff_t>( cmd.QtyFunctionArgs ) )=
-                            cmd.Operation.Callback( scope,
-                                                    stack.end()  - static_cast<ptrdiff_t>( cmd.QtyFunctionArgs ),
-                                                    stack.end()  );
+                        *(stack.end() - cmd.QtyArgs() )=
+                            cmd.Parameter.Callback( scope,
+                                                    stack.end() - cmd.QtyArgs(),
+                                                    stack.end()                     );
 
                         #if ALIB_DEBUG
-                            if( !cmd.ResultType.IsSameType(*(stack.end() - static_cast<ptrdiff_t>( cmd.QtyFunctionArgs ) )) )
+                            if( !cmd.ResultType.IsSameType(*(stack.end() - cmd.QtyArgs() )) )
                             {
                                 String128 description;
-                                switch( cmd.DecompileType )
+                                switch( cmd.TerminalType() )
                                 {
                                     case DCT::UnaryOp:
                                         description << "Unary operator '"  << cmd.DecompileSymbol  << '\'';
@@ -163,14 +150,14 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                     case DCT::BinaryOp:
                                         description << "Binary operator '" << cmd.DecompileSymbol  << '\'';
                                         break;
-                                    case DCT::Function:
-                                        if( cmd.QtyFunctionArgs < 0 )
+                                    case DCT::FunctionCall:
+                                        if( cmd.QtyArgs() < 0 )
                                             description << "Identifier \"" << cmd.DecompileSymbol << '\"';
-                                        else if( cmd.QtyFunctionArgs == 0 )
+                                        else if( cmd.QtyArgs() == 0 )
                                             description << "Function \"" << cmd.DecompileSymbol << "()\"";
                                         else
                                             description << "Function \"" << cmd.DecompileSymbol << "(#"
-                                                                         << cmd.QtyFunctionArgs << ")\"";
+                                                                         << cmd.QtyArgs()       << ")\"";
                                         break;
                                     case DCT::AutoCast:
                                         description << "Auto-cast"       << cmd.DecompileSymbol  << '\'';
@@ -178,11 +165,15 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                     case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                                     case DCT::OptimizationConstant:
                                         ALIB_ERROR("EXPRVM", "Must not be set with function calls")
+                                        break;
+                                    default: ALIB_ERROR("Illegal switch state.") break;
                                 }
 
                                 String512 msg;
-                                auto fmt= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
-                                fmt->Format( msg, "Result type mismatch during command execution:\n"
+                                ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+                                Formatter& fmt= *Formatter::Default;
+                                fmt.GetArgContainer();
+                                fmt.Format( msg, "Result type mismatch during command execution:\n"
                                                  "       In expression: {!Q} {{{}}}\n"
                                                  "              Plugin: {}\n"
                                                  "                Info: {}\n"
@@ -199,20 +190,19 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                                                  program.compiler.TypeName( cmd.ResultType ), cmd.ResultType.TypeID(),
                                                  program.compiler.TypeName( stack.back()   ), stack.back()  .TypeID(),
                                                  stack.back()                                 );
-                                fmt->Format( msg, "({!Q'} {!Q<>}",
+                                fmt.Format( msg, "({!Q'} {!Q<>}",
                                                  arg1Saved,
                                                  program.compiler.TypeName( arg1Saved )        );
-                                for( integer i= cmd.QtyFunctionArgs - 1; i > 0 ; --i )
-                                    fmt->Format( msg, ", {!Q'} {!Q<>}",
+                                for( integer i= cmd.QtyArgs() - 1; i > 0 ; --i )
+                                    fmt.Format( msg, ", {!Q'} {!Q<>}",
                                                      *(stack.end()  - i),
                                                      program.compiler.TypeName( *(stack.end()-i))   );
                                 msg << ')';
-                                fmt->Release();
                                 ALIB_ERROR( "EXPRVM", msg )
                             }
                         #endif
 
-                        for(integer i= 1; i < cmd.QtyFunctionArgs; ++i )
+                        for(integer i= 1; i < cmd.QtyArgs(); ++i )
                             stack.pop_back();
                     }
                 }
@@ -247,22 +237,22 @@ void  VirtualMachine::run( Program& program, Scope& scope )
             case Command::OpCodes::JumpIfFalse:
             {
                 if( !stack.back().Call<FIsTrue>() )
-                    programCounter+= cmd.Operation.Distance -1; //-1 due to loop increase
+                    programCounter+= cmd.Parameter.Distance -1; //-1 due to loop increase
                 stack.pop_back();
             }
             break;
 
             case Command::OpCodes::Jump:
-                programCounter+= cmd.Operation.Distance - 1;    //-1 due to loop increase
+                programCounter+= cmd.Parameter.Distance - 1;    //-1 due to loop increase
                 break;
 
 
             case Command::OpCodes::Subroutine:
                 // evaluation time defined nested expression
-                if(    cmd.Operation.NestedProgram == nullptr
-                    || cmd.Operation.NestedProgram == &program)
+                if(    cmd.Parameter.NestedProgram == nullptr
+                    || cmd.Parameter.NestedProgram == &program)
                 {
-                    SPExpression nested;
+                    Expression nested;
                     String nestedExpressionName= (stack.end()-2)->Unbox<String>();
                     try
                     {
@@ -271,7 +261,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                     catch( Exception& e )
                     {
                         // 3rd parameter "throw" was not given
-                        if( cmd.Operation.NestedProgram == nullptr )
+                        if( cmd.Parameter.NestedProgram == nullptr )
                         {
                             // not found? -> remove name parameter from stack and use result of
                             // second parameter.
@@ -299,7 +289,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
                         throw;
                     }
 
-                    run( * dynamic_cast<Program*>(nested.get()->GetProgram()), scope);
+                    run( * dynamic_cast<Program*>(nested.Get()->GetProgram()), scope);
 
                     if( !(stack.end()-2)->IsSameType(stack.back()) )
                     {
@@ -317,15 +307,18 @@ void  VirtualMachine::run( Program& program, Scope& scope )
 
                 // compile-time defined nested expression: just call it
                 else
-                    run( *cmd.Operation.NestedProgram, scope );
+                    run( *cmd.Parameter.NestedProgram, scope );
 
                 break;
+
+            default: ALIB_ERROR("Illegal switch state.") break;
         }
+        ALIB_WARNINGS_RESTORE
         ALIB_WARNINGS_RESTORE
 
     } // command loop
 
-    scope.NestedExpressions.pop_back();
+    nestedExpressions.pop_back();
 
     // This assertion should never happen. It indicates rather a library error than an
     // erroneous plug-in.
@@ -353,7 +346,7 @@ void  VirtualMachine::run( Program& program, Scope& scope )
 // #################################################################################################
 AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
 {
-    using DCT= Command::DecompileInfoType;
+    using DCT= Command::ListingTypes;
 
     #define PushNode(node)        nodeStack.emplace_back( node )
     #define PopNode               nodeStack.pop_back()
@@ -373,15 +366,16 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
         integer positionInExpression= POS_IN_EXPR_STR;
 
         ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-        switch( cmd.Which() )
+        ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+        switch( cmd.OpCode() )
         {
             case Command::OpCodes::Subroutine:
             {
                 // Function "Expression(name, type, boolean)"
-                if(    cmd.Operation.NestedProgram == nullptr
-                    || cmd.Operation.NestedProgram == & program )
+                if(    cmd.Parameter.NestedProgram == nullptr
+                    || cmd.Parameter.NestedProgram == & program )
                 {
-                    ASTFunction* node= allocator.Emplace<ASTFunction>( cmd.DecompileSymbol, positionInExpression, allocator );
+                    ASTFunction* node= allocator().New<ASTFunction>(cmd.DecompileSymbol, positionInExpression, allocator );
                     for( integer i= 0 ; i< 2 ; ++i )
                     {
                         node->Arguments.Emplace( node->Arguments.begin(), Arg );
@@ -389,61 +383,61 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
                     }
 
                     // if nullptr, third parameter "throw"
-                    if( cmd.Operation.NestedProgram != nullptr )
+                    if( cmd.Parameter.NestedProgram != nullptr )
                         node->Arguments.EmplaceBack(
-                            allocator.Emplace<ASTIdentifier>( allocator.EmplaceString( program.compiler.CfgNestedExpressionThrowIdentifier ),
-                                                              positionInExpression ) );
+                            allocator().New<ASTIdentifier>( String(allocator, program.compiler.CfgNestedExpressionThrowIdentifier),
+                                                            positionInExpression ) );
 
                     PushNode(node);
                     break;
                 }
 
                 // constant call (program was given)
-                ASTIdentifier* name  = allocator.Emplace<ASTIdentifier>( allocator.EmplaceString(cmd.Operation.NestedProgram->expression.Name()) ,
-                                                                         positionInExpression  );
-                ASTUnaryOp*    nested= allocator.Emplace<ASTUnaryOp>( program.compiler.CfgNestedExpressionOperator,
-                                                                      name,
-                                                                      positionInExpression );
+                ASTIdentifier* name  = allocator().New<ASTIdentifier>(String( allocator, cmd.Parameter.NestedProgram->expression.Name() ),
+                                                                      positionInExpression  );
+                ASTUnaryOp*    nested= allocator().New<ASTUnaryOp>( program.compiler.CfgNestedExpressionOperator,
+                                                                    name,
+                                                                    positionInExpression );
                 PushNode( nested );
             }
             break;
 
             case Command::OpCodes::Constant:
             {
-                ASTLiteral* node= allocator.Emplace<ASTLiteral>( static_cast<integer>(0), positionInExpression );
-                node->Value= cmd.Operation.Value;
+                ASTLiteral* node= allocator().New<ASTLiteral>( static_cast<integer>(0), positionInExpression );
+                node->Value= cmd.ResultType;
                 PushNode(node);
             }
             break;
 
             case Command::OpCodes::Function:
             {
-                if( cmd.DecompileType == DCT::UnaryOp )
+                if( cmd.TerminalType() == DCT::UnaryOp )
                 {
-                    ASTUnaryOp* node= allocator.Emplace<ASTUnaryOp>( cmd.DecompileSymbol, Arg, positionInExpression );
+                    ASTUnaryOp* node= allocator().New<ASTUnaryOp>(cmd.DecompileSymbol, Arg, positionInExpression );
                     PopNode;
                     PushNode(node);
                     break;
                 }
 
-                if( cmd.DecompileType == DCT::BinaryOp )
+                if( cmd.TerminalType() == DCT::BinaryOp )
                 {
-                    ASTBinaryOp* node= allocator.Emplace<ASTBinaryOp>( cmd.DecompileSymbol, Lhs, Rhs, positionInExpression );
+                    ASTBinaryOp* node= allocator().New<ASTBinaryOp>(cmd.DecompileSymbol, Lhs, Rhs, positionInExpression );
                     PopNode;
                     PopNode;
                     PushNode(node);
                     break;
                 }
 
-                if( cmd.QtyFunctionArgs < 0 )
+                if( cmd.QtyArgs() < 0 )
                 {
-                    ASTIdentifier* node= allocator.Emplace<ASTIdentifier>( cmd.DecompileSymbol, positionInExpression );
+                    ASTIdentifier* node= allocator().New<ASTIdentifier>(cmd.DecompileSymbol, positionInExpression );
                     PushNode(node);
                     break;
                 }
 
-                ASTFunction* node= allocator.Emplace<ASTFunction>( cmd.DecompileSymbol, positionInExpression, allocator );
-                for( integer i= 0 ; i< cmd.QtyFunctionArgs ; ++i )
+                ASTFunction* node= allocator().New<ASTFunction>(cmd.DecompileSymbol, positionInExpression, allocator );
+                for( integer i= 0 ; i< cmd.QtyArgs() ; ++i )
                 {
                     node->Arguments.Emplace( node->Arguments.begin(), Arg );
                     PopNode;
@@ -460,18 +454,20 @@ AST* VirtualMachine::Decompile( Program& program, MonoAllocator& allocator)
 
             case Command::OpCodes::Jump:        // ':'
             {
-                conditionalStack.emplace( pc + cmd.Operation.Distance -1 );
+                conditionalStack.emplace( pc + cmd.Parameter.Distance -1 );
             }
             break;
 
+            default: ALIB_ERROR("Illegal switch state.") break;
         }
+        ALIB_WARNINGS_RESTORE
         ALIB_WARNINGS_RESTORE
 
         while( !conditionalStack.empty() && conditionalStack.top() == pc )
         {
             AST* F= Arg; PopNode;
             AST* T= Arg; PopNode;               // F-Pos -2 is a little vague. But we don't care!
-            Arg= allocator.Emplace<ASTConditional>( Arg, T, F, positionInExpression, F->Position - 2  );
+            Arg= allocator().New<ASTConditional>(Arg, T, F, positionInExpression, F->Position - 2  );
             conditionalStack.pop();
         }
 
@@ -519,7 +515,7 @@ void writeArgPositions(AString& target, std::vector<VirtualMachine::PC>& resultS
 
 AString VirtualMachine::DbgList( Program& program )
 {
-    using DCT= Command::DecompileInfoType;
+    using DCT= Command::ListingTypes;
 
     String fmtLine=   EXPRESSIONS.GetResource( "ProgListLine"  );
     String fmtHeader= EXPRESSIONS.GetResource( "ProgListHeader");
@@ -527,7 +523,7 @@ AString VirtualMachine::DbgList( Program& program )
     Paragraphs text;
     text.LineWidth=0;
     text.Formatter= program.expression.ctScope->Formatter;
-    text.Formatter->Acquire( ALIB_CALLER_PRUNED ); // get formatter once to keep autosizes!
+    text.Formatter->Reset(); // reset autosizes
 
     // repeat the whole output until its size is stable and all auto-tabs are set
     integer  lastLineWidth  = 0;
@@ -566,17 +562,19 @@ AString VirtualMachine::DbgList( Program& program )
 
 
         #define FMT(qtyArgs)                                                                       \
-        { if( cmd.DbgInfo.Plugin ) description << ", CP=\"" << cmd.DbgInfo.Plugin->Name<< '\"';    \
-            String256 argpos; writeArgPositions(argpos,resultStack,qtyArgs);                       \
+        { if( cmd.DbgInfo.Plugin )                                                                 \
+            description << ", CP=\"" << cmd.DbgInfo.Plugin->Name<< '\"';                           \
+          String256 argpos;                                                                        \
+          writeArgPositions(argpos,resultStack,qtyArgs);                                           \
           text.Add( fmtLine,                                                                       \
-                  pc,                                                                              \
-                  program.compiler.TypeName( cmd.ResultType ),                                     \
-                  cmd.Which(),                                                                     \
-                  operation,                                                                       \
-                  stackSize,                                                                       \
-                  description,                                                                     \
-                  argpos,                                                                          \
-                  NORMPOS_IN_EXPR_STR, "_^_"                                );                    }
+                    pc,                                                                            \
+                    program.compiler.TypeName( cmd.ResultType ),                                   \
+                    cmd.OpCode(),                                                                  \
+                    operation,                                                                     \
+                    stackSize,                                                                     \
+                    description,                                                                   \
+                    argpos,                                                                        \
+                    NORMPOS_IN_EXPR_STR, "_^_"                    );                               }
 
 
         #define PushResult              resultStack.emplace_back( pc )
@@ -596,15 +594,16 @@ AString VirtualMachine::DbgList( Program& program )
             String128 operation;
             String128 description;
             ALIB_WARNINGS_ALLOW_BITWISE_SWITCH
-            switch( cmd.Which() )
+            ALIB_WARNINGS_ALLOW_SPARSE_ENUM_SWITCH
+            switch( cmd.OpCode() )
             {
                 case Command::OpCodes::Subroutine:
                 {
-                    if(    cmd.Operation.NestedProgram == nullptr
-                        || cmd.Operation.NestedProgram == &program )
+                    if(    cmd.Parameter.NestedProgram == nullptr
+                        || cmd.Parameter.NestedProgram == &program )
                     {
                         --stackSize;
-                        operation   << ( cmd.Operation.NestedProgram == nullptr ? "Expr(name, type)"
+                        operation   << ( cmd.Parameter.NestedProgram == nullptr ? "Expr(name, type)"
                                                                                 : "Expr(name, type, throw)" );
                         description << "Nested expr. searched at evaluation-time";
                         PopResult;
@@ -613,7 +612,7 @@ AString VirtualMachine::DbgList( Program& program )
                     {
                         ++stackSize;
                         operation   << cmd.DecompileSymbol
-                                    << "\"" << cmd.Operation.NestedProgram->expression.Name() << '\"';
+                                    << "\"" << cmd.Parameter.NestedProgram->expression.Name() << '\"';
                         description << "Nested expr. searched at compile-time";
                         PushResult;
                     }
@@ -624,10 +623,10 @@ AString VirtualMachine::DbgList( Program& program )
                 case Command::OpCodes::Constant:
                 {
                     ++stackSize;
-                    char uetzelchen= cmd.Operation.Value.IsType<String>() ? '\"' : '\'';
-                    operation   << uetzelchen << cmd.Operation.Value << uetzelchen;
-                    description << (cmd.DecompileType == DCT::LiteralConstant ? "Literal constant"
-                                                                              : "Optimization constant" );
+                    char uetzelchen= cmd.ResultType.IsType<String>() ? '\"' : '\'';
+                    operation   << uetzelchen << cmd.ResultType << uetzelchen;
+                    description << (cmd.TerminalType() == DCT::LiteralConstant ? "Literal constant"
+                                                                       : "Optimization constant" );
                     PushResult;
                     FMT(0)
                 }
@@ -636,11 +635,11 @@ AString VirtualMachine::DbgList( Program& program )
                 case Command::OpCodes::Function:
                 {
                     operation   << cmd.DbgInfo.Callback
-                                << "(#" << (cmd.QtyFunctionArgs < 0 ? 0 : cmd.QtyFunctionArgs) << ')';
+                                << "(#" << (cmd.QtyArgs() < 0 ? 0 : cmd.QtyArgs()) << ')';
 
                     NString descr= nullptr;
                     char   decSym= '\0';
-                    switch( cmd.DecompileType )
+                    switch( cmd.TerminalType() )
                     {
                         case DCT::UnaryOp:
                             descr = "Unary operator";
@@ -650,19 +649,23 @@ AString VirtualMachine::DbgList( Program& program )
                             descr = "Binary operator";
                             decSym= '\'';
                             break;
-                        case DCT::Function:
-                            if( cmd.QtyFunctionArgs < 0 )
+                        case DCT::Identifier:
+                            descr = "Identifier";
+                            decSym= '"';
+                            break;
+                        case DCT::FunctionCall:
+                            if( cmd.QtyArgs() < 0 )
                             {
                                 descr = "Identifier";
                                 decSym= '"';
                                 break;
                             }
                             description << "Function \"";
-                            if( cmd.QtyFunctionArgs == 0 )
+                            if( cmd.QtyArgs() == 0 )
                                 description << cmd.DecompileSymbol << "()\"";
                             else
                                 description << cmd.DecompileSymbol << "(#"
-                                            << cmd.QtyFunctionArgs << ")\"";
+                                            << cmd.QtyArgs()       << ")\"";
                             break;
                         case DCT::AutoCast:
                             descr = "Auto-cast";
@@ -671,13 +674,15 @@ AString VirtualMachine::DbgList( Program& program )
                         case DCT::LiteralConstant:      ALIB_FALLTHROUGH
                         case DCT::OptimizationConstant:
                             ALIB_ERROR("EXPRVM", "Must not be set with function calls")
+                            break;
+                        default: ALIB_ERROR("Illegal switch state.") break;
                     }
                     if( descr.IsNotNull() )
                         description << descr << ' ' << decSym << cmd.DecompileSymbol << decSym;
 
-                    stackSize+= 1 - (cmd.QtyFunctionArgs > 0 ? cmd.QtyFunctionArgs : 0 );
-                    FMT(cmd.QtyFunctionArgs < 0 ? 0 : cmd.QtyFunctionArgs)
-                    for( integer i= 0 ; i< cmd.QtyFunctionArgs ; ++i )
+                    stackSize+= 1 - (cmd.QtyArgs() > 0 ? cmd.QtyArgs() : 0 );
+                    FMT(cmd.QtyArgs() < 0 ? 0 : cmd.QtyArgs() )
+                    for( integer i= 0 ; i< cmd.QtyArgs() ; ++i )
                         PopResult;
                     PushResult;
                 }
@@ -685,7 +690,7 @@ AString VirtualMachine::DbgList( Program& program )
 
                 case Command::OpCodes::JumpIfFalse:  // '?'
                 {
-                    operation   << ( pc + cmd.Operation.Distance ) << " (absolute)"  ;
+                    operation   << ( pc + cmd.Parameter.Distance ) << " (absolute)"  ;
                     description << "'?'";
                     FMT( 1 )     // first print  Q
                     ++ResultPos; // then have jump be included in T
@@ -694,15 +699,17 @@ AString VirtualMachine::DbgList( Program& program )
 
                 case Command::OpCodes::Jump:        // ':'
                 {
-                    conditionalStack.emplace( pc + cmd.Operation.Distance -1 );
-                    operation   << ( pc + cmd.Operation.Distance ) << " (absolute)"  ;
+                    conditionalStack.emplace( pc + cmd.Parameter.Distance -1 );
+                    operation   << ( pc + cmd.Parameter.Distance ) << " (absolute)"  ;
                     description << "':'";
                     FMT( 1 )     // first print  T
                     ++ResultPos; // then have jump be included in T
                 }
                 break;
 
+                default: ALIB_ERROR("Illegal switch state.") break;
             }
+            ALIB_WARNINGS_RESTORE
             ALIB_WARNINGS_RESTORE
 
 
@@ -735,8 +742,6 @@ AString VirtualMachine::DbgList( Program& program )
              conditionalStack, text.Buffer )
     } // main loop
 
-    text.Formatter->Release();
-
     return std::move(text.Buffer);
 }
 #endif
@@ -754,3 +759,4 @@ AString VirtualMachine::DbgList( Program& program )
 #undef Arg
 
 }}} // namespace [alib::expressions::detail]
+#include "alib/lang/callerinfo_methods.hpp"

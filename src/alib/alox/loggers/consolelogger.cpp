@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox::loggers - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,11 +6,9 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined(HPP_ALOX_CONSOLE_LOGGER)
+#if !DOXYGEN
 #   include "alib/alox/loggers/consolelogger.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 
 using namespace alib;
@@ -24,5 +22,6 @@ bool ConsoleLogger::notifyLogOp( lang::Phase phase )
 
 alib::integer ConsoleLogger::logSubstring( const String& buffer, integer start, integer length )
 {
-    return writer.WriteAndGetWideLength( buffer.Substring<false>( start, length ) );
+    return writer.WriteAndGetWideLength( buffer.Substring<NC>( start, length ) );
 }
+

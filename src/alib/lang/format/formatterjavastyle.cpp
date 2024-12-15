@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,17 +6,10 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER_JAVASTYLE)
-#      include "alib/lang/format/formatterjavastyle.hpp"
-#   endif
-#   if !defined (HPP_ALIB_STRINGS_FORMAT)
-#       include "alib/strings/format.hpp"
-#   endif
-#   if !defined(HPP_ALIB_LANG_FORMAT_EXCEPTIONS)
-#      include "alib/lang/format/fmtexceptions.hpp"
-#   endif
-#endif // !defined(ALIB_DOX)
+#if !DOXYGEN
+#   include "alib/lang/format/formatterjavastyle.hpp"
+#   include "alib/lang/format/fmtexceptions.hpp"
+#endif // !DOXYGEN
 
 
 
@@ -47,17 +40,18 @@ FormatterJavaStyle::FormatterJavaStyle()
 }
 
 
-FormatterStdImpl*   FormatterJavaStyle::Clone()
+SPFormatter   FormatterJavaStyle::Clone()
 {
-    // create a clone
-    FormatterJavaStyle* clone= new FormatterJavaStyle();
-
+    SPFormatter clone;
+    clone.InsertDerived<FormatterJavaStyle>();
+    
     // create a clone of #Next, in the case that next is derived from std base class
     if( Next )
-        clone->Next.reset(Next->Clone());
+        clone->Next= Next->Clone();
 
     // copy my settings, that's it
     clone->CloneSettings( *this );
+    
     return clone;
 }
 
@@ -105,7 +99,6 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     auto* src = parser.Buffer();
     auto* dest= targetString->VBuffer() + targetString->Length();
-    ALIB_WARNINGS_RESTORE
     parser.ConsumeChars( length );
 
     character c1;
@@ -145,6 +138,7 @@ void    FormatterJavaStyle::writeStringPortion( integer length )
         *dest++= c1;
         --length;
     }
+    ALIB_WARNINGS_RESTORE
 
     // copy last character and adjust target string length:
     // Note: length usually is 1. Only if last character is an escape sequence, it is 0.
@@ -188,10 +182,10 @@ bool FormatterJavaStyle::parsePlaceholder()
                 {
                     integer i= 0;
                     while(    i < parser.Length()
-                           && isdigit( parser.CharAt<false>(i) ) )
+                           && isdigit( parser.CharAt<NC>(i) ) )
                          ++i;
 
-                    if(  i > 0 &&  parser.CharAt<false>(i) == '$')
+                    if(  i > 0 &&  parser.CharAt<NC>(i) == '$')
                     {
                         parser.ConsumeDecDigits( argNo );    ALIB_ASSERT_RESULT_EQUALS(
                         parser.ConsumeChar('$')                                        , true )
@@ -280,7 +274,7 @@ bool FormatterJavaStyle::parsePlaceholder()
                 placeholder.TypeCode=  parser.CharAtStart();
                 parser.ConsumeChars( 1 );
 
-                character typeCharLower= characters::CharArray<character>::ToLower( placeholder.TypeCode );
+                character typeCharLower= characters::ToLower( placeholder.TypeCode );
 
                 if ( typeCharLower == 'a' )
                 {
@@ -397,6 +391,7 @@ bool FormatterJavaStyle::parsePlaceholder()
                 //parser.ConsumeChars(1);
                 return true;
 
+            default: ALIB_ERROR("Illegal switch state.") break;
         } // state switch
 
     } // read loop
@@ -435,3 +430,4 @@ bool  FormatterJavaStyle::checkStdFieldAgainstArgument()
 }
 
 } // namespace [alib::lang::format]
+

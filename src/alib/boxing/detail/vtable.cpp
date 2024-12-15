@@ -6,49 +6,32 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#ifndef HPP_ALIB_BOXING_BOXING
+#if !DOXYGEN
 #   include "alib/boxing/boxing.hpp"
-#endif
-
-#if !defined(HPP_ALIB_COMPATIBILITY_STD_TYPEINFO)
 #   include "alib/compatibility/std_typeinfo.hpp"
-#endif
-
-#if ALIB_DEBUG
-#   if !defined (HPP_ALIB_BOXING_DBGBOXING)
+#   if ALIB_DEBUG
 #      include "alib/boxing/dbgboxing.hpp"
 #   endif
-#endif
+#endif // !DOXYGEN
 
-#endif // !defined(ALIB_DOX)
-
-#if ALIB_MONOMEM
-#   if !defined(HPP_ALIB_MONOMEM_HASHMAP)
-#      include "alib/monomem/hashmap.hpp"
-#   endif
-#   if !defined(HPP_ALIB_MONOMEM_HASHSET)
-#      include "alib/monomem/hashset.hpp"
-#   endif
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+#   include "alib/monomem/globalallocator.hpp"
+#   include "alib/containers/hashtable.hpp"
 #else
-#   if !defined(_GLIBCXX_UNORDERED_MAP) && !defined(_UNORDERED_MAP_)
-#      include <unordered_map>
-#   endif
-#   if !defined(_GLIBCXX_UNORDERED_SET) && !defined(_UNORDERED_SET_)
-#      include <unordered_set>
-#   endif
+#   include <unordered_map>
+#   include <unordered_set>
 #endif
 
 
 
 namespace alib {  namespace boxing { namespace detail {
 
-#if !defined(ALIB_DOX)
+#if !DOXYGEN
 
-#if ALIB_MONOMEM
-    extern HashSet           <TypeFunctors::Key,                  TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
-    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
-    extern HashMap           <TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
+#if ALIB_MONOMEM && ALIB_CONTAINERS
+    extern HashSet           <MonoAllocator, TypeFunctors::Key,                  TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
+    extern HashMap           <MonoAllocator, TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
+    extern HashMap           <MonoAllocator, TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTablesArray;
 #else
     extern std::unordered_set<TypeFunctors::Key,                  TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownCustomFunctions;
     extern std::unordered_map<TypeFunctors::Key, detail::VTable*, TypeFunctors::Hash, TypeFunctors::EqualTo>  DbgKnownVTables;
@@ -108,10 +91,11 @@ ALIB_DBG(,DbgCntInvocations  (0             )  )
         }
     };
 
-    #if ALIB_MONOMEM
-        HashMap           < CustomFunctionKey, CustomFunctionMapped,
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
+        HashMap           < MonoAllocator,
+                            CustomFunctionKey, CustomFunctionMapped,
                             CustomFunctionHash,
-                            CustomFunctionEqualTo >                  customFunctionMap( &monomem::GlobalAllocator );
+                            CustomFunctionEqualTo >                  customFunctionMap(monomem::GLOBAL_ALLOCATOR);
     #else
         std::unordered_map< CustomFunctionKey, CustomFunctionMapped,
                             CustomFunctionHash,
@@ -120,18 +104,29 @@ ALIB_DBG(,DbgCntInvocations  (0             )  )
 
 }// anonymous namespace
 
-#endif
+#endif // !DOXYGEN
 
 // #################################################################################################
 // struct Functions
 // #################################################################################################
 FunctionTable DEFAULT_FUNCTIONS;
 
+#if (ALIB_MONOMEM && ALIB_CONTAINERS && ALIB_DEBUG)
+void FunctionTable::Shutdown()
+{
+    #if ALIB_MONOMEM && ALIB_DEBUG_BOXING
+        DbgKnownCustomFunctions.Reset();
+        DbgKnownVTables        .Reset();
+        DbgKnownVTablesArray   .Reset();
+    #endif
+    customFunctionMap          .Reset();
+}
+#endif
 
 
 void* FunctionTable::getCustom( const std::type_info& rtti ALIB_DBG(, bool isInvocation) )     const
 {
-#if ALIB_MONOMEM
+#if ALIB_MONOMEM && ALIB_CONTAINERS
     auto it= customFunctionMap.Find( CustomFunctionKey(this, rtti) );
 #else
     auto it= customFunctionMap.find( CustomFunctionKey(this, rtti) );
@@ -158,7 +153,7 @@ void  FunctionTable::setCustom( const std::type_info& rtti, void* impl )
     #endif
 
     // search existing (replace)
-    #if ALIB_MONOMEM
+    #if ALIB_MONOMEM && ALIB_CONTAINERS
         customFunctionMap.InsertOrAssign( CustomFunctionKey(this, rtti), CustomFunctionMapped(impl) );
     #else
         if( customFunctionMap.size() == 0 )
@@ -183,7 +178,7 @@ std::vector<detail::VTable*>  DbgBoxing::GetKnownVTables()
 
         std::vector<detail::VTable*> result;
     #if ALIB_MONOMEM
-        result.reserve( static_cast<size_t>(
+        result.reserve( size_t(
                           DbgKnownVTables     .Size()
                         + DbgKnownVTablesArray.Size()  ) );
     #else
@@ -206,15 +201,15 @@ std::vector<detail::VTable*>  DbgBoxing::GetKnownVTables()
 std::vector<std::pair<const std::type_info*,uinteger>>  DbgBoxing::GetKnownFunctionTypes()
 {
     std::vector<std::pair<const std::type_info*,uinteger>> result;
-    result.emplace_back( &typeid( FHashcode         ), detail::DEFAULT_FUNCTIONS.fHashcode  ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFHashcode  : (std::numeric_limits<uinteger>::max)() );
-ALIB_IF_MONOMEM(
-    result.emplace_back( &typeid( FClone            ), detail::DEFAULT_FUNCTIONS.fClone     ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFClone     : (std::numeric_limits<uinteger>::max)() ); )
-    result.emplace_back( &typeid( FIsNotNull        ), detail::DEFAULT_FUNCTIONS.fIsNotNull ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsNotNull : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FEquals           ), detail::DEFAULT_FUNCTIONS.fEquals    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFEquals    : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FIsLess           ), detail::DEFAULT_FUNCTIONS.fIsLess    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsLess    : (std::numeric_limits<uinteger>::max)() );
-    result.emplace_back( &typeid( FIsTrue           ), detail::DEFAULT_FUNCTIONS.fIsTrue    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsTrue    : (std::numeric_limits<uinteger>::max)() );
-ALIB_IF_STRINGS(
-    result.emplace_back( &typeid( FAppend<character>), detail::DEFAULT_FUNCTIONS.fAppend    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFAppend    : (std::numeric_limits<uinteger>::max)() ); )
+    result.emplace_back( &typeid( FHashcode                    ), detail::DEFAULT_FUNCTIONS.fHashcode  ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFHashcode  : (std::numeric_limits<uinteger>::max)() );
+IF_ALIB_MONOMEM(
+    result.emplace_back( &typeid( FClone                       ), detail::DEFAULT_FUNCTIONS.fClone     ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFClone     : (std::numeric_limits<uinteger>::max)() ); )
+    result.emplace_back( &typeid( FIsNotNull                   ), detail::DEFAULT_FUNCTIONS.fIsNotNull ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsNotNull : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FEquals                      ), detail::DEFAULT_FUNCTIONS.fEquals    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFEquals    : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FIsLess                      ), detail::DEFAULT_FUNCTIONS.fIsLess    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsLess    : (std::numeric_limits<uinteger>::max)() );
+    result.emplace_back( &typeid( FIsTrue                      ), detail::DEFAULT_FUNCTIONS.fIsTrue    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFIsTrue    : (std::numeric_limits<uinteger>::max)() );
+IF_ALIB_STRINGS(
+    result.emplace_back( &typeid( FAppend<character, lang::HeapAllocator>), detail::DEFAULT_FUNCTIONS.fAppend    ? detail::DEFAULT_FUNCTIONS.DbgCntInvocationsFAppend    : (std::numeric_limits<uinteger>::max)() ); )
 
     detail::DbgLockMaps(true);
     {
@@ -243,15 +238,15 @@ void DbgBoxing::getFunctionTypes( const detail::FunctionTable&                  
                                   std::vector<std::pair<const std::type_info*,uinteger>>&  output  )
 {
     output.clear();
-    if(functionTable.fHashcode ) output.emplace_back( &typeid( FHashcode         ), functionTable.DbgCntInvocationsFHashcode  );
-  ALIB_IF_MONOMEM(
-    if(functionTable.fClone    ) output.emplace_back( &typeid( FClone            ), functionTable.DbgCntInvocationsFClone     ); )
-    if(functionTable.fIsNotNull) output.emplace_back( &typeid( FIsNotNull        ), functionTable.DbgCntInvocationsFIsNotNull );
-    if(functionTable.fEquals   ) output.emplace_back( &typeid( FEquals           ), functionTable.DbgCntInvocationsFEquals    );
-    if(functionTable.fIsLess   ) output.emplace_back( &typeid( FIsLess           ), functionTable.DbgCntInvocationsFIsLess    );
-    if(functionTable.fIsTrue   ) output.emplace_back( &typeid( FIsTrue           ), functionTable.DbgCntInvocationsFIsTrue    );
-  ALIB_IF_STRINGS(
-    if(functionTable.fAppend   ) output.emplace_back( &typeid( FAppend<character>), functionTable.DbgCntInvocationsFAppend    ); )
+    if(functionTable.fHashcode ) output.emplace_back( &typeid( FHashcode                    ), functionTable.DbgCntInvocationsFHashcode  );
+  IF_ALIB_MONOMEM(
+    if(functionTable.fClone    ) output.emplace_back( &typeid( FClone                       ), functionTable.DbgCntInvocationsFClone     ); )
+    if(functionTable.fIsNotNull) output.emplace_back( &typeid( FIsNotNull                   ), functionTable.DbgCntInvocationsFIsNotNull );
+    if(functionTable.fEquals   ) output.emplace_back( &typeid( FEquals                      ), functionTable.DbgCntInvocationsFEquals    );
+    if(functionTable.fIsLess   ) output.emplace_back( &typeid( FIsLess                      ), functionTable.DbgCntInvocationsFIsLess    );
+    if(functionTable.fIsTrue   ) output.emplace_back( &typeid( FIsTrue                      ), functionTable.DbgCntInvocationsFIsTrue    );
+  IF_ALIB_STRINGS(
+    if(functionTable.fAppend   ) output.emplace_back( &typeid( FAppend<character, lang::HeapAllocator>), functionTable.DbgCntInvocationsFAppend    ); )
 
     // add custom function types
     {
@@ -262,10 +257,10 @@ void DbgBoxing::getFunctionTypes( const detail::FunctionTable&                  
 }
 
 
-#if ALIB_MONOMEM && ALIB_DEBUG_MONOMEM
+#if ALIB_DEBUG_CONTAINERS
 void DbgBoxing::DumpCustomFunctionHashMapMetrics( AString& target, bool detailedBucketList )
 {
-    target << monomem::DbgDumpDistribution( customFunctionMap, detailedBucketList );
+    target << containers::DbgDumpDistribution( customFunctionMap, detailedBucketList );
 }
 #endif
 
@@ -281,13 +276,16 @@ void DbgBoxing::DumpCustomFunctionHashMapMetrics( AString& target, bool detailed
 // Static VTables for fundamentals
 // #################################################################################################
 
-ALIB_BOXING_VTABLE_DEFINE(           void* , vt_voidP    )
-ALIB_BOXING_VTABLE_DEFINE(           Boxes*, vt_boxes    )
+ALIB_BOXING_VTABLE_DEFINE(          void* , vt_voidP    )
+ALIB_BOXING_VTABLE_DEFINE(          BoxesHA*, vt_boxes    )
+#if ALIB_MONOMEM
+ALIB_BOXING_VTABLE_DEFINE(        BoxesMA*, vt_boxesma  )
+#endif
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( Box   , vt_boxarray )
 
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DEFINE_1])
 ALIB_BOXING_VTABLE_DEFINE( bool,  vt_bool )
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DEFINE_1])
 
 
 #if !ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS
@@ -329,9 +327,9 @@ DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_1])
     ALIB_BOXING_VTABLE_DEFINE( char32_t , vt_char32_t )
 #endif
 
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_2])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DEFINE_2])
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char, vt_arr_char )
-DOX_MARKER([DOX_ALIB_BOXING_OPTIMIZE_DEFINE_2])
+DOX_MARKER([DOX_BOXING_OPTIMIZE_DEFINE_2])
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( wchar_t  , vt_arr_wchar_t )
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char16_t , vt_arr_char16_t)
 ALIB_BOXING_VTABLE_DEFINE_ARRAYTYPE( char32_t , vt_arr_char32_t)
@@ -369,3 +367,5 @@ ALIB_BOXING_VTABLE_DEFINE( alib::lang::Timezone         , vt_alib_Timezone      
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::Timing           , vt_alib_Timing            )
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::ValueReference   , vt_alib_ValueReference    )
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::Whitespaces      , vt_alib_Whitespaces       )
+
+ALIB_BOXING_VTABLE_DEFINE( alib::lang::CallerInfo*      , vt_lang_callerinfo )

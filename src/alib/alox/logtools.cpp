@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  alib::lox - ALox Logging Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,25 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#if !defined (HPP_ALOX_LOGTOOLS)
-    #include "alib/alox/logtools.hpp"
-#endif
-
-#if !defined (HPP_ALIB_LANG_FORMAT_FORMATTER)
-    #include "alib/lang/format/formatter.hpp"
-#endif
-
-#if !defined (HPP_ALIB_STRINGS_UTIL_TOKENIZER)
+#if !DOXYGEN
+#   include "alib/alox/logtools.hpp"
+#   include "alib/lang/format/formatter.hpp"
 #   include "alib/strings/util/tokenizer.hpp"
-#endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
+
 
 namespace alib {  namespace lox {
 
+#include "alib/lang/callerinfo_functions.hpp"
 
 void LogTools::Exception( Lox&                      lox,
-                          const alib::Exception&   e,
+                          const alib::Exception&    e,
                           Verbosity                 verbosity,
                           const NString&            domainPrefix,
                           const String&             logPrefix
@@ -34,7 +28,9 @@ void LogTools::Exception( Lox&                      lox,
     tknzr.TrimChars= "\r";
     String1K buf;
     buf.DbgDisableBufferReplacementWarning();
-    SPFormatter formatter= Formatter::AcquireDefault(ALIB_CALLER_PRUNED);
+    ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+    Formatter& formatter= *Formatter::Default;
+    formatter.Reset();
     try
     {
         size_t entryNo= 1;
@@ -44,9 +40,9 @@ void LogTools::Exception( Lox&                      lox,
             if( logPrefix   .IsNotNull() ) lox.SetPrefix( logPrefix   , Scope::ThreadOuter );
             for ( auto& entry :  e )
             {
-                formatter->FormatArgs( buf.Reset(), entry );
+                formatter.FormatArgs( buf.Reset(), entry );
 
-                lox.Acquire( entry.File, entry.Line, entry.Function );
+                lox.Acquire( entry.CI );
 
                     tknzr.Set( buf, '\n' );
                     bool firstLine= true;
@@ -76,9 +72,9 @@ void LogTools::Exception( Lox&                      lox,
         e.Format( buf.Reset() );
         lox.Error(buf);
     }
-
-    formatter->Release();
 }
+#include "alib/lang/callerinfo_methods.hpp"
 
 
 }}// namespace [alib::lox]
+

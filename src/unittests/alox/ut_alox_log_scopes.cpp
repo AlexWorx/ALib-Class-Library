@@ -7,19 +7,15 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 #include "unittests/alib_test_selection.hpp"
-#if ALIB_UT_ALOX
 
+#if ALIB_UT_ALOX
 
 #include "alib/alox.hpp"
 #include "alib/compatibility/std_strings_iostream.hpp"
 #include "alib/compatibility/std_boxing.hpp"
-#include "alib/compatibility/std_characters.hpp"
-
+#include "alib/compatibility/std_strings.hpp"
 #include "alib/alox/loggers/memorylogger.hpp"
-
-#if !defined (HPP_ALIB_ALOXMODULE)
-#   include "alib/alox/aloxmodule.hpp"
-#endif
+#include "alib/alox/aloxcamp.hpp"
 
 #if ALIB_THREADS
 #   include "alib/threads/thread.hpp"
@@ -31,32 +27,23 @@
     #pragma warning( disable : 4127 )
 #endif
 
+#include "alib/config/inifile.hpp"
 
 #include <iostream>
 #include <fstream>
 
-#if !defined (HPP_ALIB_CONFIG_INI_FILE)
-    #include "alib/config/inifile.hpp"
-#endif
-
-// Fix the method name of logging (needed for unity builds)
-#undef  ALIB_CALLER
-#if defined( __GNUC__ )
-#   define ALIB_CALLER    __FILE__, __LINE__, __func__
-#else
-#   define ALIB_CALLER    __FILE__, __LINE__, __FUNCTION__
-#endif
+#include "alib/lang/callerinfo_methods.hpp"
 
 using namespace std;
 using namespace alib;
-using namespace alib::lox::detail::textlogger;
+using namespace alib::lox::textlogger;
 
 
 
 namespace ut_alox {
 
 #include "ut_alox_log_scopes.hpp"
-
+#include "alib/lang/callerinfo_functions.hpp"
 // used with unit test Log_ScopeInfoCacheTest
 void ScopeInfoCacheTest4();
 void ScopeInfoCacheTest4() { Log_Info("Test Method 4") }
@@ -75,8 +62,8 @@ void LSD2_A()   {  Log_SetDomain( "A2",   Scope::Method )    Log_Info( "" )    }
 void LSD2()     {  Log_SetDomain( "LSD2", Scope::Method )    Log_Info( "" )    }
 
 
-#if ALOX_DBG_LOG && ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 
+extern void Lox_ScopeDomains_Helper( Lox& lox );
 extern void Log_ScopeDomains_Helper();
 extern void Log_ScopeDomains_Helper2();
 void Log_ScopeDomains_Helper2B();
@@ -84,7 +71,9 @@ void Log_ScopeDomains_Helper2B()
 {
     Log_Info("")
 }
+#include "alib/lang/callerinfo_methods.hpp"
 
+#if ALOX_DBG_LOG && ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
 class DomainTestThread : public Thread
 {
     virtual void Run()                                                                      override
@@ -104,7 +93,6 @@ class LogOnceTestThread : public Thread
     }
 };
 
-extern void Lox_ScopeDomains_Helper( Lox& lox );
 
 class DomainTestThreadRL : public Thread
 {
@@ -157,7 +145,7 @@ UT_CLASS
 /** ********************************************************************************************
  * Log_LineFormat
  **********************************************************************************************/
-#if ALOX_DBG_LOG  && !ALIB_DEBUG_MONOMEM
+#if ALOX_DBG_LOG
 UT_METHOD(Log_LineFormat)
 {
     UT_INIT()
@@ -173,47 +161,52 @@ UT_METHOD(Log_LineFormat)
 
     Log_Info( "This is the default ConsoleLogger meta info" )
 
-    String64  lf;
-    lf= "%SF(%SL):%SM()%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: ";   Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: ";        Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%TD][%TC +%TL][%tN]%V[%D]<%#>: ";            Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%TC +%TL][%tN]%V[%D]<%#>: ";                 Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[+%TL][%tN]%V[%D]<%#>: ";                     Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%tN]%V[%D]<%#>: ";                           Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3%V[%D]<%#>: ";                                Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%D]<%#>: ";                                  Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF(%SL):%A3[%D]: ";                                      Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "%SF:%A3[%D]: ";                                           Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "[%D]: ";                                                  Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
-    lf= "";                                                        Log::DebugLogger->MetaInfo->Format= lf;    Log_Info( String128("LineFormat set to= \"") << lf << '\"' )
+    auto& format= Log::DebugLogger->GetFormatMetaInfo().Format;
+    format.Reset( "%SF(%SL):%SM()%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: " );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%D][%TD][%TC +%TL][%tN]%V[%D]<%#>: "      );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%TD][%TC +%TL][%tN]%V[%D]<%#>: "          );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%TC +%TL][%tN]%V[%D]<%#>: "               );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[+%TL][%tN]%V[%D]<%#>: "                   );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%tN]%V[%D]<%#>: "                         );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3%V[%D]<%#>: "                              );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%D]<%#>: "                                );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF(%SL):%A3[%D]: "                                    );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "%SF:%A3[%D]: "                                         );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( "[%D]: "                                                );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
+    format.Reset( ""                                                      );    Log_Info( String128("LineFormat set to= \"") << format << '\"' )
 
     #if ALOX_DBG_LOG
-        Log::DebugLogger->MetaInfo->Format.Reset("%TD@");
-                  testML->MetaInfo->Format.Reset("%TD@");
+        auto& dateFormat= Log::DebugLogger->GetFormatDate().Date;
+        auto& timeOfDayFormat= Log::DebugLogger->GetFormatDate().TimeOfDay;
+        auto& formatML= testML->GetFormatMetaInfo().Format;
+        format.Reset("%TD@");
+                  formatML.Reset("%TD@");
         const char* df;
-        df= ">yy-MM-dd<";    Log::DebugLogger->MetaInfo->DateFormat= df;                                                Log_Info( String128("Date test. Format: \"") << df << '\"' )
+        df= ">yy-MM-dd<";    dateFormat.Reset(df);                         Log_Info( String128("Date test. Format: \"") << df << '\"' )
         testML->MemoryLog.Reset();
-        df= ">yyyy/dd/MM<";  Log::DebugLogger->MetaInfo->DateFormat= df;  testML->MetaInfo->DateFormat= df;             Log_Info( "FMT", String128("Date test. Format: \"") << df << '\"' )
+        df= ">yyyy/dd/MM<";  dateFormat.Reset(df);
+                             testML->GetFormatDate().Date.Reset(df);       Log_Info( "FMT", String128("Date test. Format: \"") << df << '\"' )
         UT_TRUE( testML->MemoryLog.SearchAndReplace( '/', '@') == 4 )
-        Log::DebugLogger->MetaInfo->Format.Reset( "%TT@" );
-                  testML->MetaInfo->Format.Reset( "%TT@" );
-        df= ">HH:mm:ss<";    Log::DebugLogger->MetaInfo->TimeOfDayFormat= df;                                           Log_Info( "FMT", String128("Time of day test Format: \"") << df << '\"' )
+        format.Reset( "%TT@" );
+                  formatML.Reset( "%TT@" );
+        df= ">HH:mm:ss<";    timeOfDayFormat.Reset(df);                    Log_Info( "FMT", String128("Time of day test Format: \"") << df << '\"' )
         testML->MemoryLog.Reset();
-        df= ">HH-mm-ss<";    Log::DebugLogger->MetaInfo->TimeOfDayFormat= df;  testML->MetaInfo->TimeOfDayFormat= df;   Log_Info( "FMT", String128("Time of day test. Format: \"") << df << '\"' )
+        df= ">HH-mm-ss<";    timeOfDayFormat.Reset(df);
+                             testML->GetFormatDate().TimeOfDay.Reset(df);  Log_Info( "FMT", String128("Time of day test. Format: \"") << df << '\"' )
         UT_TRUE( testML->MemoryLog.SearchAndReplace( '-', '@') == 4 )
 
-        Log::DebugLogger->MetaInfo->Format.Reset("%tI@");
-                  testML->MetaInfo->Format.Reset("%tI@");
-        testML->MemoryLog.Reset();   testML->AutoSizes.Reset();
+        format  .Reset("%tI@");
+        formatML.Reset("%tI@");
+        testML->MemoryLog.Reset();   testML->GetAutoSizes().Main.Reset();
         Log_Info("")
         UT_EQ( A_CHAR("-1@"), testML->MemoryLog )
 
-        Log::DebugLogger->MetaInfo->Format.Reset(
-                  testML->MetaInfo->Format.Reset( A_CHAR("%P") ) );
+        format.Reset(
+                  formatML.Reset( A_CHAR("%P") ) );
 
-        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")
-        UT_TRUE(    ALIB_AVOID_ANALYZER_WARNINGS
-                 || testML->MemoryLog.Equals( A_CHAR("ALib_UT"))
+        testML->MemoryLog.Reset();  testML->GetAutoSizes().Main.Reset(); Log_Info("")
+        UT_TRUE(    ALIB_UT_AVOID_ANALYZER_WARNINGS
+                 || testML->MemoryLog.StartsWith( A_CHAR("ALib_UT"))
                  || testML->MemoryLog.StartsWith( A_CHAR("QTC_ALox_UnitTe") )  // QMake project
                  || testML->MemoryLog.StartsWith( A_CHAR("memcheck-") )         // valgrind
                  || testML->MemoryLog.Equals(A_CHAR("te.processhost.managed.exe"))
@@ -222,23 +215,18 @@ UT_METHOD(Log_LineFormat)
                  || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.exe"))
                  || testML->MemoryLog.Equals(A_CHAR("vstest.executionengine.x86.exe")))
 
+        format=
+        formatML.Reset( A_CHAR("%LX") );
+        testML->MemoryLog.Reset();  testML->GetAutoSizes().Main.Reset(); Log_Info("")  UT_EQ( A_CHAR("LOG")         , testML->MemoryLog )
 
-        Log::DebugLogger->MetaInfo->Format=
-        testML->MetaInfo->Format.Reset( A_CHAR("%LX") );
-        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")  UT_EQ( A_CHAR("LOG")         , testML->MemoryLog )
-
-        Log::DebugLogger->MetaInfo->Format=
-        testML->MetaInfo->Format.Reset( A_CHAR("%LG") );
-        testML->MemoryLog.Reset();  testML->AutoSizes.Reset(); Log_Info("")  UT_EQ( A_CHAR("MEMORY")      , testML->MemoryLog )
+        format=
+        formatML.Reset( A_CHAR("%LG") );
+        testML->MemoryLog.Reset();  testML->GetAutoSizes().Main.Reset(); Log_Info("")  UT_EQ( A_CHAR("MEMORY")      , testML->MemoryLog )
     #endif
 
 
     Log_RemoveLogger( testML )
     Log_Prune( delete testML );
-
-    // clean the config (for subsequent tests)
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
@@ -246,7 +234,7 @@ UT_METHOD(Log_LineFormat)
 /** ********************************************************************************************
  * Log_Prefix
  **********************************************************************************************/
-#if ALOX_DBG_LOG_CI && !ALIB_DEBUG_MONOMEM
+#if ALOX_DBG_LOG_CI
 
 #define PFXCHECK( s, ml )                                       \
         { Log_Info( "*msg*" );                                  \
@@ -263,17 +251,18 @@ UT_METHOD(Log_Prefix)
 
     Log_AddDebugLogger()
     MemoryLogger ml;
-    ml.MetaInfo->Format._();
     Log_SetVerbosity(&ml, Verbosity::Verbose )
+    ml.GetFormatMetaInfo().Format._();
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
 
     Log_SetDomain( "/PREFIX", Scope::Method )
 
-//! [DOX_ALOX_LOX_SETPREFIX]
-Boxes prefixes;
+DOX_MARKER( [DOX_ALOX_LOX_SETPREFIX])
+MonoAllocator ma(ALIB_DBG("UTAloxLS",) 1);
+BoxesMA prefixes(ma);
 prefixes.Add("One, ", "two, ", 3 );
 Log_SetPrefix( prefixes,  Scope::Global   )
-//! [DOX_ALOX_LOX_SETPREFIX]
+DOX_MARKER( [DOX_ALOX_LOX_SETPREFIX])
 PFXCHECK( "One, two, 3*msg*"    ,ml )
 
 
@@ -318,7 +307,7 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
 
     // domain related
     Log_SetPrefix( "DOM1:" )                         PFXCHECK( "FILE:METHOD:DOM1:*msg*"            ,ml )
-    Boxes domPfx;             // set two logables at once!
+    BoxesHA domPfx;             // set two logables at once!
     domPfx.Add("DO", "M2:" );
     Log_SetPrefix( domPfx  )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:*msg*"       ,ml )
     Log_SetPrefix( "DOM3:" )                               PFXCHECK( "FILE:METHOD:DOM1:DOM2:DOM3:*msg*"  ,ml )
@@ -387,24 +376,23 @@ PFXCHECK( "One, two, 3*msg*"    ,ml )
     UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
               "language-related scope store (using a StringTree with monotonic allocation):" )
     #if ALIB_DEBUG_MONOMEM
-        UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
+        UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStatistics() )
     #else
         UT_PRINT( "N/A. Use compiler symbol ALIB_DEBUG_MONOMEM to enable this statistic." )
     #endif
 
-    // clean the config (for subsequent tests)
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
 
-/** ********************************************************************************************
+/** ************************************************************************************************
  * Log_ScopeDomains
- **********************************************************************************************/
-#if ALOX_DBG_LOG_CI && !ALIB_DEBUG_MONOMEM
-#define DDCHECK( d, s, ml )        {Log_Info( d, "" )    UT_EQ(A_CHAR(s), ml .MemoryLog); ml .MemoryLog._(); ml .AutoSizes.Reset();}
-
+ **************************************************************************************************/
+#if ALOX_DBG_LOG_CI
+#define DDCHECK( d, s, ml )        { Log_Info( d, "" )                                             \
+                                     UT_EQ(A_CHAR(s), ml .MemoryLog);                              \
+                                     ml .MemoryLog._();                                            \
+                                     ml .GetAutoSizes().Main.Reset();      }
 
 UT_METHOD(Log_ScopeDomains)
 {
@@ -416,17 +404,17 @@ UT_METHOD(Log_ScopeDomains)
 
     Log_AddDebugLogger()
     MemoryLogger ml;
-    ml.MetaInfo->Format.Reset("@%D#");
     Log_SetVerbosity(&ml, Verbosity::Verbose )
+    ml.GetFormatMetaInfo().Format.Reset("@%D#");
     Log_SetVerbosity(Log::DebugLogger, Verbosity::Verbose, Lox::InternalDomains )
 
     // test methods with extending names
-    LSD();         UT_EQ( A_CHAR("@/LSD#"),      ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
-    LSD_A();       UT_EQ( A_CHAR("@/A#"),        ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
-    LSD_A_B();     UT_EQ( A_CHAR("@/B#"),        ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
-    LSD2_A_B();    UT_EQ( A_CHAR("@/B2#"),       ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
-    LSD2_A();      UT_EQ( A_CHAR("@/A2#"),       ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
-    LSD2();        UT_EQ( A_CHAR("@/LSD2#"),     ml.MemoryLog )   ml.MemoryLog._(); ml.AutoSizes.Reset();
+    LSD();         UT_EQ( A_CHAR("@/LSD#"),      ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+    LSD_A();       UT_EQ( A_CHAR("@/A#"),        ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+    LSD_A_B();     UT_EQ( A_CHAR("@/B#"),        ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+    LSD2_A_B();    UT_EQ( A_CHAR("@/B2#"),       ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+    LSD2_A();      UT_EQ( A_CHAR("@/A2#"),       ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+    LSD2();        UT_EQ( A_CHAR("@/LSD2#"),     ml.MemoryLog )   ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
     DDCHECK( "","@/#"              ,ml )
 
     // scope global
@@ -464,24 +452,25 @@ UT_METHOD(Log_ScopeDomains)
     Log_SetDomain( "REPLACE",    Scope::Path + 50)  DDCHECK( "","@/REPLACE/PO2/PO1/PATH/FILE/METHOD#"     ,ml )
     Log_SetDomain( "PO50",       Scope::Path + 50)  DDCHECK( "","@/PO50/PO2/PO1/PATH/FILE/METHOD#"        ,ml )
 
-    Log_LogState( "", Verbosity::Info, A_CHAR("Configuration now is:") ) ml.MemoryLog._(); ml.AutoSizes.Reset();
+    auto& mlAS= ml.GetAutoSizes().Main;
+    Log_LogState( "", Verbosity::Info, A_CHAR("Configuration now is:") ) ml.MemoryLog._(); mlAS.Reset();
 
     Log_SetDomain( "GLOBAL",     Scope::Global   )   DDCHECK( "","@/GLOBAL/PO50/PO2/PO1/PATH/FILE/METHOD#" , ml )
 
                                                      DDCHECK( "","@/GLOBAL/PO50/PO2/PO1/PATH/FILE/METHOD#" , ml )
 
 #if ALOX_DBG_LOG && ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
-    Log_ScopeDomains_Helper();    UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/HFILE/HMETHOD#"), ml.MemoryLog )    ml.MemoryLog._(); ml.AutoSizes.Reset();
+    Log_ScopeDomains_Helper();    UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/HFILE/HMETHOD#"), ml.MemoryLog )    ml.MemoryLog._(); mlAS.Reset();
 
                                                      DDCHECK( "","@/GLOBAL/PO50/PO2/PO1/PATH/FILE/METHOD#" , ml )
 
-    Log_ScopeDomains_Helper2();   UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/H2FILE/H2METHOD#"), ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
+    Log_ScopeDomains_Helper2();   UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/H2FILE/H2METHOD#"), ml.MemoryLog )  ml.MemoryLog._(); mlAS.Reset();
 
                                                      DDCHECK( "","@/GLOBAL/PO50/PO2/PO1/PATH/FILE/METHOD#" , ml )
 
-    Log_ScopeDomains_Helper2B();  UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/FILE#")           , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
+    Log_ScopeDomains_Helper2B();  UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/FILE#")           , ml.MemoryLog )  ml.MemoryLog._(); mlAS.Reset();
 
-    Log_ScopeDomains_HPPHelper(); UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/FILE#")           , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
+    Log_ScopeDomains_HPPHelper(); UT_EQ( A_CHAR("@/GLOBAL/PO50/PO2/PO1/PATH/FILE#")           , ml.MemoryLog )  ml.MemoryLog._(); mlAS.Reset();
 
                                                      DDCHECK( "","@/GLOBAL/PO50/PO2/PO1/PATH/FILE/METHOD#"  , ml )
 #endif
@@ -534,13 +523,13 @@ UT_METHOD(Log_ScopeDomains)
             thread.Start();
             while( thread.IsAlive() )
                 Thread::SleepMillis(1);
-                                   UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-            Log_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-            thread.Terminate();
+                                   UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); mlAS.Reset();
+            Log_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); mlAS.Reset();
+            thread.Join();
         #endif
     #endif
 
-    //Log_LogState( "", Verbosity::Info, A_CHAR("Configuration now is:") ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+    //Log_LogState( "", Verbosity::Info, A_CHAR("Configuration now is:") ); ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
 
     Log_RemoveLogger( &ml )
 
@@ -548,29 +537,30 @@ UT_METHOD(Log_ScopeDomains)
         UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
                   "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
-            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
+            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStatistics() )
         #else
             UT_PRINT( "N/A. Use compiler symbol ALIB_DEBUG_MONOMEM to enable this statistic." )
         #endif
     #endif
-
-    // clean the config (for subsequent tests)
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #endif
 
-/** ********************************************************************************************
+/** ************************************************************************************************
  * Lox_ScopeDomains
- **********************************************************************************************/
+ **************************************************************************************************/
 #if ALOX_REL_LOG
 #define LOX_LOX lox
-#define DDCHECK_RL( d, s, ml )        {Lox_Info( d, "" );      UT_EQ(A_CHAR(s), ml .MemoryLog); ml .MemoryLog._(); ml .AutoSizes.Reset();}
+#define DDCHECK_RL( d, s, ml )        { Lox_Info( d, "" );                                         \
+                                        UT_EQ(A_CHAR(s), ml .MemoryLog);                           \
+                                        ml.MemoryLog._();                                          \
+                                        ml.GetAutoSizes().Main.Reset();  }
 
 #if ALOX_REL_LOG_CI
     #define CICHECK_RL( d, s, ml )    DDCHECK_RL(d,s,ml)
 #else
-    #define CICHECK_RL( d, s, ml )    {Lox_Info( d, "" );                               ml .MemoryLog._(); ml .AutoSizes.Reset();}
+    #define CICHECK_RL( d, s, ml )    { Lox_Info( d, "" );                                         \
+                                        ml.MemoryLog._();                                          \
+                                        ml.GetAutoSizes().Main.Reset();   }
 #endif
 
 UT_METHOD(Lox_ScopeDomains)
@@ -585,8 +575,8 @@ UT_METHOD(Lox_ScopeDomains)
 
     alib::TextLogger* consoleLogger= Lox::CreateConsoleLogger();
     MemoryLogger ml;
-    ml.MetaInfo->Format.Reset("@%D#");
     Lox_SetVerbosity(&ml, Verbosity::Verbose )
+    ml.GetFormatMetaInfo().Format.Reset("@%D#");
     Lox_SetVerbosity(consoleLogger, Verbosity::Verbose )
     Lox_SetVerbosity(consoleLogger, Verbosity::Verbose, Lox::InternalDomains )
 
@@ -624,13 +614,12 @@ UT_METHOD(Lox_ScopeDomains)
     Lox_SetDomain( "GLOBAL",     Scope::Global   )  CICHECK_RL( "","@/GLOBAL/PO2/PO1/PATH/FILE/METHOD#"  , ml )
 
     #if ALOX_REL_LOG_CI
-        Lox_ScopeDomains_Helper   ( lox ); UT_EQ( "@/GLOBAL/PO2/PO1/PATH/HFILE/HMETHOD#", ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-        Lox_ScopeDomains_HPPHelper( lox ); UT_EQ( "@/GLOBAL/PO2/PO1/PATH/FILE#",          ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-
-                                                                   DDCHECK_RL( "","@/GLOBAL/PO2/PO1/PATH/FILE/METHOD#"  , ml );
+        Lox_ScopeDomains_Helper   ( lox ); UT_EQ( A_CHAR("@/GLOBAL/PO2/PO1/PATH/HFILE/HMETHOD#"), ml.MemoryLog )  ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+        Lox_ScopeDomains_HPPHelper( lox ); UT_EQ( A_CHAR("@/GLOBAL/PO2/PO1/PATH/FILE#"         ), ml.MemoryLog )  ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+                                   DDCHECK_RL( "","@/GLOBAL/PO2/PO1/PATH/FILE/METHOD#"  , ml )
     #endif
 
-    //Lox_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+    //Lox_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
 
     // remove all previous scope domains
     Lox_SetDomain( "",     Scope::Global      )
@@ -655,7 +644,7 @@ UT_METHOD(Lox_ScopeDomains)
         Lox_SetDomain( "/T_O3",Scope::ThreadOuter )  CICHECK_RL( ""   ,"@/T_O3/MET/T_I/T_I2#"   ,ml )
         Lox_SetDomain( "/T_I3",Scope::ThreadInner )  DDCHECK_RL( ""   ,"@/T_I3#"                ,ml )
 
-        //Lox_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+        //Lox_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
 
         Lox_SetDomain( "",     Scope::Method      )  DDCHECK_RL( ""   ,"@/T_I3#"                ,ml )
 
@@ -681,9 +670,9 @@ UT_METHOD(Lox_ScopeDomains)
         thread.Start();
         while( thread.IsAlive() )
             Thread::SleepMillis(1);
-                               UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-        Lox_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); ml.AutoSizes.Reset();
-        thread.Terminate();
+                               UT_EQ( A_CHAR("@/OTHER_THREAD/DTT#"), ml.MemoryLog )  ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+        Lox_Info( "ME", "" )   UT_EQ( A_CHAR("@/THIS_THREAD/ME#")  , ml.MemoryLog )  ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
+        thread.Join();
 
     #endif
     #endif // ALIB_THREADS && !defined(ALIB_UT_ROUGH_EXECUTION_SPEED_TEST)
@@ -692,10 +681,6 @@ UT_METHOD(Lox_ScopeDomains)
     Lox_RemoveLogger( &ml )
     Lox_RemoveLogger( consoleLogger )
     delete consoleLogger;
-
-    // clean the config (for subsequent tests)
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::DefaultValues   )->Clear();
-    ALOX.GetConfig().GetPluginTypeSafe<alib::InMemoryPlugin>( Priorities::ProtectedValues )->Clear();
 }
 #undef LOX_LOX
 #endif
@@ -704,17 +689,16 @@ UT_METHOD(Lox_ScopeDomains)
 /** ********************************************************************************************
  * Log_Once_Test
  **********************************************************************************************/
-#if ALOX_DBG_LOG  && !ALIB_DEBUG_MONOMEM
+#if ALOX_DBG_LOG
 
-
-// restore original macro used by ALox
-#undef  ALIB_CALLER
-#define ALIB_CALLER     __FILE__, __LINE__, __func__
+#include "alib/lang/callerinfo_functions.hpp"
 
 void logOnceMethod()
 {
     Log_Once( Verbosity::Info, "Once(Scope::Filename) 4x -from other method", Scope::Filename, 4 )
 }
+
+#include "alib/lang/callerinfo_methods.hpp"
 
 UT_METHOD(Log_Once_Test)
 {
@@ -768,7 +752,7 @@ UT_METHOD(Log_Once_Test)
         UT_EQ( 1, ml.CntLogs ) ml.CntLogs= 0;
         Log_Once( Verbosity::Info, "Once(key, Scope::ThreadOuter) 2x - main thread", A_CHAR("group"), Scope::ThreadOuter, 1 )
         UT_EQ( 0, ml.CntLogs ) ml.CntLogs= 0;
-        thread.Terminate();
+        thread.Join();
     #endif
 
     //-------------------- associated to line  -----------------
@@ -845,15 +829,15 @@ UT_METHOD(Log_Once_Test)
     #endif
 
 
-    //Log_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.AutoSizes.Reset();
+    //Log_LogState( "", Verbosity::Info, "Configuration now is:" ); ml.MemoryLog._(); ml.GetAutoSizes().Main.Reset();
 
     Log_RemoveLogger( &ml )
 
     #if ALIB_DEBUG
-    UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
-              "language-related scope store (using a StringTree with monotonic allocation):" )
+        UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
+                  "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
-            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
+            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStatistics() )
         #else
             UT_PRINT( "N/A. Use compiler symbol ALIB_DEBUG_MONOMEM to enable this statistic." )
         #endif
@@ -956,14 +940,14 @@ UT_METHOD(Log_Store_Test)
 
     { Log_Retrieve( data,           Scope::ThreadOuter ) UT_TRUE( data.Unbox<NString>().Equals( "Main Thread Data")         ) }
     { Log_Retrieve( data,  "mykey", Scope::ThreadOuter ) UT_TRUE( data.Unbox<NString>().Equals( "Main Thread Data, keyed")  ) }
-    thread.Terminate();
+    thread.Join();
 #endif
 
     #if ALIB_DEBUG
     UT_PRINT( "Statistics on the monotonic allocator of the Lox, primarily used for the\n"
               "language-related scope store (using a StringTree with monotonic allocation):" )
         #if ALIB_DEBUG_MONOMEM
-            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStats() )
+            UT_PRINT( LOG_LOX.DbgGetMonoAllocator().DbgDumpStatistics() )
         #else
             UT_PRINT( "N/A. Use compiler symbol ALIB_DEBUG_MONOMEM to enable this statistic." )
         #endif

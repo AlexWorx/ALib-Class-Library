@@ -1,69 +1,67 @@
-﻿/** ************************************************************************************************
- * \file
- * This header file is part of module \alib_strings of the \aliblong.
- *
- * \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
- * Published under \ref mainpage_license "Boost Software License".
- **************************************************************************************************/
+//==================================================================================================
+/// \file
+/// This header file is part of module \alib_strings of the \aliblong.
+///
+/// \emoji :copyright: 2013-2024 A-Worx GmbH, Germany.
+/// Published under \ref mainpage_license "Boost Software License".
+//==================================================================================================
 #ifndef HPP_ALIB_STRINGS_STRINGNZT
 #define HPP_ALIB_STRINGS_STRINGNZT 1
-
-#if !defined(HPP_ALIB_STRINGS_STRING)
-#   include "alib/strings/string.hpp"
-#endif
+#pragma once
+#include "alib/strings/string.hpp"
 
 
 namespace alib {  namespace strings {
 
-/** ************************************************************************************************
- * This is rather a helper class than a genuine string class. While derived from class \b String,
- * no extension of its interface is offered. Instead, the templated constructor is limited to
- * accept only string types that are not zero-terminated.
- *
- * The class is designed to be used to create API interfaces (i.e. overloaded methods) that accept
- * zero-terminated strings of type \alib{strings,TCString,CString} independently from
- * non-zero-terminated strings: If two overloaded methods accepted type \c String and \c CString
- * alternatively, compilation would be ambiguous because the \b String version would accept
- * zero-terminated strings as well. Therefore, overloaded methods rather must accept this class
- * and \b CString.
- *
- * \see
- *   Details and a quick sample are given in chapter
- *   \ref alib_strings_nzt "4. Non-Zero-Terminated String Detection" of the
- *   \ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
- *
- * @tparam TChar The character type. Alias names of this class using character types
- *               \alib{character}, \alib{nchar}, \alib{wchar} and \alib{xchar} are provided
- *               with in namespace #alib with type definitions \alib{StringNZT},
- *               \alib{NStringNZT}, \alib{WStringNZT} and \alib{XStringNZT}.
- **************************************************************************************************/
+//==================================================================================================
+/// This is rather a helper-class than a genuine string class. While derived from class \b String,
+/// no extension of its interface is offered. Instead, the templated constructor is limited to
+/// accept only string-types that are not zero-terminated.
+///
+/// The class is designed to be used to create API interfaces (i.e., overloaded methods) that accept
+/// zero-terminated strings of type \alib{strings;TCString;CString} independently from
+/// non-zero-terminated strings: If two overloaded methods accepted type \c String and \c CString
+/// alternatively, compilation would be ambiguous because the \b String version would accept
+/// zero-terminated strings as well. Therefore, overloaded methods rather must accept this class
+/// and \b CString.
+///
+/// \see
+///   Details and a quick sample are given in chapter
+///   \ref alib_strings_nzt "4. Non-Zero-Terminated String Detection" of the
+///   \ref alib_mod_strings "Programmer's Manual" of module \alib_strings_nl.
+///
+/// @tparam TChar The \ref alib_characters_chars "character type" of this string.
+///               Alias names of this class using different character types are provided
+///               with in namespace #alib with type definitions
+///               \alib{StringNZT},
+///               \alib{NStringNZT},
+///               \alib{WStringNZT}, and
+///               \alib{XStringNZT}.
+//==================================================================================================
 template<typename TChar>
 class TStringNZT  : public TString<TChar>
 {
-    /** ############################################################################################
-     * @name Constructors
-     ##@{ ########################################################################################*/
      public:
 
-        /** ****************************************************************************************
-         * Constructor accepting a pointer to a character array and a string length.
-         *
-         * @param pBuffer   Pointer to the start of the character string to represent.
-         * @param pLength   The length of the character string to represent.
-         ******************************************************************************************/
+        //==========================================================================================
+        /// Constructor accepting a pointer to a character array and a string length.
+        ///
+        /// @param pBuffer   Pointer to the start of the character string to represent.
+        /// @param pLength   The length of the character string to represent.
+        //==========================================================================================
         constexpr
         TStringNZT( const TChar* pBuffer, integer pLength )
         : TString<TChar>( pBuffer, pLength)
         {}
 
 
-    #if defined(ALIB_DOX)
-        /** ****************************************************************************************
-         * Templated constructor that accepts C++ string types which are not zero-terminated.
-         *
-         * @tparam TCharArray  Type that comprises a non-zero-terminated character array.
-         * @param  src         The source object.
-         ******************************************************************************************/
+    #if DOXYGEN
+        //==========================================================================================
+        /// Templated constructor that accepts C++ string-types which are not zero-terminated.
+        ///
+        /// @tparam TCharArray  Type that comprises a non-zero-terminated character array.
+        /// @param  src         The source object.
+        //==========================================================================================
         template <typename TCharArray>
         inline
         constexpr
@@ -128,3 +126,4 @@ class TStringNZT  : public TString<TChar>
 
 
 #endif // HPP_ALIB_STRINGS_STRINGNZT
+

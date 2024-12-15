@@ -1,4 +1,4 @@
-﻿// #################################################################################################
+// #################################################################################################
 //  ALib C++ Library
 //
 //  Copyright 2013-2024 A-Worx GmbH, Germany
@@ -6,24 +6,13 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_STRINGS_UTIL_TOKEN)
-#      include "alib/strings/util/token.hpp"
-#   endif
-
+#if !DOXYGEN
+#   include "alib/strings/util/token.hpp"
 #   if ALIB_ENUMS
-#      if !defined(HPP_ALIB_ENUMS_SERIALIZATION)
-#         include "alib/enums/serialization.hpp"
-#      endif
-#      if !defined(HPP_ALIB_LANG_COMMONENUMS)
-#           include "alib/lang/commonenums.hpp"
-#      endif
-
-       ALIB_ENUMS_MAKE_BITWISE( alib::strings::util::Token::Formats )
-
+#       include "alib/enums/serialization.hpp"
+#       include "alib/lang/commonenums.hpp"
 #   endif
-#endif // !defined(ALIB_DOX)
-
+#endif // !DOXYGEN
 
 // Windows.h might bring in max/min macros
 #if defined( max )
@@ -31,22 +20,21 @@
     #undef min
 #endif
 
-
 #if ALIB_BOXING
     ALIB_BOXING_VTABLE_DEFINE( alib::strings::util::Token*, vt_alib_strings_token )
 #endif
 
-
 namespace alib {  namespace strings { namespace util  {
 
-Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength)
-: name  (pName)
+Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength, const String& pExportName)
+: definitionName (pName)
+, exportName     (pExportName)
 , format(Formats(   int8_t(Formats::Normal                                         )
                   + int8_t(sensitivity == lang::Case::Sensitive ? Formats(0) : ignoreCase) )  )
-, minLengths { minLength, 0,0,0,0,0,0 }
 {
+    minLengths[0]= minLength;
 #if ALIB_DEBUG
-    if( minLength < 0 || minLength > name.Length() )
+    if( minLength < 0 || minLength > definitionName.Length() )
        format=  Formats(DbgDefinitionError::MinLenExceedsSegmentLength);
 
     if( minLength == 0 )
@@ -55,10 +43,10 @@ Token::Token(const String& pName, lang::Case sensitivity, int8_t minLength)
 
 }
 
-Token::Token( const String& pName, lang::Case sensitivity,
+Token::Token( const String& definitionSrc, lang::Case sensitivity,
               int8_t minLength1, int8_t minLength2, int8_t minLength3, int8_t minLength4, int8_t minLength5,
               int8_t minLength6, int8_t minLength7                                                   )
-: name       (pName)
+: definitionName(definitionSrc)
 , minLengths { minLength1, minLength2, minLength3, minLength4, minLength5, minLength6, minLength7 }
 {
     detectFormat();
@@ -66,8 +54,36 @@ Token::Token( const String& pName, lang::Case sensitivity,
     format= Formats( int8_t(format) | int8_t(ignoreCase) );
 }
 
+
+void   Token::GetExportName(AString& target)                                                   const
+{
+    if( exportName.IsNotEmpty() )
+    {
+        target << exportName;
+        return;
+    }
+
+    target << GetDefinitionName();
+
+    // low the last character in if CamelCase and the last min length equals 0.
+    if( GetFormat() == Token::Formats::CamelCase && Sensitivity() == lang::Case::Ignore )
+    {
+        for( int i= 0 ; i < 7 ; ++i )
+        {
+            auto minLen= GetMinLength( i );
+            if( minLen == 0 )
+            {
+                target[target.Length()-1]= characters::ToLower(target[target.Length()-1]);
+                break;
+            }
+            if( minLen == -1 )
+                break;
+        }
+    }
+}
+
 #if ALIB_ENUMS
-void Token::Define( const String& definition, character separator )
+void Token::Define( const String& definitionSrc, character separator )
 {
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     minLengths[0]=  0;
@@ -75,11 +91,11 @@ void Token::Define( const String& definition, character separator )
     ALIB_WARNINGS_RESTORE
     format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::EmptyName));
 
-    Substring parser(definition);
+    Substring parser(definitionSrc);
 
     // name
-    name  = Substring( parser.ConsumeToken( separator ) ).Trim();
-    if( name.IsEmpty() )
+    definitionName  = Substring( parser.ConsumeToken( separator ) ).Trim();
+    if( definitionName.IsEmpty() )
         return;
 
     lang::Case letterCase= lang::Case::Sensitive;
@@ -104,8 +120,22 @@ void Token::Define( const String& definition, character separator )
 
             if( !isdigit(parser.CharAtStart()) )
             {
-                format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingMinLengths) );
-                return;
+                // optionally read export name once
+                if( exportName.IsNotNull() )
+                {
+                    format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingMinLengths) );
+                    return;
+                }
+
+                exportName= parser.ConsumeToken( separator, lang::Inclusion::Exclude );
+                
+                if( exportName.IsEmpty() )
+                {
+                    format= ALIB_REL_DBG( Formats::Normal, Formats(DbgDefinitionError::ErrorReadingMinLengths) );
+                    return;
+                }
+                
+                continue;
             }
 
             ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
@@ -116,7 +146,7 @@ void Token::Define( const String& definition, character separator )
 
     ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
     if( qtyMinLengths == 0 )
-        minLengths[0]= static_cast<int8_t>( name.Length() );
+        minLengths[0]= static_cast<int8_t>( definitionName.Length() );
 
     if( qtyMinLengths > 0 && qtyMinLengths < 7 )
         minLengths[qtyMinLengths]= -1;
@@ -156,13 +186,13 @@ void    Token::detectFormat()
     if( qtyMinLength > 1 )
     {
         // count hyphens, underscores, camel humps...
-        bool hasLowerCases=  isalpha(name[0]) && islower(name[0]);
+        bool hasLowerCases=  isalpha(definitionName[0]) && islower(definitionName[0]);
         int  qtyUpperCases=  0;
         int  qtyUnderscores= 0;
         int  qtyHyphens=     0;
-        for( integer idx=  1; idx < name.Length() ; ++idx )
+        for( integer idx=  1; idx < definitionName.Length() ; ++idx )
         {
-            character c= name[idx];
+            character c= definitionName[idx];
                  if( c == '_' )      ++qtyUnderscores;
             else if( c == '-' )      ++qtyHyphens;
             else if( isalpha(c) )
@@ -223,7 +253,7 @@ void    Token::detectFormat()
 
         if( GetFormat() == Formats::Normal )
         {
-            if( minLengths[0] > name.Length() )
+            if( minLengths[0] > definitionName.Length() )
             {
                 format= Formats(DbgDefinitionError::MinLenExceedsSegmentLength);
                 return;
@@ -239,10 +269,10 @@ void    Token::detectFormat()
             int     segmentNo    = 0;
             int     segmentLength= 0;
             integer charIdx      = 1;
-            while( charIdx < name.Length() )
+            while( charIdx < definitionName.Length() )
             {
                 ++segmentLength;
-                character c= name.CharAt( charIdx++ );
+                character c= definitionName.CharAt( charIdx++ );
                 bool segmentEnd=     c == '\0'
                                   || (format == Formats::SnakeCase && c == '_' )
                                   || (format == Formats::KebabCase && c == '-' )
@@ -301,16 +331,16 @@ bool    Token::Match( const String& needle )
     integer   rollbackLen       = 0;
     bool      isSegOK           = false;
     int       segMinLen         = minLengths[0];
-    while( hIdx < name.Length() )
+    while( hIdx < definitionName.Length() )
     {
         // read current haystack and needle
         ++segLen;
-        character h= name  .CharAt( hIdx++ );
+        character h= definitionName  .CharAt( hIdx++ );
         character n= needle.CharAt( nIdx++ );
 
         same= sensitivity == lang::Case::Ignore
-              ?     characters::CharArray<character>::ToUpper(h)
-                 == characters::CharArray<character>::ToUpper(n)
+              ?     characters::ToUpper(h)
+                 == characters::ToUpper(n)
               :                                               h
                  ==                                           n;
 
@@ -344,11 +374,11 @@ bool    Token::Match( const String& needle )
         }
 
         // end of haystack segment?
-        bool isSegEnd=       hIdx == name.Length()
+        bool isSegEnd=       hIdx == definitionName.Length()
                           || (isSnake && h == '_' )
                           || (isKebab && h == '-' )
-                          || (isCamel && isalpha(name.CharAt( hIdx ))
-                                      && isupper(name.CharAt( hIdx )) );
+                          || (isCamel && isalpha(definitionName.CharAt( hIdx ))
+                                      && isupper(definitionName.CharAt( hIdx )) );
 
         // update segOK flag
         if( same )
@@ -380,7 +410,7 @@ bool    Token::Match( const String& needle )
                    && (     ( isCamel && (!isalpha(h) || !isupper(h) ) )
                         ||  ( isSnake && h != '_' )
                         ||  ( isKebab && h != '-' ) ) )
-                h= name.CharAt( hIdx++ );
+                h= definitionName.CharAt( hIdx++ );
 
             if( isCamel )
                 --hIdx;
@@ -404,9 +434,11 @@ bool    Token::Match( const String& needle )
     return same && isSegOK && (nIdx == needle.Length());
 }
 
-#if ALIB_CAMP && !defined(ALIB_DOX)
+#if ALIB_CAMP && !DOXYGEN
 
 ALIB_WARNINGS_ALLOW_UNSAFE_BUFFER_USAGE
+#include "alib/lang/callerinfo_functions.hpp"
+
 void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
                                   const NString&        resourceCategory,
                                   const NString&        resourceName,
@@ -417,7 +449,7 @@ void Token::LoadResourcedTokens(  ResourcePool&         resourcePool,
 {
 ALIB_WARNINGS_RESTORE
     ALIB_DBG( int tableSize= 0; )
-    int resourceNo= -1; // disble number parsing
+    int resourceNo= -1; // disable number parsing
 
     Substring parser= resourcePool.Get( resourceCategory, resourceName ALIB_DBG(, false ) );
     if( parser.IsNull() )
@@ -479,6 +511,8 @@ ALIB_WARNINGS_RESTORE
                         errorMessage= "Zero minimum length provided for segment which is not the last\n"
                                       "of a camel case token.";
                         break;
+
+                    default: ALIB_ERROR("Illegal switch state.") break;
                 }
 
                 if( errorMessage.IsNotEmpty() )
@@ -524,30 +558,10 @@ ALIB_WARNINGS_RESTORE
         "    Expected table size:              ["  << dbgSizeVerifier    << "]"     )
 
 }
-#endif
+#include "alib/lang/callerinfo_methods.hpp"
+
+#endif //ALIB_CAMP && !DOXYGEN
 
 }}} // namespace [alib::strings::util]
 
-//! @cond NO_DOX
-void alib::strings::T_Append<alib::strings::util::Token,alib::character>
-::operator()( TAString<alib::character>& target, const alib::strings::util::Token& src)
-{
-    target << src.GetRawName();
 
-    // low the last character in if CamelCase and the last min length equals 0.
-    if( src.GetFormat() == Token::Formats::CamelCase && src.Sensitivity() == lang::Case::Ignore )
-    {
-        for( int i= 0 ; i < 7 ; ++i )
-        {
-            auto minLen= src.GetMinLength( i );
-            if( minLen == 0 )
-            {
-                target[target.Length()-1]= characters::CharArray<character>::ToLower(target[target.Length()-1]);
-                break;
-            }
-            if( minLen == -1 )
-                break;
-        }
-    }
-}
-//! @endcond

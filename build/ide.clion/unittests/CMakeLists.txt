@@ -20,7 +20,6 @@ project("ALib_UnitTests")
 # -------------------------------------------------------------------------------------------------
 
     # Compile speed options. Uncomment during development ONLY!
-    # set( ALIB_CMAKE_COTIRE                 "On" )
     # set( ALIB_PRECOMPILED_HEADER           "On" )
     # set( ALIB_UT_LINKER_MOLD               "On" )
     # set( ALIB_UT_REDUCED_COMPILE_TIME      "On" )
@@ -29,12 +28,13 @@ project("ALib_UnitTests")
 
 
     # Allow valgrind runs.
-    #set( ALIB_AVOID_ANALYZER_WARNINGS      "On" )
+    list( APPEND ALIB_SYMBOLS      "ALIB_UT_AVOID_ANALYZER_WARNINGS=1"   )
 
     #set( ALIB_UT_NO_QT      "Off" )
 
     # Uncomment to exclude huge loops, sleep times, thread races, etc
     #list( APPEND ALIB_SYMBOLS   "ALIB_UT_ROUGH_EXECUTION_SPEED_TEST"    )
+
 
     # Further compiler warnings
     #list( APPEND ALIB_COMPILER_WARNINGS    "-Wextra-semi" )
@@ -52,24 +52,18 @@ project("ALib_UnitTests")
     #list( APPEND ALIB_COMPILER_OPTIONS     "-m32"    )
     #list( APPEND ALIB_LINKER_OPTIONS       "-m32"    )
 
-    # valgrind dwarf 4
-    #list( APPEND ALIB_COMPILER_OPTIONS    "-gdwarf-4"    )
-
     #### Module CAMP is mandatory to build the unit tests ####
     #list( APPEND ALIB_DISTRIBUTION         "CAMP"  )
 
-    #### These "micro modules" are optional: may be commented out. #####
-    #list( APPEND ALIB_DISTRIBUTION         "TIME"    )
-    #list( APPEND ALIB_DISTRIBUTION         "THREADS"  )  # includes TIME
-
-    #### The "higher level" modules are optional to be included in the unit tests ####
-    #list( APPEND ALIB_DISTRIBUTION         "ALL"           )
+    #### Module selection (note some undefined minimum is needed for the unit tests) ####
+    list( APPEND ALIB_DISTRIBUTION         "ALL"           )
     #list( APPEND ALIB_DISTRIBUTION         "ALOX"          )
-    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"      )
+    #list( APPEND ALIB_DISTRIBUTION         "BITBUFFER"     )
     #list( APPEND ALIB_DISTRIBUTION         "CONFIGURATION" )
     #list( APPEND ALIB_DISTRIBUTION         "CLI"           )
     #list( APPEND ALIB_DISTRIBUTION         "EXPRESSIONS"   )
-    #list( APPEND ALIB_DISTRIBUTION         "FILES"          )
+    #list( APPEND ALIB_DISTRIBUTION         "FILES"         )
+    #list( APPEND ALIB_DISTRIBUTION         "THREADMODEL"   )
 
     #### ALib Features ####
     #set( ALIB_FEAT_SINGLETON_MAPPED        "On" )
@@ -82,8 +76,18 @@ project("ALib_UnitTests")
     #set( ALIB_FEAT_BOXING_BIJECTIVE_FLOATS         "On" )
     #set( ALIB_FEAT_BOXING_BIJECTIVE_INTEGRALS      "On" )
 
+
+    #set( ALIB_FILES_FORCE_STD_SCANNER      "On" )
+    #set( ALOX_REL_LOG_CI                   "On"  )
+
+
+    #list( APPEND ALIB_SYMBOLS   "ALIB_DEBUG=0"    )
+    
+    #set( ALIB_DEBUG_CRITICAL_SECTIONS      "On" )
+    #set( ALIB_DEBUG_ALLOCATIONS            "On" )
     #set( ALIB_DEBUG_MONOMEM                "On" )
-    #set( ALIB_DEBUG_ARRAY_COMPRESSION      "On" )
+    #set( ALIB_DEBUG_CONTAINERS             "On" )
+    #set( ALIB_DEBUG_ARRAY_COMPRESSION      "Off")  # defaults to on
     #set( ALIB_DEBUG_STRINGS                "On" )
     #set( ALIB_DEBUG_RESOURCES              "On" )
     set( ALIB_DEBUG_BOXING                 "On" ) # has to be switched on to create the documentation

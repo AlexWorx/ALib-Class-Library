@@ -6,35 +6,19 @@
 // #################################################################################################
 #include "alib/alib_precompile.hpp"
 
-#if !defined(ALIB_DOX)
-#   if !defined(HPP_ALIB_CAMP_MESSAGE_REPORT)
-#      include "alib/lang/message/report.hpp"
-#   endif
-
-#   if ALIB_THREADS && !defined (HPP_ALIB_THREADS_SMARTLOCK)
-#      include "alib/threads/smartlock.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER_PYTHONSTYLE)
-#      include "alib/lang/format/formatterpythonstyle.hpp"
-#   endif
-
-#   if !defined(HPP_ALIB_LANG_FORMAT_FORMATTER)
-#      include "alib/lang/format/formatter.hpp"
-#   endif
-
-#   if !defined (_GLIBCXX_IOSTREAM) && !defined (_IOSTREAM_ )
-#      include <iostream>
-#   endif
-
-#   if defined( _WIN32 ) && !defined(HPP_ALIB_LANG_BASECAMP)
+#if !DOXYGEN
+#   include "alib/lang/message/report.hpp"
+#   include "alib/lang/format/formatterpythonstyle.hpp"
+#   include "alib/lang/format/formatter.hpp"
+#   include <iostream>
+#   if defined( _WIN32 )
 #       include "alib/lang/basecamp/basecamp.hpp"
 #   endif
-
-#   if !defined (HPP_ALIB_LANG_CAMP_INLINES)
-#      include "alib/lang/basecamp/camp_inlines.hpp"
+#   include "alib/lang/basecamp/camp_inlines.hpp"
+#   if ALIB_THREADS
+#     include "alib/threads/lock.hpp"
 #   endif
-#endif // !defined(ALIB_DOX)
+#endif // !DOXYGEN
 
 
 ALIB_BOXING_VTABLE_DEFINE( alib::lang::Report::Types, vt_alib_report_types )
@@ -52,6 +36,8 @@ Report* Report::defaultReport                                                   
 // #################################################################################################
 Report::Report()
 {
+    IF_ALIB_THREADS(  ALIB_DBG(lock.Dbg.Name= "alib::lang::Report";) )
+
     PushHaltFlags( true, false );
     PushWriter( &ReportWriterStdIO::GetSingleton() );
 }
@@ -64,7 +50,7 @@ Report::~Report()
 
 void Report::PushHaltFlags( bool haltOnErrors, bool haltOnWarnings )
 {
-    ALIB_LOCK_WITH(lock)
+    ALIB_LOCK_RECURSIVE_WITH(lock)
     haltAfterReport.push(    (haltOnErrors   ? 1 : 0)
                            + (haltOnWarnings ? 2 : 0));
 }
@@ -75,7 +61,7 @@ void Report::PopHaltFlags()
     )
 
     {
-        ALIB_LOCK_WITH(lock)
+        ALIB_LOCK_RECURSIVE_WITH(lock)
         haltAfterReport.pop();
 
         ALIB_DBG(  stackEmptyError= haltAfterReport.size() == 0; )
@@ -92,7 +78,7 @@ void Report::PopHaltFlags()
 
 void Report::PushWriter( ReportWriter* newReportWriter )
 {
-    ALIB_LOCK_WITH(lock)
+    ALIB_LOCK_RECURSIVE_WITH(lock)
     if ( writers.size() > 0 )
         writers.top()->NotifyActivation( lang::Phase::End );
     writers.push( newReportWriter );
@@ -101,7 +87,7 @@ void Report::PushWriter( ReportWriter* newReportWriter )
 
 void Report::PopWriter( ReportWriter* checkWriter )
 {
-    ALIB_LOCK_WITH(lock)
+    ALIB_LOCK_RECURSIVE_WITH(lock)
     if ( writers.size() == 0 )             {  ALIB_ERROR( "REPORT", "No Writer to remove" )          return; }
     if ( writers.top()  != checkWriter )   {  ALIB_ERROR( "REPORT", "Report Writer is not actual" )  return; }
     writers.top()->NotifyActivation( lang::Phase::End );
@@ -112,13 +98,13 @@ void Report::PopWriter( ReportWriter* checkWriter )
 
 ReportWriter* Report::PeekWriter()
 {
-    ALIB_LOCK_WITH(lock)
+    ALIB_LOCK_RECURSIVE_WITH(lock)
     return writers.top();
 }
 
 void Report::DoReport( Message& message )
 {
-    ALIB_LOCK_WITH(lock)
+    ALIB_LOCK_RECURSIVE_WITH(lock)
     if (recursionBlocker)
         return;
     recursionBlocker= true;
@@ -130,7 +116,7 @@ void Report::DoReport( Message& message )
         }
         catch( Exception& e )
         {
-            e.Add( message.File, message.Line, message.Function, ReportExceptions::ErrorWritingReport );
+            e.Add( message.CI, ReportExceptions::ErrorWritingReport );
             throw;
         }
 
@@ -138,7 +124,7 @@ void Report::DoReport( Message& message )
             int haltFlags= haltAfterReport.top();
             bool halt=     (message.Type == Report::Types::Error   && ( (haltFlags & 1) != 0) )
                         || (message.Type == Report::Types::Warning && ( (haltFlags & 2) != 0) );
-
+            (void) halt; // for release compiles with ALIB_DEBUG set
             #if defined( _WIN32 )
                 if( halt )
                 {
@@ -150,43 +136,35 @@ void Report::DoReport( Message& message )
                         assert( false );
                 }
             #else
-                assert( !halt );
+                #if defined(__GNUC__) || defined(__clang__)
+                    if (halt)  __builtin_trap();
+                #elif defined ( _MSC_VER )
+                    if (halt)  __debugbreak();
+                #else
+                    assert( !halt );
+                #endif
+
             #endif
 
         #endif
     recursionBlocker= false;
 }
 
-
-void ReportWriterStdIO::NotifyActivation( lang::Phase phase )
-{
-    #if ALIB_THREADS
-        if ( phase == lang::Phase::Begin )
-            SmartLock::StdOutputStreams.AddAcquirer   ( nullptr );
-        else
-            SmartLock::StdOutputStreams.RemoveAcquirer( nullptr );
-    #else
-        (void) phase;
-    #endif
-}
-
-
 void ReportWriterStdIO::Report( Message& msg )
 {
-    ALIB_IF_THREADS( SmartLock::StdOutputStreams.Acquire(ALIB_CALLER_PRUNED); )
-
         String1K buffer( "ALib " );
-             if (  msg.Type.Integral() == 0 )   buffer._( "Error:   " );
-        else if (  msg.Type.Integral() == 1 )   buffer._( "Warning: " );
-        else                                    buffer._( "Report (type=" )._( msg.Type )._("): ");
+        buffer.DbgDisableBufferReplacementWarning();
+             if (  msg.Type.Integral() == 0 )   buffer._( "Error " );
+        else if (  msg.Type.Integral() == 1 )   buffer._( "Warning " );
+        else                                    buffer._( "Report (type=" )._( msg.Type )._(") ");
 
         auto* out  = msg.Type.Integral() == 0 || msg.Type.Integral() == 1 ? &std::cerr : &std::cout;
         auto* other= msg.Type.Integral() == 0 || msg.Type.Integral() == 1 ? &std::cout : &std::cerr;
 
         // With ALox replacing this report writer (the usual thing), the first string might
-        // become auto-detected as an ALox domain name. To keep this consistent wie do a similar
+        // become auto-detected as an ALox domain name. To keep this consistent we do a similar
         // effort here (code is copied from ALoxReportWriter::Report())
-        NString32 replacement;
+        NString64 replacement;
         if(     msg.Size() > 1
             &&  msg[0].IsArrayOf<nchar>()
             &&  msg[0].UnboxLength() < 29 )
@@ -211,18 +189,18 @@ void ReportWriterStdIO::Report( Message& msg )
 
             if(!illegalCharacterFound)
             {
-                replacement <<  firstArg << ": ";
+                replacement <<  "in " << firstArg << ": ";
                 msg[0]= replacement;
             }
         }
 
-        SPFormatter formatter= Formatter::GetDefault();
-        if( formatter != nullptr)
+
+        ALIB_LOCK_RECURSIVE_WITH(Formatter::DefaultLock)
+        if( Formatter::Default != nullptr)
         {
-            formatter->Acquire( ALIB_CALLER_PRUNED );
             try
             {
-                formatter->FormatArgs( buffer, msg );
+                Formatter::Default->FormatArgs( buffer, msg );
             }
             catch ( Exception & e )
             {
@@ -231,40 +209,40 @@ void ReportWriterStdIO::Report( Message& msg )
                 out = &std::cerr;
                 other = &std::cout;
             }
-            formatter->Release();
         }
         else
         {
             for( auto& box : msg )
                 buffer << box << " ";
-            buffer << NewLine() << "(Note: Default Formatter was not available while writing Report)";
+            buffer.NewLine() << "(Note: Default Formatter was not available while writing Report)";
         }
-        buffer << NewLine() << "At        :   " << msg.File << ':' << msg.Line << ' ' << msg.Function << "()";
+        buffer.NewLine() << "At: " << msg.CI;
+
+    {ALIB_LOCK_WITH( threads::STD_IOSTREAMS_LOCK )
 
         out  ->flush();
-        other->flush();
-        *out << std::endl;
+            other->flush();
+            *out << std::endl;
 
-        ALIB_STRINGS_TO_NARROW(buffer, nBuffer, 1024)
-        out->write( nBuffer.Buffer(), nBuffer.Length() );
-       *out << std::endl;
-        out  ->flush();
-        other->flush();
+            ALIB_STRINGS_TO_NARROW(buffer, nBuffer, 16*1024)
+            out->write( nBuffer.Buffer(), nBuffer.Length() );
+            *    out << std::endl;
+            out  ->flush();
+            other->flush();
 
-        #if defined( _WIN32 ) && ALIB_CAMP
+            #if defined( _WIN32 ) && ALIB_CAMP
             if ( BASECAMP.IsDebuggerPresent() )
             {
-                #if !ALIB_CHARACTERS_WIDE
-                    OutputDebugStringA( buffer );
-                    OutputDebugStringA( "\r\n" );
-                #else
-                    OutputDebugStringW( buffer );
-                    OutputDebugStringW( L"\r\n" );
-                #endif
+                    #if !ALIB_CHARACTERS_WIDE
+                OutputDebugStringA( buffer );
+                OutputDebugStringA( "\r\n" );
+                    #else
+                OutputDebugStringW( buffer );
+                OutputDebugStringW( L"\r\n" );
+                    #endif
             }
-        #endif
-
-    ALIB_IF_THREADS( SmartLock::StdOutputStreams.Release(); )
+            #endif
+    }
 }
 
 
